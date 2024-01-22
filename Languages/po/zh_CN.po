@@ -16,14 +16,14 @@
 # zhenchao zhang <z734789215@gmail.com>, 2016
 # Ryan Zhou <sentret_c@sina.cn>, 2013
 # 天绝星 <c.cejhb@gmail.com>, 2015-2023
-# 陈 依云 <c1998lf@qq.com>, 2023
+# 陈 依云 <c1998lf@qq.com>, 2023-2024
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-21 22:29+0100\n"
+"POT-Creation-Date: 2024-01-22 18:48+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2023\n"
+"Last-Translator: 陈 依云 <c1998lf@qq.com>, 2023-2024\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
 "Language: zh_CN\n"

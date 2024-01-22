@@ -9,15 +9,15 @@
 # A. Regnander <anton_r_3@hotmail.com>, 2013,2015
 # A. Regnander <anton_r_3@hotmail.com>, 2015-2016,2018-2020
 # Arve Eriksson <031299870@telia.com>, 2017,2019-2022
-# JosJuice, 2015-2023
+# JosJuice, 2015-2024
 # Mat Mat <pprova2004@gmail.com>, 2019
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-21 22:29+0100\n"
+"POT-Creation-Date: 2024-01-22 18:48+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: JosJuice, 2015-2023\n"
+"Last-Translator: JosJuice, 2015-2024\n"
 "Language-Team: Swedish (http://app.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -218,7 +218,7 @@ msgstr "%1 golfar nu"
 
 #: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:129
 msgid "%1 is playing %2"
-msgstr ""
+msgstr "%1 spelar %2"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:115
 msgid "%1 memory ranges"
@@ -300,7 +300,7 @@ msgstr "%1x ursprunglig (%2x%3)"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:103
 msgid "%1x Native (%2x%3) for %4"
-msgstr ""
+msgstr "%1x ursprunglig (%2x%3) för %4"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:344
 #, c-format
@@ -805,7 +805,7 @@ msgstr "1 GiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:77
 msgid "1080p"
-msgstr ""
+msgstr "1080p"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:31
 msgid "128 Mbit (2043 blocks)"
@@ -817,7 +817,7 @@ msgstr "128 MiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:77
 msgid "1440p"
-msgstr ""
+msgstr "1440p"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
 msgid "16 Bytes"
@@ -935,7 +935,7 @@ msgstr "4:3"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:78
 msgid "4K"
-msgstr ""
+msgstr "4K"
 
 #: Source/Core/Core/HotkeyManager.cpp:196
 msgid "4x"
@@ -951,7 +951,7 @@ msgstr "512 MiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:78
 msgid "5K"
-msgstr ""
+msgstr "5K"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:30
 msgid "64 Mbit (1019 blocks)"
@@ -978,7 +978,7 @@ msgstr "64-bitars osignerat heltal"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:77
 msgid "720p"
-msgstr ""
+msgstr "720p"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:208
 msgid "8 Bytes"
@@ -1008,7 +1008,7 @@ msgstr "8-bitars osignerat heltal"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:79
 msgid "8K"
-msgstr ""
+msgstr "8K"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:116
 msgid "8x Anisotropic"
@@ -3509,7 +3509,7 @@ msgstr "Dansmatta"
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:365
 msgid "Dark"
-msgstr ""
+msgstr "Mörker"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:138
 msgid "Data"
@@ -3795,7 +3795,7 @@ msgstr "Inaktivera fastmem"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:877
 msgid "Disable Fastmem Arena"
-msgstr ""
+msgstr "Inaktivera fastmemarena"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:154
 msgid "Disable Fog"
@@ -5732,7 +5732,7 @@ msgstr "Figurnummer:"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:380
 msgid "Figure type"
-msgstr ""
+msgstr "Figurtyp"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:46
 msgid "File Details"
@@ -6501,7 +6501,7 @@ msgstr "GiB"
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:418
 msgid "Giant"
-msgstr ""
+msgstr "Jätte"
 
 #. i18n: Figures for the game Skylanders: Giants. The game has the same title in all countries
 #. it was released in. It was not released in Japan.
@@ -6611,7 +6611,7 @@ msgstr "Hjälp"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:128
 msgid "Hero level:"
-msgstr ""
+msgstr "Hjältenivå"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:120
 msgid "Hex"
@@ -7046,27 +7046,27 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:218
 msgid "Incorrect hero level value!"
-msgstr ""
+msgstr "Inkorrekt hjältenivåvärde!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:241
 msgid "Incorrect last placed time!"
-msgstr ""
+msgstr "Inkorrekt senast placerad-tid!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:235
 msgid "Incorrect last reset time!"
-msgstr ""
+msgstr "Inkorrekt senast nollställd-tid!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:212
 msgid "Incorrect money value!"
-msgstr ""
+msgstr "Inkorrekt pengavärde!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:224
 msgid "Incorrect nickname!"
-msgstr ""
+msgstr "Inkorrekt smeknamn!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:230
 msgid "Incorrect playtime value!"
-msgstr ""
+msgstr "Inkorrekt speltidsvärde!"
 
 #: Source/Core/Core/FreeLookManager.cpp:98
 msgid "Increase"
@@ -7247,19 +7247,19 @@ msgstr "Gränssnitt"
 
 #: Source/Core/Core/State.cpp:676
 msgid "Internal LZ4 Error - Tried decompressing {0} bytes"
-msgstr ""
+msgstr "Internt LZ4-fel - Försökte dekomprimera {0} byte"
 
 #: Source/Core/Core/State.cpp:341
 msgid "Internal LZ4 Error - compression failed"
-msgstr ""
+msgstr "Internt LZ4-fel - komprimering misslyckades"
 
 #: Source/Core/Core/State.cpp:696
 msgid "Internal LZ4 Error - decompression failed ({0}, {1}, {2})"
-msgstr ""
+msgstr "Internt LZ4-fel - dekomprimering misslyckades ({0}, {1}, {2})"
 
 #: Source/Core/Core/State.cpp:709
 msgid "Internal LZ4 Error - payload size mismatch ({0} / {1}))"
-msgstr ""
+msgstr "Internt LZ4-fel - payloadstorleken matchar inte ({0} / {1})"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
 msgid "Internal LZO Error - compression failed"
@@ -7275,17 +7275,24 @@ msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}) \n"
 "Unable to retrieve outdated savestate version info."
 msgstr ""
+"Internt LZO-fel - dekomprimering misslyckades ({0}) ({1})\n"
+"Det gick inte att hämta versionsinformation från den här gamla "
+"snabbsparningen."
 
 #: Source/Core/Core/State.cpp:553
 msgid ""
 "Internal LZO Error - failed to parse decompressed version cookie and version "
 "string length ({0})"
 msgstr ""
+"Internt LZO-fel - misslyckades att läsa dekomprimerad versionskaka och "
+"versionssträngslängd ({0})"
 
 #: Source/Core/Core/State.cpp:570
 msgid ""
 "Internal LZO Error - failed to parse decompressed version string ({0} / {1})"
 msgstr ""
+"Internt LZO-fel - misslyckades att läsa dekomprimerad versionssträng ({0} / "
+"{1})"
 
 #: Source/Core/Core/HotkeyManager.cpp:347
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:618
@@ -7408,7 +7415,7 @@ msgstr "Italien"
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:426
 msgid "Item"
-msgstr ""
+msgstr "Föremål"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:841
 msgid "JIT"
@@ -7513,6 +7520,8 @@ msgid ""
 "Kaos is the only villain for this trophy and is always unlocked. No need to "
 "edit anything!"
 msgstr ""
+"Kaos är den enda skurken för den här trofén och är alltid upplåst. Det finns "
+"inget att redigera."
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:676
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:296
@@ -7597,11 +7606,11 @@ msgstr "Föregående värde"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:153
 msgid "Last placed:"
-msgstr ""
+msgstr "Senast placerad:"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:144
 msgid "Last reset:"
-msgstr ""
+msgstr "Senast nollställd:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:87
 msgid "Latency:"
@@ -7958,7 +7967,7 @@ msgstr "Loggkonfiguration"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:59
 msgid "Log In"
-msgstr ""
+msgstr "Logga in"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:896
 msgid "Log JIT Instruction Coverage"
@@ -7966,7 +7975,7 @@ msgstr "Logga JIT-instruktionstäckning"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:60
 msgid "Log Out"
-msgstr ""
+msgstr "Logga ut"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:67
 msgid "Log Render Time to File"
@@ -8040,31 +8049,31 @@ msgstr "Huvudspak"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:219
 msgid "Make sure that the hero level value is between 0 and 100!"
-msgstr ""
+msgstr "Se till att hjältenivåvärdet är mellan 0 och 100!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:242
 msgid "Make sure that the last placed datetime value is valid!"
-msgstr ""
+msgstr "Se till att datum och tid för \"Senast placerad\" är giltiga!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:236
 msgid "Make sure that the last reset datetime value is valid!"
-msgstr ""
+msgstr "Se till att datum och tid för \"Senast nollställd\" är giltiga!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:213
 msgid "Make sure that the money value is between 0 and 65000!"
-msgstr ""
+msgstr "Se till att pengavärdet är mellan 0 och 65000!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:225
 msgid "Make sure that the nickname is between 0 and 15 characters long!"
-msgstr ""
+msgstr "Se till att smeknamnet är mellan 0 och 15 tecken långt!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:231
 msgid "Make sure that the playtime value is valid!"
-msgstr ""
+msgstr "Se till att speltiden är giltig!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:663
 msgid "Make sure there is a Skylander in slot %1!"
-msgstr ""
+msgstr "Se till att det finns en Skylander på plats %1!"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1005
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:222
@@ -8198,7 +8207,7 @@ msgstr "Mikrofon"
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:424
 msgid "Mini"
-msgstr ""
+msgstr "Mini"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:155
 msgid "Misc"
@@ -8253,7 +8262,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:129
 msgid "Modify Slot"
-msgstr ""
+msgstr "Modifiera plats"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:60
 msgid "Modifying Skylander: %1"
@@ -8266,7 +8275,7 @@ msgstr "Moduler hittade: %1"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:124
 msgid "Money:"
-msgstr ""
+msgstr "Pengar:"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:181
 msgid "Mono"
@@ -8573,7 +8582,7 @@ msgstr "Ingen spardata"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:82
 msgid "No data to modify!"
-msgstr ""
+msgstr "Ingen data att modifiera!"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:542
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:559
@@ -8606,7 +8615,7 @@ msgstr "Inget spel körs."
 
 #: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:196
 msgid "No graphics mod selected"
-msgstr ""
+msgstr "Ingen grafikmodd vald"
 
 #: Source/Core/DolphinQt/Debugger/AssembleInstructionDialog.cpp:59
 #: Source/Core/DolphinQt/Debugger/AssembleInstructionDialog.cpp:107
@@ -9213,7 +9222,7 @@ msgstr "Spelare"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:139
 msgid "Playtime:"
-msgstr ""
+msgstr "Speltid:"
 
 #. i18n: Please leave SyncOnSkipIdle and True untranslated.
 #. The user needs to enter these terms as-is in an INI file.
@@ -9497,7 +9506,7 @@ msgstr "Intervall start:"
 
 #: Source/Core/DolphinQt/Achievements/AchievementLeaderboardWidget.cpp:95
 msgid "Rank %1"
-msgstr ""
+msgstr "Rank %1"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:409
 msgid "Raw"
@@ -11089,7 +11098,7 @@ msgstr ""
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:416
 msgid "Skylander"
-msgstr ""
+msgstr "Skylander"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:188
 msgid "Skylander %1"
@@ -11455,7 +11464,7 @@ msgstr "Slagskena"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:136
 msgid "Style:"
-msgstr ""
+msgstr "Stil:"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:29
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:48
@@ -11564,7 +11573,7 @@ msgstr "Swap Force"
 #. i18n: One of the figure types in the Skylanders games.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:420
 msgid "Swapper"
-msgstr ""
+msgstr "Swapper"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:589
 msgid ""
@@ -11816,7 +11825,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:170
 msgid "The amount of money this skylander should have. Between 0 and 65000"
-msgstr ""
+msgstr "Mängden pengar den här Skylandern ska ha. Mellan 0 och 65000"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:282
 msgid ""
@@ -11865,6 +11874,9 @@ msgid ""
 "\n"
 "Please select another destination path for \"%1\""
 msgstr ""
+"Destinationsfilen kan inte vara samma som källfilen\n"
+"\n"
+"Välj en annan sökväg som destination för \"%1\""
 
 #: Source/Core/Core/Movie.cpp:363
 msgid ""
@@ -11943,6 +11955,8 @@ msgid ""
 "The file associated to this file was closed! Did you clear the slot before "
 "saving?"
 msgstr ""
+"Filen som är associerad med den här filen stängdes! Rensade du platsen före "
+"du sparade?"
 
 #: Source/Core/AudioCommon/WaveFile.cpp:60
 msgid ""
@@ -12045,6 +12059,8 @@ msgid ""
 "The hero level of this skylander. Only seen in Skylanders: Spyro's "
 "Adventures. Between 0 and 100"
 msgstr ""
+"Hjältenivån för den här Skylandern. Används bara i Skylanders: Spyro's "
+"Adventures. Mellan 0 och 100"
 
 #: Source/Core/Core/NetPlayClient.cpp:184
 msgid ""
@@ -12060,13 +12076,15 @@ msgstr "Installationspartitionen saknas."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
 msgid "The last time the figure has been placed on a portal"
-msgstr ""
+msgstr "Senaste gången figuren placerades på en portal"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
 msgid ""
 "The last time the figure has been reset. If the figure has never been reset, "
 "the first time the figure was placed on a portal"
 msgstr ""
+"Senaste gången figuren nollställdes. Om figuren aldrig har nollställts, "
+"första gången figuren placerades på en portal"
 
 #: Source/Core/Core/HW/EXI/EXI.cpp:50
 msgid ""
@@ -12081,7 +12099,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:173
 msgid "The nickname for this skylander. Limited to 15 characters"
-msgstr ""
+msgstr "Smeknamnet för den här Skylandern. Max 15 tecken"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:159
 msgid "The patches in %1 are not for the selected game or game revision."
@@ -12174,11 +12192,12 @@ msgstr "Ticket-datan är inte korrekt signerad."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:175
 msgid "The total time this figure has been used inside a game in seconds"
-msgstr ""
+msgstr "Hur länge den här figuren har använts i spel totalt, i sekunder"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:169
 msgid "The toy code for this figure. Only available for real figures."
 msgstr ""
+"Leksakskoden för den här figuren. Bara tillgängligt för riktiga figurer."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:523
 msgid "The type of a partition could not be read."
@@ -12186,16 +12205,18 @@ msgstr "Typen av en partition kunde inte läsas."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:83
 msgid "The type of this Skylander does not have any data that can be modified!"
-msgstr ""
+msgstr "Den här Skylandertypen har ingen data att modifiera!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:90
 msgid "The type of this Skylander is unknown!"
-msgstr ""
+msgstr "Typen för den här Skylandern är okänd!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:97
 msgid ""
 "The type of this Skylander is unknown, or can't be modified at this time!"
 msgstr ""
+"Typen för den här Skylandern är okänd, eller kan inte modifieras för "
+"tillfället!"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:60
 msgid ""
@@ -12296,7 +12317,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:100
 msgid "This Skylander type can't be modified yet!"
-msgstr ""
+msgstr "Den här Skylandertypen kan inte modifieras än!"
 
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:152
 msgid "This USB device is already whitelisted."
@@ -12737,7 +12758,7 @@ msgstr "Beröring"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:119
 msgid "Toy code:"
-msgstr ""
+msgstr "Leksakskod:"
 
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:176
@@ -13423,7 +13444,7 @@ msgstr "Variant:"
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:431
 msgid "Vehicle"
-msgstr ""
+msgstr "Farkost"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:36
 msgid "Velocity"

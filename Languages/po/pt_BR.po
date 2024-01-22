@@ -34,7 +34,7 @@
 # Charles Fernando da Silva <eu.charles@hotmail.com>, 2013
 # 0d650e867a64ff3c44c343a4a46f4cc4_0750f19 <ca09cae74bc6c7e28e5c24ed2567e538_49102>, 2013
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013-2016
-# Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2023
+# Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2024
 # 0d650e867a64ff3c44c343a4a46f4cc4_0750f19 <ca09cae74bc6c7e28e5c24ed2567e538_49102>, 2013
 # Matheus Staffa <matheushelmer@bol.com.br>, 2017-2018,2021
 # Matheus Willder dos Santos, 2017
@@ -46,9 +46,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-21 22:29+0100\n"
+"POT-Creation-Date: 2024-01-22 18:48+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Runo <i.am.runo@gmail.com>, 2013\n"
+"Last-Translator: Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2024\n"
 "Language-Team: Portuguese (Brazil) (http://app.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"

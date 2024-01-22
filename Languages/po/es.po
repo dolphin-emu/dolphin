@@ -8,7 +8,7 @@
 # Borja <borja.tala95@gmail.com>, 2015
 # Daniel León <danileon95@gmail.com>, 2020
 # Dario_ff <dariosamo@gmail.com>, 2011
-# Petiso_Carambanal <diegoae@gmail.com>, 2013-2017,2020-2023
+# Petiso_Carambanal <diegoae@gmail.com>, 2013-2017,2020-2024
 # Diego Fernando <dfersd@yahoo.com>, 2013
 # Erik Fargas <efargaspro@gmail.com>, 2015
 # guillermo meghde, 2023
@@ -27,14 +27,14 @@
 # BentoCore <ncardenascota@gmail.com>, 2020
 # Sithdown <afdezmnez@gmail.com>, 2013
 # Swyter <Swyterzone@gmail.com>, 2014-2018,2021
-# Víctor González, 2021-2023
+# Víctor González, 2021-2024
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-21 22:29+0100\n"
+"POT-Creation-Date: 2024-01-22 18:48+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Víctor González, 2021-2023\n"
+"Last-Translator: Petiso_Carambanal <diegoae@gmail.com>, 2013-2017,2020-2024\n"
 "Language-Team: Spanish (http://app.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"

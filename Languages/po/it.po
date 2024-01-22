@@ -3,16 +3,16 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
-# Mewster <mewster92@gmail.com>, 2023
+# Mewster <mewster92@gmail.com>, 2023-2024
 # Mewster <mewster92@gmail.com>, 2013-2022
 # RebuMan, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-21 22:29+0100\n"
+"POT-Creation-Date: 2024-01-22 18:48+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Mewster <mewster92@gmail.com>, 2023\n"
+"Last-Translator: Mewster <mewster92@gmail.com>, 2023-2024\n"
 "Language-Team: Italian (http://app.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
 "Language: it\n"
