@@ -419,6 +419,7 @@ bool Wiimote::IsBalanceBoard()
                      "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
         return false;
       }
+      break;
     }
     default:
       break;
