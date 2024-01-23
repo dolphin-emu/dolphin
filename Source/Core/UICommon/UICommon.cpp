@@ -289,7 +289,7 @@ void SetUserDirectory(std::string custom_path)
 #ifdef _WIN32
   // Detect where the User directory is. There are five different cases
   // (on top of the command line flag, which overrides all this):
-  // 1. GetExeDirectory()\portable.txt exists
+  // 1. GetExeDirectory()\portable.txt or GetExeDirectory()\User exists
   //    -> Use GetExeDirectory()\User
   // 2. HKCU\Software\Dolphin Emulator\LocalUserConfig exists and is true
   //    -> Use GetExeDirectory()\User
@@ -303,7 +303,7 @@ void SetUserDirectory(std::string custom_path)
   //    -> Use GetExeDirectory()\User
   //
   // On Steam builds, we take a simplified approach:
-  // 1. GetExeDirectory()\portable.txt exists
+  // 1. GetExeDirectory()\portable.txt or GetExeDirectory()\User exists
   //    -> Use GetExeDirectory()\User
   // 2. AppData\Roaming exists
   //    -> Use AppData\Roaming\Dolphin Emulator (Steam) as the User directory path
@@ -340,7 +340,8 @@ void SetUserDirectory(std::string custom_path)
     }
   }
 
-  local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
+  local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt") ||
+          File::IsDirectory(File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR);
 
   // Attempt to check if the old User directory exists in Documents.
   wil::unique_cotaskmem_string documents;
@@ -383,7 +384,8 @@ void SetUserDirectory(std::string custom_path)
     user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
 #else  // ifndef STEAM
-  if (File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt"))  // Case 1
+  if (File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt") ||
+      File::IsDirectory(File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR))  // Case 1
   {
     user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
@@ -413,7 +415,7 @@ void SetUserDirectory(std::string custom_path)
     std::string home_path = std::string(home) + DIR_SEP;
 
     // On a non-Apple and non-Android POSIX system, there are 4 cases:
-    // 1. GetExeDirectory()/portable.txt exists
+    // 1. GetExeDirectory()/portable.txt or GetExeDirectory()/User exists
     //    -> Use GetExeDirectory()/User
     // 2. $DOLPHIN_EMU_USERPATH is set
     //    -> Use $DOLPHIN_EMU_USERPATH
@@ -424,7 +426,7 @@ void SetUserDirectory(std::string custom_path)
     //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     //
     // On macOS:
-    // 1. GetExeDirectory()/portable.txt exists
+    // 1. GetExeDirectory()/portable.txt or GetExeDirectory()/User exists
     //    -> Use GetExeDirectory()/User
     // 2. $DOLPHIN_EMU_USERPATH is set
     //    -> Use $DOLPHIN_EMU_USERPATH
@@ -432,7 +434,8 @@ void SetUserDirectory(std::string custom_path)
     //
     // On Android, custom_path is set, so this code path is never reached.
     std::string exe_path = File::GetExeDirectory();
-    if (File::Exists(exe_path + DIR_SEP "portable.txt"))
+    if (File::Exists(exe_path + DIR_SEP "portable.txt") ||
+        File::IsDirectory(exe_path + DIR_SEP PORTABLE_USER_DIR))
     {
       user_path = exe_path + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
     }
