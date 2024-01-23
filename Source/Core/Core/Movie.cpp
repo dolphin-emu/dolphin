@@ -7,8 +7,8 @@
 #include <array>
 #include <cctype>
 #include <cstring>
-#include <iomanip>
 #include <iterator>
+#include <locale>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
@@ -18,6 +18,7 @@
 #include <variant>
 #include <vector>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
@@ -166,11 +167,10 @@ std::string MovieManager::GetRTCDisplay()
 
   const time_t current_time =
       CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
-  const tm* const gm_time = gmtime(&current_time);
+  const tm gm_time = fmt::gmtime(current_time);
 
-  std::ostringstream format_time;
-  format_time << std::put_time(gm_time, "Date/Time: %c\n");
-  return format_time.str();
+  // Use current locale for formatting time, as fmt is locale-agnostic by default.
+  return fmt::format(std::locale{""}, "Date/Time: {:%c}", gm_time);
 }
 
 // NOTE: GPU Thread
