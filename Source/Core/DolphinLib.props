@@ -125,6 +125,7 @@
     <ClInclude Include="Common\Intrinsics.h" />
     <ClInclude Include="Common\IOFile.h" />
     <ClInclude Include="Common\JitRegister.h" />
+    <ClInclude Include="Common\JsonUtil.h" />
     <ClInclude Include="Common\Lazy.h" />
     <ClInclude Include="Common\LdrWatcher.h" />
     <ClInclude Include="Common\LinearDiskCache.h" />

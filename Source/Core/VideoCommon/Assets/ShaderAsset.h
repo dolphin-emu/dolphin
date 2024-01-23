@@ -5,7 +5,9 @@
 
 #include <array>
 #include <map>
+#include <span>
 #include <string>
+#include <string_view>
 #include <variant>
 
 #include <picojson.h>
@@ -44,6 +46,8 @@ struct ShaderProperty
   using Value = std::variant<s32, std::array<s32, 2>, std::array<s32, 3>, std::array<s32, 4>, float,
                              std::array<float, 2>, std::array<float, 3>, std::array<float, 4>, bool,
                              RGB, RGBA, Sampler2D, Sampler2DArray, SamplerCube>;
+  static std::span<const std::string_view> GetValueTypeNames();
+  static Value GetDefaultValueFromTypeName(std::string_view name);
 
   Value m_default;
   std::string m_description;
@@ -52,6 +56,7 @@ struct PixelShaderData
 {
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        PixelShaderData* data);
+  static void ToJson(picojson::object& obj, const PixelShaderData& data);
 
   // These shader properties describe the input that the
   // shader expects to expose.  The key is text
