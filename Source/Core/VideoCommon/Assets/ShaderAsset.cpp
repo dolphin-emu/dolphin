@@ -366,6 +366,76 @@ void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
   obj["properties"] = picojson::value{json_properties};
 }
 
+std::span<const std::string_view> ShaderProperty::GetValueTypeNames()
+{
+  static constexpr std::array<std::string_view, 14> values = {
+      "sampler2d", "sampler2darray", "samplercube", "int",    "int2", "int3", "int4",
+      "float",     "float2",         "float3",      "float4", "rgb",  "rgba", "bool"};
+  return values;
+}
+
+ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(std::string_view name)
+{
+  if (name == "sampler2d")
+  {
+    return Sampler2D{};
+  }
+  else if (name == "sampler2darray")
+  {
+    return Sampler2DArray{};
+  }
+  else if (name == "samplercube")
+  {
+    return SamplerCube{};
+  }
+  else if (name == "int")
+  {
+    return 0;
+  }
+  else if (name == "int2")
+  {
+    return std::array<s32, 2>{};
+  }
+  else if (name == "int3")
+  {
+    return std::array<s32, 3>{};
+  }
+  else if (name == "int4")
+  {
+    return std::array<s32, 4>{};
+  }
+  else if (name == "float")
+  {
+    return 0.0f;
+  }
+  else if (name == "float2")
+  {
+    return std::array<float, 2>{};
+  }
+  else if (name == "float3")
+  {
+    return std::array<float, 3>{};
+  }
+  else if (name == "float4")
+  {
+    return std::array<float, 4>{};
+  }
+  else if (name == "rgb")
+  {
+    return RGB{};
+  }
+  else if (name == "rgba")
+  {
+    return RGBA{};
+  }
+  else if (name == "bool")
+  {
+    return false;
+  }
+
+  return Value{};
+}
+
 CustomAssetLibrary::LoadInfo PixelShaderAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   auto potential_data = std::make_shared<PixelShaderData>();
