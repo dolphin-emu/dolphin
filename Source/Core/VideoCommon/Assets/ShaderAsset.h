@@ -52,6 +52,7 @@ struct PixelShaderData
 {
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        PixelShaderData* data);
+  static void ToJson(picojson::object& obj, const PixelShaderData& data);
 
   // These shader properties describe the input that the
   // shader expects to expose.  The key is text

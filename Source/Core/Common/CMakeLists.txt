@@ -86,6 +86,7 @@ add_library(common
   IOFile.h
   JitRegister.cpp
   JitRegister.h
+  JsonUtil.h
   Lazy.h
   LinearDiskCache.h
   Logging/ConsoleListener.h
