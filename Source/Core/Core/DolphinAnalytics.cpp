@@ -293,7 +293,7 @@ void DolphinAnalytics::MakeBaseBuilder()
     };
     // Under arm64, we need to call objc_msgSend to recieve a struct.
     // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
-#if _M_ARM_64
+#ifdef _M_ARM_64
 #define msgSend objc_msgSend
 #else
 #define msgSend objc_msgSend_stret
