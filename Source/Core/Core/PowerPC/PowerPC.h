@@ -160,7 +160,7 @@ struct PowerPCState
   // lscbx
   u16 xer_stringctrl = 0;
 
-#if _M_X86_64
+#ifdef _M_X86_64
   // This member exists only for the purpose of an assertion that its offset <= 0x100.
   std::tuple<> above_fits_in_first_0x100;
 
@@ -234,7 +234,7 @@ struct PowerPCState
   void UpdateFPRFSingle(float fvalue);
 };
 
-#if _M_X86_64
+#ifdef _M_X86_64
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
