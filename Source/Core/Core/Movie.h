@@ -222,8 +222,8 @@ public:
                           WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
 
   std::string GetInputDisplay();
-  std::string GetRTCDisplay();
-  std::string GetRerecords();
+  std::string GetRTCDisplay() const;
+  std::string GetRerecords() const;
 
 private:
   void GetSettings();

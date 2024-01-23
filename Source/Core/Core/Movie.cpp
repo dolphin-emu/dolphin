@@ -161,7 +161,7 @@ std::string MovieManager::GetInputDisplay()
 }
 
 // NOTE: GPU Thread
-std::string MovieManager::GetRTCDisplay()
+std::string MovieManager::GetRTCDisplay() const
 {
   using ExpansionInterface::CEXIIPL;
 
@@ -174,7 +174,7 @@ std::string MovieManager::GetRTCDisplay()
 }
 
 // NOTE: GPU Thread
-std::string MovieManager::GetRerecords()
+std::string MovieManager::GetRerecords() const
 {
   if (IsMovieActive())
     return fmt::format("Rerecords: {}", m_rerecords);
