@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <span>
 #include <type_traits>
 #include <variant>
 
@@ -187,7 +188,7 @@ protected:
   virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc) = 0;
   virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;
 
-  virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) const = 0;
+  virtual std::span<const Gen::X64Reg> GetAllocationOrder() const = 0;
 
   virtual BitSet32 GetRegUtilization() const = 0;
   virtual BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const = 0;
