@@ -1593,8 +1593,20 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     if (!shader_details.custom_shader.empty())
     {
       out.Write("\t{{\n");
-      out.Write("\t\tcustom_data.final_color = ocol0;\n");
-      out.Write("\t\tocol0.xyz = {}_{}(custom_data).xyz;\n", CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+      if (uid_data->uint_output)
+      {
+        out.Write("\t\tcustom_data.final_color = float4(ocol0.x / 255.0, ocol0.y / 255.0, ocol0.z "
+                  "/ 255.0, ocol0.w / 255.0);\n");
+        out.Write("\t\tfloat3 custom_output = {}_{}(custom_data).xyz;\n",
+                  CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+        out.Write("\t\tocol0.xyz = uint3(custom_output.x * 255, custom_output.y * 255, "
+                  "custom_output.z * 255);\n");
+      }
+      else
+      {
+        out.Write("\t\tcustom_data.final_color = ocol0;\n");
+        out.Write("\t\tocol0.xyz = {}_{}(custom_data).xyz;\n", CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+      }
       out.Write("\t}}\n\n");
     }
   }
