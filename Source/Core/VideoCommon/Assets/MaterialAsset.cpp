@@ -7,6 +7,7 @@
 #include <string_view>
 #include <vector>
 
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
@@ -207,17 +208,6 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
 
   return true;
 }
-
-template <typename T, std::size_t N>
-picojson::array ArrayToPicoArray(const std::array<T, N>& value)
-{
-  picojson::array result;
-  for (std::size_t i = 0; i < N; i++)
-  {
-    result.push_back(picojson::value{static_cast<double>(value[i])});
-  }
-  return result;
-}
 }  // namespace
 
 void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& property)
@@ -327,6 +317,68 @@ bool MaterialData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   data->shader_asset = shader_asset_iter->second.to_str();
 
   return true;
+}
+
+void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
+{
+  if (!obj) [[unlikely]]
+    return;
+
+  auto& json_obj = *obj;
+
+  picojson::array json_properties;
+  for (const auto& property : data.properties)
+  {
+    picojson::object json_property;
+    json_property["code_name"] = picojson::value{property.m_code_name};
+
+    std::visit(overloaded{[&](const CustomAssetLibrary::AssetID& value) {
+                            json_property["type"] = picojson::value{"texture_asset"};
+                            json_property["value"] = picojson::value{value};
+                          },
+                          [&](s32 value) {
+                            json_property["type"] = picojson::value{"int"};
+                            json_property["value"] = picojson::value{static_cast<double>(value)};
+                          },
+                          [&](const std::array<s32, 2>& value) {
+                            json_property["type"] = picojson::value{"int2"};
+                            json_property["value"] = picojson::value{ToJsonArray(value)};
+                          },
+                          [&](const std::array<s32, 3>& value) {
+                            json_property["type"] = picojson::value{"int3"};
+                            json_property["value"] = picojson::value{ToJsonArray(value)};
+                          },
+                          [&](const std::array<s32, 4>& value) {
+                            json_property["type"] = picojson::value{"int4"};
+                            json_property["value"] = picojson::value{ToJsonArray(value)};
+                          },
+                          [&](float value) {
+                            json_property["type"] = picojson::value{"float"};
+                            json_property["value"] = picojson::value{static_cast<double>(value)};
+                          },
+                          [&](const std::array<float, 2>& value) {
+                            json_property["type"] = picojson::value{"float2"};
+                            json_property["value"] = picojson::value{ToJsonArray(value)};
+                          },
+                          [&](const std::array<float, 3>& value) {
+                            json_property["type"] = picojson::value{"float3"};
+                            json_property["value"] = picojson::value{ToJsonArray(value)};
+                          },
+                          [&](const std::array<float, 4>& value) {
+                            json_property["type"] = picojson::value{"float4"};
+                            json_property["value"] = picojson::value{ToJsonArray(value)};
+                          },
+                          [&](bool value) {
+                            json_property["type"] = picojson::value{"bool"};
+                            json_property["value"] = picojson::value{value};
+                          }},
+               property.m_value);
+
+    json_properties.emplace_back(std::move(json_property));
+  }
+
+  json_obj["values"] = picojson::value{std::move(json_properties)};
+  json_obj["shader_asset"] = picojson::value{data.shader_asset};
 }
 
 CustomAssetLibrary::LoadInfo MaterialAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
