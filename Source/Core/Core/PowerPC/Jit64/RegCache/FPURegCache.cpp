@@ -25,11 +25,10 @@ void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location().value());
 }
 
-const X64Reg* FPURegCache::GetAllocationOrder(size_t* count) const
+std::span<const X64Reg> FPURegCache::GetAllocationOrder() const
 {
-  static const X64Reg allocation_order[] = {XMM6,  XMM7,  XMM8,  XMM9, XMM10, XMM11, XMM12,
-                                            XMM13, XMM14, XMM15, XMM2, XMM3,  XMM4,  XMM5};
-  *count = sizeof(allocation_order) / sizeof(X64Reg);
+  static constexpr X64Reg allocation_order[] = {XMM6,  XMM7,  XMM8,  XMM9, XMM10, XMM11, XMM12,
+                                                XMM13, XMM14, XMM15, XMM2, XMM3,  XMM4,  XMM5};
   return allocation_order;
 }
 
