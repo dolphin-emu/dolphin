@@ -52,7 +52,7 @@ public:
       break;
 
     case Terminal::FPR:
-      HighlightCurToken(HighlightFormat::GPR);
+      HighlightCurToken(HighlightFormat::FPR);
       break;
 
     case Terminal::SPR:
