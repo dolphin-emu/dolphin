@@ -165,8 +165,7 @@ std::string MovieManager::GetRTCDisplay() const
 {
   using ExpansionInterface::CEXIIPL;
 
-  const time_t current_time =
-      CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
+  const time_t current_time = CEXIIPL::GetEmulatedTime(m_system, CEXIIPL::UNIX_EPOCH);
   const tm gm_time = fmt::gmtime(current_time);
 
   // Use current locale for formatting time, as fmt is locale-agnostic by default.
