@@ -1,8 +1,9 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 #pragma once
+
+#ifdef USE_RETRO_ACHIEVEMENTS
 
 #include "Common/Config/Config.h"
 
