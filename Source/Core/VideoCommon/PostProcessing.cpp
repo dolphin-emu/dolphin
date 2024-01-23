@@ -580,8 +580,8 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
       default_uniform_staging_buffer = false;
     }
 
-    m_intermediary_frame_buffer.release();
-    m_intermediary_color_texture.release();
+    m_intermediary_frame_buffer.reset();
+    m_intermediary_color_texture.reset();
   }
 
   // TODO: ideally we'd do the user selected post process pass in the intermediary buffer in linear
