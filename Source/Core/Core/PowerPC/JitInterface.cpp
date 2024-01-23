@@ -32,11 +32,11 @@
 #include "Core/PowerPC/Profiler.h"
 #include "Core/System.h"
 
-#if _M_X86_64
+#ifdef _M_X86_64
 #include "Core/PowerPC/Jit64/Jit.h"
 #endif
 
-#if _M_ARM_64
+#ifdef _M_ARM_64
 #include "Core/PowerPC/JitArm64/Jit.h"
 #endif
 
@@ -61,12 +61,12 @@ CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
 {
   switch (core)
   {
-#if _M_X86_64
+#ifdef _M_X86_64
   case PowerPC::CPUCore::JIT64:
     m_jit = std::make_unique<Jit64>(m_system);
     break;
 #endif
-#if _M_ARM_64
+#ifdef _M_ARM_64
   case PowerPC::CPUCore::JITARM64:
     m_jit = std::make_unique<JitArm64>(m_system);
     break;
