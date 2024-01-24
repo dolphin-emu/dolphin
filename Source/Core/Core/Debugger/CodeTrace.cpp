@@ -53,12 +53,11 @@ u32 GetMemoryTargetSize(std::string_view instr)
 bool CompareMemoryTargetToTracked(const std::string& instr, const u32 mem_target,
                                   const std::set<u32>& mem_tracked)
 {
-  // This function is hit often and should be optimized.
-  auto it_lower = std::lower_bound(mem_tracked.begin(), mem_tracked.end(), mem_target);
+  const auto it_lower = mem_tracked.lower_bound(mem_target);
 
   if (it_lower == mem_tracked.end())
     return false;
-  else if (*it_lower == mem_target)
+  if (*it_lower == mem_target)
     return true;
 
   // If the base value doesn't hit, still need to check if longer values overlap.
