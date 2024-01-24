@@ -185,6 +185,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_memory->setVisible(enabled);
   m_show_network->setVisible(enabled);
   m_show_jit->setVisible(enabled);
+  m_show_assembler->setVisible(enabled);
 
   if (enabled)
   {
