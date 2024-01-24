@@ -694,7 +694,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "`Click 1`");
   // B
   m_buttons->SetControlExpression(1, "`Click 3`");
-#elif __APPLE__
+#elif defined(__APPLE__)
   // A
   m_buttons->SetControlExpression(0, "`Left Click`");
   // B
