@@ -18,7 +18,7 @@
 #include "VideoCommon/GraphicsModSystem/Constants.h"
 #include "VideoCommon/HiresTextures.h"
 
-GraphicsModGroupConfig::GraphicsModGroupConfig(const std::string& game_id) : m_game_id(game_id)
+GraphicsModGroupConfig::GraphicsModGroupConfig(std::string game_id) : m_game_id(std::move(game_id))
 {
 }
 
@@ -145,9 +145,9 @@ void GraphicsModGroupConfig::Save() const
   {
     picojson::object serialized_mod;
     mod.SerializeToProfile(&serialized_mod);
-    serialized_mods.push_back(picojson::value{serialized_mod});
+    serialized_mods.emplace_back(std::move(serialized_mod));
   }
-  serialized_root["mods"] = picojson::value{serialized_mods};
+  serialized_root.emplace("mods", std::move(serialized_mods));
 
   const auto output = picojson::value{serialized_root}.serialize(true);
   json_stream << output;

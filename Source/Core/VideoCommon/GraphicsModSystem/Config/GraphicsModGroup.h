@@ -16,7 +16,7 @@ struct GraphicsModConfig;
 class GraphicsModGroupConfig
 {
 public:
-  explicit GraphicsModGroupConfig(const std::string& game_id);
+  explicit GraphicsModGroupConfig(std::string game_id);
   ~GraphicsModGroupConfig();
 
   GraphicsModGroupConfig(const GraphicsModGroupConfig&);
