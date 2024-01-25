@@ -26,11 +26,12 @@ GraphicsModGroupConfig::~GraphicsModGroupConfig() = default;
 
 GraphicsModGroupConfig::GraphicsModGroupConfig(const GraphicsModGroupConfig&) = default;
 
-GraphicsModGroupConfig::GraphicsModGroupConfig(GraphicsModGroupConfig&&) = default;
+GraphicsModGroupConfig::GraphicsModGroupConfig(GraphicsModGroupConfig&&) noexcept = default;
 
 GraphicsModGroupConfig& GraphicsModGroupConfig::operator=(const GraphicsModGroupConfig&) = default;
 
-GraphicsModGroupConfig& GraphicsModGroupConfig::operator=(GraphicsModGroupConfig&&) = default;
+GraphicsModGroupConfig&
+GraphicsModGroupConfig::operator=(GraphicsModGroupConfig&&) noexcept = default;
 
 void GraphicsModGroupConfig::Load()
 {

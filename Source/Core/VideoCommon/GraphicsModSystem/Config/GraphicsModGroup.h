@@ -20,10 +20,10 @@ public:
   ~GraphicsModGroupConfig();
 
   GraphicsModGroupConfig(const GraphicsModGroupConfig&);
-  GraphicsModGroupConfig(GraphicsModGroupConfig&&);
+  GraphicsModGroupConfig(GraphicsModGroupConfig&&) noexcept;
 
   GraphicsModGroupConfig& operator=(const GraphicsModGroupConfig&);
-  GraphicsModGroupConfig& operator=(GraphicsModGroupConfig&&);
+  GraphicsModGroupConfig& operator=(GraphicsModGroupConfig&&) noexcept;
 
   void Load();
   void Save() const;
