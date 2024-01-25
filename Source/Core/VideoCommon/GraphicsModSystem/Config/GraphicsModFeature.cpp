@@ -7,9 +7,9 @@
 
 void GraphicsModFeatureConfig::SerializeToConfig(picojson::object& json_obj) const
 {
-  json_obj["group"] = picojson::value{m_group};
-  json_obj["action"] = picojson::value{m_action};
-  json_obj["action_data"] = m_action_data;
+  json_obj.emplace("group", m_group);
+  json_obj.emplace("action", m_action);
+  json_obj.emplace("action_data", m_action_data);
 }
 
 bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj)
