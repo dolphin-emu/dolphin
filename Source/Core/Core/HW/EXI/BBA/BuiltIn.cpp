@@ -275,7 +275,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
     if (datasize > 0)
     {
       Common::TCPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                               ref->ack_num, TCP_FLAG_ACK);
+                               ref->ack_num, TCP_FLAG_ACK | TCP_FLAG_PSH);
       packet.data = std::vector<u8>(buffer.begin(), buffer.begin() + datasize);
 
       // build buffer
