@@ -26,7 +26,7 @@ private:
 class CommonAsmRoutines : public CommonAsmRoutinesBase, public QuantizedMemoryRoutines
 {
 public:
-  explicit CommonAsmRoutines(Jit64& jit) : QuantizedMemoryRoutines(jit), m_jit(jit) {}
+  explicit CommonAsmRoutines(Jit64& jit) : QuantizedMemoryRoutines(jit) {}
   void GenFrsqrte();
   void GenFres();
   void GenMfcr();
@@ -39,6 +39,4 @@ protected:
   void GenQuantizedSingleLoads();
   void GenQuantizedStores();
   void GenQuantizedSingleStores();
-
-  Jit64& m_jit;
 };
