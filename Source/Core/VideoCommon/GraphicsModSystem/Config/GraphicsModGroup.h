@@ -16,14 +16,14 @@ struct GraphicsModConfig;
 class GraphicsModGroupConfig
 {
 public:
-  explicit GraphicsModGroupConfig(const std::string& game_id);
+  explicit GraphicsModGroupConfig(std::string game_id);
   ~GraphicsModGroupConfig();
 
   GraphicsModGroupConfig(const GraphicsModGroupConfig&);
-  GraphicsModGroupConfig(GraphicsModGroupConfig&&);
+  GraphicsModGroupConfig(GraphicsModGroupConfig&&) noexcept;
 
   GraphicsModGroupConfig& operator=(const GraphicsModGroupConfig&);
-  GraphicsModGroupConfig& operator=(GraphicsModGroupConfig&&);
+  GraphicsModGroupConfig& operator=(GraphicsModGroupConfig&&) noexcept;
 
   void Load();
   void Save() const;

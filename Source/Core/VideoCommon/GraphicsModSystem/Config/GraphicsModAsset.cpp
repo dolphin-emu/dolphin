@@ -8,14 +8,14 @@
 
 void GraphicsModAssetConfig::SerializeToConfig(picojson::object& json_obj) const
 {
-  json_obj["name"] = picojson::value{m_asset_id};
+  json_obj.emplace("name", m_asset_id);
 
   picojson::object serialized_data;
   for (const auto& [name, path] : m_map)
   {
-    serialized_data[name] = picojson::value{PathToString(path)};
+    serialized_data.emplace(name, PathToString(path));
   }
-  json_obj["data"] = picojson::value{serialized_data};
+  json_obj.emplace("data", std::move(serialized_data));
 }
 
 bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
