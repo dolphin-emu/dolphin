@@ -240,18 +240,19 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
 {
   // Initialize DriverDetails first so we can use it later
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
-  if ([[device name] containsString:@"NVIDIA"])
+  std::string name = [[device name] UTF8String];
+  if (name.find("NVIDIA") != std::string::npos)
     vendor = DriverDetails::VENDOR_NVIDIA;
-  else if ([[device name] containsString:@"AMD"])
+  else if (name.find("AMD") != std::string::npos)
     vendor = DriverDetails::VENDOR_ATI;
-  else if ([[device name] containsString:@"Intel"])
+  else if (name.find("Intel") != std::string::npos)
     vendor = DriverDetails::VENDOR_INTEL;
-  else if ([[device name] containsString:@"Apple"])
+  else if (name.find("Apple") != std::string::npos)
     vendor = DriverDetails::VENDOR_APPLE;
   const NSOperatingSystemVersion cocoa_ver = [[NSProcessInfo processInfo] operatingSystemVersion];
   double version = cocoa_ver.majorVersion * 100 + cocoa_ver.minorVersion;
   DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, version,
-                      DriverDetails::Family::UNKNOWN);
+                      DriverDetails::Family::UNKNOWN, std::move(name));
 
 #if TARGET_OS_OSX
   config->backend_info.bSupportsDepthClamp = true;
