@@ -85,6 +85,8 @@ add_library(videocommon
   GraphicsModSystem/Runtime/Actions/ScaleAction.h
   GraphicsModSystem/Runtime/Actions/SkipAction.cpp
   GraphicsModSystem/Runtime/Actions/SkipAction.h
+  GraphicsModSystem/Runtime/CustomPipeline.cpp
+  GraphicsModSystem/Runtime/CustomPipeline.h
   GraphicsModSystem/Runtime/CustomShaderCache.cpp
   GraphicsModSystem/Runtime/CustomShaderCache.h
   GraphicsModSystem/Runtime/FBInfo.cpp

@@ -692,6 +692,7 @@
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.h" />
+    <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\CustomPipeline.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\CustomShaderCache.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModAction.h" />
@@ -1323,6 +1324,7 @@
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.cpp" />
+    <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\CustomPipeline.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\CustomShaderCache.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.cpp" />
