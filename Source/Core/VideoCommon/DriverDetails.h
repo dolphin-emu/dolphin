@@ -1,6 +1,7 @@
 // Copyright 2013 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+#include <string>
 #include "Common/CommonTypes.h"
 
 #undef OS  // CURL defines that, nobody uses it...
@@ -345,7 +346,8 @@ enum Bug
 };
 
 // Initializes our internal vendor, device family, and driver version
-void Init(API api, Vendor vendor, Driver driver, const double version, const Family family);
+void Init(API api, Vendor vendor, Driver driver, const double version, const Family family,
+          std::string name);
 
 // Once Vendor and driver version is set, this will return if it has the applicable bug passed to
 // it.

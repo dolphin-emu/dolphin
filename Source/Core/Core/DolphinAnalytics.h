@@ -134,6 +134,9 @@ public:
   // to once per game run.
   void ReportGameQuirk(GameQuirk quirk);
 
+  // Get the base builder for building a report
+  const Common::AnalyticsReportBuilder& BaseBuilder() const { return m_base_builder; }
+
   struct PerformanceSample
   {
     double speed_ratio;  // See SystemTimers::GetEstimatedEmulationPerformance().

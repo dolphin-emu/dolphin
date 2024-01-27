@@ -967,7 +967,7 @@ void VulkanContext::InitDriverDetails()
 
   DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver,
                       static_cast<double>(m_device_properties.driverVersion),
-                      DriverDetails::Family::UNKNOWN);
+                      DriverDetails::Family::UNKNOWN, std::move(device_name));
 }
 
 void VulkanContext::PopulateShaderSubgroupSupport()
