@@ -33,6 +33,10 @@ public:
                        std::vector<PipelinePassPassDescription> pass_descriptions);
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
 
+  void DrawImGui() override;
+  void SerializeToConfig(picojson::object* obj) override;
+  std::string GetFactoryName() const override;
+
 private:
   std::shared_ptr<VideoCommon::CustomAssetLibrary> m_library;
   std::vector<PipelinePassPassDescription> m_passes_config;
