@@ -104,8 +104,8 @@ android {
                 // , "-DENABLE_GENERIC=ON"
                 abiFilters("arm64-v8a", "x86_64") //, "armeabi-v7a", "x86"
 
-                // Remove the line below if you want to build the C++ unit tests
-                //targets "main", "hook_impl", "main_hook", "gsl_alloc_hook", "file_redirect_hook"
+                // Uncomment the line below if you don't want to build the C++ unit tests
+                //targets("main", "hook_impl", "main_hook", "gsl_alloc_hook", "file_redirect_hook")
             }
         }
     }

@@ -22,19 +22,20 @@
 
 namespace SerialInterface
 {
-static s64 GetSyncInterval()
+static s64 GetSyncInterval(const SystemTimers::SystemTimersManager& timers)
 {
-  return SystemTimers::GetTicksPerSecond() / 1000;
+  return timers.GetTicksPerSecond() / 1000;
 }
 
 CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, SIDevices device, int device_number)
     : ISIDevice(system, device, device_number)
 {
-  m_core = std::make_shared<HW::GBA::Core>(m_device_number);
+  m_core = std::make_shared<HW::GBA::Core>(system, m_device_number);
   m_core->Start(system.GetCoreTiming().GetTicks());
   m_gbahost = Host_CreateGBAHost(m_core);
   m_core->SetHost(m_gbahost);
-  system.GetSerialInterface().ScheduleEvent(m_device_number, GetSyncInterval());
+  system.GetSerialInterface().ScheduleEvent(m_device_number,
+                                            GetSyncInterval(system.GetSystemTimers()));
 }
 
 CSIDevice_GBAEmu::~CSIDevice_GBAEmu()
@@ -61,7 +62,8 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
     auto& si = m_system.GetSerialInterface();
     si.RemoveEvent(m_device_number);
-    si.ScheduleEvent(m_device_number, TransferInterval() + GetSyncInterval());
+    si.ScheduleEvent(m_device_number,
+                     TransferInterval() + GetSyncInterval(m_system.GetSystemTimers()));
     for (int i = 0; i < MAX_SI_CHANNELS; ++i)
     {
       if (i == m_device_number || si.GetDeviceType(i) != GetDeviceType())
@@ -115,7 +117,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
 int CSIDevice_GBAEmu::TransferInterval()
 {
-  return SIDevice_GetGBATransferTime(m_last_cmd);
+  return SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd);
 }
 
 bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
@@ -123,7 +125,8 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   GCPadStatus pad_status{};
   if (!NetPlay::IsNetPlayRunning())
     pad_status = Pad::GetGBAStatus(m_device_number);
-  SerialInterface::CSIDevice_GCController::HandleMoviePadStatus(m_device_number, &pad_status);
+  SerialInterface::CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
+                                                                m_device_number, &pad_status);
 
   static constexpr std::array<PadButton, 10> buttons_map = {
       PadButton::PAD_BUTTON_A,      // A
@@ -165,6 +168,8 @@ void CSIDevice_GBAEmu::DoState(PointerWrap& p)
 void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
 {
   m_core->SendJoybusCommand(m_system.GetCoreTiming().GetTicks() + userdata, 0, nullptr, m_keys);
-  m_system.GetSerialInterface().ScheduleEvent(m_device_number, userdata + GetSyncInterval());
+
+  const auto num_cycles = userdata + GetSyncInterval(m_system.GetSystemTimers());
+  m_system.GetSerialInterface().ScheduleEvent(m_device_number, num_cycles);
 }
 }  // namespace SerialInterface

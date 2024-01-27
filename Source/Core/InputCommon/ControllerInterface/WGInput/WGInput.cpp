@@ -6,6 +6,7 @@
 #include <array>
 #include <map>
 #include <string_view>
+#include <utility>
 
 // For CoGetApartmentType
 #include <objbase.h>
@@ -25,7 +26,9 @@
 
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "Common/WorkQueueThread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace WGI = winrt::Windows::Gaming::Input;
@@ -605,8 +608,21 @@ private:
   ControlState m_battery_level = 0;
 };
 
+enum class AddRemoveEventType
+{
+  AddOrReplace,
+  Remove,
+};
+
+struct AddRemoveEvent
+{
+  AddRemoveEventType type;
+  WGI::RawGameController raw_game_controller;
+};
+
 static thread_local bool s_initialized_winrt;
 static winrt::event_token s_event_added, s_event_removed;
+static Common::WorkQueueThread<AddRemoveEvent> s_device_add_remove_queue;
 
 static bool COMIsInitialized()
 {
@@ -668,6 +684,36 @@ static void RemoveDevice(const WGI::RawGameController& raw_game_controller)
 // (H is the lambda)
 #pragma warning(disable : 4265)
 
+static void HandleAddRemoveEvent(AddRemoveEvent evt)
+{
+  try
+  {
+    winrt::init_apartment();
+  }
+  catch (const winrt::hresult_error& ex)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE,
+                  "WGInput: Failed to CoInitialize for add/remove controller event: {}",
+                  WStringToUTF8(ex.message()));
+    return;
+  }
+  Common::ScopeGuard coinit_guard([] { winrt::uninit_apartment(); });
+
+  switch (evt.type)
+  {
+  case AddRemoveEventType::AddOrReplace:
+    RemoveDevice(evt.raw_game_controller);
+    AddDevice(evt.raw_game_controller);
+    break;
+  case AddRemoveEventType::Remove:
+    RemoveDevice(evt.raw_game_controller);
+    break;
+  default:
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Invalid add/remove controller event: {}",
+                  std::to_underlying(evt.type));
+  }
+}
+
 void Init()
 {
   if (!COMIsInitialized())
@@ -678,18 +724,21 @@ void Init()
     s_initialized_winrt = true;
   }
 
+  s_device_add_remove_queue.Reset("WGInput Add/Remove Device Thread", HandleAddRemoveEvent);
+
   try
   {
     // These events will be invoked from WGI-managed threadpool.
     s_event_added = WGI::RawGameController::RawGameControllerAdded(
-        [](auto&&, const WGI::RawGameController raw_game_controller) {
-          RemoveDevice(raw_game_controller);
-          AddDevice(raw_game_controller);
+        [](auto&&, WGI::RawGameController raw_game_controller) {
+          s_device_add_remove_queue.EmplaceItem(
+              AddRemoveEvent{AddRemoveEventType::AddOrReplace, std::move(raw_game_controller)});
         });
 
     s_event_removed = WGI::RawGameController::RawGameControllerRemoved(
-        [](auto&&, const WGI::RawGameController raw_game_controller) {
-          RemoveDevice(raw_game_controller);
+        [](auto&&, WGI::RawGameController raw_game_controller) {
+          s_device_add_remove_queue.EmplaceItem(
+              AddRemoveEvent{AddRemoveEventType::Remove, std::move(raw_game_controller)});
         });
   }
   catch (winrt::hresult_error)
@@ -702,6 +751,8 @@ void Init()
 
 void DeInit()
 {
+  s_device_add_remove_queue.Shutdown();
+
   WGI::RawGameController::RawGameControllerAdded(s_event_added);
   WGI::RawGameController::RawGameControllerRemoved(s_event_removed);
 

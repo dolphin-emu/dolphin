@@ -120,25 +120,26 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(int device_number, GCPadStatus* pad_status)
+void CSIDevice_GCController::HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
+                                                  GCPadStatus* pad_status)
 {
-  Movie::SetPolledDevice();
+  movie.SetPolledDevice();
   if (NetPlay_GetInput(device_number, pad_status))
   {
   }
-  else if (Movie::IsPlayingInput())
+  else if (movie.IsPlayingInput())
   {
-    Movie::PlayController(pad_status, device_number);
-    Movie::InputUpdate();
+    movie.PlayController(pad_status, device_number);
+    movie.InputUpdate();
   }
-  else if (Movie::IsRecordingInput())
+  else if (movie.IsRecordingInput())
   {
-    Movie::RecordInput(pad_status, device_number);
-    Movie::InputUpdate();
+    movie.RecordInput(pad_status, device_number);
+    movie.InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, device_number);
+    movie.CheckPadStatus(pad_status, device_number);
   }
 }
 
@@ -153,7 +154,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
     pad_status = Pad::GetStatus(m_device_number);
   }
 
-  HandleMoviePadStatus(m_device_number, &pad_status);
+  HandleMoviePadStatus(m_system.GetMovie(), m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
@@ -264,7 +265,8 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   if (m_last_button_combo != COMBO_NONE)
   {
     const u64 current_time = m_system.GetCoreTiming().GetTicks();
-    if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
+    const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
+    if (u32(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {

@@ -265,19 +265,20 @@ void SerialInterfaceManager::Init()
     m_channel[i].in_lo.hex = 0;
     m_channel[i].has_recent_device_change = false;
 
-    if (Movie::IsMovieActive())
+    auto& movie = m_system.GetMovie();
+    if (movie.IsMovieActive())
     {
       m_desired_device_types[i] = SIDEVICE_NONE;
 
-      if (Movie::IsUsingGBA(i))
+      if (movie.IsUsingGBA(i))
       {
         m_desired_device_types[i] = SIDEVICE_GC_GBA_EMULATED;
       }
-      else if (Movie::IsUsingPad(i))
+      else if (movie.IsUsingPad(i))
       {
         SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
         // GC pad-compatible devices can be used for both playing and recording
-        if (Movie::IsUsingBongo(i))
+        if (movie.IsUsingBongo(i))
           m_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
         else if (SIDevice_IsGCController(current))
           m_desired_device_types[i] = current;
@@ -525,7 +526,7 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
 
   // Prevent additional device changes on this channel for one second.
   m_channel[channel].has_recent_device_change = true;
-  m_system.GetCoreTiming().ScheduleEvent(SystemTimers::GetTicksPerSecond(),
+  m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
                                          m_event_type_change_device, channel);
 }
 

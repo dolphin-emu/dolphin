@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
+
+#include <memory>
 #include <string>
 #include <unordered_set>
 
@@ -10,6 +12,7 @@
 #include "Common/FileUtil.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
+#include "Core/System.h"
 #include "UICommon/UICommon.h"
 
 // Tests that the UniqueID function returns a "unique enough" identifier
@@ -66,9 +69,18 @@ TEST(IsMMIOAddress, SpecialAddresses)
 class MappingTest : public testing::Test
 {
 protected:
-  virtual void SetUp() override { m_mapping = new MMIO::Mapping(); }
-  virtual void TearDown() override { delete m_mapping; }
-  MMIO::Mapping* m_mapping = nullptr;
+  virtual void SetUp() override
+  {
+    m_system = &Core::System::GetInstance();
+    m_mapping = std::make_unique<MMIO::Mapping>();
+  }
+  virtual void TearDown() override
+  {
+    m_system = nullptr;
+    m_mapping.reset();
+  }
+  Core::System* m_system = nullptr;
+  std::unique_ptr<MMIO::Mapping> m_mapping;
 };
 
 TEST_F(MappingTest, ReadConstant)
@@ -77,9 +89,9 @@ TEST_F(MappingTest, ReadConstant)
   m_mapping->Register(0x0C001234, MMIO::Constant<u16>(0x1234), MMIO::Nop<u16>());
   m_mapping->Register(0x0C001234, MMIO::Constant<u32>(0xdeadbeef), MMIO::Nop<u32>());
 
-  u8 val8 = m_mapping->Read<u8>(0x0C001234);
-  u16 val16 = m_mapping->Read<u16>(0x0C001234);
-  u32 val32 = m_mapping->Read<u32>(0x0C001234);
+  u8 val8 = m_mapping->Read<u8>(*m_system, 0x0C001234);
+  u16 val16 = m_mapping->Read<u16>(*m_system, 0x0C001234);
+  u32 val32 = m_mapping->Read<u32>(*m_system, 0x0C001234);
 
   EXPECT_EQ(0x42, val8);
   EXPECT_EQ(0x1234, val16);
@@ -101,19 +113,19 @@ TEST_F(MappingTest, ReadWriteDirect)
 
   for (u32 i = 0; i < 100; ++i)
   {
-    u8 val8 = m_mapping->Read<u8>(0x0C001234);
+    u8 val8 = m_mapping->Read<u8>(*m_system, 0x0C001234);
     EXPECT_EQ(i, val8);
-    u16 val16 = m_mapping->Read<u16>(0x0C001234);
+    u16 val16 = m_mapping->Read<u16>(*m_system, 0x0C001234);
     EXPECT_EQ(i, val16);
-    u32 val32 = m_mapping->Read<u32>(0x0C001234);
+    u32 val32 = m_mapping->Read<u32>(*m_system, 0x0C001234);
     EXPECT_EQ(i, val32);
 
     val8 += 1;
-    m_mapping->Write(0x0C001234, val8);
+    m_mapping->Write(*m_system, 0x0C001234, val8);
     val16 += 1;
-    m_mapping->Write(0x0C001234, val16);
+    m_mapping->Write(*m_system, 0x0C001234, val16);
     val32 += 1;
-    m_mapping->Write(0x0C001234, val32);
+    m_mapping->Write(*m_system, 0x0C001234, val32);
   }
 }
 
@@ -132,9 +144,9 @@ TEST_F(MappingTest, ReadWriteComplex)
                         write_called = true;
                       }));
 
-  u8 val = m_mapping->Read<u8>(0x0C001234);
+  u8 val = m_mapping->Read<u8>(*m_system, 0x0C001234);
   EXPECT_EQ(0x12, val);
-  m_mapping->Write(0x0C001234, (u8)0x34);
+  m_mapping->Write(*m_system, 0x0C001234, (u8)0x34);
 
   EXPECT_TRUE(read_called);
   EXPECT_TRUE(write_called);

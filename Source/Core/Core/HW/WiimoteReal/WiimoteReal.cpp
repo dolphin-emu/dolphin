@@ -419,6 +419,7 @@ bool Wiimote::IsBalanceBoard()
                      "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
         return false;
       }
+      break;
     }
     default:
       break;
@@ -465,7 +466,8 @@ void Wiimote::SetWiimoteDeviceIndex(u8 index)
   m_bt_device_index = index;
 }
 
-void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state)
+void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                           SensorBarState sensor_bar_state)
 {
   // Nothing to do here on real Wiimotes.
 }

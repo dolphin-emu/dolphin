@@ -484,7 +484,7 @@ float VideoInterfaceManager::GetAspectRatio() const
   int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
-  float tick_length = (1.0f / SystemTimers::GetTicksPerSecond());
+  float tick_length = (1.0f / m_system.GetSystemTimers().GetTicksPerSecond());
   float vertical_period = tick_length * GetTicksPerField();
   float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
   float vertical_active_area = active_lines * horizontal_period;
@@ -545,7 +545,7 @@ float VideoInterfaceManager::GetAspectRatio() const
 
   // 5. Calculate the final ratio and scale to 4:3
   float ratio = horizontal_active_ratio / vertical_active_ratio;
-  bool running_fifo_log = FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates();
+  const bool running_fifo_log = m_system.GetFifoPlayer().IsRunningWithFakeVideoInterfaceUpdates();
   if (std::isnormal(ratio) &&      // Check we have a sane ratio without any infs/nans/zeros
       !running_fifo_log)           // we don't know the correct ratio for fifos
     return ratio * (4.0f / 3.0f);  // Scale to 4:3
@@ -695,7 +695,7 @@ void VideoInterfaceManager::UpdateParameters()
   m_even_field_first_hl = equ_hl + m_vblank_timing_even.PRB + GetHalfLinesPerOddField();
   m_even_field_last_hl = m_even_field_first_hl + acv_hl - 1;
 
-  m_target_refresh_rate_numerator = SystemTimers::GetTicksPerSecond() * 2;
+  m_target_refresh_rate_numerator = m_system.GetSystemTimers().GetTicksPerSecond() * 2;
   m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
   m_target_refresh_rate =
       static_cast<double>(m_target_refresh_rate_numerator) / m_target_refresh_rate_denominator;
@@ -718,7 +718,7 @@ u32 VideoInterfaceManager::GetTargetRefreshRateDenominator() const
 
 u32 VideoInterfaceManager::GetTicksPerSample() const
 {
-  return 2 * SystemTimers::GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock & 1];
+  return 2 * m_system.GetSystemTimers().GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock & 1];
 }
 
 u32 VideoInterfaceManager::GetTicksPerHalfLine() const
@@ -852,7 +852,7 @@ void VideoInterfaceManager::Update(u64 ticks)
   // in case frame counter display is enabled
 
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
-    Movie::FrameUpdate();
+    m_system.GetMovie().FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment

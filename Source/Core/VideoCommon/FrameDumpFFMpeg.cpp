@@ -356,9 +356,10 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
     return;
 
   // Calculate presentation timestamp from ticks since start.
-  const s64 pts = av_rescale_q(frame.state.ticks - m_context->start_ticks,
-                               AVRational{1, int(SystemTimers::GetTicksPerSecond())},
-                               m_context->codec->time_base);
+  const s64 pts = av_rescale_q(
+      frame.state.ticks - m_context->start_ticks,
+      AVRational{1, int(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
+      m_context->codec->time_base);
 
   if (!IsFirstFrameInCurrentFile())
   {

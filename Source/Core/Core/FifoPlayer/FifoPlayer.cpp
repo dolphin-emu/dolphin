@@ -172,7 +172,7 @@ void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
-FifoPlayer::FifoPlayer()
+FifoPlayer::FifoPlayer(Core::System& system) : m_system(system)
 {
   m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
   RefreshConfig();
@@ -228,8 +228,7 @@ public:
     IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
     // Without this call, we deadlock in initialization in dual core, as the FIFO is disabled and
     // thus ClearEfb()'s call to WaitForGPUInactive() never returns
-    auto& system = Core::System::GetInstance();
-    system.GetCPU().EnableStepping(false);
+    m_parent->m_system.GetCPU().EnableStepping(false);
 
     m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
     m_parent->LoadMemory();
@@ -251,8 +250,7 @@ public:
   const char* GetName() const override { return "FifoPlayer"; }
   void Run() override
   {
-    auto& system = Core::System::GetInstance();
-    auto& cpu = system.GetCPU();
+    auto& cpu = m_parent->m_system.GetCPU();
     while (cpu.GetState() == CPU::State::Running)
     {
       switch (m_parent->AdvanceFrame())
@@ -401,17 +399,11 @@ void FifoPlayer::SetFrameRangeEnd(u32 end)
   }
 }
 
-FifoPlayer& FifoPlayer::GetInstance()
-{
-  static FifoPlayer instance;
-  return instance;
-}
-
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   // Core timing information
-  auto& vi = Core::System::GetInstance().GetVideoInterface();
-  m_CyclesPerFrame = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
+  auto& vi = m_system.GetVideoInterface();
+  m_CyclesPerFrame = static_cast<u64>(m_system.GetSystemTimers().GetTicksPerSecond()) *
                      vi.GetTargetRefreshRateDenominator() / vi.GetTargetRefreshRateNumerator();
   m_ElapsedCycles = 0;
   m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
@@ -500,8 +492,7 @@ void FifoPlayer::WriteAllMemoryUpdates()
 
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  auto& memory = m_system.GetMemory();
   u8* mem = nullptr;
 
   if (memUpdate.address & 0x10000000)
@@ -517,11 +508,10 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
   u32 written = start;
   u32 lastBurstEnd = end - 1;
 
-  auto& system = Core::System::GetInstance();
-  auto& cpu = system.GetCPU();
-  auto& core_timing = system.GetCoreTiming();
-  auto& gpfifo = system.GetGPFifo();
-  auto& ppc_state = system.GetPPCState();
+  auto& cpu = m_system.GetCPU();
+  auto& core_timing = m_system.GetCoreTiming();
+  auto& gpfifo = m_system.GetGPFifo();
+  auto& ppc_state = m_system.GetPPCState();
 
   // Write up to 256 bytes at a time
   while (written < end)
@@ -637,8 +627,7 @@ void FifoPlayer::ClearEfb()
 
 void FifoPlayer::LoadMemory()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& ppc_state = m_system.GetPPCState();
 
   UReg_MSR newMSR;
   newMSR.DR = 1;
@@ -653,7 +642,7 @@ void FifoPlayer::LoadMemory()
 
   PowerPC::MSRUpdated(ppc_state);
 
-  auto& mmu = system.GetMMU();
+  auto& mmu = m_system.GetMMU();
   mmu.DBATUpdated();
   mmu.IBATUpdated();
 
@@ -713,18 +702,17 @@ void FifoPlayer::LoadTextureMemory()
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
 {
-  Core::System::GetInstance().GetMMU().Write_U16(value, 0xCC000000 | address);
+  m_system.GetMMU().Write_U16(value, 0xCC000000 | address);
 }
 
 void FifoPlayer::WritePI(u32 address, u32 value)
 {
-  Core::System::GetInstance().GetMMU().Write_U32(value, 0xCC003000 | address);
+  m_system.GetMMU().Write_U32(value, 0xCC003000 | address);
 }
 
 void FifoPlayer::FlushWGP()
 {
-  auto& system = Core::System::GetInstance();
-  auto& gpfifo = system.GetGPFifo();
+  auto& gpfifo = m_system.GetGPFifo();
 
   // Send 31 0s through the WGP
   for (int i = 0; i < 7; ++i)
@@ -737,9 +725,8 @@ void FifoPlayer::FlushWGP()
 
 void FifoPlayer::WaitForGPUInactive()
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
-  auto& cpu = system.GetCPU();
+  auto& core_timing = m_system.GetCoreTiming();
+  auto& cpu = m_system.GetCPU();
 
   // Sleep while the GPU is active
   while (!IsIdleSet() && cpu.GetState() != CPU::State::PowerDown)
@@ -751,8 +738,7 @@ void FifoPlayer::WaitForGPUInactive()
 
 void FifoPlayer::LoadBPReg(u8 reg, u32 value)
 {
-  auto& system = Core::System::GetInstance();
-  auto& gpfifo = system.GetGPFifo();
+  auto& gpfifo = m_system.GetGPFifo();
 
   gpfifo.Write8(0x61);  // load BP reg
 
@@ -763,8 +749,7 @@ void FifoPlayer::LoadBPReg(u8 reg, u32 value)
 
 void FifoPlayer::LoadCPReg(u8 reg, u32 value)
 {
-  auto& system = Core::System::GetInstance();
-  auto& gpfifo = system.GetGPFifo();
+  auto& gpfifo = m_system.GetGPFifo();
 
   gpfifo.Write8(0x08);  // load CP reg
   gpfifo.Write8(reg);
@@ -773,8 +758,7 @@ void FifoPlayer::LoadCPReg(u8 reg, u32 value)
 
 void FifoPlayer::LoadXFReg(u16 reg, u32 value)
 {
-  auto& system = Core::System::GetInstance();
-  auto& gpfifo = system.GetGPFifo();
+  auto& gpfifo = m_system.GetGPFifo();
 
   gpfifo.Write8(0x10);                      // load XF reg
   gpfifo.Write32((reg & 0x0fff) | 0x1000);  // load 4 bytes into reg
@@ -783,8 +767,7 @@ void FifoPlayer::LoadXFReg(u16 reg, u32 value)
 
 void FifoPlayer::LoadXFMem16(u16 address, const u32* data)
 {
-  auto& system = Core::System::GetInstance();
-  auto& gpfifo = system.GetGPFifo();
+  auto& gpfifo = m_system.GetGPFifo();
 
   // Loads 16 * 4 bytes in xf memory starting at address
   gpfifo.Write8(0x10);                              // load XF reg
@@ -820,16 +803,16 @@ bool FifoPlayer::ShouldLoadXF(u8 reg)
            (address >= XFMEM_UNKNOWN_GROUP_3_START && address <= XFMEM_UNKNOWN_GROUP_3_END));
 }
 
-bool FifoPlayer::IsIdleSet()
+bool FifoPlayer::IsIdleSet() const
 {
   CommandProcessor::UCPStatusReg status =
-      Core::System::GetInstance().GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      m_system.GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.CommandIdle;
 }
 
-bool FifoPlayer::IsHighWatermarkSet()
+bool FifoPlayer::IsHighWatermarkSet() const
 {
   CommandProcessor::UCPStatusReg status =
-      Core::System::GetInstance().GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      m_system.GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.OverflowHiWatermark;
 }

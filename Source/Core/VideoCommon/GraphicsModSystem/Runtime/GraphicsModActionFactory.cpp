@@ -3,9 +3,6 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 
-#include "Common/Logging/Log.h"
-
-#include "VideoCommon/Constants.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
@@ -35,16 +32,7 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   }
   else if (name == "custom_pipeline")
   {
-#ifdef ANDROID
-    // Custom shaders currently need more than 8 pixel samplers
-    // to be used with textures, rather than make things complicated
-    // just disable the feature for Android which has issues
-    ERROR_LOG_FMT(VIDEO, "Android needs more than 8 pixel samplers to function, {} provided",
-                  VideoCommon::MAX_PIXEL_SHADER_SAMPLERS);
-    return nullptr;
-#else
     return CustomPipelineAction::Create(json_data, std::move(library));
-#endif
   }
 
   return nullptr;

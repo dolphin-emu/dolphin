@@ -154,14 +154,14 @@ void GBASockServer::ClockSync(Core::System& system)
   {
     s_num_connected++;
     m_last_time_slice = core_timing.GetTicks();
-    time_slice = (u32)(SystemTimers::GetTicksPerSecond() / 60);
+    time_slice = (u32)(system.GetSystemTimers().GetTicksPerSecond() / 60);
   }
   else
   {
     time_slice = (u32)(core_timing.GetTicks() - m_last_time_slice);
   }
 
-  time_slice = (u32)((u64)time_slice * 16777216 / SystemTimers::GetTicksPerSecond());
+  time_slice = (u32)((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
   m_last_time_slice = core_timing.GetTicks();
   char bytes[4] = {0, 0, 0, 0};
   bytes[0] = (time_slice >> 24) & 0xff;
@@ -298,7 +298,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
   {
     int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
-    if (SIDevice_GetGBATransferTime(m_last_cmd) > elapsed_time)
+    if (SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd) > elapsed_time)
       return 0;
     m_next_action = NextAction::ReceiveResponse;
     [[fallthrough]];
@@ -345,7 +345,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
 int CSIDevice_GBA::TransferInterval()
 {
-  return SIDevice_GetGBATransferTime(m_last_cmd);
+  return SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd);
 }
 
 bool CSIDevice_GBA::GetData(u32& hi, u32& low)

@@ -36,9 +36,11 @@ ExpansionInterfaceManager::~ExpansionInterfaceManager() = default;
 void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
 {
   EXIDeviceType memorycard_device;
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+
+  auto& movie = m_system.GetMovie();
+  if (movie.IsPlayingInput() && movie.IsConfigSaved())
   {
-    if (Movie::IsUsingMemcard(slot))
+    if (movie.IsUsingMemcard(slot))
     {
       memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
       if (memorycard_device != EXIDeviceType::MemoryCardFolder &&
@@ -208,9 +210,9 @@ void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDevic
   core_timing.ScheduleEvent(0, m_event_type_change_device,
                             ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num,
                             from_thread);
-  core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond(), m_event_type_change_device,
-                            ((u64)channel << 32) | ((u64)device_type << 16) | device_num,
-                            from_thread);
+  core_timing.ScheduleEvent(
+      m_system.GetSystemTimers().GetTicksPerSecond(), m_event_type_change_device,
+      ((u64)channel << 32) | ((u64)device_type << 16) | device_num, from_thread);
 }
 
 CEXIChannel* ExpansionInterfaceManager::GetChannel(u32 index)

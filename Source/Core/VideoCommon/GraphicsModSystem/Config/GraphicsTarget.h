@@ -55,6 +55,7 @@ using GraphicsTargetConfig =
     std::variant<DrawStartedTextureTarget, LoadTextureTarget, CreateTextureTarget, EFBTarget,
                  XFBTarget, ProjectionTarget>;
 
+void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetConfig& target);
 std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::object& obj);
 
 void SerializeTargetToProfile(picojson::object* obj, const GraphicsTargetConfig& target);

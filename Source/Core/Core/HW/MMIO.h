@@ -15,7 +15,11 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
-#include "Core/System.h"
+
+namespace Core
+{
+class System;
+}
 
 namespace MMIO
 {
@@ -131,15 +135,15 @@ public:
   // called in interpreter mode, from Dolphin's own code, or from JIT'd code
   // where the access address could not be predicted.
   template <typename Unit>
-  Unit Read(u32 addr)
+  Unit Read(Core::System& system, u32 addr)
   {
-    return GetHandlerForRead<Unit>(addr).Read(Core::System::GetInstance(), addr);
+    return GetHandlerForRead<Unit>(addr).Read(system, addr);
   }
 
   template <typename Unit>
-  void Write(u32 addr, Unit val)
+  void Write(Core::System& system, u32 addr, Unit val)
   {
-    GetHandlerForWrite<Unit>(addr).Write(Core::System::GetInstance(), addr, val);
+    GetHandlerForWrite<Unit>(addr).Write(system, addr, val);
   }
 
   // Handlers access interface.
@@ -214,14 +218,14 @@ private:
 // Dummy 64 bits variants of these functions. While 64 bits MMIO access is
 // not supported, we need these in order to make the code compile.
 template <>
-inline u64 Mapping::Read<u64>(u32 addr)
+inline u64 Mapping::Read<u64>(Core::System& system, u32 addr)
 {
   DEBUG_ASSERT(false);
   return 0;
 }
 
 template <>
-inline void Mapping::Write(u32 addr, u64 val)
+inline void Mapping::Write(Core::System& system, u32 addr, u64 val)
 {
   DEBUG_ASSERT(false);
 }

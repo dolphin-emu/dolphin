@@ -15,6 +15,7 @@ struct GraphicsTargetGroupConfig
   std::string m_name;
   std::vector<GraphicsTargetConfig> m_targets;
 
+  void SerializeToConfig(picojson::object& json_obj) const;
   bool DeserializeFromConfig(const picojson::object& obj);
 
   void SerializeToProfile(picojson::object* obj) const;

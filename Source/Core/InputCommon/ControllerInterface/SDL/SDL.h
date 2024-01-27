@@ -5,22 +5,6 @@
 
 #include <SDL.h>
 
-#if SDL_VERSION_ATLEAST(1, 3, 0)
-#define USE_SDL_HAPTIC
-#endif
-
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-#define USE_SDL_GAMECONTROLLER
-#endif
-
-#ifdef USE_SDL_HAPTIC
-#include <SDL_haptic.h>
-#endif
-
-#ifdef USE_SDL_GAMECONTROLLER
-#include <SDL_gamecontroller.h>
-#endif
-
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/InputBackend.h"
 
@@ -28,50 +12,127 @@ namespace ciface::SDL
 {
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
 
-class Joystick : public Core::Device
+class GameController : public Core::Device
 {
 private:
+  // GameController inputs
   class Button : public Core::Device::Input
   {
   public:
     std::string GetName() const override;
-    Button(u8 index, SDL_Joystick* js) : m_js(js), m_index(index) {}
+    Button(SDL_GameController* gc, SDL_GameControllerButton button) : m_gc(gc), m_button(button) {}
     ControlState GetState() const override;
+    bool IsMatchingName(std::string_view name) const override;
 
   private:
-    SDL_Joystick* const m_js;
-    const u8 m_index;
+    SDL_GameController* const m_gc;
+    const SDL_GameControllerButton m_button;
   };
 
   class Axis : public Core::Device::Input
   {
   public:
     std::string GetName() const override;
-    Axis(u8 index, SDL_Joystick* js, Sint16 range) : m_js(js), m_range(range), m_index(index) {}
-    ControlState GetState() const override;
-
-  private:
-    SDL_Joystick* const m_js;
-    const Sint16 m_range;
-    const u8 m_index;
-  };
-
-  class Hat : public Input
-  {
-  public:
-    std::string GetName() const override;
-    Hat(u8 index, SDL_Joystick* js, u8 direction) : m_js(js), m_direction(direction), m_index(index)
+    Axis(SDL_GameController* gc, Sint16 range, SDL_GameControllerAxis axis)
+        : m_gc(gc), m_range(range), m_axis(axis)
     {
     }
     ControlState GetState() const override;
 
   private:
-    SDL_Joystick* const m_js;
-    const u8 m_direction;
-    const u8 m_index;
+    SDL_GameController* const m_gc;
+    const Sint16 m_range;
+    const SDL_GameControllerAxis m_axis;
   };
 
-#ifdef USE_SDL_HAPTIC
+  // Legacy inputs
+  class LegacyButton : public Core::Device::Input
+  {
+  public:
+    std::string GetName() const override;
+    LegacyButton(SDL_Joystick* js, int index, bool is_detectable)
+        : m_js(js), m_index(index), m_is_detectable(is_detectable)
+    {
+    }
+    bool IsDetectable() const override { return m_is_detectable; }
+    ControlState GetState() const override;
+
+  private:
+    SDL_Joystick* const m_js;
+    const int m_index;
+    const bool m_is_detectable;
+  };
+
+  class LegacyAxis : public Core::Device::Input
+  {
+  public:
+    std::string GetName() const override;
+    LegacyAxis(SDL_Joystick* js, int index, s16 range, bool is_detectable)
+        : m_js(js), m_index(index), m_range(range), m_is_detectable(is_detectable)
+    {
+    }
+    bool IsDetectable() const override { return m_is_detectable; }
+    ControlState GetState() const override;
+
+  private:
+    SDL_Joystick* const m_js;
+    const int m_index;
+    const s16 m_range;
+    const bool m_is_detectable;
+  };
+
+  class LegacyHat : public Input
+  {
+  public:
+    std::string GetName() const override;
+    LegacyHat(SDL_Joystick* js, int index, u8 direction, bool is_detectable)
+        : m_js(js), m_index(index), m_direction(direction), m_is_detectable(is_detectable)
+    {
+    }
+    bool IsDetectable() const override { return m_is_detectable; }
+    ControlState GetState() const override;
+
+  private:
+    SDL_Joystick* const m_js;
+    const int m_index;
+    const u8 m_direction;
+    const bool m_is_detectable;
+  };
+
+  // Rumble
+  class Motor : public Output
+  {
+  public:
+    explicit Motor(SDL_GameController* gc) : m_gc(gc) {}
+    std::string GetName() const override;
+    void SetState(ControlState state) override;
+
+  private:
+    SDL_GameController* const m_gc;
+  };
+
+  class MotorL : public Output
+  {
+  public:
+    explicit MotorL(SDL_GameController* gc) : m_gc(gc) {}
+    std::string GetName() const override;
+    void SetState(ControlState state) override;
+
+  private:
+    SDL_GameController* const m_gc;
+  };
+
+  class MotorR : public Output
+  {
+  public:
+    explicit MotorR(SDL_GameController* gc) : m_gc(gc) {}
+    std::string GetName() const override;
+    void SetState(ControlState state) override;
+
+  private:
+    SDL_GameController* const m_gc;
+  };
+
   class HapticEffect : public Output
   {
   public:
@@ -142,22 +203,7 @@ private:
 
     const Motor m_motor;
   };
-#endif
 
-#if SDL_VERSION_ATLEAST(2, 0, 9)
-  class Motor : public Output
-  {
-  public:
-    explicit Motor(SDL_Joystick* js) : m_js(js){};
-    std::string GetName() const override;
-    void SetState(ControlState state) override;
-
-  private:
-    SDL_Joystick* const m_js;
-  };
-#endif
-
-#ifdef USE_SDL_GAMECONTROLLER
   class MotionInput : public Input
   {
   public:
@@ -178,26 +224,21 @@ private:
 
     ControlState const m_scale;
   };
-#endif
 
 public:
-  Joystick(SDL_Joystick* const joystick, const int sdl_index);
-  ~Joystick();
+  GameController(SDL_GameController* const gamecontroller, SDL_Joystick* const joystick,
+                 const int sdl_index);
+  ~GameController();
 
   std::string GetName() const override;
   std::string GetSource() const override;
-  SDL_Joystick* GetSDLJoystick() const;
+  int GetSDLIndex() const;
 
 private:
-  SDL_Joystick* const m_joystick;
+  SDL_GameController* const m_gamecontroller;
   std::string m_name;
-
-#ifdef USE_SDL_HAPTIC
+  int m_sdl_index;
+  SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
-#endif
-
-#ifdef USE_SDL_GAMECONTROLLER
-  SDL_GameController* m_controller = nullptr;
-#endif
 };
 }  // namespace ciface::SDL

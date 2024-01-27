@@ -17,7 +17,7 @@ protected:
   Gen::OpArg GetDefaultLocation(preg_t preg) const override;
   void StoreRegister(preg_t preg, const Gen::OpArg& new_loc) override;
   void LoadRegister(preg_t preg, Gen::X64Reg new_loc) override;
-  const Gen::X64Reg* GetAllocationOrder(size_t* count) const override;
+  std::span<const Gen::X64Reg> GetAllocationOrder() const override;
   BitSet32 GetRegUtilization() const override;
   BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const override;
 };

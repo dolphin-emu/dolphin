@@ -13,6 +13,7 @@
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/RenderState.h"
 
 namespace VideoCommon
 {
@@ -289,6 +290,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   }
   else
   {
+    data->m_sampler = RenderState::GetLinearSamplerState();
     data->m_type = TextureData::Type::Type_Texture2D;
   }
 

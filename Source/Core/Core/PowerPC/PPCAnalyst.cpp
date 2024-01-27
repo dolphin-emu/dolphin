@@ -512,7 +512,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
     // Reorder integer compares, rlwinm., and carry-affecting ops
     // (if we add more merged branch instructions, add them here!)
     if ((type == ReorderType::CROR && isCror(a)) || (type == ReorderType::Carry && isCarryOp(a)) ||
-        (type == ReorderType::CMP && (type == ReorderType::CMP && a.crOut)))
+        (type == ReorderType::CMP && a.crOut))
     {
       // once we're next to a carry instruction, don't move away!
       if (type == ReorderType::Carry && i != start)

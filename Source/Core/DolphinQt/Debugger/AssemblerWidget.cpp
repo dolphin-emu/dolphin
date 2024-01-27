@@ -48,10 +48,9 @@ using namespace Common::GekkoAssembler;
 
 QString HtmlFormatErrorLoc(const AssemblerError& err)
 {
-  const QString error = QStringLiteral("<span style=\"color: red; font-weight: bold\">%1</span>")
-                            .arg(QObject::tr("Error"));
-  // i18n: '%1' is the translation of 'Error'
-  return QObject::tr("%1 on line %1 column %2").arg(error).arg(err.line + 1).arg(err.col + 1);
+  return QObject::tr("<span style=\"color: red; font-weight: bold\">Error</span> on line %1 col %2")
+      .arg(err.line + 1)
+      .arg(err.col + 1);
 }
 
 QString HtmlFormatErrorLine(const AssemblerError& err)
@@ -525,10 +524,8 @@ void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out)
   if (!good)
   {
     base_address = 0;
-    const QString warning =
-        QStringLiteral("<span style=\"color:#ffcc00\">%1</span>").arg(tr("Warning"));
-    // i18n: '%1' is the translation of 'Warning'
-    m_error_box->append(tr("%1 invalid base address, defaulting to 0").arg(warning));
+    m_error_box->append(
+        tr("<span style=\"color:#ffcc00\">Warning</span> invalid base address, defaulting to 0"));
   }
 
   const std::string contents = active_editor->toPlainText().toStdString();
@@ -701,21 +698,23 @@ void AssemblerWidget::OnTabChange(int index)
 QString AssemblerWidget::TabTextForEditor(AsmEditor* editor, bool with_dirty)
 {
   ASSERT(editor != nullptr);
-  QString dirtyFlag = QStringLiteral();
-  if (editor->IsDirty() && with_dirty)
+
+  QString result;
+  if (!editor->Path().isEmpty())
+    result = editor->EditorTitle();
+  else if (editor->EditorNum() == 0)
+    result = tr("New File");
+  else
+    result = tr("New File (%1)").arg(editor->EditorNum() + 1);
+
+  if (with_dirty && editor->IsDirty())
   {
-    dirtyFlag = QStringLiteral(" *");
+    // i18n: This asterisk is added to the title of an editor to indicate that it has unsaved
+    // changes
+    result = tr("%1 *").arg(result);
   }
 
-  if (editor->Path().isEmpty())
-  {
-    if (editor->EditorNum() == 0)
-    {
-      return tr("New File%1").arg(dirtyFlag);
-    }
-    return tr("New File (%1)%2").arg(editor->EditorNum() + 1).arg(dirtyFlag);
-  }
-  return tr("%1%2").arg(editor->EditorTitle()).arg(dirtyFlag);
+  return result;
 }
 
 AsmEditor* AssemblerWidget::GetEditor(int idx)

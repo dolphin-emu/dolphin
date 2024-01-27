@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 
+class FifoPlayer;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
@@ -23,7 +24,7 @@ class FIFOAnalyzer final : public QWidget
   Q_OBJECT
 
 public:
-  explicit FIFOAnalyzer();
+  explicit FIFOAnalyzer(FifoPlayer& fifo_player);
   ~FIFOAnalyzer();
 
   void Update();
@@ -41,6 +42,8 @@ private:
   void UpdateTree();
   void UpdateDetails();
   void UpdateDescription();
+
+  FifoPlayer& m_fifo_player;
 
   QTreeWidget* m_tree_widget;
   QListWidget* m_detail_list;

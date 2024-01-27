@@ -436,7 +436,7 @@ void Init()
   {
     auto& system = Core::System::GetInstance();
     auto& core_timing = system.GetCoreTiming();
-    if ((core_timing.GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
+    if ((core_timing.GetTicks() - s_last_init) < system.GetSystemTimers().GetTicksPerSecond())
       return;
 
     s_last_init = core_timing.GetTicks();

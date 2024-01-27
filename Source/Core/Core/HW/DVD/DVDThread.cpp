@@ -301,7 +301,7 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
                 request.realtime_done_us - request.realtime_started_us,
                 Common::Timer::NowUs() - request.realtime_started_us,
                 (m_system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
-                    (SystemTimers::GetTicksPerSecond() / 1000000));
+                    (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
 
   auto& dvd_interface = m_system.GetDVDInterface();
   DVD::DIInterruptType interrupt;

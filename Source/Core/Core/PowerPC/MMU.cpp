@@ -189,9 +189,14 @@ T MMU::ReadFromHardware(u32 em_address)
   if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
   {
     if (em_address < 0x0c000000)
+    {
       return EFB_Read(em_address);
+    }
     else
-      return static_cast<T>(m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(em_address));
+    {
+      return static_cast<T>(
+          m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, em_address));
+    }
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
@@ -346,20 +351,20 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     switch (size)
     {
     case 1:
-      m_memory.GetMMIOMapping()->Write<u8>(em_address, static_cast<u8>(data));
+      m_memory.GetMMIOMapping()->Write<u8>(m_system, em_address, static_cast<u8>(data));
       return;
     case 2:
-      m_memory.GetMMIOMapping()->Write<u16>(em_address, static_cast<u16>(data));
+      m_memory.GetMMIOMapping()->Write<u16>(m_system, em_address, static_cast<u16>(data));
       return;
     case 4:
-      m_memory.GetMMIOMapping()->Write<u32>(em_address, data);
+      m_memory.GetMMIOMapping()->Write<u32>(m_system, em_address, data);
       return;
     default:
       // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
       for (size_t i = size * 8; i > 0; em_address++)
       {
         i -= 8;
-        m_memory.GetMMIOMapping()->Write<u8>(em_address, static_cast<u8>(data >> i));
+        m_memory.GetMMIOMapping()->Write<u8>(m_system, em_address, static_cast<u8>(data >> i));
       }
       return;
     }
@@ -915,7 +920,7 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
   return ReadResult<std::string>(c->translated, std::move(s));
 }
 
-bool MMU::IsOptimizableRAMAddress(const u32 address) const
+bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return false;
@@ -926,12 +931,12 @@ bool MMU::IsOptimizableRAMAddress(const u32 address) const
   if (m_ppc_state.m_enable_dcache)
     return false;
 
-  // TODO: This API needs to take an access size
-  //
   // We store whether an access can be optimized to an unchecked access
   // in dbat_table.
-  u32 bat_result = m_dbat_table[address >> BAT_INDEX_SHIFT];
-  return (bat_result & BAT_PHYSICAL_BIT) != 0;
+  const u32 last_byte_address = address + (access_size >> 3) - 1;
+  const u32 bat_result_1 = m_dbat_table[address >> BAT_INDEX_SHIFT];
+  const u32 bat_result_2 = m_dbat_table[last_byte_address >> BAT_INDEX_SHIFT];
+  return (bat_result_1 & bat_result_2 & BAT_PHYSICAL_BIT) != 0;
 }
 
 template <XCheckTLBFlag flag>
@@ -1035,7 +1040,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
       const u32 data = Common::swap32(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF));
-      m_memory.GetMMIOMapping()->Write(mem_address + i, data);
+      m_memory.GetMMIOMapping()->Write(m_system, mem_address + i, data);
     }
     return;
   }
@@ -1071,7 +1076,8 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(m_memory.GetMMIOMapping()->Read<u32>(mem_address + i));
+      const u32 data =
+          Common::swap32(m_memory.GetMMIOMapping()->Read<u32>(m_system, mem_address + i));
       std::memcpy(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
     }
     return;

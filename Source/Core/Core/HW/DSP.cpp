@@ -119,7 +119,7 @@ void DSPManager::Init(bool hle)
 
 void DSPManager::Reinit(bool hle)
 {
-  m_dsp_emulator = CreateDSPEmulator(hle);
+  m_dsp_emulator = CreateDSPEmulator(m_system, hle);
   m_is_lle = m_dsp_emulator->IsLLE();
 
   if (SConfig::GetInstance().bWii)

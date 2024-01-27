@@ -234,7 +234,6 @@ public:
   {
   }
 
-protected:
   EmulationKernel& GetEmulationKernel() const { return static_cast<EmulationKernel&>(m_ios); }
 
   Core::System& GetSystem() const { return GetEmulationKernel().GetSystem(); }

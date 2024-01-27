@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
@@ -291,6 +292,150 @@ bool PixelShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& a
 
   return true;
 }
+
+void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
+{
+  picojson::array json_properties;
+  for (const auto& [name, property] : data.m_properties)
+  {
+    picojson::object json_property;
+    json_property.emplace("code_name", name);
+    json_property.emplace("description", property.m_description);
+
+    std::visit(overloaded{[&](const ShaderProperty::Sampler2D& default_value) {
+                            json_property.emplace("type", "sampler2d");
+                            json_property.emplace("default", default_value.value);
+                          },
+                          [&](const ShaderProperty::Sampler2DArray& default_value) {
+                            json_property.emplace("type", "sampler2darray");
+                            json_property.emplace("default", default_value.value);
+                          },
+                          [&](const ShaderProperty::SamplerCube& default_value) {
+                            json_property.emplace("type", "samplercube");
+                            json_property.emplace("default", default_value.value);
+                          },
+                          [&](s32 default_value) {
+                            json_property.emplace("type", "int");
+                            json_property.emplace("default", static_cast<double>(default_value));
+                          },
+                          [&](const std::array<s32, 2>& default_value) {
+                            json_property.emplace("type", "int2");
+                            json_property.emplace("default", ToJsonArray(default_value));
+                          },
+                          [&](const std::array<s32, 3>& default_value) {
+                            json_property.emplace("type", "int3");
+                            json_property.emplace("default", ToJsonArray(default_value));
+                          },
+                          [&](const std::array<s32, 4>& default_value) {
+                            json_property.emplace("type", "int4");
+                            json_property.emplace("default", ToJsonArray(default_value));
+                          },
+                          [&](float default_value) {
+                            json_property.emplace("type", "float");
+                            json_property.emplace("default", static_cast<double>(default_value));
+                          },
+                          [&](const std::array<float, 2>& default_value) {
+                            json_property.emplace("type", "float2");
+                            json_property.emplace("default", ToJsonArray(default_value));
+                          },
+                          [&](const std::array<float, 3>& default_value) {
+                            json_property.emplace("type", "float3");
+                            json_property.emplace("default", ToJsonArray(default_value));
+                          },
+                          [&](const std::array<float, 4>& default_value) {
+                            json_property.emplace("type", "float4");
+                            json_property.emplace("default", ToJsonArray(default_value));
+                          },
+                          [&](const ShaderProperty::RGB& default_value) {
+                            json_property.emplace("type", "rgb");
+                            json_property.emplace("default", ToJsonArray(default_value.value));
+                          },
+                          [&](const ShaderProperty::RGBA& default_value) {
+                            json_property.emplace("type", "rgba");
+                            json_property.emplace("default", ToJsonArray(default_value.value));
+                          },
+                          [&](bool default_value) {
+                            json_property.emplace("type", "bool");
+                            json_property.emplace("default", default_value);
+                          }},
+               property.m_default);
+
+    json_properties.emplace_back(std::move(json_property));
+  }
+
+  obj.emplace("properties", std::move(json_properties));
+}
+
+std::span<const std::string_view> ShaderProperty::GetValueTypeNames()
+{
+  static constexpr std::array<std::string_view, 14> values = {
+      "sampler2d", "sampler2darray", "samplercube", "int",    "int2", "int3", "int4",
+      "float",     "float2",         "float3",      "float4", "rgb",  "rgba", "bool"};
+  return values;
+}
+
+ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(std::string_view name)
+{
+  if (name == "sampler2d")
+  {
+    return Sampler2D{};
+  }
+  else if (name == "sampler2darray")
+  {
+    return Sampler2DArray{};
+  }
+  else if (name == "samplercube")
+  {
+    return SamplerCube{};
+  }
+  else if (name == "int")
+  {
+    return 0;
+  }
+  else if (name == "int2")
+  {
+    return std::array<s32, 2>{};
+  }
+  else if (name == "int3")
+  {
+    return std::array<s32, 3>{};
+  }
+  else if (name == "int4")
+  {
+    return std::array<s32, 4>{};
+  }
+  else if (name == "float")
+  {
+    return 0.0f;
+  }
+  else if (name == "float2")
+  {
+    return std::array<float, 2>{};
+  }
+  else if (name == "float3")
+  {
+    return std::array<float, 3>{};
+  }
+  else if (name == "float4")
+  {
+    return std::array<float, 4>{};
+  }
+  else if (name == "rgb")
+  {
+    return RGB{};
+  }
+  else if (name == "rgba")
+  {
+    return RGBA{};
+  }
+  else if (name == "bool")
+  {
+    return false;
+  }
+
+  return Value{};
+}
+
 CustomAssetLibrary::LoadInfo PixelShaderAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   auto potential_data = std::make_shared<PixelShaderData>();

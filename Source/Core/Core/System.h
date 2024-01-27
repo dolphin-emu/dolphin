@@ -47,6 +47,8 @@ namespace Fifo
 {
 class FifoManager;
 }
+class FifoPlayer;
+class FifoRecorder;
 namespace GPFifo
 {
 class GPFifoManager;
@@ -54,6 +56,10 @@ class GPFifoManager;
 namespace HSP
 {
 class HSPManager;
+}
+namespace IOS
+{
+class WiiIPC;
 }
 namespace IOS::HLE::USB
 {
@@ -68,6 +74,10 @@ namespace MemoryInterface
 {
 class MemoryInterfaceManager;
 };
+namespace Movie
+{
+class MovieManager;
+}
 namespace PixelEngine
 {
 class PixelEngineManager;
@@ -86,6 +96,10 @@ namespace SerialInterface
 {
 class SerialInterfaceManager;
 };
+namespace SystemTimers
+{
+class SystemTimersManager;
+}
 namespace VideoCommon
 {
 class CustomAssetLoader;
@@ -138,6 +152,8 @@ public:
   DVD::DVDThread& GetDVDThread() const;
   ExpansionInterface::ExpansionInterfaceManager& GetExpansionInterface() const;
   Fifo::FifoManager& GetFifo() const;
+  FifoPlayer& GetFifoPlayer() const;
+  FifoRecorder& GetFifoRecorder() const;
   GeometryShaderManager& GetGeometryShaderManager() const;
   GPFifo::GPFifoManager& GetGPFifo() const;
   HSP::HSPManager& GetHSP() const;
@@ -145,9 +161,11 @@ public:
   JitInterface& GetJitInterface() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   IOS::HLE::USB::InfinityBase& GetInfinityBase() const;
+  IOS::WiiIPC& GetWiiIPC() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;
   PowerPC::MMU& GetMMU() const;
+  Movie::MovieManager& GetMovie() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
   PowerPC::PowerPCManager& GetPowerPC() const;
@@ -155,6 +173,7 @@ public:
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
   SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
+  SystemTimers::SystemTimersManager& GetSystemTimers() const;
   VertexShaderManager& GetVertexShaderManager() const;
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;

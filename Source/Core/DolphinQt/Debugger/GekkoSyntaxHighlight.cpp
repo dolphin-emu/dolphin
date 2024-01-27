@@ -52,7 +52,7 @@ public:
       break;
 
     case Terminal::FPR:
-      HighlightCurToken(HighlightFormat::GPR);
+      HighlightCurToken(HighlightFormat::FPR);
       break;
 
     case Terminal::SPR:
@@ -221,17 +221,9 @@ void GekkoSyntaxHighlight::HighlightSubstr(int start, int len, HighlightFormat f
     hl_format.setForeground(IMM_COLOR[m_theme_idx]);
     break;
   case HighlightFormat::GPR:
-    hl_format.setForeground(BUILTIN_COLOR[m_theme_idx]);
-    break;
   case HighlightFormat::FPR:
-    hl_format.setForeground(BUILTIN_COLOR[m_theme_idx]);
-    break;
   case HighlightFormat::SPR:
-    hl_format.setForeground(BUILTIN_COLOR[m_theme_idx]);
-    break;
   case HighlightFormat::CRField:
-    hl_format.setForeground(BUILTIN_COLOR[m_theme_idx]);
-    break;
   case HighlightFormat::CRFlag:
     hl_format.setForeground(BUILTIN_COLOR[m_theme_idx]);
     break;

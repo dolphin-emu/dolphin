@@ -5,6 +5,7 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/VariantUtil.h"
 #include "VideoCommon/TextureCacheBase.h"
 
 namespace
@@ -151,6 +152,51 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
   return texture_info;
 }
 }  // namespace
+
+void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetConfig& target)
+{
+  std::visit(overloaded{
+                 [&](const DrawStartedTextureTarget& the_target) {
+                   json_obj.emplace("type", "draw_started");
+                   json_obj.emplace("texture_filename", the_target.m_texture_info_string);
+                 },
+                 [&](const LoadTextureTarget& the_target) {
+                   json_obj.emplace("type", "load_texture");
+                   json_obj.emplace("texture_filename", the_target.m_texture_info_string);
+                 },
+                 [&](const CreateTextureTarget& the_target) {
+                   json_obj.emplace("type", "create_texture");
+                   json_obj.emplace("texture_filename", the_target.m_texture_info_string);
+                 },
+                 [&](const EFBTarget& the_target) {
+                   json_obj.emplace("type", "efb");
+                   json_obj.emplace("texture_filename",
+                                    fmt::format("{}_{}x{}_{}", EFB_DUMP_PREFIX, the_target.m_width,
+                                                the_target.m_height,
+                                                static_cast<int>(the_target.m_texture_format)));
+                 },
+                 [&](const XFBTarget& the_target) {
+                   json_obj.emplace("type", "xfb");
+                   json_obj.emplace("texture_filename",
+                                    fmt::format("{}_{}x{}_{}", XFB_DUMP_PREFIX, the_target.m_width,
+                                                the_target.m_height,
+                                                static_cast<int>(the_target.m_texture_format)));
+                 },
+                 [&](const ProjectionTarget& the_target) {
+                   const char* type_name = "3d";
+                   if (the_target.m_projection_type == ProjectionType::Orthographic)
+                     type_name = "2d";
+
+                   json_obj.emplace("type", type_name);
+
+                   if (the_target.m_texture_info_string)
+                   {
+                     json_obj.emplace("texture_filename", *the_target.m_texture_info_string);
+                   }
+                 },
+             },
+             target);
+}
 
 std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::object& obj)
 {

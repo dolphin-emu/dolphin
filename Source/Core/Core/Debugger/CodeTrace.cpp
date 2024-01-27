@@ -53,12 +53,11 @@ u32 GetMemoryTargetSize(std::string_view instr)
 bool CompareMemoryTargetToTracked(const std::string& instr, const u32 mem_target,
                                   const std::set<u32>& mem_tracked)
 {
-  // This function is hit often and should be optimized.
-  auto it_lower = std::lower_bound(mem_tracked.begin(), mem_tracked.end(), mem_target);
+  const auto it_lower = mem_tracked.lower_bound(mem_target);
 
   if (it_lower == mem_tracked.end())
     return false;
-  else if (*it_lower == mem_target)
+  if (*it_lower == mem_target)
     return true;
 
   // If the base value doesn't hit, still need to check if longer values overlap.
@@ -73,13 +72,11 @@ void CodeTrace::SetRegTracked(const std::string& reg)
 
 InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& instruction) const
 {
-  auto& system = Core::System::GetInstance();
-
   // Slower process of breaking down saved instruction. Only used when stepping through code if a
   // decision has to be made, otherwise used afterwards on a log file.
   InstructionAttributes tmp_attributes;
   tmp_attributes.instruction = instruction.instruction;
-  tmp_attributes.address = system.GetPPCState().pc;
+  tmp_attributes.address = instruction.address;
   std::string instr = instruction.instruction;
   std::smatch match;
 

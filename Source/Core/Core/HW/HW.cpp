@@ -34,7 +34,7 @@ namespace HW
 void Init(Core::System& system, const Sram* override_sram)
 {
   system.GetCoreTiming().Init();
-  SystemTimers::PreInit();
+  system.GetSystemTimers().PreInit();
 
   State::Init();
 
@@ -52,11 +52,11 @@ void Init(Core::System& system, const Sram* override_sram)
   system.GetDVDInterface().Init();
   system.GetGPFifo().Init();
   system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
-  SystemTimers::Init();
+  system.GetSystemTimers().Init();
 
   if (SConfig::GetInstance().bWii)
   {
-    IOS::Init();
+    system.GetWiiIPC().Init();
     IOS::HLE::Init(system);  // Depends on Memory
   }
 }
@@ -65,9 +65,9 @@ void Shutdown(Core::System& system)
 {
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
-  IOS::Shutdown();
+  system.GetWiiIPC().Shutdown();
 
-  SystemTimers::Shutdown();
+  system.GetSystemTimers().Shutdown();
   system.GetCPU().Shutdown();
   system.GetDVDInterface().Shutdown();
   system.GetDSP().Shutdown();
@@ -110,7 +110,7 @@ void DoState(Core::System& system, PointerWrap& p)
 
   if (SConfig::GetInstance().bWii)
   {
-    IOS::DoState(p);
+    system.GetWiiIPC().DoState(p);
     p.DoMarker("IOS");
     IOS::HLE::GetIOS()->DoState(p);
     p.DoMarker("IOS::HLE");

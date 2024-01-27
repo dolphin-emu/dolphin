@@ -392,6 +392,7 @@ public:
   static void Multiply(const Matrix33& a, const Vec3& vec, Vec3* result);
 
   Matrix33 Inverted() const;
+  float Determinant() const;
 
   Matrix33& operator*=(const Matrix33& rhs)
   {
@@ -431,6 +432,8 @@ public:
 
   // For when a vec4 isn't needed a multiplication function that takes a Vec3 and w:
   Vec3 Transform(const Vec3& point, float w) const;
+
+  float Determinant() const;
 
   Matrix44& operator*=(const Matrix44& rhs)
   {

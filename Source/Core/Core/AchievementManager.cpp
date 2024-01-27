@@ -38,6 +38,9 @@ void AchievementManager::Init()
 {
   if (!m_is_runtime_initialized && Config::Get(Config::RA_ENABLED))
   {
+    std::string host_url = Config::Get(Config::RA_HOST_URL);
+    if (!host_url.empty())
+      rc_api_set_host(host_url.c_str());
     rc_runtime_init(&m_runtime);
     m_is_runtime_initialized = true;
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });

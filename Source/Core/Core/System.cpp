@@ -8,6 +8,8 @@
 #include "AudioCommon/SoundStream.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -21,7 +23,10 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/HW/WII_IPC.h"
+#include "Core/Movie.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -43,11 +48,12 @@ struct System::Impl
   explicit Impl(System& system)
       : m_audio_interface(system), m_core_timing(system), m_command_processor{system},
         m_cpu(system), m_dsp(system), m_dvd_interface(system), m_dvd_thread(system),
-        m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system),
+        m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system), m_wii_ipc(system),
         m_memory(system), m_pixel_engine{system}, m_power_pc(system),
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
-        m_serial_interface(system), m_video_interface(system),
-        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system)
+        m_serial_interface(system), m_system_timers(system), m_video_interface(system),
+        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system),
+        m_fifo_player(system), m_fifo_recorder(system), m_movie(system)
   {
   }
 
@@ -69,6 +75,7 @@ struct System::Impl
   HSP::HSPManager m_hsp;
   IOS::HLE::USB::InfinityBase m_infinity_base;
   IOS::HLE::USB::SkylanderPortal m_skylander_portal;
+  IOS::WiiIPC m_wii_ipc;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceManager m_memory_interface;
   PixelEngine::PixelEngineManager m_pixel_engine;
@@ -78,12 +85,16 @@ struct System::Impl
   ProcessorInterface::ProcessorInterfaceManager m_processor_interface;
   SerialInterface::SerialInterfaceManager m_serial_interface;
   Sram m_sram;
+  SystemTimers::SystemTimersManager m_system_timers;
   VertexShaderManager m_vertex_shader_manager;
   XFStateManager m_xf_state_manager;
   VideoInterface::VideoInterfaceManager m_video_interface;
   Interpreter m_interpreter;
   JitInterface m_jit_interface;
   VideoCommon::CustomAssetLoader m_custom_asset_loader;
+  FifoPlayer m_fifo_player;
+  FifoRecorder m_fifo_recorder;
+  Movie::MovieManager m_movie;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -174,6 +185,16 @@ Fifo::FifoManager& System::GetFifo() const
   return m_impl->m_fifo;
 }
 
+FifoPlayer& System::GetFifoPlayer() const
+{
+  return m_impl->m_fifo_player;
+}
+
+FifoRecorder& System::GetFifoRecorder() const
+{
+  return m_impl->m_fifo_recorder;
+}
+
 GeometryShaderManager& System::GetGeometryShaderManager() const
 {
   return m_impl->m_geometry_shader_manager;
@@ -209,6 +230,11 @@ IOS::HLE::USB::InfinityBase& System::GetInfinityBase() const
   return m_impl->m_infinity_base;
 }
 
+IOS::WiiIPC& System::GetWiiIPC() const
+{
+  return m_impl->m_wii_ipc;
+}
+
 Memory::MemoryManager& System::GetMemory() const
 {
   return m_impl->m_memory;
@@ -222,6 +248,11 @@ MemoryInterface::MemoryInterfaceManager& System::GetMemoryInterface() const
 PowerPC::MMU& System::GetMMU() const
 {
   return m_impl->m_mmu;
+}
+
+Movie::MovieManager& System::GetMovie() const
+{
+  return m_impl->m_movie;
 }
 
 PixelEngine::PixelEngineManager& System::GetPixelEngine() const
@@ -257,6 +288,11 @@ SerialInterface::SerialInterfaceManager& System::GetSerialInterface() const
 Sram& System::GetSRAM() const
 {
   return m_impl->m_sram;
+}
+
+SystemTimers::SystemTimersManager& System::GetSystemTimers() const
+{
+  return m_impl->m_system_timers;
 }
 
 VertexShaderManager& System::GetVertexShaderManager() const

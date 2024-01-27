@@ -346,7 +346,7 @@ void BluetoothEmuDevice::Update()
   for (auto& wiimote : m_wiimotes)
     wiimote->Update();
 
-  const u64 interval = SystemTimers::GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
+  const u64 interval = GetSystem().GetSystemTimers().GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
   const u64 now = GetSystem().GetCoreTiming().GetTicks();
 
   if (now - m_last_ticks > interval)

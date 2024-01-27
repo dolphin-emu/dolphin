@@ -34,6 +34,7 @@ struct MaterialData
 {
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        MaterialData* data);
+  static void ToJson(picojson::object* obj, const MaterialData& data);
   std::string shader_asset;
   std::vector<MaterialProperty> properties;
 };

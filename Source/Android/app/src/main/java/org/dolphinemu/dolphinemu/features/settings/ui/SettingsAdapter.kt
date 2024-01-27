@@ -41,6 +41,7 @@ import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.util.*
+import kotlin.math.roundToInt
 
 class SettingsAdapter(
     private val fragmentView: SettingsFragmentView,
@@ -259,7 +260,7 @@ class SettingsAdapter(
                 slider.stepSize = item.stepSize.toFloat()
             }
         }
-        slider.value = seekbarProgress
+        slider.value = (seekbarProgress / slider.stepSize).roundToInt() * slider.stepSize
         slider.addOnChangeListener(this)
 
         dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)

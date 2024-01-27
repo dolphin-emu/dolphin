@@ -50,7 +50,7 @@ static void ReinitHardware(Core::System& system)
   dsp.GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii,
                                    Config::Get(Config::MAIN_DSP_THREAD));
 
-  SystemTimers::ChangePPCClock(SystemTimers::Mode::GC);
+  system.GetSystemTimers().ChangePPCClock(SystemTimers::Mode::GC);
 }
 
 constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
