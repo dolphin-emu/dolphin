@@ -109,7 +109,7 @@ bool PlatformX11::Init()
   ProcessEvents();
 
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
-    X11Utils::InhibitScreensaver(m_window, true);
+    X11Utils::InhibitScreensaver(true);
 
 #ifdef HAVE_XRANDR
   m_xrr_config = new X11Utils::XRRConfiguration(m_display, m_window);

@@ -17,11 +17,7 @@ void Shutdown();
 void InitControllers(const WindowSystemInfo& wsi);
 void ShutdownControllers();
 
-#ifdef HAVE_X11
-void InhibitScreenSaver(unsigned long win, bool enable);
-#else
 void InhibitScreenSaver(bool enable);
-#endif
 
 // Calls std::locale::global, selecting a fallback locale if the
 // requested locale isn't available

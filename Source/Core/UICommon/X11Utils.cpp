@@ -19,6 +19,17 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 
+#ifdef HAVE_LIBSYSTEMD
+#include <cstdint>
+#include <memory>  // std::unique_ptr
+#include <optional>
+#include <utility>  // std::move
+
+#include <systemd/sd-bus.h>
+
+#include "Common/ScopeGuard.h"
+#endif
+
 extern char** environ;
 
 namespace X11Utils
@@ -45,22 +56,111 @@ bool ToggleFullscreen(Display* dpy, Window win)
   return true;
 }
 
-void InhibitScreensaver(Window win, bool suspend)
+void InhibitScreensaver(bool suspend)
 {
-  char id[11];
-  snprintf(id, sizeof(id), "0x%lx", win);
-
-  // Call xdg-screensaver
-  char* argv[4] = {(char*)"xdg-screensaver", (char*)(suspend ? "suspend" : "resume"), id, nullptr};
-  pid_t pid;
-  if (!posix_spawnp(&pid, "xdg-screensaver", nullptr, nullptr, argv, environ))
+#ifdef HAVE_LIBSYSTEMD
+  struct sd_bus_unref_t
   {
-    int status;
-    while (waitpid(pid, &status, 0) == -1)
-      ;
+    void operator()(sd_bus* bus) { sd_bus_unref(bus); }
+  };
 
-    INFO_LOG_FMT(VIDEO, "Started xdg-screensaver (PID = {})", pid);
+  struct ScreensaverLock
+  {
+    uint32_t cookie;
+    std::unique_ptr<sd_bus, sd_bus_unref_t> bus;
+  };
+
+  static std::optional<ScreensaverLock> lock;
+  int ret;
+
+  if (suspend)
+  {
+    if (lock)
+    {
+      INFO_LOG_FMT(VIDEO, "Screensaver is already inhibited (cookie = {})", lock->cookie);
+      return;
+    }
+
+    // Connect to the D-Bus session bus
+    sd_bus* _bus;
+    ret = sd_bus_default_user(&_bus);
+    if (ret < 0)
+    {
+      WARN_LOG_FMT(VIDEO, "Cannot connect to the D-Bus session bus: {}", ret);
+      return;
+    }
+    std::unique_ptr<sd_bus, sd_bus_unref_t> bus{_bus};
+
+    sd_bus_error error = SD_BUS_ERROR_NULL;
+    Common::ScopeGuard error_free([&error] { sd_bus_error_free(&error); });
+    sd_bus_message* _reply = nullptr;
+
+    // Prepare the method call
+    ret = sd_bus_call_method(bus.get(),
+                             "org.freedesktop.ScreenSaver",   // Service name
+                             "/org/freedesktop/ScreenSaver",  // Object path
+                             "org.freedesktop.ScreenSaver",   // Interface
+                             "Inhibit",                       // Method name
+                             &error, &_reply,
+                             "ss",                // Input signature: string, string
+                             "Dolphin",           // First argument: application name
+                             "Game is running");  // Second argument: reason
+    std::unique_ptr<sd_bus_message, decltype(&sd_bus_message_unref)> reply{_reply,
+                                                                           sd_bus_message_unref};
+
+    // Check for errors
+    if (ret < 0)
+    {
+      WARN_LOG_FMT(VIDEO, "Failed to call Inhibit: {}", error.message);
+      return;
+    }
+
+    // Store cookie to reenable screensaver.
+    uint32_t cookie;
+    ret = sd_bus_message_read(reply.get(), "u", &cookie);
+    if (ret < 0)
+    {
+      WARN_LOG_FMT(VIDEO, "Failed to read Inhibit reply: {}", strerror(-ret));
+      return;
+    }
+
+    INFO_LOG_FMT(VIDEO, "Inhibited screensaver (cookie = {})", cookie);
+    lock = ScreensaverLock{
+        .cookie = cookie,
+        .bus = std::move(bus),
+    };
   }
+  else
+  {
+    if (!lock)
+    {
+      INFO_LOG_FMT(VIDEO, "Screensaver is already allowed");
+      return;
+    }
+
+    sd_bus_error error = SD_BUS_ERROR_NULL;
+    Common::ScopeGuard error_free([&error] { sd_bus_error_free(&error); });
+    sd_bus_message* reply = nullptr;
+
+    // Cancel previous wake request.
+    ret = sd_bus_call_method(lock->bus.get(),
+                             "org.freedesktop.ScreenSaver",   // Service name
+                             "/org/freedesktop/ScreenSaver",  // Object path
+                             "org.freedesktop.ScreenSaver",   // Interface
+                             "UnInhibit",                     // Method name
+                             &error, &reply,
+                             "u",  // Input signature: uint32
+                             lock->cookie);
+
+    if (ret < 0)
+    {
+      WARN_LOG_FMT(VIDEO, "Failed to call UnInhibit: {}", error.message);
+    }
+
+    sd_bus_message_unref(reply);
+    lock.reset();
+  }
+#endif
 }
 
 #ifdef HAVE_XRANDR

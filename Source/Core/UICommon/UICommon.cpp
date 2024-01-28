@@ -497,17 +497,13 @@ bool TriggerSTMPowerEvent()
   return true;
 }
 
-#ifdef HAVE_X11
-void InhibitScreenSaver(Window win, bool inhibit)
-#else
 void InhibitScreenSaver(bool inhibit)
-#endif
 {
   // Inhibit the screensaver. Depending on the operating system this may also
   // disable low-power states and/or screen dimming.
 
 #ifdef HAVE_X11
-  X11Utils::InhibitScreensaver(win, inhibit);
+  X11Utils::InhibitScreensaver(inhibit);
 #endif
 
 #ifdef _WIN32

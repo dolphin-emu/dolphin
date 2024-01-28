@@ -46,6 +46,10 @@ if(ENABLE_X11 AND X11_FOUND)
   target_include_directories(uicommon PRIVATE ${X11_INCLUDE_DIR})
   target_sources(uicommon PRIVATE X11Utils.cpp)
   target_link_libraries(uicommon PUBLIC ${XRANDR_LIBRARIES})
+
+  if(SYSTEMD_FOUND)
+    target_link_libraries(uicommon PRIVATE ${SYSTEMD_LIBRARIES})
+  endif()
 endif()
 
 if(TARGET LibUSB::LibUSB)
