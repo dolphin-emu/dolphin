@@ -1,7 +1,7 @@
 app-id: org.DolphinEmu.dolphin-mpn
 branch: master
 runtime: org.kde.Platform
-runtime-version: 6.4
+runtime-version: 6.6
 sdk: org.kde.Sdk
 command: dolphin-mpn-wrapper
 rename-desktop-file: dolphin-mpn.desktop
@@ -21,6 +21,8 @@ finish-args:
   - --allow=bluetooth
   - --filesystem=xdg-run/app/com.discordapp.Discord:create
   - --talk-name=org.freedesktop.ScreenSaver
+  # required for Gamescope on Steam Deck
+  - --filesystem=xdg-run/gamescope-0:ro
 modules:
   # needed for the bluetooth passthrough feature to work
   - name: libusb
