@@ -524,9 +524,9 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
         needs_resampling ? present_rect.GetHeight() : static_cast<u32>(src_rect.GetHeight());
 
     if (!m_intermediary_frame_buffer || !m_intermediary_color_texture ||
-        m_intermediary_color_texture.get()->GetWidth() != target_width ||
-        m_intermediary_color_texture.get()->GetHeight() != target_height ||
-        m_intermediary_color_texture.get()->GetLayers() != target_layers)
+        m_intermediary_color_texture->GetWidth() != target_width ||
+        m_intermediary_color_texture->GetHeight() != target_height ||
+        m_intermediary_color_texture->GetLayers() != target_layers)
     {
       const TextureConfig intermediary_color_texture_config(
           target_width, target_height, 1, target_layers, src_tex->GetSamples(),
@@ -580,8 +580,8 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
       default_uniform_staging_buffer = false;
     }
 
-    m_intermediary_frame_buffer.release();
-    m_intermediary_color_texture.release();
+    m_intermediary_frame_buffer.reset();
+    m_intermediary_color_texture.reset();
   }
 
   // TODO: ideally we'd do the user selected post process pass in the intermediary buffer in linear

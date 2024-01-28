@@ -1631,10 +1631,8 @@ AchievementManager::ResponseType AchievementManager::Request(
     const std::string response_str(http_response->begin(), http_response->end());
     if (process_response(rc_response, response_str.c_str()) != RC_OK)
     {
-      ERROR_LOG_FMT(
-          ACHIEVEMENTS, "Failed to process HTTP response. \nURL: {} \npost_data: {} \nresponse: {}",
-          api_request.url, api_request.post_data == nullptr ? "NULL" : api_request.post_data,
-          response_str);
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to process HTTP response. \nURL: {} \nresponse: {}",
+                    api_request.url, response_str);
       return ResponseType::MALFORMED_OBJECT;
     }
     if (rc_response->response.succeeded)
@@ -1650,9 +1648,7 @@ AchievementManager::ResponseType AchievementManager::Request(
   }
   else
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed. \nURL: {} \npost_data: {}",
-                 api_request.url,
-                 api_request.post_data == nullptr ? "NULL" : api_request.post_data);
+    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed. \nURL: {}", api_request.url);
     return ResponseType::CONNECTION_FAILED;
   }
 }
