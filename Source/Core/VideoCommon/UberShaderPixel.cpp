@@ -127,106 +127,109 @@ void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, bool per_pixel
     out->Write("\t}}\n");
   }
 
-  out->Write("\tuint light_count = 0;\n");
-  out->Write("\tfor (uint chan = 0u; chan < {}u; chan++)\n", NUM_XF_COLOR_CHANNELS);
-  out->Write("\t{{\n");
-  out->Write("\t\tuint colorreg = xfmem_color(chan);\n");
-  out->Write("\t\tuint alphareg = xfmem_alpha(chan);\n");
-  for (const auto& color_type : std::array<std::string_view, 2>{"colorreg", "alphareg"})
+  if (per_pixel_lighting)
   {
-    if (color_type == "colorreg")
+    out->Write("\tuint light_count = 0;\n");
+    out->Write("\tfor (uint chan = 0u; chan < {}u; chan++)\n", NUM_XF_COLOR_CHANNELS);
+    out->Write("\t{{\n");
+    out->Write("\t\tuint colorreg = xfmem_color(chan);\n");
+    out->Write("\t\tuint alphareg = xfmem_alpha(chan);\n");
+    for (const auto& color_type : std::array<std::string_view, 2>{"colorreg", "alphareg"})
     {
-      out->Write("\t\tcustom_data.base_material[0] = " I_MATERIALS "[2u] / 255.0; \n");
-      out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
-      out->Write("\t\t\tcustom_data.base_material[0] = colors_0; \n");
-    }
-    else
-    {
-      out->Write("custom_data.base_material[1].w = " I_MATERIALS "[3u].w / 255.0; \n");
-      out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
-      out->Write("\t\t\tcustom_data.base_material[1].w = colors_1.w; \n");
-    }
-    out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
-    out->Write("\t\t{{\n");
-    out->Write("\t\t\tuint light_mask = {} | ({} << 4u);\n",
-               BitfieldExtract<&LitChannel::lightMask0_3>(color_type),
-               BitfieldExtract<&LitChannel::lightMask4_7>(color_type));
-    out->Write("\t\t\tuint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>(color_type));
-    out->Write("\t\t\tfor (uint light_index = 0u; light_index < 8u; light_index++)\n");
-    out->Write("\t\t\t{{\n");
-    out->Write("\t\t\t\tif ((light_mask & (1u << light_index)) != 0u)\n");
-    out->Write("\t\t\t\t{{\n");
-    // Shader compilation is weird, shader arrays can't use indexing by variable
-    //  to set values unless the variable is an index in a for loop.
-    // So instead we have to do this if check nonsense
-    for (u32 light_count_index = 0; light_count_index < 8; light_count_index++)
-    {
-      out->Write("\t\t\t\t\tif (light_index == {})\n", light_count_index);
-      out->Write("\t\t\t\t\t{{\n");
       if (color_type == "colorreg")
       {
-        for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
-        {
-          out->Write("\t\t\t\t\t\tif (chan == {})\n", channel_index);
-          out->Write("\t\t\t\t\t\t{{\n");
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].direction = " I_LIGHTS
-                     "[light_index].dir.xyz;\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].position = " I_LIGHTS
-                     "[light_index].pos.xyz;\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].cosatt = " I_LIGHTS
-                     "[light_index].cosatt;\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].distatt = " I_LIGHTS
-                     "[light_index].distatt;\n",
-                     channel_index, light_count_index);
-          out->Write(
-              "\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].attenuation_type = attnfunc;\n",
-              channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].color = " I_LIGHTS
-                     "[light_index].color.rgb / float3(255.0, 255.0, 255.0);\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.light_chan{}_color_count += 1;\n", channel_index);
-          out->Write("\t\t\t\t\t\t}}\n");
-        }
+        out->Write("\t\tcustom_data.base_material[0] = " I_MATERIALS "[2u] / 255.0; \n");
+        out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
+        out->Write("\t\t\tcustom_data.base_material[0] = colors_0; \n");
       }
       else
       {
-        for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
-        {
-          out->Write("\t\t\t\t\t\tif (chan == {})\n", channel_index);
-          out->Write("\t\t\t\t\t\t{{\n");
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].direction = " I_LIGHTS
-                     "[light_index].dir.xyz;\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].position = " I_LIGHTS
-                     "[light_index].pos.xyz;\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].cosatt = " I_LIGHTS
-                     "[light_index].cosatt;\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].distatt = " I_LIGHTS
-                     "[light_index].distatt;\n",
-                     channel_index, light_count_index);
-          out->Write(
-              "\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].attenuation_type = attnfunc;\n",
-              channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].color = float3(" I_LIGHTS
-                     "[light_index].color.a) / float3(255.0, 255.0, 255.0);\n",
-                     channel_index, light_count_index);
-          out->Write("\t\t\t\t\t\t\tcustom_data.light_chan{}_alpha_count += 1;\n", channel_index);
-          out->Write("\t\t\t\t\t\t}}\n");
-        }
+        out->Write("custom_data.base_material[1].w = " I_MATERIALS "[3u].w / 255.0; \n");
+        out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
+        out->Write("\t\t\tcustom_data.base_material[1].w = colors_1.w; \n");
       }
+      out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
+      out->Write("\t\t{{\n");
+      out->Write("\t\t\tuint light_mask = {} | ({} << 4u);\n",
+                 BitfieldExtract<&LitChannel::lightMask0_3>(color_type),
+                 BitfieldExtract<&LitChannel::lightMask4_7>(color_type));
+      out->Write("\t\t\tuint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>(color_type));
+      out->Write("\t\t\tfor (uint light_index = 0u; light_index < 8u; light_index++)\n");
+      out->Write("\t\t\t{{\n");
+      out->Write("\t\t\t\tif ((light_mask & (1u << light_index)) != 0u)\n");
+      out->Write("\t\t\t\t{{\n");
+      // Shader compilation is weird, shader arrays can't use indexing by variable
+      //  to set values unless the variable is an index in a for loop.
+      // So instead we have to do this if check nonsense
+      for (u32 light_count_index = 0; light_count_index < 8; light_count_index++)
+      {
+        out->Write("\t\t\t\t\tif (light_index == {})\n", light_count_index);
+        out->Write("\t\t\t\t\t{{\n");
+        if (color_type == "colorreg")
+        {
+          for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
+          {
+            out->Write("\t\t\t\t\t\tif (chan == {})\n", channel_index);
+            out->Write("\t\t\t\t\t\t{{\n");
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].direction = " I_LIGHTS
+                       "[light_index].dir.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].position = " I_LIGHTS
+                       "[light_index].pos.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].cosatt = " I_LIGHTS
+                       "[light_index].cosatt;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].distatt = " I_LIGHTS
+                       "[light_index].distatt;\n",
+                       channel_index, light_count_index);
+            out->Write(
+                "\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].attenuation_type = attnfunc;\n",
+                channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].color = " I_LIGHTS
+                       "[light_index].color.rgb / float3(255.0, 255.0, 255.0);\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.light_chan{}_color_count += 1;\n", channel_index);
+            out->Write("\t\t\t\t\t\t}}\n");
+          }
+        }
+        else
+        {
+          for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
+          {
+            out->Write("\t\t\t\t\t\tif (chan == {})\n", channel_index);
+            out->Write("\t\t\t\t\t\t{{\n");
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].direction = " I_LIGHTS
+                       "[light_index].dir.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].position = " I_LIGHTS
+                       "[light_index].pos.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].cosatt = " I_LIGHTS
+                       "[light_index].cosatt;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].distatt = " I_LIGHTS
+                       "[light_index].distatt;\n",
+                       channel_index, light_count_index);
+            out->Write(
+                "\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].attenuation_type = attnfunc;\n",
+                channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].color = float3(" I_LIGHTS
+                       "[light_index].color.a) / float3(255.0, 255.0, 255.0);\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.light_chan{}_alpha_count += 1;\n", channel_index);
+            out->Write("\t\t\t\t\t\t}}\n");
+          }
+        }
 
-      out->Write("\t\t\t\t\t}}\n");
+        out->Write("\t\t\t\t\t}}\n");
+      }
+      out->Write("\t\t\t\t}}\n");
+      out->Write("\t\t\t}}\n");
+      out->Write("\t\t}}\n");
     }
-    out->Write("\t\t\t\t}}\n");
-    out->Write("\t\t\t}}\n");
-    out->Write("\t\t}}\n");
+    out->Write("\t}}\n");
   }
-  out->Write("\t}}\n");
 
   for (u32 i = 0; i < 16; i++)
   {
@@ -1593,8 +1596,20 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     if (!shader_details.custom_shader.empty())
     {
       out.Write("\t{{\n");
-      out.Write("\t\tcustom_data.final_color = ocol0;\n");
-      out.Write("\t\tocol0.xyz = {}_{}(custom_data).xyz;\n", CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+      if (uid_data->uint_output)
+      {
+        out.Write("\t\tcustom_data.final_color = float4(ocol0.x / 255.0, ocol0.y / 255.0, ocol0.z "
+                  "/ 255.0, ocol0.w / 255.0);\n");
+        out.Write("\t\tfloat3 custom_output = {}_{}(custom_data).xyz;\n",
+                  CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+        out.Write("\t\tocol0.xyz = uint3(custom_output.x * 255, custom_output.y * 255, "
+                  "custom_output.z * 255);\n");
+      }
+      else
+      {
+        out.Write("\t\tcustom_data.final_color = ocol0;\n");
+        out.Write("\t\tocol0.xyz = {}_{}(custom_data).xyz;\n", CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+      }
       out.Write("\t}}\n\n");
     }
   }
