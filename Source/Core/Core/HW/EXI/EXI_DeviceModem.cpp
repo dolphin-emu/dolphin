@@ -313,7 +313,8 @@ void CEXIModem::SetInterruptFlag(u8 what, bool enabled, bool from_cpu)
 void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
 {
   // The caller is expected to hold m_receive_buffer_lock when calling this.
-  const u16 bytes_available = std::min<u16>(m_receive_buffer.size(), 0x200);
+  const u16 bytes_available =
+      static_cast<u16>(std::min<std::size_t>(m_receive_buffer.size(), 0x200));
   m_regs[Register::BYTES_AVAILABLE_HIGH] = (bytes_available >> 8) & 0xFF;
   m_regs[Register::BYTES_AVAILABLE_LOW] = bytes_available & 0xFF;
   SetInterruptFlag(Interrupt::RECEIVE_BUFFER_ABOVE_THRESHOLD,

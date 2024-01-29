@@ -320,9 +320,9 @@ void TAPServerConnection::ReadThreadHandler()
     case ReadState::DATA:
     case ReadState::SKIP:
     {
-      ws_ssize_t bytes_to_read = frame_data.size() - frame_bytes_received;
-      ws_ssize_t bytes_read =
-          recv(m_fd, frame_data.data() + frame_bytes_received, bytes_to_read, 0);
+      const std::size_t bytes_to_read = frame_data.size() - frame_bytes_received;
+      ws_ssize_t bytes_read = recv(m_fd, frame_data.data() + frame_bytes_received,
+                                   static_cast<ws_ssize_t>(bytes_to_read), 0);
       if (bytes_read <= 0)
       {
         ERROR_LOG_FMT(SP1, "Failed to read data from destination: {}", Common::StrNetworkError());
