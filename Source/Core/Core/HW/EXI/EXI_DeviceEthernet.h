@@ -19,6 +19,7 @@
 #include "Common/Network.h"
 #include "Common/SocketContext.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
+#include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -366,10 +367,7 @@ private:
   class TAPServerNetworkInterface : public NetworkInterface
   {
   public:
-    explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination)
-        : NetworkInterface(eth_ref), m_destination(destination)
-    {
-    }
+    TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
 
   public:
     bool Activate() override;
@@ -381,26 +379,9 @@ private:
     void RecvStop() override;
 
   private:
-    enum class ReadState
-    {
-      Size,
-      SizeHigh,
-      Data,
-      Skip,
-    };
+    TAPServerConnection m_tapserver_if;
 
-    std::string m_destination;
-    Common::SocketContext m_socket_context;
-
-    int m_fd = -1;
-    ReadState m_read_state = ReadState::Size;
-    u16 m_read_packet_offset;
-    u16 m_read_packet_bytes_remaining;
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_shutdown;
-
-    void ReadThreadHandler();
+    void HandleReceivedFrame(std::string&& data);
   };
 
   class XLinkNetworkInterface : public NetworkInterface

@@ -1,24 +1,15 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2024 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <atomic>
-#include <map>
 #include <mutex>
 #include <thread>
 #include <vector>
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
-#include <SFML/Network.hpp>
-
 #include "Common/Flag.h"
 #include "Common/Network.h"
-#include "Common/SocketContext.h"
-#include "Core/HW/EXI/BBA/BuiltIn.h"
+#include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -86,7 +77,7 @@ private:
 
   u16 GetTxThreshold() const;
   u16 GetRxThreshold() const;
-  void SetInterruptFlag(uint8_t what, bool enabled, bool from_cpu);
+  void SetInterruptFlag(u8 what, bool enabled, bool from_cpu);
   void HandleReadModemTransfer(void* data, u32 size);
   void HandleWriteModemTransfer(const void* data, u32 size);
   void OnReceiveBufferSizeChangedLocked(bool from_cpu);
@@ -97,19 +88,19 @@ private:
 
   static inline bool TransferIsResetCommand(u32 transfer_descriptor)
   {
-    return (transfer_descriptor == 0x80000000);
+    return transfer_descriptor == 0x80000000;
   }
   static inline bool IsWriteTransfer(u32 transfer_descriptor)
   {
-    return (transfer_descriptor & 0x40000000);
+    return transfer_descriptor & 0x40000000;
   }
   static inline bool IsModemTransfer(u32 transfer_descriptor)
   {
-    return (transfer_descriptor & 0x20000000);
+    return transfer_descriptor & 0x20000000;
   }
   static inline u16 GetModemTransferSize(u32 transfer_descriptor)
   {
-    return ((transfer_descriptor >> 8) & 0xFFFF);
+    return (transfer_descriptor >> 8) & 0xFFFF;
   }
   static inline u32 SetModemTransferSize(u32 transfer_descriptor, u16 new_size)
   {
@@ -126,7 +117,7 @@ private:
     virtual bool Activate() { return false; }
     virtual void Deactivate() {}
     virtual bool IsActivated() { return false; }
-    virtual bool SendFrames() { return false; }
+    virtual bool SendAndRemoveAllHDLCFrames(std::string&) { return false; }
     virtual bool RecvInit() { return false; }
     virtual void RecvStart() {}
     virtual void RecvStop() {}
@@ -137,30 +128,21 @@ private:
   class TAPServerNetworkInterface : public NetworkInterface
   {
   public:
-    explicit TAPServerNetworkInterface(CEXIModem* modem_ref, const std::string& destination)
-        : NetworkInterface(modem_ref), m_destination(destination)
-    {
-    }
+    TAPServerNetworkInterface(CEXIModem* modem_ref, const std::string& destination);
 
   public:
-    bool Activate() override;
-    void Deactivate() override;
-    bool IsActivated() override;
-    bool SendFrames() override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
+    virtual bool Activate() override;
+    virtual void Deactivate() override;
+    virtual bool IsActivated() override;
+    virtual bool SendAndRemoveAllHDLCFrames(std::string& send_buffer) override;
+    virtual bool RecvInit() override;
+    virtual void RecvStart() override;
+    virtual void RecvStop() override;
 
   private:
-    std::string m_destination;
-    Common::SocketContext m_socket_context;
+    TAPServerConnection m_tapserver_if;
 
-    int m_fd = -1;
-    std::thread m_read_thread;
-    Common::Flag m_read_enabled;
-    Common::Flag m_read_shutdown;
-
-    void ReadThreadHandler();
+    void HandleReceivedFrame(std::string&& data);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;
@@ -174,6 +156,6 @@ private:
   std::string m_send_buffer;
   std::mutex m_receive_buffer_lock;
   std::string m_receive_buffer;
-  std::array<u8, 0x20> m_regs;
+  std::array<u8, 0x20> m_regs{};
 };
 }  // namespace ExpansionInterface

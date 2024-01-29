@@ -189,11 +189,12 @@ add_library(core
   HW/DVD/DVDThread.h
   HW/DVD/FileMonitor.cpp
   HW/DVD/FileMonitor.h
-  HW/EXI/BBA/TAPServer.cpp
+  HW/EXI/BBA/TAPServerConnection.cpp
+  HW/EXI/BBA/TAPServerBBA.cpp
   HW/EXI/BBA/XLINK_KAI_BBA.cpp
   HW/EXI/BBA/BuiltIn.cpp
   HW/EXI/BBA/BuiltIn.h
-  HW/EXI/Modem/TAPServer.cpp
+  HW/EXI/Modem/TAPServerModem.cpp
   HW/EXI/EXI_Channel.cpp
   HW/EXI/EXI_Channel.h
   HW/EXI/EXI_Device.cpp
