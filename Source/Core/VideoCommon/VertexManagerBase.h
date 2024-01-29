@@ -79,6 +79,8 @@ private:
       {
         return normal_vertex_count + anamorphic_vertex_count + other_vertex_count;
       }
+
+      MathUtil::RunningMean<float> average_ratio;
     };
 
     ProjectionCounts perspective;

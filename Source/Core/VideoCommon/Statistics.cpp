@@ -121,7 +121,6 @@ void Statistics::Display() const
   ImGui::End();
 }
 
-// Is this really needed?
 void Statistics::DisplayProj() const
 {
   if (!ImGui::Begin("Projection Statistics", nullptr, ImGuiWindowFlags_NoNavInputs))
@@ -148,6 +147,9 @@ void Statistics::DisplayProj() const
   ImGui::Text("Projection 13: %f (%f)", gproj[13], g2proj[13]);
   ImGui::Text("Projection 14: %f (%f)", gproj[14], g2proj[14]);
   ImGui::Text("Projection 15: %f (%f)", gproj[15], g2proj[15]);
+  ImGui::NewLine();
+  ImGui::Text("Avg Projection Viewport Ratio Persp(3D): %f", avg_persp_proj_viewport_ratio);
+  ImGui::Text("Avg Projection Viewport Ratio Ortho(2D): %f", avg_ortho_proj_viewport_ratio);
 
   ImGui::End();
 }
