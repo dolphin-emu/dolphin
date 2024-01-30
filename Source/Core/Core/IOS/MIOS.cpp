@@ -101,7 +101,7 @@ bool Load(Core::System& system)
 
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG_FMT(IOS, "IPL ready.");
-  SConfig::GetInstance().m_is_mios = true;
+  system.SetIsMIOS(true);
   system.GetDVDInterface().UpdateRunningGameMetadata();
   SConfig::OnNewTitleLoad(guard);
   return true;

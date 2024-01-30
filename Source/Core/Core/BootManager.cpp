@@ -60,13 +60,13 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (!boot)
     return false;
 
+  auto& system = Core::System::GetInstance();
   SConfig& StartUp = SConfig::GetInstance();
 
-  if (!StartUp.SetPathsAndGameMetadata(*boot))
+  if (!StartUp.SetPathsAndGameMetadata(system, *boot))
     return false;
 
   // Movie settings
-  auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
   if (movie.IsPlayingInput() && movie.IsConfigSaved())
   {

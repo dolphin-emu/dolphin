@@ -335,9 +335,9 @@ private:
   DiscIO::Region* region;
 };
 
-bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
+bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters& boot)
 {
-  m_is_mios = false;
+  system.SetIsMIOS(false);
   m_disc_booted_from_game_list = false;
   if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
     return false;
