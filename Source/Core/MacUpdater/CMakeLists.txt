@@ -32,7 +32,7 @@ target_link_libraries(MacUpdater PRIVATE
     "-framework AppKit"
     "-framework CoreData"
     "-framework Foundation"
-    uicommon
+    common
     updatercommon
 )
 

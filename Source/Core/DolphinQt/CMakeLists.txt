@@ -632,6 +632,18 @@ if(APPLE)
       $<TARGET_FILE:dolphin-emu>)
   endif()
 
+  if(ENABLE_AUTOUPDATE)
+    # Copy updater into the app bundle as a helper.
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+      "$<TARGET_BUNDLE_DIR:dolphin-emu>/Contents/Helpers"
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "$<TARGET_BUNDLE_DIR:MacUpdater>"
+      "$<TARGET_BUNDLE_DIR:dolphin-emu>/Contents/Helpers/Dolphin Updater.app"
+      DEPENDS MacUpdater)
+  endif()
+
   if(MACOS_CODE_SIGNING)
     # Code sign make file builds
     add_custom_command(TARGET dolphin-emu POST_BUILD

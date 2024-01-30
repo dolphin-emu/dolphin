@@ -210,6 +210,9 @@ bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path)
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string& directory);
 
+// Returns the path to the system temporary directory.
+std::string GetTempDir();
+
 // Creates and returns the path to a new temporary directory.
 std::string CreateTempDir();
 

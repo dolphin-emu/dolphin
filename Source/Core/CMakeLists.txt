@@ -7,6 +7,14 @@ add_subdirectory(UICommon)
 add_subdirectory(VideoCommon)
 add_subdirectory(VideoBackends)
 
+if (APPLE AND ENABLE_AUTOUPDATE)
+  add_subdirectory(MacUpdater)
+endif()
+
+if (WIN32 AND ENABLE_AUTOUPDATE)
+  add_subdirectory(WinUpdater)
+endif()
+
 if(ENABLE_NOGUI)
   add_subdirectory(DolphinNoGUI)
 endif()
@@ -21,12 +29,4 @@ endif()
 
 if (APPLE OR WIN32)
   add_subdirectory(UpdaterCommon)
-endif()
-
-if (APPLE AND ENABLE_AUTOUPDATE)
-  add_subdirectory(MacUpdater)
-endif()
-
-if (WIN32 AND ENABLE_AUTOUPDATE)
-  add_subdirectory(WinUpdater)
 endif()
