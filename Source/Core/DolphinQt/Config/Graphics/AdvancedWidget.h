@@ -13,6 +13,7 @@ class QCheckBox;
 class QComboBox;
 class QSpinBox;
 class ToolTipCheckBox;
+class ConfigSlider;
 
 class AdvancedWidget final : public QWidget
 {
@@ -75,4 +76,12 @@ private:
   // Experimental
   ConfigBool* m_defer_efb_access_invalidation;
   ConfigBool* m_manual_texture_sampling;
+
+  // EFB exclusions
+  ConfigBool* m_bloom_fix_enable;
+  ConfigBool* m_bloom_fix_downscale;
+  ConfigBool* m_bloom_fix_alt;
+  ConfigBool* m_bloom_fix_skip;
+  ConfigSlider* m_bloom_fix_slider_width;
+  ConfigInteger* m_bloom_fix_integer_width;
 };

@@ -173,6 +173,13 @@ extern const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING;
 extern const Info<bool> GFX_HACK_NO_MIPMAPPING;
 #endif
 
+// Graphics.Hacks EFB Scale exclusion settings
+extern const Info<bool> GFX_EFB_BLOOM_FIX_ENABLED;
+extern const Info<int> GFX_EFB_BLOOM_FIX_WIDTH;
+extern const Info<bool> GFX_EFB_BLOOM_FIX_DOWNSCALE;
+extern const Info<bool> GFX_EFB_BLOOM_FIX_ALT_FILTER;
+extern const Info<bool> GFX_EFB_BLOOM_FIX_SKIP_FIRST;
+
 // Graphics.GameSpecific
 
 extern const Info<bool> GFX_PERF_QUERIES_ENABLE;

@@ -225,6 +225,11 @@ struct VideoConfig final
 #ifdef __APPLE__
   bool bNoMipmapping = false;  // Used by macOS fifoci to work around an M1 bug
 #endif
+  bool bEFBBloomFixEnabled = false;
+  unsigned int iEFBBloomFixWidth = 0;
+  bool bEFBBloomFixDownscale = false;
+  bool bEFBBloomFixAltFilter = false;
+  bool bEFBBloomFixSkipFirst = false;
 
   // Stereoscopy
   StereoMode stereo_mode{};
