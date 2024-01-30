@@ -890,7 +890,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     gprs_to_push[DecodeReg(loop_counter)] = false;
 
   ABI_PushRegisters(gprs_to_push);
-  m_float_emit.ABI_PushRegisters(fprs_to_push, WA);
+  m_float_emit.ABI_PushRegisters(fprs_to_push, EncodeRegTo64(WA));
 
   // For efficiency, effective_addr and loop_counter are already in W1 and W2 respectively
   if (make_loop)
@@ -904,7 +904,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
                      effective_addr);
   }
 
-  m_float_emit.ABI_PopRegisters(fprs_to_push, WA);
+  m_float_emit.ABI_PopRegisters(fprs_to_push, EncodeRegTo64(WA));
   ABI_PopRegisters(gprs_to_push);
 
   FixupBranch near_addr = B();
