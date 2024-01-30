@@ -1,6 +1,0 @@
-Information
-X=1
-Y=2
-IR on C Stick.
-Taunts are activated by L.
-Wiimotes are disabled.
