@@ -130,9 +130,10 @@ std::string MovieManager::GetInputDisplay()
   {
     m_controllers = {};
     m_wiimotes = {};
+
+    const auto& si = m_system.GetSerialInterface();
     for (int i = 0; i < 4; ++i)
     {
-      auto& si = Core::System::GetInstance().GetSerialInterface();
       if (si.GetDeviceType(i) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
         m_controllers[i] = ControllerType::GBA;
       else if (si.GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
@@ -249,15 +250,14 @@ void MovieManager::Init(const BootParameters& boot)
 void MovieManager::InputUpdate()
 {
   m_current_input_count++;
-  if (IsRecordingInput())
-  {
-    auto& system = Core::System::GetInstance();
-    auto& core_timing = system.GetCoreTiming();
 
-    m_total_input_count = m_current_input_count;
-    m_total_tick_count += core_timing.GetTicks() - m_tick_count_at_last_input;
-    m_tick_count_at_last_input = core_timing.GetTicks();
-  }
+  if (!IsRecordingInput())
+    return;
+
+  const auto& core_timing = m_system.GetCoreTiming();
+  m_total_input_count = m_current_input_count;
+  m_total_tick_count += core_timing.GetTicks() - m_tick_count_at_last_input;
+  m_tick_count_at_last_input = core_timing.GetTicks();
 }
 
 // NOTE: CPU Thread
@@ -443,7 +443,7 @@ void MovieManager::ChangePads()
   if (m_controllers == controllers)
     return;
 
-  auto& si = Core::System::GetInstance().GetSerialInterface();
+  auto& si = m_system.GetSerialInterface();
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
@@ -1176,7 +1176,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
 void MovieManager::CheckInputEnd()
 {
   if (m_current_byte >= m_temp_input.size() ||
-      (Core::System::GetInstance().GetCoreTiming().GetTicks() > m_total_tick_count &&
+      (m_system.GetCoreTiming().GetTicks() > m_total_tick_count &&
        !IsRecordingInputFromSaveState()))
   {
     EndPlayInput(!m_read_only);
@@ -1264,10 +1264,7 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
   }
 
   if (m_pad_state.reset)
-  {
-    auto& system = Core::System::GetInstance();
-    system.GetProcessorInterface().ResetButton_Tap();
-  }
+    m_system.GetProcessorInterface().ResetButton_Tap();
 
   {
     std::string display_str = GenerateInputDisplayString(m_pad_state, controllerID);
@@ -1343,9 +1340,8 @@ void MovieManager::EndPlayInput(bool cont)
   else if (m_play_mode != PlayMode::None)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
-    auto& system = Core::System::GetInstance();
-    auto& cpu = system.GetCPU();
-    bool was_running = Core::IsRunningAndStarted() && !cpu.IsStepping();
+    auto& cpu = m_system.GetCPU();
+    const bool was_running = Core::IsRunningAndStarted() && !cpu.IsStepping();
     if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
       cpu.Break();
     m_rerecords = 0;
