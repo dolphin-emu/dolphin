@@ -97,7 +97,7 @@ public:
     std::lock_guard lock(storage.m_mutex);
 
     DEBUG_LOG_FMT(COMMON, "Registering {} handler at {} event hook", name, EventName.value);
-    auto handle = std::make_unique<HookImpl>(callback, std::move(name));
+    auto handle = std::make_unique<HookImpl>(std::move(callback), std::move(name));
     storage.m_listeners.push_back(handle.get());
     return handle;
   }
