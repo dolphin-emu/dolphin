@@ -254,7 +254,7 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
   // Drain any left over jobs
   HostDispatchJobs();
 
-  INFO_LOG_FMT(BOOT, "Starting core = {} mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
+  INFO_LOG_FMT(BOOT, "Starting core = {} mode", system.IsWii() ? "Wii" : "GameCube");
   INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", system.IsDualCoreMode() ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
@@ -483,7 +483,6 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi)
 {
-  const SConfig& core_parameter = SConfig::GetInstance();
   CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
@@ -521,7 +520,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   const bool delete_savestate =
       boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
 
-  bool sync_sd_folder = core_parameter.bWii && Config::Get(Config::MAIN_WII_SD_CARD) &&
+  bool sync_sd_folder = system.IsWii() && Config::Get(Config::MAIN_WII_SD_CARD) &&
                         Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
   if (sync_sd_folder)
   {
@@ -544,7 +543,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   }};
 
   // Load Wiimotes - only if we are booting in Wii mode
-  if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  if (system.IsWii() && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
     Wiimote::LoadConfig();
   }
@@ -600,7 +599,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   else
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 2);
 
-  if (!system.GetDSP().GetDSPEmulator()->Initialize(core_parameter.bWii,
+  if (!system.GetDSP().GetDSPEmulator()->Initialize(system.IsWii(),
                                                     Config::Get(Config::MAIN_DSP_THREAD)))
   {
     PanicAlertFmt("Failed to initialize DSP emulation!");
@@ -628,7 +627,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     cpuThreadFunc = CpuThread;
 
   std::optional<DiscIO::Riivolution::SavegameRedirect> savegame_redirect = std::nullopt;
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
     savegame_redirect = DiscIO::Riivolution::ExtractSavegameRedirect(boot->riivolution_patches);
 
   {
@@ -645,7 +644,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     Core::CleanUpWiiFileSystemContents(boot_session_data);
     boot_session_data.InvokeWiiSyncCleanup();
   }};
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
     Core::InitializeWiiFileSystemContents(savegame_redirect, boot_session_data);
   else
     wiifs_guard.Dismiss();

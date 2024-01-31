@@ -14,7 +14,6 @@
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
@@ -389,7 +388,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     u32 addr = bpmem.tmem_config.tlut_src << 5;
 
     // The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
-    if (!SConfig::GetInstance().bWii)
+    auto& system = Core::System::GetInstance();
+    if (!system.IsWii())
       addr = addr & 0x01FFFFFF;
 
     // The copy below will always be in bounds as tmem is bigger than the maximum address a TLUT can
@@ -400,7 +400,6 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
         (1 << bpmem.tmem_config.tlut_dest.tmem_line_count.NumBits()) * TMEM_LINE_SIZE;
     static_assert(MAX_LOADABLE_TMEM_ADDR + MAX_TMEM_LINE_COUNT < TMEM_SIZE);
 
-    auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
     memory.CopyFromEmu(texMem + tmem_addr, addr, tmem_transfer_count);
 

@@ -5,7 +5,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/System.h"
 
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -23,7 +23,8 @@ WidescreenManager::WidescreenManager()
       "Widescreen");
 
   // VertexManager doesn't maintain statistics in Wii mode.
-  if (!SConfig::GetInstance().bWii)
+  auto& system = Core::System::GetInstance();
+  if (!system.IsWii())
   {
     m_update_widescreen =
         AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
@@ -32,7 +33,8 @@ WidescreenManager::WidescreenManager()
 
 void WidescreenManager::Update()
 {
-  if (SConfig::GetInstance().bWii)
+  auto& system = Core::System::GetInstance();
+  if (system.IsWii())
     m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 
   // suggested_aspect_mode overrides SYSCONF_WIDESCREEN

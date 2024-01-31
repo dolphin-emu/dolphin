@@ -21,7 +21,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
@@ -103,7 +102,7 @@ void MemoryManager::Init()
   m_physical_regions[3] = PhysicalMemoryRegion{
       &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false};
 
-  const bool wii = SConfig::GetInstance().bWii;
+  const bool wii = m_system.IsWii();
   const bool mmu = m_system.IsMMUMode();
 
   // If MMU is turned off in GameCube mode, turn on fake VMEM hack.

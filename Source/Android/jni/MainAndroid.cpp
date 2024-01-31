@@ -760,7 +760,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsGameMe
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_IsEmulatingWiiUnchecked(JNIEnv*, jclass)
 {
-  return SConfig::GetInstance().bWii;
+  return Core::System::GetInstance().IsWii();
 }
 
 JNIEXPORT jstring JNICALL

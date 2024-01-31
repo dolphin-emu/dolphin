@@ -52,8 +52,6 @@ struct SConfig
 
   bool bCopyWiiSaveNetplay = true;
 
-  bool bWii = false;
-
   DiscIO::Region m_region;
 
   // files

@@ -141,7 +141,7 @@ static void DoState(PointerWrap& p)
 {
   auto& system = Core::System::GetInstance();
 
-  bool is_wii = SConfig::GetInstance().bWii || system.IsMIOS();
+  bool is_wii = system.IsWii() || system.IsMIOS();
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
@@ -194,7 +194,7 @@ static void DoState(PointerWrap& p)
   system.GetPowerPC().DoState(p);
   p.DoMarker("PowerPC");
 
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
     Wiimote::DoState(p);
   p.DoMarker("Wiimote");
   Gecko::DoState(p);
