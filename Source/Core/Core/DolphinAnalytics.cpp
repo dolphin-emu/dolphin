@@ -360,9 +360,10 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
-  if (g_video_backend)
+
+  if (const auto* video = Core::System::GetInstance().GetVideoBackend())
   {
-    builder.AddData("cfg-video-backend", g_video_backend->GetName());
+    builder.AddData("cfg-video-backend", video->GetName());
   }
 
   // Video configuration.

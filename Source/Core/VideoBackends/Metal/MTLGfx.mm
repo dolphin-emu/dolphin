@@ -3,6 +3,8 @@
 
 #include "VideoBackends/Metal/MTLGfx.h"
 
+#include "Core/System.h"
+
 #include "VideoBackends/Metal/MTLBoundingBox.h"
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLPipeline.h"
@@ -198,7 +200,8 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
 
       stream << std::endl;
       stream << "Dolphin Version: " << Common::GetScmRevStr() << std::endl;
-      stream << "Video Backend: " << g_video_backend->GetDisplayName() << std::endl;
+      const auto display_name = Core::System::GetInstance().GetVideoBackend()->GetDisplayName();
+      stream << "Video Backend: " << display_name << std::endl;
       stream << "*/" << std::endl;
       stream.close();
 

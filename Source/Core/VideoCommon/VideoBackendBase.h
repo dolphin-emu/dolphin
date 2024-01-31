@@ -64,15 +64,6 @@ public:
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);
 
-  static std::string GetDefaultBackendName();
-  static const std::vector<std::unique_ptr<VideoBackendBase>>& GetAvailableBackends();
-  static void ActivateBackend(const std::string& name);
-
-  // Fills the backend_info fields with the capabilities of the selected backend/device.
-  static void PopulateBackendInfo(const WindowSystemInfo& wsi);
-  // Called by the UI thread when the graphics config is opened.
-  static void PopulateBackendInfoFromUI(const WindowSystemInfo& wsi);
-
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);
 
@@ -94,5 +85,3 @@ protected:
 
   bool m_initialized = false;
 };
-
-extern VideoBackendBase* g_video_backend;

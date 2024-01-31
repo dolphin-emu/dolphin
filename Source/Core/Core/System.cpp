@@ -7,6 +7,7 @@
 
 #include "AudioCommon/SoundStream.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
@@ -39,7 +40,24 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFStateManager.h"
+
+#ifdef _WIN32
+#include "VideoBackends/D3D/VideoBackend.h"
+#include "VideoBackends/D3D12/VideoBackend.h"
+#endif
+#include "VideoBackends/Null/VideoBackend.h"
+#ifdef HAS_OPENGL
+#include "VideoBackends/OGL/VideoBackend.h"
+#include "VideoBackends/Software/VideoBackend.h"
+#endif
+#ifdef HAS_VULKAN
+#include "VideoBackends/Vulkan/VideoBackend.h"
+#endif
+#ifdef __APPLE__
+#include "VideoBackends/Metal/VideoBackend.h"
+#endif
 
 namespace Core
 {
@@ -53,9 +71,17 @@ struct System::Impl
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
         m_serial_interface(system), m_system_timers(system), m_video_interface(system),
         m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system),
-        m_fifo_player(system), m_fifo_recorder(system), m_movie(system)
+        m_fifo_player(system), m_fifo_recorder(system),
+        m_movie(system), m_available_video_backends{MakeAvailableVideoBackends()}
   {
   }
+
+  VideoBackendBase* GetDefaultVideoBackend() const;
+  std::string GetDefaultVideoBackendName() const;
+  void PopulateVideoBackendInfo(const WindowSystemInfo& wsi);
+  void PopulateVideoBackendInfoFromUI(const WindowSystemInfo& wsi);
+  void ActivateVideoBackend(std::string_view name);
+  std::vector<std::unique_ptr<VideoBackendBase>> MakeAvailableVideoBackends();
 
   std::unique_ptr<SoundStream> m_sound_stream;
   bool m_sound_stream_running = false;
@@ -95,6 +121,9 @@ struct System::Impl
   FifoPlayer m_fifo_player;
   FifoRecorder m_fifo_recorder;
   Movie::MovieManager m_movie;
+
+  VideoBackendBase* m_video_backend = nullptr;
+  std::vector<std::unique_ptr<VideoBackendBase>> m_available_video_backends;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -314,4 +343,128 @@ VideoCommon::CustomAssetLoader& System::GetCustomAssetLoader() const
 {
   return m_impl->m_custom_asset_loader;
 }
+
+VideoBackendBase* System::GetVideoBackend() const
+{
+  return m_impl->m_video_backend;
+}
+
+const std::vector<std::unique_ptr<VideoBackendBase>>& System::GetAvailableVideoBackends() const
+{
+  return m_impl->m_available_video_backends;
+}
+
+void System::PopulateVideoBackendInfo(const WindowSystemInfo& wsi)
+{
+  m_impl->PopulateVideoBackendInfo(wsi);
+}
+
+void System::PopulateVideoBackendInfoFromUI(const WindowSystemInfo& wsi)
+{
+  m_impl->PopulateVideoBackendInfoFromUI(wsi);
+}
+
+void System::ActivateVideoBackend(std::string_view name)
+{
+  m_impl->ActivateVideoBackend(name);
+}
+
+std::string System::GetDefaultVideoBackendName() const
+{
+  return m_impl->GetDefaultVideoBackendName();
+}
+
+std::vector<std::unique_ptr<VideoBackendBase>> System::Impl::MakeAvailableVideoBackends()
+{
+  std::vector<std::unique_ptr<VideoBackendBase>> backends;
+
+  // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+  // On macOS, we prefer Vulkan over OpenGL due to OpenGL support being deprecated by Apple.
+#ifdef HAS_OPENGL
+  backends.push_back(std::make_unique<OGL::VideoBackend>());
+#endif
+#ifdef _WIN32
+  backends.push_back(std::make_unique<DX11::VideoBackend>());
+  backends.push_back(std::make_unique<DX12::VideoBackend>());
+#endif
+#ifdef HAS_VULKAN
+#ifdef __APPLE__
+  // Emplace the Vulkan backend at the beginning so it takes precedence over OpenGL.
+  backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
+#else
+  backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+#endif
+#endif
+#ifdef __APPLE__
+  backends.emplace(backends.begin(), std::make_unique<Metal::VideoBackend>());
+#endif
+#ifdef HAS_OPENGL
+  backends.push_back(std::make_unique<SW::VideoSoftware>());
+#endif
+  backends.push_back(std::make_unique<Null::VideoBackend>());
+
+  if (!backends.empty())
+    m_video_backend = backends.front().get();
+
+  return backends;
+}
+
+std::string System::Impl::GetDefaultVideoBackendName() const
+{
+  const auto* default_backend = GetDefaultVideoBackend();
+  return default_backend ? default_backend->GetName() : "";
+}
+
+VideoBackendBase* System::Impl::GetDefaultVideoBackend() const
+{
+  if (m_available_video_backends.empty())
+    return nullptr;
+
+  return m_available_video_backends.front().get();
+}
+
+void System::Impl::PopulateVideoBackendInfo(const WindowSystemInfo& wsi)
+{
+  g_Config.Refresh();
+
+  // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
+  // a value from the previously used renderer
+  g_Config.backend_info = {};
+
+  ActivateVideoBackend(Config::Get(Config::MAIN_GFX_BACKEND));
+  g_Config.backend_info.DisplayName = m_video_backend->GetDisplayName();
+  m_video_backend->InitBackendInfo(wsi);
+
+  // We validate the config after initializing the backend info, as system-specific settings
+  // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
+  g_Config.VerifyValidity();
+}
+
+void System::Impl::PopulateVideoBackendInfoFromUI(const WindowSystemInfo& wsi)
+{
+  // If the core is running, the backend info will have been populated already.
+  // If we did it here, the UI thread can race with the GPU thread.
+  if (Core::IsRunning())
+    return;
+
+  PopulateVideoBackendInfo(wsi);
+}
+
+void System::Impl::ActivateVideoBackend(std::string_view name)
+{
+  // If empty, set it to the default backend (expected behavior)
+  if (name.empty())
+    m_video_backend = GetDefaultVideoBackend();
+
+  const auto& backends = m_available_video_backends;
+  const auto iter = std::find_if(backends.begin(), backends.end(), [&name](const auto& backend) {
+    return name == backend->GetName();
+  });
+
+  if (iter == backends.end())
+    return;
+
+  m_video_backend = iter->get();
+}
+
 }  // namespace Core

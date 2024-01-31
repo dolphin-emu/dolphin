@@ -4,6 +4,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
 class GeometryShaderManager;
 class Interpreter;
@@ -12,7 +14,10 @@ class PixelShaderManager;
 class SoundStream;
 struct Sram;
 class VertexShaderManager;
+class VideoBackendBase;
 class XFStateManager;
+
+struct WindowSystemInfo;
 
 namespace AudioInterface
 {
@@ -183,6 +188,17 @@ public:
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
   VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
+
+  VideoBackendBase* GetVideoBackend() const;
+  const std::vector<std::unique_ptr<VideoBackendBase>>& GetAvailableVideoBackends() const;
+  std::string GetDefaultVideoBackendName() const;
+
+  // Fills the video backend info fields with the capabilities of the selected backend/device.
+  void PopulateVideoBackendInfo(const WindowSystemInfo& wsi);
+  // Called by the UI thread when the graphics config is opened.
+  void PopulateVideoBackendInfoFromUI(const WindowSystemInfo& wsi);
+
+  void ActivateVideoBackend(std::string_view name);
 
 private:
   System();

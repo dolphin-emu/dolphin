@@ -14,6 +14,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "Core/System.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -88,7 +90,9 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
 
     stream << "\n";
     stream << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-    stream << "Video Backend: " + g_video_backend->GetDisplayName();
+
+    const auto display_name = Core::System::GetInstance().GetVideoBackend()->GetDisplayName();
+    stream << "Video Backend: " + display_name;
     stream.close();
 
     PanicAlertFmt("{} (written to {})\nDebug info:\n{}", msg, filename, shader->getInfoLog());

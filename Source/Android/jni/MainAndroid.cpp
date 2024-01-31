@@ -396,7 +396,8 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCo
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDefaultGraphicsBackendName(JNIEnv* env, jclass)
 {
-  return ToJString(env, VideoBackendBase::GetDefaultBackendName());
+  const auto default_name = Core::System::GetInstance().GetDefaultVideoBackendName();
+  return ToJString(env, default_name);
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv*, jclass)
