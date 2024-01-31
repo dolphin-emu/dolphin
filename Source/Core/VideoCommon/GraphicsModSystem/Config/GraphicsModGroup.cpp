@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 
+#include <picojson.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -174,7 +176,7 @@ std::vector<GraphicsModConfig>& GraphicsModGroupConfig::GetMods()
   return m_graphics_mods;
 }
 
-GraphicsModConfig* GraphicsModGroupConfig::GetMod(const std::string& absolute_path) const
+GraphicsModConfig* GraphicsModGroupConfig::GetMod(std::string_view absolute_path) const
 {
   if (const auto iter = m_path_to_graphics_mod.find(absolute_path);
       iter != m_path_to_graphics_mod.end())
