@@ -95,15 +95,11 @@ void GraphicsModGroupConfig::Load()
                                                 GraphicsModConfig::Source source) {
     auto file = dir + DIR_SEP + "metadata.json";
     UnifyPathSeparators(file);
-    if (known_paths.find(file) != known_paths.end())
-    {
+    if (known_paths.contains(file))
       return;
-    }
-    const auto mod = GraphicsModConfig::Create(file, source);
-    if (mod)
-    {
-      m_graphics_mods.push_back(*mod);
-    }
+
+    if (auto mod = GraphicsModConfig::Create(file, source))
+      m_graphics_mods.push_back(std::move(*mod));
   };
 
   const std::set<std::string> graphics_mod_user_directories =
