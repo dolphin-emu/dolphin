@@ -185,7 +185,7 @@ void GraphicsModListWidget::ModItemChanged(QListWidgetItem* item)
   m_needs_save = true;
 }
 
-void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_path)
+void GraphicsModListWidget::OnModChanged(const std::optional<std::string>& absolute_path)
 {
   ClearLayoutRecursively(m_mod_meta_layout);
 
@@ -198,7 +198,7 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
     return;
   }
 
-  GraphicsModConfig* mod = m_mod_group.GetMod(*absolute_path);
+  const GraphicsModConfig* mod = m_mod_group.GetMod(*absolute_path);
   if (!mod)
     return;
 
