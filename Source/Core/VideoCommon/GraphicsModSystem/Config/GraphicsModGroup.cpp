@@ -85,7 +85,7 @@ void GraphicsModGroupConfig::Load()
 
           auto mod_full_path = graphics_mod->GetAbsolutePath();
           known_paths.insert(std::move(mod_full_path));
-          m_graphics_mods.push_back(*graphics_mod);
+          m_graphics_mods.push_back(std::move(*graphics_mod));
         }
       }
     }
