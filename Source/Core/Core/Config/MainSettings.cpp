@@ -139,9 +139,16 @@ const Info<std::string> MAIN_BBA_BUILTIN_DNS{{System::Main, "Core", "BBA_BUILTIN
                                              "3.18.217.27"};
 const Info<std::string> MAIN_BBA_BUILTIN_IP{{System::Main, "Core", "BBA_BUILTIN_IP"}, ""};
 
+// Tests if a "SIDevice0" exists before returning the device
+// if yes, the numbering is kept as legacy from 0 to 3 (legacy numbering)
+// if not, the numbering is used in the new way from 1 to 4 (new numbering)
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 {
-  static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
+  
+  if(Config::Get(Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"}, SerialInterface::SIDEVICE_COUNT}) != SerialInterface::SIDEVICE_COUNT)
+  {
+    // legacy numbering
+    static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
       Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"},
                                        SerialInterface::SIDEVICE_GC_CONTROLLER},
       Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice1"},
@@ -150,17 +157,32 @@ const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
                                        SerialInterface::SIDEVICE_NONE},
       Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice3"},
                                        SerialInterface::SIDEVICE_NONE},
+    };
+    return infos[channel];
+  }
+  
+  // new numbering
+  static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice1"},
+                                       SerialInterface::SIDEVICE_GC_CONTROLLER},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice2"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice3"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice4"},
+                                       SerialInterface::SIDEVICE_NONE},
   };
   return infos[channel];
 }
 
+
 const Info<bool>& GetInfoForAdapterRumble(int channel)
 {
   static const std::array<const Info<bool>, 4> infos{
-      Info<bool>{{System::Main, "Core", "AdapterRumble0"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble1"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble2"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble3"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble4"}, true},
   };
   return infos[channel];
 }
@@ -168,10 +190,10 @@ const Info<bool>& GetInfoForAdapterRumble(int channel)
 const Info<bool>& GetInfoForSimulateKonga(int channel)
 {
   static const std::array<const Info<bool>, 4> infos{
-      Info<bool>{{System::Main, "Core", "SimulateKonga0"}, false},
       Info<bool>{{System::Main, "Core", "SimulateKonga1"}, false},
       Info<bool>{{System::Main, "Core", "SimulateKonga2"}, false},
       Info<bool>{{System::Main, "Core", "SimulateKonga3"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga4"}, false},
   };
   return infos[channel];
 }
