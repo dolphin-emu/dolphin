@@ -46,8 +46,8 @@ bool ShaderCache::Initialize()
     return false;
 
   m_async_shader_compiler = g_gfx->CreateAsyncShaderCompiler();
-  m_frame_end_handler =
-      AfterFrameEvent::Register([this] { RetrieveAsyncShaders(); }, "RetreiveAsyncShaders");
+  m_frame_end_handler = AfterFrameEvent::Register([this](Core::System&) { RetrieveAsyncShaders(); },
+                                                  "RetrieveAsyncShaders");
   return true;
 }
 
