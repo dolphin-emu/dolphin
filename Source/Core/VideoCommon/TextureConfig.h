@@ -79,10 +79,8 @@ struct TextureConfig
   AbstractTextureType type = AbstractTextureType::Texture_2DArray;
 };
 
-namespace std
-{
 template <>
-struct hash<TextureConfig>
+struct std::hash<TextureConfig>
 {
   using argument_type = TextureConfig;
   using result_type = size_t;
@@ -95,4 +93,3 @@ struct hash<TextureConfig>
     return std::hash<u64>{}(id);
   }
 };
-}  // namespace std
