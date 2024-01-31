@@ -3,7 +3,7 @@
 
 // This header contains type definitions that are shared between the Dolphin core and
 // other parts of the code. Any definitions that are only used by the core should be
-// placed in "Common.h" instead.
+// placed in "CommonTypes.h" instead.
 
 #pragma once
 
