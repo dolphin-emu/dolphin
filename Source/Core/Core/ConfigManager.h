@@ -44,7 +44,6 @@ struct BootParameters;
 struct SConfig
 {
   // Settings
-  bool bAutomaticStart = false;
   bool bBootToPause = false;
 
   bool bJITNoBlockCache = false;

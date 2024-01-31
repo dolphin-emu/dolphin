@@ -219,7 +219,6 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
 
 void SConfig::LoadDefaults()
 {
-  bAutomaticStart = false;
   bBootToPause = false;
 
   auto& system = Core::System::GetInstance();
