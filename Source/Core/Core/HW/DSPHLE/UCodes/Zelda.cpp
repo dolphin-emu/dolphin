@@ -11,7 +11,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-#include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -1549,7 +1548,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 
 void* ZeldaAudioRenderer::GetARAMPtr(u32 offset) const
 {
-  if (SConfig::GetInstance().bWii)
+  if (m_system.IsWii())
     return HLEMemory_Get_Pointer(m_system.GetMemory(), m_aram_base_addr + offset);
   else
     return reinterpret_cast<u8*>(m_system.GetDSP().GetARAMPtr()) + offset;

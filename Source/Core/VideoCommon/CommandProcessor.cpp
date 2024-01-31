@@ -13,7 +13,6 @@
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
@@ -137,19 +136,12 @@ void CommandProcessorManager::Init()
       m_system.GetCoreTiming().RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
-u32 GetPhysicalAddressMask()
-{
-  // Physical addresses in CP seem to ignore some of the upper bits (depending on platform)
-  // This can be observed in CP MMIO registers by setting to 0xffffffff and then reading back.
-  return SConfig::GetInstance().bWii ? 0x1fffffff : 0x03ffffff;
-}
-
 void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   constexpr u16 WMASK_NONE = 0x0000;
   constexpr u16 WMASK_ALL = 0xffff;
   constexpr u16 WMASK_LO_ALIGN_32BIT = 0xffe0;
-  const u16 WMASK_HI_RESTRICT = GetPhysicalAddressMask() >> 16;
+  const u16 WMASK_HI_RESTRICT = GetPhysicalAddressMask(m_system.IsWii()) >> 16;
 
   struct
   {

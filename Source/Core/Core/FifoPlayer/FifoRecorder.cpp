@@ -10,7 +10,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -244,7 +243,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   std::fill(m_Ram.begin(), m_Ram.end(), 0);
   std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
 
-  m_File->SetIsWii(SConfig::GetInstance().bWii);
+  m_File->SetIsWii(m_system.IsWii());
 
   if (!m_IsRecording)
   {

@@ -135,6 +135,11 @@ public:
   bool IsDualCoreMode() const { return m_separate_cpu_and_gpu_threads; }
   bool IsMMUMode() const { return m_mmu_enabled; }
   bool IsPauseOnPanicMode() const { return m_pause_on_panic_enabled; }
+  bool IsMIOS() const { return m_is_mios; }
+  bool IsWii() const { return m_is_wii; }
+
+  void SetIsMIOS(bool is_mios) { m_is_mios = is_mios; }
+  void SetIsWii(bool is_wii) { m_is_wii = is_wii; }
 
   SoundStream* GetSoundStream() const;
   void SetSoundStream(std::unique_ptr<SoundStream> sound_stream);
@@ -188,5 +193,7 @@ private:
   bool m_separate_cpu_and_gpu_threads = false;
   bool m_mmu_enabled = false;
   bool m_pause_on_panic_enabled = false;
+  bool m_is_mios = false;
+  bool m_is_wii = false;
 };
 }  // namespace Core

@@ -36,7 +36,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
@@ -1241,7 +1240,7 @@ u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
 
   // Check whether the address is an aligned address of an MMIO register.
   const bool aligned = (address & ((access_size >> 3) - 1)) == 0;
-  if (!aligned || !MMIO::IsMMIOAddress(address))
+  if (!aligned || !MMIO::IsMMIOAddress(address, m_system.IsWii()))
     return 0;
 
   return address;
@@ -1641,7 +1640,7 @@ void MMU::DBATUpdated()
 {
   m_dbat_table = {};
   UpdateBATs(m_dbat_table, SPR_DBAT0U);
-  bool extended_bats = SConfig::GetInstance().bWii && HID4(m_ppc_state).SBE;
+  bool extended_bats = m_system.IsWii() && HID4(m_ppc_state).SBE;
   if (extended_bats)
     UpdateBATs(m_dbat_table, SPR_DBAT4U);
   if (m_memory.GetFakeVMEM())
@@ -1663,7 +1662,7 @@ void MMU::IBATUpdated()
 {
   m_ibat_table = {};
   UpdateBATs(m_ibat_table, SPR_IBAT0U);
-  bool extended_bats = SConfig::GetInstance().bWii && HID4(m_ppc_state).SBE;
+  bool extended_bats = m_system.IsWii() && HID4(m_ppc_state).SBE;
   if (extended_bats)
     UpdateBATs(m_ibat_table, SPR_IBAT4U);
   if (m_memory.GetFakeVMEM())

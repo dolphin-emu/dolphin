@@ -14,7 +14,6 @@
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
@@ -511,7 +510,8 @@ void VertexManagerBase::Flush()
 #endif
 
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
-  if (!SConfig::GetInstance().bWii)
+  auto& system = Core::System::GetInstance();
+  if (!system.IsWii())
   {
     const bool is_perspective = xfmem.projection.type == ProjectionType::Perspective;
 
@@ -538,7 +538,6 @@ void VertexManagerBase::Flush()
     }
   }
 
-  auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();

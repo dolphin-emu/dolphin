@@ -522,7 +522,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
-                                    (config.bWii && Config::Get(Config::SYSCONF_PAL60)));
+                                    (system.IsWii() && Config::Get(Config::SYSCONF_PAL60)));
 
   struct BootTitle
   {
@@ -541,7 +541,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(system, guard, config.bWii, *volume, riivolution_patches))
+      if (!EmulatedBS2(system, guard, system.IsWii(), *volume, riivolution_patches))
         return false;
 
       SConfig::OnNewTitleLoad(guard);
@@ -560,11 +560,11 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       auto& ppc_state = system.GetPPCState();
 
       SetupMSR(ppc_state);
-      SetupHID(ppc_state, config.bWii);
-      SetupBAT(system, config.bWii);
+      SetupHID(ppc_state, system.IsWii());
+      SetupBAT(system, system.IsWii());
       CopyDefaultExceptionHandlers(system);
 
-      if (config.bWii)
+      if (system.IsWii())
       {
         // Set a value for the SP. It doesn't matter where this points to,
         // as long as it is a valid location. This value is taken from a homebrew binary.

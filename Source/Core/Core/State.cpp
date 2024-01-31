@@ -139,7 +139,9 @@ void EnableCompression(bool compression)
 
 static void DoState(PointerWrap& p)
 {
-  bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
+  auto& system = Core::System::GetInstance();
+
+  bool is_wii = system.IsWii() || system.IsMIOS();
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
@@ -152,7 +154,6 @@ static void DoState(PointerWrap& p)
   }
 
   // Check to make sure the emulated memory sizes are the same as the savestate
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   u32 state_mem1_size = memory.GetRamSizeReal();
   u32 state_mem2_size = memory.GetExRamSizeReal();
@@ -193,7 +194,7 @@ static void DoState(PointerWrap& p)
   system.GetPowerPC().DoState(p);
   p.DoMarker("PowerPC");
 
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
     Wiimote::DoState(p);
   p.DoMarker("Wiimote");
   Gecko::DoState(p);

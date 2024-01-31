@@ -6,7 +6,6 @@
 #include <algorithm>
 
 #include "Common/BitUtils.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
@@ -209,7 +208,7 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
   static constexpr u32 aram_base_address = 0;
   bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return !SConfig::GetInstance().bWii && (address - aram_base_address) < GetSize();
+    return !guard.GetSystem().IsWii() && (address - aram_base_address) < GetSize();
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
@@ -442,7 +441,7 @@ Accessors* GetAccessors(Type address_space)
   case Type::Effective:
     return &s_effective_address_space_accessors;
   case Type::Physical:
-    if (SConfig::GetInstance().bWii)
+    if (Core::System::GetInstance().IsWii())
     {
       return &s_physical_address_space_accessors_wii;
     }
@@ -453,13 +452,13 @@ Accessors* GetAccessors(Type address_space)
   case Type::Mem1:
     return &s_mem1_address_space_accessors;
   case Type::Mem2:
-    if (SConfig::GetInstance().bWii)
+    if (Core::System::GetInstance().IsWii())
     {
       return &s_mem2_address_space_accessors;
     }
     break;
   case Type::Auxiliary:
-    if (!SConfig::GetInstance().bWii)
+    if (!Core::System::GetInstance().IsWii())
     {
       return &s_auxiliary_address_space_accessors;
     }
