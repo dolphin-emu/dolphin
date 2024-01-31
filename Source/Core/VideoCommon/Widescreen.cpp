@@ -26,8 +26,8 @@ WidescreenManager::WidescreenManager()
   auto& system = Core::System::GetInstance();
   if (!system.IsWii())
   {
-    m_update_widescreen =
-        AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
+    m_update_widescreen = AfterFrameEvent::Register(
+        [this](Core::System&) { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
   }
 }
 

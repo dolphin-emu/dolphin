@@ -117,9 +117,11 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
-  m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame(); }, "VertexManagerBase");
+  m_frame_end_event =
+      AfterFrameEvent::Register([this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
   m_after_present_event = AfterPresentEvent::Register(
-      [this](PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; }, "VertexManagerBase");
+      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; },
+      "VertexManagerBase");
   m_index_generator.Init();
   m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();

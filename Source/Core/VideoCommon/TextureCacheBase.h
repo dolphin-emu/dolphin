@@ -459,7 +459,7 @@ private:
   void OnFrameEnd();
 
   Common::EventHook m_frame_event =
-      AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
+      AfterFrameEvent::Register([this](Core::System&) { OnFrameEnd(); }, "TextureCache");
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;
