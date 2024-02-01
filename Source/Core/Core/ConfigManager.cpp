@@ -306,7 +306,7 @@ struct SetGameMetadata
     }
 
     *region = tmd.GetRegion();
-    system.SetIsWii(false);
+    system.SetIsWii(true);
     config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
 
     return true;
