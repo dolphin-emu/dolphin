@@ -459,20 +459,20 @@ void AchievementManager::FetchBadges()
     return;
   }
 
-  int badgematch = 0;
+  bool badgematch = false;
   {
     std::lock_guard lg{m_lock};
-    badgematch = m_game_badge.name.compare(m_game_data.image_name);
+    badgematch = m_game_badge.name == m_game_data.image_name;
   }
-  if (badgematch != 0)
+  if (!badgematch)
   {
     m_image_queue.EmplaceItem([this] {
       std::string name_to_fetch;
       {
         std::lock_guard lg{m_lock};
-        if (m_game_badge.name.compare(m_game_data.image_name) == 0)
+        if (m_game_badge.name == m_game_data.image_name)
           return;
-        name_to_fetch.assign(m_game_data.image_name);
+        name_to_fetch = m_game_data.image_name;
       }
       rc_api_fetch_image_request_t icon_request = {.image_name = name_to_fetch.c_str(),
                                                    .image_type = RC_IMAGE_TYPE_GAME};
@@ -481,7 +481,7 @@ void AchievementManager::FetchBadges()
       {
         INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded game badge id {}.", name_to_fetch);
         std::lock_guard lg{m_lock};
-        if (name_to_fetch.compare(m_game_data.image_name) != 0)
+        if (name_to_fetch != m_game_data.image_name)
         {
           INFO_LOG_FMT(ACHIEVEMENTS, "Requested outdated badge id {} for game id {}.",
                        name_to_fetch, m_game_data.image_name);
@@ -537,7 +537,7 @@ void AchievementManager::FetchBadges()
                 index);
             return;
           }
-          name_to_fetch.assign(achievement.badge_name);
+          name_to_fetch = achievement.badge_name;
           current_name = unlock_itr->second.unlocked_badge.name;
         }
         if (current_name == name_to_fetch)
@@ -565,7 +565,7 @@ void AchievementManager::FetchBadges()
                           "Fetched unlocked badge for achievement id {} not in unlock map.", index);
             return;
           }
-          if (name_to_fetch.compare(achievement.badge_name) != 0)
+          if (name_to_fetch != achievement.badge_name)
           {
             INFO_LOG_FMT(
                 ACHIEVEMENTS,
@@ -608,7 +608,7 @@ void AchievementManager::FetchBadges()
                 "Attempted to fetch locked badge for achievement id {} not in unlock map.", index);
             return;
           }
-          name_to_fetch.assign(achievement.badge_name);
+          name_to_fetch = achievement.badge_name;
           current_name = unlock_itr->second.locked_badge.name;
         }
         if (current_name == name_to_fetch)
@@ -636,7 +636,7 @@ void AchievementManager::FetchBadges()
                           "Fetched locked badge for achievement id {} not in unlock map.", index);
             return;
           }
-          if (name_to_fetch.compare(achievement.badge_name) != 0)
+          if (name_to_fetch != achievement.badge_name)
           {
             INFO_LOG_FMT(ACHIEVEMENTS,
                          "Requested outdated locked achievement badge id {} for achievement id {}.",
