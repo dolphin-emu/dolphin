@@ -907,7 +907,7 @@ void AchievementManager::CloseGame()
       ActivateDeactivateLeaderboards();
       ActivateDeactivateRichPresence();
       m_game_id = 0;
-      m_game_badge.name = "";
+      m_game_badge.name.clear();
       m_unlock_map.clear();
       m_leaderboard_map.clear();
       rc_api_destroy_fetch_game_data_response(&m_game_data);
@@ -927,7 +927,7 @@ void AchievementManager::Logout()
   {
     std::lock_guard lg{m_lock};
     CloseGame();
-    m_player_badge.name = "";
+    m_player_badge.name.clear();
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
   }
 
