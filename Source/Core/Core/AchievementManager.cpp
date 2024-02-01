@@ -178,16 +178,13 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
     return;
   }
   // Need to SetDisabled outside a lock because it uses m_lock internally.
-  bool disable = false;
+  bool disable = true;
   {
     std::lock_guard lg{m_lock};
-    if (m_loading_volume.get() != nullptr)
-    {
-      disable = true;
-    }
-    else
+    if (!m_loading_volume)
     {
       m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+      disable = false;
     }
   }
   if (disable)
