@@ -1221,15 +1221,17 @@ AchievementManager::ResponseType AchievementManager::FetchBoardInfo(AchievementI
     for (u32 i = 0; i < board_info.num_entries; ++i)
     {
       const auto& org_entry = board_info.entries[i];
-      LeaderboardEntry dest_entry =
-          LeaderboardEntry{.username = org_entry.username, .rank = org_entry.rank};
+      auto dest_entry = LeaderboardEntry{
+          .username = org_entry.username,
+          .rank = org_entry.rank,
+      };
       if (rc_runtime_format_lboard_value(dest_entry.score.data(), FORMAT_SIZE, org_entry.score,
                                          board_info.format) == 0)
       {
         ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to format leaderboard score {}.", org_entry.score);
         strncpy(dest_entry.score.data(), fmt::format("{}", org_entry.score).c_str(), FORMAT_SIZE);
       }
-      lboard.entries[org_entry.index] = dest_entry;
+      lboard.entries.insert_or_assign(org_entry.index, std::move(dest_entry));
     }
     rc_api_destroy_fetch_leaderboard_info_response(&board_info);
   }
@@ -1257,15 +1259,17 @@ AchievementManager::ResponseType AchievementManager::FetchBoardInfo(AchievementI
     for (u32 i = 0; i < board_info.num_entries; ++i)
     {
       const auto& org_entry = board_info.entries[i];
-      LeaderboardEntry dest_entry =
-          LeaderboardEntry{.username = org_entry.username, .rank = org_entry.rank};
+      auto dest_entry = LeaderboardEntry{
+          .username = org_entry.username,
+          .rank = org_entry.rank,
+      };
       if (rc_runtime_format_lboard_value(dest_entry.score.data(), FORMAT_SIZE, org_entry.score,
                                          board_info.format) == 0)
       {
         ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to format leaderboard score {}.", org_entry.score);
         strncpy(dest_entry.score.data(), fmt::format("{}", org_entry.score).c_str(), FORMAT_SIZE);
       }
-      lboard.entries[org_entry.index] = dest_entry;
+      lboard.entries.insert_or_assign(org_entry.index, std::move(dest_entry));
       if (org_entry.username == username)
         lboard.player_index = org_entry.index;
     }
@@ -1274,7 +1278,7 @@ AchievementManager::ResponseType AchievementManager::FetchBoardInfo(AchievementI
 
   {
     std::lock_guard lg{m_lock};
-    m_leaderboard_map[leaderboard_id] = lboard;
+    m_leaderboard_map.insert_or_assign(leaderboard_id, std::move(lboard));
   }
 
   return ResponseType::SUCCESS;
