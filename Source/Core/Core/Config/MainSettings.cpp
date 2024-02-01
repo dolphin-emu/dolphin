@@ -179,10 +179,10 @@ const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 const Info<bool>& GetInfoForAdapterRumble(int channel)
 {
   static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "AdapterRumble0"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble1"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble2"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble3"}, true},
-      Info<bool>{{System::Main, "Core", "AdapterRumble4"}, true},
   };
   return infos[channel];
 }
@@ -190,10 +190,10 @@ const Info<bool>& GetInfoForAdapterRumble(int channel)
 const Info<bool>& GetInfoForSimulateKonga(int channel)
 {
   static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "SimulateKonga0"}, false},
       Info<bool>{{System::Main, "Core", "SimulateKonga1"}, false},
       Info<bool>{{System::Main, "Core", "SimulateKonga2"}, false},
       Info<bool>{{System::Main, "Core", "SimulateKonga3"}, false},
-      Info<bool>{{System::Main, "Core", "SimulateKonga4"}, false},
   };
   return infos[channel];
 }
