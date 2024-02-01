@@ -911,7 +911,7 @@ void AchievementManager::CloseGame()
       m_unlock_map.clear();
       m_leaderboard_map.clear();
       rc_api_destroy_fetch_game_data_response(&m_game_data);
-      std::memset(&m_game_data, 0, sizeof(m_game_data));
+      m_game_data = {};
       m_queue.Cancel();
       m_image_queue.Cancel();
       m_system = nullptr;
@@ -1134,7 +1134,7 @@ AchievementManager::ResponseType AchievementManager::FetchGameData()
                   game_id, api_request.url,
                   api_request.post_data == nullptr ? "NULL" : api_request.post_data, response_str);
     rc_api_destroy_fetch_game_data_response(&m_game_data);
-    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    m_game_data = {};
     return ResponseType::MALFORMED_OBJECT;
   }
   if (!m_game_data.response.succeeded)
@@ -1146,7 +1146,7 @@ AchievementManager::ResponseType AchievementManager::FetchGameData()
     // Logout technically does this via a CloseGame call, but doing this now prevents the activate
     // methods from thinking they have something to do.
     rc_api_destroy_fetch_game_data_response(&m_game_data);
-    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    m_game_data = {};
     Logout();
     return ResponseType::INVALID_CREDENTIALS;
   }
@@ -1156,7 +1156,7 @@ AchievementManager::ResponseType AchievementManager::FetchGameData()
                  "Attempted to retrieve game data for ID {}; running game is now ID {}", game_id,
                  m_game_id);
     rc_api_destroy_fetch_game_data_response(&m_game_data);
-    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    m_game_data = {};
     return ResponseType::EXPIRED_CONTEXT;
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Retrieved game data for ID {}.", game_id);
