@@ -118,16 +118,6 @@ void UpdateVertexArrayPointers()
   g_bases_dirty = false;
 }
 
-namespace
-{
-struct entry
-{
-  std::string text;
-  u64 num_verts;
-  bool operator<(const entry& other) const { return num_verts > other.num_verts; }
-};
-}  // namespace
-
 void MarkAllDirty()
 {
   g_bases_dirty = true;
