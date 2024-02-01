@@ -862,11 +862,10 @@ AchievementManager::GetLeaderboardsInfo() const
   return m_leaderboard_map;
 }
 
-AchievementManager::RichPresence AchievementManager::GetRichPresence()
+AchievementManager::RichPresence AchievementManager::GetRichPresence() const
 {
   std::lock_guard lg{m_lock};
-  RichPresence rich_presence = m_rich_presence;
-  return rich_presence;
+  return m_rich_presence;
 }
 
 void AchievementManager::SetDisabled(bool disable)

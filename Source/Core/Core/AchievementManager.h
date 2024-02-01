@@ -143,7 +143,7 @@ public:
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
   const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
-  RichPresence GetRichPresence();
+  RichPresence GetRichPresence() const;
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
