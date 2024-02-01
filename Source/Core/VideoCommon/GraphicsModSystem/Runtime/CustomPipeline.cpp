@@ -101,7 +101,7 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
         {
           i++;
         }
-        global_result.push_back(std::string{parse_identifier()});
+        global_result.emplace_back(parse_identifier());
         parse_until_end_of_preprocessor();
       }
       else
@@ -121,11 +121,11 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
 
       // Since we handle equality, we can assume the identifier
       // before '(' is a function definition
-      global_result.push_back(std::string{last_identifier});
+      global_result.emplace_back(last_identifier);
     }
     else if (source[i] == '=')
     {
-      global_result.push_back(std::string{last_identifier});
+      global_result.emplace_back(last_identifier);
       i++;
       for (; i < source.size(); i++)
       {
