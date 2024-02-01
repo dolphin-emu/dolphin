@@ -197,8 +197,7 @@ void CustomPipeline::UpdatePixelData(
     {
       max_material_data_size += VideoCommon::MaterialProperty::GetMemorySize(property);
       VideoCommon::MaterialProperty::WriteAsShaderCode(m_last_generated_material_code, property);
-      if (auto* texture_asset_id =
-              std::get_if<VideoCommon::CustomAssetLibrary::AssetID>(&property.m_value))
+      if (std::holds_alternative<VideoCommon::CustomAssetLibrary::AssetID>(property.m_value))
       {
         texture_count++;
       }
