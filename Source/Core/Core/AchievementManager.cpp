@@ -55,6 +55,10 @@ void AchievementManager::Init()
 void AchievementManager::SetUpdateCallback(UpdateCallback callback)
 {
   m_update_callback = std::move(callback);
+
+  if (!m_update_callback)
+    m_update_callback = [] {};
+
   m_update_callback();
 }
 
@@ -69,8 +73,8 @@ AchievementManager::ResponseType AchievementManager::Login(const std::string& pa
 
   const ResponseType r_type = VerifyCredentials(password);
   FetchBadges();
-  if (m_update_callback)
-    m_update_callback();
+
+  m_update_callback();
   return r_type;
 }
 
@@ -86,8 +90,7 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
   m_queue.EmplaceItem([this, password, callback] {
     callback(VerifyCredentials(password));
     FetchBadges();
-    if (m_update_callback)
-      m_update_callback();
+    m_update_callback();
   });
 }
 
@@ -316,8 +319,7 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
   m_last_ping_time = 0;
   INFO_LOG_FMT(ACHIEVEMENTS, "RetroAchievements successfully loaded for {}.", m_game_data.title);
 
-  if (m_update_callback)
-    m_update_callback();
+  m_update_callback();
   callback(fetch_game_data_response);
 }
 
@@ -344,8 +346,7 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
     }
 
     callback(FetchUnlockData(false));
-    if (m_update_callback)
-      m_update_callback();
+    m_update_callback();
   });
 }
 
@@ -382,8 +383,7 @@ void AchievementManager::ActivateDeactivateLeaderboards()
       rc_runtime_activate_lboard(&m_runtime, leaderboard_id, leaderboard.definition, nullptr, 0);
       m_queue.EmplaceItem([this, leaderboard_id] {
         FetchBoardInfo(leaderboard_id);
-        if (m_update_callback)
-          m_update_callback();
+        m_update_callback();
       });
     }
     else
@@ -411,8 +411,7 @@ void AchievementManager::FetchBadges()
 {
   if (!m_is_runtime_initialized || !IsLoggedIn() || !Config::Get(Config::RA_BADGES_ENABLED))
   {
-    if (m_update_callback)
-      m_update_callback();
+    m_update_callback();
     return;
   }
   m_image_queue.Cancel();
@@ -447,15 +446,14 @@ void AchievementManager::FetchBadges()
       {
         WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download player badge id {}.", name_to_fetch);
       }
-      if (m_update_callback)
-        m_update_callback();
+
+      m_update_callback();
     });
   }
 
   if (!IsGameLoaded())
   {
-    if (m_update_callback)
-      m_update_callback();
+    m_update_callback();
     return;
   }
 
@@ -494,8 +492,8 @@ void AchievementManager::FetchBadges()
       {
         WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download game badge id {}.", name_to_fetch);
       }
-      if (m_update_callback)
-        m_update_callback();
+
+      m_update_callback();
     });
   }
 
@@ -581,8 +579,8 @@ void AchievementManager::FetchBadges()
           WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download unlocked achievement badge id {}.",
                        name_to_fetch);
         }
-        if (m_update_callback)
-          m_update_callback();
+
+        m_update_callback();
       });
     }
     if (unlock_status.locked_badge.name != badge_name_to_fetch)
@@ -651,13 +649,13 @@ void AchievementManager::FetchBadges()
           WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download locked achievement badge id {}.",
                        name_to_fetch);
         }
-        if (m_update_callback)
-          m_update_callback();
+
+        m_update_callback();
       });
     }
   }
-  if (m_update_callback)
-    m_update_callback();
+
+  m_update_callback();
 }
 
 void AchievementManager::DoFrame()
@@ -691,8 +689,7 @@ void AchievementManager::DoFrame()
     GenerateRichPresence();
     m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
     m_last_ping_time = current_time;
-    if (m_update_callback)
-      m_update_callback();
+    m_update_callback();
   }
 }
 
@@ -755,8 +752,8 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
       break;
     }
   }
-  if (m_update_callback)
-    m_update_callback();
+
+  m_update_callback();
 }
 
 std::recursive_mutex& AchievementManager::GetLock()
@@ -920,8 +917,8 @@ void AchievementManager::CloseGame()
       m_system = nullptr;
     }
   }
-  if (m_update_callback)
-    m_update_callback();
+
+  m_update_callback();
   INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
 }
 
@@ -933,8 +930,8 @@ void AchievementManager::Logout()
     m_player_badge.name = "";
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
   }
-  if (m_update_callback)
-    m_update_callback();
+
+  m_update_callback();
   INFO_LOG_FMT(ACHIEVEMENTS, "Logged out from server.");
 }
 
@@ -1593,8 +1590,7 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
       }
       m_queue.EmplaceItem([this, event_id] {
         FetchBoardInfo(event_id);
-        if (m_update_callback)
-          m_update_callback();
+        m_update_callback();
       });
       break;
     }
