@@ -64,10 +64,8 @@ bool g_needs_cp_xf_consistency_check;
 void Init()
 {
   MarkAllDirty();
-  for (auto& map_entry : g_main_vertex_loaders)
-    map_entry = nullptr;
-  for (auto& map_entry : g_preprocess_vertex_loaders)
-    map_entry = nullptr;
+  g_main_vertex_loaders.fill(nullptr);
+  g_preprocess_vertex_loaders.fill(nullptr);
   SETSTAT(g_stats.num_vertex_loaders, 0);
 }
 
