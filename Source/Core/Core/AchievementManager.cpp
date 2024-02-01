@@ -64,9 +64,10 @@ AchievementManager::ResponseType AchievementManager::Login(const std::string& pa
   {
     ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted login (sync) to RetroAchievements server without "
                                 "Achievement Manager initialized.");
-    return AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED;
+    return ResponseType::MANAGER_NOT_INITIALIZED;
   }
-  AchievementManager::ResponseType r_type = VerifyCredentials(password);
+
+  const ResponseType r_type = VerifyCredentials(password);
   FetchBadges();
   if (m_update_callback)
     m_update_callback();
@@ -79,7 +80,7 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
   {
     ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted login (async) to RetroAchievements server without "
                                 "Achievement Manager initialized.");
-    callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
+    callback(ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
   m_queue.EmplaceItem([this, password, callback] {
@@ -99,14 +100,14 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
 {
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
-    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    callback(ResponseType::NOT_ENABLED);
     return;
   }
   if (!m_is_runtime_initialized)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS,
                   "Attempted to load game achievements without Achievement Manager initialized.");
-    callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
+    callback(ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
   if (m_disabled)
@@ -133,7 +134,7 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
       {
         ERROR_LOG_FMT(ACHIEVEMENTS, "Unable to generate achievement hash from game file {}.",
                       file_path);
-        callback(AchievementManager::ResponseType::MALFORMED_OBJECT);
+        callback(ResponseType::MALFORMED_OBJECT);
       }
     }
     {
@@ -141,7 +142,7 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
       if (m_disabled)
       {
         INFO_LOG_FMT(ACHIEVEMENTS, "Achievements disabled while hash was resolving.");
-        callback(AchievementManager::ResponseType::EXPIRED_CONTEXT);
+        callback(ResponseType::EXPIRED_CONTEXT);
         return;
       }
       m_game_hash = std::move(new_hash);
@@ -154,14 +155,14 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
 {
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
-    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    callback(ResponseType::NOT_ENABLED);
     return;
   }
   if (!m_is_runtime_initialized)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS,
                   "Attempted to load game achievements without Achievement Manager initialized.");
-    callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
+    callback(ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
   if (volume == nullptr)
@@ -193,7 +194,7 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "Disabling Achievement Manager due to hash spam.");
     SetDisabled(true);
-    callback(AchievementManager::ResponseType::EXPIRED_CONTEXT);
+    callback(ResponseType::EXPIRED_CONTEXT);
     return;
   }
   m_system = &Core::System::GetInstance();
@@ -212,7 +213,7 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
       if (!rc_hash_generate_from_file(new_hash.data(), RC_CONSOLE_GAMECUBE, ""))
       {
         ERROR_LOG_FMT(ACHIEVEMENTS, "Unable to generate achievement hash from volume.");
-        callback(AchievementManager::ResponseType::MALFORMED_OBJECT);
+        callback(ResponseType::MALFORMED_OBJECT);
         return;
       }
     }
@@ -221,7 +222,7 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
       if (m_disabled)
       {
         INFO_LOG_FMT(ACHIEVEMENTS, "Achievements disabled while hash was resolving.");
-        callback(AchievementManager::ResponseType::EXPIRED_CONTEXT);
+        callback(ResponseType::EXPIRED_CONTEXT);
         return;
       }
       m_game_hash = std::move(new_hash);
@@ -235,7 +236,7 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
 {
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
-    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    callback(ResponseType::NOT_ENABLED);
     return;
   }
   u32 new_game_id = 0;
@@ -332,7 +333,7 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 {
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
-    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    callback(ResponseType::NOT_ENABLED);
     return;
   }
   m_queue.EmplaceItem([this, callback] {
