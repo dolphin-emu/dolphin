@@ -175,7 +175,6 @@ const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
   return infos[channel];
 }
 
-
 const Info<bool>& GetInfoForAdapterRumble(int channel)
 {
   static const std::array<const Info<bool>, 4> infos{
