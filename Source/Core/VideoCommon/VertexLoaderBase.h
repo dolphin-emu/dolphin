@@ -46,14 +46,11 @@ private:
   }
 };
 
-namespace std
-{
 template <>
-struct hash<VertexLoaderUID>
+struct std::hash<VertexLoaderUID>
 {
-  size_t operator()(const VertexLoaderUID& uid) const { return uid.GetHash(); }
+  size_t operator()(const VertexLoaderUID& uid) const noexcept { return uid.GetHash(); }
 };
-}  // namespace std
 
 class VertexLoaderBase
 {

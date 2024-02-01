@@ -4,16 +4,12 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <string>
 #include <unordered_set>
 
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/System.h"
-#include "UICommon/UICommon.h"
 
 // Tests that the UniqueID function returns a "unique enough" identifier
 // number: that is, it is unique in the address ranges we care about.
@@ -36,34 +32,25 @@ TEST(UniqueID, UniqueEnough)
 
 TEST(IsMMIOAddress, SpecialAddresses)
 {
-  const std::string profile_path = File::CreateTempDir();
-  ASSERT_FALSE(profile_path.empty());
-  UICommon::SetUserDirectory(profile_path);
-  Config::Init();
-  SConfig::Init();
-  SConfig::GetInstance().bWii = true;
+  constexpr bool is_wii = true;
 
   // WG Pipe address, should not be handled by MMIO.
-  EXPECT_FALSE(MMIO::IsMMIOAddress(GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS));
+  EXPECT_FALSE(MMIO::IsMMIOAddress(GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS, is_wii));
 
   // Locked L1 cache allocation.
-  EXPECT_FALSE(MMIO::IsMMIOAddress(0xE0000000));
+  EXPECT_FALSE(MMIO::IsMMIOAddress(0xE0000000, is_wii));
 
   // Uncached mirror of MEM1, shouldn't be handled by MMIO
-  EXPECT_FALSE(MMIO::IsMMIOAddress(0xC0000000));
+  EXPECT_FALSE(MMIO::IsMMIOAddress(0xC0000000, is_wii));
 
   // Effective address of an MMIO register; MMIO only deals with physical
   // addresses.
-  EXPECT_FALSE(MMIO::IsMMIOAddress(0xCC0000E0));
+  EXPECT_FALSE(MMIO::IsMMIOAddress(0xCC0000E0, is_wii));
 
   // And let's check some valid addresses too
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0));  // GameCube MMIOs
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D00008C));  // Wii MMIOs
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D800F10));  // Mirror of Wii MMIOs
-
-  SConfig::Shutdown();
-  Config::Shutdown();
-  File::DeleteDirRecursively(profile_path);
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0, is_wii));  // GameCube MMIOs
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D00008C, is_wii));  // Wii MMIOs
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D800F10, is_wii));  // Mirror of Wii MMIOs
 }
 
 class MappingTest : public testing::Test

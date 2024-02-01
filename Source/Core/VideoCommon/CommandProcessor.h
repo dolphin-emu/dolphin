@@ -155,7 +155,12 @@ union UCPClearReg
   UCPClearReg(u16 _hex) { Hex = _hex; }
 };
 
-u32 GetPhysicalAddressMask();
+constexpr u32 GetPhysicalAddressMask(bool is_wii)
+{
+  // Physical addresses in CP seem to ignore some of the upper bits (depending on platform)
+  // This can be observed in CP MMIO registers by setting to 0xffffffff and then reading back.
+  return is_wii ? 0x1fffffff : 0x03ffffff;
+}
 
 class CommandProcessorManager
 {

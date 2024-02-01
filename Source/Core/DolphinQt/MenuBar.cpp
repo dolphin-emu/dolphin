@@ -172,7 +172,6 @@ void MenuBar::OnDebugModeToggled(bool enabled)
 {
   // Options
   m_boot_to_pause->setVisible(enabled);
-  m_automatic_start->setVisible(enabled);
   m_reset_ignore_panic_handler->setVisible(enabled);
   m_change_font->setVisible(enabled);
 
@@ -572,13 +571,6 @@ void MenuBar::AddOptionsMenu()
 
   connect(m_boot_to_pause, &QAction::toggled, this,
           [](bool enable) { SConfig::GetInstance().bBootToPause = enable; });
-
-  m_automatic_start = options_menu->addAction(tr("&Automatic Start"));
-  m_automatic_start->setCheckable(true);
-  m_automatic_start->setChecked(SConfig::GetInstance().bAutomaticStart);
-
-  connect(m_automatic_start, &QAction::toggled, this,
-          [](bool enable) { SConfig::GetInstance().bAutomaticStart = enable; });
 
   m_reset_ignore_panic_handler = options_menu->addAction(tr("Reset Ignore Panic Handler"));
 

@@ -124,7 +124,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    processor_interface.m_reset_code = val;
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: {:08x}",
                                 processor_interface.m_reset_code);
-                   if (!SConfig::GetInstance().bWii && ~processor_interface.m_reset_code & 0x4)
+                   if (!system.IsWii() && (~processor_interface.m_reset_code & 0x4))
                    {
                      system.GetDVDInterface().ResetDrive(true);
                    }

@@ -12,7 +12,6 @@
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-#include "Core/ConfigManager.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
 
@@ -47,14 +46,14 @@ const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 // We have a special exception here for FIFO writes: these are handled via a
 // different mechanism and should not go through the normal MMIO access
 // interface.
-inline bool IsMMIOAddress(u32 address)
+inline bool IsMMIOAddress(u32 address, bool is_wii)
 {
   if (address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
     return false;  // WG Pipe
   if ((address & 0xFFFF0000) == 0x0C000000)
     return true;  // GameCube MMIOs
 
-  if (SConfig::GetInstance().bWii)
+  if (is_wii)
   {
     return ((address & 0xFFFF0000) == 0x0D000000) ||  // Wii MMIOs
            ((address & 0xFFFF0000) == 0x0D800000);    // Mirror of Wii MMIOs
