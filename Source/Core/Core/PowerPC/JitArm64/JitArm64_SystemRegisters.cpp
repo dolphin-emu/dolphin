@@ -273,7 +273,7 @@ void JitArm64::twx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush(FlushMode::All, WA);
+    gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
     fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
     WriteExit(js.compilerPC + 4);
   }
