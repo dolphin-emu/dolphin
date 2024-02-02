@@ -335,8 +335,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
+  out.Write(
+      "// Multiply the position vector by the custom transform matrix\n"
+      "float4 pos = float4(dot(rawpos, custom_transform[0]), dot(rawpos, custom_transform[1]), "
+      "dot(rawpos, custom_transform[2]), dot(rawpos, custom_transform[3]));\n");
   out.Write("// Multiply the position vector by the position matrix\n"
-            "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
+            "pos = float4(dot(P0, pos), dot(P1, pos), dot(P2, pos), 1.0);\n");
   if ((uid_data->components & VB_HAS_NORMAL) != 0)
   {
     if ((uid_data->components & VB_HAS_TANGENT) == 0)
