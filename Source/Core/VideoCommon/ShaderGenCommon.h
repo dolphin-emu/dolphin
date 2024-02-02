@@ -319,6 +319,7 @@ static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint vertex_offset_rawcolor0;\n"
                                         "\tuint vertex_offset_rawcolor1;\n"
                                         "\tuint4 vertex_offset_rawtex[2];\n"  // std140 is pain
+                                        "\tfloat4 custom_transform[4];\n"
                                         "\t#define xfmem_texMtxInfo(i) (xfmem_pack1[(i)].x)\n"
                                         "\t#define xfmem_postMtxInfo(i) (xfmem_pack1[(i)].y)\n"
                                         "\t#define xfmem_color(i) (xfmem_pack1[(i)].z)\n"
