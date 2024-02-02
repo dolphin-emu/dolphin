@@ -3,6 +3,8 @@
 
 #include "DolphinQt/GameList/GameListModel.h"
 
+#include <array>
+
 #include <QDir>
 #include <QFileInfo>
 #include <QPixmap>
@@ -208,36 +210,22 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
   if (orientation == Qt::Vertical || role != Qt::DisplayRole)
     return QVariant();
 
-  switch (static_cast<Column>(section))
-  {
-  case Column::Title:
-    return tr("Title");
-  case Column::ID:
-    return tr("ID");
-  case Column::Banner:
-    return tr("Banner");
-  case Column::Description:
-    return tr("Description");
-  case Column::Maker:
-    return tr("Maker");
-  case Column::FileName:
-    return tr("File Name");
-  case Column::FilePath:
-    return tr("File Path");
-  case Column::Size:
-    return tr("Size");
-  case Column::FileFormat:
-    return tr("File Format");
-  case Column::BlockSize:
-    return tr("Block Size");
-  case Column::Compression:
-    return tr("Compression");
-  case Column::Tags:
-    return tr("Tags");
-  default:
-    break;
-  }
-  return QVariant();
+  static constexpr std::array<const char*, static_cast<std::size_t>(Column::Count)> headers = {
+      nullptr,
+      QT_TR_NOOP("Banner"),
+      QT_TR_NOOP("Title"),
+      QT_TR_NOOP("Description"),
+      QT_TR_NOOP("Maker"),
+      QT_TR_NOOP("ID"),
+      nullptr,
+      QT_TR_NOOP("Size"),
+      QT_TR_NOOP("File Name"),
+      QT_TR_NOOP("File Path"),
+      QT_TR_NOOP("File Format"),
+      QT_TR_NOOP("Block Size"),
+      QT_TR_NOOP("Compression"),
+      QT_TR_NOOP("Tags")};
+  return tr(headers[section]);
 }
 
 int GameListModel::rowCount(const QModelIndex& parent) const
