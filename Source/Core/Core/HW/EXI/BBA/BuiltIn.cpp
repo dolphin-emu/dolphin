@@ -126,6 +126,13 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
   const u8 next_write_index = (m_queue_write + 1) & 15;
   if (next_write_index != m_queue_read)
     m_queue_write = next_write_index;
+  else
+    WARN_LOG_FMT(SP1, "BBA queue overrun, data might be lost");
+}
+
+bool CEXIETHERNET::BuiltInBBAInterface::WillQueueOverrun() const
+{
+  return ((m_queue_write + 1) & 15) == m_queue_read;
 }
 
 void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
@@ -140,13 +147,14 @@ void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
     {
       for (auto& tcp_buf : net_ref.tcp_buffers)
       {
+        if (WillQueueOverrun())
+          break;
         if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
           continue;
 
-        tcp_buf.tick = GetTickCountStd();
         // Timed out packet, resend
-        if (((m_queue_write + 1) & 15) != m_queue_read)
-          WriteToQueue(tcp_buf.data);
+        tcp_buf.tick = GetTickCountStd();
+        WriteToQueue(tcp_buf.data);
       }
     }
 
