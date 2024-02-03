@@ -92,3 +92,21 @@ struct StackRef
   BbaTcpSocket tcp_socket;
   u64 poke_time;
 };
+
+// Max 10 at same time, I think most gc game had a
+// limit of 8 in the GC framework
+using StackRefs = std::array<StackRef, 10>;
+
+class NetworkRef
+{
+public:
+  StackRefs& data() { return m_stacks; }
+  const StackRefs& data() const { return m_stacks; }
+  auto begin() { return m_stacks.begin(); }
+  auto begin() const { return m_stacks.cbegin(); }
+  auto end() { return m_stacks.end(); }
+  auto end() const { return m_stacks.cend(); }
+
+private:
+  StackRefs m_stacks;
+};
