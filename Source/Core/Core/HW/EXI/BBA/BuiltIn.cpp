@@ -88,7 +88,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
   m_arp_table[m_router_ip] = m_router_mac;
 
-  network_ref.Clear();
+  m_network_ref.Clear();
 
   m_upnp_httpd.listen(Common::SSDP_PORT, sf::IpAddress(ip));
   m_upnp_httpd.setBlocking(false);
@@ -106,7 +106,7 @@ void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
   m_read_thread_shutdown.Set();
   m_active = false;
 
-  network_ref.Clear();
+  m_network_ref.Clear();
   m_arp_table.clear();
   m_upnp_httpd.close();
 
@@ -130,7 +130,7 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
 
 void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
 {
-  for (auto& net_ref : network_ref)
+  for (auto& net_ref : m_network_ref)
   {
     if (net_ref.ip == 0)
       continue;
@@ -302,8 +302,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
   sf::IpAddress target;
-  StackRef* ref = network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
-                                         Common::BitCast<u32>(ip_header.destination_addr));
+  StackRef* ref = m_network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
+                                           Common::BitCast<u32>(ip_header.destination_addr));
   const u16 flags = ntohs(tcp_header.properties) & 0xfff;
   if (flags & (TCP_FLAG_FIN | TCP_FLAG_RST))
   {
@@ -332,7 +332,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     // new connection
     if (ref != nullptr)
       return;
-    ref = network_ref.GetAvailableSlot(0);
+    ref = m_network_ref.GetAvailableSlot(0);
 
     ref->delay = GetTickCountStd();
     ref->local = tcp_header.source_port;
@@ -422,7 +422,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 // and listen to it. We open it on our side manually.
 void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
 {
-  StackRef* ref = network_ref.GetAvailableSlot(htons(port));
+  StackRef* ref = m_network_ref.GetAvailableSlot(htons(port));
   if (ref == nullptr || ref->ip != 0)
     return;
   ref->ip = m_router_ip;  // change for ip
@@ -452,7 +452,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
                                    m_router_ip :  // dns request
                                    Common::BitCast<u32>(ip_header.destination_addr);
 
-  StackRef* ref = network_ref.GetAvailableSlot(udp_header.source_port);
+  StackRef* ref = m_network_ref.GetAvailableSlot(udp_header.source_port);
   if (ref->ip == 0)
   {
     ref->ip = destination_addr;  // change for ip
@@ -497,7 +497,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
 
 void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
 {
-  StackRef* ref = network_ref.GetAvailableSlot(0);
+  StackRef* ref = m_network_ref.GetAvailableSlot(0);
   if (ref == nullptr || m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Done)
     return;
 
@@ -734,7 +734,7 @@ void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
 {
   m_read_enabled.Clear();
-  network_ref.Clear();
+  m_network_ref.Clear();
   m_queue_read = 0;
   m_queue_write = 0;
 }
