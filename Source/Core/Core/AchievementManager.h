@@ -143,7 +143,7 @@ public:
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
   const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
-  RichPresence GetRichPresence();
+  RichPresence GetRichPresence() const;
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
@@ -204,7 +204,7 @@ private:
   rc_runtime_t m_runtime{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
-  UpdateCallback m_update_callback;
+  UpdateCallback m_update_callback = [] {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   bool m_disabled = false;
   std::string m_display_name;
