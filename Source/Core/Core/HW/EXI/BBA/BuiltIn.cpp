@@ -269,8 +269,24 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
   }
 
   case IPPROTO_TCP:
-    if (!ref->tcp_socket.Connected(ref))
+    switch (ref->tcp_socket.Connected(ref))
+    {
+    case BbaTcpSocket::ConnectingState::Error:
+    {
+      // Create the resulting RST ACK packet
+      const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
+                                     ref->ack_num, TCP_FLAG_RST | TCP_FLAG_ACK);
+      WriteToQueue(result.Build());
+      ref->ip = 0;
+      ref->tcp_socket.disconnect();
+      [[fallthrough]];
+    }
+    case BbaTcpSocket::ConnectingState::None:
+    case BbaTcpSocket::ConnectingState::Connecting:
       return std::nullopt;
+    case BbaTcpSocket::ConnectingState::Connected:
+      break;
+    }
 
     sf::Socket::Status st = sf::Socket::Status::Done;
     TcpBuffer* tcp_buffer = nullptr;
@@ -804,14 +820,11 @@ sf::Socket::Status BbaTcpSocket::GetSockName(sockaddr_in* addr) const
   return sf::Socket::Status::Done;
 }
 
-bool BbaTcpSocket::Connected(StackRef* ref)
+BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
 {
   // Called by ReadThreadHandler's TryGetDataFromSocket
-  // TODO: properly handle error state
   switch (m_connecting_state)
   {
-  case ConnectingState::Connected:
-    return true;
   case ConnectingState::Connecting:
   {
     const int fd = getHandle();
@@ -841,6 +854,7 @@ bool BbaTcpSocket::Connected(StackRef* ref)
     if (getsockopt(fd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) != 0)
     {
       ERROR_LOG_FMT(SP1, "Failed to get BBA socket error state: {}", Common::StrNetworkError());
+      m_connecting_state = ConnectingState::Error;
       break;
     }
 
@@ -885,7 +899,7 @@ bool BbaTcpSocket::Connected(StackRef* ref)
   default:
     break;
   }
-  return false;
+  return m_connecting_state;
 }
 
 BbaUdpSocket::BbaUdpSocket() = default;
