@@ -48,9 +48,6 @@ public:
   sf::Socket::Status GetPeerName(sockaddr_in* addr) const;
   sf::Socket::Status GetSockName(sockaddr_in* addr) const;
 
-  bool Connected(StackRef* ref);
-
-private:
   enum class ConnectingState
   {
     None,
@@ -59,6 +56,9 @@ private:
     Error
   };
 
+  ConnectingState Connected(StackRef* ref);
+
+private:
   ConnectingState m_connecting_state = ConnectingState::None;
 };
 
