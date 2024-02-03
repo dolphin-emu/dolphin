@@ -678,14 +678,17 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 
 void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInBBAInterface* self)
 {
+  std::size_t datasize = 0;
   while (!self->m_read_thread_shutdown.IsSet())
   {
-    // make thread less cpu hungry
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (datasize == 0)
+    {
+      // Make thread less CPU hungry
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
     if (!self->m_read_enabled.IsSet())
       continue;
-    std::size_t datasize = 0;
 
     u8 wp = self->m_eth_ref->page_ptr(BBA_RWP);
     const u8 rp = self->m_eth_ref->page_ptr(BBA_RRP);
@@ -710,6 +713,10 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                   datasize);
       self->m_queue_read++;
       self->m_queue_read &= 15;
+    }
+    else
+    {
+      datasize = 0;
     }
 
     // Check network stack references
