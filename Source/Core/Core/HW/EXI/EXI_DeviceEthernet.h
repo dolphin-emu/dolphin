@@ -463,6 +463,7 @@ private:
     static void ReadThreadHandler(BuiltInBBAInterface* self);
 #endif
     void WriteToQueue(const std::vector<u8>& data);
+    bool WillQueueOverrun() const;
     void PollData(std::size_t* datasize);
     std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
 
