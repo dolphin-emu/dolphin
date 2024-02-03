@@ -463,8 +463,6 @@ private:
     static void ReadThreadHandler(BuiltInBBAInterface* self);
 #endif
     void WriteToQueue(const std::vector<u8>& data);
-    StackRef* GetAvailableSlot(u16 port);
-    StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
     std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
 
     void HandleARP(const Common::ARPPacket& packet);

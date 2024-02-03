@@ -107,6 +107,9 @@ public:
   auto end() { return m_stacks.end(); }
   auto end() const { return m_stacks.cend(); }
 
+  StackRef* GetAvailableSlot(u16 port);
+  StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
+
   void Clear();
 
 private:
