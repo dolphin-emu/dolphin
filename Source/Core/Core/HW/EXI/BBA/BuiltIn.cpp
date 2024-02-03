@@ -658,39 +658,38 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
       self->m_queue_read++;
       self->m_queue_read &= 15;
     }
-    else
-    {
-      // test connections data
-      for (auto& net_ref : self->network_ref)
-      {
-        if (net_ref.ip == 0)
-          continue;
-        const auto socket_data = self->TryGetDataFromSocket(&net_ref);
-        if (socket_data.has_value())
-        {
-          datasize = socket_data->size();
-          std::memcpy(self->m_eth_ref->mRecvBuffer.get(), socket_data->data(), datasize);
-          break;
-        }
-      }
-    }
 
-    // test and add any sleeping tcp data
+    // Check network stack references
     for (auto& net_ref : self->network_ref)
     {
-      if (net_ref.ip == 0 || net_ref.type != IPPROTO_TCP)
+      if (net_ref.ip == 0)
         continue;
-      for (auto& tcp_buf : net_ref.tcp_buffers)
-      {
-        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
-          continue;
 
-        tcp_buf.tick = GetTickCountStd();
-        // timmed out packet, resend
-        if (((self->m_queue_write + 1) & 15) != self->m_queue_read)
+      // Check for sleeping TCP data
+      if (net_ref.type == IPPROTO_TCP)
+      {
+        for (auto& tcp_buf : net_ref.tcp_buffers)
         {
-          self->WriteToQueue(tcp_buf.data);
+          if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
+            continue;
+
+          tcp_buf.tick = GetTickCountStd();
+          // Timed out packet, resend
+          if (((self->m_queue_write + 1) & 15) != self->m_queue_read)
+          {
+            self->WriteToQueue(tcp_buf.data);
+          }
         }
+      }
+
+      // Check for connection data
+      if (datasize != 0)
+        continue;
+      const auto socket_data = self->TryGetDataFromSocket(&net_ref);
+      if (socket_data.has_value())
+      {
+        datasize = socket_data->size();
+        std::memcpy(self->m_eth_ref->mRecvBuffer.get(), socket_data->data(), datasize);
       }
     }
 
