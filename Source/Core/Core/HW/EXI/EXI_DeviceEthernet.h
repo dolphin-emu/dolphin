@@ -456,7 +456,7 @@ private:
     sf::TcpListener m_upnp_httpd;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    NetworkRef network_ref;
+    NetworkRef m_network_ref;
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
