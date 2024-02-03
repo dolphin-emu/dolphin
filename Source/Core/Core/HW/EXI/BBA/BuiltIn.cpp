@@ -190,36 +190,6 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   WriteToQueue(response.Build());
 }
 
-StackRef* CEXIETHERNET::BuiltInBBAInterface::GetAvailableSlot(u16 port)
-{
-  if (port > 0)  // existing connection?
-  {
-    for (auto& ref : network_ref)
-    {
-      if (ref.ip != 0 && ref.local == port)
-        return &ref;
-    }
-  }
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip == 0)
-      return &ref;
-  }
-  return nullptr;
-}
-
-StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
-{
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip == ip && ref.remote == dst_port && ref.local == src_port)
-    {
-      return &ref;
-    }
-  }
-  return nullptr;
-}
-
 std::optional<std::vector<u8>>
 CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 {
@@ -301,8 +271,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
   sf::IpAddress target;
-  StackRef* ref = GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
-                             Common::BitCast<u32>(ip_header.destination_addr));
+  StackRef* ref = network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
+                                         Common::BitCast<u32>(ip_header.destination_addr));
   const u16 flags = ntohs(tcp_header.properties) & 0xfff;
   if (flags & (TCP_FLAG_FIN | TCP_FLAG_RST))
   {
@@ -331,7 +301,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     // new connection
     if (ref != nullptr)
       return;
-    ref = GetAvailableSlot(0);
+    ref = network_ref.GetAvailableSlot(0);
 
     ref->delay = GetTickCountStd();
     ref->local = tcp_header.source_port;
@@ -421,7 +391,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 // and listen to it. We open it on our side manually.
 void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
 {
-  StackRef* ref = GetAvailableSlot(htons(port));
+  StackRef* ref = network_ref.GetAvailableSlot(htons(port));
   if (ref == nullptr || ref->ip != 0)
     return;
   ref->ip = m_router_ip;  // change for ip
@@ -451,7 +421,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
                                    m_router_ip :  // dns request
                                    Common::BitCast<u32>(ip_header.destination_addr);
 
-  StackRef* ref = GetAvailableSlot(udp_header.source_port);
+  StackRef* ref = network_ref.GetAvailableSlot(udp_header.source_port);
   if (ref->ip == 0)
   {
     ref->ip = destination_addr;  // change for ip
@@ -496,7 +466,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
 
 void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
 {
-  StackRef* ref = GetAvailableSlot(0);
+  StackRef* ref = network_ref.GetAvailableSlot(0);
   if (ref == nullptr || m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Done)
     return;
 
@@ -965,6 +935,36 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   error_guard.Dismiss();
   INFO_LOG_FMT(SP1, "SSDP multicast membership successful");
   return sf::Socket::Status::Done;
+}
+
+StackRef* NetworkRef::GetAvailableSlot(u16 port)
+{
+  if (port > 0)  // existing connection?
+  {
+    for (auto& ref : m_stacks)
+    {
+      if (ref.ip != 0 && ref.local == port)
+        return &ref;
+    }
+  }
+  for (auto& ref : m_stacks)
+  {
+    if (ref.ip == 0)
+      return &ref;
+  }
+  return nullptr;
+}
+
+StackRef* NetworkRef::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
+{
+  for (auto& ref : m_stacks)
+  {
+    if (ref.ip == ip && ref.remote == dst_port && ref.local == src_port)
+    {
+      return &ref;
+    }
+  }
+  return nullptr;
 }
 
 void NetworkRef::Clear()
