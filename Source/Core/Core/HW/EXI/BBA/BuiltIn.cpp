@@ -91,11 +91,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
   m_arp_table[m_router_ip] = m_router_mac;
 
-  // clear all ref
-  for (auto& ref : network_ref)
-  {
-    ref.ip = 0;
-  }
+  network_ref.Clear();
 
   m_upnp_httpd.listen(Common::SSDP_PORT, sf::IpAddress(ip));
   m_upnp_httpd.setBlocking(false);
@@ -113,16 +109,7 @@ void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
   m_read_thread_shutdown.Set();
   m_active = false;
 
-  // kill all active socket
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip != 0)
-    {
-      ref.type == IPPROTO_TCP ? ref.tcp_socket.disconnect() : ref.udp_socket.unbind();
-    }
-    ref.ip = 0;
-  }
-
+  network_ref.Clear();
   m_arp_table.clear();
   m_upnp_httpd.close();
 
@@ -778,14 +765,7 @@ void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
 {
   m_read_enabled.Clear();
-  for (auto& net_ref : network_ref)
-  {
-    if (net_ref.ip != 0)
-    {
-      net_ref.type == IPPROTO_TCP ? net_ref.tcp_socket.disconnect() : net_ref.udp_socket.unbind();
-    }
-    net_ref.ip = 0;
-  }
+  network_ref.Clear();
   m_queue_read = 0;
   m_queue_write = 0;
 }
@@ -985,4 +965,16 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   error_guard.Dismiss();
   INFO_LOG_FMT(SP1, "SSDP multicast membership successful");
   return sf::Socket::Status::Done;
+}
+
+void NetworkRef::Clear()
+{
+  for (auto& ref : m_stacks)
+  {
+    if (ref.ip != 0)
+    {
+      ref.type == IPPROTO_TCP ? ref.tcp_socket.disconnect() : ref.udp_socket.unbind();
+    }
+    ref.ip = 0;
+  }
 }
