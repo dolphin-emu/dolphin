@@ -159,13 +159,27 @@ void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
     }
 
     // Check for connection data
-    if (*datasize != 0)
-      continue;
-    const auto socket_data = TryGetDataFromSocket(&net_ref);
-    if (socket_data.has_value())
+    if (*datasize == 0)
     {
-      *datasize = socket_data->size();
-      std::memcpy(m_eth_ref->mRecvBuffer.get(), socket_data->data(), *datasize);
+      // Send it to the network buffer if empty
+      const auto socket_data = TryGetDataFromSocket(&net_ref);
+      if (socket_data.has_value())
+      {
+        *datasize = socket_data->size();
+        std::memcpy(m_eth_ref->mRecvBuffer.get(), socket_data->data(), *datasize);
+      }
+    }
+    else if (!WillQueueOverrun())
+    {
+      // Otherwise, enqueue it
+      const auto socket_data = TryGetDataFromSocket(&net_ref);
+      if (socket_data.has_value())
+        WriteToQueue(*socket_data);
+    }
+    else
+    {
+      WARN_LOG_FMT(SP1, "BBA queue might overrun, can't poll more data");
+      return;
     }
   }
 }
@@ -232,7 +246,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
 std::optional<std::vector<u8>>
 CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 {
-  size_t datasize = 0;  // Set by socket.receive using a non-const reference
+  std::size_t datasize = 0;  // Set by socket.receive using a non-const reference
   unsigned short remote_port;
 
   switch (ref->type)
@@ -380,7 +394,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     {
       // only if contain data
       if (static_cast<int>(this_seq - ref->ack_num) >= 0 &&
-          data.size() >= static_cast<size_t>(size))
+          data.size() >= static_cast<std::size_t>(size))
       {
         ref->tcp_socket.send(data.data(), size);
         ref->ack_num += size;
@@ -671,7 +685,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
 
     if (!self->m_read_enabled.IsSet())
       continue;
-    size_t datasize = 0;
+    std::size_t datasize = 0;
 
     u8 wp = self->m_eth_ref->page_ptr(BBA_RWP);
     const u8 rp = self->m_eth_ref->page_ptr(BBA_RRP);
