@@ -128,6 +128,40 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
     m_queue_write = next_write_index;
 }
 
+void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
+{
+  for (auto& net_ref : network_ref)
+  {
+    if (net_ref.ip == 0)
+      continue;
+
+    // Check for sleeping TCP data
+    if (net_ref.type == IPPROTO_TCP)
+    {
+      for (auto& tcp_buf : net_ref.tcp_buffers)
+      {
+        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
+          continue;
+
+        tcp_buf.tick = GetTickCountStd();
+        // Timed out packet, resend
+        if (((m_queue_write + 1) & 15) != m_queue_read)
+          WriteToQueue(tcp_buf.data);
+      }
+    }
+
+    // Check for connection data
+    if (*datasize != 0)
+      continue;
+    const auto socket_data = TryGetDataFromSocket(&net_ref);
+    if (socket_data.has_value())
+    {
+      *datasize = socket_data->size();
+      std::memcpy(m_eth_ref->mRecvBuffer.get(), socket_data->data(), *datasize);
+    }
+  }
+}
+
 void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
 {
   const auto& [hwdata, arpdata] = packet;
@@ -657,38 +691,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
     }
 
     // Check network stack references
-    for (auto& net_ref : self->network_ref)
-    {
-      if (net_ref.ip == 0)
-        continue;
-
-      // Check for sleeping TCP data
-      if (net_ref.type == IPPROTO_TCP)
-      {
-        for (auto& tcp_buf : net_ref.tcp_buffers)
-        {
-          if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
-            continue;
-
-          tcp_buf.tick = GetTickCountStd();
-          // Timed out packet, resend
-          if (((self->m_queue_write + 1) & 15) != self->m_queue_read)
-          {
-            self->WriteToQueue(tcp_buf.data);
-          }
-        }
-      }
-
-      // Check for connection data
-      if (datasize != 0)
-        continue;
-      const auto socket_data = self->TryGetDataFromSocket(&net_ref);
-      if (socket_data.has_value())
-      {
-        datasize = socket_data->size();
-        std::memcpy(self->m_eth_ref->mRecvBuffer.get(), socket_data->data(), datasize);
-      }
-    }
+    self->PollData(&datasize);
 
     // Check for new UPnP client
     self->HandleUPnPClient();
