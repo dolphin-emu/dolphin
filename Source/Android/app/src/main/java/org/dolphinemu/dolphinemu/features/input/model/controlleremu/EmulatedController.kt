@@ -30,7 +30,11 @@ class EmulatedController private constructor(private val pointer: Long) {
 
     external fun saveProfile(path: String)
 
-    external fun getProfileName(): String
+    external fun getProfileKey(): String
+
+    external fun getUserProfileDirectoryPath(): String
+
+    external fun getSysProfileDirectoryPath(): String
 
     companion object {
         @JvmStatic

@@ -20,8 +20,8 @@
 #include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
-                         const std::string& profile_name, InputClass input_class)
-    : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_name(profile_name),
+                         const std::string& profile_directory_name, InputClass input_class)
+    : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_directory_name(profile_directory_name),
       m_input_class(input_class)
 {
 }
@@ -39,7 +39,7 @@ bool InputConfig::LoadConfig()
 
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
-    const std::string profile_directory = GetProfileDirectoryPath();
+    const std::string profile_directory = GetUserProfileDirectoryPath();
 
     Common::IniFile game_ini = SConfig::GetInstance().LoadGameIni();
     auto* control_section = game_ini.GetOrCreateSection("Controls");
@@ -173,23 +173,14 @@ std::string InputConfig::GetProfileKey() const
   }
 }
 
-std::string InputConfig::GetProfileDirectoryName() const
-{
-  switch (m_input_class)
-  {
-  case InputClass::GBA:
-    return "GBA";
-  case InputClass::Wii:
-    return "Wiimote";
-  case InputClass::GC:
-  default:
-    return "GCPad";
-  }
-}
-
-std::string InputConfig::GetProfileDirectoryPath() const
+std::string InputConfig::GetUserProfileDirectoryPath() const
 {
   return fmt::format("{}Profiles/{}/", File::GetUserPath(D_CONFIG_IDX), GetProfileDirectoryName());
+}
+
+std::string InputConfig::GetSysProfileDirectoryPath() const
+{
+  return fmt::format("{}Profiles/{}/", File::GetSysDirectory(), GetProfileDirectoryName());
 }
 
 int InputConfig::GetControllerCount() const

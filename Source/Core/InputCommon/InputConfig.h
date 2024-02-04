@@ -32,7 +32,7 @@ public:
   };
 
   InputConfig(const std::string& ini_name, const std::string& gui_name,
-              const std::string& profile_name, InputClass input_class);
+              const std::string& profile_directory_name, InputClass input_class);
 
   ~InputConfig();
 
@@ -51,10 +51,10 @@ public:
   bool IsControllerControlledByGamepadDevice(int index) const;
 
   std::string GetGUIName() const { return m_gui_name; }
-  std::string GetProfileName() const { return m_profile_name; }
   std::string GetProfileKey() const;
-  std::string GetProfileDirectoryName() const;
-  std::string GetProfileDirectoryPath() const;
+  std::string GetProfileDirectoryName() const { return m_profile_directory_name; }
+  std::string GetUserProfileDirectoryPath() const;
+  std::string GetSysProfileDirectoryPath() const;
   int GetControllerCount() const;
 
   // These should be used after creating all controllers and before clearing them, respectively.
@@ -68,7 +68,7 @@ private:
   std::vector<std::unique_ptr<ControllerEmu::EmulatedController>> m_controllers;
   const std::string m_ini_name;
   const std::string m_gui_name;
-  const std::string m_profile_name;
+  const std::string m_profile_directory_name;
   const InputClass m_input_class;
   InputCommon::DynamicInputTextureManager m_dynamic_input_tex_config_manager;
 };
