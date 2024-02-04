@@ -39,6 +39,7 @@ struct DrawStarted
   bool* skip;
   std::optional<CustomPixelShader>* custom_pixel_shader;
   std::span<u8>* material_uniform_buffer;
+  std::optional<Common::Matrix44>* transform;
   std::optional<MeshChunk>* mesh_chunk;
   u32* current_mesh_index;
   bool* more_data;
