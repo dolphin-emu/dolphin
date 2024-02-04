@@ -20,57 +20,40 @@
 #include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
-                         const std::string& profile_name)
-    : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_name(profile_name)
+                         const std::string& profile_name, InputClass input_class)
+    : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_name(profile_name),
+      m_input_class(input_class)
 {
 }
 
 InputConfig::~InputConfig() = default;
 
-bool InputConfig::LoadConfig(InputClass type)
+bool InputConfig::LoadConfig()
 {
   Common::IniFile inifile;
   bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
   static constexpr std::array<std::string_view, MAX_BBMOTES> num = {"1", "2", "3", "4", "BB"};
   std::string profile[MAX_BBMOTES];
-  std::string path;
 
   m_dynamic_input_tex_config_manager.Load();
 
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
-    std::string type_str;
-    switch (type)
-    {
-    case InputClass::GBA:
-      type_str = "GBA";
-      path = "Profiles/GBA/";
-      break;
-    case InputClass::Wii:
-      type_str = "Wiimote";
-      path = "Profiles/Wiimote/";
-      break;
-    case InputClass::GC:
-    default:
-      type_str = "Pad";
-      path = "Profiles/GCPad/";
-      break;
-    }
+    const std::string profile_directory = GetProfileDirectoryPath();
 
     Common::IniFile game_ini = SConfig::GetInstance().LoadGameIni();
     auto* control_section = game_ini.GetOrCreateSection("Controls");
 
     for (int i = 0; i < 4; i++)
     {
-      const auto profile_name = fmt::format("{}Profile{}", type_str, num[i]);
+      const auto profile_name = fmt::format("{}Profile{}", GetProfileKey(), num[i]);
 
       if (control_section->Exists(profile_name))
       {
         std::string profile_setting;
         if (control_section->Get(profile_name, &profile_setting))
         {
-          auto profiles = InputProfile::GetProfilesFromSetting(
-              profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
+          auto profiles = InputProfile::GetProfilesFromSetting(profile_setting, profile_directory);
 
           if (profiles.empty())
           {
@@ -174,6 +157,39 @@ void InputConfig::ClearControllers()
 bool InputConfig::ControllersNeedToBeCreated() const
 {
   return m_controllers.empty();
+}
+
+std::string InputConfig::GetProfileKey() const
+{
+  switch (m_input_class)
+  {
+  case InputClass::GBA:
+    return "GBA";
+  case InputClass::Wii:
+    return "Wiimote";
+  case InputClass::GC:
+  default:
+    return "Pad";
+  }
+}
+
+std::string InputConfig::GetProfileDirectoryName() const
+{
+  switch (m_input_class)
+  {
+  case InputClass::GBA:
+    return "GBA";
+  case InputClass::Wii:
+    return "Wiimote";
+  case InputClass::GC:
+  default:
+    return "GCPad";
+  }
+}
+
+std::string InputConfig::GetProfileDirectoryPath() const
+{
+  return fmt::format("{}Profiles/{}/", File::GetUserPath(D_CONFIG_IDX), GetProfileDirectoryName());
 }
 
 int InputConfig::GetControllerCount() const

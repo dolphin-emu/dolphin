@@ -24,11 +24,6 @@ class EmulatedController;
 class InputConfig
 {
 public:
-  InputConfig(const std::string& ini_name, const std::string& gui_name,
-              const std::string& profile_name);
-
-  ~InputConfig();
-
   enum class InputClass
   {
     GC,
@@ -36,7 +31,12 @@ public:
     GBA,
   };
 
-  bool LoadConfig(InputClass type);
+  InputConfig(const std::string& ini_name, const std::string& gui_name,
+              const std::string& profile_name, InputClass input_class);
+
+  ~InputConfig();
+
+  bool LoadConfig();
   void SaveConfig();
 
   template <typename T, typename... Args>
@@ -52,6 +52,9 @@ public:
 
   std::string GetGUIName() const { return m_gui_name; }
   std::string GetProfileName() const { return m_profile_name; }
+  std::string GetProfileKey() const;
+  std::string GetProfileDirectoryName() const;
+  std::string GetProfileDirectoryPath() const;
   int GetControllerCount() const;
 
   // These should be used after creating all controllers and before clearing them, respectively.
@@ -66,5 +69,6 @@ private:
   const std::string m_ini_name;
   const std::string m_gui_name;
   const std::string m_profile_name;
+  const InputClass m_input_class;
   InputCommon::DynamicInputTextureManager m_dynamic_input_tex_config_manager;
 };
