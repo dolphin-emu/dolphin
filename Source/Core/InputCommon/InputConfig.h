@@ -24,15 +24,8 @@ class EmulatedController;
 class InputConfig
 {
 public:
-  enum class InputClass
-  {
-    GC,
-    Wii,
-    GBA,
-  };
-
   InputConfig(const std::string& ini_name, const std::string& gui_name,
-              const std::string& profile_directory_name, InputClass input_class);
+              const std::string& profile_directory_name, const std::string& profile_key);
 
   ~InputConfig();
 
@@ -51,7 +44,7 @@ public:
   bool IsControllerControlledByGamepadDevice(int index) const;
 
   std::string GetGUIName() const { return m_gui_name; }
-  std::string GetProfileKey() const;
+  std::string GetProfileKey() const { return m_profile_key; }
   std::string GetProfileDirectoryName() const { return m_profile_directory_name; }
   std::string GetUserProfileDirectoryPath() const;
   std::string GetSysProfileDirectoryPath() const;
@@ -69,6 +62,6 @@ private:
   const std::string m_ini_name;
   const std::string m_gui_name;
   const std::string m_profile_directory_name;
-  const InputClass m_input_class;
+  const std::string m_profile_key;
   InputCommon::DynamicInputTextureManager m_dynamic_input_tex_config_manager;
 };

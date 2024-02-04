@@ -10,7 +10,7 @@
 
 namespace Pad
 {
-static InputConfig s_config("GBA", _trans("Pad"), "GBA", InputConfig::InputClass::GBA);
+static InputConfig s_config("GBA", _trans("Pad"), "GBA", "GBA");
 InputConfig* GetGBAConfig()
 {
   return &s_config;

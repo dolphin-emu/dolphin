@@ -207,7 +207,7 @@ static std::array<u32, NUM_HOTKEY_GROUPS> s_hotkey_down;
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
-static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys", InputConfig::InputClass::GC);
+static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys", "Hotkeys");
 
 InputConfig* GetConfig()
 {

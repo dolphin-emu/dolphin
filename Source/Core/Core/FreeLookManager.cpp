@@ -313,7 +313,7 @@ void FreeLookController::UpdateInput(CameraControllerInput* camera_controller)
 namespace FreeLook
 {
 static InputConfig s_config("FreeLookController", _trans("FreeLook"), "FreeLookController",
-                            InputConfig::InputClass::GC);
+                            "FreeLookController");
 InputConfig* GetInputConfig()
 {
   return &s_config;

@@ -97,8 +97,7 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
 
 namespace Wiimote
 {
-static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wiimote",
-                            InputConfig::InputClass::Wii);
+static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wiimote", "Wiimote");
 
 InputConfig* GetConfig()
 {

@@ -20,9 +20,9 @@
 #include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
-                         const std::string& profile_directory_name, InputClass input_class)
+                         const std::string& profile_directory_name, const std::string& profile_key)
     : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_directory_name(profile_directory_name),
-      m_input_class(input_class)
+      m_profile_key(profile_key)
 {
 }
 
@@ -157,20 +157,6 @@ void InputConfig::ClearControllers()
 bool InputConfig::ControllersNeedToBeCreated() const
 {
   return m_controllers.empty();
-}
-
-std::string InputConfig::GetProfileKey() const
-{
-  switch (m_input_class)
-  {
-  case InputClass::GBA:
-    return "GBA";
-  case InputClass::Wii:
-    return "Wiimote";
-  case InputClass::GC:
-  default:
-    return "Pad";
-  }
 }
 
 std::string InputConfig::GetUserProfileDirectoryPath() const

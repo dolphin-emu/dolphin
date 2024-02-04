@@ -17,7 +17,7 @@
 
 namespace Keyboard
 {
-static InputConfig s_config("GCKeyNew", _trans("Keyboard"), "GCKey", InputConfig::InputClass::GC);
+static InputConfig s_config("GCKeyNew", _trans("Keyboard"), "GCKey", "GCKey");
 InputConfig* GetConfig()
 {
   return &s_config;
