@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>TINYGLTF_NOEXCEPTION;TINYGLTF_NO_EXTERNAL_IMAGE;TINYGLTF_USE_CPP14;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)tinygltf\tinygltf.vcxproj">
+      <Project>{8bda3693-4999-4d11-9e52-8d08c30b643a}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
