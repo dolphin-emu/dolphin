@@ -23,52 +23,12 @@ WiiSpeak::WiiSpeak(IOS::HLE::EmulationKernel& ios, const std::string& device_nam
   m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x2, 0x2, 0x0020, 0});
   m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x3, 0x1, 0x0040, 1});
 
-  m_microphone = Microphone();
-  if (m_microphone.OpenMicrophone() != 0)
-  {
-    ERROR_LOG_FMT(IOS_USB, "Error opening the microphone.");
-    b_is_mic_connected = false;
-    return;
-  }
-
-  if (m_microphone.StartCapture() != 0)
-  {
-    ERROR_LOG_FMT(IOS_USB, "Error starting captures.");
-    b_is_mic_connected = false;
-    return;
-  }
-
-  m_microphone_thread = std::thread([this] {
-    u64 timeout{};
-    constexpr u64 TIMESTEP = 256ull * 1'000'000ull / 48000ull;
-    while (true)
-    {
-      if (m_shutdown_event.WaitFor(std::chrono::microseconds{timeout}))
-        return;
-
-      std::lock_guard lg(m_mutex);
-      timeout = TIMESTEP - (std::chrono::duration_cast<std::chrono::microseconds>(
-                                std::chrono::steady_clock::now().time_since_epoch())
-                                .count() %
-                            TIMESTEP);
-      m_microphone.PerformAudioCapture();
-      m_microphone.GetSoundData();
-    }
-  });
+  m_microphone = std::make_unique<Microphone>();
 }
 
 WiiSpeak::~WiiSpeak()
 {
-  {
-    std::lock_guard lg(m_mutex);
-    if (!m_microphone_thread.joinable())
-      return;
 
-    m_shutdown_event.Set();
-  }
-
-  m_microphone_thread.join();
-  m_microphone.StopCapture();
 }
 
 DeviceDescriptor WiiSpeak::GetDeviceDescriptor() const
@@ -209,19 +169,16 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 
 int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
-  if (!b_is_mic_connected)
-    return IPC_ENOENT;
-  
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
   u8* packets = memory.GetPointer(cmd->data_address);
-  if (cmd->endpoint == 0x81 && m_microphone.HasData())
-    m_microphone.ReadIntoBuffer(packets, cmd->length);
+  if (cmd->endpoint == 0x81 && m_microphone->HasData())
+    m_microphone->ReadIntoBuffer(packets, cmd->length);
 
   // Anything more causes the visual cue to not appear.
   // Anything less is more choppy audio.
-  cmd->ScheduleTransferCompletion(IPC_SUCCESS, 20000);
+  cmd->ScheduleTransferCompletion(IPC_SUCCESS, 2500);
   return IPC_SUCCESS;
 };
 

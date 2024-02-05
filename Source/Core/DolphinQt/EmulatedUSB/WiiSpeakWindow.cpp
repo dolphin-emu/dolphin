@@ -59,13 +59,6 @@ void WiiSpeakWindow::CreateMainWindow()
   checkbox_layout->addWidget(m_checkbox);
   checkbox_group->setLayout(checkbox_layout);
 
-  m_combobox_microphones = new QComboBox();
-  for (const std::string& device : IOS::HLE::USB::Microphone::ListDevices())
-  {
-    m_combobox_microphones->addItem(QString::fromStdString(device));
-  }
-
-  checkbox_layout->addWidget(m_combobox_microphones);
 
   main_layout->addWidget(checkbox_group);
   setLayout(main_layout);

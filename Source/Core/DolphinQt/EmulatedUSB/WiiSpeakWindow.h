@@ -30,5 +30,4 @@ private:
   void EmulateWiiSpeak(bool emulate);
 
   QCheckBox* m_checkbox;
-  QComboBox* m_combobox_microphones;
 };
