@@ -126,10 +126,26 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 }
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getProfileName(
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getProfileKey(
     JNIEnv* env, jobject obj)
 {
-  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetProfileName());
+  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetProfileKey());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getUserProfileDirectoryPath(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(
+      env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetUserProfileDirectoryPath());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getSysProfileDirectoryPath(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env,
+                   EmulatedControllerFromJava(env, obj)->GetConfig()->GetSysProfileDirectoryPath());
 }
 
 JNIEXPORT jobject JNICALL
