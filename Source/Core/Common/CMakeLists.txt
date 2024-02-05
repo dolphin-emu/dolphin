@@ -50,6 +50,20 @@ add_library(common
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
+  VR/DolphinVR.cpp
+  VR/DolphinVR.h
+  VR/OpenXRLoader.cpp
+  VR/OpenXRLoader.h
+  VR/VRBase.cpp
+  VR/VRBase.h
+  VR/VRDisplay.cpp
+  VR/VRDisplay.h
+  VR/VRInput.cpp
+  VR/VRInput.h
+  VR/VRMath.cpp
+  VR/VRMath.h
+  VR/VRRenderer.cpp
+  VR/VRRenderer.h
   DynamicLibrary.cpp
   DynamicLibrary.h
   ENet.cpp
@@ -353,3 +367,17 @@ if(MSVC)
   # Add precompiled header
   target_link_libraries(common PRIVATE use_pch)
 endif()
+
+if(OPENXR)
+  if(_M_ARM_64)
+    add_definitions(-DOPENXR)
+    add_library(openxr SHARED IMPORTED)
+    set_property(TARGET openxr PROPERTY IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/Externals/openxr/lib/arm64-v8a/libopenxr_loader.so")
+    target_link_libraries(common PRIVATE openxr)
+    message("OpenXR enabled")
+  else()
+    message("OpenXR unsupported on target CPU")
+  endif()
+endif()
+
+include_directories(../../../Externals/openxr)

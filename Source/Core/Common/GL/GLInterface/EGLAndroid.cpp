@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/GL/GLInterface/EGLAndroid.h"
+#include "Common/VR/DolphinVR.h"
 
 #include <android/native_window.h>
 
@@ -17,5 +18,12 @@ EGLNativeWindowType GLContextEGLAndroid::GetEGLNativeWindow(EGLConfig config)
   ANativeWindow_setBuffersGeometry(static_cast<ANativeWindow*>(m_wsi.render_surface), 0, 0, format);
   m_backbuffer_width = ANativeWindow_getWidth(static_cast<ANativeWindow*>(m_wsi.render_surface));
   m_backbuffer_height = ANativeWindow_getHeight(static_cast<ANativeWindow*>(m_wsi.render_surface));
+  if (Common::VR::IsEnabled())
+  {
+    int w, h;
+    Common::VR::GetResolutionPerEye(&w, &h);
+    m_backbuffer_width = w;
+    m_backbuffer_height = h;
+  }
   return static_cast<EGLNativeWindowType>(m_wsi.render_surface);
 }

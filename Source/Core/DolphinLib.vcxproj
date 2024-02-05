@@ -51,6 +51,7 @@
   <Import Project="$(ExternalsDir)mGBA\exports.props" />
   <Import Project="$(ExternalsDir)miniupnpc\exports.props" />
   <Import Project="$(ExternalsDir)minizip\exports.props" />
+  <Import Project="$(ExternalsDir)openxr\exports.props" />
   <Import Project="$(ExternalsDir)picojson\exports.props" />
   <Import Project="$(ExternalsDir)pugixml\exports.props" />
   <Import Project="$(ExternalsDir)rcheevos\exports.props" />

@@ -8,7 +8,7 @@ plugins {
 @Suppress("UnstableApiUsage")
 android {
     compileSdkVersion = "android-34"
-    ndkVersion = "26.1.10909125"
+    ndkVersion = "25.2.9519653"
 
     buildFeatures {
         viewBinding = true
@@ -100,7 +100,8 @@ android {
     defaultConfig {
         externalNativeBuild {
             cmake {
-                arguments("-DANDROID_STL=c++_static", "-DCMAKE_BUILD_TYPE=RelWithDebInfo")
+                arguments("-DANDROID_STL=c++_static", "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+                          "-DOPENXR=TRUE")
                 // , "-DENABLE_GENERIC=ON"
                 abiFilters("arm64-v8a", "x86_64") //, "armeabi-v7a", "x86"
 

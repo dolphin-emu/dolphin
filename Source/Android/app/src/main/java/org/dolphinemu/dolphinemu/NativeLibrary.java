@@ -5,6 +5,7 @@
 
 package org.dolphinemu.dolphinemu;
 
+import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -316,6 +317,13 @@ public final class NativeLibrary
    * (other than the native methods in DirectoryInitialization).
    */
   public static native void Initialize();
+
+  /**
+   * Initializes the native VR parts of the app.
+   *
+   * Should be called after the normal initialization.
+   */
+  public static native void InitializeVR(Activity activity, String device);
 
   /**
    * Tells analytics that Dolphin has been started.

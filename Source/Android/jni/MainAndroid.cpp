@@ -26,6 +26,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
+#include "Common/VR/DolphinVR.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
@@ -52,6 +53,7 @@
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
 
+#include "InputCommon/ControllerInterface/VR/OpenXR.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/GameFile.h"
@@ -526,6 +528,16 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   WiimoteReal::InitAdapterClass();
   UICommon::Init();
   UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR(JNIEnv* env,
+                                                                                 jclass,
+                                                                                 jobject activity,
+                                                                                 jstring systemname)
+{
+  Common::VR::InitOnAndroid(env, activity, GetJString(env, systemname).c_str(), 1, "Dolphin");
+  Common::VR::SetCallback(ciface::VR::UpdateInput);
+  ciface::VR::RegisterInputOverrider(0);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,

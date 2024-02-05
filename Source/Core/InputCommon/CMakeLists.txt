@@ -140,6 +140,8 @@ elseif(ANDROID)
     ControllerInterface/Android/Android.h
     ControllerInterface/Touch/InputOverrider.cpp
     ControllerInterface/Touch/InputOverrider.h
+    ControllerInterface/VR/OpenXR.cpp
+    ControllerInterface/VR/OpenXR.h
   )
   target_link_libraries(inputcommon PRIVATE
     androidcommon

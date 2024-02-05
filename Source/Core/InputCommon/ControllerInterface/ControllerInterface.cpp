@@ -7,6 +7,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/VR/DolphinVR.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #ifdef CIFACE_USE_WIN32
@@ -270,7 +271,7 @@ void ControllerInterface::ClearDevices()
 bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
   // If we are shutdown (or in process of shutting down) ignore this request:
-  if (!m_is_init)
+  if (!m_is_init || Common::VR::IsEnabled())
     return false;
 
   ASSERT_MSG(CONTROLLERINTERFACE, !tls_is_updating_devices,

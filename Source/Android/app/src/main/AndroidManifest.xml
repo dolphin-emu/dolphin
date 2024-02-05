@@ -16,6 +16,9 @@
     <uses-feature
         android:name="android.software.leanback"
         android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.vr.headtracking"
+        android:required="false" />
 
     <uses-feature android:glEsVersion="0x00030000"/>
 
@@ -130,6 +133,21 @@
             android:exported="false"
             android:label="@string/user_data_submenu"
             android:theme="@style/Theme.Dolphin.Main" />
+
+        <activity
+            android:name=".activities.VrActivity"
+            android:configChanges="density|orientation|screenSize|keyboard|keyboardHidden|uiMode"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:screenOrientation="landscape"
+            android:process=":vr_process"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            <intent-filter>
+                <category android:name="com.oculus.intent.category.VR" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".features.riivolution.ui.RiivolutionBootActivity"

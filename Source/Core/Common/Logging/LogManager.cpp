@@ -147,6 +147,7 @@ LogManager::LogManager()
   m_log[LogType::SYMBOLS] = {"SYMBOLS", "Symbols"};
   m_log[LogType::VIDEO] = {"Video", "Video Backend"};
   m_log[LogType::VIDEOINTERFACE] = {"VI", "Video Interface"};
+  m_log[LogType::VR] = {"VR", "Virtual Reality"};
   m_log[LogType::WIIMOTE] = {"Wiimote", "Wii Remote"};
   m_log[LogType::WII_IPC] = {"WII_IPC", "WII IPC"};
 

@@ -63,6 +63,7 @@ enum class LogType : int
   SYMBOLS,
   VIDEO,
   VIDEOINTERFACE,
+  VR,
   WII_IPC,
   WIIMOTE,
 

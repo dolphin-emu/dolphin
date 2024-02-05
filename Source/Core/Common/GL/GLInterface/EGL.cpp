@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/GL/GLInterface/EGL.h"
+#include "Common/VR/DolphinVR.h"
 
 #include <array>
 #include <cstdlib>
@@ -310,6 +311,13 @@ bool GLContextEGL::CreateWindowSurface()
     }
     m_backbuffer_width = static_cast<int>(surface_width);
     m_backbuffer_height = static_cast<int>(surface_height);
+    if (Common::VR::IsEnabled())
+    {
+      int w, h;
+      Common::VR::GetResolutionPerEye(&w, &h);
+      m_backbuffer_width = w;
+      m_backbuffer_height = h;
+    }
   }
   else if (!m_supports_surfaceless)
   {

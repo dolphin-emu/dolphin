@@ -167,6 +167,13 @@
     <ClInclude Include="Common\UPnP.h" />
     <ClInclude Include="Common\VariantUtil.h" />
     <ClInclude Include="Common\Version.h" />
+    <ClInclude Include="Common\VR\DolphinVR.h" />
+    <ClInclude Include="Common\VR\OpenXRLoader.h" />
+    <ClInclude Include="Common\VR\VRBase.h" />
+    <ClInclude Include="Common\VR\VRDisplay.h" />
+    <ClInclude Include="Common\VR\VRInput.h" />
+    <ClInclude Include="Common\VR\VRMath.h" />
+    <ClInclude Include="Common\VR\VRRenderer.h" />
     <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
     <ClInclude Include="Common\WorkQueueThread.h" />
@@ -833,6 +840,13 @@
     <ClCompile Include="Common\Timer.cpp" />
     <ClCompile Include="Common\TraversalClient.cpp" />
     <ClCompile Include="Common\UPnP.cpp" />
+    <ClCompile Include="Common\VR\DolphinVR.cpp" />
+    <ClCompile Include="Common\VR\OpenXRLoader.cpp" />
+    <ClCompile Include="Common\VR\VRBase.cpp" />
+    <ClCompile Include="Common\VR\VRDisplay.cpp" />
+    <ClCompile Include="Common\VR\VRInput.cpp" />
+    <ClCompile Include="Common\VR\VRMath.cpp" />
+    <ClCompile Include="Common\VR\VRRenderer.cpp" />
     <ClCompile Include="Common\WindowsRegistry.cpp" />
     <ClCompile Include="Common\Version.cpp" />
     <ClCompile Include="Core\AchievementManager.cpp" />

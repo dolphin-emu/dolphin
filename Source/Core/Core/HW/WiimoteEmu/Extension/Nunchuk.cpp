@@ -12,6 +12,7 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/VR/DolphinVR.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
@@ -101,6 +102,25 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
+
+  // TODO:this is just a raw integration to make games playable in VR, the math isn't correct
+  if (Common::VR::IsEnabled())
+  {
+    //Rotational state m_tilt_state
+    static Common::Vec3 last_tilt = {};
+    Common::VR::GetControllerOrientation(0, m_tilt_state.angle.x, m_tilt_state.angle.y, m_tilt_state.angle.z);
+    m_tilt_state.angular_velocity = (last_tilt / m_tilt_state.angle) / ::Wiimote::UPDATE_FREQ;
+    last_tilt = m_tilt_state.angle;
+
+    //Positional state
+    static Common::Vec3 last_swing_acc = {};
+    static Common::Vec3 last_swing_pos = {};
+    Common::VR::GetControllerTranslation(0, m_swing_state.position.x, m_swing_state.position.y, m_swing_state.position.z);
+    m_swing_state.acceleration = (last_swing_pos / m_swing_state.position) / ::Wiimote::UPDATE_FREQ;
+    m_swing_state.acceleration = m_swing_state.acceleration * 0.9f + last_swing_acc * 0.1f;
+    last_swing_acc = m_swing_state.acceleration;
+    last_swing_pos = m_swing_state.position;
+  }
 
   const auto transformation =
       GetRotationalMatrix(-m_tilt_state.angle) * GetRotationalMatrix(-m_swing_state.angle);

@@ -2,7 +2,6 @@
 
 package org.dolphinemu.dolphinemu.activities
 
-import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
@@ -61,7 +60,7 @@ import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
-class EmulationActivity : AppCompatActivity(), ThemeProvider {
+open class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private var emulationFragment: EmulationFragment? = null
 
     private lateinit var settings: Settings
@@ -246,6 +245,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     override fun onDestroy() {
         super.onDestroy()
         settings.close()
+        // Going back to the 2D mode from VR isn't supported yet, better kill the app
+        if (VrActivity.isSupported()) {
+           System.exit(0)
+        }
     }
 
     override fun onBackPressed() {
@@ -1094,6 +1097,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             filePaths: Array<String>,
             riivolution: Boolean
         ) {
+            if (VrActivity.isSupported() && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
+                VrActivity.openIntent(activity, filePaths, riivolution)
+                return;
+            }
             ignoreLaunchRequests = true
             val launcher = Intent(activity, EmulationActivity::class.java)
             launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths)

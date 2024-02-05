@@ -6,6 +6,7 @@
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/VR/DolphinVR.h"
 
 #include "Core/Config/GraphicsSettings.h"
 
@@ -412,6 +413,11 @@ void OGLGfx::BindBackbuffer(const ClearColor& clear_color)
   CheckForSurfaceChange();
   CheckForSurfaceResize();
   SetAndClearFramebuffer(m_system_framebuffer.get(), clear_color);
+
+  if (Common::VR::IsEnabled())
+  {
+    Common::VR::BindFramebuffer();
+  }
 }
 
 void OGLGfx::PresentBackbuffer()
@@ -430,7 +436,31 @@ void OGLGfx::PresentBackbuffer()
   }
 
   // Swap the back and front buffers, presenting the image.
-  m_main_gl_context->Swap();
+  if (Common::VR::IsEnabled())
+  {
+    if (!m_vr_initialized)
+    {
+      Common::VR::Start(true);
+      m_vr_initialized = true;
+    }
+
+    if (m_vr_frame_started)
+    {
+      Common::VR::PostFrameRender();
+      Common::VR::FinishRender();
+      m_vr_frame_started = false;
+    }
+
+    if (Common::VR::StartRender())
+    {
+      Common::VR::PreFrameRender(0);
+      m_vr_frame_started = true;
+    }
+  }
+  else
+  {
+    m_main_gl_context->Swap();
+  }
 }
 
 void OGLGfx::OnConfigChanged(u32 bits)
