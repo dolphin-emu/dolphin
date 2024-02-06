@@ -312,7 +312,8 @@ void FreeLookController::UpdateInput(CameraControllerInput* camera_controller)
 
 namespace FreeLook
 {
-static InputConfig s_config("FreeLookController", _trans("FreeLook"), "FreeLookController");
+static InputConfig s_config("FreeLookController", _trans("FreeLook"), "FreeLookController",
+                            "FreeLookController");
 InputConfig* GetInputConfig()
 {
   return &s_config;
@@ -336,12 +337,12 @@ void Initialize()
 
   FreeLook::GetConfig().Refresh();
 
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+  s_config.LoadConfig();
 }
 
 void LoadInputConfig()
 {
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+  s_config.LoadConfig();
 }
 
 bool IsInitialized()

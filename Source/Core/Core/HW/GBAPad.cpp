@@ -10,7 +10,7 @@
 
 namespace Pad
 {
-static InputConfig s_config("GBA", _trans("Pad"), "GBA");
+static InputConfig s_config("GBA", _trans("Pad"), "GBA", "GBA");
 InputConfig* GetGBAConfig()
 {
   return &s_config;
@@ -34,12 +34,12 @@ void InitializeGBA()
   s_config.RegisterHotplugCallback();
 
   // Load the saved controller config
-  s_config.LoadConfig(InputConfig::InputClass::GBA);
+  s_config.LoadConfig();
 }
 
 void LoadGBAConfig()
 {
-  s_config.LoadConfig(InputConfig::InputClass::GBA);
+  s_config.LoadConfig();
 }
 
 bool IsGBAInitialized()
