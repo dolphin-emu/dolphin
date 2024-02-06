@@ -4222,9 +4222,15 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
   // Special path for zeroes
   if (imm == 0 && !flags)
   {
-    if (Rd != Rn)
+    if (Rd == Rn)
+    {
+      return;
+    }
+    else if (DecodeReg(Rd) != DecodeReg(ARM64Reg::SP) && DecodeReg(Rn) != DecodeReg(ARM64Reg::SP))
+    {
       MOV(Rd, Rn);
-    return;
+      return;
+    }
   }
 
   // Regular fast paths, aarch64 immediate instructions
