@@ -50,7 +50,8 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
 #endif
 bool GetPlatformFlag(PlatformFlag flag);
 void GetResolutionPerEye(int* width, int* height);
-void SetCallback(void (*callback)(int id, int l, int r, float x, float y, float jlx, float jly, float jrx, float jry));
+void SetCallback(void (*callback)(int id, int l, int r, float x, float y, float jlx, float jly,
+                                  float jrx, float jry));
 void Start(bool firstStart);
 
 // VR state

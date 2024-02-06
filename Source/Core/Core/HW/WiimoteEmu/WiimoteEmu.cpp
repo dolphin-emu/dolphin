@@ -826,16 +826,18 @@ void Wiimote::StepDynamics()
   // TODO:this is just a raw integration to make games playable in VR, the math isn't correct
   if (Common::VR::IsEnabled())
   {
-    //Rotational state
+    // Rotational state
     static Common::Vec3 last_tilt = {};
-    Common::VR::GetControllerOrientation(1, m_tilt_state.angle.x, m_tilt_state.angle.y, m_tilt_state.angle.z);
+    Common::VR::GetControllerOrientation(1, m_tilt_state.angle.x, m_tilt_state.angle.y,
+                                         m_tilt_state.angle.z);
     m_tilt_state.angular_velocity = (last_tilt / m_tilt_state.angle) / ::Wiimote::UPDATE_FREQ;
     last_tilt = m_tilt_state.angle;
 
-    //Positional state
+    // Positional state
     static Common::Vec3 last_swing_acc = {};
     static Common::Vec3 last_swing_pos = {};
-    Common::VR::GetControllerTranslation(1, m_swing_state.position.x, m_swing_state.position.y, m_swing_state.position.z);
+    Common::VR::GetControllerTranslation(1, m_swing_state.position.x, m_swing_state.position.y,
+                                         m_swing_state.position.z);
     m_swing_state.acceleration = (last_swing_pos / m_swing_state.position) / ::Wiimote::UPDATE_FREQ;
     m_swing_state.acceleration = m_swing_state.acceleration * 0.9f + last_swing_acc * 0.1f;
     last_swing_acc = m_swing_state.acceleration;

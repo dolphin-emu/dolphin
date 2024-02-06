@@ -27,7 +27,8 @@ void OXR_CheckErrors(XrResult result, const char* function)
   }
 }
 
-static void (*UpdateInput)(int id, int l, int r, float x, float y, float jlx, float jly, float jrx, float jry);
+static void (*UpdateInput)(int id, int l, int r, float x, float y, float jlx, float jly, float jrx,
+                           float jry);
 
 /*
 ================================================================================
@@ -62,7 +63,6 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
     s_platform_flags[PLATFORM_CONTROLLER_QUEST] = true;
     s_platform_flags[PLATFORM_EXTENSION_PERFORMANCE] = true;
   }
-
 
   // Allocate modules
   s_module_base = new Base();
@@ -99,7 +99,8 @@ void GetResolutionPerEye(int* width, int* height)
   }
 }
 
-void SetCallback(void (*callback)(int id, int l, int r, float x, float y, float jlx, float jly, float jrx, float jry))
+void SetCallback(void (*callback)(int id, int l, int r, float x, float y, float jlx, float jly,
+                                  float jrx, float jry))
 {
   UpdateInput = callback;
 }
@@ -182,14 +183,14 @@ bool StartRender()
 
     // Change canvas distance
     if (l & (int)Button::Grip)
-	{
+    {
       float value = s_module_renderer->GetConfigFloat(CONFIG_CANVAS_DISTANCE);
-	  value += s_module_input->GetJoystickState(1).y * 0.1f;
-	  value = std::clamp(value, 1.0f, 8.0f);
+      value += s_module_input->GetJoystickState(1).y * 0.1f;
+      value = std::clamp(value, 1.0f, 8.0f);
       s_module_renderer->SetConfigFloat(CONFIG_CANVAS_DISTANCE, value);
     }
 
-	// Update game
+    // Update game
     UpdateInput(0, l, r, x, y, joy_l.x, joy_l.y, joy_r.x, joy_r.y);
     return true;
   }
