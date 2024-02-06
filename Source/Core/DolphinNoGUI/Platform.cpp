@@ -23,12 +23,12 @@ void Platform::UpdateRunningFlag()
 {
   if (m_shutdown_requested.TestAndClear())
   {
-    const auto ios = IOS::HLE::GetIOS();
+    auto& system = Core::System::GetInstance();
+    const auto ios = system.GetIOS();
     const auto stm = ios ? ios->GetDeviceByName("/dev/stm/eventhook") : nullptr;
     if (!m_tried_graceful_shutdown.IsSet() && stm &&
         std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->HasHookInstalled())
     {
-      auto& system = Core::System::GetInstance();
       system.GetProcessorInterface().PowerButton_Tap();
       m_tried_graceful_shutdown.Set();
     }

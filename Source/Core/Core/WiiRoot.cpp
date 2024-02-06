@@ -321,7 +321,7 @@ void InitializeWiiFileSystemContents(
     std::optional<DiscIO::Riivolution::SavegameRedirect> save_redirect,
     const BootSessionData& boot_session_data)
 {
-  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
 
   // Some games (such as Mario Kart Wii) assume that NWC24 files will always be present
   // even upon the first launch as they are normally created by the system menu.
@@ -397,7 +397,7 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
     File::MoveWithOverwrite(redirect.temp_path, redirect.real_path);
   }
 
-  IOS::HLE::EmulationKernel* ios = IOS::HLE::GetIOS();
+  IOS::HLE::EmulationKernel* ios = Core::System::GetInstance().GetIOS();
 
   // clear the redirects in the session FS, otherwise the back-copy might grab redirected files
   s_nand_redirects.clear();

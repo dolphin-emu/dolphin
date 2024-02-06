@@ -53,6 +53,10 @@ namespace GPFifo
 {
 class GPFifoManager;
 }
+namespace IOS::HLE
+{
+class EmulationKernel;
+}
 namespace HSP
 {
 class HSPManager;
@@ -147,6 +151,9 @@ public:
   void SetSoundStreamRunning(bool running);
   bool IsAudioDumpStarted() const;
   void SetAudioDumpStarted(bool started);
+
+  IOS::HLE::EmulationKernel* GetIOS() const;
+  void SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios);
 
   AudioInterface::AudioInterfaceManager& GetAudioInterface() const;
   CPU::CPUManager& GetCPU() const;

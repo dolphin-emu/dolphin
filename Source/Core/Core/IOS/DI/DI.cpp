@@ -602,7 +602,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRe
 
 static std::shared_ptr<DIDevice> GetDevice()
 {
-  auto ios = GetIOS();
+  auto ios = Core::System::GetInstance().GetIOS();
   if (!ios)
     return nullptr;
   auto di = ios->GetDeviceByName("/dev/di");

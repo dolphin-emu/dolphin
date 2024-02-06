@@ -362,7 +362,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
                                        "/" WII_SETTING);
 
-  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  const auto fs = system.GetIOS()->GetFS();
   {
     Common::SettingsHandler::Buffer data;
     const auto file = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path,
@@ -502,7 +502,7 @@ static void WriteEmptyPlayRecord()
 {
   CreateSystemMenuTitleDirs();
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/play_rec.dat";
-  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   const auto playrec_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
                                                   {rw_mode, rw_mode, rw_mode});
@@ -559,11 +559,11 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
   const u64 ios = ios_override >= 0 ? Titles::IOS(static_cast<u32>(ios_override)) : tmd.GetIOSId();
 
   const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
-  if (!SetupWiiMemory(system, console_type) || !IOS::HLE::GetIOS()->BootIOS(ios))
+  if (!SetupWiiMemory(system, console_type) || !system.GetIOS()->BootIOS(ios))
     return false;
 
   auto di =
-      std::static_pointer_cast<IOS::HLE::DIDevice>(IOS::HLE::GetIOS()->GetDeviceByName("/dev/di"));
+      std::static_pointer_cast<IOS::HLE::DIDevice>(system.GetIOS()->GetDeviceByName("/dev/di"));
 
   di->InitializeIfFirstTime();
   di->ChangePartition(data_partition);
@@ -596,7 +596,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
 
   // Warning: This call will set incorrect running game metadata if our volume parameter
   // doesn't point to the same disc as the one that's inserted in the emulated disc drive!
-  IOS::HLE::GetIOS()->GetESDevice()->DIVerify(tmd, volume.GetTicket(partition));
+  system.GetIOS()->GetESDevice()->DIVerify(tmd, volume.GetTicket(partition));
 
   return true;
 }

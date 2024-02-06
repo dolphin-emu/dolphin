@@ -573,7 +573,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
-        IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
+        system.GetIOS()->BootIOS(Titles::IOS(58));
       }
       else
       {
@@ -701,7 +701,7 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 {
   CreateSystemMenuTitleDirs();
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_STATE;
-  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   const auto file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
                                           {rw_mode, rw_mode, rw_mode});
@@ -721,7 +721,7 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 
 void CreateSystemMenuTitleDirs()
 {
-  const auto& es = IOS::HLE::GetIOS()->GetESCore();
+  const auto& es = Core::System::GetInstance().GetIOS()->GetESCore();
   es.CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
 }
 
