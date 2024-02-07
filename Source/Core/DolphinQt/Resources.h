@@ -5,6 +5,7 @@
 
 #include <QList>
 #include <QPixmap>
+#include <QIcon>
 #include <string_view>
 
 namespace DiscIO

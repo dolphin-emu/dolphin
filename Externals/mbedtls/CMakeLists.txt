@@ -48,7 +48,7 @@ option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 option(ENABLE_PROGRAMS "Build mbed TLS programs." OFF)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
-option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
+option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" OFF)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
