@@ -1,25 +1,31 @@
-//
-// Created by Noah Pistilli on 2023-07-09.
-//
+// Copyright 2024 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cubeb/cubeb.h>
 
 #include "AudioCommon/CubebUtils.h"
-#include <Common/Logging/Log.h>
+#include "Common/Logging/Log.h"
 
-#include "Microphone.h"
+#include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
+#include "Core/IOS/USB/Emulated/Microphone.h"
 
 #include <algorithm>
 #include <mutex>
 
+#ifdef _WIN32
+#include <Objbase.h>
+#endif
+
 namespace IOS::HLE::USB
 {
-Microphone::Microphone() {
+Microphone::Microphone()
+{
   StreamInit();
 }
 
-Microphone::~Microphone() {
+Microphone::~Microphone()
+{
   StreamTerminate();
 
 #ifdef _WIN32
@@ -110,8 +116,8 @@ void Microphone::StreamStart()
 
     if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream,
                           "Dolphin Emulated GameCube Microphone", nullptr, &params, nullptr,
-                          nullptr, std::max<u32>(16, minimum_latency), DataCallback,
-                          state_callback, this) != CUBEB_OK)
+                          nullptr, std::max<u32>(16, minimum_latency), DataCallback, state_callback,
+                          this) != CUBEB_OK)
     {
       ERROR_LOG_FMT(IOS_USB, "Error initializing cubeb stream");
       return;
@@ -151,7 +157,7 @@ void Microphone::StopStream()
 }
 
 long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                           void* /*output_buffer*/, long nframes)
+                              void* /*output_buffer*/, long nframes)
 {
   auto* mic = static_cast<Microphone*>(user_data);
 
@@ -171,44 +177,6 @@ long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void*
   }
 
   return nframes;
-}
-
-void Microphone::PerformAudioCapture()
-{
-  /*m_num_of_samples = BUFFER_SIZE / 2;
-
-  ALCint samples_in{};
-  alcGetIntegerv(m_device, ALC_CAPTURE_SAMPLES, 1, &samples_in);
-  m_num_of_samples = std::min(m_num_of_samples, static_cast<u32>(samples_in));
-
-  if (m_num_of_samples == 0)
-    return;
-
-  alcCaptureSamples(m_device, m_dsp_data.data(), m_num_of_samples);*/
-}
-
-void Microphone::ByteSwap(const void* src, void* dst) const
-{
-  *static_cast<u16*>(dst) = Common::swap16(*static_cast<const u16*>(src));
-}
-
-void Microphone::GetSoundData()
-{
-  /*if (m_num_of_samples == 0)
-    return;
-
-  u8* ptr = const_cast<u8*>(m_temp_buffer.data());
-  // Convert LE to BE
-  for (u32 i = 0; i < m_num_of_samples; i++)
-  {
-    for (u32 indchan = 0; indchan < 1; indchan++)
-    {
-      const u32 curindex = (i * 2) + indchan * (16 / 8);
-      ByteSwap(m_dsp_data.data() + curindex, ptr + curindex);
-    }
-  }
-
-  m_rbuf_dsp.write_bytes(ptr, m_num_of_samples * 2);*/
 }
 
 void Microphone::ReadIntoBuffer(u8* dst, u32 size)

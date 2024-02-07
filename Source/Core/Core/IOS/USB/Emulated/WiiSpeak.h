@@ -1,4 +1,4 @@
-// Copyright 2023 Dolphin Emulator Project
+// Copyright 2024 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -19,7 +19,6 @@ class WiiSpeak final : public Device
 {
 public:
   WiiSpeak(EmulationKernel& ios, const std::string& device_name);
-  ~WiiSpeak();
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;
@@ -57,13 +56,13 @@ private:
     FREQ_8KHZ = 0,
     FREQ_11KHZ = 1,
     FREQ_RESERVED = 2,
-    FREQ_16KHZ = 3,  // default
+    FREQ_16KHZ = 3,
 
     SAMPLER_GAIN = 4,
     GAIN_00dB = 0,
     GAIN_15dB = 1,
     GAIN_30dB = 2,
-    GAIN_36dB = 3,  // default
+    GAIN_36dB = 3,
 
     EC_STATE = 0x14,
 
@@ -83,7 +82,6 @@ private:
   u8 m_active_interface = 0;
   bool m_device_attached = false;
   bool init = false;
-  bool b_is_mic_connected = true;
   std::unique_ptr<Microphone> m_microphone;
   DeviceDescriptor m_device_descriptor{};
   std::vector<ConfigDescriptor> m_config_descriptor;

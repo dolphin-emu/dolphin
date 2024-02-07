@@ -1,13 +1,15 @@
+// Copyright 2024 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
-
+#include <mutex>
 #include <string>
 #include <vector>
-#include <mutex>
 
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
+#include "Common/WorkQueueThread.h"
 
 struct cubeb;
 struct cubeb_stream;
@@ -22,8 +24,6 @@ public:
 
   void StreamInit();
   void StreamTerminate();
-  void PerformAudioCapture();
-  void GetSoundData();
   void ReadIntoBuffer(u8* dst, u32 size);
   bool HasData() const;
 
@@ -33,7 +33,6 @@ private:
 
   void StreamStart();
   void StopStream();
-  void ByteSwap(const void* src, void* dst) const;
 
   static constexpr u32 SAMPLING_RATE = 8000;
   static constexpr u32 BUFFER_SIZE = SAMPLING_RATE / 2;

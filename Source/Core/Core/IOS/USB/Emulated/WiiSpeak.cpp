@@ -1,4 +1,4 @@
-// Copyright 2023 Dolphin Emulator Project
+// Copyright 2024 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/USB/Emulated/WiiSpeak.h"
@@ -24,11 +24,6 @@ WiiSpeak::WiiSpeak(IOS::HLE::EmulationKernel& ios, const std::string& device_nam
   m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x3, 0x1, 0x0040, 1});
 
   m_microphone = std::make_unique<Microphone>();
-}
-
-WiiSpeak::~WiiSpeak()
-{
-
 }
 
 DeviceDescriptor WiiSpeak::GetDeviceDescriptor() const
@@ -106,9 +101,6 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                 m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
                 cmd->index, cmd->length);
 
-  if (!b_is_mic_connected)
-    return IPC_ENOENT;
-
   switch (cmd->request_type << 8 | cmd->request)
   {
   case USBHDR(DIR_DEVICE2HOST, TYPE_STANDARD, REC_INTERFACE, REQUEST_GET_INTERFACE):
@@ -176,8 +168,7 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
   if (cmd->endpoint == 0x81 && m_microphone->HasData())
     m_microphone->ReadIntoBuffer(packets, cmd->length);
 
-  // Anything more causes the visual cue to not appear.
-  // Anything less is more choppy audio.
+  // TODO: Figure out proper timings.
   cmd->ScheduleTransferCompletion(IPC_SUCCESS, 2500);
   return IPC_SUCCESS;
 };
@@ -199,6 +190,7 @@ void WiiSpeak::SetRegister(std::unique_ptr<CtrlMessage>& cmd)
     switch (arg1)
     {
     case FREQ_8KHZ:
+      // TODO: I have never seen it not be 8000 kHz
       sampler.freq = 8000;
       break;
     case FREQ_11KHZ:
