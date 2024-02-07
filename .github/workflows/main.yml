@@ -306,18 +306,18 @@ jobs:
           mkdir artifact
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}
           echo "FILE_NAME=$FILE_NAME" >> $GITHUB_ENV
-      # - name: "Codesign ${{ matrix.build_type}} Dolphin"
-      #   if: env.CERTIFICATE_MACOS_APPLICATION != null
-      #   shell: bash
-      #   working-directory: ${{ github.workspace }}
-      #   env:
-      #     CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
-      #     CERTIFICATE_MACOS_PASSWORD: ${{ secrets.CERTIFICATE_MACOS_PASSWORD }}
-      #   run: |
-      #     chmod +x Tools/load-macos-certs-ci.sh && ./Tools/load-macos-certs-ci.sh
-      #     mkdir -p ~/private_keys/
-      #     echo '${{ secrets.APPLE_CONNECT_API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
-      #     /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime --entitlements Source\Core\DolphinQt\DolphinEmu.entitlements ./build/Binaries/Slippi_Dolphin.app
+      - name: "Codesign ${{ matrix.build_type}} Dolphin"
+        if: env.CERTIFICATE_MACOS_APPLICATION != null
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
+          CERTIFICATE_MACOS_PASSWORD: ${{ secrets.CERTIFICATE_MACOS_PASSWORD }}
+        run: |
+          chmod +x Tools/load-macos-certs-ci.sh && ./Tools/load-macos-certs-ci.sh
+          mkdir -p ~/private_keys/
+          echo '${{ secrets.APPLE_CONNECT_API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+          /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime --entitlements Source\Core\DolphinQt\DolphinEmu.entitlements ./build/Binaries/Slippi_Dolphin.app
       - name: "Package DMG"
         shell: bash
         working-directory: ${{ github.workspace }}
@@ -337,17 +337,17 @@ jobs:
             "${{ env.FILE_NAME }}.dmg" \
             "./build/Binaries/"
           mv "${{ env.FILE_NAME }}.dmg" artifact/
-      # - name: "Sign and Notarize ${{ matrix.build_type }} Release DMG"
-      #   if: env.CERTIFICATE_MACOS_APPLICATION != null
-      #   shell: bash
-      #   working-directory: ${{ github.workspace }}
-      #   env:
-      #     APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
-      #     APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
-      #     CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
-      #   run: |
-      #     /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime ./artifact/${{ env.FILE_NAME }}.dmg
-      #     chmod +x Tools/notarize_netplay.sh && ./Tools/notarize_netplay.sh ./artifact/${{ env.FILE_NAME }}.dmg
+      - name: "Sign and Notarize ${{ matrix.build_type }} Release DMG"
+        if: env.CERTIFICATE_MACOS_APPLICATION != null
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+          CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
+        run: |
+          /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime ./artifact/${{ env.FILE_NAME }}.dmg
+          chmod +x Tools/notarize_netplay.sh && ./Tools/notarize_netplay.sh ./artifact/${{ env.FILE_NAME }}.dmg
       - name: "Publish"
         uses: actions/upload-artifact@v3
         with:
