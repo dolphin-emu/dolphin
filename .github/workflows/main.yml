@@ -259,7 +259,7 @@ jobs:
             artifact_name: mainline-macOS-playback
             build_config: playback
     name: "macOS ${{ matrix.build_type }}"
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - name: "Checkout"
         uses: actions/checkout@v3
@@ -317,7 +317,7 @@ jobs:
           chmod +x Tools/load-macos-certs-ci.sh && ./Tools/load-macos-certs-ci.sh
           mkdir -p ~/private_keys/
           echo '${{ secrets.APPLE_CONNECT_API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
-          /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime --entitlements Source\Core\DolphinQt\DolphinEmu.entitlements ./build/Binaries/Slippi_Dolphin.app
+          /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime --entitlements Source/Core/DolphinQt/DolphinEmu.entitlements ./build/Binaries/Slippi_Dolphin.app
       - name: "Package DMG"
         shell: bash
         working-directory: ${{ github.workspace }}

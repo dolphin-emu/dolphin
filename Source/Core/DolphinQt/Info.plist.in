@@ -34,11 +34,11 @@
     <key>CFBundleName</key>
     <string>Slippi_Dolphin</string>
     <key>CFBundleDisplayName</key>
-    <string>Slippi_Dolphin</string>
+    <string>Slippi Dolphin (Beta)</string>
     <key>CFBundleIconFile</key>
     <string>Dolphin.icns</string>
     <key>CFBundleIdentifier</key>
-	  <string>com.project-slippi.dolphin</string>
+	  <string>com.project-slippi.dolphin-beta</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundlePackageType</key>

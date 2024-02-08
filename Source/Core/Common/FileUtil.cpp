@@ -755,6 +755,17 @@ std::string GetBundleDirectory()
   return app_bundle_path;
 }
 
+// Note that this is currently using `com.project-slippi.dolphin` and *NOT* the actual app
+// bundle identifier (`com.project-slippi.dolphin-beta`). This should get resolved in the
+// future once Ishiiruka goes away, as this build should eventually get the "correct"
+// non-beta identifier after it's deemed general release/availability.
+//
+// This isn't a normal Dolphin flow, to be clear - we only use it for storing files like
+// `user.json` and direct codes payloads. Please resist relying on this further until
+// things are stabilized.
+//
+// To be clear: "fixing" this requires a coordinated Launcher release and is probably
+// something that should just be pushed off until this is about to leave beta.
 std::string GetApplicationSupportDirectory()
 {
   std::string dir =

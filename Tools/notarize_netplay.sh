@@ -3,74 +3,62 @@
 # Signing and notarizing only happens on builds where the CI has access
 # to the necessary secrets; this avoids builds in forks where secrets
 # shouldn't be.
+#
+# Portions of the notarization response checks are borrowed from:
+#
+# https://github.com/smittytone/scripts/blob/main/packcli.zsh
+#
+# (They've done the work of figuring out what the reponse formats are, etc)
 
 version="$(echo $GIT_TAG)"
-identifier="com.project-slippi.dolphin"
-
-requeststatus() { # $1: requestUUID
-    requestUUID=${1?:"need a request UUID"}
-    req_status=$(xcrun altool --notarization-info "$requestUUID" \
-        --apiKey "${APPLE_API_KEY}" \
-        --apiIssuer "${APPLE_ISSUER_ID}" 2>&1 \
-    | awk -F ': ' '/Status:/ { print $2; }' )
-    echo "$req_status"
-}
-
-logstatus() { # $1: requestUUID
-    requestUUID=${1?:"need a request UUID"}
-    xcrun altool --notarization-info "$requestUUID" \
-        --apiKey "${APPLE_API_KEY}" \
-        --apiIssuer "${APPLE_ISSUER_ID}"
-    echo
-}
-
-notarizefile() { # $1: path to file to notarize, $2: identifier
-    filepath=${1:?"need a filepath"}
-    identifier=${2:?"need an identifier"}
-    
-    # upload file
-    echo "## uploading $filepath for notarization"
-    requestUUID=$(xcrun altool --notarize-app \
-        --primary-bundle-id "$identifier" \
-        --apiKey "${APPLE_API_KEY}" \
-        --apiIssuer "${APPLE_ISSUER_ID}" \
-        --file "$filepath" 2>&1 \
-    | awk '/RequestUUID/ { print $NF; }')
-                               
-    echo "Notarization RequestUUID: $requestUUID"
-    
-    if [[ $requestUUID == "" ]]; then 
-        echo "could not upload for notarization"
-        exit 1
-    fi
-        
-    # wait for status to be not "in progress" any more
-    # Checks for up to ~10 minutes ((20 * 30s = 600) / 60s)
-    for i ({0..20}); do
-        request_status=$(requeststatus "$requestUUID")
-        echo "Status: ${request_status}"
-
-        # Why can this report two different cases...?
-        if [ $? -ne 0 ] || [[ "${request_status}" =~ "invalid" ]] || [[ "${request_status}" =~ "Invalid" ]]; then
-            logstatus "$requestUUID"
-            echo "Error with notarization. Exiting!"
-            exit 1
-        fi
-
-        if [[ "${request_status}" =~ "success" ]]; then
-            logstatus "$requestUUID"
-            echo "Successfully notarized! Stapling notarization status to ${filepath}"
-            xcrun stapler staple "$filepath"
-            exit 0
-        fi
-
-        echo "Still in progress, will check again in 30s"
-        sleep 30
-    done
-
-    echo "Notarization request timed out - status below; maybe it needs more time?"
-    logstatus "$requestUUID"
-}
+identifier="com.project-slippi.dolphin-beta"
+filepath=${1:?"need a filepath"}
 
 echo "Attempting notarization"
-notarizefile "$1" "$identifier"
+
+# Submit the DMG for notarization and wait for the flow to finish
+s_time=$(date +%s)
+response=$(xcrun notarytool submit ${filepath} \
+    --wait \
+    --issuer ${APPLE_ISSUER_ID} \
+    --key-id ${APPLE_API_KEY} \
+    --key ~/private_keys/AuthKey_${APPLE_API_KEY}.p8)
+
+# Get the notarization job ID from the response
+job_id_line=$(grep -m 1 '  id:' < <(echo -e "${response}"))
+job_id=$(echo "${job_id_line}" | cut -d ":" -s -f 2 | cut -d " " -f 2)
+
+# Log some debug timing info.
+e_time=$(date +%s)
+n_time=$((e_time - s_time))
+echo "Notarization call completed after ${n_time} seconds. Job ID: ${job_id}"
+
+# Extract the status of the notarization job.
+status_line=$(grep -m 1 '  status:' < <(echo -e "${response}"))
+status_result=$(echo "${status_line}" | cut -d ":" -s -f 2 | cut -d " " -f 2)
+
+# Fetch and echo the log *before* bailing if it's bad, so we can tell if there's
+# a deeper error we need to handle.
+log_response=$(xcrun notarytool log \
+    --issuer ${APPLE_ISSUER_ID} \
+    --key-id ${APPLE_API_KEY} \
+    --key ~/private_keys/AuthKey_${APPLE_API_KEY}.p8 \
+    ${job_id})
+echo "${log_response}"
+
+if [[ ${status_result} != "Accepted" ]]; then
+    echo "Notarization failed with status ${status_result}"
+    exit 1
+fi
+
+# Attempt to staple the notarization result to the app.
+echo "Successfully notarized! Stapling notarization status to ${filepath}"
+success=$(xcrun stapler staple "${filepath}")
+if [[ -z "${success}" ]]; then
+    echo "Could not staple notarization to app"
+    exit 1
+fi
+
+# Confirm the staple actually worked...
+echo "Checking notarization to ${filepath}"
+spctl --assess -vvv --type install "${filepath}"
