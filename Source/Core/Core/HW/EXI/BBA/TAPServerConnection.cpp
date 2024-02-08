@@ -130,15 +130,15 @@ bool TAPServerConnection::Activate()
 
 void TAPServerConnection::Deactivate()
 {
-  if (m_fd >= 0)
-    closesocket(m_fd);
-  m_fd = -1;
-
   m_read_enabled.Clear();
   m_read_shutdown.Set();
   if (m_read_thread.joinable())
     m_read_thread.join();
   m_read_shutdown.Clear();
+
+  if (m_fd >= 0)
+    closesocket(m_fd);
+  m_fd = -1;
 }
 
 bool TAPServerConnection::IsActivated()
