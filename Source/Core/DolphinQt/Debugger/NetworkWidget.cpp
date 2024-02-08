@@ -252,7 +252,7 @@ void NetworkWidget::Update()
   // needed because there's a race condition on the IOS instance otherwise
   Core::CPUThreadGuard guard(Core::System::GetInstance());
 
-  auto* ios = IOS::HLE::GetIOS();
+  auto* ios = guard.GetSystem().GetIOS();
   if (!ios)
     return;
 

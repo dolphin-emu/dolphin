@@ -61,6 +61,8 @@ struct System::Impl
   bool m_sound_stream_running = false;
   bool m_audio_dump_started = false;
 
+  std::unique_ptr<IOS::HLE::EmulationKernel> m_ios;
+
   AudioInterface::AudioInterfaceManager m_audio_interface;
   CoreTiming::CoreTimingManager m_core_timing;
   CommandProcessor::CommandProcessorManager m_command_processor;
@@ -138,6 +140,16 @@ bool System::IsAudioDumpStarted() const
 void System::SetAudioDumpStarted(bool started)
 {
   m_impl->m_audio_dump_started = started;
+}
+
+IOS::HLE::EmulationKernel* System::GetIOS() const
+{
+  return m_impl->m_ios.get();
+}
+
+void System::SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios)
+{
+  m_impl->m_ios = std::move(ios);
 }
 
 AudioInterface::AudioInterfaceManager& System::GetAudioInterface() const

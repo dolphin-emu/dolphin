@@ -232,7 +232,7 @@ void ProcessorInterfaceManager::ToggleResetButtonCallback(Core::System& system, 
 void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(Core::System& system, u64 userdata,
                                                              s64 cyclesLate)
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = system.GetIOS();
   if (!ios)
     return;
 
@@ -244,7 +244,7 @@ void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(Core::System& syste
 void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(Core::System& system, u64 userdata,
                                                              s64 cyclesLate)
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = system.GetIOS();
   if (!ios)
     return;
 

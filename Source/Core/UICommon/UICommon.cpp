@@ -483,7 +483,7 @@ void SetUserDirectory(std::string custom_path)
 
 bool TriggerSTMPowerEvent()
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = Core::System::GetInstance().GetIOS();
   if (!ios)
     return false;
 
