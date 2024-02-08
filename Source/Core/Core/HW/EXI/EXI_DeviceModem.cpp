@@ -365,9 +365,9 @@ void CEXIModem::RunAllPendingATCommands()
 
     INFO_LOG_FMT(SP1, "Received AT command: {}", command);
 
-    if (command.substr(0, 3) == "ATZ")
+    if (command.substr(0, 3) == "ATZ" || command == "ATH0")
     {
-      // Reset
+      // Reset (ATZ) or hang up (ATH0)
       m_network_interface->Deactivate();
       AddATReply("OK\r");
     }
