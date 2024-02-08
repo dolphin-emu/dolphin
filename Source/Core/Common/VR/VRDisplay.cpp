@@ -454,8 +454,8 @@ void AppHandleSessionStateChanges(App* app, XrSessionState state)
 #ifdef ANDROID
     if (app->session_active && GetPlatformFlag(PLATFORM_EXTENSION_PERFORMANCE))
     {
-      XrPerfSettingsLevelEXT cpu_performance_level = XR_PERF_SETTINGS_LEVEL_PERFORMANCE_MAX_EXT;
-      XrPerfSettingsLevelEXT gpu_performance_level = XR_PERF_SETTINGS_LEVEL_PERFORMANCE_MAX_EXT;
+      XrPerfSettingsLevelEXT cpu_performance_level = XR_PERF_SETTINGS_LEVEL_BOOST_EXT;
+      XrPerfSettingsLevelEXT gpu_performance_level = XR_PERF_SETTINGS_LEVEL_BOOST_EXT;
 
       PFN_xrPerfSettingsSetPerformanceLevelEXT pfnPerfSettingsSetPerformanceLevelEXT = NULL;
       OXR(xrGetInstanceProcAddr(app->instance, "xrPerfSettingsSetPerformanceLevelEXT",

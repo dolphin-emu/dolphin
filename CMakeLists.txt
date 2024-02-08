@@ -315,7 +315,9 @@ else()
 
   # gcc uses some optimizations which might break stuff without this flag
   check_and_add_flag(NO_STRICT_ALIASING -fno-strict-aliasing)
-  check_and_add_flag(NO_EXCEPTIONS -fno-exceptions)
+  if (NOT OPENXR)
+    check_and_add_flag(NO_EXCEPTIONS -fno-exceptions)
+  endif()
 
   check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
   check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
@@ -766,6 +768,15 @@ add_subdirectory(Externals/FatFs)
 
 if (USE_RETRO_ACHIEVEMENTS)
 	add_subdirectory(Externals/rcheevos)
+endif()
+
+# OpenXR
+if (OPENXR)
+  # Externals/OpenXR-SDK isn't supported on Meta QuestOS V62 yet.
+  include(Externals/openxr/OpenXR-SDK-Source/src/cmake/FindEGL.cmake)
+  add_subdirectory(Externals/openxr/OpenXR-SDK-Source)
+else()
+  include_directories(Externals/openxr/OpenXR-SDK/include)
 endif()
 
 ########################################

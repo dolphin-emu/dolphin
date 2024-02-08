@@ -75,3 +75,9 @@
 [submodule "hidapi-src"]
 	path = Externals/hidapi/hidapi-src
 	url = https://github.com/libusb/hidapi
+[submodule "Externals/openxr/OpenXR-SDK-Source"]
+	path = Externals/openxr/OpenXR-SDK-Source
+	url = git@github.com:lvonasek/OpenXR-SDK-Source.git
+[submodule "Externals/openxr/OpenXR-SDK"]
+	path = Externals/openxr/OpenXR-SDK
+	url = git@github.com:KhronosGroup/OpenXR-SDK.git

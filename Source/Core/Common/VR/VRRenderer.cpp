@@ -143,7 +143,7 @@ void Renderer::Init(engine_t* engine, bool multiview)
   if (GetPlatformFlag(PLATFORM_EXTENSION_FOVEATION))
   {
     DisplaySetFoveation(&engine->app_state.instance, &engine->app_state.session,
-                        &engine->app_state.renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
+                        &engine->app_state.renderer, XR_FOVEATION_LEVEL_HIGH_FB, 0,
                         XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
   }
 #endif
@@ -163,7 +163,7 @@ bool Renderer::InitFrame(engine_t* engine)
   {
     Recenter(engine);
   }
-  if (engine->app_state.session_active == false)
+  if (!engine->app_state.session_active)
   {
     return false;
   }

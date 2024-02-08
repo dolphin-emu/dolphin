@@ -31,8 +31,8 @@
 #define XR_NO_PROTOTYPES 1
 #endif
 
-#include <openxr.h>
-#include <openxr_platform.h>
+#include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
 
 #ifdef XR_NO_PROTOTYPES
 
