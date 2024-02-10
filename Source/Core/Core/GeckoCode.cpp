@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -196,7 +197,10 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
     // Install bootloader gct
     for (size_t i = 0; i < bootloaderData.length(); ++i)
-      PowerPC::MMU::HostWrite_U8(guard, bootloaderData[i], static_cast<u32>(codelist_base_address + i));
+      PowerPC::MMU::HostWrite_U8(guard, bootloaderData[i],
+                                 static_cast<u32>(codelist_base_address + i));
+                            
+    PowerPC::MMU::HostWrite_U32(guard, 0, HLE_TRAMPOLINE_ADDRESS);
   }
   else
   {
@@ -242,17 +246,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
     // Stop code. Tells the handler that this is the end of the list.
     PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);
     PowerPC::MMU::HostWrite_U32(guard, 0x00000000, next_address + 4);
-    WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
-                 end_address - start_address);
+    PowerPC::MMU::HostWrite_U32(guard, 0, HLE_TRAMPOLINE_ADDRESS);
   }
-
-  WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
-               end_address - start_address);
-
-  // Stop code. Tells the handler that this is the end of the list.
-  PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);
-  PowerPC::MMU::HostWrite_U32(guard, 0x00000000, next_address + 4);
-  PowerPC::MMU::HostWrite_U32(guard, 0, HLE_TRAMPOLINE_ADDRESS);
 
   // Turn on codes
   PowerPC::MMU::HostWrite_U8(guard, 1, INSTALLER_BASE_ADDRESS + 7);

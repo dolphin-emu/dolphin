@@ -849,7 +849,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 void VideoInterfaceManager::Update(u64 ticks)
 {
   // Try calling SI Poll every time update is called
-  SerialInterface::UpdateDevices();
+  m_system.GetSerialInterface().UpdateDevices();
   Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
                         Config::Get(Config::MAIN_LOCK_CURSOR));
 
@@ -886,7 +886,7 @@ void VideoInterfaceManager::Update(u64 ticks)
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
     Core::Callback_NewField(m_system);
 
-  // SLIPPINOTES: this section is disable because we would rather poll every chance we get to reduce
+  // SLIPPINOTES: this section is disabled because we would rather poll every chance we get to reduce
   // lag
   // // If an SI poll is scheduled to happen on this half-line, do it!
   // if (m_half_line_of_next_si_poll == m_half_line_count)

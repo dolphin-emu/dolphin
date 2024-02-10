@@ -5,7 +5,7 @@
 #include "Core/Slippi/SlippiNetplay.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/ENetUtil.h"
+#include "Common/ENet.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
@@ -40,9 +40,9 @@ SlippiNetplayClient::~SlippiNetplayClient()
     Disconnect();
   }
 
-  if (g_MainNetHost.get() == m_client)
+  if (Common::g_MainNetHost.get() == m_client)
   {
-    g_MainNetHost.release();
+    Common::g_MainNetHost.release();
   }
   if (m_client)
   {
@@ -726,7 +726,7 @@ void SlippiNetplayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
     m_async_queue.Push(std::move(packet));
   }
-  ENetUtil::WakeupThread(m_client);
+  Common::ENet::WakeupThread(m_client);
 }
 
 // called from ---NETPLAY--- thread
@@ -858,7 +858,7 @@ void SlippiNetplayClient::ThreadFunc()
 
     if (all_connected)
     {
-      m_client->intercept = ENetUtil::InterceptCallback;
+      m_client->intercept = Common::ENet::InterceptCallback;
       INFO_LOG_FMT(SLIPPI_ONLINE, "Slippi online connection successful!");
       slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED;
       break;

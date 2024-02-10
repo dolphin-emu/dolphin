@@ -654,6 +654,7 @@ include_directories(Externals/nlohmann)
 add_subdirectory(Externals/semver)
 include_directories(Externals/semver/include)
 add_subdirectory(Externals/open-vcdiff)
+include_directories(Externals)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)

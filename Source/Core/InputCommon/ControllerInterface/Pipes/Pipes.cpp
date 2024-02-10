@@ -172,12 +172,8 @@ Core::DeviceRemoval PipeDevice::UpdateInput()
     // Read any pending characters off the pipe. If we hit a newline,
     // then dequeue a command off the front of m_buf and parse it.
     char buf[32];
-    s32 bytes_read = readFromPipe(m_fd, buf, sizeof buf);
-    if (bytes_read == 0)
-    {
-      // Pipe died, so just quit out
-      return;
-    }
+    std::size_t bytes_read =
+        readFromPipe(m_fd, buf, sizeof buf);  // slippi: confirm this still works for libmelee
     while (bytes_read > 0)
     {
       m_buf.append(buf, bytes_read);
@@ -192,6 +188,7 @@ Core::DeviceRemoval PipeDevice::UpdateInput()
       newline = m_buf.find("\n");
     }
   } while (!finished && Config::Get(Config::SLIPPI_BLOCKING_PIPES));
+  return Core::DeviceRemoval::Keep;
 }
 
 void PipeDevice::AddAxis(const std::string& name, double value)

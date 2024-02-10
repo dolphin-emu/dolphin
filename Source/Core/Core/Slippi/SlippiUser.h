@@ -1,7 +1,6 @@
 #pragma once
 
 #include <atomic>
-#include <curl/curl.h>
 #include <string>
 #include <thread>
 #include <unordered_map>

@@ -477,24 +477,27 @@ void HotkeyScheduler::Run()
                             "Speed Limit: Unlimited" :
                             fmt::format("Speed Limit: {}%", std::lround(emulation_speed * 100.f)));
       };
-
       if (!IsOnline())
       {
-        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
-        if (speed > 0)
+        if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
         {
+          auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) + 0.1;
           speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
           Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
+          ShowEmulationSpeed();
         }
-        ShowEmulationSpeed();
-      }
-
-      if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
-      {
-        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) + 0.1;
-        speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
-        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
-        ShowEmulationSpeed();
+        if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
+        {
+          {
+            auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
+            if (speed > 0)
+            {
+              speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
+              Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
+            }
+            ShowEmulationSpeed();
+          }
+        }
       }
 
       // USB Device Emulation

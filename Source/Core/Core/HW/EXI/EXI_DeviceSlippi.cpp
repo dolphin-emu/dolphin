@@ -3084,7 +3084,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     ASSERT(Core::IsCPUThread());
     Core::CPUThreadGuard guard(system);
     NOTICE_LOG_FMT(SLIPPI, "DMA Write was passed an invalid address: {:x}", _uAddr);
-    Dolphin_Debugger::PrintCallstack(system, guard, Common::Log::LogType::SLIPPI,
+    Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::SLIPPI,
                                      Common::Log::LogLevel::LNOTICE);
     m_read_queue.clear();
     return;

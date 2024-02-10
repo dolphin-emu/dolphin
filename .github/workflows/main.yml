@@ -216,6 +216,7 @@ jobs:
           libegl1-mesa-dev \
           libpng-dev \
           qt6-base-private-dev \
+          libqt6svg6-dev \
           libxxf86vm-dev \
           x11proto-xinerama-dev \
           libfuse2
