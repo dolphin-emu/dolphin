@@ -84,7 +84,8 @@ bool FramebufferManager::Initialize()
     return false;
   }
 
-  m_end_of_frame_event = AfterFrameEvent::Register([this] { EndOfFrame(); }, "FramebufferManager");
+  m_end_of_frame_event =
+      AfterFrameEvent::Register([this](Core::System&) { EndOfFrame(); }, "FramebufferManager");
 
   return true;
 }
@@ -152,13 +153,15 @@ static u32 CalculateEFBLayers()
 TextureConfig FramebufferManager::GetEFBColorTextureConfig(u32 width, u32 height)
 {
   return TextureConfig(width, height, 1, CalculateEFBLayers(), g_ActiveConfig.iMultisamples,
-                       GetEFBColorFormat(), AbstractTextureFlag_RenderTarget);
+                       GetEFBColorFormat(), AbstractTextureFlag_RenderTarget,
+                       AbstractTextureType::Texture_2DArray);
 }
 
 TextureConfig FramebufferManager::GetEFBDepthTextureConfig(u32 width, u32 height)
 {
   return TextureConfig(width, height, 1, CalculateEFBLayers(), g_ActiveConfig.iMultisamples,
-                       GetEFBDepthFormat(), AbstractTextureFlag_RenderTarget);
+                       GetEFBDepthFormat(), AbstractTextureFlag_RenderTarget,
+                       AbstractTextureType::Texture_2DArray);
 }
 
 FramebufferState FramebufferManager::GetEFBFramebufferState() const
@@ -254,7 +257,8 @@ bool FramebufferManager::CreateEFBFramebuffer()
       flags |= AbstractTextureFlag_RenderTarget;
     m_efb_resolve_color_texture = g_gfx->CreateTexture(
         TextureConfig(efb_color_texture_config.width, efb_color_texture_config.height, 1,
-                      efb_color_texture_config.layers, 1, efb_color_texture_config.format, flags),
+                      efb_color_texture_config.layers, 1, efb_color_texture_config.format, flags,
+                      AbstractTextureType::Texture_2DArray),
         "EFB color resolve texture");
     if (!m_efb_resolve_color_texture)
       return false;
@@ -274,7 +278,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
     m_efb_depth_resolve_texture = g_gfx->CreateTexture(
         TextureConfig(efb_depth_texture_config.width, efb_depth_texture_config.height, 1,
                       efb_depth_texture_config.layers, 1, GetEFBDepthCopyFormat(),
-                      AbstractTextureFlag_RenderTarget),
+                      AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray),
         "EFB depth resolve texture");
     if (!m_efb_depth_resolve_texture)
       return false;
@@ -695,7 +699,8 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   {
     const TextureConfig color_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
-                                     1, 1, GetEFBColorFormat(), AbstractTextureFlag_RenderTarget);
+                                     1, 1, GetEFBColorFormat(), AbstractTextureFlag_RenderTarget,
+                                     AbstractTextureType::Texture_2DArray);
     m_efb_color_cache.texture = g_gfx->CreateTexture(color_config, "EFB color cache");
     if (!m_efb_color_cache.texture)
       return false;
@@ -717,7 +722,8 @@ bool FramebufferManager::CreateReadbackFramebuffer()
     const TextureConfig depth_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
                                      1, 1, GetEFBDepthCopyFormat(),
-                                     AbstractTextureFlag_RenderTarget);
+                                     AbstractTextureFlag_RenderTarget,
+                                     AbstractTextureType::Texture_2DArray);
     m_efb_depth_cache.texture = g_gfx->CreateTexture(depth_config, "EFB depth cache");
     if (!m_efb_depth_cache.texture)
       return false;
@@ -729,12 +735,14 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   }
 
   // Staging texture use the full EFB dimensions, as this is the buffer for the whole cache.
-  m_efb_color_cache.readback_texture = g_gfx->CreateStagingTexture(
-      StagingTextureType::Mutable,
-      TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBColorFormat(), 0));
+  m_efb_color_cache.readback_texture =
+      g_gfx->CreateStagingTexture(StagingTextureType::Mutable,
+                                  TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBColorFormat(),
+                                                0, AbstractTextureType::Texture_2DArray));
   m_efb_depth_cache.readback_texture = g_gfx->CreateStagingTexture(
       StagingTextureType::Mutable,
-      TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBDepthCopyFormat(), 0));
+      TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBDepthCopyFormat(), 0,
+                    AbstractTextureType::Texture_2DArray));
   if (!m_efb_color_cache.readback_texture || !m_efb_depth_cache.readback_texture)
     return false;
 
@@ -1116,14 +1124,15 @@ void FramebufferManager::DoSaveState(PointerWrap& p)
   AbstractTexture* depth_texture = ResolveEFBDepthTexture(m_efb_depth_texture->GetRect(), true);
 
   // We don't want to save these as rendertarget textures, just the data itself when deserializing.
-  const TextureConfig color_texture_config(color_texture->GetWidth(), color_texture->GetHeight(),
-                                           color_texture->GetLevels(), color_texture->GetLayers(),
-                                           1, GetEFBColorFormat(), 0);
+  const TextureConfig color_texture_config(
+      color_texture->GetWidth(), color_texture->GetHeight(), color_texture->GetLevels(),
+      color_texture->GetLayers(), 1, GetEFBColorFormat(), 0, AbstractTextureType::Texture_2DArray);
   g_texture_cache->SerializeTexture(color_texture, color_texture_config, p);
 
   const TextureConfig depth_texture_config(depth_texture->GetWidth(), depth_texture->GetHeight(),
                                            depth_texture->GetLevels(), depth_texture->GetLayers(),
-                                           1, GetEFBDepthCopyFormat(), 0);
+                                           1, GetEFBDepthCopyFormat(), 0,
+                                           AbstractTextureType::Texture_2DArray);
   g_texture_cache->SerializeTexture(depth_texture, depth_texture_config, p);
 }
 

@@ -5,7 +5,6 @@
 
 #include <array>
 #include <string>
-#include <tuple>
 
 #include "Common/CommonTypes.h"
 
@@ -26,12 +25,7 @@ struct SyncIdentifier
   // The way the hash is calculated may change with updates to Dolphin.
   std::array<u8, 20> sync_hash{};
 
-  bool operator==(const SyncIdentifier& s) const
-  {
-    return std::tie(dol_elf_size, game_id, revision, disc_number, is_datel, sync_hash) ==
-           std::tie(s.dol_elf_size, s.game_id, s.revision, s.disc_number, s.is_datel, s.sync_hash);
-  }
-  bool operator!=(const SyncIdentifier& s) const { return !operator==(s); }
+  bool operator==(const SyncIdentifier&) const = default;
 };
 
 // The order of entries in this enum matters, as the lowest value is

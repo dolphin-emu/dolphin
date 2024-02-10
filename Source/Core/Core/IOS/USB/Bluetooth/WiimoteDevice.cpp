@@ -18,6 +18,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
+#include "Core/HW/WII_IPC.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -26,6 +27,7 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
 #include "Core/IOS/USB/Bluetooth/l2cap.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -145,7 +147,8 @@ void WiimoteDevice::SetBasebandState(BasebandState new_state)
   m_baseband_state = new_state;
 
   // Update wiimote connection checkboxes in UI.
-  Host_UpdateDisasmDialog();
+  if (IsConnected() != was_connected)
+    Host_UpdateDisasmDialog();
 
   if (!IsSourceValid())
     return;
@@ -366,7 +369,11 @@ WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
   const auto* channel = FindChannelWithPSM(L2CAP_PSM_HID_INTR);
   if (channel && channel->IsComplete())
   {
-    m_hid_source->PrepareInput(wiimote_state);
+    auto gpio_out = m_host->GetSystem().GetWiiIPC().GetGPIOOutFlags();
+    m_hid_source->PrepareInput(wiimote_state,
+                               gpio_out[IOS::GPIO::SENSOR_BAR] ?
+                                   WiimoteCommon::HIDWiimote::SensorBarState::Enabled :
+                                   WiimoteCommon::HIDWiimote::SensorBarState::Disabled);
     return NextUpdateInputCall::Update;
   }
   return NextUpdateInputCall::None;

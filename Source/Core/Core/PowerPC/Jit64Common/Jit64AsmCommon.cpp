@@ -7,6 +7,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
@@ -110,7 +111,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
   OR(32, R(RSCRATCH), R(RSCRATCH2));
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_cdts");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_cdts");
 }
 
 void CommonAsmRoutines::GenFrsqrte()
@@ -128,7 +129,7 @@ void CommonAsmRoutines::GenFrsqrte()
   // Negatives, zeros, denormals, infinities and NaNs take the complex path.
   LEA(32, RSCRATCH2, MDisp(RSCRATCH_EXTRA, -1));
   CMP(32, R(RSCRATCH2), Imm32(0x7FE));
-  FixupBranch complex = J_CC(CC_AE, true);
+  FixupBranch complex = J_CC(CC_AE, Jump::Near);
 
   SUB(32, R(RSCRATCH_EXTRA), Imm32(0x3FD));
   SAR(32, R(RSCRATCH_EXTRA), Imm8(1));
@@ -140,7 +141,6 @@ void CommonAsmRoutines::GenFrsqrte()
   MOV(64, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHR(64, R(RSCRATCH_EXTRA), Imm8(48));
   AND(32, R(RSCRATCH_EXTRA), Imm8(0x1F));
-  XOR(32, R(RSCRATCH_EXTRA), Imm8(0x10));  // int index = i / 2048 + (odd_exponent ? 16 : 0);
 
   PUSH(RSCRATCH2);
   MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(Common::frsqrte_expected)));
@@ -150,14 +150,13 @@ void CommonAsmRoutines::GenFrsqrte()
   AND(32, R(RSCRATCH), Imm32(0x7FF));
   IMUL(32, RSCRATCH,
        MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
-  MOV(32, R(RSCRATCH_EXTRA),
+  ADD(32, R(RSCRATCH),
       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
-  SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
-  SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
+  SHL(64, R(RSCRATCH), Imm8(26));
 
   POP(RSCRATCH2);
-  OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(frsqrte_expected_base[index] -
-                                            // frsqrte_expected_dec[index] * (i % 2048)) << 26;
+  OR(64, R(RSCRATCH2), R(RSCRATCH));  // vali |= (s64)(frsqrte_expected_base[index] +
+                                      // frsqrte_expected_dec[index] * (i % 2048)) << 26;
   MOVQ_xmm(XMM0, R(RSCRATCH2));
   RET();
 
@@ -213,7 +212,7 @@ void CommonAsmRoutines::GenFrsqrte()
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_Frsqrte");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_Frsqrte");
 }
 
 void CommonAsmRoutines::GenFres()
@@ -284,7 +283,7 @@ void CommonAsmRoutines::GenFres()
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_Fres");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_Fres");
 }
 
 void CommonAsmRoutines::GenMfcr()
@@ -305,7 +304,7 @@ void CommonAsmRoutines::GenMfcr()
     if (i != 0)
       SHL(32, R(dst), Imm8(4));
 
-    MOV(64, R(cr_val), PPCSTATE(cr.fields[i]));
+    MOV(64, R(cr_val), PPCSTATE_CR(i));
 
     // EQ: Bits 31-0 == 0; set flag bit 1
     TEST(32, R(cr_val), R(cr_val));
@@ -325,7 +324,7 @@ void CommonAsmRoutines::GenMfcr()
   }
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
 }
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
@@ -369,8 +368,8 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
   const u8* load = AlignCode4();
   GenQuantizedStore(single, type, -1);
   RET();
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}", static_cast<u32>(type),
-                        single);
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}",
+                                Common::ToUnderlying(type), single);
 
   return load;
 }
@@ -401,8 +400,8 @@ const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType 
   const u8* load = AlignCode4();
   GenQuantizedLoad(single, type, -1);
   RET();
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}", static_cast<u32>(type),
-                        single);
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}",
+                                Common::ToUnderlying(type), single);
 
   return load;
 }

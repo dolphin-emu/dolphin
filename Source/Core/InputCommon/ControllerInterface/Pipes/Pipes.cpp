@@ -164,7 +164,7 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
 #endif
 }
 
-void PipeDevice::UpdateInput()
+Core::DeviceRemoval PipeDevice::UpdateInput()
 {
   bool finished = false;
   do

@@ -18,11 +18,11 @@ class IOFile;
 
 struct MemoryUpdate
 {
-  enum Type
+  enum class Type : u8
   {
-    TEXTURE_MAP = 0x01,
-    XF_DATA = 0x02,
-    VERTEX_STREAM = 0x04,
+    TextureMap = 0x01,
+    XFData = 0x02,
+    VertexStream = 0x04,
     TMEM = 0x08,
   };
 

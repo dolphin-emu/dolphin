@@ -12,6 +12,10 @@ class QCloseEvent;
 class QShowEvent;
 class QTableWidget;
 class QToolBar;
+namespace Core
+{
+class System;
+}
 
 class BreakpointWidget : public QDockWidget
 {
@@ -50,6 +54,8 @@ private:
   void OnContextMenu();
 
   void UpdateIcons();
+
+  Core::System& m_system;
 
   QToolBar* m_toolbar;
   QTableWidget* m_table;

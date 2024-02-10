@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -159,9 +161,9 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
   {
     Stop();
     file_index++;
-    std::ostringstream filename;
-    filename << File::GetUserPath(D_DUMPAUDIO_IDX) << basename << file_index << ".wav";
-    Start(filename.str(), sample_rate_divisor);
+    const std::string filename =
+        fmt::format("{}{}{}.wav", File::GetUserPath(D_DUMPAUDIO_IDX), basename, file_index);
+    Start(filename, sample_rate_divisor);
     current_sample_rate_divisor = sample_rate_divisor;
   }
 

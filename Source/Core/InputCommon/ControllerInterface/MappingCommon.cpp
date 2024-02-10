@@ -138,14 +138,13 @@ void RemoveSpuriousTriggerCombinations(
 {
   const auto is_spurious = [&](auto& detection) {
     return std::any_of(detections->begin(), detections->end(), [&](auto& d) {
-      // This is a suprious digital detection if a "smooth" (analog) detection is temporally near.
-      return &d != &detection && d.smoothness > 1 &&
+      // This is a spurious digital detection if a "smooth" (analog) detection is temporally near.
+      return &d != &detection && d.smoothness > 1 && d.smoothness > detection.smoothness &&
              abs(d.press_time - detection.press_time) < SPURIOUS_TRIGGER_COMBO_THRESHOLD;
     });
   };
 
-  detections->erase(std::remove_if(detections->begin(), detections->end(), is_spurious),
-                    detections->end());
+  std::erase_if(*detections, is_spurious);
 }
 
 }  // namespace ciface::MappingCommon

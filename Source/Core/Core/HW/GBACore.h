@@ -23,6 +23,10 @@
 
 class GBAHostInterface;
 class PointerWrap;
+namespace Core
+{
+class System;
+}
 
 namespace HW::GBA
 {
@@ -50,7 +54,11 @@ struct CoreInfo
 class Core final
 {
 public:
-  explicit Core(int device_number);
+  explicit Core(::Core::System& system, int device_number);
+  Core(const Core&) = delete;
+  Core(Core&&) = delete;
+  Core& operator=(const Core&) = delete;
+  Core& operator=(Core&&) = delete;
   ~Core();
 
   bool Start(u64 gc_ticks);
@@ -135,5 +143,7 @@ private:
   std::condition_variable m_response_cv;
   bool m_response_ready = false;
   std::vector<u8> m_response;
+
+  ::Core::System& m_system;
 };
 }  // namespace HW::GBA

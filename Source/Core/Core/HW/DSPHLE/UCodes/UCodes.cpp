@@ -39,33 +39,24 @@ constexpr bool ExramRead(u32 address)
   return (address & 0x10000000) != 0;
 }
 
-u8 HLEMemory_Read_U8(u32 address)
+u8 HLEMemory_Read_U8(Memory::MemoryManager& memory, u32 address)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (ExramRead(address))
     return memory.GetEXRAM()[address & memory.GetExRamMask()];
 
   return memory.GetRAM()[address & memory.GetRamMask()];
 }
 
-void HLEMemory_Write_U8(u32 address, u8 value)
+void HLEMemory_Write_U8(Memory::MemoryManager& memory, u32 address, u8 value)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (ExramRead(address))
     memory.GetEXRAM()[address & memory.GetExRamMask()] = value;
   else
     memory.GetRAM()[address & memory.GetRamMask()] = value;
 }
 
-u16 HLEMemory_Read_U16LE(u32 address)
+u16 HLEMemory_Read_U16LE(Memory::MemoryManager& memory, u32 address)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   u16 value;
 
   if (ExramRead(address))
@@ -76,32 +67,26 @@ u16 HLEMemory_Read_U16LE(u32 address)
   return value;
 }
 
-u16 HLEMemory_Read_U16(u32 address)
+u16 HLEMemory_Read_U16(Memory::MemoryManager& memory, u32 address)
 {
-  return Common::swap16(HLEMemory_Read_U16LE(address));
+  return Common::swap16(HLEMemory_Read_U16LE(memory, address));
 }
 
-void HLEMemory_Write_U16LE(u32 address, u16 value)
+void HLEMemory_Write_U16LE(Memory::MemoryManager& memory, u32 address, u16 value)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (ExramRead(address))
     std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u16));
   else
     std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u16));
 }
 
-void HLEMemory_Write_U16(u32 address, u16 value)
+void HLEMemory_Write_U16(Memory::MemoryManager& memory, u32 address, u16 value)
 {
-  HLEMemory_Write_U16LE(address, Common::swap16(value));
+  HLEMemory_Write_U16LE(memory, address, Common::swap16(value));
 }
 
-u32 HLEMemory_Read_U32LE(u32 address)
+u32 HLEMemory_Read_U32LE(Memory::MemoryManager& memory, u32 address)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   u32 value;
 
   if (ExramRead(address))
@@ -112,32 +97,26 @@ u32 HLEMemory_Read_U32LE(u32 address)
   return value;
 }
 
-u32 HLEMemory_Read_U32(u32 address)
+u32 HLEMemory_Read_U32(Memory::MemoryManager& memory, u32 address)
 {
-  return Common::swap32(HLEMemory_Read_U32LE(address));
+  return Common::swap32(HLEMemory_Read_U32LE(memory, address));
 }
 
-void HLEMemory_Write_U32LE(u32 address, u32 value)
+void HLEMemory_Write_U32LE(Memory::MemoryManager& memory, u32 address, u32 value)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (ExramRead(address))
     std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u32));
   else
     std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u32));
 }
 
-void HLEMemory_Write_U32(u32 address, u32 value)
+void HLEMemory_Write_U32(Memory::MemoryManager& memory, u32 address, u32 value)
 {
-  HLEMemory_Write_U32LE(address, Common::swap32(value));
+  HLEMemory_Write_U32LE(memory, address, Common::swap32(value));
 }
 
-void* HLEMemory_Get_Pointer(u32 address)
+void* HLEMemory_Get_Pointer(Memory::MemoryManager& memory, u32 address)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (ExramRead(address))
     return &memory.GetEXRAM()[address & memory.GetExRamMask()];
 
@@ -204,14 +183,13 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
     m_needs_resume_mail = true;
     m_upload_setup_in_progress = false;
 
-    const u32 ector_crc =
-        Common::HashEctor(static_cast<u8*>(HLEMemory_Get_Pointer(m_next_ucode.iram_mram_addr)),
-                          m_next_ucode.iram_size);
+    auto& memory = m_dsphle->GetSystem().GetMemory();
+    const u32 ector_crc = Common::HashEctor(
+        static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_next_ucode.iram_mram_addr)),
+        m_next_ucode.iram_size);
 
     if (Config::Get(Config::MAIN_DUMP_UCODE))
     {
-      auto& system = Core::System::GetInstance();
-      auto& memory = system.GetMemory();
       DSP::DumpDSPCode(memory.GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size,
                        ector_crc);
     }
@@ -324,6 +302,7 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case AESndUCode::HASH_2020:
   case AESndUCode::HASH_2020_PAD:
   case AESndUCode::HASH_2022_PAD:
+  case AESndUCode::HASH_2023:
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: AESnd chosen (Homebrew)", crc);
     return std::make_unique<AESndUCode>(dsphle, crc);
 

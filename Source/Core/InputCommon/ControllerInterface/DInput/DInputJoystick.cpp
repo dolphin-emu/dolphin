@@ -7,8 +7,9 @@
 #include <limits>
 #include <mutex>
 #include <set>
-#include <sstream>
 #include <type_traits>
+
+#include <fmt/format.h>
 
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
@@ -221,7 +222,7 @@ bool Joystick::IsValid() const
   return SUCCEEDED(m_device->Acquire());
 }
 
-void Joystick::UpdateInput()
+Core::DeviceRemoval Joystick::UpdateInput()
 {
   HRESULT hr = 0;
 
@@ -260,43 +261,29 @@ void Joystick::UpdateInput()
   // try reacquire if input lost
   if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
     m_device->Acquire();
+
+  return Core::DeviceRemoval::Keep;
 }
 
 // get name
 
 std::string Joystick::Button::GetName() const
 {
-  std::ostringstream ss;
-  ss << "Button " << (int)m_index;
-  return ss.str();
+  return fmt::format("Button {}", m_index);
 }
 
 std::string Joystick::Axis::GetName() const
 {
-  std::ostringstream ss;
-  // axis
-  if (m_index < 6)
-  {
-    ss << "Axis " << (char)('X' + (m_index % 3));
-    if (m_index > 2)
-      ss << 'r';
-  }
-  // slider
-  else
-  {
-    ss << "Slider " << (int)(m_index - 6);
-  }
-
-  ss << (m_range < 0 ? '-' : '+');
-  return ss.str();
+  const char sign = m_range < 0 ? '-' : '+';
+  if (m_index < 6)  // axis
+    return fmt::format("Axis {:c}{}{:c}", 'X' + m_index % 3, m_index > 2 ? "r" : "", sign);
+  else  // slider
+    return fmt::format("Slider {}{:c}", m_index - 6, sign);
 }
 
 std::string Joystick::Hat::GetName() const
 {
-  char tmpstr[] = "Hat . .";
-  tmpstr[4] = (char)('0' + m_index);
-  tmpstr[6] = "NESW"[m_direction];
-  return tmpstr;
+  return fmt::format("Hat {} {:c}", m_index, "NESW"[m_direction]);
 }
 
 // get / set state

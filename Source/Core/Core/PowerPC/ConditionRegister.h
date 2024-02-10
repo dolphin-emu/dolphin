@@ -45,7 +45,7 @@ struct ConditionRegister
   u64 fields[8];
 
   // Convert between PPC and internal representation of CR.
-  static u64 PPCToInternal(u8 value)
+  static constexpr u64 PPCToInternal(u8 value)
   {
     u64 cr_val = 0x100000000;
     cr_val |= (u64) !!(value & CR_SO) << CR_EMU_SO_BIT;

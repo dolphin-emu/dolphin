@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <array>
 #include <map>
 #include <memory>
-#include <utility>
+#include <span>
 #include <vector>
 
 #include <QDialog>
@@ -62,7 +61,7 @@ private:
 
   std::vector<u8> GetSelectedFileIndices();
 
-  void ImportFiles(ExpansionInterface::Slot slot, const std::vector<Memcard::Savefile>& savefiles);
+  void ImportFiles(ExpansionInterface::Slot slot, std::span<const Memcard::Savefile> savefiles);
 
   void CopyFiles();
   void ImportFile();
@@ -89,16 +88,17 @@ private:
   QPushButton* m_fix_checksums_button;
 
   // Slots
-  Common::EnumMap<std::map<u8, IconAnimationData>, ExpansionInterface::MAX_MEMCARD_SLOT>
-      m_slot_active_icons;
-  Common::EnumMap<std::unique_ptr<Memcard::GCMemcard>, ExpansionInterface::MAX_MEMCARD_SLOT>
-      m_slot_memcard;
-  Common::EnumMap<QGroupBox*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_group;
-  Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_file_edit;
-  Common::EnumMap<QPushButton*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_open_button;
-  Common::EnumMap<QPushButton*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_create_button;
-  Common::EnumMap<QTableWidget*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_table;
-  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_stat_label;
+  template <typename T>
+  using SlotEnumMap = Common::EnumMap<T, ExpansionInterface::MAX_MEMCARD_SLOT>;
+
+  SlotEnumMap<std::map<u8, IconAnimationData>> m_slot_active_icons;
+  SlotEnumMap<std::unique_ptr<Memcard::GCMemcard>> m_slot_memcard;
+  SlotEnumMap<QGroupBox*> m_slot_group;
+  SlotEnumMap<QLineEdit*> m_slot_file_edit;
+  SlotEnumMap<QPushButton*> m_slot_open_button;
+  SlotEnumMap<QPushButton*> m_slot_create_button;
+  SlotEnumMap<QTableWidget*> m_slot_table;
+  SlotEnumMap<QLabel*> m_slot_stat_label;
 
   ExpansionInterface::Slot m_active_slot;
   u64 m_current_frame = 0;

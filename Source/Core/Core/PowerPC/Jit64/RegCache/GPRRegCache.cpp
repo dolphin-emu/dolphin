@@ -27,12 +27,12 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 
 OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
 {
-  return PPCSTATE(gpr[preg]);
+  return PPCSTATE_GPR(preg);
 }
 
-const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count) const
+std::span<const X64Reg> GPRRegCache::GetAllocationOrder() const
 {
-  static const X64Reg allocation_order[] = {
+  static constexpr X64Reg allocation_order[] = {
 // R12, when used as base register, for example in a LEA, can generate bad code! Need to look into
 // this.
 #ifdef _WIN32
@@ -43,7 +43,6 @@ const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count) const
       R8,  R9,  R10, R11, RCX
 #endif
   };
-  *count = sizeof(allocation_order) / sizeof(X64Reg);
   return allocation_order;
 }
 

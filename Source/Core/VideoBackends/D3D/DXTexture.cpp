@@ -45,8 +45,10 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
   if (config.IsComputeImage())
     bindflags |= D3D11_BIND_UNORDERED_ACCESS;
 
-  CD3D11_TEXTURE2D_DESC desc(tex_format, config.width, config.height, config.layers, config.levels,
-                             bindflags, D3D11_USAGE_DEFAULT, 0, config.samples, 0, 0);
+  CD3D11_TEXTURE2D_DESC desc(
+      tex_format, config.width, config.height, config.layers, config.levels, bindflags,
+      D3D11_USAGE_DEFAULT, 0, config.samples, 0,
+      config.type == AbstractTextureType::Texture_CubeMap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0);
   ComPtr<ID3D11Texture2D> d3d_texture;
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
   if (FAILED(hr))
@@ -71,7 +73,8 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ComPtr<ID3D11Texture2D> text
   // Convert to our texture config format.
   TextureConfig config(desc.Width, desc.Height, desc.MipLevels, desc.ArraySize,
                        desc.SampleDesc.Count,
-                       D3DCommon::GetAbstractFormatForDXGIFormat(desc.Format), 0);
+                       D3DCommon::GetAbstractFormatForDXGIFormat(desc.Format), 0,
+                       AbstractTextureType::Texture_2DArray);
   if (desc.BindFlags & D3D11_BIND_RENDER_TARGET)
     config.flags |= AbstractTextureFlag_RenderTarget;
   if (desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS)
@@ -88,12 +91,33 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ComPtr<ID3D11Texture2D> text
 
 bool DXTexture::CreateSRV()
 {
+  D3D_SRV_DIMENSION dimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+  if (m_config.type == AbstractTextureType::Texture_2DArray)
+  {
+    if (m_config.IsMultisampled())
+      dimension = D3D_SRV_DIMENSION_TEXTURE2DMSARRAY;
+    else
+      dimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+  }
+  else if (m_config.type == AbstractTextureType::Texture_2D)
+  {
+    if (m_config.IsMultisampled())
+      dimension = D3D_SRV_DIMENSION_TEXTURE2DMS;
+    else
+      dimension = D3D_SRV_DIMENSION_TEXTURE2D;
+  }
+  else if (m_config.type == AbstractTextureType::Texture_CubeMap)
+  {
+    dimension = D3D_SRV_DIMENSION_TEXTURECUBE;
+  }
+  else
+  {
+    PanicAlertFmt("Failed to create D3D SRV - unhandled type");
+    return false;
+  }
   const CD3D11_SHADER_RESOURCE_VIEW_DESC desc(
-      m_texture.Get(),
-      m_config.IsMultisampled() ? D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY :
-                                  D3D11_SRV_DIMENSION_TEXTURE2DARRAY,
-      D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, m_config.levels, 0,
-      m_config.layers);
+      m_texture.Get(), dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0,
+      m_config.levels, 0, m_config.layers);
   DEBUG_ASSERT(!m_srv);
   HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
   if (FAILED(hr))
@@ -324,23 +348,79 @@ void DXStagingTexture::Flush()
 }
 
 DXFramebuffer::DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                             std::vector<AbstractTexture*> additional_color_attachments,
                              AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
                              u32 width, u32 height, u32 layers, u32 samples,
                              ComPtr<ID3D11RenderTargetView> rtv,
                              ComPtr<ID3D11RenderTargetView> integer_rtv,
-                             ComPtr<ID3D11DepthStencilView> dsv)
-    : AbstractFramebuffer(color_attachment, depth_attachment, color_format, depth_format, width,
-                          height, layers, samples),
-      m_rtv(std::move(rtv)), m_integer_rtv(std::move(integer_rtv)), m_dsv(std::move(dsv))
+                             ComPtr<ID3D11DepthStencilView> dsv,
+                             std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs)
+    : AbstractFramebuffer(color_attachment, depth_attachment,
+                          std::move(additional_color_attachments), color_format, depth_format,
+                          width, height, layers, samples),
+      m_integer_rtv(std::move(integer_rtv)), m_dsv(std::move(dsv))
 {
+  m_render_targets.push_back(std::move(rtv));
+  for (auto additional_rtv : additional_rtvs)
+  {
+    m_render_targets.push_back(std::move(additional_rtv));
+  }
+  for (auto& render_target : m_render_targets)
+  {
+    m_render_targets_raw.push_back(render_target.Get());
+  }
 }
 
 DXFramebuffer::~DXFramebuffer() = default;
 
-std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment,
-                                                     DXTexture* depth_attachment)
+void DXFramebuffer::Unbind()
 {
-  if (!ValidateConfig(color_attachment, depth_attachment))
+  bool should_apply = false;
+  if (GetColorAttachment() &&
+      D3D::stateman->UnsetTexture(static_cast<DXTexture*>(GetColorAttachment())->GetD3DSRV()) != 0)
+  {
+    should_apply = true;
+  }
+
+  if (GetDepthAttachment() &&
+      D3D::stateman->UnsetTexture(static_cast<DXTexture*>(GetDepthAttachment())->GetD3DSRV()) != 0)
+  {
+    should_apply = true;
+  }
+
+  for (auto additional_color_attachment : m_additional_color_attachments)
+  {
+    if (D3D::stateman->UnsetTexture(
+            static_cast<DXTexture*>(additional_color_attachment)->GetD3DSRV()) != 0)
+    {
+      should_apply = true;
+    }
+  }
+
+  if (should_apply)
+  {
+    D3D::stateman->ApplyTextures();
+  }
+}
+
+void DXFramebuffer::Clear(const ClearColor& color_value, float depth_value)
+{
+  if (GetDepthFormat() != AbstractTextureFormat::Undefined)
+  {
+    D3D::context->ClearDepthStencilView(GetDSV(), D3D11_CLEAR_DEPTH, depth_value, 0);
+  }
+
+  for (auto render_target : m_render_targets_raw)
+  {
+    D3D::context->ClearRenderTargetView(render_target, color_value.data());
+  }
+}
+
+std::unique_ptr<DXFramebuffer>
+DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
+                      std::vector<AbstractTexture*> additional_color_attachments)
+{
+  if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
 
   const AbstractTextureFormat color_format =
@@ -382,6 +462,25 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
     }
   }
 
+  std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs;
+  for (auto additional_color_attachment : additional_color_attachments)
+  {
+    ComPtr<ID3D11RenderTargetView> additional_rtv;
+    CD3D11_RENDER_TARGET_VIEW_DESC desc(
+        additional_color_attachment->IsMultisampled() ? D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY :
+                                                        D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
+        D3DCommon::GetRTVFormatForAbstractFormat(additional_color_attachment->GetFormat(), false),
+        0, 0, 1);
+    HRESULT hr = D3D::device->CreateRenderTargetView(
+        static_cast<DXTexture*>(additional_color_attachment)->GetD3DTexture(), &desc,
+        additional_rtv.GetAddressOf());
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Create render target view for framebuffer: {}",
+               DX11HRWrap(hr));
+    if (FAILED(hr))
+      return nullptr;
+    additional_rtvs.push_back(std::move(additional_rtv));
+  }
+
   ComPtr<ID3D11DepthStencilView> dsv;
   if (depth_attachment)
   {
@@ -398,9 +497,10 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
       return nullptr;
   }
 
-  return std::make_unique<DXFramebuffer>(color_attachment, depth_attachment, color_format,
-                                         depth_format, width, height, layers, samples,
-                                         std::move(rtv), std::move(integer_rtv), std::move(dsv));
+  return std::make_unique<DXFramebuffer>(
+      color_attachment, depth_attachment, std::move(additional_color_attachments), color_format,
+      depth_format, width, height, layers, samples, std::move(rtv), std::move(integer_rtv),
+      std::move(dsv), std::move(additional_rtvs));
 }
 
 }  // namespace DX11

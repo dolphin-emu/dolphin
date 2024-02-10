@@ -273,7 +273,16 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
 
     if (ClipCursor(&rect))
 #else
-    // TODO: implement on other platforms. Probably XGrabPointer on Linux.
+    // TODO: Implement on other platforms. XGrabPointer on Linux X11 should be equivalent to
+    // ClipCursor on Windows, though XFixesCreatePointerBarrier and XFixesDestroyPointerBarrier
+    // may also work. On Wayland zwp_pointer_constraints_v1::confine_pointer and
+    // zwp_pointer_constraints_v1::destroy provide this functionality.
+    // More info:
+    // https://stackoverflow.com/a/36269507
+    // https://tronche.com/gui/x/xlib/input/XGrabPointer.html
+    // https://www.x.org/releases/X11R7.7/doc/fixesproto/fixesproto.txt
+    // https://wayland.app/protocols/pointer-constraints-unstable-v1
+
     // The setting is hidden in the UI if not implemented
     if (false)
 #endif
@@ -448,6 +457,10 @@ bool RenderWidget::event(QEvent* event)
   case QEvent::Move:
     SetCursorLocked(m_cursor_locked);
     break;
+
+  // According to https://bugreports.qt.io/browse/QTBUG-95925 the recommended practice for
+  // handling DPI change is responding to paint events
+  case QEvent::Paint:
   case QEvent::Resize:
   {
     SetCursorLocked(m_cursor_locked);
@@ -457,9 +470,18 @@ bool RenderWidget::event(QEvent* event)
 
     QScreen* screen = window()->windowHandle()->screen();
 
-    const auto dpr = screen->devicePixelRatio();
+    const float dpr = screen->devicePixelRatio();
+    const int width = new_size.width() * dpr;
+    const int height = new_size.height() * dpr;
 
-    emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
+    if (m_last_window_width != width || m_last_window_height != height ||
+        m_last_window_scale != dpr)
+    {
+      m_last_window_width = width;
+      m_last_window_height = height;
+      m_last_window_scale = dpr;
+      emit SizeChanged(width, height);
+    }
     break;
   }
   // Happens when we add/remove the widget from the main window instead of the dedicated one
@@ -499,10 +521,11 @@ void RenderWidget::PassEventToPresenter(const QEvent* event)
     const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
 
     const char* chars = nullptr;
+    QByteArray utf8;
 
     if (is_down)
     {
-      auto utf8 = key_event->text().toUtf8();
+      utf8 = key_event->text().toUtf8();
 
       if (utf8.size())
         chars = utf8.constData();

@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Core/Slippi/SlippiConfig.h"
 
@@ -79,6 +80,8 @@ extern const Info<bool> MAIN_SKIP_IPL;
 extern const Info<PowerPC::CPUCore> MAIN_CPU_CORE;
 extern const Info<bool> MAIN_JIT_FOLLOW_BRANCH;
 extern const Info<bool> MAIN_FASTMEM;
+extern const Info<bool> MAIN_FASTMEM_ARENA;
+extern const Info<bool> MAIN_LARGE_ENTRY_POINTS_MAP;
 extern const Info<bool> MAIN_ACCURATE_CPU_CACHE;
 // Should really be in the DSP section, but we're kind of stuck with bad decisions made in the past.
 extern const Info<bool> MAIN_DSP_HLE;
@@ -122,6 +125,7 @@ const Info<bool>& GetInfoForAdapterRumble(int channel);
 const Info<bool>& GetInfoForSimulateKonga(int channel);
 extern const Info<bool> MAIN_WII_SD_CARD;
 extern const Info<bool> MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC;
+extern const Info<u64> MAIN_WII_SD_CARD_FILESIZE;
 extern const Info<bool> MAIN_WII_KEYBOARD;
 extern const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;
@@ -172,6 +176,7 @@ extern const Info<DiscIO::Region> MAIN_FALLBACK_REGION;
 extern const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS;
 extern const Info<s32> MAIN_OVERRIDE_BOOT_IOS;
 extern const Info<std::string> MAIN_WII_NUS_SHOP_URL;
+extern const Info<bool> MAIN_WII_WIILINK_ENABLE;
 
 // Main.DSP
 
@@ -218,6 +223,7 @@ extern const Info<std::string> MAIN_WIRELESS_MAC;
 extern const Info<std::string> MAIN_GDB_SOCKET;
 extern const Info<int> MAIN_GDB_PORT;
 extern const Info<int> MAIN_ISO_PATH_COUNT;
+extern const Info<std::string> MAIN_SKYLANDERS_PATH;
 std::vector<std::string> GetIsoPaths();
 void SetIsoPaths(const std::vector<std::string>& paths);
 
@@ -368,6 +374,7 @@ void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 // Main.EmulatedUSBDevices
 
 extern const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL;
+extern const Info<bool> MAIN_EMULATE_INFINITY_BASE;
 
 // GameCube path utility functions
 
@@ -396,4 +403,6 @@ std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO
 std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
                              std::optional<DiscIO::Region> region);
 bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot);
+bool AreCheatsEnabled();
+bool IsDebuggingEnabled();
 }  // namespace Config

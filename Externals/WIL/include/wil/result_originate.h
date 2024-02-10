@@ -31,7 +31,6 @@
 #include "com.h"
 #include <roerrorapi.h>
 
-#ifndef __cplusplus_winrt // The CX runtime likes to originate errors already so we would conflict with them.
 namespace wil
 {
     namespace details
@@ -82,6 +81,36 @@ namespace wil
                 }
             }
         }
+
+        // This method will check for the presence of stowed exception data on the current thread.  If such data exists, and the HRESULT
+        // matches the current failure, then we will call RoFailFastWithErrorContext.  RoFailFastWithErrorContext in this situation will
+        // result in -VASTLY- improved crash bucketing.  It is hard to express just how much better.  In other cases we just return and
+        // the calling method fails fast the same way it always has.
+        inline void __stdcall FailfastWithContextCallback(wil::FailureInfo const& failure) WI_NOEXCEPT
+        {
+            wil::com_ptr_nothrow<IRestrictedErrorInfo> restrictedErrorInformation;
+            if (GetRestrictedErrorInfo(&restrictedErrorInformation) == S_OK)
+            {
+                wil::unique_bstr descriptionUnused;
+                HRESULT existingHr = failure.hr;
+                wil::unique_bstr restrictedDescriptionUnused;
+                wil::unique_bstr capabilitySidUnused;
+                if (SUCCEEDED(restrictedErrorInformation->GetErrorDetails(&descriptionUnused, &existingHr, &restrictedDescriptionUnused, &capabilitySidUnused)) &&
+                    (existingHr == failure.hr))
+                {
+                    // GetRestrictedErrorInfo returns ownership of the error information.  We want it to be available for RoFailFastWithErrorContext
+                    // so we must restore it via SetRestrictedErrorInfo first.
+                    SetRestrictedErrorInfo(restrictedErrorInformation.get());
+                    RoFailFastWithErrorContext(existingHr);
+                }
+                else
+                {
+                    // The error didn't match the current failure.  Put it back in thread-local storage even though we aren't failing fast
+                    // in this method, so it is available in the debugger just-in-case.
+                    SetRestrictedErrorInfo(restrictedErrorInformation.get());
+                }
+            }
+        }
     } // namespace details
 } // namespace wil
 
@@ -89,8 +118,8 @@ namespace wil
 WI_HEADER_INITITALIZATION_FUNCTION(ResultStowedExceptionInitialize, []
 {
     ::wil::SetOriginateErrorCallback(::wil::details::RaiseRoOriginateOnWilExceptions);
+    ::wil::SetFailfastWithContextCallback(::wil::details::FailfastWithContextCallback);
     return 1;
-});
-#endif // __cplusplus_winrt
+})
 
 #endif // __WIL_RESULT_ORIGINATE_INCLUDED

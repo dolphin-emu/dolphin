@@ -13,6 +13,7 @@ extern "C" {
 #include <X11/keysym.h>
 }
 
+#include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -26,7 +27,7 @@ private:
   struct State
   {
     std::array<char, 32> keyboard;
-    unsigned int buttons;
+    u32 buttons;
     Common::Vec2 cursor;
     Common::Vec3 axis;
     Common::Vec3 relative_mouse;
@@ -52,11 +53,11 @@ private:
   {
   public:
     std::string GetName() const override { return name; }
-    Button(unsigned int index, unsigned int* buttons);
+    Button(unsigned int index, u32* buttons);
     ControlState GetState() const override;
 
   private:
-    const unsigned int* m_buttons;
+    const u32* m_buttons;
     const unsigned int m_index;
     std::string name;
   };
@@ -107,11 +108,10 @@ private:
   };
 
 private:
-  void SelectEventsForDevice(XIEventMask* mask, int deviceid);
   void UpdateCursor(bool should_center_mouse);
 
 public:
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
   KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid,
                 double scroll_increment);

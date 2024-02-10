@@ -15,20 +15,20 @@ enum class ProgramExceptionCause : u32
   Trap = 1 << (31 - 14),
 };
 
-inline void GenerateAlignmentException(u32 address)
+inline void GenerateAlignmentException(PowerPC::PowerPCState& ppc_state, u32 address)
 {
-  PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
-  PowerPC::ppcState.spr[SPR_DAR] = address;
+  ppc_state.Exceptions |= EXCEPTION_ALIGNMENT;
+  ppc_state.spr[SPR_DAR] = address;
 }
 
-inline void GenerateDSIException(u32 address)
+inline void GenerateDSIException(PowerPC::PowerPCState& ppc_state, u32 address)
 {
-  PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
-  PowerPC::ppcState.spr[SPR_DAR] = address;
+  ppc_state.Exceptions |= EXCEPTION_DSI;
+  ppc_state.spr[SPR_DAR] = address;
 }
 
-inline void GenerateProgramException(ProgramExceptionCause cause)
+inline void GenerateProgramException(PowerPC::PowerPCState& ppc_state, ProgramExceptionCause cause)
 {
-  PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
-  PowerPC::ppcState.spr[SPR_SRR1] = static_cast<u32>(cause);
+  ppc_state.Exceptions |= EXCEPTION_PROGRAM;
+  ppc_state.spr[SPR_SRR1] = static_cast<u32>(cause);
 }

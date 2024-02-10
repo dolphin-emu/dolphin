@@ -101,6 +101,15 @@ bool IOFile::Close()
   return m_good;
 }
 
+IOFile IOFile::Duplicate(const char openmode[]) const
+{
+#ifdef _WIN32
+  return IOFile(_fdopen(_dup(_fileno(m_file)), openmode));
+#else   // _WIN32
+  return IOFile(fdopen(dup(fileno(m_file)), openmode));
+#endif  // _WIN32
+}
+
 void IOFile::SetHandle(std::FILE* file)
 {
   Close();

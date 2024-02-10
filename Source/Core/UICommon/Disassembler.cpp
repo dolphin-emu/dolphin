@@ -9,13 +9,14 @@
 #include <fmt/format.h>
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
-#elif defined(_M_X86)
+#elif defined(_M_X86_64)
 #include <disasm.h>  // Bochs
 #endif
 
 #include "Common/Assert.h"
 #include "Common/VariantUtil.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/System.h"
 
 #if defined(HAVE_LLVM)
 class HostDisassemblerLLVM : public HostDisassembler
@@ -46,7 +47,8 @@ HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int i
   LLVMInitializeAllTargetMCs();
   LLVMInitializeAllDisassemblers();
 
-  m_llvm_context = LLVMCreateDisasmCPU(host_disasm.c_str(), cpu.c_str(), nullptr, 0, 0, nullptr);
+  m_llvm_context =
+      LLVMCreateDisasmCPU(host_disasm.c_str(), cpu.c_str(), nullptr, 0, nullptr, nullptr);
 
   // Couldn't create llvm context
   if (!m_llvm_context)
@@ -115,7 +117,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
 
   return x86_disasm.str();
 }
-#elif defined(_M_X86)
+#elif defined(_M_X86_64)
 class HostDisassemblerX86 : public HostDisassembler
 {
 public:
@@ -161,7 +163,7 @@ std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch)
     return std::make_unique<HostDisassemblerLLVM>("aarch64-none-unknown", 4, "cortex-a57");
   if (arch == "armv7")
     return std::make_unique<HostDisassemblerLLVM>("armv7-none-unknown", 4, "cortex-a15");
-#elif defined(_M_X86)
+#elif defined(_M_X86_64)
   if (arch == "x86")
     return std::make_unique<HostDisassemblerX86>();
 #endif
@@ -170,7 +172,7 @@ std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch)
 
 DisassembleResult DisassembleBlock(HostDisassembler* disasm, u32 address)
 {
-  auto res = JitInterface::GetHostCode(address);
+  auto res = Core::System::GetInstance().GetJitInterface().GetHostCode(address);
 
   return std::visit(overloaded{[&](JitInterface::GetHostCodeError error) {
                                  DisassembleResult result;

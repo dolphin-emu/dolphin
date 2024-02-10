@@ -184,7 +184,7 @@ void AudioInterfaceManager::SetAISSampleRate(SampleRate sample_rate)
     m_ais_sample_rate_divisor = Get48KHzSampleRateDivisor();
   }
 
-  m_cpu_cycles_per_sample = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
+  m_cpu_cycles_per_sample = static_cast<u64>(m_system.GetSystemTimers().GetTicksPerSecond()) *
                             m_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
   SoundStream* sound_stream = m_system.GetSoundStream();
   sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(m_ais_sample_rate_divisor);
@@ -335,6 +335,16 @@ u32 AudioInterfaceManager::GetAISSampleRateDivisor() const
   return m_ais_sample_rate_divisor;
 }
 
+SampleRate AudioInterfaceManager::GetAIDSampleRate() const
+{
+  return m_control.AIDFR == AID_48KHz ? SampleRate::AI48KHz : SampleRate::AI32KHz;
+}
+
+SampleRate AudioInterfaceManager::GetAISSampleRate() const
+{
+  return m_control.AISFR == AIS_32KHz ? SampleRate::AI32KHz : SampleRate::AI48KHz;
+}
+
 u32 AudioInterfaceManager::Get32KHzSampleRateDivisor() const
 {
   return Get48KHzSampleRateDivisor() * 3 / 2;
@@ -342,6 +352,6 @@ u32 AudioInterfaceManager::Get32KHzSampleRateDivisor() const
 
 u32 AudioInterfaceManager::Get48KHzSampleRateDivisor() const
 {
-  return (SConfig::GetInstance().bWii ? 1125 : 1124) * 2;
+  return (m_system.IsWii() ? 1125 : 1124) * 2;
 }
 }  // namespace AudioInterface

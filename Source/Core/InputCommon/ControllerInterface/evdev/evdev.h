@@ -72,7 +72,7 @@ private:
   };
 
 public:
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
   bool IsValid() const override;
 
   evdevDevice(InputBackend* input_backend);

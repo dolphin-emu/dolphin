@@ -3,6 +3,7 @@
 
 #include "UICommon/AutoUpdate.h"
 
+#include <cstdlib>
 #include <string>
 
 #include <fmt/format.h>
@@ -19,12 +20,13 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#else
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 
 #ifdef __APPLE__
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 #endif
 
 #if defined(_WIN32) || defined(__APPLE__)
@@ -160,6 +162,23 @@ static std::string GetPlatformID()
 #endif
 }
 
+static std::string GetUpdateServerUrl()
+{
+  auto server_url = std::getenv("DOLPHIN_UPDATE_SERVER_URL");
+  if (server_url)
+    return server_url;
+  return "https://dolphin-emu.org";
+}
+
+static u32 GetOwnProcessId()
+{
+#ifdef _WIN32
+  return GetCurrentProcessId();
+#else
+  return getpid();
+#endif
+}
+
 void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
                                        std::string_view hash_override, const CheckType check_type)
 {
@@ -172,7 +191,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
 #endif
 
   std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
-  std::string url = fmt::format("https://dolphin-emu.org/update/check/v1/{}/{}/{}", update_track,
+  std::string url = fmt::format("{}/update/check/v1/{}/{}/{}", GetUpdateServerUrl(), update_track,
                                 version_hash, GetPlatformID());
 
   const bool is_manual_check = check_type == CheckType::Manual;
@@ -215,7 +234,15 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   // TODO: generate the HTML changelog from the JSON information.
   nvi.changelog_html = GenerateChangelog(obj["changelog"].get<picojson::array>());
 
-  OnUpdateAvailable(nvi);
+  if (std::getenv("DOLPHIN_UPDATE_TEST_DONE"))
+  {
+    // We are at end of updater test flow, send a message to server, which will kill us.
+    req.Get(fmt::format("{}/update-test-done/{}", GetUpdateServerUrl(), GetOwnProcessId()));
+  }
+  else
+  {
+    OnUpdateAvailable(nvi);
+  }
 }
 
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
@@ -234,11 +261,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["this-manifest-url"] = info.this_manifest_url;
   updater_flags["next-manifest-url"] = info.next_manifest_url;
   updater_flags["content-store-url"] = info.content_store_url;
-#ifdef _WIN32
-  updater_flags["parent-pid"] = std::to_string(GetCurrentProcessId());
-#else
-  updater_flags["parent-pid"] = std::to_string(getpid());
-#endif
+  updater_flags["parent-pid"] = std::to_string(GetOwnProcessId());
   updater_flags["install-base-path"] = File::GetExeDirectory();
   updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILE;
 
@@ -276,13 +299,13 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   }
   else
   {
-    const std::string error = GetLastErrorString();
+    const std::string error = Common::GetLastErrorString();
     CriticalAlertFmtT("Could not start updater process: {0}", error);
   }
 #else
   if (popen(command_line.c_str(), "r") == nullptr)
   {
-    const std::string error = LastStrerrorString();
+    const std::string error = Common::LastStrerrorString();
     CriticalAlertFmtT("Could not start updater process: {0}", error);
   }
 #endif

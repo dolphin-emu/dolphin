@@ -6,7 +6,7 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(CUBEB DEFAULT_MSG
 	CUBEB_INCLUDE_DIR CUBEB_LIBRARY)
 
-if(CUBEB_FOUND AND NOT TARGET CUBEB)
+if(CUBEB_FOUND AND NOT TARGET cubeb::cubeb)
   add_library(cubeb::cubeb UNKNOWN IMPORTED)
   set_target_properties(cubeb::cubeb PROPERTIES
     IMPORTED_LOCATION "${CUBEB_LIBRARY}"

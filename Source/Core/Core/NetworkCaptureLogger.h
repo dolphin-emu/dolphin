@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <mutex>
 
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -111,6 +112,7 @@ private:
                const sockaddr_in& to);
 
   std::unique_ptr<Common::PCAP> m_file;
+  std::mutex m_io_mutex;
   std::map<s32, u32> m_read_sequence_number;
   std::map<s32, u32> m_write_sequence_number;
 };

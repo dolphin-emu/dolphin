@@ -110,19 +110,35 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 {
   // The geometry shader buffer must be last in this binding set, as we don't include it
   // if geometry shaders are not supported by the device. See the decrement below.
-  static const std::array<VkDescriptorSetLayoutBinding, 3> standard_ubo_bindings{{
+  static const std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
+      {UBO_DESCRIPTOR_SET_BINDING_PS_CUST, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
+       VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_GS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_GEOMETRY_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 1> standard_sampler_bindings{{
-      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       static_cast<u32>(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS), VK_SHADER_STAGE_FRAGMENT_BIT},
-  }};
+  constexpr u32 MAX_PIXEL_SAMPLER_ARRAY_SIZE = 8;
+  constexpr u32 TOTAL_PIXEL_SAMPLER_BINDINGS =
+      1 + (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS - MAX_PIXEL_SAMPLER_ARRAY_SIZE);
+  static_assert(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS == 16, "Update descriptor sampler bindings");
+
+  static const std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
+      standard_sampler_bindings{{
+          {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_PIXEL_SAMPLER_ARRAY_SIZE,
+           VK_SHADER_STAGE_FRAGMENT_BIT},
+          {8, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {12, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {13, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {14, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {15, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+      }};
 
   // The dynamic veretex loader's vertex buffer must be last here, for similar reasons
   static const std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
@@ -148,16 +164,29 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {8, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 6> compute_set_bindings{{
+  static const std::array<VkDescriptorSetLayoutBinding, 19> compute_set_bindings{{
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_COMPUTE_BIT},
       {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
       {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
-      {3, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
-      {4, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
-      {5, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {6, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {8, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {9, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {10, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {11, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {12, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {13, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {14, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {15, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {16, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {17, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {18, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
   }};
 
-  std::array<VkDescriptorSetLayoutBinding, 3> ubo_bindings = standard_ubo_bindings;
+  std::array<VkDescriptorSetLayoutBinding, 4> ubo_bindings = standard_ubo_bindings;
 
   std::array<VkDescriptorSetLayoutCreateInfo, NUM_DESCRIPTOR_SET_LAYOUTS> create_infos{{
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
@@ -388,66 +417,71 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 }
 
 VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_format,
-                                        u32 multisamples, VkAttachmentLoadOp load_op)
+                                        u32 multisamples, VkAttachmentLoadOp load_op,
+                                        u8 additional_attachment_count)
 {
-  auto key = std::tie(color_format, depth_format, multisamples, load_op);
+  auto key =
+      std::tie(color_format, depth_format, multisamples, load_op, additional_attachment_count);
   auto it = m_render_pass_cache.find(key);
   if (it != m_render_pass_cache.end())
     return it->second;
 
-  VkAttachmentReference color_reference;
-  VkAttachmentReference* color_reference_ptr = nullptr;
   VkAttachmentReference depth_reference;
   VkAttachmentReference* depth_reference_ptr = nullptr;
-  std::array<VkAttachmentDescription, 2> attachments;
-  u32 num_attachments = 0;
+  std::vector<VkAttachmentDescription> attachments;
+  std::vector<VkAttachmentReference> color_attachment_references;
   if (color_format != VK_FORMAT_UNDEFINED)
   {
-    attachments[num_attachments] = {0,
-                                    color_format,
-                                    static_cast<VkSampleCountFlagBits>(multisamples),
-                                    load_op,
-                                    VK_ATTACHMENT_STORE_OP_STORE,
-                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-    color_reference.attachment = num_attachments;
+    VkAttachmentReference color_reference;
+    color_reference.attachment = static_cast<uint32_t>(attachments.size());
     color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    color_reference_ptr = &color_reference;
-    num_attachments++;
+    color_attachment_references.push_back(std::move(color_reference));
+    attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
+                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
   }
   if (depth_format != VK_FORMAT_UNDEFINED)
   {
-    attachments[num_attachments] = {0,
-                                    depth_format,
-                                    static_cast<VkSampleCountFlagBits>(multisamples),
-                                    load_op,
-                                    VK_ATTACHMENT_STORE_OP_STORE,
-                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
-    depth_reference.attachment = num_attachments;
+    depth_reference.attachment = static_cast<uint32_t>(attachments.size());
     depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depth_reference_ptr = &depth_reference;
-    num_attachments++;
+    attachments.push_back({0, depth_format, static_cast<VkSampleCountFlagBits>(multisamples),
+                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
   }
 
-  VkSubpassDescription subpass = {0,
-                                  VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                  0,
-                                  nullptr,
-                                  color_reference_ptr ? 1u : 0u,
-                                  color_reference_ptr ? color_reference_ptr : nullptr,
-                                  nullptr,
-                                  depth_reference_ptr,
-                                  0,
-                                  nullptr};
+  for (u8 i = 0; i < additional_attachment_count; i++)
+  {
+    VkAttachmentReference color_reference;
+    color_reference.attachment = static_cast<uint32_t>(attachments.size());
+    color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attachment_references.push_back(std::move(color_reference));
+    attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
+                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+  }
+
+  VkSubpassDescription subpass = {
+      0,
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      0,
+      nullptr,
+      static_cast<uint32_t>(color_attachment_references.size()),
+      color_attachment_references.empty() ? nullptr : color_attachment_references.data(),
+      nullptr,
+      depth_reference_ptr,
+      0,
+      nullptr};
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
-                                      num_attachments,
+                                      static_cast<uint32_t>(attachments.size()),
                                       attachments.data(),
                                       1,
                                       &subpass,
@@ -473,7 +507,7 @@ void ObjectCache::DestroyRenderPassCache()
   m_render_pass_cache.clear();
 }
 
-class PipelineCacheReadCallback : public LinearDiskCacheReader<u32, u8>
+class PipelineCacheReadCallback : public Common::LinearDiskCacheReader<u32, u8>
 {
 public:
   PipelineCacheReadCallback(std::vector<u8>* data) : m_data(data) {}
@@ -488,7 +522,7 @@ private:
   std::vector<u8>* m_data;
 };
 
-class PipelineCacheReadIgnoreCallback : public LinearDiskCacheReader<u32, u8>
+class PipelineCacheReadIgnoreCallback : public Common::LinearDiskCacheReader<u32, u8>
 {
 public:
   void Read(const u32& key, const u8* value, u32 value_size) override {}
@@ -525,7 +559,7 @@ bool ObjectCache::LoadPipelineCache()
   m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
 
   std::vector<u8> disk_data;
-  LinearDiskCache<u32, u8> disk_cache;
+  Common::LinearDiskCache<u32, u8> disk_cache;
   PipelineCacheReadCallback read_callback(&disk_data);
   if (disk_cache.OpenAndRead(m_pipeline_cache_filename, read_callback) != 1)
     disk_data.clear();
@@ -651,7 +685,7 @@ void ObjectCache::SavePipelineCache()
   // We write a single key of 1, with the entire pipeline cache data.
   // Not ideal, but our disk cache class does not support just writing a single blob
   // of data without specifying a key.
-  LinearDiskCache<u32, u8> disk_cache;
+  Common::LinearDiskCache<u32, u8> disk_cache;
   PipelineCacheReadIgnoreCallback callback;
   disk_cache.OpenAndRead(m_pipeline_cache_filename, callback);
   disk_cache.Append(1, data.data(), static_cast<u32>(data.size()));

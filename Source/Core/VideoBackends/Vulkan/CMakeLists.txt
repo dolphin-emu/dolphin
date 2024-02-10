@@ -48,11 +48,19 @@ PRIVATE
   xxhash
 )
 
+if (ANDROID AND _M_ARM_64)
+  target_link_libraries(videovulkan
+  PRIVATE
+      adrenotools
+  )
+endif()
+
 # Only include the Vulkan headers when building the Vulkan backend
 target_include_directories(videovulkan
 PRIVATE
   ${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include
   ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
+  ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
 )
 
 if(MSVC)

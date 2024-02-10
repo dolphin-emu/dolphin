@@ -13,10 +13,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// $Id: InterpolateShannon.cpp 195 2014-04-06 15:57:21Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -175,9 +171,9 @@ int InterpolateShannon::transposeStereo(SAMPLETYPE *pdest,
 
 /// Transpose stereo audio. Returns number of produced output samples, and 
 /// updates "srcSamples" to amount of consumed source samples
-int InterpolateShannon::transposeMulti(SAMPLETYPE *pdest, 
-                    const SAMPLETYPE *psrc, 
-                    int &srcSamples)
+int InterpolateShannon::transposeMulti(SAMPLETYPE *, 
+                    const SAMPLETYPE *, 
+                    int &)
 {
     // not implemented
     assert(false);

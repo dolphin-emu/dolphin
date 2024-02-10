@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include <fmt/chrono.h>
+
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
@@ -12,8 +14,8 @@
 
 namespace IOS::HLE
 {
-NetKDTimeDevice::NetKDTimeDevice(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name)
+NetKDTimeDevice::NetKDTimeDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
 }
 
@@ -35,7 +37,7 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
   // TODO Writes stuff to /shared2/nwc24/misc.bin
   u32 update_misc = 0;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   switch (request.request)
@@ -78,7 +80,7 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
     break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WC24);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_WC24);
     break;
   }
 
@@ -91,21 +93,29 @@ u64 NetKDTimeDevice::GetAdjustedUTC() const
 {
   using namespace ExpansionInterface;
 
-  const time_t current_time =
-      CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
-  tm* const gm_time = gmtime(&current_time);
-  const u32 emulated_time = mktime(gm_time);
-  return u64(s64(emulated_time) + utcdiff);
+  time_t dst_diff{};
+  const time_t current_time = CEXIIPL::GetEmulatedTime(GetSystem(), CEXIIPL::UNIX_EPOCH);
+  tm gm_time = fmt::gmtime(current_time);
+
+  const u32 emulated_time = mktime(&gm_time);
+  if (gm_time.tm_isdst == 1)
+    dst_diff = 3600;
+
+  return u64(s64(emulated_time) + utcdiff - dst_diff);
 }
 
 void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
 {
   using namespace ExpansionInterface;
 
-  const time_t current_time =
-      CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
-  tm* const gm_time = gmtime(&current_time);
-  const u32 emulated_time = mktime(gm_time);
-  utcdiff = s64(emulated_time - wii_utc);
+  time_t dst_diff{};
+  const time_t current_time = CEXIIPL::GetEmulatedTime(GetSystem(), CEXIIPL::UNIX_EPOCH);
+  tm gm_time = fmt::gmtime(current_time);
+
+  const u32 emulated_time = mktime(&gm_time);
+  if (gm_time.tm_isdst == 1)
+    dst_diff = 3600;
+
+  utcdiff = s64(emulated_time - wii_utc - dst_diff);
 }
 }  // namespace IOS::HLE

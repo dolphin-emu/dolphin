@@ -23,6 +23,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/SPSCQueue.h"
+#include "Core/CPUThreadConfigCallback.h"
 
 class PointerWrap;
 
@@ -150,6 +151,8 @@ public:
   TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
   bool GetVISkip() const;                           // Used By VideoInterface
 
+  bool UseSyncOnSkipIdle() const;
+
 private:
   Globals m_globals;
 
@@ -180,7 +183,7 @@ private:
 
   EventType* m_ev_lost = nullptr;
 
-  size_t m_registered_config_callback_id = 0;
+  CPUThreadConfigCallback::ConfigChangedCallbackID m_registered_config_callback_id;
   float m_config_oc_factor = 0.0f;
   float m_config_oc_inv_factor = 0.0f;
   bool m_config_sync_on_skip_idle = false;
@@ -190,6 +193,10 @@ private:
   s64 m_throttle_clock_per_sec = 0;
   s64 m_throttle_min_clock_per_sleep = 0;
   bool m_throttle_disable_vi_int = false;
+
+  DT m_max_fallback = {};
+  DT m_max_variance = {};
+  double m_emulation_speed = 1.0;
 
   void ResetThrottle(s64 cycle);
 

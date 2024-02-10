@@ -110,19 +110,23 @@ void NetPlaySetupDialog::CreateMainLayout()
   connection_layout->addWidget(m_ip_edit, 0, 1);
   connection_layout->addWidget(m_connect_port_label, 0, 2);
   connection_layout->addWidget(m_connect_port_box, 0, 3);
-  connection_layout->addWidget(
-      new QLabel(
-          tr("ALERT:\n\n"
-             "All players must use the same Dolphin version.\n"
-             "If enabled, SD cards must be identical between players.\n"
-             "If DSP LLE is used, DSP ROMs must be identical between players.\n"
-             "If a game is hanging on boot, it may not support Dual Core Netplay."
-             " Disable Dual Core.\n"
-             "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
-             "\n"
-             "Wii Remote support in netplay is experimental and may not work correctly.\n"
-             "Use at your own risk.\n")),
-      1, 0, -1, -1);
+  auto* const alert_label = new QLabel(
+      tr("ALERT:\n\n"
+         "All players must use the same Dolphin version.\n"
+         "If enabled, SD cards must be identical between players.\n"
+         "If DSP LLE is used, DSP ROMs must be identical between players.\n"
+         "If a game is hanging on boot, it may not support Dual Core Netplay."
+         " Disable Dual Core.\n"
+         "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
+         "\n"
+         "Wii Remote support in netplay is experimental and may not work correctly.\n"
+         "Use at your own risk.\n"));
+
+  // Prevent the label from stretching vertically so the spacer gets all the extra space
+  alert_label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+  connection_layout->addWidget(alert_label, 1, 0, 1, -1);
+  connection_layout->addItem(new QSpacerItem(1, 1), 2, 0, -1, -1);
   connection_layout->addWidget(m_connect_button, 3, 3, Qt::AlignRight);
 
   connection_widget->setLayout(connection_layout);
@@ -206,18 +210,16 @@ void NetPlaySetupDialog::CreateMainLayout()
 
 void NetPlaySetupDialog::ConnectWidgets()
 {
-  connect(m_connection_type, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_connection_type, &QComboBox::currentIndexChanged, this,
           &NetPlaySetupDialog::OnConnectionTypeChanged);
   connect(m_nickname_edit, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
 
   // Connect widget
   connect(m_ip_edit, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
-  connect(m_connect_port_box, qOverload<int>(&QSpinBox::valueChanged), this,
-          &NetPlaySetupDialog::SaveSettings);
+  connect(m_connect_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
   // Host widget
-  connect(m_host_port_box, qOverload<int>(&QSpinBox::valueChanged), this,
-          &NetPlaySetupDialog::SaveSettings);
-  connect(m_host_games, qOverload<int>(&QListWidget::currentRowChanged), [this](int index) {
+  connect(m_host_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
+  connect(m_host_games, &QListWidget::currentRowChanged, [this](int index) {
     Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"),
                                       m_host_games->item(index)->text());
   });
@@ -230,7 +232,7 @@ void NetPlaySetupDialog::ConnectWidgets()
     m_host_chunked_upload_limit_box->setEnabled(value);
     SaveSettings();
   });
-  connect(m_host_chunked_upload_limit_box, qOverload<int>(&QSpinBox::valueChanged), this,
+  connect(m_host_chunked_upload_limit_box, &QSpinBox::valueChanged, this,
           &NetPlaySetupDialog::SaveSettings);
 
   connect(m_host_server_browser, &QCheckBox::toggled, this, &NetPlaySetupDialog::SaveSettings);

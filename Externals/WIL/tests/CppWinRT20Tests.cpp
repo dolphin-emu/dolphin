@@ -3,6 +3,8 @@
 // However, since we're going to link into the same executable as 'CppWinRTTests.cpp', the 'winrt_to_hresult_handler'
 // global function pointer should be set, so these should all run successfully
 
+#include <inspectable.h> // Must be included before base.h
+
 #include <winrt/base.h>
 #include <wil/result.h>
 

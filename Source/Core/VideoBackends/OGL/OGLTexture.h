@@ -34,8 +34,28 @@ public:
   GLuint GetGLTextureId() const { return m_texId; }
   GLenum GetGLTarget() const
   {
-    return IsMultisampled() ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY : GL_TEXTURE_2D_ARRAY;
+    if (m_config.type == AbstractTextureType::Texture_2DArray)
+    {
+      if (m_config.IsMultisampled())
+        return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+      else
+        return GL_TEXTURE_2D_ARRAY;
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2D)
+    {
+      if (m_config.IsMultisampled())
+        return GL_TEXTURE_2D_MULTISAMPLE;
+      else
+        return GL_TEXTURE_2D;
+    }
+    else if (m_config.type == AbstractTextureType::Texture_CubeMap)
+    {
+      return GL_TEXTURE_CUBE_MAP;
+    }
+
+    return GL_TEXTURE_2D_ARRAY;
   }
+  static GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage);
   GLenum GetGLFormatForImageTexture() const;
 
 private:
@@ -75,19 +95,21 @@ private:
   GLenum m_target;
   GLuint m_buffer_name;
   size_t m_buffer_size;
-  GLsync m_fence = 0;
+  GLsync m_fence = nullptr;
 };
 
 class OGLFramebuffer final : public AbstractFramebuffer
 {
 public:
   OGLFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                 std::vector<AbstractTexture*> additional_color_attachments,
                  AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width,
                  u32 height, u32 layers, u32 samples, GLuint fbo);
   ~OGLFramebuffer() override;
 
-  static std::unique_ptr<OGLFramebuffer> Create(OGLTexture* color_attachment,
-                                                OGLTexture* depth_attachment);
+  static std::unique_ptr<OGLFramebuffer>
+  Create(OGLTexture* color_attachment, OGLTexture* depth_attachment,
+         std::vector<AbstractTexture*> additional_color_attachments);
 
   GLuint GetFBO() const { return m_fbo; }
 

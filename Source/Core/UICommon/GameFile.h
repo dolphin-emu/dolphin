@@ -27,6 +27,9 @@ struct GameBanner
   std::vector<u32> buffer;
   u32 width{};
   u32 height{};
+
+  bool operator==(const GameBanner&) const = default;
+
   bool empty() const { return buffer.empty(); }
   void DoState(PointerWrap& p);
 };
@@ -37,9 +40,6 @@ struct GameCover
   bool empty() const { return buffer.empty(); }
   void DoState(PointerWrap& p);
 };
-
-bool operator==(const GameBanner& lhs, const GameBanner& rhs);
-bool operator!=(const GameBanner& lhs, const GameBanner& rhs);
 
 // This class caches the metadata of a DiscIO::Volume (or a DOL/ELF file).
 class GameFile final

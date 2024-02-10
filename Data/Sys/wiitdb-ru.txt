@@ -1,10 +1,14 @@
-TITLES = https://www.gametdb.com (type: Wii language: RU_unique version: 20191106234325)
+TITLES = https://www.gametdb.com (type: Wii language: RU_unique version: 20230727194232)
 R5IR4Q = История игрушек: Парк развлечений
 RN4P41 = Anno: Create A New World
 RWAR78 = Валл-И
 RXDR4Q = Disney Отвечай Не Зевай
-RY2R41 = Возвращение бешеных кролегов
+RY2R41 = Возвращение бешеных кроликов
 RYBP69 = BOOM BLOX Bash Party
 SFDPAF = 家庭训练机 梦幻主题乐园(欧)
+SKSE54 = NBA 2K13(美)
 SP5E70 = 恶徒 来自地底的侵略者(美)
 STNP41 = Приключения Тинтина: Тайна Единорога
+GMSE02 = Супер Марио Саншайн Мультиплеер
+SOMR01 = Ритм небес
+G3EP51 = XGIII: 익스트림 G 레이싱

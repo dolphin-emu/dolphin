@@ -2,7 +2,7 @@ add_subdirectory(OGL)
 add_subdirectory(Null)
 add_subdirectory(Software)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
   add_subdirectory(D3DCommon)
   add_subdirectory(D3D)
   add_subdirectory(D3D12)

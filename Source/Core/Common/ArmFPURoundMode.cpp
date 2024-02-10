@@ -11,6 +11,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+namespace Common::FPU
+{
 static u64 GetFPCR()
 {
 #ifdef _MSC_VER
@@ -31,8 +33,6 @@ static void SetFPCR(u64 fpcr)
 #endif
 }
 
-namespace FPURoundMode
-{
 static const u64 default_fpcr = GetFPCR();
 static u64 saved_fpcr = default_fpcr;
 
@@ -87,4 +87,4 @@ void LoadDefaultSIMDState()
   SetFPCR(default_fpcr);
 }
 
-}  // namespace FPURoundMode
+}  // namespace Common::FPU

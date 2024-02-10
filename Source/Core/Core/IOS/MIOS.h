@@ -3,7 +3,12 @@
 
 #pragma once
 
+namespace Core
+{
+class System;
+}
+
 namespace IOS::HLE::MIOS
 {
-bool Load();
+bool Load(Core::System& system);
 }  // namespace IOS::HLE::MIOS

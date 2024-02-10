@@ -152,10 +152,8 @@ void LogWidget::CreateWidgets()
   m_log_text->setUndoRedoEnabled(false);
   m_log_text->setMaximumBlockCount(MAX_LOG_LINES);
 
-  QPalette palette = m_log_text->palette();
-  palette.setColor(QPalette::Base, Qt::black);
-  palette.setColor(QPalette::Text, Qt::white);
-  m_log_text->setPalette(palette);
+  m_log_text->setStyleSheet(
+      QStringLiteral("QPlainTextEdit { background-color: black; color: white; }"));
 }
 
 void LogWidget::ConnectWidgets()
@@ -165,8 +163,7 @@ void LogWidget::ConnectWidgets()
     m_log_ring_buffer.clear();
   });
   connect(m_log_wrap, &QCheckBox::toggled, this, &LogWidget::SaveSettings);
-  connect(m_log_font, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &LogWidget::SaveSettings);
+  connect(m_log_font, &QComboBox::currentIndexChanged, this, &LogWidget::SaveSettings);
   connect(this, &QDockWidget::topLevelChanged, this, &LogWidget::SaveSettings);
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, this, &LogWidget::setVisible);
 }

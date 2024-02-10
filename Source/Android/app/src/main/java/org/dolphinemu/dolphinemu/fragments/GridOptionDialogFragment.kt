@@ -65,13 +65,12 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun setUpCoverButtons() {
-        mBindingMobile.switchDownloadCovers.isChecked =
-            BooleanSetting.MAIN_USE_GAME_COVERS.booleanGlobal
+        mBindingMobile.switchDownloadCovers.isChecked = BooleanSetting.MAIN_USE_GAME_COVERS.boolean
         mBindingMobile.rootDownloadCovers.setOnClickListener {
             mBindingMobile.switchDownloadCovers.isChecked = !mBindingMobile.switchDownloadCovers.isChecked
         }
         mBindingMobile.switchDownloadCovers.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            BooleanSetting.MAIN_USE_GAME_COVERS.setBooleanGlobal(
+            BooleanSetting.MAIN_USE_GAME_COVERS.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchDownloadCovers.isChecked
             )
@@ -80,12 +79,12 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun setUpTitleButtons() {
-        mBindingMobile.switchShowTitles.isChecked = BooleanSetting.MAIN_SHOW_GAME_TITLES.booleanGlobal
+        mBindingMobile.switchShowTitles.isChecked = BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean
         mBindingMobile.rootShowTitles.setOnClickListener {
             mBindingMobile.switchShowTitles.isChecked = !mBindingMobile.switchShowTitles.isChecked
         }
         mBindingMobile.switchShowTitles.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            BooleanSetting.MAIN_SHOW_GAME_TITLES.setBooleanGlobal(
+            BooleanSetting.MAIN_SHOW_GAME_TITLES.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchShowTitles.isChecked
             )
@@ -96,12 +95,12 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     // TODO: Remove this when leanback is removed
     private fun setUpCoverButtonsTv() {
         mBindingTv.switchDownloadCovers.isChecked =
-            BooleanSetting.MAIN_USE_GAME_COVERS.booleanGlobal
+            BooleanSetting.MAIN_USE_GAME_COVERS.boolean
         mBindingTv.rootDownloadCovers.setOnClickListener {
             mBindingTv.switchDownloadCovers.isChecked = !mBindingTv.switchDownloadCovers.isChecked
         }
         mBindingTv.switchDownloadCovers.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            BooleanSetting.MAIN_USE_GAME_COVERS.setBooleanGlobal(
+            BooleanSetting.MAIN_USE_GAME_COVERS.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingTv.switchDownloadCovers.isChecked
             )

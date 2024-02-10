@@ -15,6 +15,7 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 namespace ExpansionInterface
 {
@@ -264,7 +265,7 @@ void CEXIChannel::DoState(PointerWrap& p)
     }
 
     if (type == EXIDeviceType::MemoryCardFolder && old_header_data != m_memcard_header_data &&
-        !Movie::IsMovieActive())
+        !m_system.GetMovie().IsMovieActive())
     {
       // We have loaded a savestate that has a GCI folder memcard that is different to the virtual
       // card that is currently active. In order to prevent the game from recognizing this card as a
@@ -285,12 +286,6 @@ void CEXIChannel::DoState(PointerWrap& p)
           m_channel_id, device_index, EXIDeviceType::MemoryCardFolder, CoreTiming::FromThread::CPU);
     }
   }
-}
-
-void CEXIChannel::PauseAndLock(bool do_lock, bool resume_on_unlock)
-{
-  for (auto& device : m_devices)
-    device->PauseAndLock(do_lock, resume_on_unlock);
 }
 
 void CEXIChannel::SetEXIINT(bool exiint)

@@ -16,12 +16,16 @@
 #include "Common/Logging/Log.h"
 #include "Common/SPSCQueue.h"
 
+#include "Core/AchievementManager.h"
+#include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -88,8 +92,8 @@ void CoreTimingManager::UnregisterAllEvents()
 
 void CoreTimingManager::Init()
 {
-  m_registered_config_callback_id = Config::AddConfigChangedCallback(
-      [this]() { Core::RunAsCPUThread([this]() { RefreshConfig(); }); });
+  m_registered_config_callback_id =
+      CPUThreadConfigCallback::AddConfigChangedCallback([this]() { RefreshConfig(); });
   RefreshConfig();
 
   m_last_oc_factor = m_config_oc_factor;
@@ -118,7 +122,7 @@ void CoreTimingManager::Shutdown()
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
-  Config::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
 }
 
 void CoreTimingManager::RefreshConfig()
@@ -127,6 +131,25 @@ void CoreTimingManager::RefreshConfig()
       Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
   m_config_oc_inv_factor = 1.0f / m_config_oc_factor;
   m_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+
+  // A maximum fallback is used to prevent the system from sleeping for
+  // too long or going full speed in an attempt to catch up to timings.
+  m_max_fallback = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
+
+  m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (AchievementManager::GetInstance().IsHardcoreModeActive() &&
+      Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
+      Config::Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
+  {
+    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    m_emulation_speed = 1.0f;
+    OSD::AddMessage("Minimum speed is 100% in Hardcore Mode");
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
+
+  m_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
 }
 
 void CoreTimingManager::DoState(PointerWrap& p)
@@ -303,10 +326,12 @@ void CoreTimingManager::MoveEvents()
 
 void CoreTimingManager::Advance()
 {
-  auto& system = m_system;
-  auto& ppc_state = m_system.GetPPCState();
+  CPUThreadConfigCallback::CheckForConfigChanges();
 
   MoveEvents();
+
+  auto& power_pc = m_system.GetPowerPC();
+  auto& ppc_state = power_pc.GetPPCState();
 
   int cyclesExecuted = m_globals.slice_length - DowncountToCycles(ppc_state.downcount);
   m_globals.global_timer += cyclesExecuted;
@@ -323,10 +348,7 @@ void CoreTimingManager::Advance()
     m_event_queue.pop_back();
 
     Throttle(evt.time);
-    if (evt.type != nullptr)
-    {
-      evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
-    }
+    evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
   m_is_global_timer_sane = false;
@@ -344,7 +366,7 @@ void CoreTimingManager::Advance()
   // It's important to do this after processing events otherwise any exceptions will be delayed
   // until the next slice:
   //        Pokemon Box refuses to boot if the first exception from the audio DMA is received late
-  PowerPC::CheckExternalExceptions();
+  power_pc.CheckExternalExceptions();
 }
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
@@ -358,21 +380,15 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
   m_throttle_last_cycle = target_cycle;
 
-  const double speed =
-      Core::GetIsThrottlerTempDisabled() ? 0.0 : Config::Get(Config::MAIN_EMULATION_SPEED);
+  const double speed = Core::GetIsThrottlerTempDisabled() ? 0.0 : m_emulation_speed;
 
   if (0.0 < speed)
     m_throttle_deadline +=
         std::chrono::duration_cast<DT>(DT_s(cycles) / (speed * m_throttle_clock_per_sec));
 
-  // A maximum fallback is used to prevent the system from sleeping for
-  // too long or going full speed in an attempt to catch up to timings.
-  const DT max_fallback =
-      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
-
   const TimePoint time = Clock::now();
-  const TimePoint min_deadline = time - max_fallback;
-  const TimePoint max_deadline = time + max_fallback;
+  const TimePoint min_deadline = time - m_max_fallback;
+  const TimePoint max_deadline = time + m_max_fallback;
 
   if (m_throttle_deadline > max_deadline)
   {
@@ -385,11 +401,10 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     m_throttle_deadline = min_deadline;
   }
 
+  const TimePoint vi_deadline = time - std::min(m_max_fallback, m_max_variance) / 2;
+
   // Skip the VI interrupt if the CPU is lagging by a certain amount.
   // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
-  const DT max_variance =
-      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
-  const TimePoint vi_deadline = time - std::min(max_fallback, max_variance) / 2;
   m_throttle_disable_vi_int = 0.0 < speed && m_throttle_deadline < vi_deadline;
 
   // Only sleep if we are behind the deadline
@@ -420,6 +435,11 @@ bool CoreTimingManager::GetVISkip() const
   return m_throttle_disable_vi_int && g_ActiveConfig.bVISkip && !Core::WantsDeterminism();
 }
 
+bool CoreTimingManager::UseSyncOnSkipIdle() const
+{
+  return m_config_sync_on_skip_idle;
+}
+
 void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;
@@ -446,17 +466,15 @@ void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clo
 
 void CoreTimingManager::Idle()
 {
-  auto& system = m_system;
-  auto& ppc_state = m_system.GetPPCState();
-
   if (m_config_sync_on_skip_idle)
   {
     // When the FIFO is processing data we must not advance because in this way
     // the VI will be desynchronized. So, We are waiting until the FIFO finish and
     // while we process only the events required by the FIFO.
-    system.GetFifo().FlushGpu(system);
+    m_system.GetFifo().FlushGpu();
   }
 
+  auto& ppc_state = m_system.GetPPCState();
   PowerPC::UpdatePerformanceMonitor(ppc_state.downcount, 0, 0, ppc_state);
   m_idled_cycles += DowncountToCycles(ppc_state.downcount);
   ppc_state.downcount = 0;

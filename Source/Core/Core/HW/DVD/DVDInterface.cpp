@@ -4,6 +4,8 @@
 #include "Core/HW/DVD/DVDInterface.h"
 
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <memory>
 #include <optional>
 #include <string>
@@ -18,6 +20,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/CoreTiming.h"
@@ -103,7 +106,7 @@ void DVDInterface::DoState(PointerWrap& p)
   p.Do(m_current_length);
   p.Do(m_next_start);
   p.Do(m_next_length);
-  p.Do(m_pending_samples);
+  p.Do(m_pending_blocks);
   p.Do(m_enable_dtk);
   p.Do(m_dtk_buffer_length);
 
@@ -122,31 +125,34 @@ void DVDInterface::DoState(PointerWrap& p)
   m_adpcm_decoder.DoState(p);
 }
 
-size_t DVDInterface::ProcessDTKSamples(std::vector<s16>* temp_pcm,
+size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t target_block_count,
                                        const std::vector<u8>& audio_data)
 {
+  const size_t block_count_to_process =
+      std::min(target_block_count, audio_data.size() / StreamADPCM::ONE_BLOCK_SIZE);
   size_t samples_processed = 0;
   size_t bytes_processed = 0;
-  while (samples_processed < temp_pcm->size() / 2 && bytes_processed < audio_data.size())
+  for (size_t i = 0; i < block_count_to_process; ++i)
   {
-    m_adpcm_decoder.DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
-    for (size_t i = 0; i < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++i)
+    m_adpcm_decoder.DecodeBlock(&target_samples[samples_processed * 2],
+                                &audio_data[bytes_processed]);
+    for (size_t j = 0; j < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++j)
     {
       // TODO: Fix the mixer so it can accept non-byte-swapped samples.
-      s16* sample = &(*temp_pcm)[samples_processed * 2 + i];
+      s16* sample = &target_samples[samples_processed * 2 + j];
       *sample = Common::swap16(*sample);
     }
     samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
     bytes_processed += StreamADPCM::ONE_BLOCK_SIZE;
   }
-  return samples_processed;
+  return block_count_to_process;
 }
 
-u32 DVDInterface::AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
+u32 DVDInterface::AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process)
 {
   u32 bytes_to_process = 0;
-  *samples_to_process = 0;
-  while (*samples_to_process < maximum_samples)
+  *blocks_to_process = 0;
+  while (*blocks_to_process < maximum_blocks)
   {
     if (m_audio_position >= m_current_start + m_current_length)
     {
@@ -172,7 +178,7 @@ u32 DVDInterface::AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
 
     m_audio_position += StreamADPCM::ONE_BLOCK_SIZE;
     bytes_to_process += StreamADPCM::ONE_BLOCK_SIZE;
-    *samples_to_process += StreamADPCM::SAMPLES_PER_BLOCK;
+    *blocks_to_process += 1;
   }
 
   return bytes_to_process;
@@ -186,45 +192,51 @@ void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
   // Actual games always set this to 48 KHz
   // but let's make sure to use GetAISSampleRateDivisor()
   // just in case it changes to 32 KHz
+  const auto sample_rate = ai.GetAISSampleRate();
   const u32 sample_rate_divisor = ai.GetAISSampleRateDivisor();
 
   // Determine which audio data to read next.
 
   // 3.5 ms of samples
-  const u32 maximum_samples =
-      ((Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 2000) * 7) / sample_rate_divisor;
+  constexpr u32 MAX_POSSIBLE_BLOCKS = 6;
+  constexpr u32 MAX_POSSIBLE_SAMPLES = MAX_POSSIBLE_BLOCKS * StreamADPCM::SAMPLES_PER_BLOCK;
+  const u32 maximum_blocks = sample_rate == AudioInterface::SampleRate::AI32KHz ? 4 : 6;
   u64 read_offset = 0;
   u32 read_length = 0;
 
   if (interrupt_type == DIInterruptType::TCINT)
   {
     // Send audio to the mixer.
-    std::vector<s16> temp_pcm(m_pending_samples * 2, 0);
-    ProcessDTKSamples(&temp_pcm, audio_data);
+    std::array<s16, MAX_POSSIBLE_SAMPLES * 2> temp_pcm{};
+    ASSERT(m_pending_blocks <= MAX_POSSIBLE_BLOCKS);
+    const u32 pending_blocks = std::min(m_pending_blocks, MAX_POSSIBLE_BLOCKS);
+    ProcessDTKSamples(temp_pcm.data(), pending_blocks, audio_data);
 
     SoundStream* sound_stream = m_system.GetSoundStream();
-    sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), m_pending_samples);
+    sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(),
+                                                   pending_blocks * StreamADPCM::SAMPLES_PER_BLOCK);
 
     if (m_stream && ai.IsPlaying())
     {
       read_offset = m_audio_position;
-      read_length = AdvanceDTK(maximum_samples, &m_pending_samples);
+      read_length = AdvanceDTK(maximum_blocks, &m_pending_blocks);
     }
     else
     {
       read_length = 0;
-      m_pending_samples = maximum_samples;
+      m_pending_blocks = maximum_blocks;
     }
   }
   else
   {
     read_length = 0;
-    m_pending_samples = maximum_samples;
+    m_pending_blocks = maximum_blocks;
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(m_pending_samples) *
-                     sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
+  s64 ticks_to_dtk = m_system.GetSystemTimers().GetTicksPerSecond() * s64(m_pending_blocks) *
+                     StreamADPCM::SAMPLES_PER_BLOCK * sample_rate_divisor /
+                     Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
@@ -282,7 +294,7 @@ void DVDInterface::ResetDrive(bool spinup)
   m_next_length = 0;
   m_current_start = 0;
   m_current_length = 0;
-  m_pending_samples = 0;
+  m_pending_blocks = 0;
   m_enable_dtk = false;
   m_dtk_buffer_length = 0;
 
@@ -365,7 +377,7 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     // Wii disc, which triggers Error #001. In those cases we manually make the check succeed to
     // avoid problems.
     const bool should_fake_error_001 =
-        SConfig::GetInstance().bWii && blob.GetBlobType() == DiscIO::BlobType::DIRECTORY;
+        m_system.IsWii() && blob.GetBlobType() == DiscIO::BlobType::DIRECTORY;
     Config::SetCurrent(Config::SESSION_SHOULD_FAKE_ERROR_001, should_fake_error_001);
 
     if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)
@@ -384,6 +396,11 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     m_auto_disc_change_paths = *auto_disc_change_paths;
     m_auto_disc_change_index = 0;
   }
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance().HashGame(disc.get(),
+                                             [](AchievementManager::ResponseType r_type) {});
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Assume that inserting a disc requires having an empty disc before
   if (had_disc != has_disc)
@@ -457,8 +474,9 @@ void DVDInterface::ChangeDisc(const std::string& new_path)
   EjectDisc(EjectCause::User);
 
   m_disc_path_to_insert = new_path;
-  m_system.GetCoreTiming().ScheduleEvent(SystemTimers::GetTicksPerSecond(), m_insert_disc);
-  Movie::SignalDiscChange(new_path);
+  m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
+                                         m_insert_disc);
+  m_system.GetMovie().SignalDiscChange(new_path);
 
   for (size_t i = 0; i < m_auto_disc_change_paths.size(); ++i)
   {
@@ -1069,11 +1087,11 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
 
     const bool force_eject = eject && !kill;
 
-    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
+    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !m_system.GetMovie().IsPlayingInput() &&
         m_system.GetDVDThread().IsInsertedDiscRunning() && !m_auto_disc_change_paths.empty())
     {
       m_system.GetCoreTiming().ScheduleEvent(
-          force_eject ? 0 : SystemTimers::GetTicksPerSecond() / 2, m_auto_change_disc);
+          force_eject ? 0 : m_system.GetSystemTimers().GetTicksPerSecond() / 2, m_auto_change_disc);
       OSD::AddMessage("Changing discs automatically...", OSD::Duration::NORMAL);
     }
     else if (force_eject)
@@ -1164,7 +1182,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   {
     // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
     m_system.GetCoreTiming().ScheduleEvent(
-        MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+        MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
         m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
 }
@@ -1185,7 +1203,7 @@ void DVDInterface::PerformDecryptingRead(u32 position, u32 length, u32 output_ad
   {
     // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
     m_system.GetCoreTiming().ScheduleEvent(
-        MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+        MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
         m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
 }
@@ -1202,7 +1220,7 @@ void DVDInterface::ForceOutOfBoundsRead(ReplyType reply_type)
   // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
   const DIInterruptType interrupt_type = DIInterruptType::DEINT;
   m_system.GetCoreTiming().ScheduleEvent(
-      MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+      MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
       m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
 }
 
@@ -1304,7 +1322,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
 
   auto& core_timing = m_system.GetCoreTiming();
   const u64 current_time = core_timing.GetTicks();
-  const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
+  const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
   auto& dvd_thread = m_system.GetDVDThread();
   const bool wii_disc = dvd_thread.GetDiscType() == DiscIO::Platform::WiiDisc;
 
@@ -1383,7 +1401,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
                 length, output_address);
 
   s64 ticks_until_completion =
-      READ_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000);
+      READ_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000);
 
   u32 buffered_blocks = 0;
   u32 unbuffered_blocks = 0;
@@ -1511,7 +1529,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
                 "Schedule reads: ECC blocks unbuffered={}, buffered={}, "
                 "ticks={}, time={} us",
                 unbuffered_blocks, buffered_blocks, ticks_until_completion,
-                ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
+                ticks_until_completion * 1000000 / m_system.GetSystemTimers().GetTicksPerSecond());
 }
 
 }  // namespace DVD

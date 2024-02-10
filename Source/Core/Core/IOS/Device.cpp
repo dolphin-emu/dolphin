@@ -16,21 +16,19 @@
 
 namespace IOS::HLE
 {
-Request::Request(const u32 address_) : address(address_)
+Request::Request(Core::System& system, const u32 address_) : address(address_)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   command = static_cast<IPCCommandType>(memory.Read_U32(address));
   fd = memory.Read_U32(address + 8);
 }
 
-OpenRequest::OpenRequest(const u32 address_) : Request(address_)
+OpenRequest::OpenRequest(Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   path = memory.GetString(memory.Read_U32(address + 0xc));
   flags = static_cast<OpenMode>(memory.Read_U32(address + 0x10));
-  const Kernel* ios = GetIOS();
+  const EmulationKernel* ios = GetIOS();
   if (ios)
   {
     uid = ios->GetUidForPPC();
@@ -38,25 +36,23 @@ OpenRequest::OpenRequest(const u32 address_) : Request(address_)
   }
 }
 
-ReadWriteRequest::ReadWriteRequest(const u32 address_) : Request(address_)
+ReadWriteRequest::ReadWriteRequest(Core::System& system, const u32 address_)
+    : Request(system, address_)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   buffer = memory.Read_U32(address + 0xc);
   size = memory.Read_U32(address + 0x10);
 }
 
-SeekRequest::SeekRequest(const u32 address_) : Request(address_)
+SeekRequest::SeekRequest(Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   offset = memory.Read_U32(address + 0xc);
   mode = static_cast<SeekMode>(memory.Read_U32(address + 0x10));
 }
 
-IOCtlRequest::IOCtlRequest(const u32 address_) : Request(address_)
+IOCtlRequest::IOCtlRequest(Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   request = memory.Read_U32(address + 0x0c);
   buffer_in = memory.Read_U32(address + 0x10);
@@ -65,9 +61,8 @@ IOCtlRequest::IOCtlRequest(const u32 address_) : Request(address_)
   buffer_out_size = memory.Read_U32(address + 0x1c);
 }
 
-IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
+IOCtlVRequest::IOCtlVRequest(Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   request = memory.Read_U32(address + 0x0c);
   const u32 in_number = memory.Read_U32(address + 0x10);
@@ -114,10 +109,9 @@ void IOCtlRequest::Log(std::string_view device_name, Common::Log::LogType type,
                   device_name, fd, request, buffer_in_size, buffer_out_size);
 }
 
-void IOCtlRequest::Dump(const std::string& description, Common::Log::LogType type,
-                        Common::Log::LogLevel level) const
+void IOCtlRequest::Dump(Core::System& system, const std::string& description,
+                        Common::Log::LogType type, Common::Log::LogLevel level) const
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   Log("===== " + description, type, level);
@@ -127,16 +121,15 @@ void IOCtlRequest::Dump(const std::string& description, Common::Log::LogType typ
                   HexDump(memory.GetPointer(buffer_out), buffer_out_size));
 }
 
-void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LogType type,
-                               Common::Log::LogLevel level) const
+void IOCtlRequest::DumpUnknown(Core::System& system, const std::string& description,
+                               Common::Log::LogType type, Common::Log::LogLevel level) const
 {
-  Dump("Unknown IOCtl - " + description, type, level);
+  Dump(system, "Unknown IOCtl - " + description, type, level);
 }
 
-void IOCtlVRequest::Dump(std::string_view description, Common::Log::LogType type,
-                         Common::Log::LogLevel level) const
+void IOCtlVRequest::Dump(Core::System& system, std::string_view description,
+                         Common::Log::LogType type, Common::Log::LogLevel level) const
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   GENERIC_LOG_FMT(type, level, "===== {} (fd {}) - IOCtlV {:#x} ({} in, {} io)", description, fd,
@@ -154,10 +147,10 @@ void IOCtlVRequest::Dump(std::string_view description, Common::Log::LogType type
     GENERIC_LOG_FMT(type, level, "io[{}] (size={:#x})", i++, vector.size);
 }
 
-void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LogType type,
-                                Common::Log::LogLevel level) const
+void IOCtlVRequest::DumpUnknown(Core::System& system, const std::string& description,
+                                Common::Log::LogType type, Common::Log::LogLevel level) const
 {
-  Dump("Unknown IOCtlV - " + description, type, level);
+  Dump(system, "Unknown IOCtlV - " + description, type, level);
 }
 
 Device::Device(Kernel& ios, const std::string& device_name, const DeviceType type)

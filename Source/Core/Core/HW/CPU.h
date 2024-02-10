@@ -12,7 +12,10 @@ namespace Common
 {
 class Event;
 }
-
+namespace Core
+{
+class System;
+}
 namespace PowerPC
 {
 enum class CPUCore;
@@ -30,7 +33,7 @@ enum class State
 class CPUManager
 {
 public:
-  CPUManager();
+  explicit CPUManager(Core::System& system);
   CPUManager(const CPUManager& other) = delete;
   CPUManager(CPUManager&& other) = delete;
   CPUManager& operator=(const CPUManager& other) = delete;
@@ -130,5 +133,7 @@ private:
   bool m_state_cpu_step_instruction = false;
   Common::Event* m_state_cpu_step_instruction_sync = nullptr;
   std::queue<std::function<void()>> m_pending_jobs;
+
+  Core::System& m_system;
 };
 }  // namespace CPU

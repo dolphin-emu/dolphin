@@ -53,12 +53,12 @@ public:
 
   struct NANDSuperblock
   {
-    char magic[4];  // "SFFS"
+    std::array<char, 4> magic;  // "SFFS"
     Common::BigEndianValue<u32> version;
     Common::BigEndianValue<u32> unknown;
-    Common::BigEndianValue<u16> fat[0x8000];
-    NANDFSTEntry fst[0x17FF];
-    u8 pad[0x14];
+    std::array<Common::BigEndianValue<u16>, 0x8000> fat;
+    std::array<NANDFSTEntry, 0x17FF> fst;
+    std::array<u8, 0x14> pad;
   };
   static_assert(sizeof(NANDSuperblock) == 0x40000, "Wrong size");
 #pragma pack(pop)

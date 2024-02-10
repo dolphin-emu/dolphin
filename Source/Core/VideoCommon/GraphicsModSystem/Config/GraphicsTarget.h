@@ -26,6 +26,10 @@ struct LoadTextureTarget final : public TextureTarget
 {
 };
 
+struct CreateTextureTarget final : public TextureTarget
+{
+};
+
 struct FBTarget
 {
   u32 m_height = 0;
@@ -47,9 +51,11 @@ struct ProjectionTarget
   ProjectionType m_projection_type = ProjectionType::Perspective;
 };
 
-using GraphicsTargetConfig = std::variant<DrawStartedTextureTarget, LoadTextureTarget, EFBTarget,
-                                          XFBTarget, ProjectionTarget>;
+using GraphicsTargetConfig =
+    std::variant<DrawStartedTextureTarget, LoadTextureTarget, CreateTextureTarget, EFBTarget,
+                 XFBTarget, ProjectionTarget>;
 
+void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetConfig& target);
 std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::object& obj);
 
 void SerializeTargetToProfile(picojson::object* obj, const GraphicsTargetConfig& target);

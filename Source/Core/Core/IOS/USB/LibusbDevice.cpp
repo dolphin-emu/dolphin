@@ -25,7 +25,7 @@
 
 namespace IOS::HLE::USB
 {
-LibusbDevice::LibusbDevice(Kernel& ios, libusb_device* device,
+LibusbDevice::LibusbDevice(EmulationKernel& ios, libusb_device* device,
                            const libusb_device_descriptor& descriptor)
     : m_ios(ios), m_device(device)
 {
@@ -249,7 +249,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   libusb_fill_control_setup(buffer.get(), cmd->request_type, cmd->request, cmd->value, cmd->index,
                             cmd->length);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
   memory.CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
 

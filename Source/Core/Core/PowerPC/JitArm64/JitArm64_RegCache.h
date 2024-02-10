@@ -25,10 +25,23 @@ constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::ARM64Reg::X29;
 // PC register when calling the dispatcher
 constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::ARM64Reg::W26;
 
+#ifdef __GNUC__
+#define PPCSTATE_OFF(elem)                                                                         \
+  ([]() consteval {                                                                                \
+    _Pragma("GCC diagnostic push")                                                                 \
+        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"") return offsetof(                  \
+            PowerPC::PowerPCState, elem);                                                          \
+    _Pragma("GCC diagnostic pop")                                                                  \
+  }())
+
+#define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
+  (PPCSTATE_OFF(elem[0]) + sizeof(PowerPC::PowerPCState::elem[0]) * (i))
+#else
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
 #define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
   (offsetof(PowerPC::PowerPCState, elem[0]) + sizeof(PowerPC::PowerPCState::elem[0]) * (i))
+#endif
 
 #define PPCSTATE_OFF_GPR(i) PPCSTATE_OFF_ARRAY(gpr, i)
 #define PPCSTATE_OFF_CR(i) PPCSTATE_OFF_ARRAY(cr.fields, i)
@@ -59,7 +72,7 @@ enum class RegType
   DuplicatedSingle,  // The lower one contains both registers, as single
 };
 
-enum class FlushMode
+enum class FlushMode : bool
 {
   // Flushes all registers, no exceptions
   All,
@@ -214,7 +227,7 @@ protected:
                            Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) = 0;
 
   void DiscardRegister(size_t preg);
-  virtual void FlushRegister(size_t preg, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg) = 0;
+  virtual void FlushRegister(size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) = 0;
 
   void IncrementAllUsed()
   {
@@ -312,15 +325,20 @@ public:
 
   BitSet32 GetCallerSavedUsed() const override;
 
+  BitSet32 GetDirtyGPRs() const;
+
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
-    FlushRegisters(regs, false, tmp_reg);
+    FlushRegisters(regs, FlushMode::All, tmp_reg);
   }
 
-  void StoreCRRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
+  void StoreCRRegisters(BitSet8 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
-    FlushCRRegisters(regs, false, tmp_reg);
+    FlushCRRegisters(regs, FlushMode::All, tmp_reg);
   }
+
+  void DiscardCRRegisters(BitSet8 regs);
+  void ResetCRRegisters(BitSet8 regs);
 
 protected:
   // Get the order of the host registers
@@ -330,7 +348,7 @@ protected:
   void FlushByHost(Arm64Gen::ARM64Reg host_reg,
                    Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
 
-  void FlushRegister(size_t index, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg) override;
+  void FlushRegister(size_t index, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
 
 private:
   bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
@@ -351,8 +369,8 @@ private:
   void SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool dirty);
   void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
 
-  void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
-  void FlushCRRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
+  void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg);
+  void FlushCRRegisters(BitSet8 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg);
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -378,7 +396,7 @@ public:
 
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
-    FlushRegisters(regs, false, tmp_reg);
+    FlushRegisters(regs, FlushMode::All, tmp_reg);
   }
 
 protected:
@@ -389,11 +407,11 @@ protected:
   void FlushByHost(Arm64Gen::ARM64Reg host_reg,
                    Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
 
-  void FlushRegister(size_t preg, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg) override;
+  void FlushRegister(size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
 
 private:
   bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
   bool IsTopHalfUsed(Arm64Gen::ARM64Reg reg) const;
 
-  void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
+  void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg);
 };

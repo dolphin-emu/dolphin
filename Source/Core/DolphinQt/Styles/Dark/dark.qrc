@@ -1,0 +1,30 @@
+<RCC>
+	<qresource prefix="/dolphin_dark_win">
+		<file>dark.qss</file>
+		<file>checkbox-checked.svg</file>
+		<file>checkbox-checked-disabled.svg</file>
+		<file>checkbox-empty.svg</file>
+		<file>checkbox-empty-disabled.svg</file>
+		<file>checkbox-half.svg</file>
+		<file>checkbox-half-disabled.svg</file>
+		<file>dockwidget-close.svg</file>
+		<file>dockwidget-undock.svg</file>
+		<file>down-triangle.svg</file>
+		<file>down-triangle-spinbox.svg</file>
+		<file>dropdown-arrow.svg</file>
+		<file>left-triangle-tabbar.svg</file>
+		<file>radiobutton-checked.svg</file>
+		<file>radiobutton-checked-disabled.svg</file>
+		<file>radiobutton-empty.svg</file>
+		<file>radiobutton-empty-disabled.svg</file>
+		<file>right-triangle-tabbar.svg</file>
+		<file>scrollbar-arrow-down.svg</file>
+		<file>scrollbar-arrow-left.svg</file>
+		<file>scrollbar-arrow-right.svg</file>
+		<file>scrollbar-arrow-up.svg</file>
+		<file>table-header-sort-arrow-down.svg</file>
+		<file>table-header-sort-arrow-up.svg</file>
+		<file>up-triangle.svg</file>
+		<file>up-triangle-spinbox.svg</file>
+	</qresource>
+</RCC>

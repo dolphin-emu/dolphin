@@ -29,10 +29,11 @@ enum class System
   GCKeyboard,
   GFX,
   Logger,
-  Debugger,
   DualShockUDPClient,
   FreeLook,
   Session,
+  GameSettingsOnly,
+  Achievements,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{

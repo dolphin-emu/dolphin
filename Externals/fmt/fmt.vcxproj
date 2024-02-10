@@ -17,27 +17,27 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src/format.cc" />
-    <ClCompile Include="src/os.cc" />
+    <ClCompile Include="fmt/src/format.cc" />
+    <ClCompile Include="fmt/src/os.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include/fmt/args.h" />
-    <ClInclude Include="include/fmt/chrono.h" />
-    <ClInclude Include="include/fmt/color.h" />
-    <ClInclude Include="include/fmt/compile.h" />
-    <ClInclude Include="include/fmt/core.h" />
-    <ClInclude Include="include/fmt/format-inl.h" />
-    <ClInclude Include="include/fmt/format.h" />
-    <ClInclude Include="include/fmt/os.h" />
-    <ClInclude Include="include/fmt/ostream.h" />
-    <ClInclude Include="include/fmt/printf.h" />
-    <ClInclude Include="include/fmt/ranges.h" />
-    <ClInclude Include="include/fmt/std.h" />
-    <ClInclude Include="include/fmt/xchar.h" />
+    <ClInclude Include="fmt/include/fmt/args.h" />
+    <ClInclude Include="fmt/include/fmt/chrono.h" />
+    <ClInclude Include="fmt/include/fmt/color.h" />
+    <ClInclude Include="fmt/include/fmt/compile.h" />
+    <ClInclude Include="fmt/include/fmt/core.h" />
+    <ClInclude Include="fmt/include/fmt/format-inl.h" />
+    <ClInclude Include="fmt/include/fmt/format.h" />
+    <ClInclude Include="fmt/include/fmt/os.h" />
+    <ClInclude Include="fmt/include/fmt/ostream.h" />
+    <ClInclude Include="fmt/include/fmt/printf.h" />
+    <ClInclude Include="fmt/include/fmt/ranges.h" />
+    <ClInclude Include="fmt/include/fmt/std.h" />
+    <ClInclude Include="fmt/include/fmt/xchar.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

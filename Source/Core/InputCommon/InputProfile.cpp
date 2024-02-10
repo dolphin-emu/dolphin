@@ -55,8 +55,8 @@ std::vector<std::string> GetProfilesFromSetting(const std::string& setting, cons
 
 std::vector<std::string> ProfileCycler::GetProfilesForDevice(InputConfig* device_configuration)
 {
-  const std::string device_profile_root_location(File::GetUserPath(D_CONFIG_IDX) + "Profiles/" +
-                                                 device_configuration->GetProfileName());
+  const std::string device_profile_root_location(
+      device_configuration->GetUserProfileDirectoryPath());
   return Common::DoFileSearch({device_profile_root_location}, {".ini"}, true);
 }
 
@@ -78,7 +78,7 @@ void ProfileCycler::UpdateToProfile(const std::string& profile_filename,
   std::string base;
   SplitPath(profile_filename, nullptr, &base, nullptr);
 
-  IniFile ini_file;
+  Common::IniFile ini_file;
   if (ini_file.Load(profile_filename))
   {
     Core::DisplayMessage("Loading input profile '" + base + "' for device '" +
@@ -101,8 +101,8 @@ ProfileCycler::GetMatchingProfilesFromSetting(const std::string& setting,
                                               const std::vector<std::string>& profiles,
                                               InputConfig* device_configuration)
 {
-  const std::string device_profile_root_location(File::GetUserPath(D_CONFIG_IDX) + "Profiles/" +
-                                                 device_configuration->GetProfileName() + "/");
+  const std::string device_profile_root_location(
+      device_configuration->GetUserProfileDirectoryPath());
 
   const auto& profiles_from_setting = GetProfilesFromSetting(setting, device_profile_root_location);
   if (profiles_from_setting.empty())
@@ -180,8 +180,8 @@ void ProfileCycler::CycleProfileForGame(CycleDirection cycle_direction,
 
 std::string ProfileCycler::GetWiimoteInputProfilesForGame(int controller_index)
 {
-  IniFile game_ini = SConfig::GetInstance().LoadGameIni();
-  const IniFile::Section* const control_section = game_ini.GetOrCreateSection("Controls");
+  Common::IniFile game_ini = SConfig::GetInstance().LoadGameIni();
+  const auto* const control_section = game_ini.GetOrCreateSection("Controls");
 
   std::string result;
   control_section->Get(fmt::format("WiimoteProfile{}", controller_index + 1), &result);

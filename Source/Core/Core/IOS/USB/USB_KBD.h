@@ -14,10 +14,10 @@
 
 namespace IOS::HLE
 {
-class USB_KBD : public Device
+class USB_KBD : public EmulationDevice
 {
 public:
-  USB_KBD(Kernel& ios, const std::string& device_name);
+  USB_KBD(EmulationKernel& ios, const std::string& device_name);
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;
   std::optional<IPCReply> Write(const ReadWriteRequest& request) override;

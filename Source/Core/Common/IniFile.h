@@ -13,6 +13,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
+namespace Common
+{
 struct CaseInsensitiveStringCompare
 {
   // Allow heterogenous lookup.
@@ -166,3 +168,4 @@ private:
 
   static const std::string& NULL_STRING;
 };
+}  // namespace Common

@@ -440,23 +440,29 @@ public:
   void PUSHF();
   void POPF();
 
+  enum class Jump
+  {
+    Short,
+    Near,
+  };
+
   // Flow control
   void RET();
   void RET_FAST();
   void UD2();
-  FixupBranch J(bool force5bytes = false);
+  [[nodiscard]] FixupBranch J(Jump jump = Jump::Short);
 
-  void JMP(const u8* addr, bool force5Bytes = false);
+  void JMP(const u8* addr, Jump jump = Jump::Short);
   void JMPptr(const OpArg& arg);
   void JMPself();  // infinite loop!
 #ifdef CALL
 #undef CALL
 #endif
   void CALL(const void* fnptr);
-  FixupBranch CALL();
+  [[nodiscard]] FixupBranch CALL();
   void CALLptr(OpArg arg);
 
-  FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
+  [[nodiscard]] FixupBranch J_CC(CCFlags conditionCode, Jump jump = Jump::Short);
   void J_CC(CCFlags conditionCode, const u8* addr);
 
   void SetJumpTarget(const FixupBranch& branch);
@@ -475,12 +481,12 @@ public:
   void BSR(int bits, X64Reg dest, const OpArg& src);  // Top bit to bottom bit
 
   // Cache control
-  enum PrefetchLevel
+  enum class PrefetchLevel : u8
   {
-    PF_NTA,  // Non-temporal (data used once and only once)
-    PF_T0,   // All cache levels
-    PF_T1,   // Levels 2+ (aliased to T0 on AMD)
-    PF_T2,   // Levels 3+ (aliased to T0 on AMD)
+    NTA = 0,  // Non-temporal (data used once and only once)
+    T0 = 1,   // All cache levels
+    T1 = 2,   // Levels 2+ (aliased to T0 on AMD)
+    T2 = 3,   // Levels 3+ (aliased to T0 on AMD)
   };
   void PREFETCH(PrefetchLevel level, OpArg arg);
   void MOVNTI(int bits, const OpArg& dest, X64Reg src);
@@ -1106,7 +1112,8 @@ public:
   template <typename FunctionPointer>
   void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, X64Reg reg1)
   {
-    MOV(64, R(ABI_PARAM2), R(reg1));
+    if (reg1 != ABI_PARAM2)
+      MOV(64, R(ABI_PARAM2), R(reg1));
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
     ABI_CallFunction(func);
   }
@@ -1134,6 +1141,17 @@ public:
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);
     MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPAC(int bits, FunctionPointer func, const void* ptr1, const Gen::OpArg& arg2,
+                           u32 param3)
+  {
+    if (!arg2.IsSimpleReg(ABI_PARAM2))
+      MOV(bits, R(ABI_PARAM2), arg2);
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr1)));
     ABI_CallFunction(func);
   }
 

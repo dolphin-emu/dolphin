@@ -3,7 +3,9 @@
 
 #include "DolphinQt/Settings/WiiPane.h"
 
+#include <array>
 #include <future>
+#include <utility>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -33,6 +35,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
@@ -52,6 +55,36 @@ static int TranslateSensorBarPosition(int position)
 
   return position;
 }
+
+namespace
+{
+struct SDSizeComboEntry
+{
+  u64 size;
+  const char* name;
+};
+static constexpr u64 MebibytesToBytes(u64 mebibytes)
+{
+  return mebibytes * 1024u * 1024u;
+}
+static constexpr u64 GibibytesToBytes(u64 gibibytes)
+{
+  return MebibytesToBytes(gibibytes * 1024u);
+}
+constexpr std::array sd_size_combo_entries{
+    SDSizeComboEntry{0, _trans("Auto")},
+    SDSizeComboEntry{MebibytesToBytes(64), _trans("64 MiB")},
+    SDSizeComboEntry{MebibytesToBytes(128), _trans("128 MiB")},
+    SDSizeComboEntry{MebibytesToBytes(256), _trans("256 MiB")},
+    SDSizeComboEntry{MebibytesToBytes(512), _trans("512 MiB")},
+    SDSizeComboEntry{GibibytesToBytes(1), _trans("1 GiB")},
+    SDSizeComboEntry{GibibytesToBytes(2), _trans("2 GiB")},
+    SDSizeComboEntry{GibibytesToBytes(4), _trans("4 GiB (SDHC)")},
+    SDSizeComboEntry{GibibytesToBytes(8), _trans("8 GiB (SDHC)")},
+    SDSizeComboEntry{GibibytesToBytes(16), _trans("16 GiB (SDHC)")},
+    SDSizeComboEntry{GibibytesToBytes(32), _trans("32 GiB (SDHC)")},
+};
+}  // namespace
 
 WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
 {
@@ -76,12 +109,9 @@ void WiiPane::CreateLayout()
 void WiiPane::ConnectLayout()
 {
   // Misc Settings
-  connect(m_aspect_ratio_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &WiiPane::OnSaveConfig);
-  connect(m_system_language_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &WiiPane::OnSaveConfig);
-  connect(m_sound_mode_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &WiiPane::OnSaveConfig);
+  connect(m_aspect_ratio_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
+  connect(m_system_language_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
+  connect(m_sound_mode_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
   connect(m_screensaver_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
@@ -89,11 +119,13 @@ void WiiPane::ConnectLayout()
           &QCheckBox::setChecked);
   connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
           m_connect_keyboard_checkbox, &QCheckBox::setChecked);
+  connect(m_wiilink_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // SD Card Settings
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_allow_sd_writes_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_sync_sd_folder_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
+  connect(m_sd_card_size_combo, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
 
   // Whitelisted USB Passthrough Devices
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
@@ -103,7 +135,7 @@ void WiiPane::ConnectLayout()
           &WiiPane::OnUSBWhitelistRemoveButton);
 
   // Wii Remote Settings
-  connect(m_wiimote_ir_sensor_position, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_wiimote_ir_sensor_position, &QComboBox::currentIndexChanged, this,
           &WiiPane::OnSaveConfig);
   connect(m_wiimote_ir_sensitivity, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_speaker_volume, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
@@ -123,6 +155,7 @@ void WiiPane::CreateMisc()
   m_main_layout->addWidget(misc_settings_group);
   m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
+  m_wiilink_checkbox = new QCheckBox(tr("Enable WiiConnect24 via WiiLink"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
 
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
@@ -153,12 +186,17 @@ void WiiPane::CreateMisc()
   m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
                                        "(576i) for PAL games.\nMay not work for all games."));
   m_screensaver_checkbox->setToolTip(tr("Dims the screen after five minutes of inactivity."));
+  m_wiilink_checkbox->setToolTip(tr(
+      "Enables the WiiLink service for WiiConnect24 channels.\nWiiLink is an alternate provider "
+      "for the discontinued WiiConnect24 Channels such as the Forecast and Nintendo Channels\nRead "
+      "the Terms of Service at: https://www.wiilink24.com/tos"));
   m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
   m_connect_keyboard_checkbox->setToolTip(tr("May cause slow down in Wii Menu and some games."));
 
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 0, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_wiilink_checkbox, 1, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
@@ -219,6 +257,13 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
+  m_sd_card_size_combo = new QComboBox();
+  for (size_t i = 0; i < sd_size_combo_entries.size(); ++i)
+    m_sd_card_size_combo->addItem(tr(sd_size_combo_entries[i].name));
+  sd_settings_group_layout->addWidget(new QLabel(tr("SD Card File Size:")), row, 0);
+  sd_settings_group_layout->addWidget(m_sd_card_size_combo, row, 1);
+  ++row;
+
   m_sd_pack_button = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
   m_sd_unpack_button = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
   connect(m_sd_pack_button, &QPushButton::clicked, [this] {
@@ -240,6 +285,7 @@ void WiiPane::CreateSDCard()
         progress_dialog.Reset();
         return good;
       });
+      SetQWidgetWindowDecorations(progress_dialog.GetRaw());
       progress_dialog.GetRaw()->exec();
       if (!success.get())
         ModalMessageBox::warning(this, tr("Convert Folder to File Now"), tr("Conversion failed."));
@@ -264,6 +310,7 @@ void WiiPane::CreateSDCard()
         progress_dialog.Reset();
         return good;
       });
+      SetQWidgetWindowDecorations(progress_dialog.GetRaw());
       progress_dialog.GetRaw()->exec();
       if (!success.get())
         ModalMessageBox::warning(this, tr("Convert File to Folder Now"), tr("Conversion failed."));
@@ -345,6 +392,7 @@ void WiiPane::OnEmulationStateChanged(bool running)
   m_wiimote_speaker_volume->setEnabled(!running);
   m_wiimote_ir_sensitivity->setEnabled(!running);
   m_wiimote_ir_sensor_position->setEnabled(!running);
+  m_wiilink_checkbox->setEnabled(!running);
 }
 
 void WiiPane::LoadConfig()
@@ -355,10 +403,18 @@ void WiiPane::LoadConfig()
   m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
   m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
   m_sound_mode_choice->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
+  m_wiilink_checkbox->setChecked(Config::Get(Config::MAIN_WII_WIILINK_ENABLE));
 
   m_sd_card_checkbox->setChecked(Settings::Instance().IsSDCardInserted());
   m_allow_sd_writes_checkbox->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
   m_sync_sd_folder_checkbox->setChecked(Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC));
+
+  const u64 sd_card_size = Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE);
+  for (size_t i = 0; i < sd_size_combo_entries.size(); ++i)
+  {
+    if (sd_size_combo_entries[i].size == sd_card_size)
+      m_sd_card_size_combo->setCurrentIndex(static_cast<int>(i));
+  }
 
   PopulateUSBPassthroughListWidget();
 
@@ -385,11 +441,20 @@ void WiiPane::OnSaveConfig()
   Config::SetBase<bool>(Config::SYSCONF_WIDESCREEN, m_aspect_ratio_choice->currentIndex());
   Config::SetBase<u32>(Config::SYSCONF_SOUND_MODE, m_sound_mode_choice->currentIndex());
   Config::SetBase(Config::SYSCONF_WIIMOTE_MOTOR, m_wiimote_motor->isChecked());
+  Config::SetBase(Config::MAIN_WII_WIILINK_ENABLE, m_wiilink_checkbox->isChecked());
 
   Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
   Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
   Config::SetBase(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
                   m_sync_sd_folder_checkbox->isChecked());
+
+  const int sd_card_size_index = m_sd_card_size_combo->currentIndex();
+  if (sd_card_size_index >= 0 &&
+      static_cast<size_t>(sd_card_size_index) < sd_size_combo_entries.size())
+  {
+    Config::SetBase(Config::MAIN_WII_SD_CARD_FILESIZE,
+                    sd_size_combo_entries[sd_card_size_index].size);
+  }
 }
 
 void WiiPane::ValidateSelectionState()
@@ -402,6 +467,7 @@ void WiiPane::OnUSBWhitelistAddButton()
   USBDeviceAddToWhitelistDialog usb_whitelist_dialog(this);
   connect(&usb_whitelist_dialog, &USBDeviceAddToWhitelistDialog::accepted, this,
           &WiiPane::PopulateUSBPassthroughListWidget);
+  SetQWidgetWindowDecorations(&usb_whitelist_dialog);
   usb_whitelist_dialog.exec();
 }
 

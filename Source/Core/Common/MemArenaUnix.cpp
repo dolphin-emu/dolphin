@@ -10,10 +10,13 @@
 #include <set>
 #include <string>
 
+#include <fmt/format.h>
+
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -25,9 +28,9 @@ namespace Common
 MemArena::MemArena() = default;
 MemArena::~MemArena() = default;
 
-void MemArena::GrabSHMSegment(size_t size)
+void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  const std::string file_name = "/dolphin-emu." + std::to_string(getpid());
+  const std::string file_name = fmt::format("/{}.{}", base_name, getpid());
   m_shm_fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
   if (m_shm_fd == -1)
   {
@@ -106,4 +109,58 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
   if (retval == MAP_FAILED)
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
 }
+
+LazyMemoryRegion::LazyMemoryRegion() = default;
+
+LazyMemoryRegion::~LazyMemoryRegion()
+{
+  Release();
+}
+
+#if !defined MAP_NORESERVE && (defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__)
+// BSD does not implement MAP_NORESERVE, so define the flag to nothing.
+// See https://reviews.freebsd.org/rS273250
+#define MAP_NORESERVE 0
+#endif
+
+void* LazyMemoryRegion::Create(size_t size)
+{
+  ASSERT(!m_memory);
+
+  if (size == 0)
+    return nullptr;
+
+  void* memory =
+      mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+  if (memory == MAP_FAILED)
+  {
+    NOTICE_LOG_FMT(MEMMAP, "Memory allocation of {} bytes failed.", size);
+    return nullptr;
+  }
+
+  m_memory = memory;
+  m_size = size;
+
+  return memory;
+}
+
+void LazyMemoryRegion::Clear()
+{
+  ASSERT(m_memory);
+
+  void* new_memory = mmap(m_memory, m_size, PROT_READ | PROT_WRITE,
+                          MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
+  ASSERT(new_memory == m_memory);
+}
+
+void LazyMemoryRegion::Release()
+{
+  if (m_memory)
+  {
+    munmap(m_memory, m_size);
+    m_memory = nullptr;
+    m_size = 0;
+  }
+}
+
 }  // namespace Common

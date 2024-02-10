@@ -40,7 +40,7 @@ enum
 
 };
 
-IPCReply GetVersion(const IOCtlVRequest& request)
+IPCReply GetVersion(Core::System& system, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
   {
@@ -49,7 +49,6 @@ IPCReply GetVersion(const IOCtlVRequest& request)
 
   const auto length = std::min(size_t(request.io_vectors[0].size), Common::GetScmDescStr().size());
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
   memory.CopyToEmu(request.io_vectors[0].address, Common::GetScmDescStr().data(), length);
@@ -57,7 +56,7 @@ IPCReply GetVersion(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply GetCPUSpeed(const IOCtlVRequest& request)
+IPCReply GetCPUSpeed(Core::System& system, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
   {
@@ -72,16 +71,15 @@ IPCReply GetCPUSpeed(const IOCtlVRequest& request)
   const bool overclock_enabled = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const float oc = overclock_enabled ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
 
-  const u32 core_clock = u32(float(SystemTimers::GetTicksPerSecond()) * oc);
+  const u32 core_clock = u32(float(system.GetSystemTimers().GetTicksPerSecond()) * oc);
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.Write_U32(core_clock, request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply GetSpeedLimit(const IOCtlVRequest& request)
+IPCReply GetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
 {
   // get current speed limit
   if (!request.HasNumberOfValidVectors(0, 1))
@@ -96,14 +94,13 @@ IPCReply GetSpeedLimit(const IOCtlVRequest& request)
 
   const u32 speed_percent = Config::Get(Config::MAIN_EMULATION_SPEED) * 100;
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.Write_U32(speed_percent, request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SetSpeedLimit(const IOCtlVRequest& request)
+IPCReply SetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
 {
   // set current speed limit
   if (!request.HasNumberOfValidVectors(1, 0))
@@ -116,7 +113,6 @@ IPCReply SetSpeedLimit(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   const float speed = float(memory.Read_U32(request.in_vectors[0].address)) / 100.0f;
   Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
@@ -124,7 +120,7 @@ IPCReply SetSpeedLimit(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply GetRealProductCode(const IOCtlVRequest& request)
+IPCReply GetRealProductCode(Core::System& system, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
   {
@@ -150,14 +146,13 @@ IPCReply GetRealProductCode(const IOCtlVRequest& request)
   if (length == 0)
     return IPCReply(IPC_ENOENT);
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
   memory.CopyToEmu(request.io_vectors[0].address, code.c_str(), length);
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SetDiscordClient(const IOCtlVRequest& request)
+IPCReply SetDiscordClient(Core::System& system, const IOCtlVRequest& request)
 {
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return IPCReply(IPC_EACCES);
@@ -165,7 +160,6 @@ IPCReply SetDiscordClient(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   std::string new_client_id =
       memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
@@ -175,7 +169,7 @@ IPCReply SetDiscordClient(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SetDiscordPresence(const IOCtlVRequest& request)
+IPCReply SetDiscordPresence(Core::System& system, const IOCtlVRequest& request)
 {
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return IPCReply(IPC_EACCES);
@@ -183,7 +177,6 @@ IPCReply SetDiscordPresence(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(10, 0))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   std::string details = memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
@@ -242,7 +235,7 @@ IPCReply DolphinDevice::GetElapsedTime(const IOCtlVRequest& request) const
   // have issues.
   const u32 milliseconds = static_cast<u32>(m_timer.ElapsedMs());
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   memory.Write_U32(milliseconds, request.io_vectors[0].address);
 
@@ -261,7 +254,7 @@ IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
     return IPCReply(IPC_EINVAL);
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   // Write Unix timestamp in milliseconds to memory address
@@ -272,7 +265,8 @@ IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
   return IPCReply(IPC_SUCCESS);
 }
 
-DolphinDevice::DolphinDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+DolphinDevice::DolphinDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
   m_timer.Start();
 }
@@ -287,19 +281,19 @@ std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_DOLPHIN_GET_ELAPSED_TIME:
     return GetElapsedTime(request);
   case IOCTL_DOLPHIN_GET_VERSION:
-    return GetVersion(request);
+    return GetVersion(GetSystem(), request);
   case IOCTL_DOLPHIN_GET_SPEED_LIMIT:
-    return GetSpeedLimit(request);
+    return GetSpeedLimit(GetSystem(), request);
   case IOCTL_DOLPHIN_SET_SPEED_LIMIT:
-    return SetSpeedLimit(request);
+    return SetSpeedLimit(GetSystem(), request);
   case IOCTL_DOLPHIN_GET_CPU_SPEED:
-    return GetCPUSpeed(request);
+    return GetCPUSpeed(GetSystem(), request);
   case IOCTL_DOLPHIN_GET_REAL_PRODUCTCODE:
-    return GetRealProductCode(request);
+    return GetRealProductCode(GetSystem(), request);
   case IOCTL_DOLPHIN_DISCORD_SET_CLIENT:
-    return SetDiscordClient(request);
+    return SetDiscordClient(GetSystem(), request);
   case IOCTL_DOLPHIN_DISCORD_SET_PRESENCE:
-    return SetDiscordPresence(request);
+    return SetDiscordPresence(GetSystem(), request);
   case IOCTL_DOLPHIN_DISCORD_RESET:
     return ResetDiscord(request);
   case IOCTL_DOLPHIN_GET_SYSTEM_TIME:

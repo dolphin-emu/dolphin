@@ -1,0 +1,36 @@
+{
+	"meta":
+	{
+		"title": "Bloom and DOF Texture Definitions",
+		"author": "linckandrea"
+	},
+	"groups":
+	[
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n09_20x15_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n21_20x15_1"
+				}
+			]
+		},
+		{
+			"name": "DOF",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n10_320x240_4"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n11_320x240_1"
+				}
+			]
+		}
+	]
+}

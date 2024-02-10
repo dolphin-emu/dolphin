@@ -203,6 +203,9 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("2x"),
     _trans("3x"),
     _trans("4x"),
+
+    _trans("Show Skylanders Portal"),
+    _trans("Show Infinity Base")
 }};
 
 // clang-format on
@@ -214,7 +217,7 @@ static std::array<u32, NUM_HOTKEY_GROUPS> s_hotkey_down;
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
-static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
+static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys", "Hotkeys");
 
 InputConfig* GetConfig()
 {
@@ -261,7 +264,7 @@ bool IsPressed(int id, bool held)
 // TODO: Remove this at a future date when we're confident most configs are migrated.
 static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
 {
-  IniFile inifile;
+  Common::IniFile inifile;
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Hotkeys.ini"))
   {
     if (!inifile.Exists("Hotkeys") && inifile.Exists("Hotkeys1"))
@@ -311,7 +314,7 @@ void Initialize()
 
 void LoadConfig()
 {
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+  s_config.LoadConfig();
   LoadLegacyConfig(s_config.GetController(0));
 }
 
@@ -365,7 +368,8 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Slippi playback controls"), HK_SLIPPI_JUMP_BACK, HK_SLIPPI_JUMP_FORWARD},
      {_trans("GBA Core"), HK_GBA_LOAD, HK_GBA_RESET, true},
      {_trans("GBA Volume"), HK_GBA_VOLUME_DOWN, HK_GBA_TOGGLE_MUTE, true},
-     {_trans("GBA Window Size"), HK_GBA_1X, HK_GBA_4X, true}}};
+     {_trans("GBA Window Size"), HK_GBA_1X, HK_GBA_4X, true},
+     {_trans("USB Emulation Devices"), HK_SKYLANDERS_PORTAL, HK_INFINITY_BASE}}};
 
 HotkeyManager::HotkeyManager()
 {
@@ -376,7 +380,7 @@ HotkeyManager::HotkeyManager()
     groups.emplace_back(m_hotkey_groups[group]);
     for (int key = s_groups_info[group].first; key <= s_groups_info[group].last; key++)
     {
-      m_keys[group]->AddInput(ControllerEmu::Translate, s_hotkey_labels[key]);
+      m_keys[group]->AddInput(ControllerEmu::Translatability::Translate, s_hotkey_labels[key]);
     }
   }
 }
@@ -388,6 +392,11 @@ HotkeyManager::~HotkeyManager()
 std::string HotkeyManager::GetName() const
 {
   return "Hotkeys";
+}
+
+InputConfig* HotkeyManager::GetConfig() const
+{
+  return HotkeyManagerEmu::GetConfig();
 }
 
 void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
@@ -531,4 +540,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_GBA_3X, "`KP_3`");
   set_key_expression(HK_GBA_4X, "`KP_4`");
 #endif
+
+  set_key_expression(HK_SKYLANDERS_PORTAL, hotkey_string({"Ctrl", "P"}));
+  set_key_expression(HK_INFINITY_BASE, hotkey_string({"Ctrl", "I"}));
 }

@@ -30,8 +30,9 @@ DrawsomeTablet::DrawsomeTablet() : Extension3rdParty("Drawsome", _trans("Drawsom
 
   // Touch
   groups.emplace_back(m_touch = new ControllerEmu::Triggers(_trans("Touch")));
-  m_touch->AddInput(ControllerEmu::Translate, _trans("Pressure"));
-  m_touch->AddInput(ControllerEmu::Translate, _trans("Lift"));
+  using Translatability = ControllerEmu::Translatability;
+  m_touch->AddInput(Translatability::Translate, _trans("Pressure"));
+  m_touch->AddInput(Translatability::Translate, _trans("Lift"));
 }
 
 void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_state)

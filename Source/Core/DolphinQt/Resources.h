@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <QIcon>
 #include <QList>
+// slippi: needed to import these two to fix build errors on macOS
 #include <QPixmap>
 #include <QIcon>
 #include <string_view>
@@ -21,29 +23,26 @@ public:
   enum class MiscID
   {
     BannerMissing,
-    LogoLarge,
-    LogoSmall
+    Logo,
   };
 
   static void Init();
 
-  static QPixmap GetPlatform(DiscIO::Platform platform);
-  static QPixmap GetCountry(DiscIO::Country country);
+  static QIcon GetPlatform(DiscIO::Platform platform);
+  static QIcon GetCountry(DiscIO::Country country);
 
-  static QPixmap GetMisc(MiscID id);
+  static QIcon GetMisc(MiscID id);
 
-  static QIcon GetScaledIcon(std::string_view name);
-  static QIcon GetScaledThemeIcon(std::string_view name);
+  static QIcon GetResourceIcon(std::string_view name);
+  static QIcon GetThemeIcon(std::string_view name);
   static QIcon GetAppIcon();
-
-  static QPixmap GetScaledPixmap(std::string_view name);
 
 private:
   Resources() {}
-  static QIcon GetIcon(std::string_view name, const QString& dir);
-  static QPixmap GetPixmap(std::string_view name, const QString& dir);
+  static QIcon LoadNamedIcon(std::string_view name, const QString& dir);
 
-  static QList<QPixmap> m_platforms;
-  static QList<QPixmap> m_countries;
-  static QList<QPixmap> m_misc;
+  static bool m_svg_supported;
+  static QList<QIcon> m_platforms;
+  static QList<QIcon> m_countries;
+  static QList<QIcon> m_misc;
 };

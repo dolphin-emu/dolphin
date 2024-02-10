@@ -16,6 +16,10 @@
 
 // Global declarations
 class PointerWrap;
+namespace Core
+{
+class System;
+}
 namespace MMIO
 {
 class Mapping;
@@ -54,7 +58,7 @@ struct LogicalMemoryView
 class MemoryManager
 {
 public:
-  MemoryManager();
+  explicit MemoryManager(Core::System& system);
   MemoryManager(const MemoryManager& other) = delete;
   MemoryManager(MemoryManager&& other) = delete;
   MemoryManager& operator=(const MemoryManager& other) = delete;
@@ -238,6 +242,8 @@ private:
 
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_physical_page_mappings{};
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_logical_page_mappings{};
+
+  Core::System& m_system;
 
   void InitMMIO(bool is_wii);
 };

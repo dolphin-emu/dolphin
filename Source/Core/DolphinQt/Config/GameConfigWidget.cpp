@@ -19,8 +19,8 @@
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigEdit.h"
-#include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 
 #include "UICommon/GameFile.h"
 
@@ -88,8 +88,9 @@ void GameConfigWidget::CreateWidgets()
   m_enable_mmu = new QCheckBox(tr("Enable MMU"));
   m_enable_fprf = new QCheckBox(tr("Enable FPRF"));
   m_sync_gpu = new QCheckBox(tr("Synchronize GPU thread"));
-  m_enable_fast_disc = new QCheckBox(tr("Emulate Disc Speed"));
+  m_emulate_disc_speed = new QCheckBox(tr("Emulate Disc Speed"));
   m_use_dsp_hle = new QCheckBox(tr("DSP HLE (fast)"));
+  m_manual_texture_sampling = new QCheckBox(tr("Manual Texture Sampling"));
   m_deterministic_dual_core = new QComboBox;
 
   for (const auto& item : {tr("Not Set"), tr("auto"), tr("none"), tr("fake-completion")})
@@ -102,18 +103,20 @@ void GameConfigWidget::CreateWidgets()
                                "games. (ON = Compatible, OFF = Fast)"));
   m_sync_gpu->setToolTip(tr("Synchronizes the GPU and CPU threads to help prevent random freezes "
                             "in Dual core mode. (ON = Compatible, OFF = Fast)"));
-  m_enable_fast_disc->setToolTip(tr("Enable emulated disc speed. Disabling this can cause crashes "
-                                    "and other problems in some games. "
-                                    "(ON = Compatible, OFF = Unlocked)"));
+  m_emulate_disc_speed->setToolTip(
+      tr("Enable emulated disc speed. Disabling this can cause crashes "
+         "and other problems in some games. "
+         "(ON = Compatible, OFF = Unlocked)"));
 
   core_layout->addWidget(m_enable_dual_core, 0, 0);
   core_layout->addWidget(m_enable_mmu, 1, 0);
   core_layout->addWidget(m_enable_fprf, 2, 0);
   core_layout->addWidget(m_sync_gpu, 3, 0);
-  core_layout->addWidget(m_enable_fast_disc, 4, 0);
+  core_layout->addWidget(m_emulate_disc_speed, 4, 0);
   core_layout->addWidget(m_use_dsp_hle, 5, 0);
-  core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 6, 0);
-  core_layout->addWidget(m_deterministic_dual_core, 6, 1);
+  core_layout->addWidget(m_manual_texture_sampling, 6, 0);
+  core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 7, 0);
+  core_layout->addWidget(m_deterministic_dual_core, 7, 1);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -159,8 +162,9 @@ void GameConfigWidget::CreateWidgets()
 
   general_layout->addWidget(m_refresh_config, 1, 0, 1, -1);
 
-  for (QCheckBox* item : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
-                          m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
+  for (QCheckBox* item :
+       {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
+        m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
     item->setTristate(true);
 
   auto* general_widget = new QWidget;
@@ -206,43 +210,31 @@ void GameConfigWidget::ConnectWidgets()
   // Buttons
   connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
 
-  for (QCheckBox* box : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
-                         m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
+  for (QCheckBox* box :
+       {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
+        m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
 
-  connect(m_deterministic_dual_core, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_deterministic_dual_core, &QComboBox::currentIndexChanged, this,
           &GameConfigWidget::SaveSettings);
-  connect(m_depth_slider, qOverload<int>(&QSlider::valueChanged), this,
-          &GameConfigWidget::SaveSettings);
-  connect(m_convergence_spin, qOverload<int>(&QSpinBox::valueChanged), this,
-          &GameConfigWidget::SaveSettings);
+  connect(m_depth_slider, &QSlider::valueChanged, this, &GameConfigWidget::SaveSettings);
+  connect(m_convergence_spin, &QSpinBox::valueChanged, this, &GameConfigWidget::SaveSettings);
 }
 
 void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key)
+                                    const std::string& key, bool reverse)
 {
   bool checked;
-  if (key == "FastDiscSpeed")
-  {
-    if (m_gameini_local.GetOrCreateSection(section)->Get("FastDiscSpeed", &checked))
-      return checkbox->setCheckState(!checked ? Qt::Checked : Qt::Unchecked);
+  if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
+    return checkbox->setCheckState(checked ^ reverse ? Qt::Checked : Qt::Unchecked);
 
-    if (m_gameini_default.GetOrCreateSection(section)->Get("FastDiscSpeed", &checked))
-      return checkbox->setCheckState(!checked ? Qt::Checked : Qt::Unchecked);
-  }
-  else
-  {
-    if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
-      return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
-
-    if (m_gameini_default.GetOrCreateSection(section)->Get(key, &checked))
-      return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
-  }
+  if (m_gameini_default.GetOrCreateSection(section)->Get(key, &checked))
+    return checkbox->setCheckState(checked ^ reverse ? Qt::Checked : Qt::Unchecked);
   checkbox->setCheckState(Qt::PartiallyChecked);
 }
 
 void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key)
+                                    const std::string& key, bool reverse)
 {
   // Delete any existing entries from the local gameini if checkbox is undetermined.
   // Otherwise, write the current value to the local gameini if the value differs from the default
@@ -256,13 +248,7 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
     return;
   }
 
-  bool checked = checkbox->checkState() == Qt::Checked;
-
-  if (key == "FastDiscSpeed")
-  {
-    m_gameini_local.GetOrCreateSection(section)->Set(key, !checked);
-    return;
-  }
+  bool checked = (checkbox->checkState() == Qt::Checked) ^ reverse;
 
   if (m_gameini_default.Exists(section, key))
   {
@@ -293,8 +279,9 @@ void GameConfigWidget::LoadSettings()
   LoadCheckBox(m_enable_mmu, "Core", "MMU");
   LoadCheckBox(m_enable_fprf, "Core", "FPRF");
   LoadCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  LoadCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed");
+  LoadCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
   LoadCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
+  LoadCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
 
   std::string determinism_mode;
 
@@ -343,8 +330,9 @@ void GameConfigWidget::SaveSettings()
   SaveCheckBox(m_enable_mmu, "Core", "MMU");
   SaveCheckBox(m_enable_fprf, "Core", "FPRF");
   SaveCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  SaveCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed");
+  SaveCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
   SaveCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
+  SaveCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
 
   int determinism_num = m_deterministic_dual_core->currentIndex();
 

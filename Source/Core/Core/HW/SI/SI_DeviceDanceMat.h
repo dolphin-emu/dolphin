@@ -10,10 +10,10 @@ struct GCPadStatus;
 
 namespace SerialInterface
 {
-class CSIDevice_DanceMat : public CSIDevice_GCController
+class CSIDevice_DanceMat final : public CSIDevice_GCController
 {
 public:
-  CSIDevice_DanceMat(SIDevices device, int device_number);
+  CSIDevice_DanceMat(Core::System& system, SIDevices device, int device_number);
 
   int RunBuffer(u8* buffer, int request_length) override;
   u32 MapPadStatus(const GCPadStatus& pad_status) override;

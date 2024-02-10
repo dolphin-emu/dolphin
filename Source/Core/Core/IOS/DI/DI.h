@@ -35,10 +35,10 @@ void Init();
 
 namespace IOS::HLE
 {
-class DIDevice : public Device
+class DIDevice : public EmulationDevice
 {
 public:
-  DIDevice(Kernel& ios, const std::string& device_name);
+  DIDevice(EmulationKernel& ios, const std::string& device_name);
 
   static void InterruptFromDVDInterface(DVD::DIInterruptType interrupt_type);
   static DiscIO::Partition GetCurrentPartition();
@@ -120,7 +120,7 @@ private:
   };
 
   friend class ::CBoot;
-  friend void ::IOS::HLE::Init();
+  friend void ::IOS::HLE::Init(Core::System&);
 
   void ProcessQueuedIOCtl();
   std::optional<DIResult> StartIOCtl(const IOCtlRequest& request);

@@ -126,7 +126,8 @@ private:
 class VKFramebuffer final : public AbstractFramebuffer
 {
 public:
-  VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment, u32 width, u32 height,
+  VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment,
+                std::vector<AbstractTexture*> additional_color_attachments, u32 width, u32 height,
                 u32 layers, u32 samples, VkFramebuffer fb, VkRenderPass load_render_pass,
                 VkRenderPass discard_render_pass, VkRenderPass clear_render_pass);
   ~VKFramebuffer() override;
@@ -137,10 +138,20 @@ public:
   VkRenderPass GetLoadRenderPass() const { return m_load_render_pass; }
   VkRenderPass GetDiscardRenderPass() const { return m_discard_render_pass; }
   VkRenderPass GetClearRenderPass() const { return m_clear_render_pass; }
+
+  void Unbind();
   void TransitionForRender();
 
-  static std::unique_ptr<VKFramebuffer> Create(VKTexture* color_attachments,
-                                               VKTexture* depth_attachment);
+  void SetAndClear(const VkRect2D& rect, const VkClearValue& color_value,
+                   const VkClearValue& depth_value);
+  std::size_t GetNumberOfAdditonalAttachments() const
+  {
+    return m_additional_color_attachments.size();
+  }
+
+  static std::unique_ptr<VKFramebuffer>
+  Create(VKTexture* color_attachments, VKTexture* depth_attachment,
+         std::vector<AbstractTexture*> additional_color_attachments);
 
 protected:
   VkFramebuffer m_fb;

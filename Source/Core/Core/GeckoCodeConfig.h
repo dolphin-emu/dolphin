@@ -9,12 +9,15 @@
 
 #include "Core/GeckoCode.h"
 
+namespace Common
+{
 class IniFile;
+}
 
 namespace Gecko
 {
-std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni);
-void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes);
+std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni);
+void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes);
 
 std::optional<GeckoCode::Code> DeserializeLine(const std::string& line);
 }  // namespace Gecko

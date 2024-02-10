@@ -383,10 +383,10 @@ void DSPEmitter::ld(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);
+  FixupBranch after = J(Jump::Near);
   SetJumpTarget(not_equal);  // else
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -417,10 +417,10 @@ void DSPEmitter::ldax(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);  // else
+  FixupBranch after = J(Jump::Near);  // else
   SetJumpTarget(not_equal);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -449,10 +449,10 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);
+  FixupBranch after = J(Jump::Near);
   SetJumpTarget(not_equal);  // else
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -480,10 +480,10 @@ void DSPEmitter::ldaxn(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);  // else
+  FixupBranch after = J(Jump::Near);  // else
   SetJumpTarget(not_equal);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -512,10 +512,10 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);
+  FixupBranch after = J(Jump::Near);
   SetJumpTarget(not_equal);  // else
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -543,10 +543,10 @@ void DSPEmitter::ldaxm(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);  // else
+  FixupBranch after = J(Jump::Near);  // else
   SetJumpTarget(not_equal);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -575,10 +575,10 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);
+  FixupBranch after = J(Jump::Near);
   SetJumpTarget(not_equal);  // else
   pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -606,10 +606,10 @@ void DSPEmitter::ldaxnm(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
   TEST(16, R(ECX), Imm16(0xfc00));
-  FixupBranch not_equal = J_CC(CC_NE, true);
+  FixupBranch not_equal = J_CC(CC_NE, Jump::Near);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
   m_gpr.FlushRegs(c);
-  FixupBranch after = J(true);  // else
+  FixupBranch after = J(Jump::Near);  // else
   SetJumpTarget(not_equal);
   pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
   m_gpr.FlushRegs(c);
@@ -670,7 +670,7 @@ void DSPEmitter::popExtValueToReg()
     if (m_store_index >= DSP_REG_ACM0 && m_store_index2 == -1)
     {
       TEST(32, R(EBX), Imm32(SR_40_MODE_BIT << 16));
-      FixupBranch not_40bit = J_CC(CC_Z, true);
+      FixupBranch not_40bit = J_CC(CC_Z, Jump::Near);
       DSPJitRegCache c(m_gpr);
       // if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
       //{

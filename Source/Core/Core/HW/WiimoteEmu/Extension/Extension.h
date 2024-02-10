@@ -27,6 +27,8 @@ public:
   std::string GetName() const override;
   std::string GetDisplayName() const override;
 
+  InputConfig* GetConfig() const override;
+
   // Used by the wiimote to detect extension changes.
   // The normal extensions short this pin so it's always connected,
   // but M+ does some tricks with it during activation.

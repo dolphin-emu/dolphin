@@ -14,8 +14,9 @@
 
 namespace SerialInterface
 {
-CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(SIDevices device, int device_number)
-    : CSIDevice_GCController(device, device_number)
+CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(Core::System& system, SIDevices device,
+                                                     int device_number)
+    : CSIDevice_GCController(system, device, device_number)
 {
 }
 

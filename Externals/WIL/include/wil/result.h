@@ -252,7 +252,8 @@ namespace wil
                 if (ProcessShutdownInProgress())
                 {
                     // There are no other threads to contend with.
-                    if (--m_refCount == 0)
+                    m_refCount = m_refCount - 1;
+                    if (m_refCount == 0)
                     {
                         m_data.ProcessShutdown();
                     }
@@ -260,7 +261,8 @@ namespace wil
                 else
                 {
                     auto lock = m_mutex.acquire();
-                    if (--m_refCount == 0)
+                    m_refCount = m_refCount - 1;
+                    if (m_refCount == 0)
                     {
                         // We must explicitly destroy our semaphores while holding the mutex
                         m_value.Destroy();
@@ -281,7 +283,7 @@ namespace wil
 
                 const DWORD size = static_cast<DWORD>(sizeof(ProcessLocalStorageData<T>));
                 wchar_t name[MAX_PATH];
-                WI_VERIFY(SUCCEEDED(StringCchPrintfW(name, ARRAYSIZE(name), L"Local\\SM0:%d:%d:%hs", ::GetCurrentProcessId(), size, staticNameWithVersion)));
+                WI_VERIFY(SUCCEEDED(StringCchPrintfW(name, ARRAYSIZE(name), L"Local\\SM0:%lu:%lu:%hs", ::GetCurrentProcessId(), size, staticNameWithVersion)));
 
                 unique_mutex_nothrow mutex;
                 mutex.reset(::CreateMutexExW(nullptr, name, 0, MUTEX_ALL_ACCESS));
@@ -295,7 +297,7 @@ namespace wil
                 if (pointer)
                 {
                     *data = reinterpret_cast<ProcessLocalStorageData<T>*>(pointer);
-                    (*data)->m_refCount++;
+                    (*data)->m_refCount = (*data)->m_refCount + 1;
                 }
                 else
                 {
@@ -312,13 +314,13 @@ namespace wil
             SemaphoreValue m_value;
             T m_data;
 
-            static HRESULT MakeAndInitialize(PCWSTR name, unique_mutex_nothrow&& mutex, ProcessLocalStorageData<T>** data)
+            static HRESULT MakeAndInitialize(PCWSTR name, unique_mutex_nothrow&& mutex, _Outptr_result_nullonfailure_ ProcessLocalStorageData<T>** data)
             {
                 *data = nullptr;
 
                 const DWORD size = static_cast<DWORD>(sizeof(ProcessLocalStorageData<T>));
 
-                unique_process_heap_ptr<ProcessLocalStorageData<T>> dataAlloc(static_cast<ProcessLocalStorageData<T>*>(::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size)));
+                unique_process_heap_ptr<ProcessLocalStorageData<T>> dataAlloc(static_cast<ProcessLocalStorageData<T>*>(details::ProcessHeapAlloc(HEAP_ZERO_MEMORY, size)));
                 __WIL_PRIVATE_RETURN_IF_NULL_ALLOC(dataAlloc);
 
                 SemaphoreValue semaphoreValue;
@@ -406,10 +408,9 @@ namespace wil
 
                 if (shouldAllocate)
                 {
-                    Node *pNew = reinterpret_cast<Node *>(::HeapAlloc(::GetProcessHeap(), 0, sizeof(Node)));
-                    if (pNew != nullptr)
+                    if (auto pNewRaw = details::ProcessHeapAlloc(0, sizeof(Node)))
                     {
-                        new(pNew)Node{ threadId };
+                        auto pNew = new (pNewRaw) Node{ threadId };
 
                         Node *pFirst;
                         do
@@ -428,7 +429,7 @@ namespace wil
 
             struct Node
             {
-                DWORD threadId;
+                DWORD threadId = ULONG_MAX;
                 Node* pNext = nullptr;
                 T value{};
             };
@@ -487,7 +488,7 @@ namespace wil
 
                 if (!stringBuffer || (stringBufferSize < neededSize))
                 {
-                    auto newBuffer = ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, neededSize);
+                    auto newBuffer = details::ProcessHeapAlloc(HEAP_ZERO_MEMORY, neededSize);
                     if (newBuffer)
                     {
                         ::HeapFree(::GetProcessHeap(), 0, stringBuffer);
@@ -508,7 +509,7 @@ namespace wil
                 }
             }
 
-            void Get(FailureInfo& info)
+            void Get(FailureInfo& info) const
             {
                 ::ZeroMemory(&info, sizeof(info));
 
@@ -565,7 +566,7 @@ namespace wil
                 if (!errors && create)
                 {
                     const unsigned short errorCount = 5;
-                    errors = reinterpret_cast<ThreadLocalFailureInfo *>(::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, errorCount * sizeof(ThreadLocalFailureInfo)));
+                    errors = reinterpret_cast<ThreadLocalFailureInfo *>(details::ProcessHeapAlloc(HEAP_ZERO_MEMORY, errorCount * sizeof(ThreadLocalFailureInfo)));
                     if (errors)
                     {
                         errorAllocCount = errorCount;
@@ -611,7 +612,7 @@ namespace wil
                 errors[errorCurrentIndex].Set(info, ::InterlockedIncrementNoFence(failureSequenceId));
             }
 
-            bool GetLastError(_Inout_ wil::FailureInfo& info, unsigned int minSequenceId, HRESULT matchRequirement)
+            bool GetLastError(_Inout_ wil::FailureInfo& info, unsigned int minSequenceId, HRESULT matchRequirement) const
             {
                 if (!errors)
                 {
@@ -678,7 +679,7 @@ namespace wil
                 // NOTE:  FailureType::Log as it's only informative (no action) and SupportedExceptions::All as it's not a barrier, only recognition.
                 wchar_t message[2048];
                 message[0] = L'\0';
-                const HRESULT hr = details::ReportFailure_CaughtExceptionCommon<FailureType::Log>(__R_DIAGNOSTICS_RA(source, returnAddress), message, ARRAYSIZE(message), SupportedExceptions::All);
+                const HRESULT hr = details::ReportFailure_CaughtExceptionCommon<FailureType::Log>(__R_DIAGNOSTICS_RA(source, returnAddress), message, ARRAYSIZE(message), SupportedExceptions::All).hr;
 
                 // Now that the exception was logged, we should be able to fetch it.
                 return GetLastError(info, minSequenceId, hr);
@@ -958,7 +959,7 @@ namespace wil
                 m_ppThreadList = nullptr;
             }
 
-            bool IsWatching()
+            bool IsWatching() const
             {
                 return (m_threadId != 0);
             }
@@ -1044,7 +1045,9 @@ namespace wil
 
                 if (g_pfnTelemetryCallback != nullptr)
                 {
-                    g_pfnTelemetryCallback(reportedTelemetry, *pFailure);
+                    // If the telemetry was requested to be suppressed,
+                    // pretend like it has already been reported to the fallback callback
+                    g_pfnTelemetryCallback(reportedTelemetry || WI_IsFlagSet(pFailure->flags, FailureFlags::RequestSuppressTelemetry), *pFailure);
                 }
             }
 
@@ -1079,7 +1082,7 @@ namespace wil
             {
             }
 
-            bool NotifyFailure(FailureInfo const &failure) WI_NOEXCEPT
+            bool NotifyFailure(FailureInfo const &failure) WI_NOEXCEPT override
             {
                 return m_errorFunction(failure);
             }
@@ -1251,7 +1254,7 @@ namespace wil
             return (FAILED(m_failure.GetFailureInfo().hr) ? &(m_failure.GetFailureInfo()) : nullptr);
         }
 
-        bool NotifyFailure(FailureInfo const &failure) WI_NOEXCEPT
+        bool NotifyFailure(FailureInfo const &failure) WI_NOEXCEPT override
         {
             // When we "cache" a failure, we bias towards trying to find the origin of the last HRESULT
             // generated, so we ignore subsequent failures on the same error code (assuming propagation).

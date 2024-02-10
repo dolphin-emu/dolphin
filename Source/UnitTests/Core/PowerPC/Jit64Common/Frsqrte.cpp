@@ -6,11 +6,14 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
+#include "Common/ScopeGuard.h"
 #include "Common/x64ABI.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/System.h"
 
 #include "../TestValues.h"
 
@@ -22,7 +25,7 @@ namespace
 class TestCommonAsmRoutines : public CommonAsmRoutines
 {
 public:
-  TestCommonAsmRoutines() : CommonAsmRoutines(jit)
+  explicit TestCommonAsmRoutines(Core::System& system) : CommonAsmRoutines(jit), jit(system)
   {
     using namespace Gen;
 
@@ -58,7 +61,10 @@ public:
 
 TEST(Jit64, Frsqrte)
 {
-  TestCommonAsmRoutines routines;
+  Core::DeclareAsCPUThread();
+  Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
+
+  TestCommonAsmRoutines routines(Core::System::GetInstance());
 
   UReg_FPSCR fpscr;
 

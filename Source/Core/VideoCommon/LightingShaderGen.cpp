@@ -175,3 +175,181 @@ void GetLightingShaderUid(LightingUidData& uid_data)
     }
   }
 }
+
+void GenerateCustomLightingHeaderDetails(ShaderCode* out, u32 enablelighting, u32 light_mask)
+{
+  u32 light_count = 0;
+  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  {
+    if ((enablelighting & (1 << j)) != 0)  // Color lights
+    {
+      for (int i = 0; i < 8; ++i)
+      {
+        if ((light_mask & (1 << (i + 8 * j))) != 0)
+        {
+          light_count++;
+        }
+      }
+    }
+    if ((enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
+    {
+      for (int i = 0; i < 8; ++i)
+      {
+        if ((light_mask & (1 << (i + 8 * (j + 2)))) != 0)
+        {
+          light_count++;
+        }
+      }
+    }
+  }
+  if (light_count > 0)
+  {
+    out->Write("\tCustomShaderLightData[{}] light;\n", light_count);
+  }
+  else
+  {
+    // Cheat so shaders compile
+    out->Write("\tCustomShaderLightData[1] light;\n", light_count);
+  }
+  out->Write("\tint light_count;\n");
+}
+
+static void GenerateLighting(ShaderCode* out, const LightingUidData& uid_data, int index,
+                             int litchan_index, u32 channel_index, u32 custom_light_index,
+                             bool alpha)
+{
+  const auto attnfunc =
+      static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);
+
+  const std::string_view light_type = alpha ? "alpha" : "color";
+  const std::string name = fmt::format("lights_chan{}_{}", channel_index, light_type);
+
+  out->Write("\t{{\n");
+  out->Write("\t\tcustom_data.{}[{}].direction = " LIGHT_DIR ".xyz;\n", name, custom_light_index,
+             LIGHT_DIR_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].position = " LIGHT_POS ".xyz;\n", name, custom_light_index,
+             LIGHT_POS_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].cosatt = " LIGHT_COSATT ";\n", name, custom_light_index,
+             LIGHT_COSATT_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].distatt = " LIGHT_DISTATT ";\n", name, custom_light_index,
+             LIGHT_DISTATT_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].attenuation_type = {};\n", name, custom_light_index,
+             static_cast<u32>(attnfunc));
+  if (alpha)
+  {
+    out->Write("\t\tcustom_data.{}[{}].color = float3(" LIGHT_COL
+               ") / float3(255.0, 255.0, 255.0);\n",
+               name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
+  }
+  else
+  {
+    out->Write("\t\tcustom_data.{}[{}].color = " LIGHT_COL " / float3(255.0, 255.0, 255.0);\n",
+               name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
+  }
+  out->Write("\t}}\n");
+}
+
+void GenerateCustomLightingImplementation(ShaderCode* out, const LightingUidData& uid_data,
+                                          std::string_view in_color_name)
+{
+  for (u32 i = 0; i < 8; i++)
+  {
+    for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
+    {
+      out->Write("\tcustom_data.lights_chan{}_color[{}].direction = float3(0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].position = float3(0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].color = float3(0, 0, 0);\n", channel_index,
+                 i);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].cosatt = float4(0, 0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].distatt = float4(0, 0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].attenuation_type = 0;\n", channel_index, i);
+
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].direction = float3(0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].position = float3(0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].color = float3(0, 0, 0);\n", channel_index,
+                 i);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].cosatt = float4(0, 0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].distatt = float4(0, 0, 0, 0);\n",
+                 channel_index, i);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].attenuation_type = 0;\n", channel_index, i);
+    }
+  }
+
+  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  {
+    const bool colormatsource = !!(uid_data.matsource & (1 << j));
+    if (colormatsource)  // from vertex
+      out->Write("custom_data.base_material[{}] = {}{};\n", j, in_color_name, j);
+    else  // from color
+      out->Write("custom_data.base_material[{}] = {}[{}] / 255.0;\n", j, I_MATERIALS, j + 2);
+
+    if ((uid_data.enablelighting & (1 << j)) != 0)
+    {
+      if ((uid_data.ambsource & (1 << j)) != 0)  // from vertex
+        out->Write("custom_data.ambient_lighting[{}] = {}{};\n", j, in_color_name, j);
+      else  // from color
+        out->Write("custom_data.ambient_lighting[{}] = {}[{}] / 255.0;\n", j, I_MATERIALS, j);
+    }
+    else
+    {
+      out->Write("custom_data.ambient_lighting[{}] = float4(1, 1, 1, 1);\n", j);
+    }
+
+    // check if alpha is different
+    const bool alphamatsource = !!(uid_data.matsource & (1 << (j + 2)));
+    if (alphamatsource != colormatsource)
+    {
+      if (alphamatsource)  // from vertex
+        out->Write("custom_data.base_material[{}].w = {}{}.w;\n", j, in_color_name, j);
+      else  // from color
+        out->Write("custom_data.base_material[{}].w = {}[{}].w / 255.0;\n", j, I_MATERIALS, j + 2);
+    }
+
+    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)
+    {
+      if ((uid_data.ambsource & (1 << (j + 2))) != 0)  // from vertex
+        out->Write("custom_data.ambient_lighting[{}].w = {}{}.w;\n", j, in_color_name, j);
+      else  // from color
+        out->Write("custom_data.ambient_lighting[{}].w = {}[{}].w / 255.0;\n", j, I_MATERIALS, j);
+    }
+    else
+    {
+      out->Write("custom_data.ambient_lighting[{}].w = 1;\n", j);
+    }
+
+    u32 light_count = 0;
+    if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
+    {
+      for (int i = 0; i < 8; ++i)
+      {
+        if ((uid_data.light_mask & (1 << (i + 8 * j))) != 0)
+        {
+          GenerateLighting(out, uid_data, i, j, j, light_count, false);
+          light_count++;
+        }
+      }
+    }
+    out->Write("\tcustom_data.light_chan{}_color_count = {};\n", j, light_count);
+
+    light_count = 0;
+    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
+    {
+      for (int i = 0; i < 8; ++i)
+      {
+        if ((uid_data.light_mask & (1 << (i + 8 * (j + 2)))) != 0)
+        {
+          GenerateLighting(out, uid_data, i, j + 2, j, light_count, true);
+          light_count++;
+        }
+      }
+    }
+    out->Write("\tcustom_data.light_chan{}_alpha_count = {};\n", j, light_count);
+  }
+}

@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/Config/Config.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
@@ -136,6 +137,9 @@ public:
   ~Wiimote();
 
   std::string GetName() const override;
+
+  InputConfig* GetConfig() const override;
+
   void LoadDefaults(const ControllerInterface& ciface) override;
 
   ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group) const;
@@ -152,7 +156,8 @@ public:
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
 
-  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) override;
+  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                    SensorBarState sensor_bar_state) override;
   void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
@@ -183,7 +188,7 @@ private:
 
   void StepDynamics();
   void UpdateButtonsStatus(const DesiredWiimoteState& target_state);
-  void BuildDesiredWiimoteState(DesiredWiimoteState* target_state);
+  void BuildDesiredWiimoteState(DesiredWiimoteState* target_state, SensorBarState sensor_bar_state);
 
   // Returns simulated accelerometer data in m/s^2.
   Common::Vec3 GetAcceleration(Common::Vec3 extra_acceleration) const;
@@ -343,6 +348,6 @@ private:
 
   IMUCursorState m_imu_cursor_state;
 
-  size_t m_config_changed_callback_id;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
 }  // namespace WiimoteEmu

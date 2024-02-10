@@ -11,7 +11,6 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
-#include "Core/HW/WII_IPC.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 namespace WiimoteEmu
@@ -109,10 +108,6 @@ void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_point
   // If Address 0x30 is not 0x08 the camera will return 0xFFs.
   // The Wii seems to write 0x01 here before changing modes/sensitivities.
   if (m_reg_data.enable_object_tracking != OBJECT_TRACKING_ENABLE)
-    return;
-
-  // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
-  if (!IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR])
     return;
 
   switch (m_reg_data.mode)

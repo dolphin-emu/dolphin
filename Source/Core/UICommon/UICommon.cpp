@@ -16,6 +16,8 @@
 #include <wil/resource.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
@@ -60,7 +62,7 @@
 
 namespace UICommon
 {
-static size_t s_config_changed_callback_id;
+static Config::ConfigChangedCallbackID s_config_changed_callback_id;
 
 static void CreateDumpPath(std::string path)
 {
@@ -264,6 +266,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_ASM_ROOT_IDX));
 #ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));
@@ -519,8 +522,7 @@ bool TriggerSTMPowerEvent()
     return false;
 
   Core::DisplayMessage("Shutting down", 30000);
-  auto& system = Core::System::GetInstance();
-  system.GetProcessorInterface().PowerButton_Tap();
+  ios->GetSystem().GetProcessorInterface().PowerButton_Tap();
 
   return true;
 }
@@ -577,14 +579,12 @@ std::string FormatSize(u64 bytes, int decimals)
   // div 10 to get largest named unit less than size
   // 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
   // Max value is 63 / 10 = 6
-  const int unit = IntLog2(std::max<u64>(bytes, 1)) / 10;
+  const int unit = MathUtil::IntLog2(std::max<u64>(bytes, 1)) / 10;
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  std::ostringstream ss;
-  ss << std::fixed << std::setprecision(decimals);
-  ss << bytes / unit_size << ' ' << Common::GetStringT(unit_symbols[unit]);
-  return ss.str();
+  return fmt::format("{:.{}Lf} {}", bytes / unit_size, decimals,
+                     Common::GetStringT(unit_symbols[unit]));
 }
 
 }  // namespace UICommon

@@ -25,6 +25,7 @@
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 #include "Core/HW/SI/SI_DeviceNull.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/System.h"
 
 namespace SerialInterface
 {
@@ -55,8 +56,8 @@ std::istream& operator>>(std::istream& stream, SIDevices& device)
   return stream;
 }
 
-ISIDevice::ISIDevice(SIDevices device_type, int device_number)
-    : m_device_number(device_number), m_device_type(device_type)
+ISIDevice::ISIDevice(Core::System& system, SIDevices device_type, int device_number)
+    : m_system(system), m_device_number(device_number), m_device_type(device_type)
 {
 }
 
@@ -111,7 +112,8 @@ void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 {
 }
 
-int SIDevice_GetGBATransferTime(EBufferCommands cmd)
+int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
+                                EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
@@ -142,10 +144,10 @@ int SIDevice_GetGBATransferTime(EBufferCommands cmd)
   }
   }
 
-  u64 cycles =
-      (gba_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GBA_BITS_PER_SECOND) +
-      (gc_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GC_BITS_PER_SECOND) +
-      (stop_bits_ns * SystemTimers::GetTicksPerSecond() / 1000000000LL);
+  const u32 ticks_per_second = timers.GetTicksPerSecond();
+  const u64 cycles = (gba_bytes_transferred * 8 * ticks_per_second / GBA_BITS_PER_SECOND) +
+                     (gc_bytes_transferred * 8 * ticks_per_second / GC_BITS_PER_SECOND) +
+                     (stop_bits_ns * ticks_per_second / 1000000000LL);
   return static_cast<int>(cycles);
 }
 
@@ -169,43 +171,44 @@ bool SIDevice_IsGCController(SIDevices type)
 }
 
 // F A C T O R Y
-std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number)
+std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, const SIDevices device,
+                                           const int port_number)
 {
   switch (device)
   {
   case SIDEVICE_GC_CONTROLLER:
-    return std::make_unique<CSIDevice_GCController>(device, port_number);
+    return std::make_unique<CSIDevice_GCController>(system, device, port_number);
 
   case SIDEVICE_WIIU_ADAPTER:
-    return std::make_unique<CSIDevice_GCAdapter>(device, port_number);
+    return std::make_unique<CSIDevice_GCAdapter>(system, device, port_number);
 
   case SIDEVICE_DANCEMAT:
-    return std::make_unique<CSIDevice_DanceMat>(device, port_number);
+    return std::make_unique<CSIDevice_DanceMat>(system, device, port_number);
 
   case SIDEVICE_GC_STEERING:
-    return std::make_unique<CSIDevice_GCSteeringWheel>(device, port_number);
+    return std::make_unique<CSIDevice_GCSteeringWheel>(system, device, port_number);
 
   case SIDEVICE_GC_TARUKONGA:
-    return std::make_unique<CSIDevice_TaruKonga>(device, port_number);
+    return std::make_unique<CSIDevice_TaruKonga>(system, device, port_number);
 
   case SIDEVICE_GC_GBA:
-    return std::make_unique<CSIDevice_GBA>(device, port_number);
+    return std::make_unique<CSIDevice_GBA>(system, device, port_number);
 
   case SIDEVICE_GC_GBA_EMULATED:
 #ifdef HAS_LIBMGBA
-    return std::make_unique<CSIDevice_GBAEmu>(device, port_number);
+    return std::make_unique<CSIDevice_GBAEmu>(system, device, port_number);
 #else
     PanicAlertFmtT("Error: This build does not support emulated GBA controllers");
-    return std::make_unique<CSIDevice_Null>(device, port_number);
+    return std::make_unique<CSIDevice_Null>(system, device, port_number);
 #endif
 
   case SIDEVICE_GC_KEYBOARD:
-    return std::make_unique<CSIDevice_Keyboard>(device, port_number);
+    return std::make_unique<CSIDevice_Keyboard>(system, device, port_number);
 
   case SIDEVICE_AM_BASEBOARD:
   case SIDEVICE_NONE:
   default:
-    return std::make_unique<CSIDevice_Null>(device, port_number);
+    return std::make_unique<CSIDevice_Null>(system, device, port_number);
   }
 }
 }  // namespace SerialInterface

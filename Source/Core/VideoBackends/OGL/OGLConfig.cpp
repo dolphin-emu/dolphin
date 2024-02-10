@@ -3,6 +3,11 @@
 
 #include "VideoBackends/OGL/OGLConfig.h"
 
+#include <cstdio>
+#include <string>
+#include <string_view>
+
+#include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/Logging/LogManager.h"
@@ -10,13 +15,12 @@
 
 #include "Core/Config/GraphicsSettings.h"
 
+#include "VideoBackends/OGL/OGLTexture.h"
+
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
-
-#include <cstdio>
-#include <string>
-#include <string_view>
 
 namespace OGL
 {
@@ -283,10 +287,6 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_Config.backend_info.bSupportsPrimitiveRestart =
       !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
-  g_Config.backend_info.bSupportsFragmentStoresAndAtomics =
-      GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
-  g_Config.backend_info.bSupportsVSLinePointExpand =
-      GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
   g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
   g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") &&
                                         GLExtensions::Supports("GL_ARB_sample_shading");
@@ -333,11 +333,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_ogl_config.bSupportsDebug =
       GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
   g_ogl_config.bSupportsTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage");
-  g_ogl_config.bSupports3DTextureStorageMultisample =
-      GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
-      GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
-  g_ogl_config.bSupports2DTextureStorageMultisample =
-      GLExtensions::Supports("GL_ARB_texture_storage_multisample");
+  g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageNone;
   g_ogl_config.bSupportsImageLoadStore = GLExtensions::Supports("GL_ARB_shader_image_load_store");
   g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
   g_ogl_config.bSupportsAniso = GLExtensions::Supports("GL_EXT_texture_filter_anisotropic");
@@ -350,6 +346,21 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       GLExtensions::Supports("GL_ARB_derivative_control") || GLExtensions::Version() >= 450;
   g_Config.backend_info.bSupportsTextureQueryLevels =
       GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
+
+  if (GLExtensions::Supports("GL_ARB_shader_storage_buffer_object"))
+  {
+    GLint fs = 0;
+    GLint vs = 0;
+    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &fs);
+    glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &vs);
+    g_Config.backend_info.bSupportsFragmentStoresAndAtomics = fs >= 1;
+    g_Config.backend_info.bSupportsVSLinePointExpand = vs >= 1;
+  }
+  else
+  {
+    g_Config.backend_info.bSupportsFragmentStoresAndAtomics = false;
+    g_Config.backend_info.bSupportsVSLinePointExpand = false;
+  }
 
   if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
   {
@@ -368,9 +379,10 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
   if (m_main_gl_context->IsGLES())
   {
-    g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 :
-                                        GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 :
-                                                                                               0;
+    g_ogl_config.SupportedESPointSize =
+        GLExtensions::Supports("GL_OES_geometry_point_size") ? EsPointSizeType::PointSizeOes :
+        GLExtensions::Supports("GL_EXT_geometry_point_size") ? EsPointSizeType::PointSizeExt :
+                                                               EsPointSizeType::PointSizeNone;
     g_ogl_config.SupportedESTextureBuffer =
         GLExtensions::Supports("VERSION_GLES_3_2")      ? EsTexbufType::TexbufCore :
         GLExtensions::Supports("GL_OES_texture_buffer") ? EsTexbufType::TexbufOes :
@@ -410,21 +422,16 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
       g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing =
-          g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
+          g_Config.backend_info.bSupportsGeometryShaders &&
+          g_ogl_config.SupportedESPointSize != EsPointSizeType::PointSizeNone;
       g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupportsTextureStorage = true;
-      g_ogl_config.bSupports2DTextureStorageMultisample = true;
+      if (GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array"))
+        g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageOes;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = g_ogl_config.bSupportsAEP;
-      if (g_ActiveConfig.stereo_mode != StereoMode::Off && g_ActiveConfig.iMultisamples > 1 &&
-          !g_ogl_config.bSupports3DTextureStorageMultisample)
-      {
-        // GLES 3.1 can't support stereo rendering and MSAA
-        OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
-        Config::SetCurrent(Config::GFX_MSAA, UINT32_C(1));
-      }
     }
     else
     {
@@ -434,7 +441,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsGeometryShaders = true;
       g_Config.backend_info.bSupportsComputeShaders = true;
-      g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
+      g_Config.backend_info.bSupportsGSInstancing =
+          g_ogl_config.SupportedESPointSize != EsPointSizeType::PointSizeNone;
       g_Config.backend_info.bSupportsPaletteConversion = true;
       g_Config.backend_info.bSupportsSSAA = true;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
@@ -443,8 +451,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_ogl_config.bSupportsDebug = true;
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupportsTextureStorage = true;
-      g_ogl_config.bSupports2DTextureStorageMultisample = true;
-      g_ogl_config.bSupports3DTextureStorageMultisample = true;
+      g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageCore;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
       g_Config.backend_info.bSupportsSettingObjectNames = true;
@@ -452,6 +459,9 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   }
   else
   {
+    if (GLExtensions::Supports("GL_ARB_texture_storage_multisample"))
+      g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageCore;
+
     if (GLExtensions::Version() < 300)
     {
       PanicAlertFmtT("GPU: OGL ERROR: Need at least GLSL 1.30\n"
@@ -485,6 +495,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
     else if (GLExtensions::Version() == 330)
     {
       g_ogl_config.eSupportedGLSLVersion = Glsl330;
+      g_ogl_config.bSupportsExplicitLayoutInShader =
+          GLExtensions::Supports("GL_ARB_explicit_attrib_location");
     }
     else if (GLExtensions::Version() >= 430)
     {
@@ -498,7 +510,9 @@ bool PopulateConfig(GLContext* m_main_gl_context)
         g_ogl_config.eSupportedGLSLVersion = Glsl430;
       }
       g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageCore;
       g_ogl_config.bSupportsImageLoadStore = true;
+      g_ogl_config.bSupportsExplicitLayoutInShader = true;
       g_Config.backend_info.bSupportsSSAA = true;
       g_Config.backend_info.bSupportsSettingObjectNames = true;
 
@@ -538,9 +552,118 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_Config.backend_info.bSupportsEarlyZ =
       g_ogl_config.bSupportsImageLoadStore || g_ogl_config.bSupportsConservativeDepth;
 
-  glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
-  if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
-    g_ogl_config.max_samples = 1;
+  g_Config.backend_info.AAModes.clear();
+  if (g_ogl_config.bSupportsMSAA)
+  {
+    bool supportsGetInternalFormat =
+        GLExtensions::Supports("VERSION_4_2") || GLExtensions::Supports("VERSION_GLES_3");
+    if (supportsGetInternalFormat)
+    {
+      // Note: GL_TEXTURE_2D_MULTISAMPLE_ARRAY_OES should technically be used for
+      // GL_OES_texture_storage_multisample_2d_array, but both are 0x9102 so it does not matter.
+
+      std::vector<int> color_aa_modes;
+      {
+        GLenum colorInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
+            FramebufferManager::GetEFBColorFormat(), true);
+        GLint num_color_sample_counts = 0;
+        glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat,
+                              GL_NUM_SAMPLE_COUNTS, 1, &num_color_sample_counts);
+
+        ASSERT_MSG(VIDEO, num_color_sample_counts >= 0,
+                   "negative GL_NUM_SAMPLE_COUNTS for colors does not make sense: {}",
+                   num_color_sample_counts);
+        color_aa_modes.reserve(num_color_sample_counts + 1);
+        if (num_color_sample_counts > 0)
+        {
+          color_aa_modes.resize(num_color_sample_counts);
+
+          static_assert(sizeof(GLint) == sizeof(u32));
+          glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat, GL_SAMPLES,
+                                num_color_sample_counts,
+                                reinterpret_cast<GLint*>(color_aa_modes.data()));
+          ASSERT_MSG(VIDEO, std::is_sorted(color_aa_modes.rbegin(), color_aa_modes.rend()),
+                     "GPU driver didn't return sorted color AA modes: [{}]",
+                     fmt::join(color_aa_modes, ", "));
+        }
+
+        if (color_aa_modes.empty() || color_aa_modes.back() != 1)
+          color_aa_modes.push_back(1);
+      }
+
+      std::vector<int> depth_aa_modes;
+      {
+        GLenum depthInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
+            FramebufferManager::GetEFBColorFormat(), true);
+        GLint num_depth_sample_counts = 0;
+        glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat,
+                              GL_NUM_SAMPLE_COUNTS, 1, &num_depth_sample_counts);
+
+        ASSERT_MSG(VIDEO, num_depth_sample_counts >= 0,
+                   "negative GL_NUM_SAMPLE_COUNTS for depth does not make sense: {}",
+                   num_depth_sample_counts);
+        depth_aa_modes.reserve(num_depth_sample_counts + 1);
+        if (num_depth_sample_counts > 0)
+        {
+          depth_aa_modes.resize(num_depth_sample_counts);
+
+          static_assert(sizeof(GLint) == sizeof(u32));
+          glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat, GL_SAMPLES,
+                                num_depth_sample_counts,
+                                reinterpret_cast<GLint*>(depth_aa_modes.data()));
+          ASSERT_MSG(VIDEO, std::is_sorted(depth_aa_modes.rbegin(), depth_aa_modes.rend()),
+                     "GPU driver didn't return sorted depth AA modes: [{}]",
+                     fmt::join(depth_aa_modes, ", "));
+        }
+
+        if (depth_aa_modes.empty() || depth_aa_modes.back() != 1)
+          depth_aa_modes.push_back(1);
+      }
+
+      // The spec says supported sample formats are returned in descending numeric order.
+      // It also says "Only positive values are returned", but does not specify whether 1 is
+      // included or not; it seems like NVIDIA and Intel GPUs do not include it.
+      // We've inserted 1 at the back of both if not present to handle this.
+      g_Config.backend_info.AAModes.clear();
+      g_Config.backend_info.AAModes.reserve(std::min(color_aa_modes.size(), depth_aa_modes.size()));
+      // We only want AA modes that are supported for both the color and depth textures. Probably
+      // the support is the same, though. rbegin/rend are used to swap the order ahead of time.
+      std::set_intersection(color_aa_modes.rbegin(), color_aa_modes.rend(), depth_aa_modes.rbegin(),
+                            depth_aa_modes.rend(),
+                            std::back_inserter(g_Config.backend_info.AAModes));
+    }
+    else
+    {
+      // The documentation for glGetInternalformativ says its value is at least the minimum of
+      // GL_MAX_SAMPLES, GL_MAX_COLOR_TEXTURE_SAMPLES, and GL_MAX_DEPTH_TEXTURE_SAMPLES (and
+      // GL_MAX_INTEGER_SAMPLES for integer textures, assumed not applicable here).
+      GLint max_color_samples = 0;
+      glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &max_color_samples);
+      GLint max_depth_samples = 0;
+      glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &max_depth_samples);
+      // Note: The desktop OpenGL ref pages don't actually say that GL_MAX_SAMPLES is a valid
+      // parameter for glGetIntegerv (though the ES ones do). However, MAX_SAMPLES is
+      // referenced in the GL 3.1 spec and by GL_ARB_texture_multisample (which is written against
+      // the OpenGL 3.1 spec), so presumably it is valid.
+      GLint max_samples = 0;
+      glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
+      u32 supported_max_samples =
+          static_cast<u32>(std::min({max_samples, max_color_samples, max_depth_samples}));
+
+      while (supported_max_samples > 1)
+      {
+        g_Config.backend_info.AAModes.push_back(supported_max_samples);
+        supported_max_samples /= 2;
+      }
+      g_Config.backend_info.AAModes.push_back(1);
+      // The UI wants ascending order
+      std::reverse(g_Config.backend_info.AAModes.begin(), g_Config.backend_info.AAModes.end());
+    }
+  }
+  else
+  {
+    g_Config.backend_info.AAModes = {1};
+  }
 
   const bool bSupportsIsHelperInvocation = g_ogl_config.bIsES ?
                                                g_ogl_config.eSupportedGLSLVersion >= GlslEs320 :
@@ -616,21 +739,27 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
   INFO_LOG_FMT(VIDEO, "Video Info: {}, {}, {}", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
                g_ogl_config.gl_version);
-  WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-               g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
-               g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
-               g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
-               g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
-               supports_glsl_cache ? "" : "ShaderCache ",
-               g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
-               g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
-               g_ogl_config.bSupportsGLSync ? "" : "Sync ",
-               g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
-               g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
-               g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
-               g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
-               g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
-               g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
+
+  const std::string missing_extensions = fmt::format(
+      "{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+      g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
+      g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
+      g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
+      g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
+      supports_glsl_cache ? "" : "ShaderCache ",
+      g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
+      g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
+      g_ogl_config.bSupportsGLSync ? "" : "Sync ", g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
+      g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
+      g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
+      g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
+      g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
+      g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
+
+  if (missing_extensions.empty())
+    INFO_LOG_FMT(VIDEO, "All used OGL Extensions are available.");
+  else
+    WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}", missing_extensions);
 
   return true;
 }

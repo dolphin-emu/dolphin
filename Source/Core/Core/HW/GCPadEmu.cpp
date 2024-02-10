@@ -8,6 +8,8 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/GCPad.h"
+
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
@@ -15,7 +17,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
-
 #include "InputCommon/GCPadStatus.h"
 
 static const u16 button_bitmasks[] = {
@@ -38,14 +39,16 @@ static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_L
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
   for (const char* named_button : {A_BUTTON, B_BUTTON, X_BUTTON, Y_BUTTON, Z_BUTTON})
   {
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
+    m_buttons->AddInput(Translatability::DoNotTranslate, named_button);
   }
   // i18n: The START/PAUSE button on GameCube controllers
-  m_buttons->AddInput(ControllerEmu::Translate, START_BUTTON, _trans("START"));
+  m_buttons->AddInput(Translatability::Translate, START_BUTTON, _trans("START"));
 
   // sticks
   groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
@@ -57,23 +60,23 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(TRIGGERS_GROUP));
   for (const char* named_trigger : {L_DIGITAL, R_DIGITAL, L_ANALOG, R_ANALOG})
   {
-    m_triggers->AddInput(ControllerEmu::Translate, named_trigger);
+    m_triggers->AddInput(Translatability::Translate, named_trigger);
   }
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+    m_dpad->AddInput(Translatability::Translate, named_direction);
   }
 
   // Microphone
   groups.emplace_back(m_mic = new ControllerEmu::Buttons(MIC_GROUP));
-  m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
+  m_mic->AddInput(Translatability::Translate, _trans("Button"));
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(RUMBLE_GROUP));
-  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
+  m_rumble->AddOutput(Translatability::Translate, _trans("Motor"));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(OPTIONS_GROUP));
@@ -91,6 +94,11 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 std::string GCPad::GetName() const
 {
   return std::string("GCPad") + char('1' + m_index);
+}
+
+InputConfig* GCPad::GetConfig() const
+{
+  return Pad::GetConfig();
 }
 
 ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)

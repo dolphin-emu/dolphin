@@ -100,11 +100,8 @@ bool HasLpf(u32 crc)
 }
 
 // Read a PB from MRAM/ARAM
-void ReadPB(u32 addr, PB_TYPE& pb, u32 crc)
+void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (HasLpf(crc))
   {
     u16* dst = (u16*)&pb;
@@ -127,11 +124,8 @@ void ReadPB(u32 addr, PB_TYPE& pb, u32 crc)
 }
 
 // Write a PB back to MRAM/ARAM
-void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
+void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (HasLpf(crc))
   {
     const u16* src = (const u16*)&pb;
@@ -153,10 +147,18 @@ void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
 }
 
 // Simulated accelerator state.
-static PB_TYPE* acc_pb;
-
 class HLEAccelerator final : public Accelerator
 {
+public:
+  explicit HLEAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp) {}
+  HLEAccelerator(const HLEAccelerator&) = delete;
+  HLEAccelerator(HLEAccelerator&&) = delete;
+  HLEAccelerator& operator=(const HLEAccelerator&) = delete;
+  HLEAccelerator& operator=(HLEAccelerator&&) = delete;
+  ~HLEAccelerator() = default;
+
+  PB_TYPE* acc_pb = nullptr;
+
 protected:
   void OnEndException() override
   {
@@ -187,37 +189,33 @@ protected:
     }
   }
 
-  u8 ReadMemory(u32 address) override
-  {
-    return Core::System::GetInstance().GetDSP().ReadARAM(address);
-  }
-  void WriteMemory(u32 address, u8 value) override
-  {
-    Core::System::GetInstance().GetDSP().WriteARAM(value, address);
-  }
+  u8 ReadMemory(u32 address) override { return m_dsp.ReadARAM(address); }
+
+  void WriteMemory(u32 address, u8 value) override { m_dsp.WriteARAM(value, address); }
+
+private:
+  DSP::DSPManager& m_dsp;
 };
 
-static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<HLEAccelerator>();
-
 // Sets up the simulated accelerator.
-void AcceleratorSetup(PB_TYPE* pb)
+void AcceleratorSetup(HLEAccelerator* accelerator, PB_TYPE* pb)
 {
-  acc_pb = pb;
-  s_accelerator->SetStartAddress(HILO_TO_32(pb->audio_addr.loop_addr));
-  s_accelerator->SetEndAddress(HILO_TO_32(pb->audio_addr.end_addr));
-  s_accelerator->SetCurrentAddress(HILO_TO_32(pb->audio_addr.cur_addr));
-  s_accelerator->SetSampleFormat(pb->audio_addr.sample_format);
-  s_accelerator->SetYn1(pb->adpcm.yn1);
-  s_accelerator->SetYn2(pb->adpcm.yn2);
-  s_accelerator->SetPredScale(pb->adpcm.pred_scale);
+  accelerator->acc_pb = pb;
+  accelerator->SetStartAddress(HILO_TO_32(pb->audio_addr.loop_addr));
+  accelerator->SetEndAddress(HILO_TO_32(pb->audio_addr.end_addr));
+  accelerator->SetCurrentAddress(HILO_TO_32(pb->audio_addr.cur_addr));
+  accelerator->SetSampleFormat(pb->audio_addr.sample_format);
+  accelerator->SetYn1(pb->adpcm.yn1);
+  accelerator->SetYn2(pb->adpcm.yn2);
+  accelerator->SetPredScale(pb->adpcm.pred_scale);
 }
 
 // Reads a sample from the accelerator. Also handles looping and
 // disabling streams that reached the end (this is done by an exception raised
 // by the accelerator on real hardware).
-u16 AcceleratorGetSample()
+u16 AcceleratorGetSample(HLEAccelerator* accelerator)
 {
-  return s_accelerator->Read(acc_pb->adpcm.coefs);
+  return accelerator->Read(accelerator->acc_pb->adpcm.coefs);
 }
 
 // Reads samples from the input callback, resamples them to <count> samples at
@@ -354,23 +352,24 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
 // Read <count> input samples from ARAM, decoding and converting rate
 // if required.
-void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
+void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16 count,
+                     const s16* coeffs)
 {
-  AcceleratorSetup(&pb);
+  AcceleratorSetup(accelerator, &pb);
 
   if (coeffs)
     coeffs += pb.coef_select * 0x200;
-  u32 curr_pos =
-      ResampleAudio([](u32) { return AcceleratorGetSample(); }, samples, count, pb.src.last_samples,
-                    pb.src.cur_addr_frac, HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
+  u32 curr_pos = ResampleAudio([accelerator](u32) { return AcceleratorGetSample(accelerator); },
+                               samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
+                               HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
   // Update current position, YN1, YN2 and pred scale in the PB.
-  pb.audio_addr.cur_addr_hi = static_cast<u16>(s_accelerator->GetCurrentAddress() >> 16);
-  pb.audio_addr.cur_addr_lo = static_cast<u16>(s_accelerator->GetCurrentAddress());
-  pb.adpcm.yn1 = s_accelerator->GetYn1();
-  pb.adpcm.yn2 = s_accelerator->GetYn2();
-  pb.adpcm.pred_scale = s_accelerator->GetPredScale();
+  pb.audio_addr.cur_addr_hi = static_cast<u16>(accelerator->GetCurrentAddress() >> 16);
+  pb.audio_addr.cur_addr_lo = static_cast<u16>(accelerator->GetCurrentAddress());
+  pb.adpcm.yn1 = accelerator->GetYn1();
+  pb.adpcm.yn2 = accelerator->GetYn2();
+  pb.adpcm.pred_scale = accelerator->GetPredScale();
 }
 
 // Add samples to an output buffer, with optional volume ramping.
@@ -410,8 +409,8 @@ s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
-void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl mctrl,
-                  const s16* coeffs)
+void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, u16 count,
+                  AXMixControl mctrl, const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
   if (pb.running != 1)
@@ -419,12 +418,19 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 
   // Read input samples, performing sample rate conversion if needed.
   s16 samples[MAX_SAMPLES_PER_FRAME];
-  GetInputSamples(pb, samples, count, coeffs);
+  GetInputSamples(accelerator, pb, samples, count, coeffs);
 
   // Apply a global volume ramp using the volume envelope parameters.
   for (u32 i = 0; i < count; ++i)
   {
-    const s32 sample = ((s32)samples[i] * pb.vol_env.cur_volume) >> 15;
+#ifdef AX_GC
+    // signed on GameCube
+    const s32 volume = (s16)pb.vol_env.cur_volume;
+#else
+    // unsigned on Wii
+    const s32 volume = (u16)pb.vol_env.cur_volume;
+#endif
+    const s32 sample = ((s32)samples[i] * volume) >> 15;
     samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }

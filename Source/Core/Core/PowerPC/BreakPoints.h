@@ -11,9 +11,13 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Expression.h"
 
-namespace Common
+namespace Core
 {
 class DebugInterface;
+}
+namespace Core
+{
+class System;
 }
 
 struct TBreakPoint
@@ -45,14 +49,21 @@ struct TMemCheck
   std::optional<Expression> condition;
 
   // returns whether to break
-  bool Action(Common::DebugInterface* debug_interface, u64 value, u32 addr, bool write, size_t size,
-              u32 pc);
+  bool Action(Core::System& system, Core::DebugInterface* debug_interface, u64 value, u32 addr,
+              bool write, size_t size, u32 pc);
 };
 
 // Code breakpoints.
 class BreakPoints
 {
 public:
+  explicit BreakPoints(Core::System& system);
+  BreakPoints(const BreakPoints& other) = delete;
+  BreakPoints(BreakPoints&& other) = delete;
+  BreakPoints& operator=(const BreakPoints& other) = delete;
+  BreakPoints& operator=(BreakPoints&& other) = delete;
+  ~BreakPoints();
+
   using TBreakPoints = std::vector<TBreakPoint>;
   using TBreakPointsStr = std::vector<std::string>;
 
@@ -82,12 +93,20 @@ public:
 
 private:
   TBreakPoints m_breakpoints;
+  Core::System& m_system;
 };
 
 // Memory breakpoints
 class MemChecks
 {
 public:
+  explicit MemChecks(Core::System& system);
+  MemChecks(const MemChecks& other) = delete;
+  MemChecks(MemChecks&& other) = delete;
+  MemChecks& operator=(const MemChecks& other) = delete;
+  MemChecks& operator=(MemChecks&& other) = delete;
+  ~MemChecks();
+
   using TMemChecks = std::vector<TMemCheck>;
   using TMemChecksStr = std::vector<std::string>;
 
@@ -109,4 +128,5 @@ public:
 
 private:
   TMemChecks m_mem_checks;
+  Core::System& m_system;
 };

@@ -25,6 +25,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 
 #include "UICommon/UICommon.h"
@@ -62,6 +63,7 @@ void FilesystemWidget::CreateWidgets()
   m_tree_view = new QTreeView(this);
   m_tree_view->setModel(m_tree_model);
   m_tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_tree_model->setParent(m_tree_view);
 
   auto* header = m_tree_view->header();
 
@@ -89,12 +91,12 @@ void FilesystemWidget::ConnectWidgets()
 void FilesystemWidget::PopulateView()
 {
   // Cache these two icons, the tree will use them a lot.
-  m_folder_icon = Resources::GetScaledIcon("isoproperties_folder");
-  m_file_icon = Resources::GetScaledIcon("isoproperties_file");
+  m_folder_icon = Resources::GetResourceIcon("isoproperties_folder");
+  m_file_icon = Resources::GetResourceIcon("isoproperties_file");
 
   auto* disc = new QStandardItem(tr("Disc"));
   disc->setEditable(false);
-  disc->setIcon(Resources::GetScaledIcon("isoproperties_disc"));
+  disc->setIcon(Resources::GetResourceIcon("isoproperties_disc"));
   disc->setData(QVariant::fromValue(EntryType::Disc), ENTRY_TYPE);
   m_tree_model->appendRow(disc);
   m_tree_view->expand(disc->index());
@@ -106,7 +108,7 @@ void FilesystemWidget::PopulateView()
     auto* item = new QStandardItem;
     item->setEditable(false);
 
-    item->setIcon(Resources::GetScaledIcon("isoproperties_disc"));
+    item->setIcon(Resources::GetResourceIcon("isoproperties_disc"));
     item->setData(static_cast<qlonglong>(i), ENTRY_PARTITION);
     item->setData(QVariant::fromValue(EntryType::Partition), ENTRY_TYPE);
 
@@ -363,6 +365,7 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
     dialog.Reset();
   });
 
+  SetQWidgetWindowDecorations(dialog.GetRaw());
   dialog.GetRaw()->exec();
   future.get();
 }

@@ -7,12 +7,12 @@
 #include <cmath>
 #include <limits>
 #include <optional>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
@@ -114,12 +114,12 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
     // not paired-single
 
     UCOMISD(xmm, R(xmm));
-    FixupBranch handle_nan = J_CC(CC_P, true);
+    FixupBranch handle_nan = J_CC(CC_P, Jump::Near);
     SwitchToFarCode();
     SetJumpTarget(handle_nan);
 
     // If any inputs are NaNs, pick the first NaN of them
-    std::vector<FixupBranch> fixups;
+    Common::SmallVector<FixupBranch, 3> fixups;
     const auto check_input = [&](const OpArg& Rx) {
       MOVDDUP(xmm, Rx);
       UCOMISD(xmm, R(xmm));
@@ -140,7 +140,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
       SetJumpTarget(fixup);
     ORPD(xmm, MConst(psGeneratedQNaN));
 
-    FixupBranch done = J(true);
+    FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
     SetJumpTarget(done);
   }
@@ -152,7 +152,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
     {
       avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, R(xmm), R(xmm), CMP_UNORD);
       PTEST(clobber, R(clobber));
-      FixupBranch handle_nan = J_CC(CC_NZ, true);
+      FixupBranch handle_nan = J_CC(CC_NZ, Jump::Near);
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
 
@@ -182,7 +182,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
       CMPPD(clobber, R(clobber), CMP_UNORD);
       MOVMSKPD(RSCRATCH, R(clobber));
       TEST(32, R(RSCRATCH), R(RSCRATCH));
-      FixupBranch handle_nan = J_CC(CC_NZ, true);
+      FixupBranch handle_nan = J_CC(CC_NZ, Jump::Near);
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
 
@@ -215,7 +215,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
     ANDPD(clobber, MConst(psGeneratedQNaN));
     ORPD(xmm, R(clobber));
 
-    FixupBranch done = J(true);
+    FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
     SetJumpTarget(done);
   }
@@ -780,7 +780,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     SetJumpTarget(continue3);
   }
 
-  MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
+  MOV(64, PPCSTATE_CR(crf), R(RSCRATCH));
 }
 
 void Jit64::fcmpX(UGeckoInstruction inst)

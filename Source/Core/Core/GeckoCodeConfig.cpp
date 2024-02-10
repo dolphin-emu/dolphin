@@ -17,20 +17,18 @@
 
 namespace Gecko
 {
-std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni)
+std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni)
 {
   std::vector<GeckoCode> gcodes;
 
-  for (const IniFile* ini : {&globalIni, &localIni})
+  for (const auto* ini : {&globalIni, &localIni})
   {
     std::vector<std::string> lines;
     ini->GetLines("Gecko", &lines, false);
 
     GeckoCode gcode;
 
-    lines.erase(std::remove_if(lines.begin(), lines.end(),
-                               [](const auto& line) { return line.empty() || line[0] == '#'; }),
-                lines.end());
+    std::erase_if(lines, [](const auto& line) { return line.empty() || line[0] == '#'; });
 
     for (auto& line : lines)
     {
@@ -129,7 +127,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcod
     lines.push_back('*' + note);
 }
 
-void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
+void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;

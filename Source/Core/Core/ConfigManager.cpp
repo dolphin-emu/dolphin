@@ -30,6 +30,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/DefaultLocale.h"
@@ -52,6 +53,8 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/TitleDatabase.h"
+#include "Core/WC24PatchEngine.h"
+
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
@@ -190,6 +193,10 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   if (!was_changed)
     return;
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance().SetDisabled(true);
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   if (game_id == "00000000")
   {
     m_title_name.clear();
@@ -198,7 +205,8 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   }
 
   const Core::TitleDatabase title_database;
-  const DiscIO::Language language = GetLanguageAdjustedForRegion(bWii, region);
+  auto& system = Core::System::GetInstance();
+  const DiscIO::Language language = GetLanguageAdjustedForRegion(system.IsWii(), region);
   m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
@@ -230,14 +238,15 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   HLE::Reload(system);
   PatchEngine::Reload();
   HiresTexture::Update();
+  WC24PatchEngine::Reload();
 }
 
 void SConfig::LoadDefaults()
 {
-  bAutomaticStart = false;
   bBootToPause = false;
 
-  bWii = false;
+  auto& system = Core::System::GetInstance();
+  system.SetIsWii(false);
 
   ResetRunningGameMetadata();
 }
@@ -253,11 +262,14 @@ std::string SConfig::MakeGameID(std::string_view file_name)
 
 struct SetGameMetadata
 {
-  SetGameMetadata(SConfig* config_, DiscIO::Region* region_) : config(config_), region(region_) {}
+  SetGameMetadata(SConfig* config_, Core::System& system_, DiscIO::Region* region_)
+      : config(config_), system(system_), region(region_)
+  {
+  }
   bool operator()(const BootParameters::Disc& disc) const
   {
     *region = disc.volume->GetRegion();
-    config->bWii = disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc;
+    system.SetIsWii(disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc);
     config->m_disc_booted_from_game_list = true;
     config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
     return true;
@@ -269,7 +281,7 @@ struct SetGameMetadata
       return false;
 
     *region = DiscIO::Region::Unknown;
-    config->bWii = executable.reader->IsWii();
+    system.SetIsWii(executable.reader->IsWii());
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
@@ -301,7 +313,7 @@ struct SetGameMetadata
 
     const IOS::ES::TMDReader& tmd = wad.GetTMD();
     *region = tmd.GetRegion();
-    config->bWii = true;
+    system.SetIsWii(true);
     config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
 
     return true;
@@ -310,7 +322,7 @@ struct SetGameMetadata
   bool operator()(const BootParameters::NANDTitle& nand_title) const
   {
     IOS::HLE::Kernel ios;
-    const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
+    const IOS::ES::TMDReader tmd = ios.GetESCore().FindInstalledTMD(nand_title.id);
     if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
     {
       PanicAlertFmtT("This title cannot be booted.");
@@ -318,7 +330,7 @@ struct SetGameMetadata
     }
 
     *region = tmd.GetRegion();
-    config->bWii = true;
+    system.SetIsWii(true);
     config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
 
     return true;
@@ -327,7 +339,7 @@ struct SetGameMetadata
   bool operator()(const BootParameters::IPL& ipl) const
   {
     *region = ipl.region;
-    config->bWii = false;
+    system.SetIsWii(false);
     Host_TitleChanged();
 
     return true;
@@ -340,7 +352,7 @@ struct SetGameMetadata
       return false;
 
     *region = DiscIO::Region::NTSC_U;
-    config->bWii = dff_file->GetIsWii();
+    system.SetIsWii(dff_file->GetIsWii());
     Host_TitleChanged();
 
     return true;
@@ -348,14 +360,15 @@ struct SetGameMetadata
 
 private:
   SConfig* config;
+  Core::System& system;
   DiscIO::Region* region;
 };
 
-bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
+bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters& boot)
 {
-  m_is_mios = false;
+  system.SetIsMIOS(false);
   m_disc_booted_from_game_list = false;
-  if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
+  if (!std::visit(SetGameMetadata(this, system, &m_region), boot.parameters))
     return false;
 
   if (m_region == DiscIO::Region::Unknown)
@@ -417,43 +430,78 @@ DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region 
   return language;
 }
 
-IniFile SConfig::LoadDefaultGameIni() const
+Common::IniFile SConfig::LoadDefaultGameIni() const
 {
   return LoadDefaultGameIni(GetGameID(), m_revision);
 }
 
-IniFile SConfig::LoadLocalGameIni() const
+Common::IniFile SConfig::LoadLocalGameIni() const
 {
   return LoadLocalGameIni(GetGameID(), m_revision);
 }
 
-IniFile SConfig::LoadGameIni() const
+Common::IniFile SConfig::LoadGameIni() const
 {
   return LoadGameIni(GetGameID(), m_revision);
 }
 
-IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
 {
-  IniFile game_ini;
+  Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   return game_ini;
 }
 
-IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
 {
-  IniFile game_ini;
+  Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
 }
 
-IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
 {
-  IniFile game_ini;
+  Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
+}
+
+std::string SConfig::GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) const
+{
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
+    return "JA";
+  case DiscIO::Region::NTSC_U:
+    return "US";
+  case DiscIO::Region::NTSC_K:
+    return "KO";
+  case DiscIO::Region::PAL:
+  {
+    const auto user_lang = GetCurrentLanguage(wii);
+    switch (user_lang)
+    {
+    case DiscIO::Language::German:
+      return "DE";
+    case DiscIO::Language::French:
+      return "FR";
+    case DiscIO::Language::Spanish:
+      return "ES";
+    case DiscIO::Language::Italian:
+      return "IT";
+    case DiscIO::Language::Dutch:
+      return "NL";
+    case DiscIO::Language::English:
+    default:
+      return "EN";
+    }
+  }
+  default:
+    return "EN";
+  }
 }

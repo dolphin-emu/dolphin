@@ -51,6 +51,9 @@ private:
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;
   QPoint m_last_mouse{};
+  int m_last_window_width = 0;
+  int m_last_window_height = 0;
+  float m_last_window_scale = 0;
   bool m_cursor_locked = false;
   bool m_lock_cursor_on_next_activation = false;
   bool m_dont_lock_cursor_on_show = false;

@@ -1,4 +1,5 @@
 @echo off
+setlocal
 setlocal EnableDelayedExpansion
 
 set BUILD_ROOT=%~dp0\..\build
@@ -15,23 +16,15 @@ if "%Platform%"=="x64" (
     exit /B 1
 )
 
-call :build clang debug
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
-call :build clang release
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
-call :build clang relwithdebinfo
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
-call :build clang minsizerel
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
+set COMPILERS=clang msvc
+set BUILD_TYPES=debug release relwithdebinfo minsizerel
 
-call :build msvc debug
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
-call :build msvc release
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
-call :build msvc relwithdebinfo
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
-call :build msvc minsizerel
-if %ERRORLEVEL% NEQ 0 ( goto :eof )
+for %%c in (%COMPILERS%) do (
+    for %%b in (%BUILD_TYPES%) do (
+        call :build %%c %%b
+        if !ERRORLEVEL! NEQ 0 ( goto :eof )
+    )
+)
 
 echo All build completed successfully!
 
@@ -47,5 +40,6 @@ if not exist %BUILD_DIR% (
 pushd %BUILD_DIR%
 echo Building from %CD%
 ninja
+set EXIT_CODE=%ERRORLEVEL%
 popd
-goto :eof
+exit /B %EXIT_CODE%

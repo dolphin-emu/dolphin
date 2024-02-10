@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="1300" height="1300" viewBox="0 0 1300 1300" xmlns="http://www.w3.org/2000/svg">
+<rect x="50" y="50" width="1200" height="1200" style="stroke:#7e7e7e;stroke-width:100;fill:none;" />
+<polyline points="250,700 500,950 1100,350" stroke="#7e7e7e" stroke-width="150" fill="none" />
+</svg>

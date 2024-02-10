@@ -38,18 +38,18 @@ enum
 };
 
 // The /dev/stm/immediate
-class STMImmediateDevice final : public Device
+class STMImmediateDevice final : public EmulationDevice
 {
 public:
-  using Device::Device;
+  using EmulationDevice::EmulationDevice;
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 };
 
 // The /dev/stm/eventhook
-class STMEventHookDevice final : public Device
+class STMEventHookDevice final : public EmulationDevice
 {
 public:
-  using Device::Device;
+  using EmulationDevice::EmulationDevice;
   ~STMEventHookDevice() override;
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;

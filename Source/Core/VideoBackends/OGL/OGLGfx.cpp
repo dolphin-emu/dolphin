@@ -22,6 +22,7 @@
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include <algorithm>
 #include <string_view>
 
 namespace OGL
@@ -128,8 +129,8 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
   if (!m_main_gl_context->IsHeadless())
   {
     m_system_framebuffer = std::make_unique<OGLFramebuffer>(
-        nullptr, nullptr, AbstractTextureFormat::RGBA8, AbstractTextureFormat::Undefined,
-        std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
+        nullptr, nullptr, std::vector<AbstractTexture*>{}, AbstractTextureFormat::RGBA8,
+        AbstractTextureFormat::Undefined, std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
         std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1, 0);
     m_current_framebuffer = m_system_framebuffer.get();
   }
@@ -146,12 +147,6 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
     }
   }
 
-  if (!PopulateConfig(m_main_gl_context.get()))
-  {
-    // Not all needed extensions are supported, so we have to stop here.
-    // Else some of the next calls might crash.
-    return;
-  }
   InitDriverInfo();
 
   // Setup Debug logging
@@ -226,11 +221,13 @@ std::unique_ptr<AbstractStagingTexture> OGLGfx::CreateStagingTexture(StagingText
   return OGLStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> OGLGfx::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                               AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+OGLGfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                          std::vector<AbstractTexture*> additional_color_attachments)
 {
   return OGLFramebuffer::Create(static_cast<OGLTexture*>(color_attachment),
-                                static_cast<OGLTexture*>(depth_attachment));
+                                static_cast<OGLTexture*>(depth_attachment),
+                                std::move(additional_color_attachments));
 }
 
 std::unique_ptr<AbstractShader>
@@ -307,8 +304,11 @@ void OGLGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x
     static_cast<const OGLPipeline*>(m_current_pipeline)->GetProgram()->shader.Bind();
 
   // Barrier to texture can be used for reads.
-  if (m_bound_image_texture)
+  if (std::any_of(m_bound_image_textures.begin(), m_bound_image_textures.end(),
+                  [](auto image) { return image != nullptr; }))
+  {
     glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
+  }
 }
 
 void OGLGfx::SelectLeftBuffer()
@@ -656,23 +656,23 @@ void OGLGfx::SetSamplerState(u32 index, const SamplerState& state)
   g_sampler_cache->SetSamplerState(index, state);
 }
 
-void OGLGfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void OGLGfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  if (m_bound_image_texture == texture)
+  if (m_bound_image_textures[index] == texture)
     return;
 
   if (texture)
   {
     const GLenum access = read ? (write ? GL_READ_WRITE : GL_READ_ONLY) : GL_WRITE_ONLY;
-    glBindImageTexture(0, static_cast<OGLTexture*>(texture)->GetGLTextureId(), 0, GL_TRUE, 0,
+    glBindImageTexture(index, static_cast<OGLTexture*>(texture)->GetGLTextureId(), 0, GL_TRUE, 0,
                        access, static_cast<OGLTexture*>(texture)->GetGLFormatForImageTexture());
   }
   else
   {
-    glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    glBindImageTexture(index, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
   }
 
-  m_bound_image_texture = texture;
+  m_bound_image_textures[index] = texture;
 }
 
 void OGLGfx::UnbindTexture(const AbstractTexture* texture)
@@ -687,10 +687,13 @@ void OGLGfx::UnbindTexture(const AbstractTexture* texture)
     m_bound_textures[i] = nullptr;
   }
 
-  if (m_bound_image_texture == texture)
+  for (size_t i = 0; i < m_bound_image_textures.size(); i++)
   {
-    glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
-    m_bound_image_texture = nullptr;
+    if (m_bound_image_textures[i] != texture)
+      continue;
+
+    glBindImageTexture(static_cast<GLuint>(i), 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    m_bound_image_textures[i] = nullptr;
   }
 }
 

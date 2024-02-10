@@ -60,13 +60,13 @@ namespace wistd     // ("Windows Implementation" std)
         template <class _Tp, class _Dp, bool = __has_pointer_type<_Dp>::value>
         struct __pointer_type
         {
-            typedef typename _Dp::pointer type;
+            using type = typename _Dp::pointer;
         };
 
         template <class _Tp, class _Dp>
         struct __pointer_type<_Tp, _Dp, false>
         {
-            typedef _Tp* type;
+            using type = _Tp*;
         };
 
     }  // __pointer_type_imp
@@ -74,16 +74,16 @@ namespace wistd     // ("Windows Implementation" std)
     template <class _Tp, class _Dp>
     struct __pointer_type
     {
-        typedef typename __pointer_type_imp::__pointer_type<_Tp, typename remove_reference<_Dp>::type>::type type;
+        using type = typename __pointer_type_imp::__pointer_type<_Tp, typename remove_reference<_Dp>::type>::type;
     };
 
     template <class _Tp, int _Idx,
               bool _CanBeEmptyBase =
                   is_empty<_Tp>::value && !__libcpp_is_final<_Tp>::value>
     struct __compressed_pair_elem {
-      typedef _Tp _ParamT;
-      typedef _Tp& reference;
-      typedef const _Tp& const_reference;
+      using _ParamT = _Tp;
+      using reference = _Tp&;
+      using const_reference = const _Tp&;
 
 #ifndef __WI_LIBCPP_CXX03_LANG
       __WI_LIBCPP_INLINE_VISIBILITY constexpr __compressed_pair_elem() : __value_() {}
@@ -115,10 +115,10 @@ namespace wistd     // ("Windows Implementation" std)
 
     template <class _Tp, int _Idx>
     struct __compressed_pair_elem<_Tp, _Idx, true> : private _Tp {
-      typedef _Tp _ParamT;
-      typedef _Tp& reference;
-      typedef const _Tp& const_reference;
-      typedef _Tp __value_type;
+      using _ParamT = _Tp;
+      using reference = _Tp&;
+      using const_reference = const _Tp&;
+      using __value_type = _Tp;
 
 #ifndef __WI_LIBCPP_CXX03_LANG
       __WI_LIBCPP_INLINE_VISIBILITY constexpr __compressed_pair_elem() = default;
@@ -149,10 +149,10 @@ namespace wistd     // ("Windows Implementation" std)
     struct __second_tag {};
 
     template <class _T1, class _T2>
-    class __compressed_pair : private __compressed_pair_elem<_T1, 0>,
-                              private __compressed_pair_elem<_T2, 1> {
-      typedef __compressed_pair_elem<_T1, 0> _Base1;
-      typedef __compressed_pair_elem<_T2, 1> _Base2;
+    class __declspec(empty_bases) __compressed_pair : private __compressed_pair_elem<_T1, 0>,
+                                                      private __compressed_pair_elem<_T2, 1> {
+      using _Base1 = __compressed_pair_elem<_T1, 0>;
+      using _Base2 = __compressed_pair_elem<_T2, 1>;
 
       // NOTE: This static assert should never fire because __compressed_pair
       // is *almost never* used in a scenario where it's possible for T1 == T2.
@@ -271,7 +271,7 @@ namespace wistd     // ("Windows Implementation" std)
       __WI_LIBCPP_INLINE_VISIBILITY
       default_delete(const default_delete<_Up>&,
                      typename enable_if<is_convertible<_Up*, _Tp*>::value>::type* =
-                         0) WI_NOEXCEPT {}
+                         nullptr) WI_NOEXCEPT {}
 
       __WI_LIBCPP_INLINE_VISIBILITY void operator()(_Tp* __ptr) const WI_NOEXCEPT {
         static_assert(sizeof(_Tp) > 0,
@@ -299,7 +299,7 @@ namespace wistd     // ("Windows Implementation" std)
       template <class _Up>
       __WI_LIBCPP_INLINE_VISIBILITY
       default_delete(const default_delete<_Up[]>&,
-                     typename _EnableIfConvertible<_Up>::type* = 0) WI_NOEXCEPT {}
+                     typename _EnableIfConvertible<_Up>::type* = nullptr) WI_NOEXCEPT {}
 
       template <class _Up>
       __WI_LIBCPP_INLINE_VISIBILITY
@@ -319,32 +319,32 @@ namespace wistd     // ("Windows Implementation" std)
     template <class _Deleter>
     struct __unique_ptr_deleter_sfinae {
       static_assert(!is_reference<_Deleter>::value, "incorrect specialization");
-      typedef const _Deleter& __lval_ref_type;
-      typedef _Deleter&& __good_rval_ref_type;
-      typedef true_type __enable_rval_overload;
+      using __lval_ref_type = const _Deleter&;
+      using __good_rval_ref_type = _Deleter&&;
+      using __enable_rval_overload = true_type;
     };
 
     template <class _Deleter>
     struct __unique_ptr_deleter_sfinae<_Deleter const&> {
-      typedef const _Deleter& __lval_ref_type;
-      typedef const _Deleter&& __bad_rval_ref_type;
-      typedef false_type __enable_rval_overload;
+      using __lval_ref_type = const _Deleter&;
+      using __bad_rval_ref_type = const _Deleter&&;
+      using __enable_rval_overload = false_type;
     };
 
     template <class _Deleter>
     struct __unique_ptr_deleter_sfinae<_Deleter&> {
-      typedef _Deleter& __lval_ref_type;
-      typedef _Deleter&& __bad_rval_ref_type;
-      typedef false_type __enable_rval_overload;
+      using __lval_ref_type = _Deleter&;
+      using __bad_rval_ref_type = _Deleter&&;
+      using __enable_rval_overload = false_type;
     };
 #endif // !defined(__WI_LIBCPP_CXX03_LANG)
 
     template <class _Tp, class _Dp = default_delete<_Tp> >
     class __WI_LIBCPP_TEMPLATE_VIS unique_ptr {
     public:
-      typedef _Tp element_type;
-      typedef _Dp deleter_type;
-      typedef typename __pointer_type<_Tp, deleter_type>::type pointer;
+      using element_type = _Tp;
+      using deleter_type = _Dp;
+      using pointer = typename __pointer_type<_Tp, deleter_type>::type;
 
       static_assert(!is_rvalue_reference<deleter_type>::value,
                     "the specified deleter type cannot be an rvalue reference");
@@ -355,7 +355,7 @@ namespace wistd     // ("Windows Implementation" std)
       struct __nat { int __for_bool_; };
 
 #ifndef __WI_LIBCPP_CXX03_LANG
-      typedef __unique_ptr_deleter_sfinae<_Dp> _DeleterSFINAE;
+      using _DeleterSFINAE = __unique_ptr_deleter_sfinae<_Dp>;
 
       template <bool _Dummy>
       using _LValRefType =
@@ -582,9 +582,9 @@ namespace wistd     // ("Windows Implementation" std)
     template <class _Tp, class _Dp>
     class __WI_LIBCPP_TEMPLATE_VIS unique_ptr<_Tp[], _Dp> {
     public:
-      typedef _Tp element_type;
-      typedef _Dp deleter_type;
-      typedef typename __pointer_type<_Tp, deleter_type>::type pointer;
+      using element_type = _Tp;
+      using deleter_type = _Dp;
+      using pointer = typename __pointer_type<_Tp, deleter_type>::type;
 
     private:
       __compressed_pair<pointer, deleter_type> __ptr_;
@@ -602,7 +602,7 @@ namespace wistd     // ("Windows Implementation" std)
       {};
 
 #ifndef __WI_LIBCPP_CXX03_LANG
-      typedef __unique_ptr_deleter_sfinae<_Dp> _DeleterSFINAE;
+      using _DeleterSFINAE = __unique_ptr_deleter_sfinae<_Dp>;
 
       template <bool _Dummy>
       using _LValRefType =

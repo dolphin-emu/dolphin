@@ -1,0 +1,307 @@
+{
+    "meta":
+    {
+        "title": "Dragon Ball Z: Budokai Tenkaichi 3 Definitions",
+        "author": "Seedonator"
+    },
+    "groups": 
+	    [
+		      {
+			      "name": "Bloom",
+			      "targets": [
+				      {
+					      "type": "efb",
+					      "texture_filename": "efb1_n000014_128x128_4"
+				      }
+            ]	
+		    },
+        {
+            "name": "HUD",
+            "targets": [
+                {
+                    "type": "draw_started",
+                    "prettyname": "HUD Backdrop",
+                    "texture_filename": "tex1_256x64_50e9493ab5ecd6e9_5efd0133152917bc_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Max Power Lightning",
+                    "texture_filename": "tex1_256x128_76ee22f289405f4f_0a3363fc16e5200b_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Timer Backdrop",
+                    "texture_filename": "tex1_64x64_1b0bd43920520089_894789000b300d35_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Teammate Backdrop",
+                    "texture_filename": "tex1_64x64_76189a0850bac928_d5586441a9651de1_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "HUD Backdrop 2",
+                    "texture_filename": "tex1_256x64_4751a5dd9b515483_6ef5db463bf9b5fe_9"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Meters Colored",
+                    "texture_filename": "tex1_256x64_974aae7fb39dd3fe_dc826162c7781cf3_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Meters Colored 2",
+                    "texture_filename": "tex1_256x64_974aae7fb39dd3fe_c0adc9c4480c91c1_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Meters Red",
+                    "texture_filename": "tex1_256x64_974aae7fb39dd3fe_65f3d25263258092_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Meters Overlay",
+                    "texture_filename": "tex1_256x64_974aae7fb39dd3fe_37c76c0d16ef044d_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Meter Glow",
+                    "texture_filename": "tex1_64x64_1c31b3c28a7aef47_1c42ae23afd2f40f_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Meter Teammate",
+                    "texture_filename": "tex1_128x32_277ce02a6f60e609_30b338ab0d636ab2_9"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Stat Bonus Ki Damage",
+                    "texture_filename": "tex1_32x32_20bc4452577d1f49_85422f750ab42532_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Stat Bonus Charge Speed",
+                    "texture_filename": "tex1_32x32_af9478cb6ebc0b7a_5ba8f3ea380bfdcf_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Stat Bonus Defense",
+                    "texture_filename": "tex1_32x32_c7cf9020318a2959_5d41872b1fcd6199_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Stat Bonus Melee Damage",
+                    "texture_filename": "tex1_32x32_e4c8e81a7318fa25_6e21f60b0c990c98_8"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Blast Stock Number",
+                    "texture_filename": "tex1_128x64_00ba91db7d176946_0ecdf6905c577ddb_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Blast Stock Number Glow",
+                    "texture_filename": "tex1_128x64_53d69bea13e150ab_24a4df43c24b0515_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Timer Value",
+                    "texture_filename": "tex1_128x128_6976151439efad50_501b3bc09a6958d7_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Hit Text",
+                    "texture_filename": "tex1_128x64_9366938c3344b862_83be965a88f28a40_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Hit Counter",
+                    "texture_filename": "tex1_128x128_273f16293f4d7a40_8a29b5887317abf8_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Damage Counter",
+                    "texture_filename": "tex1_128x128_1588ef89e137fc24_1cce6b863d92c9a0_8"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Announcer Max Power",
+                    "texture_filename": "tex1_128x64_482f78c5dfc14eab_0e7513b77d82c9ae_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Announcer First Attack",
+                    "texture_filename": "tex1_128x64_b92d24567ae12b3a_14d61fafa74e6334_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Announcer Counter",
+                    "texture_filename": "tex1_128x64_bbdfacdc36d171ec_85047913fd8df9aa_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Announcer Lock On",
+                    "texture_filename": "tex1_128x64_3ba4b1f803afd256_93ba5384bd764946_9"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Announcer Boost",
+                    "texture_filename": "tex1_128x64_09d5b89f7dbf0590_2abc7134cbb2138b_9"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Buttom Prompt Y",
+                    "texture_filename": "tex1_32x32_15f350b2b7f46481_66860824280a89bf_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt Y Hold",
+                    "texture_filename": "tex1_32x32_00d2fb316a25d017_a889bebad6535a02_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt Y Mash",
+                    "texture_filename": "tex1_64x64_8934f812b54f87c4_66860824280a89bf_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Buttom Prompt B",
+                    "texture_filename": "tex1_32x32_ce62786fc1170192_70b585e07941e91c_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt B Hold",
+                    "texture_filename": "tex1_32x32_2841b917a7c23834_bdbd0425eb2f4b52_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt B Mash",
+                    "texture_filename": "tex1_64x64_23b176984035b44c_8204be59ecb7c469_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Buttom Prompt X",
+                    "texture_filename": "tex1_32x32_b52817e68be0e2d7_d1b283ce04ce1c7c_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt X Mash",
+                    "texture_filename": "tex1_64x64_cb8aa5843b3cc31c_ccbcbdf9c811ed5d_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Buttom Prompt A",
+                    "texture_filename": "tex1_32x32_630cfa888a9d005a_d95570935377e345_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt A Mash",
+                    "texture_filename": "tex1_64x64_eef97dc696b0edd6_758bf7c8a0397add_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt Hold Hand",
+                    "texture_filename": "tex1_32x32_80eec4ab54c12b14_2fbe88721f145bc3_8"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Up",
+                    "texture_filename": "tex1_32x32_56eb18736158692a_831cb2dcaee7d9c7_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Down",
+                    "texture_filename": "tex1_32x32_4f6911885cbfd6b7_b01602f981cf7194_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Left",
+                    "texture_filename": "tex1_32x32_de66fb7b17f39fb2_723568783ce8af39_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Right",
+                    "texture_filename": "tex1_32x32_4a3ce686c4d7d216_d9a6c961c9883e00_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Clash N",
+                    "texture_filename": "tex1_64x64_0e45133195ab2db7_8061698fc3e81ec4_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Clash NE",
+                    "texture_filename": "tex1_64x64_23a7ebdcad6f294c_961413a3996f1955_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Clash E",
+                    "texture_filename": "tex1_64x64_fc736187474b6d87_5db58dd7fedde1e4_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Clash SE",
+                    "texture_filename": "tex1_64x64_847d2a027ba61a6d_da6f9db59fa7a52b_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Clash S",
+                    "texture_filename": "tex1_64x64_2fd46476d6eeb2a5_8cf71f59f3f4f61d_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt LStick Clash Neutral",
+                    "texture_filename": "tex1_64x64_e63e59943072d5ba_13e4b338982e9dbc_8"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt Plus",
+                    "texture_filename": "tex1_32x32_214dbb89f41af76c_ee10bcb01a356553_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Button Prompt Mash Backdrop",
+                    "texture_filename": "tex1_64x64_c7be948af15370ea_104c0c86a865a442_9"
+                },
+				
+				
+				
+				{
+                    "type": "draw_started",
+                    "prettyname": "Text Font Main",
+                    "texture_filename": "tex1_512x128_b38c0db36dfc6ac3_71a440118950d6cd_8"
+                },
+				{
+                    "type": "draw_started",
+                    "prettyname": "Text Font Special",
+                    "texture_filename": "tex1_512x128_b38c0db36dfc6ac3_561056e6b4e21980_8"
+                }
+
+
+
+				
+            ]
+        }
+    ]
+}

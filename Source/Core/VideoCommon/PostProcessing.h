@@ -16,12 +16,14 @@
 class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
+class AbstractFramebuffer;
 
 namespace VideoCommon
 {
 class PostProcessingConfiguration
 {
 public:
+  // User defined post process
   struct ConfigurationOption
   {
     enum class OptionType
@@ -105,29 +107,44 @@ public:
   void RecompilePipeline();
 
   void BlitFromTexture(const MathUtil::Rectangle<int>& dst, const MathUtil::Rectangle<int>& src,
-                       const AbstractTexture* src_tex, int src_layer);
+                       const AbstractTexture* src_tex, int src_layer = -1);
+
+  bool IsColorCorrectionActive() const;
+  bool NeedsIntermediaryBuffer() const;
 
 protected:
-  std::string GetUniformBufferHeader() const;
-  std::string GetHeader() const;
+  std::string GetUniformBufferHeader(bool user_post_process) const;
+  std::string GetHeader(bool user_post_process) const;
   std::string GetFooter() const;
 
   bool CompileVertexShader();
   bool CompilePixelShader();
   bool CompilePipeline();
 
-  size_t CalculateUniformsSize() const;
+  size_t CalculateUniformsSize(bool user_post_process) const;
   void FillUniformBuffer(const MathUtil::Rectangle<int>& src, const AbstractTexture* src_tex,
-                         int src_layer);
+                         int src_layer, const MathUtil::Rectangle<int>& dst,
+                         const MathUtil::Rectangle<int>& wnd, u8* buffer, bool user_post_process,
+                         bool intermediary_buffer);
 
   // Timer for determining our time value
   Common::Timer m_timer;
-  PostProcessingConfiguration m_config;
 
+  // Dolphin fixed post process:
+  PostProcessingConfiguration::ConfigMap m_default_options;
+  std::unique_ptr<AbstractShader> m_default_vertex_shader;
+  std::unique_ptr<AbstractShader> m_default_pixel_shader;
+  std::unique_ptr<AbstractPipeline> m_default_pipeline;
+  std::unique_ptr<AbstractFramebuffer> m_intermediary_frame_buffer;
+  std::unique_ptr<AbstractTexture> m_intermediary_color_texture;
+  std::vector<u8> m_default_uniform_staging_buffer;
+  // User post process:
+  PostProcessingConfiguration m_config;
   std::unique_ptr<AbstractShader> m_vertex_shader;
   std::unique_ptr<AbstractShader> m_pixel_shader;
   std::unique_ptr<AbstractPipeline> m_pipeline;
-  AbstractTextureFormat m_framebuffer_format = AbstractTextureFormat::Undefined;
   std::vector<u8> m_uniform_staging_buffer;
+
+  AbstractTextureFormat m_framebuffer_format = AbstractTextureFormat::Undefined;
 };
 }  // namespace VideoCommon

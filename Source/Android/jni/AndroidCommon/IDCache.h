@@ -32,11 +32,9 @@ jclass GetLinkedHashMapClass();
 jmethodID GetLinkedHashMapInit();
 jmethodID GetLinkedHashMapPut();
 
-jclass GetIniFileClass();
-jfieldID GetIniFilePointer();
-jclass GetIniFileSectionClass();
-jfieldID GetIniFileSectionPointer();
-jmethodID GetIniFileSectionConstructor();
+jclass GetHashMapClass();
+jmethodID GetHashMapInit();
+jmethodID GetHashMapPut();
 
 jclass GetCompressCallbackClass();
 jmethodID GetCompressCallbackRun();
@@ -109,5 +107,7 @@ jmethodID GetCoreDeviceConstructor();
 jclass GetCoreDeviceControlClass();
 jfieldID GetCoreDeviceControlPointer();
 jmethodID GetCoreDeviceControlConstructor();
+
+jmethodID GetRunnableRun();
 
 }  // namespace IDCache

@@ -9,6 +9,11 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"
 
+namespace Movie
+{
+class MovieManager;
+}
+
 namespace SerialInterface
 {
 class CSIDevice_GCController : public ISIDevice
@@ -53,8 +58,7 @@ protected:
 
 public:
   // Constructor
-  CSIDevice_GCController(SIDevices device, int device_number);
-  ~CSIDevice_GCController() override;
+  CSIDevice_GCController(Core::System& system, SIDevices device, int device_number);
 
   // Run the SI Buffer
   int RunBuffer(u8* buffer, int request_length) override;
@@ -79,23 +83,18 @@ public:
   // Direct rumble to the right GC Controller
   static void Rumble(int pad_num, ControlState strength, SIDevices device);
 
-  static void HandleMoviePadStatus(int device_number, GCPadStatus* pad_status);
+  static void HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
+                                   GCPadStatus* pad_status);
 
 protected:
   void SetOrigin(const GCPadStatus& pad_status);
-
-private:
-  void RefreshConfig();
-
-  std::array<SIDevices, 4> m_config_si_devices{};
-  size_t m_config_changed_callback_id;
 };
 
 // "TaruKonga", the DK Bongo controller
-class CSIDevice_TaruKonga : public CSIDevice_GCController
+class CSIDevice_TaruKonga final : public CSIDevice_GCController
 {
 public:
-  CSIDevice_TaruKonga(SIDevices device, int device_number);
+  CSIDevice_TaruKonga(Core::System& system, SIDevices device, int device_number);
 
   bool GetData(u32& hi, u32& low) override;
 

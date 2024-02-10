@@ -22,7 +22,7 @@ public:
   static TPipelineFunction GetFunction(VertexComponentFormat type, ComponentFormat format,
                                        TexComponentCount elements);
 
-  // It is important to synchronize tcIndex.
+  // It is important to synchronize tcIndex, or else the wrong texture coordinate array will be used
   static TPipelineFunction GetDummyFunction();
 
 private:

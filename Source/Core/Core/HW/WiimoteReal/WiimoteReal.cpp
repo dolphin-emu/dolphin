@@ -19,7 +19,6 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/WiimoteSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
@@ -28,6 +27,7 @@
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
+#include "Core/System.h"
 
 #include "InputCommon/ControllerInterface/Wiimote/WiimoteController.h"
 #include "InputCommon/InputConfig.h"
@@ -419,6 +419,7 @@ bool Wiimote::IsBalanceBoard()
                      "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
         return false;
       }
+      break;
     }
     default:
       break;
@@ -465,7 +466,8 @@ void Wiimote::SetWiimoteDeviceIndex(u8 index)
   m_bt_device_index = index;
 }
 
-void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state)
+void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                           SensorBarState sensor_bar_state)
 {
   // Nothing to do here on real Wiimotes.
 }
@@ -721,7 +723,7 @@ void WiimoteScanner::ThreadFunc()
       // We don't want any remotes in passthrough mode or running in GC mode.
       const bool core_running = Core::GetState() != Core::State::Uninitialized;
       if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED) ||
-          (core_running && !SConfig::GetInstance().bWii))
+          (core_running && !Core::System::GetInstance().IsWii()))
         continue;
 
       // We don't want any remotes if we already connected everything we need.

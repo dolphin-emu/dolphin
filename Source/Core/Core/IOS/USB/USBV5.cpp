@@ -19,10 +19,10 @@ namespace IOS::HLE
 {
 namespace USB
 {
-V5CtrlMessage::V5CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
+V5CtrlMessage::V5CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : CtrlMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = ios.GetSystem();
   auto& memory = system.GetMemory();
   request_type = memory.Read_U8(ioctlv.in_vectors[0].address + 8);
   request = memory.Read_U8(ioctlv.in_vectors[0].address + 9);
@@ -31,28 +31,28 @@ V5CtrlMessage::V5CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
   length = static_cast<u16>(ioctlv.GetVector(1)->size);
 }
 
-V5BulkMessage::V5BulkMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
+V5BulkMessage::V5BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : BulkMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = ios.GetSystem();
   auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 18);
 }
 
-V5IntrMessage::V5IntrMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
+V5IntrMessage::V5IntrMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IntrMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = ios.GetSystem();
   auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 14);
 }
 
-V5IsoMessage::V5IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
+V5IsoMessage::V5IsoMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IsoMessage(ios, ioctlv, ioctlv.GetVector(2)->address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = ios.GetSystem();
   auto& memory = system.GetMemory();
   num_packets = memory.Read_U8(ioctlv.in_vectors[0].address + 16);
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 17);
@@ -98,9 +98,13 @@ void USBV5ResourceManager::DoState(PointerWrap& p)
   u32 hook_address = m_devicechange_hook_request ? m_devicechange_hook_request->address : 0;
   p.Do(hook_address);
   if (hook_address != 0)
-    m_devicechange_hook_request = std::make_unique<IOCtlRequest>(hook_address);
+  {
+    m_devicechange_hook_request = std::make_unique<IOCtlRequest>(GetSystem(), hook_address);
+  }
   else
+  {
     m_devicechange_hook_request.reset();
+  }
 
   p.Do(m_usbv5_devices);
   USBHost::DoState(p);
@@ -108,7 +112,7 @@ void USBV5ResourceManager::DoState(PointerWrap& p)
 
 USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(u32 in_buffer)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   const u8 index = memory.Read_U8(in_buffer + offsetof(DeviceID, index));
   const u16 number = memory.Read_U16(in_buffer + offsetof(DeviceID, number));
@@ -129,7 +133,7 @@ std::optional<IPCReply> USBV5ResourceManager::GetDeviceChange(const IOCtlRequest
     return IPCReply(IPC_EINVAL);
 
   std::lock_guard lk{m_devicechange_hook_address_mutex};
-  m_devicechange_hook_request = std::make_unique<IOCtlRequest>(request.address);
+  m_devicechange_hook_request = std::make_unique<IOCtlRequest>(GetSystem(), request.address);
   // If there are pending changes, the reply is sent immediately (instead of on device
   // insertion/removal).
   if (m_has_pending_changes)
@@ -146,7 +150,7 @@ IPCReply USBV5ResourceManager::SetAlternateSetting(USBV5Device& device, const IO
   if (!host_device->AttachAndChangeInterface(device.interface_number))
     return IPCReply(-1);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   const u8 alt_setting = memory.Read_U8(request.buffer_in + 2 * sizeof(s32));
 
@@ -165,7 +169,7 @@ IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (m_devicechange_hook_request)
   {
-    m_ios.EnqueueIPCReply(*m_devicechange_hook_request, IPC_SUCCESS);
+    GetEmulationKernel().EnqueueIPCReply(*m_devicechange_hook_request, IPC_SUCCESS);
     m_devicechange_hook_request.reset();
   }
   return IPCReply(IPC_SUCCESS);
@@ -173,7 +177,7 @@ IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
 
 IPCReply USBV5ResourceManager::SuspendResume(USBV5Device& device, const IOCtlRequest& request)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const auto host_device = GetDeviceById(device.host_id);
@@ -248,7 +252,7 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
     return;
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   std::lock_guard lock{m_usbv5_devices_mutex};
@@ -288,7 +292,8 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
     ++num_devices;
   }
 
-  m_ios.EnqueueIPCReply(*m_devicechange_hook_request, num_devices, 0, CoreTiming::FromThread::ANY);
+  GetEmulationKernel().EnqueueIPCReply(*m_devicechange_hook_request, num_devices, 0,
+                                       CoreTiming::FromThread::ANY);
   m_devicechange_hook_request.reset();
   INFO_LOG_FMT(IOS_USB, "{} USBv5 device(s), including interfaces", num_devices);
 }

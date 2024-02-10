@@ -200,8 +200,8 @@ std::tuple<void*, size_t> GetCurrentThreadStack()
   stack_t stack;
   pthread_stackseg_np(self, &stack);
 
-  stack_addr = reinterpret_cast<u8*>(stack->ss_sp) - stack->ss_size;
-  stack_size = stack->ss_size;
+  stack_addr = reinterpret_cast<u8*>(stack.ss_sp) - stack.ss_size;
+  stack_size = stack.ss_size;
 #else
   pthread_attr_t attr;
 

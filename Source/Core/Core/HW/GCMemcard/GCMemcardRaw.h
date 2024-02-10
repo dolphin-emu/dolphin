@@ -30,7 +30,11 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  bool IsAddressInBounds(u32 address) const { return address <= (m_memory_card_size - 1); }
+  bool IsAddressInBounds(u32 address, u32 length) const
+  {
+    u64 end_address = static_cast<u64>(address) + static_cast<u64>(length);
+    return end_address <= static_cast<u64>(m_memory_card_size);
+  }
 
   std::string m_filename;
   std::unique_ptr<u8[]> m_memcard_data;

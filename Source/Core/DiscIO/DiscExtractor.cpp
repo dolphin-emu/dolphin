@@ -4,6 +4,9 @@
 #include "DiscIO/DiscExtractor.h"
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstring>
 #include <functional>
 #include <optional>
 #include <string>
@@ -137,8 +140,25 @@ bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, WII_NONPARTITION_DISCHEADER_ADDRESS,
-                    WII_NONPARTITION_DISCHEADER_SIZE, export_filename);
+  File::IOFile f(export_filename, "wb");
+  if (!f)
+    return false;
+
+  std::array<u8, WII_NONPARTITION_DISCHEADER_SIZE> buffer;
+
+  if (!volume.Read(WII_NONPARTITION_DISCHEADER_ADDRESS, buffer.size(), buffer.data(),
+                   PARTITION_NONE))
+  {
+    return false;
+  }
+  // NKitv1 unconditionally sets and unsets some flags when converting between Wii ISO and Wii NKit.
+  // This is because the NKit format decrypts the disc partitions and removes the h3 hash table.
+  // https://wiibrew.org/wiki/Wii_disc#Header
+  if (volume.IsNKit())
+    std::memset(buffer.data() + 0x60, 0, 2);
+  if (!f.WriteBytes(buffer.data(), buffer.size()))
+    return false;
+  return true;
 }
 
 bool ExportWiiRegionData(const Volume& volume, const std::string& export_filename)
@@ -212,7 +232,20 @@ bool ExportHeader(const Volume& volume, const Partition& partition,
   if (!IsDisc(volume.GetVolumeType()))
     return false;
 
-  return ExportData(volume, partition, DISCHEADER_ADDRESS, DISCHEADER_SIZE, export_filename);
+  File::IOFile f(export_filename, "wb");
+  if (!f)
+    return false;
+
+  std::array<u8, DISCHEADER_SIZE> buffer;
+
+  if (!volume.Read(DISCHEADER_ADDRESS, buffer.size(), buffer.data(), partition))
+    return false;
+  // Erase NKitv1 data
+  if (volume.IsNKit())
+    std::memset(buffer.data() + 0x200, 0, 0x1C);
+  if (!f.WriteBytes(buffer.data(), buffer.size()))
+    return false;
+  return true;
 }
 
 bool ExportBI2Data(const Volume& volume, const Partition& partition,

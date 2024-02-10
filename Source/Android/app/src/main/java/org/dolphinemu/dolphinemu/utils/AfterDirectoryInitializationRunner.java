@@ -2,7 +2,7 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
-import androidx.core.app.ComponentActivity;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
@@ -12,25 +12,16 @@ public class AfterDirectoryInitializationRunner
   private Observer<DirectoryInitializationState> mObserver;
 
   /**
-   * Executes a Runnable after directory initialization has finished.
+   * Executes a Runnable once directory initialization finishes.
    *
-   * If this is called when directory initialization already is done,
-   * the Runnable will be executed immediately. If this is called before
-   * directory initialization is done, the Runnable will be executed
-   * after directory initialization finishes successfully, or never
-   * in case directory initialization doesn't finish successfully.
+   * If this is called when directory initialization already has finished, the Runnable will
+   * be executed immediately. If this is called before directory initialization has finished,
+   * the Runnable will be executed after directory initialization finishes.
    *
-   * Calling this function multiple times per object is not supported.
-   *
-   * If abortOnFailure is true and external storage was not found, a message
-   * will be shown to the user and the Runnable will not run. If it is false,
-   * the attempt to run the Runnable will never be aborted, and the Runnable
-   * is guaranteed to run if directory initialization ever finishes.
-   *
-   * If the passed-in activity gets destroyed before this operation finishes,
-   * it will be automatically canceled.
+   * If the passed-in LifecycleOwner gets destroyed before this operation finishes,
+   * the operation will be automatically canceled.
    */
-  public void runWithLifecycle(ComponentActivity activity, Runnable runnable)
+  public void runWithLifecycle(LifecycleOwner lifecycleOwner, Runnable runnable)
   {
     if (DirectoryInitialization.areDolphinDirectoriesReady())
     {
@@ -39,25 +30,16 @@ public class AfterDirectoryInitializationRunner
     else
     {
       mObserver = createObserver(runnable);
-      DirectoryInitialization.getDolphinDirectoriesState().observe(activity, mObserver);
+      DirectoryInitialization.getDolphinDirectoriesState().observe(lifecycleOwner, mObserver);
     }
   }
 
   /**
-   * Executes a Runnable after directory initialization has finished.
+   * Executes a Runnable once directory initialization finishes.
    *
-   * If this is called when directory initialization already is done,
-   * the Runnable will be executed immediately. If this is called before
-   * directory initialization is done, the Runnable will be executed
-   * after directory initialization finishes successfully, or never
-   * in case directory initialization doesn't finish successfully.
-   *
-   * Calling this function multiple times per object is not supported.
-   *
-   * If abortOnFailure is true and external storage was not found, a message
-   * will be shown to the user and the Runnable will not run. If it is false,
-   * the attempt to run the Runnable will never be aborted, and the Runnable
-   * is guaranteed to run if directory initialization ever finishes.
+   * If this is called when directory initialization already has finished, the Runnable will
+   * be executed immediately. If this is called before directory initialization has finished,
+   * the Runnable will be executed after directory initialization finishes.
    */
   public void runWithoutLifecycle(Runnable runnable)
   {

@@ -16,10 +16,10 @@ template <typename T>
 class MMIOWriteCodeGenerator : public MMIO::WriteHandlingMethodVisitor<T>
 {
 public:
-  MMIOWriteCodeGenerator(ARM64XEmitter* emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
-                         ARM64Reg src_reg, u32 address)
-      : m_emit(emit), m_gprs_in_use(gprs_in_use), m_fprs_in_use(fprs_in_use), m_src_reg(src_reg),
-        m_address(address)
+  MMIOWriteCodeGenerator(Core::System* system, ARM64XEmitter* emit, BitSet32 gprs_in_use,
+                         BitSet32 fprs_in_use, ARM64Reg src_reg, u32 address)
+      : m_system(system), m_emit(emit), m_gprs_in_use(gprs_in_use), m_fprs_in_use(fprs_in_use),
+        m_src_reg(src_reg), m_address(address)
   {
   }
 
@@ -78,15 +78,14 @@ private:
 
     m_emit->ABI_PushRegisters(m_gprs_in_use);
     float_emit.ABI_PushRegisters(m_fprs_in_use, ARM64Reg::X1);
-    m_emit->MOVP2R(ARM64Reg::X1, &Core::System::GetInstance());
-    m_emit->MOVI2R(ARM64Reg::W2, m_address);
-    m_emit->MOV(ARM64Reg::W3, m_src_reg);
-    m_emit->BLR(m_emit->ABI_SetupLambda(lambda));
+
+    m_emit->ABI_CallLambdaFunction(lambda, m_system, m_address, m_src_reg);
 
     float_emit.ABI_PopRegisters(m_fprs_in_use, ARM64Reg::X1);
     m_emit->ABI_PopRegisters(m_gprs_in_use);
   }
 
+  Core::System* m_system;
   ARM64XEmitter* m_emit;
   BitSet32 m_gprs_in_use;
   BitSet32 m_fprs_in_use;
@@ -98,10 +97,10 @@ template <typename T>
 class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 {
 public:
-  MMIOReadCodeGenerator(ARM64XEmitter* emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
-                        ARM64Reg dst_reg, u32 address, bool sign_extend)
-      : m_emit(emit), m_gprs_in_use(gprs_in_use), m_fprs_in_use(fprs_in_use), m_dst_reg(dst_reg),
-        m_address(address), m_sign_extend(sign_extend)
+  MMIOReadCodeGenerator(Core::System* system, ARM64XEmitter* emit, BitSet32 gprs_in_use,
+                        BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address, bool sign_extend)
+      : m_system(system), m_emit(emit), m_gprs_in_use(gprs_in_use), m_fprs_in_use(fprs_in_use),
+        m_dst_reg(dst_reg), m_address(address), m_sign_extend(sign_extend)
   {
   }
 
@@ -175,9 +174,9 @@ private:
 
     m_emit->ABI_PushRegisters(m_gprs_in_use);
     float_emit.ABI_PushRegisters(m_fprs_in_use, ARM64Reg::X1);
-    m_emit->MOVP2R(ARM64Reg::X1, &Core::System::GetInstance());
-    m_emit->MOVI2R(ARM64Reg::W2, m_address);
-    m_emit->BLR(m_emit->ABI_SetupLambda(lambda));
+
+    m_emit->ABI_CallLambdaFunction(lambda, m_system, m_address);
+
     if (m_sign_extend)
       m_emit->SBFM(m_dst_reg, ARM64Reg::W0, 0, sbits - 1);
     else
@@ -187,6 +186,7 @@ private:
     m_emit->ABI_PopRegisters(m_gprs_in_use);
   }
 
+  Core::System* m_system;
   ARM64XEmitter* m_emit;
   BitSet32 m_gprs_in_use;
   BitSet32 m_fprs_in_use;
@@ -293,27 +293,27 @@ ARM64Reg ByteswapBeforeStore(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit,
   return dst_reg;
 }
 
-void MMIOLoadToReg(MMIO::Mapping* mmio, ARM64XEmitter* emit, ARM64FloatEmitter* float_emit,
-                   BitSet32 gprs_in_use, BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address,
-                   u32 flags)
+void MMIOLoadToReg(Core::System& system, MMIO::Mapping* mmio, ARM64XEmitter* emit,
+                   ARM64FloatEmitter* float_emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
+                   ARM64Reg dst_reg, u32 address, u32 flags)
 {
   ASSERT(!(flags & BackPatchInfo::FLAG_FLOAT));
 
   if (flags & BackPatchInfo::FLAG_SIZE_8)
   {
-    MMIOReadCodeGenerator<u8> gen(emit, gprs_in_use, fprs_in_use, dst_reg, address,
+    MMIOReadCodeGenerator<u8> gen(&system, emit, gprs_in_use, fprs_in_use, dst_reg, address,
                                   flags & BackPatchInfo::FLAG_EXTEND);
     mmio->GetHandlerForRead<u8>(address).Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_16)
   {
-    MMIOReadCodeGenerator<u16> gen(emit, gprs_in_use, fprs_in_use, dst_reg, address,
+    MMIOReadCodeGenerator<u16> gen(&system, emit, gprs_in_use, fprs_in_use, dst_reg, address,
                                    flags & BackPatchInfo::FLAG_EXTEND);
     mmio->GetHandlerForRead<u16>(address).Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_32)
   {
-    MMIOReadCodeGenerator<u32> gen(emit, gprs_in_use, fprs_in_use, dst_reg, address,
+    MMIOReadCodeGenerator<u32> gen(&system, emit, gprs_in_use, fprs_in_use, dst_reg, address,
                                    flags & BackPatchInfo::FLAG_EXTEND);
     mmio->GetHandlerForRead<u32>(address).Visit(gen);
   }
@@ -321,9 +321,9 @@ void MMIOLoadToReg(MMIO::Mapping* mmio, ARM64XEmitter* emit, ARM64FloatEmitter* 
   ByteswapAfterLoad(emit, float_emit, dst_reg, dst_reg, flags, false, true);
 }
 
-void MMIOWriteRegToAddr(MMIO::Mapping* mmio, ARM64XEmitter* emit, ARM64FloatEmitter* float_emit,
-                        BitSet32 gprs_in_use, BitSet32 fprs_in_use, ARM64Reg src_reg, u32 address,
-                        u32 flags)
+void MMIOWriteRegToAddr(Core::System& system, MMIO::Mapping* mmio, ARM64XEmitter* emit,
+                        ARM64FloatEmitter* float_emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
+                        ARM64Reg src_reg, u32 address, u32 flags)
 {
   ASSERT(!(flags & BackPatchInfo::FLAG_FLOAT));
 
@@ -331,17 +331,17 @@ void MMIOWriteRegToAddr(MMIO::Mapping* mmio, ARM64XEmitter* emit, ARM64FloatEmit
 
   if (flags & BackPatchInfo::FLAG_SIZE_8)
   {
-    MMIOWriteCodeGenerator<u8> gen(emit, gprs_in_use, fprs_in_use, src_reg, address);
+    MMIOWriteCodeGenerator<u8> gen(&system, emit, gprs_in_use, fprs_in_use, src_reg, address);
     mmio->GetHandlerForWrite<u8>(address).Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_16)
   {
-    MMIOWriteCodeGenerator<u16> gen(emit, gprs_in_use, fprs_in_use, src_reg, address);
+    MMIOWriteCodeGenerator<u16> gen(&system, emit, gprs_in_use, fprs_in_use, src_reg, address);
     mmio->GetHandlerForWrite<u16>(address).Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_32)
   {
-    MMIOWriteCodeGenerator<u32> gen(emit, gprs_in_use, fprs_in_use, src_reg, address);
+    MMIOWriteCodeGenerator<u32> gen(&system, emit, gprs_in_use, fprs_in_use, src_reg, address);
     mmio->GetHandlerForWrite<u32>(address).Visit(gen);
   }
 }

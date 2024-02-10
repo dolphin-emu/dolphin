@@ -17,6 +17,263 @@
 
 namespace UberShader
 {
+namespace
+{
+void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, bool per_pixel_lighting)
+{
+  out->Write("\tCustomShaderData custom_data;\n");
+  if (per_pixel_lighting)
+  {
+    out->Write("\tcustom_data.position = WorldPos;\n");
+    out->Write("\tcustom_data.normal = Normal;\n");
+  }
+  else
+  {
+    out->Write("\tcustom_data.position = float3(0, 0, 0);\n");
+    out->Write("\tcustom_data.normal = float3(0, 0, 0);\n");
+  }
+
+  if (num_texgen == 0) [[unlikely]]
+  {
+    out->Write("\tcustom_data.texcoord[0] = float3(0, 0, 0);\n");
+  }
+  else
+  {
+    for (u32 i = 0; i < num_texgen; ++i)
+    {
+      out->Write("\tif (tex{0}.z == 0.0)\n", i);
+      out->Write("\t{{\n");
+      out->Write("\t\tcustom_data.texcoord[{0}] = tex{0};\n", i);
+      out->Write("\t}}\n");
+      out->Write("\telse {{\n");
+      out->Write("\t\tcustom_data.texcoord[{0}] = float3(tex{0}.xy / tex{0}.z, 0);\n", i);
+      out->Write("\t}}\n");
+    }
+  }
+
+  out->Write("\tcustom_data.texcoord_count = {};\n", num_texgen);
+
+  for (u32 i = 0; i < 8; i++)
+  {
+    // Shader compilation complains if every index isn't initialized
+    out->Write("\tcustom_data.texmap_to_texcoord_index[{0}] = {0};\n", i);
+  }
+
+  for (u32 i = 0; i < NUM_XF_COLOR_CHANNELS; i++)
+  {
+    out->Write("\tcustom_data.base_material[{}] = vec4(0, 0, 0, 1);\n", i);
+    out->Write("\tcustom_data.ambient_lighting[{}] = vec4(0, 0, 0, 1);\n", i);
+
+    // Shader compilation errors can throw if not everything is initialized
+    for (u32 light_count_index = 0; light_count_index < 8; light_count_index++)
+    {
+      // Color
+      out->Write("\tcustom_data.lights_chan{}_color[{}].direction = float3(0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].position = float3(0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].color = float3(0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].cosatt = float4(0, 0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].distatt = float4(0, 0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_color[{}].attenuation_type = 0;\n", i,
+                 light_count_index);
+
+      // Alpha
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].direction = float3(0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].position = float3(0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].color = float3(0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].cosatt = float4(0, 0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].distatt = float4(0, 0, 0, 0);\n", i,
+                 light_count_index);
+      out->Write("\tcustom_data.lights_chan{}_alpha[{}].attenuation_type = 0;\n", i,
+                 light_count_index);
+    }
+
+    out->Write("\tcustom_data.light_chan{}_color_count = 0;\n", i);
+    out->Write("\tcustom_data.light_chan{}_alpha_count = 0;\n", i);
+  }
+
+  if (num_texgen > 0) [[likely]]
+  {
+    out->Write("\n");
+    out->Write("\tfor(uint stage = 0u; stage <= num_stages; stage++)\n");
+    out->Write("\t{{\n");
+    out->Write("\t\tStageState ss;\n");
+    out->Write("\t\tss.order = bpmem_tevorder(stage>>1);\n");
+    out->Write("\t\tif ((stage & 1u) == 1u)\n");
+    out->Write("\t\t\tss.order = ss.order >> {};\n\n",
+               int(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                   TwoTevStageOrders().enable_tex_even.StartBit()));
+    out->Write("\t\tuint texmap = {};\n",
+               BitfieldExtract<&TwoTevStageOrders::texcoord_even>("ss.order"));
+    // Shader compilation is weird, shader arrays can't use indexing by variable
+    //  to set values unless the variable is an index in a for loop.
+    // So instead we have to do this if check nonsense
+    for (u32 i = 0; i < 8; i++)
+    {
+      out->Write("\t\tif (texmap == {})\n", i);
+      out->Write("\t\t{{\n");
+      out->Write("\t\t\tcustom_data.texmap_to_texcoord_index[{}] = selectTexCoordIndex(texmap);\n",
+                 i);
+      out->Write("\t\t}}\n");
+    }
+    out->Write("\t}}\n");
+  }
+
+  if (per_pixel_lighting)
+  {
+    out->Write("\tuint light_count = 0;\n");
+    out->Write("\tfor (uint chan = 0u; chan < {}u; chan++)\n", NUM_XF_COLOR_CHANNELS);
+    out->Write("\t{{\n");
+    out->Write("\t\tuint colorreg = xfmem_color(chan);\n");
+    out->Write("\t\tuint alphareg = xfmem_alpha(chan);\n");
+    for (const auto& color_type : std::array<std::string_view, 2>{"colorreg", "alphareg"})
+    {
+      if (color_type == "colorreg")
+      {
+        out->Write("\t\tcustom_data.base_material[0] = " I_MATERIALS "[2u] / 255.0; \n");
+        out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
+        out->Write("\t\t\tcustom_data.base_material[0] = colors_0; \n");
+      }
+      else
+      {
+        out->Write("custom_data.base_material[1].w = " I_MATERIALS "[3u].w / 255.0; \n");
+        out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
+        out->Write("\t\t\tcustom_data.base_material[1].w = colors_1.w; \n");
+      }
+      out->Write("\t\tif ({} != 0u)\n", BitfieldExtract<&LitChannel::enablelighting>(color_type));
+      out->Write("\t\t{{\n");
+      out->Write("\t\t\tuint light_mask = {} | ({} << 4u);\n",
+                 BitfieldExtract<&LitChannel::lightMask0_3>(color_type),
+                 BitfieldExtract<&LitChannel::lightMask4_7>(color_type));
+      out->Write("\t\t\tuint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>(color_type));
+      out->Write("\t\t\tfor (uint light_index = 0u; light_index < 8u; light_index++)\n");
+      out->Write("\t\t\t{{\n");
+      out->Write("\t\t\t\tif ((light_mask & (1u << light_index)) != 0u)\n");
+      out->Write("\t\t\t\t{{\n");
+      // Shader compilation is weird, shader arrays can't use indexing by variable
+      //  to set values unless the variable is an index in a for loop.
+      // So instead we have to do this if check nonsense
+      for (u32 light_count_index = 0; light_count_index < 8; light_count_index++)
+      {
+        out->Write("\t\t\t\t\tif (light_index == {})\n", light_count_index);
+        out->Write("\t\t\t\t\t{{\n");
+        if (color_type == "colorreg")
+        {
+          for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
+          {
+            out->Write("\t\t\t\t\t\tif (chan == {})\n", channel_index);
+            out->Write("\t\t\t\t\t\t{{\n");
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].direction = " I_LIGHTS
+                       "[light_index].dir.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].position = " I_LIGHTS
+                       "[light_index].pos.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].cosatt = " I_LIGHTS
+                       "[light_index].cosatt;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].distatt = " I_LIGHTS
+                       "[light_index].distatt;\n",
+                       channel_index, light_count_index);
+            out->Write(
+                "\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].attenuation_type = attnfunc;\n",
+                channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_color[{}].color = " I_LIGHTS
+                       "[light_index].color.rgb / float3(255.0, 255.0, 255.0);\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.light_chan{}_color_count += 1;\n", channel_index);
+            out->Write("\t\t\t\t\t\t}}\n");
+          }
+        }
+        else
+        {
+          for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
+          {
+            out->Write("\t\t\t\t\t\tif (chan == {})\n", channel_index);
+            out->Write("\t\t\t\t\t\t{{\n");
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].direction = " I_LIGHTS
+                       "[light_index].dir.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].position = " I_LIGHTS
+                       "[light_index].pos.xyz;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].cosatt = " I_LIGHTS
+                       "[light_index].cosatt;\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].distatt = " I_LIGHTS
+                       "[light_index].distatt;\n",
+                       channel_index, light_count_index);
+            out->Write(
+                "\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].attenuation_type = attnfunc;\n",
+                channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.lights_chan{}_alpha[{}].color = float3(" I_LIGHTS
+                       "[light_index].color.a) / float3(255.0, 255.0, 255.0);\n",
+                       channel_index, light_count_index);
+            out->Write("\t\t\t\t\t\t\tcustom_data.light_chan{}_alpha_count += 1;\n", channel_index);
+            out->Write("\t\t\t\t\t\t}}\n");
+          }
+        }
+
+        out->Write("\t\t\t\t\t}}\n");
+      }
+      out->Write("\t\t\t\t}}\n");
+      out->Write("\t\t\t}}\n");
+      out->Write("\t\t}}\n");
+    }
+    out->Write("\t}}\n");
+  }
+
+  for (u32 i = 0; i < 16; i++)
+  {
+    // Shader compilation complains if every struct isn't initialized
+
+    // Color Input
+    for (u32 j = 0; j < 4; j++)
+    {
+      out->Write("\tcustom_data.tev_stages[{}].input_color[{}].input_type = "
+                 "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED;\n",
+                 i, j);
+      out->Write("\tcustom_data.tev_stages[{}].input_color[{}].value = "
+                 "float3(0, 0, 0);\n",
+                 i, j);
+    }
+
+    // Alpha Input
+    for (u32 j = 0; j < 4; j++)
+    {
+      out->Write("\tcustom_data.tev_stages[{}].input_alpha[{}].input_type = "
+                 "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED;\n",
+                 i, j);
+      out->Write("\tcustom_data.tev_stages[{}].input_alpha[{}].value = "
+                 "float(0);\n",
+                 i, j);
+    }
+
+    // Texmap
+    out->Write("\tcustom_data.tev_stages[{}].texmap = 0u;\n", i);
+
+    // Output
+    out->Write("\tcustom_data.tev_stages[{}].output_color = "
+               "float4(0, 0, 0, 0);\n",
+               i);
+  }
+
+  // Actual data will be filled out in the tev stage code, just set the
+  // stage count for now
+  out->Write("\tcustom_data.tev_stage_count = num_stages;\n");
+
+  // Time
+  out->Write("\tcustom_data.time_ms = time_ms;\n");
+}
+}  // namespace
 PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
@@ -56,7 +313,8 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
 }
 
 ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
-                          const pixel_ubershader_uid_data* uid_data)
+                          const pixel_ubershader_uid_data* uid_data,
+                          const CustomPixelShaderContents& custom_details)
 {
   const bool per_pixel_lighting = host_config.per_pixel_lighting;
   const bool msaa = host_config.msaa;
@@ -75,7 +333,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("// {}\n", *uid_data);
   WriteBitfieldExtractHeader(out, api_type, host_config);
-  WritePixelShaderCommonHeader(out, api_type, host_config, bounding_box);
+  WritePixelShaderCommonHeader(out, api_type, host_config, bounding_box, custom_details);
+  WriteCustomShaderStructDef(&out, numTexgen);
+  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
+  {
+    const auto& shader_details = custom_details.shaders[i];
+    out.Write(fmt::runtime(shader_details.custom_shader), i);
+  }
   if (per_pixel_lighting)
     WriteLightingFunction(out);
 
@@ -106,21 +370,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   else
 #endif
   {
-    bool has_broken_decoration =
-        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
-
-    out.Write("{} {} {} {};\n",
-              has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
-                                      "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
+    out.Write("{} {} {} {};\n", "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
               use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
               uid_data->uint_output ? "uvec4" : "vec4",
               use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
     if (use_dual_source)
     {
-      out.Write("{} out {} ocol1;\n",
-                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
-                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
+      out.Write("{} out {} ocol1;\n", "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
                 uid_data->uint_output ? "uvec4" : "vec4");
     }
   }
@@ -235,6 +492,68 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     }
 
     out.Write("}}\n\n");
+
+    out.Write("uint selectTexCoordIndex(uint texmap)");
+    out.Write("{{\n");
+
+    if (api_type == APIType::D3D)
+    {
+      out.Write("  switch (texmap) {{\n");
+      for (u32 i = 0; i < numTexgen; i++)
+      {
+        out.Write("  case {}u:\n"
+                  "    return {}u;\n",
+                  i, i);
+      }
+      out.Write("  default:\n"
+                "    return 0u;\n"
+                "  }}\n");
+    }
+    else
+    {
+      out.Write("  if (texmap >= {}u) {{\n", numTexgen);
+      out.Write("    return 0u;\n"
+                "  }}\n");
+      if (numTexgen > 4)
+        out.Write("  if (texmap < 4u) {{\n");
+      if (numTexgen > 2)
+        out.Write("    if (texmap < 2u) {{\n");
+      if (numTexgen > 1)
+        out.Write("      return (texmap == 0u) ? 0u : 1u;\n");
+      else
+        out.Write("      return 0u;\n");
+      if (numTexgen > 2)
+      {
+        out.Write("    }} else {{\n");  // >= 2 < min(4, numTexgen)
+        if (numTexgen > 3)
+          out.Write("      return (texmap == 2u) ? 2u : 3u;\n");
+        else
+          out.Write("      return 2u;\n");
+        out.Write("    }}\n");
+      }
+      if (numTexgen > 4)
+      {
+        out.Write("  }} else {{\n");  // >= 4 < min(8, numTexgen)
+        if (numTexgen > 6)
+          out.Write("    if (texmap < 6u) {{\n");
+        if (numTexgen > 5)
+          out.Write("      return (texmap == 4u) ? 4u : 5u;\n");
+        else
+          out.Write("      return 4u;\n");
+        if (numTexgen > 6)
+        {
+          out.Write("    }} else {{\n");  // >= 6 < min(8, numTexgen)
+          if (numTexgen > 7)
+            out.Write("      return (texmap == 6u) ? 6u : 7u;\n");
+          else
+            out.Write("      return 6u;\n");
+          out.Write("    }}\n");
+        }
+        out.Write("  }}\n");
+      }
+    }
+
+    out.Write("}}\n\n");
   }
 
   // =====================
@@ -323,43 +642,43 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   //   TEV's Special Lerp
   // ======================
   const auto WriteTevLerp = [&out](std::string_view components) {
-    out.Write(
-        "// TEV's Linear Interpolate, plus bias, add/subtract and scale\n"
-        "int{0} tevLerp{0}(int{0} A, int{0} B, int{0} C, int{0} D, uint bias, bool op, "
-        "uint scale) {{\n"
-        " // Scale C from 0..255 to 0..256\n"
-        "  C += C >> 7;\n"
-        "\n"
-        " // Add bias to D\n"
-        "  if (bias == 1u) D += 128;\n"
-        "  else if (bias == 2u) D -= 128;\n"
-        "\n"
-        "  int{0} lerp = (A << 8) + (B - A)*C;\n"
-        "  if (scale != 3u) {{\n"
-        "    lerp = lerp << scale;\n"
-        "    D = D << scale;\n"
-        "  }}\n"
-        "\n"
-        "  // TODO: Is this rounding bias still added when the scale is divide by 2?  Currently we "
-        "do not apply it.\n"
-        "  if (scale != 3u)\n"
-        "    lerp = lerp + (op ? 127 : 128);\n"
-        "\n"
-        "  int{0} result = lerp >> 8;\n"
-        "\n"
-        "  // Add/Subtract D\n"
-        "  if (op) // Subtract\n"
-        "    result = D - result;\n"
-        "  else // Add\n"
-        "    result = D + result;\n"
-        "\n"
-        "  // Most of the Scale was moved inside the lerp for improved precision\n"
-        "  // But we still do the divide by 2 here\n"
-        "  if (scale == 3u)\n"
-        "    result = result >> 1;\n"
-        "  return result;\n"
-        "}}\n\n",
-        components);
+    out.Write("// TEV's Linear Interpolate, plus bias, add/subtract and scale\n"
+              "int{0} tevLerp{0}(int{0} A, int{0} B, int{0} C, int{0} D, uint bias, bool op, "
+              "uint scale) {{\n"
+              " // Scale C from 0..255 to 0..256\n"
+              "  C += C >> 7;\n"
+              "\n"
+              " // Add bias to D\n"
+              "  if (bias == 1u) D += 128;\n"
+              "  else if (bias == 2u) D -= 128;\n"
+              "\n"
+              "  int{0} lerp = (A << 8) + (B - A)*C;\n"
+              "  if (scale != 3u) {{\n"
+              "    lerp = lerp << scale;\n"
+              "    D = D << scale;\n"
+              "  }}\n"
+              "\n"
+              "  // TODO: Is this rounding bias still added when the scale is divide by 2?  "
+              "Currently we "
+              "do not apply it.\n"
+              "  if (scale != 3u)\n"
+              "    lerp = lerp + (op ? 127 : 128);\n"
+              "\n"
+              "  int{0} result = lerp >> 8;\n"
+              "\n"
+              "  // Add/Subtract D\n"
+              "  if (op) // Subtract\n"
+              "    result = D - result;\n"
+              "  else // Add\n"
+              "    result = D + result;\n"
+              "\n"
+              "  // Most of the Scale was moved inside the lerp for improved precision\n"
+              "  // But we still do the divide by 2 here\n"
+              "  if (scale == 3u)\n"
+              "    result = result >> 1;\n"
+              "  return result;\n"
+              "}}\n\n",
+              components);
   };
   WriteTevLerp("");   // int
   WriteTevLerp("3");  // int3
@@ -444,6 +763,25 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       "return int3(0, 0, 0);",                               // ZERO
   };
 
+  static constexpr Common::EnumMap<std::string_view, TevColorArg::Zero> tev_c_input_type{
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC;",
+  };
+
   static constexpr Common::EnumMap<std::string_view, TevAlphaArg::Zero> tev_a_input_table{
       "return s.Reg[0].a;",                                // APREV,
       "return s.Reg[1].a;",                                // A0,
@@ -453,6 +791,17 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       "return getRasColor(s, ss, colors_0, colors_1).a;",  // RASA,
       "return getKonstColor(s, ss).a;",                    // KONST,  (hw1 had quarter)
       "return 0;",                                         // ZERO
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevAlphaArg::Zero> tev_a_input_type{
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST;",
+      "return CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC;",
   };
 
   static constexpr Common::EnumMap<std::string_view, TevOutput::Color2> tev_regs_lookup_table{
@@ -496,6 +845,16 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   out.Write("}}\n"
             "\n");
 
+  out.Write("// Helper function for Custom Shader Input Type\n"
+            "uint getColorInputType(uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_c_input_type, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "uint getAlphaInputType(uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_a_input_type, 2, false);
+  out.Write("}}\n"
+            "\n");
+
   // Since the fixed-point texture coodinate variables aren't global, we need to pass
   // them to the select function.  This applies to all backends.
   if (numTexgen > 0)
@@ -511,6 +870,17 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("void main()\n{{\n");
   out.Write("  float4 rawpos = gl_FragCoord;\n");
+
+  out.Write("  uint num_stages = {};\n\n",
+            BitfieldExtract<&GenMode::numtevstages>("bpmem_genmode"));
+
+  bool has_custom_shader_details = false;
+  if (std::any_of(custom_details.shaders.begin(), custom_details.shaders.end(),
+                  [](const std::optional<CustomPixelShader>& ps) { return ps.has_value(); }))
+  {
+    WriteCustomShaderStructImpl(&out, numTexgen, per_pixel_lighting);
+    has_custom_shader_details = true;
+  }
 
   if (use_framebuffer_fetch)
   {
@@ -570,9 +940,6 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  //   o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
-  out.Write("  uint num_stages = {};\n\n",
-            BitfieldExtract<&GenMode::numtevstages>("bpmem_genmode"));
-
   out.Write("  // Main tev loop\n");
 
   out.Write("  for(uint stage = 0u; stage <= num_stages; stage++)\n"
@@ -625,9 +992,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     // indirect texture stage is enabled). If the matrix is off, the result doesn't matter; if the
     // indirect texture stage is disabled, the result is undefined (and produces a glitchy pattern
     // on hardware, different from this).
-    // For the undefined case, we just skip applying the indirect operation, which is close enough.
-    // Viewtiful Joe hits the undefined case (bug 12525).
-    // Wrapping and add to previous still apply in this case (and when the stage is disabled).
+    // For the undefined case, we just skip applying the indirect operation, which is close
+    // enough. Viewtiful Joe hits the undefined case (bug 12525). Wrapping and add to previous
+    // still apply in this case (and when the stage is disabled).
     out.Write("      if (bpmem_iref(bt) != 0u) {{\n");
     out.Write("        int3 indcoord;\n");
     LookupIndirectTexture("indcoord", "bt");
@@ -833,7 +1200,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       "        alpha_B = selectAlphaInput(s, ss, {0}colors_0, {0}colors_1, alpha_b) & 255;\n"
       "      }};\n"
       "      int alpha_C = selectAlphaInput(s, ss, {0}colors_0, {0}colors_1, alpha_c) & 255;\n"
-      "      int alpha_D = selectAlphaInput(s, ss, {0}colors_0, {0}colors_1, alpha_d); // 10 bits "
+      "      int alpha_D = selectAlphaInput(s, ss, {0}colors_0, {0}colors_1, alpha_d); // 10 "
+      "bits "
       "+ sign\n"
       "\n",  // TODO: do we need to sign extend?
       color_input_prefix);
@@ -864,9 +1232,81 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "\n"
             "      // Write result to the correct input register of the next stage\n");
   WriteSwitch(out, api_type, "alpha_dest", tev_a_set_table, 6, true);
-  out.Write("    }}\n"
-            "  }} // Main TEV loop\n"
-            "\n");
+  if (has_custom_shader_details)
+  {
+    for (u32 stage_index = 0; stage_index < 16; stage_index++)
+    {
+      out.Write("\tif (stage == {}u) {{\n", stage_index);
+      // Color input
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[0].value = color_A / float3(255.0, "
+                "255.0, 255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[0].input_type = "
+                "getColorInputType(color_a);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[1].value = color_B / float3(255.0, "
+                "255.0, 255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[1].input_type = "
+                "getColorInputType(color_b);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[2].value = color_C / float3(255.0, "
+                "255.0, 255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[2].input_type = "
+                "getColorInputType(color_c);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[3].value = color_D / float3(255.0, "
+                "255.0, 255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_color[3].input_type = "
+                "getColorInputType(color_c);\n",
+                stage_index);
+
+      // Alpha input
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[0].value = alpha_A / float(255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[0].input_type = "
+                "getAlphaInputType(alpha_a);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[1].value = alpha_B / float(255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[1].input_type = "
+                "getAlphaInputType(alpha_b);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[2].value = alpha_C / float(255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[2].input_type = "
+                "getAlphaInputType(alpha_c);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[3].value = alpha_D / float(255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].input_alpha[3].input_type = "
+                "getAlphaInputType(alpha_d);\n",
+                stage_index);
+
+      if (numTexgen != 0)
+      {
+        // Texmap
+        out.Write("\t\tif (texture_enabled) {{\n");
+        out.Write("\t\t\tuint sampler_num = {};\n",
+                  BitfieldExtract<&TwoTevStageOrders::texmap_even>("ss.order"));
+        out.Write("\t\tcustom_data.tev_stages[{}].texmap = sampler_num;\n", stage_index);
+        out.Write("\t\t}}\n");
+      }
+
+      // Output
+      out.Write("\t\tcustom_data.tev_stages[{}].output_color.rgb = color / float3(255.0, 255.0, "
+                "255.0);\n",
+                stage_index);
+      out.Write("\t\tcustom_data.tev_stages[{}].output_color.a = alpha / float(255.0);\n",
+                stage_index);
+      out.Write("\t}}\n");
+    }
+  }
+  out.Write("    }}\n");
+  out.Write("    }} // Main TEV loop\n");
+  out.Write("\n");
 
   // Select the output color and alpha registers from the last stage.
   out.Write("  int4 TevResult;\n");
@@ -949,8 +1389,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     // Instead of using discard, fetch the framebuffer's color value and use it as the output
     // for this fragment.
-    out.Write(
-        "  #define discard_fragment {{ real_ocol0 = float4(initial_ocol0.xyz, 1.0); return; }}\n");
+    out.Write("  #define discard_fragment {{ real_ocol0 = float4(initial_ocol0.xyz, 1.0); "
+              "return; }}\n");
   }
   else
   {
@@ -1116,8 +1556,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  }}\n");
   }
 
-  // Some backends require that the shader outputs be uint when writing to a uint render target for
-  // logic op.
+  // Some backends require that the shader outputs be uint when writing to a uint render target
+  // for logic op.
   if (uid_data->uint_output)
   {
     out.Write("  if (bpmem_rgba6_format)\n"
@@ -1146,6 +1586,31 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
                 "  // Colors will be blended against the alpha from ocol1 and\n"
                 "  // the alpha from ocol0 will be written to the framebuffer.\n"
                 "  ocol1 = float4(0.0, 0.0, 0.0, float(TevResult.a) / 255.0);\n");
+    }
+  }
+
+  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
+  {
+    const auto& shader_details = custom_details.shaders[i];
+
+    if (!shader_details.custom_shader.empty())
+    {
+      out.Write("\t{{\n");
+      if (uid_data->uint_output)
+      {
+        out.Write("\t\tcustom_data.final_color = float4(ocol0.x / 255.0, ocol0.y / 255.0, ocol0.z "
+                  "/ 255.0, ocol0.w / 255.0);\n");
+        out.Write("\t\tfloat3 custom_output = {}_{}(custom_data).xyz;\n",
+                  CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+        out.Write("\t\tocol0.xyz = uint3(custom_output.x * 255, custom_output.y * 255, "
+                  "custom_output.z * 255);\n");
+      }
+      else
+      {
+        out.Write("\t\tcustom_data.final_color = ocol0;\n");
+        out.Write("\t\tocol0.xyz = {}_{}(custom_data).xyz;\n", CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+      }
+      out.Write("\t}}\n\n");
     }
   }
 
@@ -1216,13 +1681,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     WriteSwitch(out, api_type, "blend_dst_factor", blendDstFactor, 4, true);
     WriteSwitch(out, api_type, "blend_dst_factor_alpha", blendDstFactorAlpha, 4, true);
 
-    out.Write(
-        "    float4 blend_result;\n"
-        "    if (blend_subtract)\n"
-        "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * blend_src.rgb;\n"
-        "    else\n"
-        "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * "
-        "blend_src.rgb;\n");
+    out.Write("    float4 blend_result;\n"
+              "    if (blend_subtract)\n"
+              "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * "
+              "blend_src.rgb;\n"
+              "    else\n"
+              "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * "
+              "blend_src.rgb;\n");
 
     out.Write("    if (blend_subtract_alpha)\n"
               "      blend_result.a = initial_ocol0.a * blend_dst.a - ocol0.a * blend_src.a;\n"

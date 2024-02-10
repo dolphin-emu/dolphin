@@ -81,7 +81,7 @@ void main()
   float2 uv = (widenedRadial/2.0f) + float2(0.5f, 0.5f) + float2(offsetAdd, 0.0f);
 
   // Sample the texture at the source location
-  if(any(clamp(uv, 0.0, 1.0) != uv))
+  if (clamp(uv, 0.0, 1.0) != uv)
   {
     // black if beyond bounds
     SetOutput(float4(0.0, 0.0, 0.0, 0.0));

@@ -63,6 +63,13 @@ enum
 class ProcessorInterfaceManager
 {
 public:
+  explicit ProcessorInterfaceManager(Core::System& system);
+  ProcessorInterfaceManager(const ProcessorInterfaceManager& other) = delete;
+  ProcessorInterfaceManager(ProcessorInterfaceManager&& other) = delete;
+  ProcessorInterfaceManager& operator=(const ProcessorInterfaceManager& other) = delete;
+  ProcessorInterfaceManager& operator=(ProcessorInterfaceManager&& other) = delete;
+  ~ProcessorInterfaceManager();
+
   void Init();
   void DoState(PointerWrap& p);
 
@@ -87,7 +94,7 @@ public:
 
 private:
   // Let the PPC know that an external exception is set/cleared
-  void UpdateException(Core::System& system);
+  void UpdateException();
 
   void SetResetButton(bool set);
 
@@ -101,5 +108,7 @@ private:
   CoreTiming::EventType* m_event_type_ios_notify_power_button = nullptr;
 
   u32 m_reset_code = 0;
+
+  Core::System& m_system;
 };
 }  // namespace ProcessorInterface

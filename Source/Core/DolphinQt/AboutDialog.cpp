@@ -83,7 +83,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
                  "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.")));
 
   QLabel* logo = new QLabel();
-  logo->setPixmap(Resources::GetMisc(Resources::MiscID::LogoLarge));
+  logo->setPixmap(Resources::GetAppIcon().pixmap(200, 200));
   logo->setContentsMargins(30, 0, 30, 0);
 
   QVBoxLayout* main_layout = new QVBoxLayout;

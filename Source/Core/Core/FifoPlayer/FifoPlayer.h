@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/Config/Config.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "VideoCommon/CPMemory.h"
@@ -18,6 +19,10 @@
 class FifoDataFile;
 struct MemoryUpdate;
 
+namespace Core
+{
+class System;
+}
 namespace CPU
 {
 enum class State;
@@ -90,6 +95,11 @@ class FifoPlayer
 public:
   using CallbackFunc = std::function<void()>;
 
+  explicit FifoPlayer(Core::System& system);
+  FifoPlayer(const FifoPlayer&) = delete;
+  FifoPlayer(FifoPlayer&&) = delete;
+  FifoPlayer& operator=(const FifoPlayer&) = delete;
+  FifoPlayer& operator=(FifoPlayer&&) = delete;
   ~FifoPlayer();
 
   bool Open(const std::string& filename);
@@ -126,13 +136,12 @@ public:
   // Callbacks
   void SetFileLoadedCallback(CallbackFunc callback);
   void SetFrameWrittenCallback(CallbackFunc callback) { m_FrameWrittenCb = std::move(callback); }
-  static FifoPlayer& GetInstance();
 
   bool IsRunningWithFakeVideoInterfaceUpdates() const;
 
 private:
   class CPUCore;
-  FifoPlayer();
+  friend class CPUCore;
 
   CPU::State AdvanceFrame();
 
@@ -167,10 +176,12 @@ private:
   bool ShouldLoadBP(u8 address);
   bool ShouldLoadXF(u8 address);
 
-  static bool IsIdleSet();
-  static bool IsHighWatermarkSet();
+  bool IsIdleSet() const;
+  bool IsHighWatermarkSet() const;
 
   void RefreshConfig();
+
+  Core::System& m_system;
 
   bool m_Loop = true;
   // If enabled then all memory updates happen at once before the first frame
@@ -189,7 +200,7 @@ private:
 
   CallbackFunc m_FileLoadedCb = nullptr;
   CallbackFunc m_FrameWrittenCb = nullptr;
-  size_t m_config_changed_callback_id;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
 
   std::unique_ptr<FifoDataFile> m_File;
 

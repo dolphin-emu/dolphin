@@ -6,14 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "DolphinTool/Command.h"
-
 namespace DolphinTool
 {
-class HeaderCommand final : public Command
-{
-public:
-  int Main(const std::vector<std::string>& args) override;
-};
-
+int HeaderCommand(const std::vector<std::string>& args);
 }  // namespace DolphinTool

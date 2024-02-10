@@ -17,6 +17,10 @@
 
 class PointerWrap;
 
+namespace CoreTiming
+{
+class CoreTimingManager;
+}
 namespace DiscIO
 {
 enum class Platform;
@@ -37,22 +41,17 @@ struct TitleContext
   bool first_change = true;
 };
 
-class ESDevice final : public Device
+class ESDevice;
+
+class ESCore final
 {
 public:
-  ESDevice(Kernel& ios, const std::string& device_name);
-
-  static void InitializeEmulationState();
-  static void FinalizeEmulationState();
-
-  ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
-  bool LaunchTitle(u64 title_id, HangPPC hang_ppc = HangPPC::No);
-
-  void DoState(PointerWrap& p) override;
-
-  std::optional<IPCReply> Open(const OpenRequest& request) override;
-  std::optional<IPCReply> Close(u32 fd) override;
-  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
+  explicit ESCore(Kernel& ios);
+  ESCore(const ESCore& other) = delete;
+  ESCore(ESCore&& other) = delete;
+  ESCore& operator=(const ESCore& other) = delete;
+  ESCore& operator=(ESCore&& other) = delete;
+  ~ESCore();
 
   struct TitleImportExportContext
   {
@@ -83,12 +82,6 @@ public:
     s32 ipc_fd = -1;
   };
 
-  enum class CheckContentHashes : bool
-  {
-    Yes = true,
-    No = false,
-  };
-
   ES::TMDReader FindImportTMD(u64 title_id, Ticks ticks = {}) const;
   ES::TMDReader FindInstalledTMD(u64 title_id, Ticks ticks = {}) const;
   ES::TicketReader FindSignedTicket(u64 title_id,
@@ -100,6 +93,12 @@ public:
   std::vector<u64> GetTitleImports() const;
   // Get titles for which there is a ticket (in /ticket).
   std::vector<u64> GetTitlesWithTickets() const;
+
+  enum class CheckContentHashes : bool
+  {
+    Yes = true,
+    No = false,
+  };
 
   std::vector<ES::Content>
   GetStoredContentsFromTMD(const ES::TMDReader& tmd,
@@ -187,6 +186,71 @@ public:
                              u32 certificate_iosc_handle);
 
 private:
+  // Start a title import.
+  bool InitImport(const ES::TMDReader& tmd);
+  // Clean up the import content directory and move it back to /title.
+  bool FinishImport(const ES::TMDReader& tmd);
+  // Write a TMD for a title in /import atomically.
+  bool WriteImportTMD(const ES::TMDReader& tmd);
+  // Finish stale imports and clear the import directory.
+  void FinishStaleImport(u64 title_id);
+  void FinishAllStaleImports();
+
+  std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
+
+  bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
+
+  bool IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert) const;
+  ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
+  ReturnCode WriteNewCertToStore(const ES::CertReader& cert);
+
+  ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
+                                       const ES::TMDReader& tmd) const;
+
+  struct OpenedContent
+  {
+    bool m_opened = false;
+    u64 m_fd = 0;
+    u64 m_title_id = 0;
+    ES::Content m_content{};
+    u32 m_uid = 0;
+  };
+
+  Kernel& m_ios;
+
+  using ContentTable = std::array<OpenedContent, 16>;
+  ContentTable m_content_table;
+
+  TitleContext m_title_context{};
+
+  friend class ESDevice;
+};
+
+class ESDevice final : public EmulationDevice
+{
+public:
+  ESDevice(EmulationKernel& ios, ESCore& core, const std::string& device_name);
+  ESDevice(const ESDevice& other) = delete;
+  ESDevice(ESDevice&& other) = delete;
+  ESDevice& operator=(const ESDevice& other) = delete;
+  ESDevice& operator=(ESDevice&& other) = delete;
+  ~ESDevice();
+
+  static void InitializeEmulationState(CoreTiming::CoreTimingManager& core_timing);
+  static void FinalizeEmulationState();
+
+  ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
+  bool LaunchTitle(u64 title_id, HangPPC hang_ppc = HangPPC::No);
+
+  void DoState(PointerWrap& p) override;
+
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
+
+  ESCore& GetCore() const { return m_core; }
+
+private:
   enum
   {
     IOCTL_ES_ADDTICKET = 0x01,
@@ -261,6 +325,7 @@ private:
   };
 
   // ES can only have 3 contexts at one time.
+  using Context = ESCore::Context;
   using ContextArray = std::array<Context, 3>;
 
   // Title management
@@ -348,47 +413,15 @@ private:
 
   bool LaunchIOS(u64 ios_title_id, HangPPC hang_ppc);
   bool LaunchPPCTitle(u64 title_id);
-  bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
-
-  ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
-                                       const ES::TMDReader& tmd) const;
-
-  bool IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert) const;
-  ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
-  ReturnCode WriteNewCertToStore(const ES::CertReader& cert);
-
-  // Start a title import.
-  bool InitImport(const ES::TMDReader& tmd);
-  // Clean up the import content directory and move it back to /title.
-  bool FinishImport(const ES::TMDReader& tmd);
-  // Write a TMD for a title in /import atomically.
-  bool WriteImportTMD(const ES::TMDReader& tmd);
-  // Finish stale imports and clear the import directory.
-  void FinishStaleImport(u64 title_id);
-  void FinishAllStaleImports();
 
   void FinishInit();
-
-  std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
 
   s32 WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks = {});
   s32 WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks = {});
   bool BootstrapPPC();
 
-  struct OpenedContent
-  {
-    bool m_opened = false;
-    u64 m_fd = 0;
-    u64 m_title_id = 0;
-    ES::Content m_content{};
-    u32 m_uid = 0;
-  };
-
-  using ContentTable = std::array<OpenedContent, 16>;
-  ContentTable m_content_table;
-
+  ESCore& m_core;
   ContextArray m_contexts;
-  TitleContext m_title_context{};
   std::string m_pending_ppc_boot_content_path;
 };
 }  // namespace IOS::HLE

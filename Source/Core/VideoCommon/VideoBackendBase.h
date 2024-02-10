@@ -47,7 +47,7 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  virtual void InitBackendInfo() = 0;
+  virtual void InitBackendInfo(const WindowSystemInfo& wsi) = 0;
   virtual std::optional<std::string> GetWarningMessage() const { return {}; }
 
   // Prepares a native window for rendering. This is called on the main thread, or the
@@ -69,9 +69,9 @@ public:
   static void ActivateBackend(const std::string& name);
 
   // Fills the backend_info fields with the capabilities of the selected backend/device.
-  static void PopulateBackendInfo();
+  static void PopulateBackendInfo(const WindowSystemInfo& wsi);
   // Called by the UI thread when the graphics config is opened.
-  static void PopulateBackendInfoFromUI();
+  static void PopulateBackendInfoFromUI(const WindowSystemInfo& wsi);
 
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);

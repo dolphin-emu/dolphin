@@ -163,17 +163,19 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
-    while (PowerPC::breakpoints.IsAddressBreakPoint(addr))
+    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    while (breakpoints.IsAddressBreakPoint(addr))
     {
-      PowerPC::breakpoints.Remove(addr);
+      breakpoints.Remove(addr);
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a breakpoint: {:08x} bytes at {:08x}", len, addr);
     }
   }
   else
   {
-    while (PowerPC::memchecks.GetMemCheck(addr, len) != nullptr)
+    auto& memchecks = Core::System::GetInstance().GetPowerPC().GetMemChecks();
+    while (memchecks.GetMemCheck(addr, len) != nullptr)
     {
-      PowerPC::memchecks.Remove(addr);
+      memchecks.Remove(addr);
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
     }
   }
@@ -659,6 +661,7 @@ static void WriteRegister()
       break;
     case 65:
       ppc_state.msr.Hex = re32hex(bufptr);
+      PowerPC::MSRUpdated(ppc_state);
       break;
     case 66:
       ppc_state.cr.Set(re32hex(bufptr));
@@ -758,6 +761,7 @@ static void WriteRegister()
       break;
     case 131:
       ppc_state.spr[SPR_MMCR0] = re32hex(bufptr);
+      PowerPC::MMCRUpdated(ppc_state);
       break;
     case 132:
       ppc_state.spr[SPR_PMC1] = re32hex(bufptr);
@@ -770,6 +774,7 @@ static void WriteRegister()
       break;
     case 135:
       ppc_state.spr[SPR_MMCR1] = re32hex(bufptr);
+      PowerPC::MMCRUpdated(ppc_state);
       break;
     case 136:
       ppc_state.spr[SPR_PMC3] = re32hex(bufptr);
@@ -821,7 +826,7 @@ static void ReadMemory(const Core::CPUThreadGuard& guard)
   if (len * 2 > sizeof reply)
     SendReply("E01");
 
-  if (!PowerPC::HostIsRAMAddress(guard, addr))
+  if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
   auto& system = Core::System::GetInstance();
@@ -848,7 +853,7 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
 
-  if (!PowerPC::HostIsRAMAddress(guard, addr))
+  if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
   auto& system = Core::System::GetInstance();
@@ -869,7 +874,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
-    PowerPC::breakpoints.Add(addr);
+    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    breakpoints.Add(addr);
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}",
                  static_cast<int>(type), len, addr);
   }
@@ -886,7 +892,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     new_memcheck.break_on_hit = true;
     new_memcheck.log_on_hit = false;
     new_memcheck.is_enabled = true;
-    PowerPC::memchecks.Add(std::move(new_memcheck));
+    auto& memchecks = Core::System::GetInstance().GetPowerPC().GetMemChecks();
+    memchecks.Add(std::move(new_memcheck));
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", static_cast<int>(type),
                  len, addr);
   }
@@ -1048,7 +1055,7 @@ void InitLocal(const char* socket)
   addr.sun_family = AF_UNIX;
   strcpy(addr.sun_path, socket);
 
-  InitGeneric(PF_LOCAL, (const sockaddr*)&addr, sizeof(addr), NULL, NULL);
+  InitGeneric(PF_LOCAL, (const sockaddr*)&addr, sizeof(addr), nullptr, nullptr);
 }
 #endif
 

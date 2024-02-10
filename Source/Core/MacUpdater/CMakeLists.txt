@@ -47,17 +47,12 @@ if (${IBTOOL} STREQUAL "IBTOOL-NOTFOUND")
 endif()
 
 foreach(sb ${STORYBOARDS})
-  set(MacUpdater_BIN_DIR ${CMAKE_BINARY_DIR}/Binaries)
-
-  if (CMAKE_GENERATOR STREQUAL Xcode)
-    string(APPEND MacUpdater_BIN_DIR "/\${CONFIGURATION}")
-  endif()
-
+  set(output $<TARGET_BUNDLE_DIR:MacUpdater>/Contents/Resources/${sb}c)
+  set(input  ${CMAKE_CURRENT_SOURCE_DIR}/${sb})
   add_custom_command(TARGET MacUpdater POST_BUILD
-                     COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text
-                                       --compile ${MacUpdater_BUNDLE_PATH}/Contents/Resources/${sb}c
-                     ${CMAKE_CURRENT_SOURCE_DIR}/${sb}
-                     COMMENT "Compiling Storyboard ${sb}...")
+    COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text --compile ${output} ${input}
+    DEPENDS ${input}
+    COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
 
 if(MACOS_CODE_SIGNING)
@@ -65,14 +60,6 @@ if(MACOS_CODE_SIGNING)
     set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "${MACOS_CODE_SIGNING_IDENTITY}")
   endif()
 
-  # Make file build code sign
   add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND test ${MacUpdater_BUNDLE_PATH} || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime ${MacUpdater_BUNDLE_PATH})
-  
-  # Xcode build code sign
-  add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app")
-    
-  add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app")
+    COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime $<TARGET_BUNDLE_DIR:MacUpdater>)
 endif()

@@ -13,10 +13,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// $Id: InterpolateShannon.h 225 2015-07-26 14:45:48Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -50,21 +46,27 @@ namespace soundtouch
 class InterpolateShannon : public TransposerBase
 {
 protected:
-    void resetRegisters();
     int transposeMono(SAMPLETYPE *dest, 
                         const SAMPLETYPE *src, 
-                        int &srcSamples);
+                        int &srcSamples) override;
     int transposeStereo(SAMPLETYPE *dest, 
                         const SAMPLETYPE *src, 
-                        int &srcSamples);
+                        int &srcSamples) override;
     int transposeMulti(SAMPLETYPE *dest, 
                         const SAMPLETYPE *src, 
-                        int &srcSamples);
+                        int &srcSamples) override;
 
     double fract;
 
 public:
     InterpolateShannon();
+
+    void resetRegisters() override;
+
+    virtual int getLatency() const override
+    {
+        return 3;
+    }
 };
 
 }

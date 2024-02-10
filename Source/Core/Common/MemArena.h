@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -13,6 +14,15 @@ namespace Common
 {
 #ifdef _WIN32
 struct WindowsMemoryRegion;
+
+struct WindowsMemoryFunctions
+{
+  Common::DynamicLibrary m_kernel32_handle;
+  Common::DynamicLibrary m_api_ms_win_core_memory_l1_1_6_handle;
+  void* m_address_UnmapViewOfFileEx = nullptr;
+  void* m_address_VirtualAlloc2 = nullptr;
+  void* m_address_MapViewOfFile3 = nullptr;
+};
 #endif
 
 // This class lets you create a block of anonymous RAM, and then arbitrarily map views into it.
@@ -34,8 +44,10 @@ public:
   /// CreateView() and ReleaseView(). Used to make a mappable region for emulated memory.
   ///
   /// @param size The amount of bytes that should be allocated in this region.
+  /// @param base_name A base name for the shared memory region, if applicable for this platform.
+  /// Will be extended with the process ID.
   ///
-  void GrabSHMSegment(size_t size);
+  void GrabSHMSegment(size_t size, std::string_view base_name);
 
   ///
   /// Release the memory segment previously allocated with GrabSHMSegment().
@@ -107,19 +119,74 @@ private:
   std::vector<WindowsMemoryRegion> m_regions;
   void* m_reserved_region = nullptr;
   void* m_memory_handle = nullptr;
-  Common::DynamicLibrary m_kernel32_handle;
-  Common::DynamicLibrary m_api_ms_win_core_memory_l1_1_6_handle;
-  void* m_address_UnmapViewOfFileEx = nullptr;
-  void* m_address_VirtualAlloc2 = nullptr;
-  void* m_address_MapViewOfFile3 = nullptr;
+  WindowsMemoryFunctions m_memory_functions;
 #else
-#ifdef ANDROID
-  int fd;
-#else
-  int m_shm_fd;
-  void* m_reserved_region;
-  std::size_t m_reserved_region_size;
+  int m_shm_fd = 0;
+  void* m_reserved_region = nullptr;
+  std::size_t m_reserved_region_size = 0;
 #endif
+};
+
+// This class represents a single fixed-size memory region where the individual memory pages are
+// only actually allocated on first access. The memory will be zero on first access.
+class LazyMemoryRegion final
+{
+public:
+  LazyMemoryRegion();
+  ~LazyMemoryRegion();
+  LazyMemoryRegion(const LazyMemoryRegion&) = delete;
+  LazyMemoryRegion(LazyMemoryRegion&&) = delete;
+  LazyMemoryRegion& operator=(const LazyMemoryRegion&) = delete;
+  LazyMemoryRegion& operator=(LazyMemoryRegion&&) = delete;
+
+  ///
+  /// Reserve a memory region.
+  ///
+  /// @param size The size of the region.
+  ///
+  /// @return The address the region was mapped at. Returns nullptr on failure.
+  ///
+  void* Create(size_t size);
+
+  ///
+  /// Reset the memory region back to zero, throwing away any mapped pages.
+  /// This can only be called after a successful call to Create().
+  ///
+  void Clear();
+
+  ///
+  /// Release the memory previously reserved with Create(). After this call the pointer that was
+  /// returned by Create() will become invalid.
+  ///
+  void Release();
+
+  ///
+  /// Ensure that the memory page at the given byte offset from the start of the memory region is
+  /// writable. We use this on Windows as a workaround to only actually commit pages as they are
+  /// written to. On other OSes this does nothing.
+  ///
+  /// @param offset The offset into the memory region that should be made writable if it isn't.
+  ///
+  void EnsureMemoryPageWritable(size_t offset)
+  {
+#ifdef _WIN32
+    const size_t block_index = offset / BLOCK_SIZE;
+    if (m_writable_block_handles[block_index] == nullptr)
+      MakeMemoryBlockWritable(block_index);
+#endif
+  }
+
+private:
+  void* m_memory = nullptr;
+  size_t m_size = 0;
+
+#ifdef _WIN32
+  void* m_zero_block = nullptr;
+  constexpr static size_t BLOCK_SIZE = 8 * 1024 * 1024;  // size of allocated memory blocks
+  WindowsMemoryFunctions m_memory_functions;
+  std::vector<void*> m_writable_block_handles;
+
+  void MakeMemoryBlockWritable(size_t offset);
 #endif
 };
 

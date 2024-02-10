@@ -36,7 +36,7 @@ SQueuedEvent::SQueuedEvent(u32 size_, u16 handle) : size(size_), connection_hand
     PanicAlertFmt("SQueuedEvent: The size is too large.");
 }
 
-BluetoothEmuDevice::BluetoothEmuDevice(Kernel& ios, const std::string& device_name)
+BluetoothEmuDevice::BluetoothEmuDevice(EmulationKernel& ios, const std::string& device_name)
     : BluetoothBaseDevice(ios, device_name)
 {
   SysConf sysconf{ios.GetFS()};
@@ -81,13 +81,13 @@ BluetoothEmuDevice::BluetoothEmuDevice(Kernel& ios, const std::string& device_na
 BluetoothEmuDevice::~BluetoothEmuDevice() = default;
 
 template <typename T>
-static void DoStateForMessage(Kernel& ios, PointerWrap& p, std::unique_ptr<T>& message)
+static void DoStateForMessage(EmulationKernel& ios, PointerWrap& p, std::unique_ptr<T>& message)
 {
   u32 request_address = (message != nullptr) ? message->ios_request.address : 0;
   p.Do(request_address);
   if (request_address != 0)
   {
-    IOCtlVRequest request{request_address};
+    IOCtlVRequest request{ios.GetSystem(), request_address};
     message = std::make_unique<T>(ios, request);
   }
 }
@@ -105,8 +105,8 @@ void BluetoothEmuDevice::DoState(PointerWrap& p)
 
   Device::DoState(p);
   p.Do(m_controller_bd);
-  DoStateForMessage(m_ios, p, m_hci_endpoint);
-  DoStateForMessage(m_ios, p, m_acl_endpoint);
+  DoStateForMessage(GetEmulationKernel(), p, m_hci_endpoint);
+  DoStateForMessage(GetEmulationKernel(), p, m_acl_endpoint);
   p.Do(m_last_ticks);
   p.DoArray(m_packet_count);
   p.Do(m_scan_enable);
@@ -152,19 +152,19 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
   case USB::IOCTLV_USBV0_CTRLMSG:  // HCI command is received from the stack
   {
     // Replies are generated inside
-    ExecuteHCICommandMessage(USB::V0CtrlMessage(m_ios, request));
+    ExecuteHCICommandMessage(USB::V0CtrlMessage(GetEmulationKernel(), request));
     send_reply = false;
     break;
   }
 
   case USB::IOCTLV_USBV0_BLKMSG:
   {
-    const USB::V0BulkMessage ctrl{m_ios, request};
+    const USB::V0BulkMessage ctrl{GetEmulationKernel(), request};
     switch (ctrl.endpoint)
     {
     case ACL_DATA_OUT:  // ACL data is received from the stack
     {
-      auto& system = Core::System::GetInstance();
+      auto& system = GetSystem();
       auto& memory = system.GetMemory();
 
       // This is the ACL datapath from CPU to Wii Remote
@@ -181,7 +181,7 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
     }
     case ACL_DATA_IN:  // We are given an ACL buffer to fill
     {
-      m_acl_endpoint = std::make_unique<USB::V0BulkMessage>(m_ios, request);
+      m_acl_endpoint = std::make_unique<USB::V0BulkMessage>(GetEmulationKernel(), request);
       DEBUG_LOG_FMT(IOS_WIIMOTE, "ACL_DATA_IN: {:#010x}", request.address);
       send_reply = false;
       break;
@@ -194,10 +194,10 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
 
   case USB::IOCTLV_USBV0_INTRMSG:
   {
-    const USB::V0IntrMessage ctrl{m_ios, request};
+    const USB::V0IntrMessage ctrl{GetEmulationKernel(), request};
     if (ctrl.endpoint == HCI_EVENT)  // We are given a HCI buffer to fill
     {
-      m_hci_endpoint = std::make_unique<USB::V0IntrMessage>(m_ios, request);
+      m_hci_endpoint = std::make_unique<USB::V0IntrMessage>(GetEmulationKernel(), request);
       DEBUG_LOG_FMT(IOS_WIIMOTE, "HCI_EVENT: {:#010x}", request.address);
       send_reply = false;
     }
@@ -209,7 +209,7 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
   }
 
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WIIMOTE);
+    request.DumpUnknown(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_WIIMOTE);
   }
 
   if (!send_reply)
@@ -247,7 +247,7 @@ void BluetoothEmuDevice::SendACLPacket(const bdaddr_t& source, const u8* data, u
     DEBUG_LOG_FMT(IOS_WIIMOTE, "ACL endpoint valid, sending packet to {:08x}",
                   m_acl_endpoint->ios_request.address);
 
-    auto& system = Core::System::GetInstance();
+    auto& system = GetSystem();
     auto& memory = system.GetMemory();
 
     hci_acldata_hdr_t* header =
@@ -258,7 +258,8 @@ void BluetoothEmuDevice::SendACLPacket(const bdaddr_t& source, const u8* data, u
     // Write the packet to the buffer
     memcpy(reinterpret_cast<u8*>(header) + sizeof(hci_acldata_hdr_t), data, header->length);
 
-    m_ios.EnqueueIPCReply(m_acl_endpoint->ios_request, sizeof(hci_acldata_hdr_t) + size);
+    GetEmulationKernel().EnqueueIPCReply(m_acl_endpoint->ios_request,
+                                         sizeof(hci_acldata_hdr_t) + size);
     m_acl_endpoint.reset();
   }
   else
@@ -287,7 +288,7 @@ void BluetoothEmuDevice::AddEventToQueue(const SQueuedEvent& event)
       m_hci_endpoint->FillBuffer(event.buffer, event.size);
 
       // Send a reply to indicate HCI buffer is filled
-      m_ios.EnqueueIPCReply(m_hci_endpoint->ios_request, event.size);
+      GetEmulationKernel().EnqueueIPCReply(m_hci_endpoint->ios_request, event.size);
       m_hci_endpoint.reset();
     }
     else  // push new one, pop oldest
@@ -304,7 +305,7 @@ void BluetoothEmuDevice::AddEventToQueue(const SQueuedEvent& event)
       m_hci_endpoint->FillBuffer(queued_event.buffer, queued_event.size);
 
       // Send a reply to indicate HCI buffer is filled
-      m_ios.EnqueueIPCReply(m_hci_endpoint->ios_request, queued_event.size);
+      GetEmulationKernel().EnqueueIPCReply(m_hci_endpoint->ios_request, queued_event.size);
       m_hci_endpoint.reset();
       m_event_queue.pop_front();
     }
@@ -330,7 +331,7 @@ void BluetoothEmuDevice::Update()
     m_hci_endpoint->FillBuffer(event.buffer, event.size);
 
     // Send a reply to indicate HCI buffer is filled
-    m_ios.EnqueueIPCReply(m_hci_endpoint->ios_request, event.size);
+    GetEmulationKernel().EnqueueIPCReply(m_hci_endpoint->ios_request, event.size);
     m_hci_endpoint.reset();
     m_event_queue.pop_front();
   }
@@ -345,8 +346,8 @@ void BluetoothEmuDevice::Update()
   for (auto& wiimote : m_wiimotes)
     wiimote->Update();
 
-  const u64 interval = SystemTimers::GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
-  const u64 now = Core::System::GetInstance().GetCoreTiming().GetTicks();
+  const u64 interval = GetSystem().GetSystemTimers().GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
+  const u64 now = GetSystem().GetCoreTiming().GetTicks();
 
   if (now - m_last_ticks > interval)
   {
@@ -427,7 +428,7 @@ void BluetoothEmuDevice::ACLPool::WriteToEndpoint(const USB::V0BulkMessage& endp
   DEBUG_LOG_FMT(IOS_WIIMOTE, "ACL packet being written from queue to {:08x}",
                 endpoint.ios_request.address);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
   hci_acldata_hdr_t* header = (hci_acldata_hdr_t*)memory.GetPointer(endpoint.data_address);
@@ -966,7 +967,7 @@ bool BluetoothEmuDevice::SendEventConPacketTypeChange(u16 connection_handle, u16
 // This is called from the USB::IOCTLV_USBV0_CTRLMSG Ioctlv
 void BluetoothEmuDevice::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl_message)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u8* input = memory.GetPointer(ctrl_message.data_address + 3);
@@ -1149,7 +1150,7 @@ void BluetoothEmuDevice::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl
   }
 
   // HCI command is finished, send a reply to command
-  m_ios.EnqueueIPCReply(ctrl_message.ios_request, ctrl_message.length);
+  GetEmulationKernel().EnqueueIPCReply(ctrl_message.ios_request, ctrl_message.length);
 }
 
 //

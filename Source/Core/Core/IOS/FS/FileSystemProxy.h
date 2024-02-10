@@ -20,13 +20,22 @@ namespace IOS::HLE
 {
 constexpr FS::Fd INVALID_FD = 0xffffffff;
 
-class FSDevice : public Device
+class FSDevice;
+
+class FSCore final
 {
 public:
+  explicit FSCore(Kernel& ios);
+  FSCore(const FSCore& other) = delete;
+  FSCore(FSCore&& other) = delete;
+  FSCore& operator=(const FSCore& other) = delete;
+  FSCore& operator=(FSCore&& other) = delete;
+  ~FSCore();
+
   class ScopedFd
   {
   public:
-    ScopedFd(FSDevice* fs, s64 fd, Ticks tick_tracker = {})
+    ScopedFd(FSCore* fs, s64 fd, Ticks tick_tracker = {})
         : m_fs{fs}, m_fd{fd}, m_tick_tracker{tick_tracker}
     {
     }
@@ -46,12 +55,10 @@ public:
     s64 Release() { return std::exchange(m_fd, -1); }
 
   private:
-    FSDevice* m_fs{};
+    FSCore* m_fs{};
     s64 m_fd = -1;
     Ticks m_tick_tracker{};
   };
-
-  FSDevice(Kernel& ios, const std::string& device_name);
 
   // These are the equivalent of the IPC command handlers so IPC overhead is included
   // in timing calculations.
@@ -78,16 +85,6 @@ public:
 
   std::shared_ptr<FS::FileSystem> GetFS() const { return m_ios.GetFS(); }
 
-  void DoState(PointerWrap& p) override;
-
-  std::optional<IPCReply> Open(const OpenRequest& request) override;
-  std::optional<IPCReply> Close(u32 fd) override;
-  std::optional<IPCReply> Read(const ReadWriteRequest& request) override;
-  std::optional<IPCReply> Write(const ReadWriteRequest& request) override;
-  std::optional<IPCReply> Seek(const SeekRequest& request) override;
-  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
-  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
-
 private:
   struct Handle
   {
@@ -99,6 +96,40 @@ private:
     bool superblock_flush_needed = false;
   };
 
+  u64 EstimateTicksForReadWrite(const Handle& handle, u64 fd, IPCCommandType command, u32 size);
+  u64 SimulatePopulateFileCache(u64 fd, u32 offset, u32 file_size);
+  u64 SimulateFlushFileCache();
+  bool HasCacheForFile(u64 fd, u32 offset) const;
+
+  Kernel& m_ios;
+
+  bool m_dirty_cache = false;
+  u16 m_cache_chain_index = 0;
+  std::optional<u64> m_cache_fd;
+  // The first 0x18 IDs are reserved for the PPC.
+  u64 m_next_fd = 0x18;
+  std::map<u64, Handle> m_fd_map;
+
+  friend class FSDevice;
+};
+
+class FSDevice final : public EmulationDevice
+{
+public:
+  FSDevice(EmulationKernel& ios, FSCore& core, const std::string& device_name);
+  ~FSDevice();
+
+  void DoState(PointerWrap& p) override;
+
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> Read(const ReadWriteRequest& request) override;
+  std::optional<IPCReply> Write(const ReadWriteRequest& request) override;
+  std::optional<IPCReply> Seek(const SeekRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
+
+private:
   enum
   {
     ISFS_IOCTL_FORMAT = 1,
@@ -116,6 +147,8 @@ private:
     ISFS_IOCTL_SHUTDOWN = 13,
   };
 
+  using Handle = FSCore::Handle;
+
   IPCReply Format(const Handle& handle, const IOCtlRequest& request);
   IPCReply GetStats(const Handle& handle, const IOCtlRequest& request);
   IPCReply CreateDirectory(const Handle& handle, const IOCtlRequest& request);
@@ -130,16 +163,6 @@ private:
   IPCReply GetUsage(const Handle& handle, const IOCtlVRequest& request);
   IPCReply Shutdown(const Handle& handle, const IOCtlRequest& request);
 
-  u64 EstimateTicksForReadWrite(const Handle& handle, u64 fd, IPCCommandType command, u32 size);
-  u64 SimulatePopulateFileCache(u64 fd, u32 offset, u32 file_size);
-  u64 SimulateFlushFileCache();
-  bool HasCacheForFile(u64 fd, u32 offset) const;
-
-  bool m_dirty_cache = false;
-  u16 m_cache_chain_index = 0;
-  std::optional<u64> m_cache_fd;
-  // The first 0x18 IDs are reserved for the PPC.
-  u64 m_next_fd = 0x18;
-  std::map<u64, Handle> m_fd_map;
+  FSCore& m_core;
 };
 }  // namespace IOS::HLE

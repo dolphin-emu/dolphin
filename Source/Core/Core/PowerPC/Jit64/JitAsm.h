@@ -11,8 +11,6 @@ namespace Gen
 class X64CodeBlock;
 }
 
-class JitBase;
-
 // In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
 // code at runtime. In the case of fixed code like this, after writing it, we write
 // protect the memory, essentially making it work just like precompiled code.
@@ -37,12 +35,11 @@ public:
   explicit Jit64AsmRoutineManager(Jit64& jit);
 
   void Init();
+  void Regenerate();
 
   void ResetStack(Gen::X64CodeBlock& emitter);
 
 private:
   void Generate();
   void GenerateCommon();
-
-  JitBase& m_jit;
 };

@@ -9,8 +9,11 @@
 package org.dolphinemu.dolphinemu.features
 
 import android.annotation.TargetApi
+import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.graphics.Point
+import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
@@ -27,7 +30,7 @@ class DocumentProvider : DocumentsProvider() {
     private var rootDirectory: File? = null
 
     companion object {
-        private const val ROOT_ID = "root"
+        const val ROOT_ID = "root"
 
         private val DEFAULT_ROOT_PROJECTION = arrayOf(
             DocumentsContract.Root.COLUMN_ROOT_ID,
@@ -54,12 +57,11 @@ class DocumentProvider : DocumentsProvider() {
 
     override fun queryRoots(projection: Array<String>?): Cursor {
         val result = MatrixCursor(projection ?: DEFAULT_ROOT_PROJECTION)
-        rootDirectory = rootDirectory ?: DirectoryInitialization.getUserDirectoryPath(context)
         rootDirectory ?: return result
 
         result.newRow().apply {
             add(DocumentsContract.Root.COLUMN_ROOT_ID, ROOT_ID)
-            add(DocumentsContract.Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
+            add(DocumentsContract.Root.COLUMN_TITLE, context!!.getString(R.string.app_name_suffixed))
             add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_dolphin)
             add(
                 DocumentsContract.Root.COLUMN_FLAGS,
@@ -73,7 +75,6 @@ class DocumentProvider : DocumentsProvider() {
 
     override fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         val result = MatrixCursor(projection ?: DEFAULT_DOCUMENT_PROJECTION)
-        rootDirectory = rootDirectory ?: DirectoryInitialization.getUserDirectoryPath(context)
         rootDirectory ?: return result
         val file = documentIdToPath(documentId)
         appendDocument(file, result)
@@ -95,6 +96,8 @@ class DocumentProvider : DocumentsProvider() {
                 appendDocument(file, result)
             }
         }
+        result.setNotificationUri(context!!.contentResolver, DocumentsContract.buildChildDocumentsUri(
+                "${context!!.packageName}.user", parentDocumentId))
         return result
     }
 
@@ -102,16 +105,30 @@ class DocumentProvider : DocumentsProvider() {
         documentId: String,
         mode: String,
         signal: CancellationSignal?
-    ): ParcelFileDescriptor {
+    ): ParcelFileDescriptor? {
+        rootDirectory ?: return null
+
         val file = documentIdToPath(documentId)
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.parseMode(mode))
+    }
+
+    override fun openDocumentThumbnail(
+            documentId: String,
+            sizeHint: Point,
+            signal: CancellationSignal
+    ): AssetFileDescriptor {
+        val file = documentIdToPath(documentId)
+        val pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+        return AssetFileDescriptor(pfd, 0, AssetFileDescriptor.UNKNOWN_LENGTH)
     }
 
     override fun createDocument(
         parentDocumentId: String,
         mimeType: String,
         displayName: String
-    ): String {
+    ): String? {
+        rootDirectory ?: return null
+
         val folder = documentIdToPath(parentDocumentId)
         val file = findFileNameForNewFile(File(folder, displayName))
         if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
@@ -119,61 +136,62 @@ class DocumentProvider : DocumentsProvider() {
         } else {
             file.createNewFile()
         }
+        refreshDocument(parentDocumentId)
         return pathToDocumentId(file)
     }
 
-    override fun copyDocument(sourceDocumentId: String, targetParentDocumentId: String): String {
-        val file = documentIdToPath(sourceDocumentId)
-        val target = documentIdToPath(targetParentDocumentId)
-        val copy = copyRecursively(file, File(target, file.name))
-        return pathToDocumentId(copy)
-    }
+    override fun deleteDocument(documentId: String) {
+        rootDirectory ?: return
 
-    override fun removeDocument(documentId: String, parentDocumentId: String) {
         val file = documentIdToPath(documentId)
+        val fileParent = file.parentFile
         file.deleteRecursively()
+        refreshDocument(pathToDocumentId(fileParent!!))
     }
 
-    override fun moveDocument(
-        sourceDocumentId: String,
-        sourceParentDocumentId: String,
-        targetParentDocumentId: String
-    ): String {
-        val copy = copyDocument(sourceDocumentId, targetParentDocumentId)
-        val file = documentIdToPath(sourceDocumentId)
-        file.delete()
-        return copy
-    }
+    override fun renameDocument(documentId: String, displayName: String): String? {
+        rootDirectory ?: return null
 
-    override fun renameDocument(documentId: String, displayName: String): String {
         val file = documentIdToPath(documentId)
-        file.renameTo(findFileNameForNewFile(File(file.parentFile, displayName)))
-        return pathToDocumentId(file)
+        val dest = findFileNameForNewFile(File(file.parentFile, displayName))
+        file.renameTo(dest)
+        refreshDocument(pathToDocumentId(file.parentFile!!))
+        return pathToDocumentId(dest)
     }
 
-    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
-        val file = documentIdToPath(documentId)
-        val folder = documentIdToPath(parentDocumentId)
-        return file.relativeToOrNull(folder) != null
+    private fun refreshDocument(parentDocumentId: String) {
+        val parentUri: Uri =
+                DocumentsContract.buildChildDocumentsUri(
+                        "${context!!.packageName}.user",
+                        parentDocumentId
+                )
+        context!!.contentResolver.notifyChange(parentUri, null)
     }
+
+    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean
+        = documentId.startsWith(parentDocumentId)
 
     private fun appendDocument(file: File, cursor: MatrixCursor) {
         var flags = 0
-        if (file.isDirectory && file.canWrite()) {
-            flags = DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE
-        } else if (file.canWrite()) {
-            flags = DocumentsContract.Document.FLAG_SUPPORTS_WRITE
+        if (file.canWrite()) {
+            flags = if (file.isDirectory) {
+                DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE
+            } else {
+                DocumentsContract.Document.FLAG_SUPPORTS_WRITE
+            }
             flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_DELETE
-            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_REMOVE
-            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_MOVE
-            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_COPY
             flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_RENAME
+            // The system will handle copy + move for us
         }
 
         val name = if (file == rootDirectory) {
-            context!!.getString(R.string.app_name)
+            context!!.getString(R.string.app_name_suffixed)
         } else {
             file.name
+        }
+        val mimeType = getTypeForFile(file)
+        if (file.exists() && mimeType.startsWith("image/")) {
+            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL
         }
         cursor.newRow().apply {
             add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, pathToDocumentId(file))
@@ -217,22 +235,6 @@ class DocumentProvider : DocumentsProvider() {
             unusedFile = File("$pathWithoutExtension.$i.$extension")
             i++
         }
-        return file
-    }
-
-    private fun copyRecursively(src: File, dst: File): File {
-        val actualDst = findFileNameForNewFile(dst)
-        if (src.isDirectory) {
-            actualDst.mkdirs()
-            val children = src.listFiles()
-            if (children !== null) {
-                for (file in children) {
-                    copyRecursively(file, File(actualDst, file.name))
-                }
-            }
-        } else {
-            src.copyTo(actualDst)
-        }
-        return actualDst
+        return unusedFile
     }
 }

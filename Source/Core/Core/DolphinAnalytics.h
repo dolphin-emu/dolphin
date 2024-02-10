@@ -89,6 +89,11 @@ enum class GameQuirk
   // but testing is needed to find out which of these is actually used for what.
   MISMATCHED_GPU_MATRIX_INDICES_BETWEEN_CP_AND_XF,
 
+  // Only a few games use the Bounding Box feature. Note that every game initializes the bounding
+  // box registers (using BPMEM_CLEARBBOX1/BPMEM_CLEARBBOX2) on startup, as part of the SDK, but
+  // only a few read them (from PE_BBOX_LEFT etc.)
+  READS_BOUNDING_BOX,
+
   COUNT,
 };
 

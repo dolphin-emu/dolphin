@@ -13,7 +13,9 @@
 
 #include "Core/ConfigManager.h"
 
+#include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 #include "VideoCommon/TextureInfo.h"
@@ -58,6 +60,12 @@ public:
       return;
     m_action_impl->OnTextureLoad(texture_load);
   }
+  void OnTextureCreate(GraphicsModActionData::TextureCreate* texture_create) override
+  {
+    if (!m_mod.m_enabled)
+      return;
+    m_action_impl->OnTextureCreate(texture_create);
+  }
   void OnFrameEnd() override
   {
     if (!m_mod.m_enabled)
@@ -87,7 +95,8 @@ bool GraphicsModManager::Initialize()
     g_ActiveConfig.graphics_mod_config->SetChangeCount(old_game_mod_changes);
     g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
 
-    m_end_of_frame_event = AfterFrameEvent::Register([this] { EndOfFrame(); }, "ModManager");
+    m_end_of_frame_event =
+        AfterFrameEvent::Register([this](Core::System&) { EndOfFrame(); }, "ModManager");
   }
 
   return true;
@@ -143,6 +152,18 @@ GraphicsModManager::GetTextureLoadActions(const std::string& texture_name) const
   return m_default;
 }
 
+const std::vector<GraphicsModAction*>&
+GraphicsModManager::GetTextureCreateActions(const std::string& texture_name) const
+{
+  if (const auto it = m_create_texture_target_to_actions.find(texture_name);
+      it != m_create_texture_target_to_actions.end())
+  {
+    return it->second;
+  }
+
+  return m_default;
+}
+
 const std::vector<GraphicsModAction*>& GraphicsModManager::GetEFBActions(const FBInfo& efb) const
 {
   if (const auto it = m_efb_target_to_actions.find(efb); it != m_efb_target_to_actions.end())
@@ -169,6 +190,8 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
 
   const auto& mods = config.GetMods();
 
+  auto filesystem_library = std::make_shared<VideoCommon::DirectFilesystemAssetLibrary>();
+
   std::map<std::string, std::vector<GraphicsTargetConfig>> group_to_targets;
   for (const auto& mod : mods)
   {
@@ -190,6 +213,29 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
         group_to_targets[internal_group].push_back(target);
       }
     }
+
+    std::string base_path;
+    SplitPath(mod.GetAbsolutePath(), &base_path, nullptr, nullptr);
+    for (const GraphicsModAssetConfig& asset : mod.m_assets)
+    {
+      auto asset_map = asset.m_map;
+      for (auto& [k, v] : asset_map)
+      {
+        if (v.is_absolute())
+        {
+          WARN_LOG_FMT(VIDEO,
+                       "Specified graphics mod asset '{}' for mod '{}' has an absolute path, you "
+                       "shouldn't release this to users.",
+                       asset.m_asset_id, mod.m_title);
+        }
+        else
+        {
+          v = std::filesystem::path{base_path} / v;
+        }
+      }
+
+      filesystem_library->SetAssetIDMapData(asset.m_asset_id, std::move(asset_map));
+    }
   }
 
   for (const auto& mod : mods)
@@ -197,12 +243,11 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
     for (const GraphicsModFeatureConfig& feature : mod.m_features)
     {
       const auto create_action =
-          [](const std::string_view& action_name, const picojson::value& json_data,
-             GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
-        std::string base_path;
-        SplitPath(mod_config.GetAbsolutePath(), &base_path, nullptr, nullptr);
-
-        auto action = GraphicsModActionFactory::Create(action_name, json_data, base_path);
+          [filesystem_library](const std::string_view& action_name,
+                               const picojson::value& json_data,
+                               GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
+        auto action =
+            GraphicsModActionFactory::Create(action_name, json_data, std::move(filesystem_library));
         if (action == nullptr)
         {
           return nullptr;
@@ -212,16 +257,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
 
       const auto internal_group = fmt::format("{}.{}", mod.m_title, feature.m_group);
 
-      const auto add_target = [&](const GraphicsTargetConfig& target,
-                                  GraphicsModConfig mod_config) {
-        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
-        if (action == nullptr)
-        {
-          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
-                       feature.m_group);
-          return;
-        }
-        m_actions.push_back(std::move(action));
+      const auto add_target = [&](const GraphicsTargetConfig& target) {
         std::visit(
             overloaded{
                 [&](const DrawStartedTextureTarget& the_target) {
@@ -230,6 +266,10 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
                 },
                 [&](const LoadTextureTarget& the_target) {
                   m_load_texture_target_to_actions[the_target.m_texture_info_string].push_back(
+                      m_actions.back().get());
+                },
+                [&](const CreateTextureTarget& the_target) {
+                  m_create_texture_target_to_actions[the_target.m_texture_info_string].push_back(
                       m_actions.back().get());
                 },
                 [&](const EFBTarget& the_target) {
@@ -264,21 +304,39 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
             target);
       };
 
+      const auto add_action = [&](GraphicsModConfig mod_config) -> bool {
+        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
+        if (action == nullptr)
+        {
+          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
+                       feature.m_group);
+          return false;
+        }
+        m_actions.push_back(std::move(action));
+        return true;
+      };
+
       // Prefer groups in the pack over groups from another pack
       if (const auto local_it = group_to_targets.find(internal_group);
           local_it != group_to_targets.end())
       {
-        for (const GraphicsTargetConfig& target : local_it->second)
+        if (add_action(mod))
         {
-          add_target(target, mod);
+          for (const GraphicsTargetConfig& target : local_it->second)
+          {
+            add_target(target);
+          }
         }
       }
       else if (const auto global_it = group_to_targets.find(feature.m_group);
                global_it != group_to_targets.end())
       {
-        for (const GraphicsTargetConfig& target : global_it->second)
+        if (add_action(mod))
         {
-          add_target(target, mod);
+          for (const GraphicsTargetConfig& target : global_it->second)
+          {
+            add_target(target);
+          }
         }
       }
       else
@@ -306,6 +364,7 @@ void GraphicsModManager::Reset()
   m_projection_texture_target_to_actions.clear();
   m_draw_started_target_to_actions.clear();
   m_load_texture_target_to_actions.clear();
+  m_create_texture_target_to_actions.clear();
   m_efb_target_to_actions.clear();
   m_xfb_target_to_actions.clear();
 }

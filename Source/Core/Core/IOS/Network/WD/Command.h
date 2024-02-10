@@ -39,7 +39,7 @@ constexpr bool IsValidMode(Mode mode)
 
 namespace IOS::HLE
 {
-class NetWDCommandDevice : public Device
+class NetWDCommandDevice : public EmulationDevice
 {
 public:
   enum class ResultCode : u32
@@ -50,7 +50,7 @@ public:
     DriverError = 0x80008003,
   };
 
-  NetWDCommandDevice(Kernel& ios, const std::string& device_name);
+  NetWDCommandDevice(EmulationKernel& ios, const std::string& device_name);
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;
   std::optional<IPCReply> Close(u32 fd) override;

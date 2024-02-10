@@ -31,7 +31,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   // Test for write permissions
   bool need_admin = false;
 
-  auto path = GetModuleName(hInstance);
+  auto path = Common::GetModuleName(hInstance);
   if (!path)
   {
     UI::Error("Failed to get updater filename.");
@@ -58,11 +58,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
 
     // Relaunch the updater as administrator
-    ShellExecuteW(nullptr, L"runas", path->c_str(), pCmdLine, NULL, SW_SHOW);
+    ShellExecuteW(nullptr, L"runas", path->c_str(), pCmdLine, nullptr, SW_SHOW);
     return 0;
   }
 
-  std::vector<std::string> args = CommandLineToUtf8Argv(pCmdLine);
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(pCmdLine);
 
   return RunUpdater(args) ? 0 : 1;
 }

@@ -52,11 +52,9 @@ private:
   void ModSelectionChanged();
   void ModItemChanged(QListWidgetItem* item);
 
-  void OnModChanged(std::optional<std::string> absolute_path);
+  void OnModChanged(const std::optional<std::string>& absolute_path);
 
   void SaveModList();
-
-  void ClearLayoutRecursively(QLayout* layout);
 
   void OpenGraphicsModDir();
 

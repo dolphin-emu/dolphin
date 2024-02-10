@@ -5,7 +5,7 @@
 
 #include "Common/CommonTypes.h"
 
-namespace FPURoundMode
+namespace Common::FPU
 {
 enum RoundMode : u32
 {
@@ -27,4 +27,4 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode);
 void SaveSIMDState();
 void LoadSIMDState();
 void LoadDefaultSIMDState();
-}  // namespace FPURoundMode
+}  // namespace Common::FPU

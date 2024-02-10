@@ -216,4 +216,46 @@ void NWC24Config::SetEmail(const char* email)
   strncpy(m_data.email, email, MAX_EMAIL_LENGTH);
   m_data.email[MAX_EMAIL_LENGTH - 1] = '\0';
 }
+
+std::string_view NWC24Config::GetMlchkid() const
+{
+  const size_t size = strnlen(m_data.mlchkid, MAX_MLCHKID_LENGTH);
+  return {m_data.mlchkid, size};
+}
+
+std::string NWC24Config::GetCheckURL() const
+{
+  const size_t size = strnlen(m_data.http_urls[1], MAX_URL_LENGTH);
+  return {m_data.http_urls[1], size};
+}
+
+std::string NWC24Config::GetAccountURL() const
+{
+  const size_t size = strnlen(m_data.http_urls[0], MAX_URL_LENGTH);
+  return {m_data.http_urls[0], size};
+}
+
+void NWC24Config::SetMailCheckID(std::string_view mlchkid)
+{
+  std::strncpy(m_data.mlchkid, mlchkid.data(), std::size(m_data.mlchkid));
+  m_data.mlchkid[MAX_MLCHKID_LENGTH - 1] = '\0';
+}
+
+void NWC24Config::SetPassword(std::string_view password)
+{
+  std::strncpy(m_data.paswd, password.data(), std::size(m_data.paswd));
+  m_data.paswd[MAX_PASSWORD_LENGTH - 1] = '\0';
+}
+
+std::string NWC24Config::GetSendURL() const
+{
+  const size_t size = strnlen(m_data.http_urls[4], MAX_URL_LENGTH);
+  return {m_data.http_urls[4], size};
+}
+
+std::string_view NWC24Config::GetPassword() const
+{
+  const size_t size = strnlen(m_data.paswd, MAX_PASSWORD_LENGTH);
+  return {m_data.paswd, size};
+}
 }  // namespace IOS::HLE::NWC24

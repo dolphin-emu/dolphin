@@ -15,9 +15,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-#include "DolphinQt/Config/Graphics/GraphicsBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
-#include "DolphinQt/Config/Graphics/GraphicsInteger.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
@@ -36,6 +36,10 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
+  connect(m_manual_texture_sampling, &QCheckBox::toggled, [this, parent] {
+    SaveSettings();
+    emit parent->UseFastTextureSamplingChanged();
+  });
 
   OnBackendChanged();
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
@@ -50,17 +54,17 @@ void AdvancedWidget::CreateWidgets()
   auto* performance_layout = new QGridLayout();
   performance_box->setLayout(performance_layout);
 
-  m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
-  m_show_ftimes = new GraphicsBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES);
-  m_show_vps = new GraphicsBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
-  m_show_vtimes = new GraphicsBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES);
-  m_show_graphs = new GraphicsBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS);
-  m_show_speed = new GraphicsBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
-  m_show_speed_colors = new GraphicsBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
-  m_perf_samp_window = new GraphicsInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
+  m_show_fps = new ConfigBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
+  m_show_ftimes = new ConfigBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES);
+  m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
+  m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES);
+  m_show_graphs = new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS);
+  m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
+  m_show_speed_colors = new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
+  m_perf_samp_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
   m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
   m_log_render_time =
-      new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
+      new ConfigBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
 
   performance_layout->addWidget(m_show_fps, 0, 0);
   performance_layout->addWidget(m_show_ftimes, 0, 1);
@@ -78,12 +82,12 @@ void AdvancedWidget::CreateWidgets()
   auto* debugging_layout = new QGridLayout();
   debugging_box->setLayout(debugging_layout);
 
-  m_enable_wireframe = new GraphicsBool(tr("Enable Wireframe"), Config::GFX_ENABLE_WIREFRAME);
-  m_show_statistics = new GraphicsBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS);
+  m_enable_wireframe = new ConfigBool(tr("Enable Wireframe"), Config::GFX_ENABLE_WIREFRAME);
+  m_show_statistics = new ConfigBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS);
   m_enable_format_overlay =
-      new GraphicsBool(tr("Texture Format Overlay"), Config::GFX_TEXFMT_OVERLAY_ENABLE);
+      new ConfigBool(tr("Texture Format Overlay"), Config::GFX_TEXFMT_OVERLAY_ENABLE);
   m_enable_api_validation =
-      new GraphicsBool(tr("Enable API Validation Layers"), Config::GFX_ENABLE_VALIDATION_LAYER);
+      new ConfigBool(tr("Enable API Validation Layers"), Config::GFX_ENABLE_VALIDATION_LAYER);
 
   debugging_layout->addWidget(m_enable_wireframe, 0, 0);
   debugging_layout->addWidget(m_show_statistics, 0, 1);
@@ -95,13 +99,13 @@ void AdvancedWidget::CreateWidgets()
   auto* utility_layout = new QGridLayout();
   utility_box->setLayout(utility_layout);
 
-  m_load_custom_textures = new GraphicsBool(tr("Load Custom Textures"), Config::GFX_HIRES_TEXTURES);
+  m_load_custom_textures = new ConfigBool(tr("Load Custom Textures"), Config::GFX_HIRES_TEXTURES);
   m_prefetch_custom_textures =
-      new GraphicsBool(tr("Prefetch Custom Textures"), Config::GFX_CACHE_HIRES_TEXTURES);
-  m_dump_efb_target = new GraphicsBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
-  m_dump_xfb_target = new GraphicsBool(tr("Dump XFB Target"), Config::GFX_DUMP_XFB_TARGET);
+      new ConfigBool(tr("Prefetch Custom Textures"), Config::GFX_CACHE_HIRES_TEXTURES);
+  m_dump_efb_target = new ConfigBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
+  m_dump_xfb_target = new ConfigBool(tr("Dump XFB Target"), Config::GFX_DUMP_XFB_TARGET);
   m_disable_vram_copies =
-      new GraphicsBool(tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
+      new ConfigBool(tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
   m_enable_graphics_mods = new ToolTipCheckBox(tr("Enable Graphics Mods"));
 
   utility_layout->addWidget(m_load_custom_textures, 0, 0);
@@ -117,9 +121,9 @@ void AdvancedWidget::CreateWidgets()
   auto* texture_dump_box = new QGroupBox(tr("Texture Dumping"));
   auto* texture_dump_layout = new QGridLayout();
   texture_dump_box->setLayout(texture_dump_layout);
-  m_dump_textures = new GraphicsBool(tr("Enable"), Config::GFX_DUMP_TEXTURES);
-  m_dump_base_textures = new GraphicsBool(tr("Dump Base Textures"), Config::GFX_DUMP_BASE_TEXTURES);
-  m_dump_mip_textures = new GraphicsBool(tr("Dump Mip Maps"), Config::GFX_DUMP_MIP_TEXTURES);
+  m_dump_textures = new ConfigBool(tr("Enable"), Config::GFX_DUMP_TEXTURES);
+  m_dump_base_textures = new ConfigBool(tr("Dump Base Textures"), Config::GFX_DUMP_BASE_TEXTURES);
+  m_dump_mip_textures = new ConfigBool(tr("Dump Mip Maps"), Config::GFX_DUMP_MIP_TEXTURES);
 
   texture_dump_layout->addWidget(m_dump_textures, 0, 0);
 
@@ -131,11 +135,11 @@ void AdvancedWidget::CreateWidgets()
   auto* dump_layout = new QGridLayout();
   dump_box->setLayout(dump_layout);
 
-  m_use_fullres_framedumps = new GraphicsBool(tr("Dump at Internal Resolution"),
-                                              Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
-  m_dump_use_ffv1 = new GraphicsBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
-  m_dump_bitrate = new GraphicsInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
-  m_png_compression_level = new GraphicsInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL);
+  m_use_fullres_framedumps = new ConfigBool(tr("Dump at Internal Resolution"),
+                                            Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
+  m_dump_use_ffv1 = new ConfigBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
+  m_dump_bitrate = new ConfigInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
+  m_png_compression_level = new ConfigInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL);
 
   dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
@@ -152,14 +156,14 @@ void AdvancedWidget::CreateWidgets()
   auto* misc_layout = new QGridLayout();
   misc_box->setLayout(misc_layout);
 
-  m_enable_cropping = new GraphicsBool(tr("Crop"), Config::GFX_CROP);
+  m_enable_cropping = new ConfigBool(tr("Crop"), Config::GFX_CROP);
   m_enable_prog_scan = new ToolTipCheckBox(tr("Enable Progressive Scan"));
   m_backend_multithreading =
-      new GraphicsBool(tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING);
-  m_prefer_vs_for_point_line_expansion = new GraphicsBool(
+      new ConfigBool(tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING);
+  m_prefer_vs_for_point_line_expansion = new ConfigBool(
       // i18n: VS is short for vertex shaders.
       tr("Prefer VS for Point/Line Expansion"), Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
-  m_cpu_cull = new GraphicsBool(tr("Cull Vertices on the CPU"), Config::GFX_CPU_CULL);
+  m_cpu_cull = new ConfigBool(tr("Cull Vertices on the CPU"), Config::GFX_CPU_CULL);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
@@ -168,7 +172,7 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_cpu_cull, 2, 0);
 #ifdef _WIN32
   m_borderless_fullscreen =
-      new GraphicsBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN);
+      new ConfigBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN);
 
   misc_layout->addWidget(m_borderless_fullscreen, 2, 1);
 #endif
@@ -179,9 +183,9 @@ void AdvancedWidget::CreateWidgets()
   experimental_box->setLayout(experimental_layout);
 
   m_defer_efb_access_invalidation =
-      new GraphicsBool(tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+      new ConfigBool(tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION);
   m_manual_texture_sampling =
-      new GraphicsBool(tr("Manual Texture Sampling"), Config::GFX_HACK_FAST_TEXTURE_SAMPLING, true);
+      new ConfigBool(tr("Manual Texture Sampling"), Config::GFX_HACK_FAST_TEXTURE_SAMPLING, true);
 
   experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
   experimental_layout->addWidget(m_manual_texture_sampling, 0, 1);
@@ -355,8 +359,9 @@ void AdvancedWidget::AddDescriptions()
                  "level 9 but finish in significantly less time.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
   static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Crops the picture from its native aspect ratio to 4:3 or "
-      "16:9.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+      "Crops the picture from its native aspect ratio (which rarely exactly matches 4:3 or 16:9),"
+      " to the specific user target aspect ratio (e.g. 4:3 or 16:9).<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
       "Enables progressive scan if supported by the emulated software. Most games don't have "
       "any issue with this.<br><br><dolphin_emphasis>If unsure, leave this "

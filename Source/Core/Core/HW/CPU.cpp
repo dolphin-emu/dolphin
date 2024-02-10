@@ -10,6 +10,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/GDBStub.h"
@@ -19,19 +20,21 @@
 
 namespace CPU
 {
-CPUManager::CPUManager() = default;
+CPUManager::CPUManager(Core::System& system) : m_system(system)
+{
+}
 CPUManager::~CPUManager() = default;
 
 void CPUManager::Init(PowerPC::CPUCore cpu_core)
 {
-  PowerPC::Init(cpu_core);
+  m_system.GetPowerPC().Init(cpu_core);
   m_state = State::Stepping;
 }
 
 void CPUManager::Shutdown()
 {
   Stop();
-  PowerPC::Shutdown();
+  m_system.GetPowerPC().Shutdown();
 }
 
 // Requires holding m_state_change_lock
@@ -62,17 +65,18 @@ void CPUManager::ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
 
 void CPUManager::Run()
 {
-  auto& system = Core::System::GetInstance();
+  auto& power_pc = m_system.GetPowerPC();
 
   // Updating the host CPU's rounding mode must be done on the CPU thread.
   // We can't rely on PowerPC::Init doing it, since it's called from EmuThread.
-  PowerPC::RoundingModeUpdated();
+  PowerPC::RoundingModeUpdated(power_pc.GetPPCState());
 
   std::unique_lock state_lock(m_state_change_lock);
   while (m_state != State::PowerDown)
   {
     m_state_cpu_cvar.wait(state_lock, [this] { return !m_state_paused_and_locked; });
     ExecutePendingJobs(state_lock);
+    CPUThreadConfigCallback::CheckForConfigChanges();
 
     Common::Event gdb_step_sync_event;
     switch (m_state)
@@ -85,22 +89,22 @@ void CPUManager::Run()
       // SingleStep so that the "continue", "step over" and "step out" debugger functions
       // work when the PC is at a breakpoint at the beginning of the block
       // If watchpoints are enabled, any instruction could be a breakpoint.
-      if (PowerPC::GetMode() != PowerPC::CoreMode::Interpreter)
+      if (power_pc.GetMode() != PowerPC::CoreMode::Interpreter)
       {
-        if (PowerPC::breakpoints.IsAddressBreakPoint(system.GetPPCState().pc) ||
-            PowerPC::memchecks.HasAny())
+        if (power_pc.GetBreakPoints().IsAddressBreakPoint(power_pc.GetPPCState().pc) ||
+            power_pc.GetMemChecks().HasAny())
         {
           m_state = State::Stepping;
-          PowerPC::CoreMode old_mode = PowerPC::GetMode();
-          PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-          PowerPC::SingleStep();
-          PowerPC::SetMode(old_mode);
+          PowerPC::CoreMode old_mode = power_pc.GetMode();
+          power_pc.SetMode(PowerPC::CoreMode::Interpreter);
+          power_pc.SingleStep();
+          power_pc.SetMode(old_mode);
           m_state = State::Running;
         }
       }
 
       // Enter a fast runloop
-      PowerPC::RunLoop();
+      power_pc.RunLoop();
 
       state_lock.lock();
       m_state_cpu_thread_active = false;
@@ -111,6 +115,7 @@ void CPUManager::Run()
       // Wait for step command.
       m_state_cpu_cvar.wait(state_lock, [this, &state_lock, &gdb_step_sync_event] {
         ExecutePendingJobs(state_lock);
+        CPUThreadConfigCallback::CheckForConfigChanges();
         state_lock.unlock();
         if (GDBStub::IsActive() && GDBStub::HasControl())
         {
@@ -147,7 +152,7 @@ void CPUManager::Run()
       m_state_cpu_thread_active = true;
       state_lock.unlock();
 
-      PowerPC::SingleStep();
+      power_pc.SingleStep();
 
       state_lock.lock();
       m_state_cpu_thread_active = false;
@@ -170,11 +175,10 @@ void CPUManager::Run()
 void CPUManager::RunAdjacentSystems(bool running)
 {
   // NOTE: We're assuming these will not try to call Break or EnableStepping.
-  auto& system = Core::System::GetInstance();
-  system.GetFifo().EmulatorState(running);
+  m_system.GetFifo().EmulatorState(running);
   // Core is responsible for shutting down the sound stream.
   if (m_state != State::PowerDown)
-    AudioCommon::SetSoundStreamRunning(Core::System::GetInstance(), running);
+    AudioCommon::SetSoundStreamRunning(m_system, running);
 }
 
 void CPUManager::Stop()

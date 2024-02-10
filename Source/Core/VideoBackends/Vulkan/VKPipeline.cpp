@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Common/Assert.h"
+#include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
@@ -72,11 +73,11 @@ static VkPipelineMultisampleStateCreateInfo GetVulkanMultisampleState(const Fram
       0,        // VkPipelineMultisampleStateCreateFlags    flags
       static_cast<VkSampleCountFlagBits>(
           state.samples.Value()),  // VkSampleCountFlagBits                    rasterizationSamples
-      state.per_sample_shading,    // VkBool32                                 sampleShadingEnable
-      1.0f,                        // float                                    minSampleShading
-      nullptr,                     // const VkSampleMask*                      pSampleMask;
-      VK_FALSE,                    // VkBool32                                 alphaToCoverageEnable
-      VK_FALSE                     // VkBool32                                 alphaToOneEnable
+      static_cast<bool>(state.per_sample_shading),  // VkBool32 sampleShadingEnable
+      1.0f,      // float                                    minSampleShading
+      nullptr,   // const VkSampleMask*                      pSampleMask;
+      VK_FALSE,  // VkBool32                                 alphaToCoverageEnable
+      VK_FALSE   // VkBool32                                 alphaToOneEnable
   };
 }
 
@@ -146,40 +147,44 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 
   if (use_dual_source)
   {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors{
+        VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_DST_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+        VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
+    static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors{
+        VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_SRC_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+        VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
 
-    vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
-    vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
-    vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
-    vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
   }
   else
   {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors{
+        VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+        VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
 
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors{
+        VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_SRC_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+        VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
 
-    vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
-    vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
-    vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
-    vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
   }
 
   if (state.colorupdate)
@@ -243,7 +248,14 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   VkRenderPass render_pass = g_object_cache->GetRenderPass(
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.color_texture_format),
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.depth_texture_format),
-      config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD);
+      config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD,
+      config.framebuffer_state.additional_color_attachment_count);
+
+  if (render_pass == VK_NULL_HANDLE)
+  {
+    PanicAlertFmt("Failed to get render pass");
+    return nullptr;
+  }
 
   // Get pipeline layout.
   VkPipelineLayout pipeline_layout;
@@ -343,8 +355,18 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       GetVulkanDepthStencilState(config.depth_state);
   VkPipelineColorBlendAttachmentState blend_attachment_state =
       GetVulkanAttachmentBlendState(config.blending_state, config.usage);
+
+  std::vector<VkPipelineColorBlendAttachmentState> blend_attachment_states;
+  blend_attachment_states.push_back(blend_attachment_state);
+  // Right now all our attachments have the same state
+  for (u8 i = 0; i < static_cast<u8>(config.framebuffer_state.additional_color_attachment_count);
+       i++)
+  {
+    blend_attachment_states.push_back(blend_attachment_state);
+  }
   VkPipelineColorBlendStateCreateInfo blend_state =
-      GetVulkanColorBlendState(config.blending_state, &blend_attachment_state, 1);
+      GetVulkanColorBlendState(config.blending_state, blend_attachment_states.data(),
+                               static_cast<uint32_t>(blend_attachment_states.size()));
 
   // This viewport isn't used, but needs to be specified anyway.
   static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};

@@ -20,7 +20,8 @@ public:
   DynamicInputTextureManager();
   ~DynamicInputTextureManager();
   void Load();
-  void GenerateTextures(const IniFile& file, const std::vector<std::string>& controller_names);
+  void GenerateTextures(const Common::IniFile& file,
+                        const std::vector<std::string>& controller_names);
 
 private:
   std::vector<DynamicInputTextures::Configuration> m_configuration;

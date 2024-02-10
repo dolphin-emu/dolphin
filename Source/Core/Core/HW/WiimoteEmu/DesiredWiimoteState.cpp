@@ -136,14 +136,8 @@ static bool DeserializeExtensionState(DesiredWiimoteState* state,
     return false;
   auto& e = state->extension.data.emplace<T>();
   static_assert(std::is_trivially_copyable_v<T>);
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-  std::memcpy(&e, &serialized.data[offset], sizeof(T));
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+  std::memcpy(static_cast<void*>(&e), static_cast<const void*>(&serialized.data[offset]),
+              sizeof(T));
   return true;
 }
 

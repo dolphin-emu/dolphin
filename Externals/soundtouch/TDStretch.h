@@ -13,13 +13,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-08-09 00:00:15 +0300 (Sun, 09 Aug 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: TDStretch.h 226 2015-08-08 21:00:15Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -134,6 +127,7 @@ protected:
     bool bQuickSeek;
     bool bAutoSeqSetting;
     bool bAutoSeekSetting;
+    bool isBeginning;
 
     SAMPLETYPE *pMidBuffer;
     SAMPLETYPE *pMidBufferUnaligned;
@@ -163,7 +157,6 @@ protected:
     void calcSeqParameters();
     void adaptNormalizer();
 
-
     /// Changes the tempo of the given sound samples.
     /// Returns amount of samples returned in the "output" buffer.
     /// The maximum amount of samples that can be returned at a time is set by
@@ -172,7 +165,7 @@ protected:
     
 public:
     TDStretch();
-    virtual ~TDStretch();
+    virtual ~TDStretch() override;
 
     /// Operator 'new' is overloaded so that it automatically creates a suitable instance 
     /// depending on if we've a MMX/SSE/etc-capable CPU available or not.
@@ -194,7 +187,7 @@ public:
     void setTempo(double newTempo);
 
     /// Returns nonzero if there aren't any samples available for outputting.
-    virtual void clear();
+    virtual void clear() override;
 
     /// Clears the input buffer
     void clearInput();
@@ -224,7 +217,7 @@ public:
                        );
 
     /// Get routine control parameters, see setParameters() function.
-    /// Any of the parameters to this function can be NULL, in such case corresponding parameter
+    /// Any of the parameters to this function can be nullptr, in such case corresponding parameter
     /// value isn't returned.
     void getParameters(int *pSampleRate, int *pSequenceMs, int *pSeekWindowMs, int *pOverlapMs) const;
 
@@ -234,7 +227,7 @@ public:
             const SAMPLETYPE *samples,  ///< Input sample data
             uint numSamples                         ///< Number of samples in 'samples' so that one sample
                                                     ///< contains both channels if stereo
-            );
+            ) override;
 
     /// return nominal input sample requirement for triggering a processing batch
     int getInputSampleReq() const
@@ -247,8 +240,13 @@ public:
     {
         return seekWindowLength - overlapLength;
     }
-};
 
+	/// return approximate initial input-output latency
+	int getLatency() const
+	{
+		return sampleReq;
+	}
+};
 
 
 // Implementation-specific class declarations:
@@ -258,10 +256,10 @@ public:
     class TDStretchMMX : public TDStretch
     {
     protected:
-        double calcCrossCorr(const short *mixingPos, const short *compare, double &norm);
-        double calcCrossCorrAccumulate(const short *mixingPos, const short *compare, double &norm);
-        virtual void overlapStereo(short *output, const short *input) const;
-        virtual void clearCrossCorrState();
+        double calcCrossCorr(const short *mixingPos, const short *compare, double &norm) override;
+        double calcCrossCorrAccumulate(const short *mixingPos, const short *compare, double &norm) override;
+        virtual void overlapStereo(short *output, const short *input) const override;
+        virtual void clearCrossCorrState() override;
     };
 #endif /// SOUNDTOUCH_ALLOW_MMX
 
@@ -271,8 +269,8 @@ public:
     class TDStretchSSE : public TDStretch
     {
     protected:
-        double calcCrossCorr(const float *mixingPos, const float *compare, double &norm);
-        double calcCrossCorrAccumulate(const float *mixingPos, const float *compare, double &norm);
+        double calcCrossCorr(const float *mixingPos, const float *compare, double &norm) override;
+        double calcCrossCorrAccumulate(const float *mixingPos, const float *compare, double &norm) override;
     };
 
 #endif /// SOUNDTOUCH_ALLOW_SSE

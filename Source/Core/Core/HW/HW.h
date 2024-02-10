@@ -5,10 +5,14 @@
 
 class PointerWrap;
 struct Sram;
+namespace Core
+{
+class System;
+}
 
 namespace HW
 {
-void Init(const Sram* override_sram, const std::string current_file_name);
-void Shutdown();
-void DoState(PointerWrap& p);
+void Init(Core::System& system, const Sram* override_sram, const std::string current_file_name);
+void Shutdown(Core::System& system);
+void DoState(Core::System& system, PointerWrap& p);
 }  // namespace HW

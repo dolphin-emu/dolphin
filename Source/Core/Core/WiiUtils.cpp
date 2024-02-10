@@ -21,6 +21,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
@@ -49,7 +50,7 @@
 namespace WiiUtils
 {
 static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
-                      IOS::HLE::ESDevice::VerifySignature verify_signature)
+                      IOS::HLE::ESCore::VerifySignature verify_signature)
 {
   if (!wad.GetTicket().IsValid() || !wad.GetTMD().IsValid())
   {
@@ -58,25 +59,25 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   }
 
   const auto tmd = wad.GetTMD();
-  const auto es = ios.GetES();
+  auto& es = ios.GetESCore();
   const auto fs = ios.GetFS();
 
-  IOS::HLE::ESDevice::Context context;
+  IOS::HLE::ESCore::Context context;
   IOS::HLE::ReturnCode ret;
 
   // Ensure the common key index is correct, as it's checked by IOS.
   IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
 
-  while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
-                                 IOS::HLE::ESDevice::TicketImportType::Unpersonalised,
-                                 verify_signature)) < 0 ||
-         (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain(),
-                                    verify_signature)) < 0)
+  while ((ret = es.ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
+                                IOS::HLE::ESCore::TicketImportType::Unpersonalised,
+                                verify_signature)) < 0 ||
+         (ret = es.ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain(),
+                                   verify_signature)) < 0)
   {
     if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
     {
       PanicAlertFmtT("WAD installation failed: Could not initialise title import (error {0}).",
-                     static_cast<u32>(ret));
+                     Common::ToUnderlying(ret));
     }
     return false;
   }
@@ -87,9 +88,9 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
     {
       const std::vector<u8> data = wad.GetContent(content.index);
 
-      if (es->ImportContentBegin(context, title_id, content.id) < 0 ||
-          es->ImportContentData(context, 0, data.data(), static_cast<u32>(data.size())) < 0 ||
-          es->ImportContentEnd(context, 0) < 0)
+      if (es.ImportContentBegin(context, title_id, content.id) < 0 ||
+          es.ImportContentData(context, 0, data.data(), static_cast<u32>(data.size())) < 0 ||
+          es.ImportContentEnd(context, 0) < 0)
       {
         PanicAlertFmtT("WAD installation failed: Could not import content {0:08x}.", content.id);
         return false;
@@ -98,8 +99,8 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
     return true;
   }();
 
-  if ((contents_imported && es->ImportTitleDone(context) < 0) ||
-      (!contents_imported && es->ImportTitleCancel(context) < 0))
+  if ((contents_imported && es.ImportTitleDone(context) < 0) ||
+      (!contents_imported && es.ImportTitleCancel(context) < 0))
   {
     PanicAlertFmtT("WAD installation failed: Could not finalise title import.");
     return false;
@@ -151,8 +152,8 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
   const u64 title_id = wad.GetTMD().GetTitleId();
 
   // Skip the install if the WAD is already installed.
-  const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(
-      wad.GetTMD(), IOS::HLE::ESDevice::CheckContentHashes::Yes);
+  const auto installed_contents = ios.GetESCore().GetStoredContentsFromTMD(
+      wad.GetTMD(), IOS::HLE::ESCore::CheckContentHashes::Yes);
   if (wad.GetTMD().GetContents() == installed_contents)
   {
     // Clear the "temporary title ID" flag in case the user tries to permanently install a title
@@ -164,7 +165,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
 
   // If a different version is currently installed, warn the user to make sure
   // they don't overwrite the current version by mistake.
-  const IOS::ES::TMDReader installed_tmd = ios.GetES()->FindInstalledTMD(title_id);
+  const IOS::ES::TMDReader installed_tmd = ios.GetESCore().FindInstalledTMD(title_id);
   const bool has_another_version =
       installed_tmd.IsValid() && installed_tmd.GetTitleVersion() != wad.GetTMD().GetTitleVersion();
   if (has_another_version &&
@@ -178,10 +179,10 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
 
   // Delete a previous temporary title, if it exists.
   if (previous_temporary_title_id)
-    ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
+    ios.GetESCore().DeleteTitleContent(previous_temporary_title_id);
 
   // A lot of people use fakesigned WADs, so disable signature checking when installing a WAD.
-  if (!ImportWAD(ios, wad, IOS::HLE::ESDevice::VerifySignature::No))
+  if (!ImportWAD(ios, wad, IOS::HLE::ESCore::VerifySignature::No))
     return false;
 
   // Keep track of the title ID so this title can be removed to make room for any future install.
@@ -207,7 +208,7 @@ bool InstallWAD(const std::string& wad_path)
 bool UninstallTitle(u64 title_id)
 {
   IOS::HLE::Kernel ios;
-  return ios.GetES()->DeleteTitleContent(title_id) == IOS::HLE::IPC_SUCCESS;
+  return ios.GetESCore().DeleteTitleContent(title_id) == IOS::HLE::IPC_SUCCESS;
 }
 
 bool IsTitleInstalled(u64 title_id)
@@ -266,7 +267,7 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
   }
 }
 
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESDevice& es, u64 title_id)
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESCore& es, u64 title_id)
 {
   if (IsTMDImported(fs, title_id))
     return true;
@@ -275,7 +276,7 @@ bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESDevice& es, u
   if (!tmd.IsValid())
     return false;
 
-  IOS::HLE::ESDevice::Context context;
+  IOS::HLE::ESCore::Context context;
   context.uid = IOS::SYSMENU_UID;
   context.gid = IOS::SYSMENU_GID;
   const auto import_result =
@@ -308,7 +309,7 @@ protected:
 std::string SystemUpdater::GetDeviceRegion()
 {
   // Try to determine the region from an installed system menu.
-  const auto tmd = m_ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  const auto tmd = m_ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
   if (tmd.IsValid())
   {
     const DiscIO::Region region = tmd.GetRegion();
@@ -325,7 +326,7 @@ std::string SystemUpdater::GetDeviceRegion()
 std::string SystemUpdater::GetDeviceId()
 {
   u32 ios_device_id;
-  if (m_ios.GetES()->GetDeviceId(&ios_device_id) < 0)
+  if (m_ios.GetESCore().GetDeviceId(&ios_device_id) < 0)
     return "";
   return std::to_string((u64(1) << 32) | ios_device_id);
 }
@@ -417,10 +418,10 @@ OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
 
 bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title)
 {
-  const auto es = m_ios.GetES();
-  const auto installed_tmd = es->FindInstalledTMD(title.id);
+  const auto& es = m_ios.GetESCore();
+  const auto installed_tmd = es.FindInstalledTMD(title.id);
   return !(installed_tmd.IsValid() && installed_tmd.GetTitleVersion() >= title.version &&
-           es->GetStoredContentsFromTMD(installed_tmd).size() == installed_tmd.GetNumContents());
+           es.GetStoredContentsFromTMD(installed_tmd).size() == installed_tmd.GetNumContents());
 }
 
 constexpr const char* GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0" encoding="UTF-8"?>
@@ -545,10 +546,10 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 
   // Import the ticket.
   IOS::HLE::ReturnCode ret = IOS::HLE::IPC_SUCCESS;
-  const auto es = m_ios.GetES();
-  if ((ret = es->ImportTicket(ticket.first, ticket.second)) < 0)
+  auto& es = m_ios.GetESCore();
+  if ((ret = es.ImportTicket(ticket.first, ticket.second)) < 0)
   {
-    ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", static_cast<u32>(ret));
+    ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", Common::ToUnderlying(ret));
     return UpdateResult::ImportFailed;
   }
 
@@ -564,7 +565,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   const u64 ios_id = tmd.first.GetIOSId();
   if (ios_id != 0 && IOS::ES::IsTitleType(ios_id, IOS::ES::TitleType::System))
   {
-    if (!es->FindInstalledTMD(ios_id).IsValid())
+    if (!es.FindInstalledTMD(ios_id).IsValid())
     {
       WARN_LOG_FMT(CORE, "Importing required system title {:016x} first", ios_id);
       const UpdateResult res = InstallTitleFromNUS(prefix_url, {ios_id, 0}, updated_titles);
@@ -577,15 +578,15 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   }
 
   // Initialise the title import.
-  IOS::HLE::ESDevice::Context context;
-  if ((ret = es->ImportTitleInit(context, tmd.first.GetBytes(), tmd.second)) < 0)
+  IOS::HLE::ESCore::Context context;
+  if ((ret = es.ImportTitleInit(context, tmd.first.GetBytes(), tmd.second)) < 0)
   {
-    ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", static_cast<u32>(ret));
+    ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", Common::ToUnderlying(ret));
     return UpdateResult::ImportFailed;
   }
 
   // Now download and install contents listed in the TMD.
-  const std::vector<IOS::ES::Content> stored_contents = es->GetStoredContentsFromTMD(tmd.first);
+  const std::vector<IOS::ES::Content> stored_contents = es.GetStoredContentsFromTMD(tmd.first);
   const UpdateResult import_result = [&]() {
     for (const IOS::ES::Content& content : tmd.first.GetContents())
     {
@@ -598,10 +599,10 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
       if (is_already_installed)
         continue;
 
-      if ((ret = es->ImportContentBegin(context, title.id, content.id)) < 0)
+      if ((ret = es.ImportContentBegin(context, title.id, content.id)) < 0)
       {
         ERROR_LOG_FMT(CORE, "Failed to initialise import for content {:08x}: error {}", content.id,
-                      static_cast<u32>(ret));
+                      Common::ToUnderlying(ret));
         return UpdateResult::ImportFailed;
       }
 
@@ -612,8 +613,8 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
         return UpdateResult::DownloadFailed;
       }
 
-      if (es->ImportContentData(context, 0, data->data(), static_cast<u32>(data->size())) < 0 ||
-          es->ImportContentEnd(context, 0) < 0)
+      if (es.ImportContentData(context, 0, data->data(), static_cast<u32>(data->size())) < 0 ||
+          es.ImportContentEnd(context, 0) < 0)
       {
         ERROR_LOG_FMT(CORE, "Failed to import content {:08x}", content.id);
         return UpdateResult::ImportFailed;
@@ -623,10 +624,10 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   }();
   const bool all_contents_imported = import_result == UpdateResult::Succeeded;
 
-  if ((all_contents_imported && (ret = es->ImportTitleDone(context)) < 0) ||
-      (!all_contents_imported && (ret = es->ImportTitleCancel(context)) < 0))
+  if ((all_contents_imported && (ret = es.ImportTitleDone(context)) < 0) ||
+      (!all_contents_imported && (ret = es.ImportTitleCancel(context)) < 0))
   {
-    ERROR_LOG_FMT(CORE, "Failed to finalise title import: error {}", static_cast<u32>(ret));
+    ERROR_LOG_FMT(CORE, "Failed to finalise title import: error {}", Common::ToUnderlying(ret));
     return UpdateResult::ImportFailed;
   }
 
@@ -742,7 +743,8 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
 
   // Do not allow mismatched regions, because installing an update will automatically change
   // the Wii's region and may result in semi/full system menu bricks.
-  const IOS::ES::TMDReader system_menu_tmd = m_ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  const IOS::ES::TMDReader system_menu_tmd =
+      m_ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
   if (system_menu_tmd.IsValid() && m_volume->GetRegion() != system_menu_tmd.GetRegion())
     return UpdateResult::RegionMismatch;
 
@@ -826,8 +828,8 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
   if (type != 2 && type != 3 && type != 6 && type != 7)
     return UpdateResult::AlreadyUpToDate;
 
-  const IOS::ES::TMDReader tmd = m_ios.GetES()->FindInstalledTMD(title.id);
-  const IOS::ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(title.id);
+  const IOS::ES::TMDReader tmd = m_ios.GetESCore().FindInstalledTMD(title.id);
+  const IOS::ES::TicketReader ticket = m_ios.GetESCore().FindSignedTicket(title.id);
 
   // Optional titles can be skipped if the ticket is present, even when the title isn't installed.
   if (attrs.test(16) && ticket.IsValid())
@@ -846,7 +848,7 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     return UpdateResult::DiscReadFailed;
   }
   const DiscIO::VolumeWAD wad{std::move(blob)};
-  const bool success = ImportWAD(m_ios, wad, IOS::HLE::ESDevice::VerifySignature::Yes);
+  const bool success = ImportWAD(m_ios, wad, IOS::HLE::ESCore::VerifySignature::Yes);
   return success ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
 }
 
@@ -865,11 +867,11 @@ UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& ima
 static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 {
   NANDCheckResult result;
-  const auto es = ios.GetES();
+  const auto& es = ios.GetESCore();
 
   // Check for NANDs that were used with old Dolphin versions.
   const std::string sys_replace_path =
-      Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace";
+      Common::RootUserPath(Common::FromWhichRoot::Configured) + "/sys/replace";
   if (File::Exists(sys_replace_path))
   {
     ERROR_LOG_FMT(CORE,
@@ -881,7 +883,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
   }
 
   // Clean up after a bug fixed in https://github.com/dolphin-emu/dolphin/pull/8802
-  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FROM_CONFIGURED_ROOT);
+  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FromWhichRoot::Configured);
   const File::FileInfo rfl_db(rfl_db_path);
   if (rfl_db.Exists() && rfl_db.GetSize() == 0)
   {
@@ -892,9 +894,9 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
       result.bad = true;
   }
 
-  for (const u64 title_id : es->GetInstalledTitles())
+  for (const u64 title_id : es.GetInstalledTitles())
   {
-    const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_CONFIGURED_ROOT);
+    const std::string title_dir = Common::GetTitlePath(title_id, Common::FromWhichRoot::Configured);
     const std::string content_dir = title_dir + "/content";
     const std::string data_dir = title_dir + "/data";
 
@@ -912,7 +914,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     }
 
     // Check for incomplete title installs (missing ticket, TMD or contents).
-    const auto ticket = es->FindSignedTicket(title_id);
+    const auto ticket = es.FindSignedTicket(title_id);
     if (!IOS::ES::IsDiscTitle(title_id) && !ticket.IsValid())
     {
       ERROR_LOG_FMT(CORE, "CheckNAND: Missing ticket for title {:016x}", title_id);
@@ -923,7 +925,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
         result.bad = true;
     }
 
-    const auto tmd = es->FindInstalledTMD(title_id);
+    const auto tmd = es.FindInstalledTMD(title_id);
     if (!tmd.IsValid())
     {
       if (File::ScanDirectoryTree(content_dir, false).children.empty())
@@ -943,7 +945,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
       continue;
     }
 
-    const auto installed_contents = es->GetStoredContentsFromTMD(tmd);
+    const auto installed_contents = es.GetStoredContentsFromTMD(tmd);
     const bool is_installed = std::any_of(installed_contents.begin(), installed_contents.end(),
                                           [](const auto& content) { return !content.IsShared(); });
 
@@ -958,6 +960,34 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
         result.bad = true;
     }
   }
+
+  // Get some storage stats.
+  const auto fs = ios.GetFS();
+  const auto root_stats = fs->GetExtendedDirectoryStats("/");
+
+  // The Wii System Menu's save/channel management only considers a specific subset of the Wii NAND
+  // user-accessible and will only use those folders when calculating the amount of free blocks it
+  // displays. This can have weird side-effects where the other parts of the NAND contain more data
+  // than reserved and it will display free blocks even though there isn't any space left. To avoid
+  // confusion, report the 'user' and 'system' data separately to the user.
+  u64 used_clusters_user = 0;
+  u64 used_inodes_user = 0;
+  for (std::string user_path : {"/meta", "/ticket", "/title/00010000", "/title/00010001",
+                                "/title/00010003", "/title/00010004", "/title/00010005",
+                                "/title/00010006", "/title/00010007", "/shared2/title"})
+  {
+    const auto dir_stats = fs->GetExtendedDirectoryStats(user_path);
+    if (dir_stats)
+    {
+      used_clusters_user += dir_stats->used_clusters;
+      used_inodes_user += dir_stats->used_inodes;
+    }
+  }
+
+  result.used_clusters_user = used_clusters_user;
+  result.used_clusters_system = root_stats ? (root_stats->used_clusters - used_clusters_user) : 0;
+  result.used_inodes_user = used_inodes_user;
+  result.used_inodes_system = root_stats ? (root_stats->used_inodes - used_inodes_user) : 0;
 
   return result;
 }

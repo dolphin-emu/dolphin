@@ -18,6 +18,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -1794,32 +1795,61 @@ void ARM64XEmitter::ADRP(ARM64Reg Rd, s64 imm)
   EncodeAddressInst(1, Rd, static_cast<s32>(imm >> 12));
 }
 
-template <typename T, size_t MaxSize>
-class SmallVector final
+// This is using a hand-rolled algorithm. The goal is zero memory allocations, not necessarily
+// the best JIT-time time complexity. (The number of moves is usually very small.)
+void ARM64XEmitter::ParallelMoves(RegisterMove* begin, RegisterMove* end,
+                                  std::array<u8, 32>* source_gpr_usages)
 {
-public:
-  SmallVector() = default;
-  explicit SmallVector(size_t size) : m_size(size) {}
+  // X0-X7 are used for passing arguments.
+  // X18-X31 are either callee saved or used for special purposes.
+  constexpr size_t temp_reg_begin = 8;
+  constexpr size_t temp_reg_end = 18;
 
-  void push_back(const T& x) { m_array[m_size++] = x; }
-  void push_back(T&& x) { m_array[m_size++] = std::move(x); }
-
-  template <typename... Args>
-  T& emplace_back(Args&&... args)
+  while (begin != end)
   {
-    return m_array[m_size++] = T{std::forward<Args>(args)...};
+    bool removed_moves_during_this_loop_iteration = false;
+
+    RegisterMove* move = end;
+    while (move != begin)
+    {
+      RegisterMove* prev_move = move;
+      --move;
+      if ((*source_gpr_usages)[DecodeReg(move->dst)] == 0)
+      {
+        MOV(move->dst, move->src);
+        (*source_gpr_usages)[DecodeReg(move->src)]--;
+        std::move(prev_move, end, move);
+        --end;
+        removed_moves_during_this_loop_iteration = true;
+      }
+    }
+
+    if (!removed_moves_during_this_loop_iteration)
+    {
+      // We need to break a cycle using a temporary register.
+
+      size_t temp_reg = temp_reg_begin;
+      while ((*source_gpr_usages)[temp_reg] != 0)
+      {
+        ++temp_reg;
+        ASSERT_MSG(COMMON, temp_reg != temp_reg_end, "Out of registers");
+      }
+
+      const ARM64Reg src = begin->src;
+      const ARM64Reg dst =
+          (Is64Bit(src) ? EncodeRegTo64 : EncodeRegTo32)(static_cast<ARM64Reg>(temp_reg));
+
+      MOV(dst, src);
+      (*source_gpr_usages)[DecodeReg(dst)] = (*source_gpr_usages)[DecodeReg(src)];
+      (*source_gpr_usages)[DecodeReg(src)] = 0;
+
+      std::for_each(begin, end, [src, dst](RegisterMove& move) {
+        if (move.src == src)
+          move.src = dst;
+      });
+    }
   }
-
-  T& operator[](size_t i) { return m_array[i]; }
-  const T& operator[](size_t i) const { return m_array[i]; }
-
-  size_t size() const { return m_size; }
-  bool empty() const { return m_size == 0; }
-
-private:
-  std::array<T, MaxSize> m_array{};
-  size_t m_size = 0;
-};
+}
 
 template <typename T>
 void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
@@ -1844,17 +1874,17 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 
   constexpr size_t max_parts = sizeof(T) / 2;
 
-  SmallVector<Part, max_parts> best_parts;
+  Common::SmallVector<Part, max_parts> best_parts;
   Approach best_approach;
   u64 best_base;
 
-  const auto instructions_required = [](const SmallVector<Part, max_parts>& parts,
+  const auto instructions_required = [](const Common::SmallVector<Part, max_parts>& parts,
                                         Approach approach) {
     return parts.size() + (approach > Approach::MOVNBase);
   };
 
   const auto try_base = [&](T base, Approach approach, bool first_time) {
-    SmallVector<Part, max_parts> parts;
+    Common::SmallVector<Part, max_parts> parts;
 
     for (size_t i = 0; i < max_parts; ++i)
     {
@@ -1902,13 +1932,13 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
                           (imm & 0xFFFF'FFFF'0000'0000) | (imm >> 32),
                           (imm << 48) | (imm & 0x0000'FFFF'FFFF'0000) | (imm >> 48)})
       {
-        if (LogicalImm(orr_imm, 64))
+        if (LogicalImm(orr_imm, GPRSize::B64))
           try_base(orr_imm, Approach::ORRBase, false);
       }
     }
     else
     {
-      if (LogicalImm(imm, 32))
+      if (LogicalImm(imm, GPRSize::B32))
         try_base(imm, Approach::ORRBase, false);
     }
   }
@@ -3092,7 +3122,7 @@ void ARM64FloatEmitter::FMOV(ARM64Reg Rd, uint8_t imm8)
 // Vector
 void ARM64FloatEmitter::ADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EmitThreeSame(0, IntLog2(size) - 3, 0b10000, Rd, Rn, Rm);
+  EmitThreeSame(0, MathUtil::IntLog2(size) - 3, 0b10000, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
@@ -4009,9 +4039,28 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   if (!Is64Bit(Rn))
-    imm &= 0xFFFFFFFF;
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
 
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? 64 : 32))
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if (imm == 0)
+  {
+    MOVZ(Rd, 0);
+  }
+  else if ((~imm) == 0)
+  {
+    if (Rd != Rn)
+      MOV(Rd, Rn);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     AND(Rd, Rn, result);
   }
@@ -4027,7 +4076,29 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? 64 : 32))
+  if (!Is64Bit(Rn))
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
+
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if (imm == 0)
+  {
+    if (Rd != Rn)
+      MOV(Rd, Rn);
+  }
+  else if ((~imm) == 0)
+  {
+    MOVN(Rd, 0);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     ORR(Rd, Rn, result);
   }
@@ -4043,7 +4114,29 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? 64 : 32))
+  if (!Is64Bit(Rn))
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
+
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if (imm == 0)
+  {
+    if (Rd != Rn)
+      MOV(Rd, Rn);
+  }
+  else if ((~imm) == 0)
+  {
+    MVN(Rd, Rn);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     EOR(Rd, Rn, result);
   }
@@ -4059,7 +4152,29 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? 64 : 32))
+  if (!Is64Bit(Rn))
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
+
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if (imm == 0)
+  {
+    ANDS(Rd, Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR,
+         Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR);
+  }
+  else if ((~imm) == 0)
+  {
+    ANDS(Rd, Rn, Rn);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     ANDS(Rd, Rn, result);
   }
@@ -4095,11 +4210,24 @@ void ARM64XEmitter::AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, 
 void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                                     ARM64Reg scratch)
 {
+  DEBUG_ASSERT(Is64Bit(Rd) == Is64Bit(Rn));
+
+  if (!Is64Bit(Rd))
+    imm &= 0xFFFFFFFFULL;
+
   bool has_scratch = scratch != ARM64Reg::INVALID_REG;
   u64 imm_neg = Is64Bit(Rd) ? u64(-s64(imm)) : u64(-s64(imm)) & 0xFFFFFFFFuLL;
   bool neg_neg = negative ? false : true;
 
-  // Fast paths, aarch64 immediate instructions
+  // Special path for zeroes
+  if (imm == 0 && !flags)
+  {
+    if (Rd != Rn)
+      MOV(Rd, Rn);
+    return;
+  }
+
+  // Regular fast paths, aarch64 immediate instructions
   // Try them all first
   if (imm <= 0xFFF)
   {
@@ -4222,7 +4350,7 @@ bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u64 imm)
 
 bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rd) ? 64 : 32))
+  if (const auto result = LogicalImm(imm, Is64Bit(Rd) ? GPRSize::B64 : GPRSize::B32))
   {
     AND(Rd, Rn, result);
     return true;
@@ -4233,7 +4361,7 @@ bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 
 bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rd) ? 64 : 32))
+  if (const auto result = LogicalImm(imm, Is64Bit(Rd) ? GPRSize::B64 : GPRSize::B32))
   {
     ORR(Rd, Rn, result);
     return true;
@@ -4244,7 +4372,7 @@ bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 
 bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rd) ? 64 : 32))
+  if (const auto result = LogicalImm(imm, Is64Bit(Rd) ? GPRSize::B64 : GPRSize::B32))
   {
     EOR(Rd, Rn, result);
     return true;

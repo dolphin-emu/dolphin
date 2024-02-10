@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/FreeLookConfig.h"
+
+#include "Core/AchievementManager.h"
+#include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -37,11 +41,16 @@ void Config::Refresh()
 {
   if (!s_has_registered_callback)
   {
-    ::Config::AddConfigChangedCallback([] { Core::RunAsCPUThread([] { s_config.Refresh(); }); });
+    CPUThreadConfigCallback::AddConfigChangedCallback([] { s_config.Refresh(); });
     s_has_registered_callback = true;
   }
 
   camera_config.control_type = ::Config::Get(::Config::FL1_CONTROL_TYPE);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED) &&
+            !AchievementManager::GetInstance().IsHardcoreModeActive();
+#else   // USE_RETRO_ACHIEVEMENTS
   enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 }  // namespace FreeLook

@@ -75,7 +75,7 @@ bool HasSameIdentity(const DEntry& lhs, const DEntry& rhs)
   return true;
 }
 
-bool HasDuplicateIdentity(const std::vector<Savefile>& savefiles)
+bool HasDuplicateIdentity(std::span<const Savefile> savefiles)
 {
   for (size_t i = 0; i < savefiles.size(); ++i)
   {
@@ -338,7 +338,7 @@ std::string GetDefaultExtension(SavefileFormat format)
   }
 }
 
-std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::vector<u8>& file_indices)
+std::vector<Savefile> GetSavefiles(const GCMemcard& card, std::span<const u8> file_indices)
 {
   std::vector<Savefile> files;
   files.reserve(file_indices.size());
@@ -352,7 +352,7 @@ std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::vector<u8>&
   return files;
 }
 
-size_t GetBlockCount(const std::vector<Savefile>& savefiles)
+size_t GetBlockCount(std::span<const Savefile> savefiles)
 {
   size_t block_count = 0;
   for (const Savefile& savefile : savefiles)

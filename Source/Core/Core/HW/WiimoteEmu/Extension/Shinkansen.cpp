@@ -22,6 +22,8 @@ constexpr std::array<u8, 6> shinkansen_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x10}};
 
 Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Controller"))
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // Button layout on the controller:
   //
   //    Up      Select Start   D
@@ -29,28 +31,28 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
   //   Down                    B
   //
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Up"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Down"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Left"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Right"));
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "A");
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "B");
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "C");
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "D");
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("SELECT"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("START"));
+  m_buttons->AddInput(Translatability::Translate, _trans("Up"));
+  m_buttons->AddInput(Translatability::Translate, _trans("Down"));
+  m_buttons->AddInput(Translatability::Translate, _trans("Left"));
+  m_buttons->AddInput(Translatability::Translate, _trans("Right"));
+  m_buttons->AddInput(Translatability::DoNotTranslate, "A");
+  m_buttons->AddInput(Translatability::DoNotTranslate, "B");
+  m_buttons->AddInput(Translatability::DoNotTranslate, "C");
+  m_buttons->AddInput(Translatability::DoNotTranslate, "D");
+  m_buttons->AddInput(Translatability::Translate, _trans("SELECT"));
+  m_buttons->AddInput(Translatability::Translate, _trans("START"));
 
   // For easier axis mapping the right lever is inverted in Dolphin,
   // so that the train coasts when no trigger is squeezed.
   groups.emplace_back(m_levers = new ControllerEmu::Triggers(_trans("Levers")));
-  m_levers->AddInput(ControllerEmu::Translate, _trans("L"));
-  m_levers->AddInput(ControllerEmu::Translate, _trans("R"));
+  m_levers->AddInput(Translatability::Translate, _trans("L"));
+  m_levers->AddInput(Translatability::Translate, _trans("R"));
 
   // i18n: Noun. This is used as a label for a control group that represents lights on controllers.
   groups.emplace_back(m_led = new ControllerEmu::ControlGroup(_trans("Light")));
   // i18n: A light on the Shinkansen controller that lights up when the train doors are locked.
   // Labeled 戸じめ (in Japanese) on the actual controller.
-  m_led->AddOutput(ControllerEmu::Translate, _trans("Doors Locked"));
+  m_led->AddOutput(Translatability::Translate, _trans("Doors Locked"));
 }
 
 void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)

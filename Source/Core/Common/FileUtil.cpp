@@ -68,6 +68,8 @@ namespace File
 {
 #ifdef ANDROID
 static std::string s_android_sys_directory;
+static std::string s_android_driver_directory;
+static std::string s_android_lib_directory;
 #endif
 
 #ifdef __APPLE__
@@ -360,14 +362,14 @@ u64 GetSize(FILE* f)
   const u64 pos = ftello(f);
   if (fseeko(f, 0, SEEK_END) != 0)
   {
-    ERROR_LOG_FMT(COMMON, "GetSize: seek failed {}: {}", fmt::ptr(f), LastStrerrorString());
+    ERROR_LOG_FMT(COMMON, "GetSize: seek failed {}: {}", fmt::ptr(f), Common::LastStrerrorString());
     return 0;
   }
 
   const u64 size = ftello(f);
   if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
   {
-    ERROR_LOG_FMT(COMMON, "GetSize: seek failed {}: {}", fmt::ptr(f), LastStrerrorString());
+    ERROR_LOG_FMT(COMMON, "GetSize: seek failed {}: {}", fmt::ptr(f), Common::LastStrerrorString());
     return 0;
   }
 
@@ -381,7 +383,7 @@ bool CreateEmptyFile(const std::string& filename)
 
   if (!File::IOFile(filename, "wb"))
   {
-    ERROR_LOG_FMT(COMMON, "CreateEmptyFile: failed {}: {}", filename, LastStrerrorString());
+    ERROR_LOG_FMT(COMMON, "CreateEmptyFile: failed {}: {}", filename, Common::LastStrerrorString());
     return false;
   }
 
@@ -452,7 +454,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
   auto dirent_to_fstent = [&](const fs::directory_entry& entry) {
     return FSTEntry{
         .isDirectory = entry.is_directory(),
-        .size = entry.is_directory() ? 0 : entry.file_size(),
+        .size = entry.is_directory() || entry.is_fifo() ? 0 : entry.file_size(),
         .physicalName = path_to_physical_name(entry.path()),
         .virtualName = PathToString(entry.path().filename()),
     };
@@ -488,7 +490,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
       }
       else if (cur_depth < prev_depth)
       {
-        while (dir_fsts.size() - 1 != cur_depth)
+        while (dir_fsts.size() != static_cast<size_t>(cur_depth) + 1u)
         {
           calc_dir_size(dir_fsts.top());
           dir_fsts.pop();
@@ -783,7 +785,7 @@ std::string GetApplicationSupportDirectory()
 std::string GetExePath()
 {
 #ifdef _WIN32
-  auto exe_path = GetModuleName(nullptr);
+  auto exe_path = Common::GetModuleName(nullptr);
   if (!exe_path)
     return {};
   std::error_code error;
@@ -890,6 +892,34 @@ void SetSysDirectory(const std::string& path)
              s_android_sys_directory);
   s_android_sys_directory = path;
 }
+
+void SetGpuDriverDirectories(const std::string& path, const std::string& lib_path)
+{
+  INFO_LOG_FMT(COMMON, "Setting Driver directory to {} and library path to {}", path, lib_path);
+  ASSERT_MSG(COMMON, s_android_driver_directory.empty(), "Driver directory already set to {}",
+             s_android_driver_directory);
+  ASSERT_MSG(COMMON, s_android_lib_directory.empty(), "Library directory already set to {}",
+             s_android_lib_directory);
+  s_android_driver_directory = path;
+  s_android_lib_directory = lib_path;
+}
+
+const std::string GetGpuDriverDirectory(unsigned int dir_index)
+{
+  switch (dir_index)
+  {
+  case D_GPU_DRIVERS_EXTRACTED:
+    return s_android_driver_directory + DIR_SEP GPU_DRIVERS_EXTRACTED DIR_SEP;
+  case D_GPU_DRIVERS_TMP:
+    return s_android_driver_directory + DIR_SEP GPU_DRIVERS_TMP DIR_SEP;
+  case D_GPU_DRIVERS_HOOKS:
+    return s_android_lib_directory;
+  case D_GPU_DRIVERS_FILE_REDIRECT:
+    return s_android_driver_directory + DIR_SEP GPU_DRIVERS_FILE_REDIRECT DIR_SEP;
+  }
+  return "";
+}
+
 #endif
 
 static std::string s_user_paths[NUM_PATH_INDICES];
@@ -937,11 +967,12 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
     s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
-    s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
     s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
     s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
+    s_user_paths[F_RETROACHIEVEMENTSCONFIG_IDX] =
+        s_user_paths[D_CONFIG_IDX] + RETROACHIEVEMENTS_CONFIG;
     s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
     s_user_paths[F_MEM1DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM1_DUMP;
     s_user_paths[F_MEM2DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM2_DUMP;
@@ -961,6 +992,8 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_GBASAVES_IDX] = s_user_paths[D_GBAUSER_IDX] + GBASAVES_DIR DIR_SEP;
     s_user_paths[F_GBABIOS_IDX] = s_user_paths[D_GBAUSER_IDX] + GBA_BIOS;
 
+    s_user_paths[D_ASM_ROOT_IDX] = s_user_paths[D_USER_IDX] + ASSEMBLY_DIR DIR_SEP;
+
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.
     File::DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
@@ -972,7 +1005,6 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
     s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
-    s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
     s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;

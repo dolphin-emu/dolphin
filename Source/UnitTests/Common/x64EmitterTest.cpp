@@ -128,6 +128,9 @@ protected:
   }
 
   void TearDown() override { cpu_info = CPUInfo(); }
+
+  void ResetCodeBuffer() { emitter->SetCodePtr(code_buffer, code_buffer_end); }
+
   void ExpectDisassembly(const std::string& expected)
   {
     std::string disasmed;
@@ -186,8 +189,16 @@ protected:
 
     EXPECT_EQ(expected_norm, disasmed_norm);
 
-    // Reset code buffer afterwards.
-    emitter->SetCodePtr(code_buffer, code_buffer_end);
+    ResetCodeBuffer();
+  }
+
+  void ExpectBytes(const std::vector<u8> expected_bytes)
+  {
+    const std::vector<u8> code_bytes(code_buffer, emitter->GetWritableCodePtr());
+
+    EXPECT_EQ(expected_bytes, code_bytes);
+
+    ResetCodeBuffer();
   }
 
   std::unique_ptr<X64CodeBlock> emitter;
@@ -286,15 +297,13 @@ TEST_F(x64EmitterTest, POP_Register)
 
 TEST_F(x64EmitterTest, JMP)
 {
-  emitter->NOP(6);
-  emitter->JMP(code_buffer);
-  ExpectDisassembly("multibyte nop "
-                    "jmp .-8");
+  emitter->NOP(1);
+  emitter->JMP(code_buffer, XEmitter::Jump::Short);
+  ExpectBytes({/* nop */ 0x90, /* short jmp */ 0xeb, /* offset -3 */ 0xfd});
 
-  emitter->NOP(6);
-  emitter->JMP(code_buffer, true);
-  ExpectDisassembly("multibyte nop "
-                    "jmp .-11");
+  emitter->NOP(1);
+  emitter->JMP(code_buffer, XEmitter::Jump::Near);
+  ExpectBytes({/* nop */ 0x90, /* near jmp */ 0xe9, /* offset -6 */ 0xfa, 0xff, 0xff, 0xff});
 }
 
 TEST_F(x64EmitterTest, JMPptr_Register)
@@ -306,11 +315,93 @@ TEST_F(x64EmitterTest, JMPptr_Register)
   }
 }
 
-// TODO: J/SetJumpTarget
+TEST_F(x64EmitterTest, J)
+{
+  FixupBranch jump = emitter->J(XEmitter::Jump::Short);
+  emitter->NOP(1);
+  emitter->SetJumpTarget(jump);
+  ExpectBytes({/* short jmp */ 0xeb, /* offset 1 */ 0x1, /* nop */ 0x90});
 
-// TODO: CALL
+  jump = emitter->J(XEmitter::Jump::Near);
+  emitter->NOP(1);
+  emitter->SetJumpTarget(jump);
+  ExpectBytes({/* near jmp */ 0xe9, /* offset 1 */ 0x1, 0x0, 0x0, 0x0, /* nop */ 0x90});
+}
 
-// TODO: J_CC
+TEST_F(x64EmitterTest, CALL)
+{
+  FixupBranch call = emitter->CALL();
+  emitter->NOP(6);
+  emitter->SetJumpTarget(call);
+  ExpectDisassembly("call .+6 "
+                    "multibyte nop");
+
+  const u8* const code_start = emitter->GetCodePtr();
+  emitter->CALL(code_start + 5);
+  ExpectDisassembly("call .+0");
+
+  emitter->NOP(6);
+  emitter->CALL(code_start);
+  ExpectDisassembly("multibyte nop "
+                    "call .-11");
+}
+
+TEST_F(x64EmitterTest, J_CC)
+{
+  for (const auto& [condition_code, condition_name] : ccnames)
+  {
+    FixupBranch fixup = emitter->J_CC(condition_code, XEmitter::Jump::Short);
+    emitter->NOP(1);
+    emitter->SetJumpTarget(fixup);
+    const u8 short_jump_condition_opcode = 0x70 + condition_code;
+    ExpectBytes({short_jump_condition_opcode, /* offset 1 */ 0x1, /* nop */ 0x90});
+
+    fixup = emitter->J_CC(condition_code, XEmitter::Jump::Near);
+    emitter->NOP(1);
+    emitter->SetJumpTarget(fixup);
+    const u8 near_jump_condition_opcode = 0x80 + condition_code;
+    ExpectBytes({/* two byte opcode */ 0x0f, near_jump_condition_opcode, /* offset 1 */ 0x1, 0x0,
+                 0x0, 0x0, /* nop */ 0x90});
+  }
+
+  // Verify a short jump is used when possible and a near jump when needed.
+  //
+  // A short jump to a particular address and a near jump to that same address will have different
+  // offsets. This is because short jumps are 2 bytes and near jumps are 6 bytes, and the offset to
+  // the target is calculated from the address of the next instruction.
+
+  const u8* const code_start = emitter->GetCodePtr();
+  constexpr int short_jump_bytes = 2;
+  const u8* const next_byte_after_short_jump_instruction = code_start + short_jump_bytes;
+
+  constexpr int longest_backward_short_jump = 0x80;
+  const u8* const furthest_byte_reachable_with_backward_short_jump =
+      next_byte_after_short_jump_instruction - longest_backward_short_jump;
+  emitter->J_CC(CC_O, furthest_byte_reachable_with_backward_short_jump);
+  ExpectBytes({/* JO opcode */ 0x70, /* offset -128 */ 0x80});
+
+  const u8* const closest_byte_requiring_backward_near_jump =
+      furthest_byte_reachable_with_backward_short_jump - 1;
+  emitter->J_CC(CC_O, closest_byte_requiring_backward_near_jump);
+  // This offset is 5 less than the offset for the furthest backward short jump. -1 because this
+  // target is 1 byte before the short target, and -4 because the address of the next instruction is
+  // 4 bytes further away from the jump target than it would be with a short jump.
+  ExpectBytes({/* two byte JO opcode */ 0x0f, 0x80, /* offset -133 */ 0x7b, 0xff, 0xff, 0xff});
+
+  constexpr int longest_forward_short_jump = 0x7f;
+  const u8* const furthest_byte_reachable_with_forward_short_jump =
+      next_byte_after_short_jump_instruction + longest_forward_short_jump;
+  emitter->J_CC(CC_O, furthest_byte_reachable_with_forward_short_jump);
+  ExpectBytes({/* JO opcode */ 0x70, /* offset 127 */ 0x7f});
+
+  const u8* const closest_byte_requiring_forward_near_jump =
+      furthest_byte_reachable_with_forward_short_jump + 1;
+  emitter->J_CC(CC_O, closest_byte_requiring_forward_near_jump);
+  // This offset is 3 less than the offset for the furthest forward short jump. +1 because this
+  // target is 1 byte after the short target, and -4 because the address of the next instruction is
+  // 4 bytes closer to the jump target than it would be with a short jump.
+  ExpectBytes({/* two byte JO opcode */ 0x0f, 0x80, /* offset 124 */ 0x7c, 0x0, 0x0, 0x0});
+}
 
 TEST_F(x64EmitterTest, SETcc)
 {
@@ -380,10 +471,10 @@ BITSEARCH_TEST(TZCNT);
 
 TEST_F(x64EmitterTest, PREFETCH)
 {
-  emitter->PREFETCH(XEmitter::PF_NTA, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T0, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T1, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T2, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::NTA, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T0, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T1, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T2, MatR(R12));
 
   ExpectDisassembly("prefetchnta byte ptr ds:[r12] "
                     "prefetcht0 byte ptr ds:[r12] "

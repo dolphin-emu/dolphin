@@ -3,8 +3,11 @@
 
 #pragma once
 
+#include <cstddef>
+#include <span>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
@@ -13,7 +16,7 @@ namespace Memcard
 bool HasSameIdentity(const DEntry& lhs, const DEntry& rhs);
 
 // Check if any two given savefiles have the same identity.
-bool HasDuplicateIdentity(const std::vector<Savefile>& savefiles);
+bool HasDuplicateIdentity(std::span<const Savefile> savefiles);
 
 enum class ReadSavefileErrorCode
 {
@@ -43,8 +46,8 @@ std::string GenerateFilename(const DEntry& entry);
 std::string GetDefaultExtension(SavefileFormat format);
 
 // Reads multiple savefiles from a card. Returns empty vector if even a single file can't be read.
-std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::vector<u8>& file_indices);
+std::vector<Savefile> GetSavefiles(const GCMemcard& card, std::span<const u8> file_indices);
 
 // Gets the total amount of blocks the given saves use.
-size_t GetBlockCount(const std::vector<Savefile>& savefiles);
+size_t GetBlockCount(std::span<const Savefile> savefiles);
 }  // namespace Memcard

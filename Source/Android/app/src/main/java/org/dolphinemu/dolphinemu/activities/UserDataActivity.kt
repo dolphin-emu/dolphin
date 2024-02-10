@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,6 +21,7 @@ import org.dolphinemu.dolphinemu.databinding.ActivityUserDataBinding
 import org.dolphinemu.dolphinemu.dialogs.NotificationDialog
 import org.dolphinemu.dolphinemu.dialogs.TaskDialog
 import org.dolphinemu.dolphinemu.dialogs.UserDataImportWarningDialog
+import org.dolphinemu.dolphinemu.features.DocumentProvider
 import org.dolphinemu.dolphinemu.model.TaskViewModel
 import org.dolphinemu.dolphinemu.utils.*
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
@@ -49,6 +51,7 @@ class UserDataActivity : AppCompatActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        val android7 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
         val android10 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
         val android11 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
         val legacy = DirectoryInitialization.isUsingLegacyUserDirectory()
@@ -56,6 +59,10 @@ class UserDataActivity : AppCompatActivity() {
         val userDataNewLocation =
             if (android10) R.string.user_data_new_location_android_10 else R.string.user_data_new_location
         mBinding.textType.setText(if (legacy) R.string.user_data_old_location else userDataNewLocation)
+
+        val openFileManagerStringId =
+            if (android7) R.string.user_data_open_user_folder else R.string.user_data_open_system_file_manager
+        mBinding.buttonOpenSystemFileManager.setText(openFileManagerStringId)
 
         mBinding.textPath.text = DirectoryInitialization.getUserDirectory()
 
@@ -112,27 +119,43 @@ class UserDataActivity : AppCompatActivity() {
     }
 
     private fun openFileManager() {
+        // First, try to open the user data folder directly
         try {
-            // First, try the package name used on "normal" phones
-            startActivity(getFileManagerIntent("com.google.android.documentsui"))
-        } catch (e: ActivityNotFoundException) {
-            try {
-                // Next, try the AOSP package name
-                startActivity(getFileManagerIntent("com.android.documentsui"))
-            } catch (e2: ActivityNotFoundException) {
-                // Activity not found. Perhaps it was removed by the OEM, or by some new Android version
-                // that didn't exist at the time of writing. Not much we can do other than tell the user.
-                val arguments = Bundle()
-                arguments.putInt(
-                    NotificationDialog.KEY_MESSAGE,
-                    R.string.user_data_open_system_file_manager_failed
-                )
+            startActivity(getFileManagerIntentOnDocumentProvider(Intent.ACTION_VIEW))
+            return
+        } catch (_: ActivityNotFoundException) {}
 
-                val dialog = NotificationDialog()
-                dialog.arguments = arguments
-                dialog.show(supportFragmentManager, NotificationDialog.TAG)
-            }
-        }
+        try {
+            startActivity(getFileManagerIntentOnDocumentProvider("android.provider.action.BROWSE"))
+            return
+        } catch (_: ActivityNotFoundException) {}
+
+        try {
+            // Just try to open the file manager, try the package name used on "normal" phones
+            startActivity(getFileManagerIntent("com.google.android.documentsui"))
+            return
+        } catch (_: ActivityNotFoundException) {}
+
+        try {
+            // Next, try the AOSP package name
+            startActivity(getFileManagerIntent("com.android.documentsui"))
+            return
+        } catch (_: ActivityNotFoundException) {}
+
+        try {
+            // Activity not found. Perhaps it was removed by the OEM, or by some new Android version
+            // that didn't exist at the time of writing. Not much we can do other than tell the user.
+            val arguments = Bundle()
+            arguments.putInt(
+                NotificationDialog.KEY_MESSAGE,
+                R.string.user_data_open_system_file_manager_failed
+            )
+
+            val dialog = NotificationDialog()
+            dialog.arguments = arguments
+            dialog.show(supportFragmentManager, NotificationDialog.TAG)
+            return
+        } catch (_: ActivityNotFoundException) {}
     }
 
     private fun getFileManagerIntent(packageName: String): Intent {
@@ -140,6 +163,15 @@ class UserDataActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_MAIN)
         intent.setClassName(packageName, "com.android.documentsui.files.FilesActivity")
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        return intent
+    }
+
+    private fun getFileManagerIntentOnDocumentProvider(action: String): Intent {
+        val authority = "$packageName.user"
+        val intent = Intent(action)
+        intent.addCategory(Intent.CATEGORY_DEFAULT)
+        intent.data = DocumentsContract.buildRootUri(authority, DocumentProvider.ROOT_ID)
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         return intent
     }
 

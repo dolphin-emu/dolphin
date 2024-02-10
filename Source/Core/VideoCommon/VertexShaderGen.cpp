@@ -96,14 +96,14 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   if (uid_data->vs_expand != VSExpand::None)
   {
-    out.Write("UBO_BINDING(std140, 3) uniform GSBlock {{\n");
+    out.Write("UBO_BINDING(std140, 4) uniform GSBlock {{\n");
     out.Write("{}", s_geometry_shader_uniforms);
     out.Write("}};\n");
 
     if (api_type == APIType::D3D)
     {
       // D3D doesn't include the base vertex in SV_VertexID
-      out.Write("UBO_BINDING(std140, 4) uniform DX_Constants {{\n"
+      out.Write("UBO_BINDING(std140, 5) uniform DX_Constants {{\n"
                 "  uint base_vertex;\n"
                 "}};\n\n");
     }
@@ -149,7 +149,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // Can't use float3, etc because we want 4-byte alignment
     out.Write(
         "uint4 unpack_ubyte4(uint value) {{\n"
-        "  return uint4(value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, value >> 24);\n"
+        "  return uint4(value & 0xffu, (value >> 8) & 0xffu, (value >> 16) & 0xffu, value >> 24);\n"
         "}}\n\n"
         "struct InputData {{\n");
     if (uid_data->components & VB_HAS_POSMTXIDX)
@@ -271,7 +271,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     if (api_type == APIType::D3D)
       out.Write("uint vertex_id = (gl_VertexID >> 2) + base_vertex;\n");
     else
-      out.Write("uint vertex_id = gl_VertexID >> 2;\n");
+      out.Write("uint vertex_id = uint(gl_VertexID) >> 2u;\n");
     out.Write("InputData i = input_buffer[vertex_id];\n"
               "{}",
               input_extract.GetBuffer());
@@ -524,9 +524,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("// Line expansion\n"
               "uint other_id = vertex_id;\n"
               "if (is_bottom) {{\n"
-              "  other_id -= 1;\n"
+              "  other_id -= 1u;\n"
               "}} else {{\n"
-              "  other_id += 1;\n"
+              "  other_id += 1u;\n"
               "}}\n"
               "InputData other = input_buffer[other_id];\n");
     if (uid_data->position_has_3_elems)

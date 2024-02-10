@@ -15,12 +15,16 @@
 #include "Common/CommonTypes.h"
 #include "Slippi/SlippiConfig.h"
 
+namespace Common
+{
 class IniFile;
+}
 
 namespace Core
 {
 class CPUThreadGuard;
-}
+class System;
+}  // namespace Core
 
 namespace DiscIO
 {
@@ -44,16 +48,12 @@ struct SConfig
   Slippi::Config slippi_config;
 
   // Settings
-  bool bAutomaticStart = false;
   bool bBootToPause = false;
 
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 
   bool bCopyWiiSaveNetplay = true;
-
-  bool bWii = false;
-  bool m_is_mios = false;
 
   DiscIO::Region m_region;
 
@@ -81,17 +81,18 @@ struct SConfig
 
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);
-  bool SetPathsAndGameMetadata(const BootParameters& boot);
+  bool SetPathsAndGameMetadata(Core::System& system, const BootParameters& boot);
   DiscIO::Language GetCurrentLanguage(bool wii) const;
   DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const;
+  std::string GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) const;
 
-  IniFile LoadDefaultGameIni() const;
-  IniFile LoadLocalGameIni() const;
-  IniFile LoadGameIni() const;
+  Common::IniFile LoadDefaultGameIni() const;
+  Common::IniFile LoadLocalGameIni() const;
+  Common::IniFile LoadGameIni() const;
 
-  static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
-  static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
-  static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
+  static Common::IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
+  static Common::IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
+  static Common::IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;

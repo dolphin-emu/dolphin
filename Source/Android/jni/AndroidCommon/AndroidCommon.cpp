@@ -12,6 +12,7 @@
 #include <jni.h>
 
 #include "Common/Assert.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "jni/AndroidCommon/IDCache.h"
 
@@ -63,38 +64,50 @@ std::string OpenModeToAndroid(std::string mode)
   // The 'b' specifier is not supported by Android. Since we're on POSIX, it's fine to just skip it.
   mode.erase(std::remove(mode.begin(), mode.end(), 'b'));
 
-  if (mode == "r+")
-    mode = "rw";
-  else if (mode == "w+")
-    mode = "rwt";
-  else if (mode == "a+")
-    mode = "rwa";
+  if (mode == "r")
+    return "r";
+  else if (mode == "w")
+    return "wt";
   else if (mode == "a")
-    mode = "wa";
+    return "wa";
+  else if (mode == "r+")
+    return "rw";
+  else if (mode == "w+")
+    return "rwt";
+  else if (mode == "a+")
+    return "rwa";
 
-  return mode;
+  ERROR_LOG_FMT(COMMON, "OpenModeToAndroid(std::string): Unsupported open mode: {}", mode);
+  return "";
 }
 
 std::string OpenModeToAndroid(std::ios_base::openmode mode)
 {
-  std::string result;
-
-  if (mode & std::ios_base::in)
-    result += 'r';
-
-  if (mode & (std::ios_base::out | std::ios_base::app))
-    result += 'w';
-
-  if (mode & std::ios_base::app)
-    result += 'a';
-
-  constexpr std::ios_base::openmode t = std::ios_base::in | std::ios_base::trunc;
-  if ((mode & t) == t)
-    result += 't';
-
   // The 'b' specifier is not supported by Android. Since we're on POSIX, it's fine to just skip it.
+  mode &= ~std::ios_base::binary;
 
-  return result;
+  switch (mode)
+  {
+  case std::ios_base::in:
+    return "r";
+  case std::ios_base::out:
+  case std::ios_base::out | std::ios_base::trunc:
+    return "wt";
+  case std::ios_base::app:
+  case std::ios_base::out | std::ios_base::app:
+    return "wa";
+  case std::ios_base::in | std::ios_base::out:
+    return "rw";
+  case std::ios_base::in | std::ios_base::out | std::ios_base::trunc:
+    return "rwt";
+  case std::ios_base::in | std::ios_base::app:
+  case std::ios_base::in | std::ios_base::out | std::ios_base::app:
+    return "rwa";
+  default:
+    ERROR_LOG_FMT(COMMON,
+                  "OpenModeToAndroid(std::ios_base::openmode): Unsupported open mode: {:#x}", mode);
+    return "";
+  }
 }
 
 int OpenAndroidContent(std::string_view uri, std::string_view mode)

@@ -299,7 +299,7 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
       break;
     default:
       WARN_LOG_FMT(WIIMOTE, "IOWrite[WWM_WRITE_FILE]: Error on WriteFile: {}",
-                   Common::HRWrap(error));
+                   Common::GetWin32ErrorString(error));
       CancelIo(dev_handle);
       return 0;
     }

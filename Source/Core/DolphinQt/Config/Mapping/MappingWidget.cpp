@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include <fmt/core.h>
+
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QFormLayout>
@@ -16,6 +18,7 @@
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -24,6 +27,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 {
@@ -159,6 +163,26 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
             [this, group] { ShowAdvancedControlGroupDialog(group); });
   }
 
+  if (group->type == ControllerEmu::GroupType::Cursor)
+  {
+    QPushButton* mouse_button = new QPushButton(tr("Use Mouse Controlled Pointing"));
+    form_layout->insertRow(2, mouse_button);
+    connect(mouse_button, &QCheckBox::clicked, [this, group] {
+      std::string default_device = g_controller_interface.GetDefaultDeviceString() + ":";
+      const std::string controller_device = GetController()->GetDefaultDevice().ToString() + ":";
+      if (default_device == controller_device)
+      {
+        default_device.clear();
+      }
+      group->SetControlExpression(0, fmt::format("`{}Cursor Y-`", default_device));
+      group->SetControlExpression(1, fmt::format("`{}Cursor Y+`", default_device));
+      group->SetControlExpression(2, fmt::format("`{}Cursor X-`", default_device));
+      group->SetControlExpression(3, fmt::format("`{}Cursor X+`", default_device));
+      emit ConfigChanged();
+      GetController()->UpdateReferences(g_controller_interface);
+    });
+  }
+
   return group_box;
 }
 
@@ -248,6 +272,7 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
   // Enable "Close" button functionality.
   connect(button_box, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
+  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }
 
@@ -281,7 +306,7 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
 
   button->setMinimumWidth(100);
   button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  const bool translate = control->translate == ControllerEmu::Translate;
+  const bool translate = control->translate == ControllerEmu::Translatability::Translate;
   const QString translated_name =
       translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
   layout->addRow(translated_name, button);
@@ -303,6 +328,7 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
       setting.SetExpressionFromValue();
 
     IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
+    SetQWidgetWindowDecorations(&io);
     io.exec();
 
     setting.SimplifyIfPossible();

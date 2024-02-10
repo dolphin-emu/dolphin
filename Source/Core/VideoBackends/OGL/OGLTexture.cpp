@@ -15,9 +15,7 @@
 
 namespace OGL
 {
-namespace
-{
-GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage)
+GLenum OGLTexture::GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage)
 {
   switch (format)
   {
@@ -33,6 +31,10 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
     return storage ? GL_RGBA8 : GL_RGBA;
   case AbstractTextureFormat::BGRA8:
     return storage ? GL_RGBA8 : GL_BGRA;
+  case AbstractTextureFormat::RGB10_A2:
+    return GL_RGB10_A2;
+  case AbstractTextureFormat::RGBA16F:
+    return GL_RGBA16F;
   case AbstractTextureFormat::R16:
     return GL_R16;
   case AbstractTextureFormat::R32F:
@@ -51,6 +53,8 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
   }
 }
 
+namespace
+{
 GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
 {
   switch (format)
@@ -59,6 +63,10 @@ GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
     return GL_RGBA;
   case AbstractTextureFormat::BGRA8:
     return GL_BGRA;
+  case AbstractTextureFormat::RGB10_A2:
+    return GL_RGB10_A2;
+  case AbstractTextureFormat::RGBA16F:
+    return GL_RGBA16F;
   case AbstractTextureFormat::R16:
   case AbstractTextureFormat::R32F:
     return GL_RED;
@@ -81,6 +89,10 @@ GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::RGBA8:
   case AbstractTextureFormat::BGRA8:
     return GL_UNSIGNED_BYTE;
+  case AbstractTextureFormat::RGB10_A2:
+    return GL_UNSIGNED_INT_2_10_10_10_REV;
+  case AbstractTextureFormat::RGBA16F:
+    return GL_HALF_FLOAT;
   case AbstractTextureFormat::R16:
     return GL_UNSIGNED_SHORT;
   case AbstractTextureFormat::R32F:
@@ -128,19 +140,61 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, m_config.levels - 1);
 
   GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, true);
-  if (tex_config.IsMultisampled())
+  if (g_ogl_config.bSupportsTextureStorage && m_config.type == AbstractTextureType::Texture_CubeMap)
   {
-    if (g_ogl_config.bSupportsTextureStorage)
-      glTexStorage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
+    glTexStorage2D(target, m_config.levels, gl_internal_format, m_config.width, m_config.height);
+  }
+  else if (tex_config.IsMultisampled())
+  {
+    ASSERT(g_ogl_config.bSupportsMSAA);
+    if (m_config.type == AbstractTextureType::Texture_2DArray)
+    {
+      if (g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone)
+      {
+        glTexStorage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
+                                  m_config.height, m_config.layers, GL_FALSE);
+      }
+      else
+      {
+        ASSERT(!g_ogl_config.bIsES);
+        glTexImage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
                                 m_config.height, m_config.layers, GL_FALSE);
+      }
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2D)
+    {
+      if (g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone)
+      {
+        glTexStorage2DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
+                                  m_config.height, GL_FALSE);
+      }
+      else
+      {
+        ASSERT(!g_ogl_config.bIsES);
+        glTexImage2DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
+                                m_config.height, GL_FALSE);
+      }
+    }
     else
-      glTexImage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
-                              m_config.height, m_config.layers, GL_FALSE);
+    {
+      ASSERT(false);
+    }
   }
   else if (g_ogl_config.bSupportsTextureStorage)
   {
-    glTexStorage3D(target, m_config.levels, gl_internal_format, m_config.width, m_config.height,
-                   m_config.layers);
+    if (m_config.type == AbstractTextureType::Texture_2DArray)
+    {
+      glTexStorage3D(target, m_config.levels, gl_internal_format, m_config.width, m_config.height,
+                     m_config.layers);
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2D)
+    {
+      glTexStorage2D(target, m_config.levels, gl_internal_format, m_config.width, m_config.height);
+    }
+    else
+    {
+      ASSERT(false);
+    }
   }
 
   if (m_config.IsRenderTarget())
@@ -249,29 +303,95 @@ void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8
   GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, false);
   if (IsCompressedFormat(m_config.format))
   {
-    if (g_ogl_config.bSupportsTextureStorage)
+    if (m_config.type == AbstractTextureType::Texture_CubeMap)
     {
-      glCompressedTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_internal_format,
-                                static_cast<GLsizei>(buffer_size), buffer);
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glCompressedTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, 0, 0, width,
+                                  height, gl_internal_format, static_cast<GLsizei>(buffer_size),
+                                  buffer);
+      }
+      else
+      {
+        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, gl_internal_format,
+                               width, height, 0, static_cast<GLsizei>(buffer_size), buffer);
+      }
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2D)
+    {
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glCompressedTexSubImage2D(target, level, 0, 0, width, height, gl_internal_format,
+                                  static_cast<GLsizei>(buffer_size), buffer);
+      }
+      else
+      {
+        glCompressedTexImage2D(target, level, gl_internal_format, width, height, 0,
+                               static_cast<GLsizei>(buffer_size), buffer);
+      }
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2DArray)
+    {
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glCompressedTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_internal_format,
+                                  static_cast<GLsizei>(buffer_size), buffer);
+      }
+      else
+      {
+        glCompressedTexImage3D(target, level, gl_internal_format, width, height, 1, 0,
+                               static_cast<GLsizei>(buffer_size), buffer);
+      }
     }
     else
     {
-      glCompressedTexImage3D(target, level, gl_internal_format, width, height, 1, 0,
-                             static_cast<GLsizei>(buffer_size), buffer);
+      PanicAlertFmt("Failed to handle compressed texture load - unhandled type");
     }
   }
   else
   {
     GLenum gl_format = GetGLFormatForTextureFormat(m_config.format);
     GLenum gl_type = GetGLTypeForTextureFormat(m_config.format);
-    if (g_ogl_config.bSupportsTextureStorage)
+    if (m_config.type == AbstractTextureType::Texture_CubeMap)
     {
-      glTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_format, gl_type, buffer);
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, 0, 0, width, height,
+                        gl_format, gl_type, buffer);
+      }
+      else
+      {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, gl_internal_format, width,
+                     height, 0, gl_format, gl_type, buffer);
+      }
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2D)
+    {
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glTexSubImage2D(target, level, 0, 0, width, height, gl_format, gl_type, buffer);
+      }
+      else
+      {
+        glTexImage2D(target, level, gl_internal_format, width, height, 0, gl_format, gl_type,
+                     buffer);
+      }
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2DArray)
+    {
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_format, gl_type, buffer);
+      }
+      else
+      {
+        glTexImage3D(target, level, gl_internal_format, width, height, 1, 0, gl_format, gl_type,
+                     buffer);
+      }
     }
     else
     {
-      glTexImage3D(target, level, gl_internal_format, width, height, 1, 0, gl_format, gl_type,
-                   buffer);
+      PanicAlertFmt("Failed to handle texture load - unhandled type");
     }
   }
 
@@ -296,7 +416,7 @@ OGLStagingTexture::OGLStagingTexture(StagingTextureType type, const TextureConfi
 
 OGLStagingTexture::~OGLStagingTexture()
 {
-  if (m_fence != 0)
+  if (m_fence != nullptr)
     glDeleteSync(m_fence);
   if (m_map_pointer)
   {
@@ -418,7 +538,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
   // If we support buffer storage, create a fence for synchronization.
   if (UsePersistentStagingBuffers())
   {
-    if (m_fence != 0)
+    if (m_fence != nullptr)
       glDeleteSync(m_fence);
 
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -479,7 +599,7 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
   // If we support buffer storage, create a fence for synchronization.
   if (UsePersistentStagingBuffers())
   {
-    if (m_fence != 0)
+    if (m_fence != nullptr)
       glDeleteSync(m_fence);
 
     m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -493,7 +613,7 @@ void OGLStagingTexture::Flush()
 {
   // No-op when not using buffer storage, as the transfers happen on Map().
   // m_fence will always be zero in this case.
-  if (m_fence == 0)
+  if (m_fence == nullptr)
   {
     m_needs_flush = false;
     return;
@@ -501,7 +621,7 @@ void OGLStagingTexture::Flush()
 
   glClientWaitSync(m_fence, 0, GL_TIMEOUT_IGNORED);
   glDeleteSync(m_fence);
-  m_fence = 0;
+  m_fence = nullptr;
   m_needs_flush = false;
 }
 
@@ -537,11 +657,13 @@ void OGLStagingTexture::Unmap()
 }
 
 OGLFramebuffer::OGLFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                               std::vector<AbstractTexture*> additional_color_attachments,
                                AbstractTextureFormat color_format,
                                AbstractTextureFormat depth_format, u32 width, u32 height,
                                u32 layers, u32 samples, GLuint fbo)
-    : AbstractFramebuffer(color_attachment, depth_attachment, color_format, depth_format, width,
-                          height, layers, samples),
+    : AbstractFramebuffer(color_attachment, depth_attachment,
+                          std::move(additional_color_attachments), color_format, depth_format,
+                          width, height, layers, samples),
       m_fbo(fbo)
 {
 }
@@ -551,10 +673,11 @@ OGLFramebuffer::~OGLFramebuffer()
   glDeleteFramebuffers(1, &m_fbo);
 }
 
-std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachment,
-                                                       OGLTexture* depth_attachment)
+std::unique_ptr<OGLFramebuffer>
+OGLFramebuffer::Create(OGLTexture* color_attachment, OGLTexture* depth_attachment,
+                       std::vector<AbstractTexture*> additional_color_attachments)
 {
-  if (!ValidateConfig(color_attachment, depth_attachment))
+  if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
 
   const AbstractTextureFormat color_format =
@@ -571,6 +694,7 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachm
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
+  std::vector<GLenum> buffers;
   if (color_attachment)
   {
     if (color_attachment->GetConfig().layers > 1)
@@ -583,6 +707,7 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachm
       glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                 color_attachment->GetGLTextureId(), 0, 0);
     }
+    buffers.push_back(GL_COLOR_ATTACHMENT0);
   }
 
   if (depth_attachment)
@@ -601,10 +726,29 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachm
     }
   }
 
+  for (std::size_t i = 0; i < additional_color_attachments.size(); i++)
+  {
+    const auto attachment_enum = static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i + 1);
+    OGLTexture* attachment = static_cast<OGLTexture*>(additional_color_attachments[i]);
+    if (attachment->GetConfig().layers > 1)
+    {
+      glFramebufferTexture(GL_FRAMEBUFFER, attachment_enum, attachment->GetGLTextureId(), 0);
+    }
+    else
+    {
+      glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment_enum, attachment->GetGLTextureId(), 0,
+                                0);
+    }
+    buffers.push_back(attachment_enum);
+  }
+
+  glDrawBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
+
   DEBUG_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   GetOGLGfx()->RestoreFramebufferBinding();
 
-  return std::make_unique<OGLFramebuffer>(color_attachment, depth_attachment, color_format,
+  return std::make_unique<OGLFramebuffer>(color_attachment, depth_attachment,
+                                          std::move(additional_color_attachments), color_format,
                                           depth_format, width, height, layers, samples, fbo);
 }
 

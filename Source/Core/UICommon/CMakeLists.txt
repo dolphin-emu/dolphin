@@ -23,15 +23,13 @@ add_library(uicommon
   UICommon.h
   USBUtils.cpp
   USBUtils.h
-  VideoUtils.cpp
-  VideoUtils.h
 )
 
 target_link_libraries(uicommon
 PUBLIC
   common
   cpp-optparse
-  minizip-ng
+  minizip::minizip
   pugixml
 
 PRIVATE
@@ -40,7 +38,7 @@ PRIVATE
 )
 
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
-    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
+    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86_64))
   target_link_libraries(uicommon PRIVATE bdisasm)
 endif()
 
@@ -50,8 +48,8 @@ if(ENABLE_X11 AND X11_FOUND)
   target_link_libraries(uicommon PUBLIC ${XRANDR_LIBRARIES})
 endif()
 
-if(LIBUSB_FOUND)
-  target_link_libraries(uicommon PRIVATE ${LIBUSB_LIBRARIES})
+if(TARGET LibUSB::LibUSB)
+  target_link_libraries(uicommon PRIVATE LibUSB::LibUSB)
 endif()
 
 if(ENABLE_LLVM)

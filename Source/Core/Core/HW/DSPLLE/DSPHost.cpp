@@ -9,7 +9,6 @@
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPCore.h"
@@ -64,7 +63,7 @@ bool OnThread()
 
 bool IsWiiHost()
 {
-  return SConfig::GetInstance().bWii;
+  return Core::System::GetInstance().IsWii();
 }
 
 void InterruptRequest()

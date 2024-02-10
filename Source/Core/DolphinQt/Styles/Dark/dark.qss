@@ -1,0 +1,495 @@
+/*
+Theme for a look and feel like our default Windows theme, but dark
+*/
+
+* {
+	color: #dcdcdc;
+}
+*:disabled {
+	color: #7e7e7e;
+}
+
+/*
+window title bars apparently can't be styled
+would be #000000 for active, #2b2b2b for background
+*/
+
+QMenu {
+	border: 1px solid #7e7e7e;
+}
+QMenuBar {
+	background-color: #202020;
+	color: #dcdcdc;
+	border: 0px;
+}
+QMenu {
+	background-color: #202020;
+	color: #dcdcdc;
+	border: 1px solid #7e7e7e;
+}
+QMenuBar::item {
+	background-color: #202020;
+	color: #dcdcdc;
+	border: 0px;
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 3px;
+	padding-bottom: 2px;
+	margin: 0px;
+}
+QMenuBar {
+	border-color: #404040;
+}
+QMenu::item {
+	background-color: #202020;
+	color: #dcdcdc;
+	border: 0px;
+	padding-left: 8px;
+	padding-right: 32px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	margin: 0px;
+}
+QMenuBar::item:hover, QMenuBar::item:selected, QMenu::item:hover, QMenu::item:selected {
+	background-color: #404040;
+	color: #dcdcdc;
+}
+QMenuBar::item:disabled, QMenu::item:disabled {
+	color: #7e7e7e;
+}
+QMenu::separator {
+	height: 1px;
+	background-color: #7e7e7e;
+	margin-left: 2px;
+	margin-right: 2px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+QWidget {
+	background-color: #202020;
+}
+QColumnView, QListView, QTableView, QTableWidget, QTreeView {
+	background-color: #202020;
+	alternate-background-color: #303030;
+	border: 1px solid #7e7e7e;
+	selection-background-color: #505050; /* #202050; */
+	gridline-color: #606060;
+}
+/*
+would be consistent with Explorer, but Qt keeps the focus color even if you click away from the item, which is confusing
+QColumnView::item:focus, QListView::item:focus, QTableView::item:focus, QTableWidget::item:focus, QTreeView::item:focus {
+	background-color: #606060;
+}
+*/
+
+/*
+Qt is extremely convinced that the sort arrow belongs on the right side
+of the header and will reserve space for it there. The padding is to deal with this fact.
+*/
+QHeaderView::section {
+	background-color: #202020;
+	border: 0px;
+	border-right: 1px solid #7e7e7e;
+	padding-right: -10px;
+}
+QHeaderView::section::vertical { 
+	padding-left: 10px;
+	padding-right: 0px;
+}
+QHeaderView::section:last {
+	border-right: 0px;
+}
+QHeaderView::section:hover, QHeaderView::section:checked {
+	background-color: #404040;
+}
+QHeaderView::down-arrow {
+	subcontrol-origin: margin;
+	subcontrol-position: top center;
+	image: url(:/dolphin_dark_win/table-header-sort-arrow-down.svg);
+	width: 10px;
+	height: 7px;
+	background: transparent;
+}
+QHeaderView::up-arrow {
+	subcontrol-origin: margin;
+	subcontrol-position: top center;
+	image: url(:/dolphin_dark_win/table-header-sort-arrow-up.svg);
+	width: 10px;
+	height: 7px;
+	background: transparent;
+}
+
+QTabWidget::pane {
+	border: 1px solid #7e7e7e;
+	top: -1px; /* move border behind tabs */
+}
+QTabWidget::tab-bar {
+	left: 2px; /* leave space on the side of the tabs */
+}
+
+QTabBar {
+	/* The outline on the focused tab has an incorrect position and as far as I can tell there's no way to move it.
+	So as a hack, remove it and apply an underline to the text instead. */
+	outline: 0px;
+}
+QTabBar::tab {
+	background-color: #303030;
+	border-left: 1px solid #7e7e7e;
+	border-right: 1px solid #7e7e7e;
+	border-top: 1px solid #7e7e7e;
+	border-bottom: 1px solid #7e7e7e;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 9px;
+	padding-right: 10px;
+	margin-right: -1px; /* so adjacent tab borders overlap */
+}
+QTabBar::tab:only-one {
+	margin-right: 0px;
+}
+QTabBar::tab:last {
+	margin-right: 0px;
+}
+QTabBar::tab:hover {
+	background-color: #404040;
+}
+QTabBar::tab:selected {
+	border-bottom: 0px;
+	background-color: #202020;
+	padding-bottom: 1px;
+}
+QTabBar::tab:focus {
+	text-decoration: underline;
+}
+QTabBar::tab:!selected {
+	margin-top: 2px;
+}
+
+QDockWidget {
+	background-color: #404040;
+	titlebar-close-icon: url(:/dolphin_dark_win/dockwidget-close.svg);
+	titlebar-normal-icon: url(:/dolphin_dark_win/dockwidget-undock.svg);
+}
+
+QPushButton, QToolButton {
+	background-color: #303030;
+	border: 1px solid #7e7e7e;
+	padding: 2px;
+	min-width: 67px;
+}
+QPushButton:hover, QToolButton:hover {
+	background-color: #404040;
+}
+QPushButton:focus, QToolButton:focus {
+	background-color: #404040;
+}
+QPushButton:disabled, QToolButton:disabled {
+	background-color: #505050;
+}
+
+/* the dropdownarrow on the right of the button in menu popup mode */
+QToolButton[popupMode="1"] {
+	padding-right: 19px;
+}
+QToolButton::menu-button {
+	border: 0px;
+	border-left: 1px solid #7e7e7e;
+	width: 18px;
+}
+QToolButton::menu-arrow {
+	image: url(:/dolphin_dark_win/down-triangle.svg);
+	width: 14px;
+}
+
+/* the icon bar at the top of the main window */
+QToolBar {
+	border: 0px;
+}
+QToolBar QToolButton {
+	border: 0px;
+	padding: 0px;
+	padding-left: 3px;
+	padding-right: 2px;
+	min-width: 50px;
+	background-color: #202020;
+}
+QToolBar QToolButton:hover {
+	background-color: #404040;
+}
+QToolBar QToolButton:focus {
+	background-color: #404040;
+}
+QToolBar QToolButton:disabled {
+	background-color: #202020;
+}
+QToolBar::separator {
+	min-width: 0px;
+	width: 1px;
+	margin-left: 3px;
+	margin-right: 2px;
+	background-color: #7e7e7e;
+}
+
+QGroupBox {
+	border: 1px solid #7e7e7e;
+	margin-top: 9px;
+	padding-top: 7px;
+	padding-bottom: 0px;
+	padding-left: 1px;
+	padding-right: 1px;
+}
+QGroupBox::title {
+	subcontrol-origin: margin;
+	subcontrol-position: top left;
+	left: 9px;
+	padding-top: 1px;
+	min-width: 0px;
+}
+
+QLineEdit, QTextEdit {
+	border: 1px solid #7e7e7e;
+}
+QLineEdit:disabled, QTextEdit:disabled {
+	background-color: #505050;
+}
+
+QComboBox {
+	background-color: #303030;
+	border: 1px solid #7e7e7e;
+	margin: 0px;
+	padding-left: 3px;
+	padding-right: 3px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+QComboBox:disabled {
+	background-color: #505050;
+}
+QComboBox:selected {
+	background-color: #404040;
+}
+QComboBox:editable {
+	background-color: #202020;
+}
+QComboBox::drop-down {
+	border: 0px;
+}
+QComboBox::down-arrow {
+	image: url(:/dolphin_dark_win/dropdown-arrow.svg);
+	height: 10px;
+	width: 15px;
+}
+QComboBox QAbstractItemView {
+	background-color: #303030;
+	selection-background-color: #404040;
+	border: 1px solid #7e7e7e;
+	padding: 0px;
+	margin: 0px;
+	outline: 0px;
+}
+QComboBox QAbstractItemView::item:selected {
+	color: #dcdcdc;
+	background-color: #404040;
+}
+QComboBox QAbstractItemView::item:last {
+	border: 0px;
+}
+
+QScrollBar:vertical {
+	border: 0px;
+	background: #303030;
+	width: 15px;
+	margin: 15px 0px;
+}
+QScrollBar::handle:vertical { /* the bar in the middle */
+	border: 0px;
+	background: #606060;
+	min-height: 20px;
+}
+QScrollBar::add-line:vertical { /* the down button at the bottom */
+	border: 0px;
+	background: #303030;
+	height: 15px;
+	subcontrol-position: bottom;
+	subcontrol-origin: margin;
+}
+QScrollBar::sub-line:vertical { /* the up button at the top */
+	border: 0px;
+	background: #303030;
+	height: 15px;
+	subcontrol-position: top;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { /* the area between the bar and the up/down buttons */
+	border: 0px;
+	background: none;
+}
+QScrollBar::up-arrow:vertical {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-up.svg);
+	height: 15px;
+}
+QScrollBar::down-arrow:vertical {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-down.svg);
+	height: 15px;
+}
+QScrollBar:horizontal {
+	border: 0px;
+	background: #303030;
+	height: 15px;
+	margin: 0px 15px;
+}
+QScrollBar::handle:horizontal { /* the bar in the middle */
+	border: 0px;
+	background: #606060;
+	min-width: 20px;
+}
+QScrollBar::add-line:horizontal { /* the right button */
+	border: 0px;
+	background: #303030;
+	width: 15px;
+	subcontrol-position: right;
+	subcontrol-origin: margin;
+}
+QScrollBar::sub-line:horizontal { /* the left button */
+	border: 0px;
+	background: #303030;
+	width: 15px;
+	subcontrol-position: left;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { /* the area between the bar and the left/right buttons */
+	border: 0px;
+	background: none;
+}
+QScrollBar::left-arrow:horizontal {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-left.svg);
+	width: 15px;
+}
+QScrollBar::right-arrow:horizontal {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-right.svg);
+	width: 15px;
+}
+
+QSpinBox, QDateEdit, QDateTimeEdit, QTimeEdit, QDoubleSpinBox {
+	border: 1px solid #7e7e7e;
+	padding-right: 15px;
+}
+QSpinBox:disabled, QDateEdit:disabled, QDateTimeEdit:disabled, QTimeEdit:disabled, QDoubleSpinBox:disabled {
+	background-color: #505050;
+}
+QSpinBox::up-button, QDateEdit::up-button, QDateTimeEdit::up-button, QTimeEdit::up-button, QDoubleSpinBox::up-button {
+	border: 1px transparent;
+	subcontrol-origin: border;
+	subcontrol-position: top right;
+	width: 16px;
+}
+QSpinBox::down-button, QDateEdit::down-button, QDateTimeEdit::down-button, QTimeEdit::down-button, QDoubleSpinBox::down-button {
+	border: 1px transparent;
+	subcontrol-origin: border;
+	subcontrol-position: bottom right;
+	width: 16px;
+}
+QSpinBox::up-arrow, QDateEdit::up-arrow, QDateTimeEdit::up-arrow,  QTimeEdit::up-arrow, QDoubleSpinBox::up-arrow {
+	image: url(:/dolphin_dark_win/up-triangle-spinbox.svg);
+	width: 14px;
+	height: 7px;
+}
+QSpinBox::down-arrow, QDateEdit::down-arrow, QDateTimeEdit::down-arrow, QTimeEdit::down-arrow, QDoubleSpinBox::down-arrow {
+	image: url(:/dolphin_dark_win/down-triangle-spinbox.svg);
+	width: 14px;
+	height: 7px;
+}
+
+/*
+QSlider ticks break if you try to style the groove.
+https://stackoverflow.com/questions/27531542/tick-marks-disappear-on-styled-qslider
+https://bugreports.qt.io/browse/QTBUG-3564 (yes that's from 2009 and it's still accurate)
+Truly bizarre. I'll just refrain from styling it from now...
+*/
+QSlider::handle {
+	background-color: #dcdcdc;
+}
+QSlider::handle:disabled {
+	background-color: #7e7e7e;
+}
+
+QCheckBox {
+	padding: 2px 0px;
+}
+QCheckBox::indicator {
+	padding: 0px;
+	margin: 0px;
+	border: 0px;
+	width: 13px;
+	height: 13px;
+}
+QCheckBox::indicator:unchecked {
+	image: url(:/dolphin_dark_win/checkbox-empty.svg);
+}
+QCheckBox::indicator:unchecked:disabled {
+	image: url(:/dolphin_dark_win/checkbox-empty-disabled.svg);
+}
+QCheckBox::indicator:checked {
+	image: url(:/dolphin_dark_win/checkbox-checked.svg);
+}
+QCheckBox::indicator:checked:disabled {
+	image: url(:/dolphin_dark_win/checkbox-checked-disabled.svg);
+}
+QCheckBox::indicator:indeterminate {
+	image: url(:/dolphin_dark_win/checkbox-half.svg);
+}
+QCheckBox::indicator:indeterminate:disabled {
+	image: url(:/dolphin_dark_win/checkbox-half-disabled.svg);
+}
+
+QRadioButton {
+	padding: 2px 0px;
+}
+QRadioButton::indicator {
+	padding: 0px;
+	margin: 0px;
+	border: 0px;
+	width: 13px;
+	height: 13px;
+}
+QRadioButton::indicator:unchecked {
+	image: url(:/dolphin_dark_win/radiobutton-empty.svg);
+}
+QRadioButton::indicator:unchecked:disabled {
+	image: url(:/dolphin_dark_win/radiobutton-empty-disabled.svg);
+}
+QRadioButton::indicator:checked {
+	image: url(:/dolphin_dark_win/radiobutton-checked.svg);
+}
+QRadioButton::indicator:checked:disabled {
+	image: url(:/dolphin_dark_win/radiobutton-checked-disabled.svg);
+}
+
+QListView::indicator:unchecked {
+	image: url(:/dolphin_dark_win/checkbox-empty.svg);
+}
+QListView::indicator:checked {
+	image: url(:/dolphin_dark_win/checkbox-checked.svg);
+}
+QListView::indicator:indeterminate {
+	image: url(:/dolphin_dark_win/checkbox-half.svg);
+}
+
+QTabBar QToolButton {
+	background-color: #202020;
+	min-width: 0px;
+}
+QTabBar QToolButton::left-arrow {
+	image: url(:/dolphin_dark_win/left-triangle-tabbar.svg);
+}
+QTabBar QToolButton::right-arrow {
+	image: url(:/dolphin_dark_win/right-triangle-tabbar.svg);
+}
+QTableCornerButton::section {
+    background-color: #202020;
+    border: 1px solid #7e7e7e;
+    border-top: 0px;
+    border-left: 0px;
+    border-bottom: 0px;
+}

@@ -33,7 +33,7 @@ public:
   std::optional<int> GetPreferredId() const override;
   int GetSortPriority() const override { return -2; }
 
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
   void UpdateMotors();
 

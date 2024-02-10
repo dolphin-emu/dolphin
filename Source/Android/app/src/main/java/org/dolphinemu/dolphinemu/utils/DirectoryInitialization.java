@@ -14,21 +14,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.preference.PreferenceManager;
-
-import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 
 /**
  * A class that spawns its own thread in order perform initialization.
@@ -46,6 +46,7 @@ public final class DirectoryInitialization
   private static volatile boolean areDirectoriesAvailable = false;
   private static String userPath;
   private static String sysPath;
+  private static String driverPath;
   private static boolean isUsingLegacyUserDirectory = false;
 
   public enum DirectoryInitializationState
@@ -73,8 +74,12 @@ public final class DirectoryInitialization
 
     if (!setDolphinUserDirectory(context))
     {
-      Toast.makeText(context, R.string.external_storage_not_mounted, Toast.LENGTH_LONG).show();
-      System.exit(1);
+      ContextCompat.getMainExecutor(context).execute(() ->
+      {
+        Toast.makeText(context, R.string.external_storage_not_mounted, Toast.LENGTH_LONG).show();
+        System.exit(1);
+      });
+      return;
     }
 
     extractSysDirectory(context);
@@ -88,8 +93,7 @@ public final class DirectoryInitialization
     directoryState.postValue(DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED);
   }
 
-  @Nullable
-  private static File getLegacyUserDirectoryPath()
+  @Nullable private static File getLegacyUserDirectoryPath()
   {
     File externalPath = Environment.getExternalStorageDirectory();
     if (externalPath == null)
@@ -98,8 +102,7 @@ public final class DirectoryInitialization
     return new File(externalPath, "dolphin-emu");
   }
 
-  @Nullable
-  public static File getUserDirectoryPath(Context context)
+  @Nullable public static File getUserDirectoryPath(Context context)
   {
     if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
       return null;
@@ -107,8 +110,8 @@ public final class DirectoryInitialization
     isUsingLegacyUserDirectory =
             preferLegacyUserDirectory(context) && PermissionsHandler.hasWriteAccess(context);
 
-    return isUsingLegacyUserDirectory ?
-            getLegacyUserDirectoryPath() : context.getExternalFilesDir(null);
+    return isUsingLegacyUserDirectory ? getLegacyUserDirectoryPath() :
+            context.getExternalFilesDir(null);
   }
 
   private static boolean setDolphinUserDirectory(Context context)
@@ -124,7 +127,12 @@ public final class DirectoryInitialization
 
     File cacheDir = context.getExternalCacheDir();
     if (cacheDir == null)
-      return false;
+    {
+      // In some custom ROMs getExternalCacheDir might return null for some reasons. If that is the case, fallback to getCacheDir which seems to work just fine.
+      cacheDir = context.getCacheDir();
+      if (cacheDir == null)
+        return false;
+    }
 
     Log.debug("[DirectoryInitialization] Cache Dir: " + cacheDir.getPath());
     NativeLibrary.SetCacheDirectory(cacheDir.getPath());
@@ -153,6 +161,19 @@ public final class DirectoryInitialization
     // Let the native code know where the Sys directory is.
     sysPath = sysDirectory.getPath();
     SetSysDirectory(sysPath);
+
+    File driverDirectory = new File(context.getFilesDir(), "GPUDrivers");
+    driverDirectory.mkdirs();
+    File driverExtractedDir = new File(driverDirectory, "Extracted");
+    driverExtractedDir.mkdirs();
+    File driverTmpDir = new File(driverDirectory, "Tmp");
+    driverTmpDir.mkdirs();
+    File driverFileRedirectDir = new File(driverDirectory, "FileRedirect");
+    driverFileRedirectDir.mkdirs();
+
+    SetGpuDriverDirectories(driverDirectory.getPath(),
+            context.getApplicationInfo().nativeLibraryDir);
+    DirectoryInitialization.driverPath = driverExtractedDir.getAbsolutePath();
   }
 
   private static void deleteDirectoryRecursively(@NonNull final File file)
@@ -213,9 +234,19 @@ public final class DirectoryInitialization
     return sysPath;
   }
 
+  public static String getExtractedDriverDirectory()
+  {
+    if (!areDirectoriesAvailable)
+    {
+      throw new IllegalStateException(
+              "DirectoryInitialization must run before accessing the driver directory!");
+    }
+    return driverPath;
+  }
+
   public static File getGameListCache(Context context)
   {
-    return new File(context.getExternalCacheDir(), "gamelist.cache");
+    return new File(NativeLibrary.GetCacheDirectory(), "gamelist.cache");
   }
 
   private static boolean copyAsset(String asset, File output, Context context)
@@ -235,16 +266,14 @@ public final class DirectoryInitialization
     }
     catch (IOException e)
     {
-      Log.error("[DirectoryInitialization] Failed to copy asset file: " + asset +
-              e.getMessage());
+      Log.error("[DirectoryInitialization] Failed to copy asset file: " + asset + e.getMessage());
     }
     return false;
   }
 
   private static void copyAssetFolder(String assetFolder, File outputFolder, Context context)
   {
-    Log.verbose("[DirectoryInitialization] Copying Folder " + assetFolder + " to " +
-            outputFolder);
+    Log.verbose("[DirectoryInitialization] Copying Folder " + assetFolder + " to " + outputFolder);
 
     try
     {
@@ -267,8 +296,7 @@ public final class DirectoryInitialization
           }
           createdFolder = true;
         }
-        copyAssetFolder(assetFolder + File.separator + file, new File(outputFolder, file),
-                context);
+        copyAssetFolder(assetFolder + File.separator + file, new File(outputFolder, file), context);
         copyAsset(assetFolder + File.separator + file, new File(outputFolder, file), context);
       }
     }
@@ -340,8 +368,8 @@ public final class DirectoryInitialization
   private static boolean preferLegacyUserDirectory(Context context)
   {
     return PermissionsHandler.isExternalStorageLegacy() &&
-            !PermissionsHandler.isWritePermissionDenied() &&
-            isExternalFilesDirEmpty(context) && legacyUserDirectoryExists();
+            !PermissionsHandler.isWritePermissionDenied() && isExternalFilesDirEmpty(context) &&
+            legacyUserDirectoryExists();
   }
 
   public static boolean isUsingLegacyUserDirectory()
@@ -361,33 +389,34 @@ public final class DirectoryInitialization
   private static void checkThemeSettings(Context context)
   {
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() !=
+    if (IntSetting.MAIN_INTERFACE_THEME.getInt() !=
             preferences.getInt(ThemeHelper.CURRENT_THEME, ThemeHelper.DEFAULT))
     {
       preferences.edit()
-              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getIntGlobal())
+              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getInt())
               .apply();
     }
 
-    if (IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal() !=
+    if (IntSetting.MAIN_INTERFACE_THEME_MODE.getInt() !=
             preferences.getInt(ThemeHelper.CURRENT_THEME_MODE,
                     AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
     {
       preferences.edit()
-              .putInt(ThemeHelper.CURRENT_THEME_MODE,
-                      IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal())
+              .putInt(ThemeHelper.CURRENT_THEME_MODE, IntSetting.MAIN_INTERFACE_THEME_MODE.getInt())
               .apply();
     }
 
-    if (BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal() !=
+    if (BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean() !=
             preferences.getBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS, false))
     {
       preferences.edit()
               .putBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS,
-                      BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal())
+                      BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean())
               .apply();
     }
   }
 
   private static native void SetSysDirectory(String path);
+
+  private static native void SetGpuDriverDirectories(String path, String libPath);
 }
