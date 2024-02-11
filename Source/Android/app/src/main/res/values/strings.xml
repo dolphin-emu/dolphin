@@ -478,7 +478,7 @@
     <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
     <string name="nand_import_warning">Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?</string>
     <string name="system_menu_not_installed_title">Not installed</string>
-    <string name="system_menu_not_installed_message">The Wii Menu is currently not installed. Would you like to install it now?\nAn internet connection is required to download the update. It is recommended to download the update on Wi-Fi, as the amount of data downloaded may be large.</string>
+    <string name="system_menu_not_installed_message">The Wii Menu isn\'t installed. Would you like to install it now?\n\nRoughly 110 MiB of data will be downloaded from the internet. A Wi-Fi connection is recommended.</string>
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
