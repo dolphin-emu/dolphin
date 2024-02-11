@@ -121,13 +121,17 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_game_grid, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         if (WiiUtils.isSystemMenuInstalled()) {
             val resId =
                 if (WiiUtils.isSystemMenuvWii()) R.string.grid_menu_load_vwii_system_menu_installed else R.string.grid_menu_load_wii_system_menu_installed
             menu.findItem(R.id.menu_load_wii_system_menu).title =
                 getString(resId, WiiUtils.getSystemMenuVersion())
         }
-        return true
+        return super.onPrepareOptionsMenu(menu)
     }
 
     /**
