@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
     private lateinit var binding: ActivityMainBinding
 
+    private lateinit var menu: Menu
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().setKeepOnScreenCondition { !DirectoryInitialization.areDolphinDirectoriesReady() }
 
@@ -121,15 +123,22 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_game_grid, menu)
+        this.menu = menu
         return true
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        if (WiiUtils.isSystemMenuInstalled()) {
-            val resId =
-                if (WiiUtils.isSystemMenuvWii()) R.string.grid_menu_load_vwii_system_menu_installed else R.string.grid_menu_load_wii_system_menu_installed
-            menu.findItem(R.id.menu_load_wii_system_menu).title =
-                getString(resId, WiiUtils.getSystemMenuVersion())
+        AfterDirectoryInitializationRunner().runWithLifecycle(this) {
+            if (WiiUtils.isSystemMenuInstalled()) {
+                val resId =
+                    if (WiiUtils.isSystemMenuvWii()) R.string.grid_menu_load_vwii_system_menu_installed else R.string.grid_menu_load_wii_system_menu_installed
+
+                // If this callback ends up running after another call to onCreateOptionsMenu,
+                // we need to use the new Menu passed to the latest call of onCreateOptionsMenu.
+                // Therefore, we use a field here instead of the onPrepareOptionsMenu argument.
+                this.menu.findItem(R.id.menu_load_wii_system_menu).title =
+                    getString(resId, WiiUtils.getSystemMenuVersion())
+            }
         }
         return super.onPrepareOptionsMenu(menu)
     }
