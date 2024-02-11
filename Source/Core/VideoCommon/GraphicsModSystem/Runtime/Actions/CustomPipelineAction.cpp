@@ -8,6 +8,8 @@
 #include <optional>
 
 #include <fmt/format.h>
+#include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -18,6 +20,9 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
+#include "VideoCommon/GraphicsModEditor/Controls/AssetDisplay.h"
+#include "VideoCommon/GraphicsModEditor/EditorEvents.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 
@@ -122,4 +127,67 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
   custom_pixel_shader.material_uniform_block = pass.m_last_generated_material_code.GetBuffer();
   *draw_started->custom_pixel_shader = custom_pixel_shader;
   *draw_started->material_uniform_buffer = pass.m_material_data;
+}
+
+void CustomPipelineAction::DrawImGui()
+{
+  auto& editor = Core::System::GetInstance().GetGraphicsModEditor();
+  if (ImGui::CollapsingHeader("Custom pipeline", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    if (m_passes_config.size() == 1)
+    {
+      if (ImGui::BeginTable("CustomPipelineForm", 2))
+      {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Material");
+        ImGui::TableNextColumn();
+        if (GraphicsModEditor::Controls::AssetDisplay(
+                "CustomPipelineActionMaterial", editor.GetEditorState(),
+                &m_passes_config[0].m_pixel_material_asset, GraphicsModEditor::Material))
+        {
+          GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
+        }
+        ImGui::EndTable();
+      }
+    }
+
+    if (m_passes_config.empty())
+    {
+      if (ImGui::Button("Add pass"))
+      {
+        m_passes_config.emplace_back();
+        m_pipeline_passes.emplace_back();
+      }
+    }
+    else
+    {
+      // Disable pass adding for now
+      ImGui::BeginDisabled();
+      ImGui::Button("Add pass");
+      ImGui::EndDisabled();
+    }
+  }
+}
+
+void CustomPipelineAction::SerializeToConfig(picojson::object* obj)
+{
+  if (!obj) [[unlikely]]
+    return;
+
+  auto& json_obj = *obj;
+
+  picojson::array serialized_passes;
+  for (const auto& pass : m_passes_config)
+  {
+    picojson::object serialized_pass;
+    serialized_pass["pixel_material_asset"] = picojson::value{pass.m_pixel_material_asset};
+    serialized_passes.push_back(picojson::value{serialized_pass});
+  }
+  json_obj["passes"] = picojson::value{serialized_passes};
+}
+
+std::string CustomPipelineAction::GetFactoryName() const
+{
+  return "custom_pipeline";
 }

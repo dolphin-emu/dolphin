@@ -12,17 +12,39 @@
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "Common/SmallVector.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/PixelShaderGen.h"
 
 namespace GraphicsModActionData
 {
+struct MeshChunk
+{
+  const void* vertices;
+  u32 vertex_stride;
+  u32 num_vertices;
+  const u16* indices;
+  u32 num_indices;
+  NativeVertexFormat* vertex_format;
+  PrimitiveType primitive_type;
+  u32 components_available;
+  Common::Matrix44 transform;
+  CullMode cull_mode = CullMode::Front;
+};
 struct DrawStarted
 {
   const Common::SmallVector<u32, 8>& texture_units;
+  const NativeVertexFormat& current_vertex_format;
+  std::span<const u8> original_mesh_data;
+  u32 current_components_available;
   bool* skip;
   std::optional<CustomPixelShader>* custom_pixel_shader;
   std::span<u8>* material_uniform_buffer;
+  std::optional<Common::Matrix44>* transform;
+  std::optional<MeshChunk>* mesh_chunk;
+  u32* current_mesh_index;
+  bool* more_data;
 };
 
 struct EFB
@@ -32,6 +54,16 @@ struct EFB
   bool* skip;
   u32* scaled_width;
   u32* scaled_height;
+};
+
+struct Light
+{
+  int4* color;
+  float4* cosatt;
+  float4* distatt;
+  float4* pos;
+  float4* dir;
+  bool* skip;
 };
 
 struct Projection

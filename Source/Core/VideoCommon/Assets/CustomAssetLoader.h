@@ -13,6 +13,7 @@
 #include "Common/WorkQueueThread.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
+#include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 
@@ -47,6 +48,19 @@ public:
   std::shared_ptr<MaterialAsset> LoadMaterial(const CustomAssetLibrary::AssetID& asset_id,
                                               std::shared_ptr<CustomAssetLibrary> library);
 
+  std::shared_ptr<MeshAsset> LoadMesh(const CustomAssetLibrary::AssetID& asset_id,
+                                      std::shared_ptr<CustomAssetLibrary> library);
+
+  void Reset()
+  {
+    std::lock_guard lk(m_asset_load_lock);
+    m_game_textures.clear();
+    m_pixel_shaders.clear();
+    m_materials.clear();
+    m_total_bytes_loaded = 0;
+    m_assets_to_monitor.clear();
+  }
+
 private:
   // TODO C++20: use a 'derived_from' concept against 'CustomAsset' when available
   template <typename AssetType>
@@ -66,7 +80,6 @@ private:
       {
         std::lock_guard lk(m_asset_load_lock);
         m_total_bytes_loaded -= a->GetByteSizeInMemory();
-        m_assets_to_monitor.erase(a->GetAssetId());
       }
       delete a;
     });
@@ -80,6 +93,7 @@ private:
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<GameTextureAsset>> m_game_textures;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<PixelShaderAsset>> m_pixel_shaders;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<MaterialAsset>> m_materials;
+  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<MeshAsset>> m_meshes;
   std::thread m_asset_monitor_thread;
   Common::Flag m_asset_monitor_thread_shutdown;
 

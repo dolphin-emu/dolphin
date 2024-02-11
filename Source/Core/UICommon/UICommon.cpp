@@ -74,6 +74,7 @@ static void CreateDumpPath(std::string path)
   File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPOBJECTS_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPMESHES_IDX));
 }
 
 static void CreateLoadPath(std::string path)

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <span>
-
 #include <picojson.h>
+
+#include "Common/Matrix.h"
 
 // Ideally this would use a concept like, 'template <std::ranges::range Range>' to constrain it,
 // but unfortunately we'd need to require clang 15 for that, since the ranges library isn't
@@ -24,3 +24,6 @@ picojson::array ToJsonArray(const Range& data)
 
   return result;
 }
+
+picojson::object ToJsonObject(const Common::Vec3& vec);
+void FromJson(const picojson::object& obj, Common::Vec3& vec);

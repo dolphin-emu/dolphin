@@ -20,6 +20,8 @@ add_library(videocommon
   Assets/DirectFilesystemAssetLibrary.h
   Assets/MaterialAsset.cpp
   Assets/MaterialAsset.h
+  Assets/MeshAsset.cpp
+  Assets/MeshAsset.h
   Assets/ShaderAsset.cpp
   Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
@@ -62,6 +64,36 @@ add_library(videocommon
   GeometryShaderGen.h
   GeometryShaderManager.cpp
   GeometryShaderManager.h
+  GraphicsModEditor/Controls/AssetDisplay.cpp
+  GraphicsModEditor/Controls/AssetDisplay.h
+  GraphicsModEditor/Controls/MaterialControl.cpp
+  GraphicsModEditor/Controls/MaterialControl.h
+  GraphicsModEditor/Controls/MeshControl.cpp
+  GraphicsModEditor/Controls/MeshControl.h
+  GraphicsModEditor/Controls/MeshExtractWindow.cpp
+  GraphicsModEditor/Controls/MeshExtractWindow.h
+  GraphicsModEditor/Controls/MeshImportWindow.cpp
+  GraphicsModEditor/Controls/MeshImportWindow.h
+  GraphicsModEditor/Controls/ShaderControl.cpp
+  GraphicsModEditor/Controls/ShaderControl.h
+  GraphicsModEditor/Controls/TextureControl.cpp
+  GraphicsModEditor/Controls/TextureControl.h
+  GraphicsModEditor/EditorAssetSource.cpp
+  GraphicsModEditor/EditorAssetSource.h
+  GraphicsModEditor/EditorEvents.h
+  GraphicsModEditor/EditorMain.cpp
+  GraphicsModEditor/EditorMain.h
+  GraphicsModEditor/EditorState.cpp
+  GraphicsModEditor/EditorState.h
+  GraphicsModEditor/EditorTypes.h
+  GraphicsModEditor/Panels/ActiveTargetsPanel.cpp
+  GraphicsModEditor/Panels/ActiveTargetsPanel.h
+  GraphicsModEditor/Panels/AssetBrowserPanel.cpp
+  GraphicsModEditor/Panels/AssetBrowserPanel.h
+  GraphicsModEditor/Panels/PropertiesPanel.cpp
+  GraphicsModEditor/Panels/PropertiesPanel.h
+  GraphicsModEditor/SceneDumper.cpp
+  GraphicsModEditor/SceneDumper.h
   GraphicsModSystem/Config/GraphicsMod.cpp
   GraphicsModSystem/Config/GraphicsMod.h
   GraphicsModSystem/Config/GraphicsModAsset.cpp
@@ -75,8 +107,12 @@ add_library(videocommon
   GraphicsModSystem/Config/GraphicsTargetGroup.cpp
   GraphicsModSystem/Config/GraphicsTargetGroup.h
   GraphicsModSystem/Constants.h
+  GraphicsModSystem/Runtime/Actions/CustomMeshAction.cpp
+  GraphicsModSystem/Runtime/Actions/CustomMeshAction.h
   GraphicsModSystem/Runtime/Actions/CustomPipelineAction.cpp
   GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h
+  GraphicsModSystem/Runtime/Actions/ModifyLight.cpp
+  GraphicsModSystem/Runtime/Actions/ModifyLight.h
   GraphicsModSystem/Runtime/Actions/MoveAction.cpp
   GraphicsModSystem/Runtime/Actions/MoveAction.h
   GraphicsModSystem/Runtime/Actions/PrintAction.cpp
@@ -85,6 +121,8 @@ add_library(videocommon
   GraphicsModSystem/Runtime/Actions/ScaleAction.h
   GraphicsModSystem/Runtime/Actions/SkipAction.cpp
   GraphicsModSystem/Runtime/Actions/SkipAction.h
+  GraphicsModSystem/Runtime/Actions/TransformAction.cpp
+  GraphicsModSystem/Runtime/Actions/TransformAction.h
   GraphicsModSystem/Runtime/CustomPipeline.cpp
   GraphicsModSystem/Runtime/CustomPipeline.h
   GraphicsModSystem/Runtime/CustomShaderCache.cpp
@@ -216,6 +254,7 @@ PRIVATE
   imgui
   implot
   glslang
+  tinygltf
 )
 
 if(_M_X86_64)

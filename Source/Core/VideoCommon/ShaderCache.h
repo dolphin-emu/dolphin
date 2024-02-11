@@ -47,7 +47,7 @@ public:
   ~ShaderCache();
 
   // Perform at startup, create descriptor layouts, compiles all static shaders.
-  bool Initialize();
+  bool Initialize(bool force_no_cache = false);
   void Shutdown();
 
   // Compiles/loads cached shaders.
@@ -251,6 +251,8 @@ private:
 
   // Texture decoding shaders
   std::map<std::pair<u32, u32>, std::unique_ptr<AbstractShader>> m_texture_decoding_shaders;
+
+  bool m_should_cache = false;
 
   Common::EventHook m_frame_end_handler;
 };

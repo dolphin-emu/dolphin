@@ -8,6 +8,7 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/ScaleAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/SkipAction.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/TransformAction.h"
 
 namespace GraphicsModActionFactory
 {
@@ -33,6 +34,10 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   else if (name == "custom_pipeline")
   {
     return CustomPipelineAction::Create(json_data, std::move(library));
+  }
+  else if (name == "transform")
+  {
+    return TransformAction::Create(json_data);
   }
 
   return nullptr;
