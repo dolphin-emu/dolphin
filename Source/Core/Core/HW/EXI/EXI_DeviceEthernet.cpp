@@ -143,9 +143,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
     if (transfer.address == BBA_IOB && transfer.region == transfer.MX)
     {
       ERROR_LOG_FMT(SP1,
-                    "Usage of BBA_IOB indicates that the rx packet descriptor has been corrupted. "
-                    "Killing Dolphin...");
-      std::exit(0);
+                    "Usage of BBA_IOB indicates that the rx packet descriptor has been corrupted.");
     }
 
     // transfer has been setup
