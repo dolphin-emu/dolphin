@@ -51,3 +51,21 @@ configure_file(
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp" "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h")
 
 file(REMOVE "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp")
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/Source/Core/DolphinQt/Info.plist.in"
+  "${PROJECT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist.tmp"
+)
+
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist.tmp" "${PROJECT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist")
+
+file(REMOVE "${PROJECT_BINARY_DIR}/Source/Core/DolphinQt/Info.plist.tmp")
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/Source/Core/MacUpdater/Info.plist.in"
+  "${PROJECT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist.tmp"
+)
+
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist.tmp" "${PROJECT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist")
+
+file(REMOVE "${PROJECT_BINARY_DIR}/Source/Core/MacUpdater/Info.plist.tmp")
