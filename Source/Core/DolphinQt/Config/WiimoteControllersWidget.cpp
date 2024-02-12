@@ -209,7 +209,7 @@ void WiimoteControllersWidget::ConnectWidgets()
 
 void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = Core::System::GetInstance().GetIOS();
 
   if (!ios)
   {
@@ -226,7 +226,7 @@ void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
 
 void WiimoteControllersWidget::OnBluetoothPassthroughSyncPressed()
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = Core::System::GetInstance().GetIOS();
 
   if (!ios)
   {

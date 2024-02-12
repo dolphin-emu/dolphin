@@ -20,6 +20,8 @@ add_library(videocommon
   Assets/DirectFilesystemAssetLibrary.h
   Assets/MaterialAsset.cpp
   Assets/MaterialAsset.h
+  Assets/MeshAsset.cpp
+  Assets/MeshAsset.h
   Assets/ShaderAsset.cpp
   Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
@@ -216,6 +218,7 @@ PRIVATE
   imgui
   implot
   glslang
+  tinygltf
 )
 
 if(_M_X86_64)

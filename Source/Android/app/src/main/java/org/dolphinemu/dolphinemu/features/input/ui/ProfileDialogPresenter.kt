@@ -101,11 +101,11 @@ class ProfileDialogPresenter {
     }
 
     private fun getProfileDirectoryPath(stock: Boolean): String {
-        val profileDirectoryName = menuTag.correspondingEmulatedController.getProfileName()
+        val controller = menuTag.correspondingEmulatedController
         return if (stock) {
-            "${DirectoryInitialization.getSysDirectory()}/Profiles/$profileDirectoryName/"
+            controller.getSysProfileDirectoryPath()
         } else {
-            "${DirectoryInitialization.getUserDirectory()}/Config/Profiles/$profileDirectoryName/"
+            controller.getUserProfileDirectoryPath()
         }
     }
 

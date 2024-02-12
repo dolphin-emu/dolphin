@@ -1016,7 +1016,7 @@ void UpdateWantDeterminism(bool initial)
 
     RunAsCPUThread([&] {
       s_wants_determinism = new_want_determinism;
-      const auto ios = IOS::HLE::GetIOS();
+      const auto ios = system.GetIOS();
       if (ios)
         ios->UpdateWantDeterminism(new_want_determinism);
 

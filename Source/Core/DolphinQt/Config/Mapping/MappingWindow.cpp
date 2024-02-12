@@ -319,9 +319,8 @@ void MappingWindow::OnSaveProfilePressed()
   if (profile_name.isEmpty())
     return;
 
-  const std::string profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
-                                   m_config->GetProfileName() + "/" + profile_name.toStdString() +
-                                   ".ini";
+  const std::string profile_path =
+      m_config->GetUserProfileDirectoryPath() + profile_name.toStdString() + ".ini";
 
   File::CreateFullPath(profile_path);
 
@@ -487,8 +486,7 @@ void MappingWindow::PopulateProfileSelection()
 {
   m_profiles_combo->clear();
 
-  const std::string profiles_path =
-      File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
+  const std::string profiles_path = m_config->GetUserProfileDirectoryPath();
   for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
   {
     std::string basename;
@@ -499,9 +497,8 @@ void MappingWindow::PopulateProfileSelection()
 
   m_profiles_combo->insertSeparator(m_profiles_combo->count());
 
-  const std::string builtin_profiles_path =
-      File::GetSysDirectory() + PROFILES_DIR + m_config->GetProfileName();
-  for (const auto& filename : Common::DoFileSearch({builtin_profiles_path}, {".ini"}))
+  for (const auto& filename :
+       Common::DoFileSearch({m_config->GetSysProfileDirectoryPath()}, {".ini"}))
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);

@@ -2237,7 +2237,7 @@ class SettingsFragmentPresenter(
         controllerNumber: Int
     ) {
         val profiles = ProfileDialogPresenter(menuTag).getProfileNames(false)
-        val profileKey = controller.getProfileName() + "Profile" + (controllerNumber + 1)
+        val profileKey = controller.getProfileKey() + "Profile" + (controllerNumber + 1)
         sl.add(
             StringSingleChoiceSetting(
                 context,
