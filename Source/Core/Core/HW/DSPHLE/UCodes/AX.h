@@ -110,6 +110,9 @@ protected:
 
   std::unique_ptr<Accelerator> m_accelerator;
 
+  // Constructs without any GC-specific state, so it can be used by the deriving AXWii.
+  AXUCode(DSPHLE* dsphle, u32 crc, bool dummy);
+
   void InitializeShared();
 
   bool LoadResamplingCoefficients(bool require_same_checksum, u32 desired_checksum);
