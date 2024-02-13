@@ -12,6 +12,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "VideoCommon/Assets/CustomAssetLibrary.h"
 
 namespace VideoCommon
 {
@@ -644,5 +645,19 @@ bool MeshData::FromGLTF(std::string_view gltf_file, MeshData* data)
 
   ERROR_LOG_FMT(VIDEO, "GLTF '{}' has invalid extension", gltf_file);
   return false;
+}
+
+CustomAssetLibrary::LoadInfo MeshAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
+{
+  auto potential_data = std::make_shared<MeshData>();
+  const auto loaded_info = m_owning_library->LoadMesh(asset_id, potential_data.get());
+  if (loaded_info.m_bytes_loaded == 0)
+    return {};
+  {
+    std::lock_guard lk(m_data_lock);
+    m_loaded = true;
+    m_data = std::move(potential_data);
+  }
+  return loaded_info;
 }
 }  // namespace VideoCommon
