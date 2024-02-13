@@ -32,7 +32,7 @@ jobs:
     name: Verify SlippiRustExtensions Commit is in Main
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Main Branch Check
         shell: bash
         run: |
@@ -59,7 +59,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - id: rust_ver
@@ -72,7 +72,7 @@ jobs:
           toolchain: ${{ steps.rust_ver.outputs.rust_ver }}  # Pin to our specific Rust version.
           rustflags: ""  # Disable default injection of warnings = errors.
       - name: Cache Utils
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ./CodeSignTool/
@@ -136,7 +136,7 @@ jobs:
           7z a $FILE_NAME .\*
           move $FILE_NAME ..\..\artifact\
       - name: "Publish"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"
@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - id: rust_ver
@@ -241,7 +241,7 @@ jobs:
           popd
           mv "${FILE_NAME}" ./artifact/
       - name: "Publish"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"
@@ -263,7 +263,7 @@ jobs:
     runs-on: macos-12
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - id: rust_ver
@@ -350,7 +350,7 @@ jobs:
           /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime ./artifact/${{ env.FILE_NAME }}.dmg
           chmod +x Tools/notarize_netplay.sh && ./Tools/notarize_netplay.sh ./artifact/${{ env.FILE_NAME }}.dmg
       - name: "Publish"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"
