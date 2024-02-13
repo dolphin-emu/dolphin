@@ -97,4 +97,10 @@ CustomAssetLoader::LoadMaterial(const CustomAssetLibrary::AssetID& asset_id,
 {
   return LoadOrCreateAsset<MaterialAsset>(asset_id, m_materials, std::move(library));
 }
+
+std::shared_ptr<MeshAsset> CustomAssetLoader::LoadMesh(const CustomAssetLibrary::AssetID& asset_id,
+                                                       std::shared_ptr<CustomAssetLibrary> library)
+{
+  return LoadOrCreateAsset<MeshAsset>(asset_id, m_meshes, std::move(library));
+}
 }  // namespace VideoCommon

@@ -57,4 +57,13 @@ struct MeshData
   std::map<std::string, CustomAssetLibrary::AssetID, std::less<>>
       m_mesh_material_to_material_asset_id;
 };
+
+class MeshAsset final : public CustomLoadableAsset<MeshData>
+{
+public:
+  using CustomLoadableAsset::CustomLoadableAsset;
+
+private:
+  CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) override;
+};
 }  // namespace VideoCommon
