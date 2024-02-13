@@ -20,21 +20,22 @@
 
 namespace DSP::HLE
 {
-AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_main_volume(0x8000)
+AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc)
+    : AXUCode(dsphle, crc, false), m_last_main_volume(0x8000)
 {
+  INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode: crc={:08x}", crc);
+
   for (u16& volume : m_last_aux_volumes)
     volume = 0x8000;
 
-  INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode");
-
   m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
+
+  m_accelerator = std::make_unique<HLEAccelerator>(dsphle->GetSystem().GetDSP());
 }
 
 void AXWiiUCode::Initialize()
 {
   InitializeShared();
-
-  m_accelerator = std::make_unique<HLEAccelerator>(m_dsphle->GetSystem().GetDSP());
 }
 
 void AXWiiUCode::HandleCommandList()
