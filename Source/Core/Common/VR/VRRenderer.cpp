@@ -59,9 +59,9 @@ void Renderer::GetResolution(Base* engine, int* pWidth, int* pHeight)
           elements[e].next = NULL;
         }
 
-        OXR(xrEnumerateViewConfigurationViews(engine->GetInstance(),
-                                              engine->GetSystemId(), viewport_config_type,
-                                              view_count, &view_count, elements));
+        OXR(xrEnumerateViewConfigurationViews(engine->GetInstance(), engine->GetSystemId(),
+                                              viewport_config_type, view_count, &view_count,
+                                              elements));
 
         // Cache the view config properties for the selected config type.
         if (viewport_config_type == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO)
@@ -69,7 +69,7 @@ void Renderer::GetResolution(Base* engine, int* pWidth, int* pHeight)
           assert(view_count == MaxNumEyes);
           for (uint32_t e = 0; e < view_count; e++)
           {
-	          m_view_config[e] = elements[e];
+            m_view_config[e] = elements[e];
           }
         }
 
@@ -410,12 +410,10 @@ void Renderer::HandleSessionStateChanges(Base* engine, XrSessionState state)
       OXR(xrGetInstanceProcAddr(engine->GetInstance(), "xrPerfSettingsSetPerformanceLevelEXT",
                                 (PFN_xrVoidFunction*)(&pfnPerfSettingsSetPerformanceLevelEXT)));
 
-      OXR(pfnPerfSettingsSetPerformanceLevelEXT(engine->GetSession(),
-                                                XR_PERF_SETTINGS_DOMAIN_CPU_EXT,
-                                                XR_PERF_SETTINGS_LEVEL_BOOST_EXT));
-      OXR(pfnPerfSettingsSetPerformanceLevelEXT(engine->GetSession(),
-                                                XR_PERF_SETTINGS_DOMAIN_GPU_EXT,
-                                                XR_PERF_SETTINGS_LEVEL_BOOST_EXT));
+      OXR(pfnPerfSettingsSetPerformanceLevelEXT(
+          engine->GetSession(), XR_PERF_SETTINGS_DOMAIN_CPU_EXT, XR_PERF_SETTINGS_LEVEL_BOOST_EXT));
+      OXR(pfnPerfSettingsSetPerformanceLevelEXT(
+          engine->GetSession(), XR_PERF_SETTINGS_DOMAIN_GPU_EXT, XR_PERF_SETTINGS_LEVEL_BOOST_EXT));
 
       PFN_xrSetAndroidApplicationThreadKHR pfnSetAndroidApplicationThreadKHR = NULL;
       OXR(xrGetInstanceProcAddr(engine->GetInstance(), "xrSetAndroidApplicationThreadKHR",
@@ -458,44 +456,43 @@ void Renderer::HandleXrEvents(Base* engine)
 
     switch (base_event_handler->type)
     {
-      case XR_TYPE_EVENT_DATA_EVENTS_LOST:
-        DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_EVENTS_LOST");
-        break;
-      case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
-      {
-        const XrEventDataInstanceLossPending* instance_loss_pending_event =
+    case XR_TYPE_EVENT_DATA_EVENTS_LOST:
+      DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_EVENTS_LOST");
+      break;
+    case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
+    {
+      const XrEventDataInstanceLossPending* instance_loss_pending_event =
           (XrEventDataInstanceLossPending*)(base_event_handler);
-        DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: time {}",
-                      FromXrTime(instance_loss_pending_event->lossTime));
-      }
-        break;
-      case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-        DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED");
-        break;
-      case XR_TYPE_EVENT_DATA_PERF_SETTINGS_EXT:
-        break;
-      case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
-        Recenter(engine);
-        break;
-      case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
-      {
-        const XrEventDataSessionStateChanged* session_state_changed_event =
+      DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: time {}",
+                    FromXrTime(instance_loss_pending_event->lossTime));
+    }
+    break;
+    case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
+      DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED");
+      break;
+    case XR_TYPE_EVENT_DATA_PERF_SETTINGS_EXT:
+      break;
+    case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+      Recenter(engine);
+      break;
+    case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+    {
+      const XrEventDataSessionStateChanged* session_state_changed_event =
           (XrEventDataSessionStateChanged*)(base_event_handler);
-        switch (session_state_changed_event->state)
-        {
-          case XR_SESSION_STATE_FOCUSED:
-            m_session_focused = true;
-            break;
-          case XR_SESSION_STATE_VISIBLE:
-            m_session_focused = false;
-            break;
-          case XR_SESSION_STATE_READY:
-          case XR_SESSION_STATE_STOPPING:
-            HandleSessionStateChanges(engine, session_state_changed_event->state);
-            break;
-          default:
-            break;
-        }
+      switch (session_state_changed_event->state)
+      {
+      case XR_SESSION_STATE_FOCUSED:
+        m_session_focused = true;
+        break;
+      case XR_SESSION_STATE_VISIBLE:
+        m_session_focused = false;
+        break;
+      case XR_SESSION_STATE_READY:
+      case XR_SESSION_STATE_STOPPING:
+        HandleSessionStateChanges(engine, session_state_changed_event->state);
+        break;
+      default:
+        break;
       }
       break;
     default:
@@ -571,8 +568,8 @@ void Renderer::UpdateStageBounds(Base* engine)
   XrExtent2Df stage_bounds = {};
 
   XrResult result;
-  OXR(result = xrGetReferenceSpaceBoundsRect(engine->GetSession(),
-                                             XR_REFERENCE_SPACE_TYPE_STAGE, &stage_bounds));
+  OXR(result = xrGetReferenceSpaceBoundsRect(engine->GetSession(), XR_REFERENCE_SPACE_TYPE_STAGE,
+                                             &stage_bounds));
   if (result != XR_SUCCESS)
   {
     stage_bounds.width = 1.0f;

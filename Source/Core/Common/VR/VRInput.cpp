@@ -4,8 +4,8 @@
 #include "Common/VR/VRInput.h"
 #include "Common/VR/VRMath.h"
 
-#include "InputCommon/ControllerInterface/VR/OpenXR.h"
 #include <cstring>
+#include "InputCommon/ControllerInterface/VR/OpenXR.h"
 
 #if !defined(_WIN32)
 #include <sys/time.h>

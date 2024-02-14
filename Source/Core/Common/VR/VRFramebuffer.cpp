@@ -154,12 +154,12 @@ bool Framebuffer::CreateGL(XrSession session, int width, int height, bool multiv
   OXR(xrEnumerateSwapchainImages(handle, swapchain_length, &swapchain_length,
                                  (XrSwapchainImageBaseHeader*)swapchain_image));
 
-  gl_depth_buffers = (GLuint*)malloc(  swapchain_length * sizeof(GLuint));
-  gl_frame_buffers = (GLuint*)malloc(  swapchain_length * sizeof(GLuint));
-  for (uint32_t i = 0; i <   swapchain_length; i++)
+  gl_depth_buffers = (GLuint*)malloc(swapchain_length * sizeof(GLuint));
+  gl_frame_buffers = (GLuint*)malloc(swapchain_length * sizeof(GLuint));
+  for (uint32_t i = 0; i < swapchain_length; i++)
   {
     // Create color texture.
-    GLuint color_texture = ((XrSwapchainImageOpenGLESKHR*)  swapchain_image)[i].image;
+    GLuint color_texture = ((XrSwapchainImageOpenGLESKHR*)swapchain_image)[i].image;
     GLenum color_texture_target = multiview ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
     GL(glBindTexture(color_texture_target, color_texture));
     GL(glTexParameteri(color_texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -171,37 +171,37 @@ bool Framebuffer::CreateGL(XrSession session, int width, int height, bool multiv
     // Create depth buffer.
     if (multiview)
     {
-      GL(glGenTextures(1, &  gl_depth_buffers[i]));
-      GL(glBindTexture(GL_TEXTURE_2D_ARRAY,   gl_depth_buffers[i]));
+      GL(glGenTextures(1, &gl_depth_buffers[i]));
+      GL(glBindTexture(GL_TEXTURE_2D_ARRAY, gl_depth_buffers[i]));
       GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH24_STENCIL8, width, height, 2));
       GL(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
     }
     else
     {
-      GL(glGenRenderbuffers(1, &  gl_depth_buffers[i]));
-      GL(glBindRenderbuffer(GL_RENDERBUFFER,   gl_depth_buffers[i]));
+      GL(glGenRenderbuffers(1, &gl_depth_buffers[i]));
+      GL(glBindRenderbuffer(GL_RENDERBUFFER, gl_depth_buffers[i]));
       GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
       GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
     }
 
     // Create the frame buffer.
-    GL(glGenFramebuffers(1, &  gl_frame_buffers[i]));
-    GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER,   gl_frame_buffers[i]));
+    GL(glGenFramebuffers(1, &gl_frame_buffers[i]));
+    GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gl_frame_buffers[i]));
     if (multiview)
     {
       GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                                            gl_depth_buffers[i], 0, 0, 2));
+                                          gl_depth_buffers[i], 0, 0, 2));
       GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                            gl_depth_buffers[i], 0, 0, 2));
+                                          gl_depth_buffers[i], 0, 0, 2));
       GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, color_texture,
                                           0, 0, 2));
     }
     else
     {
       GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                                     gl_depth_buffers[i]));
+                                   gl_depth_buffers[i]));
       GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
-                                     gl_depth_buffers[i]));
+                                   gl_depth_buffers[i]));
       GL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                                 color_texture, 0));
     }
