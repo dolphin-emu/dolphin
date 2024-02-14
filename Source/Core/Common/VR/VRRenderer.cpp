@@ -495,6 +495,7 @@ void Renderer::HandleXrEvents(Base* engine)
         break;
       }
       break;
+    }
     default:
       DEBUG_LOG_FMT(VR, "xrPollEvent: Unknown event");
       break;
