@@ -12,6 +12,8 @@
 
 namespace Common::VR
 {
+double FromXrTime(const XrTime time);
+XrTime ToXrTime(const double time_in_seconds);
 float ToDegrees(float rad);
 float ToRadians(float deg);
 

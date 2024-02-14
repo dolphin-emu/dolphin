@@ -10,11 +10,11 @@ namespace Common::VR
 class Input
 {
 public:
-  void Init(engine_t* engine);
+  void Init(Base* engine);
   uint32_t GetButtonState(int controller);
   XrVector2f GetJoystickState(int controller);
   XrPosef GetPose(int controller);
-  void Update(engine_t* engine);
+  void Update(Base* engine);
   void Vibrate(int duration, int chan, float intensity);
 
 private:
@@ -28,7 +28,6 @@ private:
   XrActionSuggestedBinding GetBinding(XrInstance instance, XrAction action, const char* name);
   int GetMilliseconds();
   void ProcessHaptics(XrSession session);
-  XrTime ToXrTime(const double time_in_seconds);
 
 private:
   bool m_initialized = false;

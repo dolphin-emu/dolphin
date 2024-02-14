@@ -3,7 +3,7 @@
 
 #include "Common/VR/VRBase.h"
 #include "Common/VR/DolphinVR.h"
-#include "Common/VR/VRDisplay.h"
+#include "Common/VR/VRRenderer.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -26,8 +26,6 @@ void Base::Init(void* system, const char* name, int version)
   {
     return;
   }
-
-  AppClear(&m_engine.app_state);
 
 #ifdef ANDROID
   PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
@@ -52,13 +50,6 @@ void Base::Init(void* system, const char* name, int version)
 #endif
   extensions.push_back(XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME);
 #ifdef ANDROID
-  if (GetPlatformFlag(PLATFORM_EXTENSION_FOVEATION))
-  {
-    extensions.push_back(XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME);
-    extensions.push_back(XR_FB_SWAPCHAIN_UPDATE_STATE_OPENGL_ES_EXTENSION_NAME);
-    extensions.push_back(XR_FB_FOVEATION_EXTENSION_NAME);
-    extensions.push_back(XR_FB_FOVEATION_CONFIGURATION_EXTENSION_NAME);
-  }
   if (GetPlatformFlag(PLATFORM_EXTENSION_INSTANCE))
   {
     extensions.push_back(XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME);
@@ -102,19 +93,19 @@ void Base::Init(void* system, const char* name, int version)
 #endif
 
   XrResult result;
-  OXR(result = xrCreateInstance(&instance_info, &m_engine.app_state.instance));
+  OXR(result = xrCreateInstance(&instance_info, &m_instance));
   if (result != XR_SUCCESS)
   {
     ERROR_LOG_FMT(VR, "Failed to create XR instance: {}", (int)result);
     exit(1);
   }
 
-  XRLoadInstanceFunctions(m_engine.app_state.instance);
+  XRLoadInstanceFunctions(m_instance);
 
   XrInstanceProperties instance_properties;
   instance_properties.type = XR_TYPE_INSTANCE_PROPERTIES;
   instance_properties.next = NULL;
-  OXR(xrGetInstanceProperties(m_engine.app_state.instance, &instance_properties));
+  OXR(xrGetInstanceProperties(m_instance, &instance_properties));
   NOTICE_LOG_FMT(VR, "Runtime {}: Version : {}.{}.{}", instance_properties.runtimeName,
                  XR_VERSION_MAJOR(instance_properties.runtimeVersion),
                  XR_VERSION_MINOR(instance_properties.runtimeVersion),
@@ -126,8 +117,7 @@ void Base::Init(void* system, const char* name, int version)
   system_info.next = NULL;
   system_info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
-  XrSystemId system_id;
-  OXR(result = xrGetSystem(m_engine.app_state.instance, &system_info, &system_id));
+  OXR(result = xrGetSystem(m_instance, &system_info, &m_system_id));
   if (result != XR_SUCCESS)
   {
     ERROR_LOG_FMT(VR, "Failed to get system");
@@ -137,35 +127,32 @@ void Base::Init(void* system, const char* name, int version)
   // Get the graphics requirements.
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
   PFN_xrGetOpenGLESGraphicsRequirementsKHR pfnGetOpenGLESGraphicsRequirementsKHR = NULL;
-  OXR(xrGetInstanceProcAddr(m_engine.app_state.instance, "xrGetOpenGLESGraphicsRequirementsKHR",
+  OXR(xrGetInstanceProcAddr(m_instance, "xrGetOpenGLESGraphicsRequirementsKHR",
                             (PFN_xrVoidFunction*)(&pfnGetOpenGLESGraphicsRequirementsKHR)));
 
   XrGraphicsRequirementsOpenGLESKHR graphics_requirements = {};
   graphics_requirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR;
-  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(m_engine.app_state.instance, system_id,
-                                            &graphics_requirements));
+  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(m_instance, m_system_id, &graphics_requirements));
 #endif
 
 #ifdef ANDROID
-  m_engine.app_state.main_thread_id = gettid();
+  m_main_thread_id = gettid();
 #endif
-  m_engine.app_state.system_id = system_id;
   m_initialized = true;
 }
 
-void Base::Destroy(engine_t* engine)
+void Base::Destroy()
 {
-  if (engine == &m_engine)
+  if (m_initialized)
   {
-    xrDestroyInstance(engine->app_state.instance);
-    Common::VR::AppDestroy(&engine->app_state);
+    xrDestroyInstance(m_instance);
     m_initialized = false;
   }
 }
 
-void Base::EnterVR(engine_t* engine)
+void Base::EnterVR()
 {
-  if (engine->app_state.session)
+  if (m_session)
   {
     ERROR_LOG_FMT(VR, "EnterVR called with existing session");
     return;
@@ -191,11 +178,10 @@ void Base::EnterVR(engine_t* engine)
 #endif
   session_info.type = XR_TYPE_SESSION_CREATE_INFO;
   session_info.createFlags = 0;
-  session_info.systemId = engine->app_state.system_id;
+  session_info.systemId = m_system_id;
 
   XrResult result;
-  OXR(result =
-          xrCreateSession(engine->app_state.instance, &session_info, &engine->app_state.session));
+  OXR(result = xrCreateSession(m_instance, &session_info, &m_session));
   if (result != XR_SUCCESS)
   {
     ERROR_LOG_FMT(VR, "Failed to create XR session: {}", (int)result);
@@ -207,29 +193,47 @@ void Base::EnterVR(engine_t* engine)
   space_info.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
   space_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
   space_info.poseInReferenceSpace.orientation.w = 1.0f;
-  OXR(xrCreateReferenceSpace(engine->app_state.session, &space_info,
-                             &engine->app_state.head_space));
+  OXR(xrCreateReferenceSpace(m_session, &space_info, &m_head_space));
 }
 
-void Base::LeaveVR(engine_t* engine)
+void Base::LeaveVR()
 {
-  if (engine->app_state.session)
+  if (m_session)
   {
-    OXR(xrDestroySpace(engine->app_state.head_space));
+    OXR(xrDestroySpace(m_head_space));
     // StageSpace is optional.
-    if (engine->app_state.stage_space != XR_NULL_HANDLE)
+    if (m_stage_space != XR_NULL_HANDLE)
     {
-      OXR(xrDestroySpace(engine->app_state.stage_space));
+      OXR(xrDestroySpace(m_stage_space));
     }
-    OXR(xrDestroySpace(engine->app_state.fake_space));
-    engine->app_state.current_space = XR_NULL_HANDLE;
-    OXR(xrDestroySession(engine->app_state.session));
-    engine->app_state.session = XR_NULL_HANDLE;
+    OXR(xrDestroySpace(m_fake_space));
+    m_current_space = XR_NULL_HANDLE;
+    OXR(xrDestroySession(m_session));
+    m_session = XR_NULL_HANDLE;
   }
 }
 
-engine_t* Base::GetEngine()
+void Base::UpdateFakeSpace(XrReferenceSpaceCreateInfo* space_info)
 {
-  return &m_engine;
+  OXR(xrCreateReferenceSpace(m_session, space_info, &m_fake_space));
+}
+
+void Base::UpdateStageSpace(XrReferenceSpaceCreateInfo* space_info)
+{
+  OXR(xrCreateReferenceSpace(m_session, space_info, &m_stage_space));
+}
+
+void Base::WaitForFrame()
+{
+  XrFrameWaitInfo wait_frame_info = {};
+  wait_frame_info.type = XR_TYPE_FRAME_WAIT_INFO;
+  wait_frame_info.next = NULL;
+
+  XrFrameState frame_state = {};
+  frame_state.type = XR_TYPE_FRAME_STATE;
+  frame_state.next = NULL;
+
+  OXR(xrWaitFrame(m_session, &wait_frame_info, &frame_state));
+  m_predicted_display_time = frame_state.predictedDisplayTime;
 }
 }  // namespace Common::VR

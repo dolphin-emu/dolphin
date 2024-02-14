@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/VR/VRInput.h"
+#include "Common/VR/VRMath.h"
+
+#include "InputCommon/ControllerInterface/VR/OpenXR.h"
 #include <cstring>
-#include "Common/VR/DolphinVR.h"
 
 #if !defined(_WIN32)
 #include <sys/time.h>
@@ -11,13 +13,13 @@
 
 namespace Common::VR
 {
-void Input::Init(engine_t* engine)
+void Input::Init(Base* engine)
 {
   if (m_initialized)
     return;
 
   // Actions
-  m_action_set = CreateActionSet(engine->app_state.instance, "running_action_set", "Actionset");
+  m_action_set = CreateActionSet(engine->GetInstance(), "running_action_set", "Actionset");
   m_index_left =
       CreateAction(m_action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left", "Index left", 0, NULL);
   m_index_right = CreateAction(m_action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_right",
@@ -50,37 +52,37 @@ void Input::Init(engine_t* engine)
       CreateAction(m_action_set, XR_ACTION_TYPE_VIBRATION_OUTPUT, "vibrate_right_feedback",
                    "Vibrate Right Controller", 0, NULL);
 
-  OXR(xrStringToPath(engine->app_state.instance, "/user/hand/left", &m_left_hand_path));
-  OXR(xrStringToPath(engine->app_state.instance, "/user/hand/right", &m_right_hand_path));
+  OXR(xrStringToPath(engine->GetInstance(), "/user/hand/left", &m_left_hand_path));
+  OXR(xrStringToPath(engine->GetInstance(), "/user/hand/right", &m_right_hand_path));
   m_hand_pose_left = CreateAction(m_action_set, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_left", NULL,
                                   1, &m_left_hand_path);
   m_hand_pose_right = CreateAction(m_action_set, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_right", NULL,
                                    1, &m_right_hand_path);
 
   XrPath interactionProfilePath = XR_NULL_PATH;
-  if (GetPlatformFlag(PLATFORM_CONTROLLER_QUEST))
+  if (engine->GetPlatformFlag(PLATFORM_CONTROLLER_QUEST))
   {
-    OXR(xrStringToPath(engine->app_state.instance, "/interaction_profiles/oculus/touch_controller",
+    OXR(xrStringToPath(engine->GetInstance(), "/interaction_profiles/oculus/touch_controller",
                        &interactionProfilePath));
   }
-  else if (GetPlatformFlag(PLATFORM_CONTROLLER_PICO))
+  else if (engine->GetPlatformFlag(PLATFORM_CONTROLLER_PICO))
   {
-    OXR(xrStringToPath(engine->app_state.instance, "/interaction_profiles/pico/neo3_controller",
+    OXR(xrStringToPath(engine->GetInstance(), "/interaction_profiles/pico/neo3_controller",
                        &interactionProfilePath));
   }
 
   // Map bindings
-  XrInstance instance = engine->app_state.instance;
+  XrInstance instance = engine->GetInstance();
   XrActionSuggestedBinding bindings[32];  // large enough for all profiles
   int curr = 0;
 
-  if (GetPlatformFlag(PLATFORM_CONTROLLER_QUEST))
+  if (engine->GetPlatformFlag(PLATFORM_CONTROLLER_QUEST))
   {
     bindings[curr++] = GetBinding(instance, m_index_left, "/user/hand/left/input/trigger");
     bindings[curr++] = GetBinding(instance, m_index_right, "/user/hand/right/input/trigger");
     bindings[curr++] = GetBinding(instance, m_menu, "/user/hand/left/input/menu/click");
   }
-  else if (GetPlatformFlag(PLATFORM_CONTROLLER_PICO))
+  else if (engine->GetPlatformFlag(PLATFORM_CONTROLLER_PICO))
   {
     bindings[curr++] = GetBinding(instance, m_index_left, "/user/hand/left/input/trigger/click");
     bindings[curr++] = GetBinding(instance, m_index_right, "/user/hand/right/input/trigger/click");
@@ -109,7 +111,7 @@ void Input::Init(engine_t* engine)
   suggested_bindings.interactionProfile = interactionProfilePath;
   suggested_bindings.suggestedBindings = bindings;
   suggested_bindings.countSuggestedBindings = curr;
-  OXR(xrSuggestInteractionProfileBindings(engine->app_state.instance, &suggested_bindings));
+  OXR(xrSuggestInteractionProfileBindings(engine->GetInstance(), &suggested_bindings));
 
   // Attach actions
   XrSessionActionSetsAttachInfo attach_info = {};
@@ -117,7 +119,7 @@ void Input::Init(engine_t* engine)
   attach_info.next = NULL;
   attach_info.countActionSets = 1;
   attach_info.actionSets = &m_action_set;
-  OXR(xrAttachSessionActionSets(engine->app_state.session, &attach_info));
+  OXR(xrAttachSessionActionSets(engine->GetSession(), &attach_info));
 
   // Enumerate actions
   char string_buffer[256];
@@ -148,11 +150,11 @@ void Input::Init(engine_t* engine)
 
     // Get Count
     uint32_t count_output = 0;
-    OXR(xrEnumerateBoundSourcesForAction(engine->app_state.session, &e, 0, &count_output, NULL));
+    OXR(xrEnumerateBoundSourcesForAction(engine->GetSession(), &e, 0, &count_output, NULL));
 
     if (count_output < 32)
     {
-      OXR(xrEnumerateBoundSourcesForAction(engine->app_state.session, &e, 32, &count_output,
+      OXR(xrEnumerateBoundSourcesForAction(engine->GetSession(), &e, 32, &count_output,
                                            action_paths_buffer));
       for (uint32_t a = 0; a < count_output; ++a)
       {
@@ -165,15 +167,14 @@ void Input::Init(engine_t* engine)
                                     XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT;
 
         uint32_t str_count = 0u;
-        OXR(xrGetInputSourceLocalizedName(engine->app_state.session, &name_info, 0, &str_count,
-                                          NULL));
+        OXR(xrGetInputSourceLocalizedName(engine->GetSession(), &name_info, 0, &str_count, NULL));
         if (str_count < 256)
         {
-          OXR(xrGetInputSourceLocalizedName(engine->app_state.session, &name_info, 256, &str_count,
+          OXR(xrGetInputSourceLocalizedName(engine->GetSession(), &name_info, 256, &str_count,
                                             string_buffer));
           char path_str[256];
           uint32_t str_len = 0;
-          OXR(xrPathToString(engine->app_state.instance, action_paths_buffer[a],
+          OXR(xrPathToString(engine->GetInstance(), action_paths_buffer[a],
                              (uint32_t)sizeof(path_str), &str_len, path_str));
           NOTICE_LOG_FMT(VR, " -> path = {}, mapped {} -> {}", action_paths_buffer[a], path_str,
                          string_buffer);
@@ -207,7 +208,7 @@ XrPosef Input::GetPose(int controller)
   return m_controller_pose[controller].pose;
 }
 
-void Input::Update(engine_t* engine)
+void Input::Update(Base* engine)
 {
   // sync action data
   XrActiveActionSet activeActionSet = {};
@@ -219,7 +220,7 @@ void Input::Update(engine_t* engine)
   sync_info.next = NULL;
   sync_info.countActiveActionSets = 1;
   sync_info.activeActionSets = &activeActionSet;
-  OXR(xrSyncActions(engine->app_state.session, &sync_info));
+  OXR(xrSyncActions(engine->GetSession(), &sync_info));
 
   // query input action states
   XrActionStateGetInfo get_info = {};
@@ -227,7 +228,7 @@ void Input::Update(engine_t* engine)
   get_info.next = NULL;
   get_info.subactionPath = XR_NULL_PATH;
 
-  XrSession session = engine->app_state.session;
+  XrSession session = engine->GetSession();
   ProcessHaptics(session);
 
   if (m_left_controller_space == XR_NULL_HANDLE)
@@ -242,48 +243,48 @@ void Input::Update(engine_t* engine)
   // button mapping
   m_buttons_left = 0;
   if (GetActionStateBoolean(session, m_menu).currentState)
-    m_buttons_left |= (int)Button::Enter;
+    m_buttons_left |= (int)ciface::VR::Button::Enter;
   if (GetActionStateBoolean(session, m_button_x).currentState)
-    m_buttons_left |= (int)Button::X;
+    m_buttons_left |= (int)ciface::VR::Button::X;
   if (GetActionStateBoolean(session, m_button_y).currentState)
-    m_buttons_left |= (int)Button::Y;
+    m_buttons_left |= (int)ciface::VR::Button::Y;
   if (GetActionStateBoolean(session, m_index_left).currentState)
-    m_buttons_left |= (int)Button::Trigger;
+    m_buttons_left |= (int)ciface::VR::Button::Trigger;
   if (GetActionStateFloat(session, m_grip_left).currentState > 0.5f)
-    m_buttons_left |= (int)Button::Grip;
+    m_buttons_left |= (int)ciface::VR::Button::Grip;
   if (GetActionStateBoolean(session, m_thumb_left).currentState)
-    m_buttons_left |= (int)Button::LThumb;
+    m_buttons_left |= (int)ciface::VR::Button::LThumb;
   m_buttons_right = 0;
   if (GetActionStateBoolean(session, m_button_a).currentState)
-    m_buttons_right |= (int)Button::A;
+    m_buttons_right |= (int)ciface::VR::Button::A;
   if (GetActionStateBoolean(session, m_button_b).currentState)
-    m_buttons_right |= (int)Button::B;
+    m_buttons_right |= (int)ciface::VR::Button::B;
   if (GetActionStateBoolean(session, m_index_right).currentState)
-    m_buttons_right |= (int)Button::Trigger;
+    m_buttons_right |= (int)ciface::VR::Button::Trigger;
   if (GetActionStateFloat(session, m_grip_right).currentState > 0.5f)
-    m_buttons_right |= (int)Button::Grip;
+    m_buttons_right |= (int)ciface::VR::Button::Grip;
   if (GetActionStateBoolean(session, m_thumb_right).currentState)
-    m_buttons_right |= (int)Button::RThumb;
+    m_buttons_right |= (int)ciface::VR::Button::RThumb;
 
   // thumbstick
   m_joystick_state[0] = GetActionStateVector2(session, m_joystick_left);
   m_joystick_state[1] = GetActionStateVector2(session, m_joystick_right);
   if (m_joystick_state[0].currentState.x > 0.5)
-    m_buttons_left |= (int)Button::Right;
+    m_buttons_left |= (int)ciface::VR::Button::Right;
   if (m_joystick_state[0].currentState.x < -0.5)
-    m_buttons_left |= (int)Button::Left;
+    m_buttons_left |= (int)ciface::VR::Button::Left;
   if (m_joystick_state[0].currentState.y > 0.5)
-    m_buttons_left |= (int)Button::Up;
+    m_buttons_left |= (int)ciface::VR::Button::Up;
   if (m_joystick_state[0].currentState.y < -0.5)
-    m_buttons_left |= (int)Button::Down;
+    m_buttons_left |= (int)ciface::VR::Button::Down;
   if (m_joystick_state[1].currentState.x > 0.5)
-    m_buttons_right |= (int)Button::Right;
+    m_buttons_right |= (int)ciface::VR::Button::Right;
   if (m_joystick_state[1].currentState.x < -0.5)
-    m_buttons_right |= (int)Button::Left;
+    m_buttons_right |= (int)ciface::VR::Button::Left;
   if (m_joystick_state[1].currentState.y > 0.5)
-    m_buttons_right |= (int)Button::Up;
+    m_buttons_right |= (int)ciface::VR::Button::Up;
   if (m_joystick_state[1].currentState.y < -0.5)
-    m_buttons_right |= (int)Button::Down;
+    m_buttons_right |= (int)ciface::VR::Button::Down;
 
   // pose
   for (int i = 0; i < 2; i++)
@@ -291,8 +292,8 @@ void Input::Update(engine_t* engine)
     m_controller_pose[i] = {};
     m_controller_pose[i].type = XR_TYPE_SPACE_LOCATION;
     XrSpace aim_space[] = {m_left_controller_space, m_right_controller_space};
-    xrLocateSpace(aim_space[i], engine->app_state.current_space,
-                  (XrTime)(engine->predicted_display_time), &m_controller_pose[i]);
+    xrLocateSpace(aim_space[i], engine->GetCurrentSpace(),
+                  (XrTime)(engine->GetPredictedDisplayTime()), &m_controller_pose[i]);
   }
 }
 
@@ -482,10 +483,5 @@ void Input::ProcessHaptics(XrSession session)
       OXR(xrStopHapticFeedback(session, &haptic_info));
     }
   }
-}
-
-XrTime Input::ToXrTime(const double time_in_seconds)
-{
-  return (XrTime)(time_in_seconds * 1e9);
 }
 }  // namespace Common::VR

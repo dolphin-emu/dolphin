@@ -4,32 +4,16 @@
 #pragma once
 
 #include "Common/Logging/Log.h"
-#include "Common/VR/OpenXRLoader.h"
+#include "Common/VR/VRFramebuffer.h"
 
 #define _USE_MATH_DEFINES
 #include <cassert>
 #include <cmath>
 
-#if defined(_DEBUG) &&                                                                             \
-    (defined(XR_USE_GRAPHICS_API_OPENGL) || defined(XR_USE_GRAPHICS_API_OPENGL_ES))
-
-void GLCheckErrors(const char* file, int line);
-
-#define GL(func)                                                                                   \
-  func;                                                                                            \
-  GLCheckErrors(__FILE__, __LINE__);
-#else
 #define GL(func) func;
-#endif
-
-#if defined(_DEBUG) && defined(ANDROID)
-void OXR_CheckErrors(XrResult result, const char* function)
-#define OXR(func) OXR_CheckErrors(func, #func);
-#else
 #define OXR(func) func;
-#endif
 
-    namespace Common::VR
+namespace Common::VR
 {
   enum
   {
@@ -40,63 +24,21 @@ void OXR_CheckErrors(XrResult result, const char* function)
     MaxNumEyes = 2
   };
 
+  enum PlatformFlag
+  {
+    PLATFORM_CONTROLLER_PICO,
+    PLATFORM_CONTROLLER_QUEST,
+    PLATFORM_EXTENSION_INSTANCE,
+    PLATFORM_EXTENSION_PERFORMANCE,
+    PLATFORM_TRACKING_FLOOR,
+    PLATFORM_MAX
+  };
+
   typedef union
   {
     XrCompositionLayerProjection projection;
     XrCompositionLayerCylinderKHR cylinder;
   } CompositorLayer;
-
-  typedef struct
-  {
-    XrSwapchain handle;
-    uint32_t width;
-    uint32_t height;
-  } SwapChain;
-
-  typedef struct
-  {
-    int width;
-    int height;
-    bool acquired;
-
-    uint32_t swapchain_index;
-    uint32_t swapchain_length;
-    SwapChain swapchain_color;
-    void* swapchain_image;
-
-    unsigned int* gl_depth_buffers;
-    unsigned int* gl_frame_buffers;
-  } Framebuffer;
-
-  typedef struct
-  {
-    bool multiview;
-    Framebuffer framebuffer[MaxNumEyes];
-  } Display;
-
-  typedef struct
-  {
-    XrInstance instance;
-    XrSession session;
-    bool session_active;
-    bool session_focused;
-    XrSystemId system_id;
-
-    XrSpace current_space;
-    XrSpace fake_space;
-    XrSpace head_space;
-    XrSpace stage_space;
-
-    int layer_count;
-    int main_thread_id;
-    int render_thread_id;
-    int swap_interval;
-    CompositorLayer layers[MaxLayerCount];
-    XrViewConfigurationProperties viewport_config;
-    XrViewConfigurationView view_config[MaxNumEyes];
-
-    Display renderer;
-  } App;
 
 #ifdef ANDROID
   typedef struct
@@ -107,24 +49,51 @@ void OXR_CheckErrors(XrResult result, const char* function)
   } vrJava;
 #endif
 
-  typedef struct
-  {
-    App app_state;
-    uint64_t frame_index;
-    XrTime predicted_display_time;
-  } engine_t;
-
   class Base
   {
   public:
     void Init(void* system, const char* name, int version);
-    void Destroy(engine_t* engine);
-    void EnterVR(engine_t* engine);
-    void LeaveVR(engine_t* engine);
-    engine_t* GetEngine();
+    void Destroy();
+    void EnterVR();
+    void LeaveVR();
+    void UpdateFakeSpace(XrReferenceSpaceCreateInfo* space_info);
+    void UpdateStageSpace(XrReferenceSpaceCreateInfo* space_info);
+    void WaitForFrame();
+
+    bool GetPlatformFlag(PlatformFlag flag) { return m_platform_flags[flag]; }
+    void SetPlatformFlag(PlatformFlag flag, bool value) { m_platform_flags[flag] = value; }
+
+    XrInstance GetInstance() { return m_instance; }
+    XrSession GetSession() { return m_session; }
+    XrSystemId GetSystemId() { return m_system_id; }
+
+    XrSpace GetCurrentSpace() { return m_current_space; }
+    XrSpace GetFakeSpace() { return m_fake_space; }
+    XrSpace GetHeadSpace() { return m_head_space; }
+    XrSpace GetStageSpace() { return m_stage_space; }
+    void SetCurrentSpace(XrSpace space) { m_current_space = space; }
+
+    XrTime GetPredictedDisplayTime() { return m_predicted_display_time; }
+
+    int GetMainThreadId() { return m_main_thread_id; }
+    int GetRenderThreadId() { return m_render_thread_id; }
 
   private:
-    engine_t m_engine;
+    XrInstance m_instance;
+    XrSession m_session;
+    XrSystemId m_system_id;
+
+    XrSpace m_current_space;
+    XrSpace m_fake_space;
+    XrSpace m_head_space;
+    XrSpace m_stage_space;
+
+    XrTime m_predicted_display_time;
+
+    int m_main_thread_id;
+    int m_render_thread_id;
+
+    bool m_platform_flags[PLATFORM_MAX];
     bool m_initialized = false;
   };
 }  // namespace Common::VR

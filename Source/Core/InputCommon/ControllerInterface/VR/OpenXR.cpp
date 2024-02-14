@@ -7,8 +7,6 @@
 #include "InputCommon/ControllerInterface/Touch/InputOverrider.h"
 #include "InputCommon/ControllerInterface/VR/OpenXR.h"
 
-using Common::VR::Button;
-
 namespace ciface::VR
 {
 void RegisterInputOverrider(int controller_index)

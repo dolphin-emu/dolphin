@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Common/VR/VRDisplay.h"
+#include "Common/VR/VRBase.h"
 
 namespace Common::VR
 {
@@ -23,10 +23,6 @@ enum ConfigInt
 {
   // switching between 2D and 3D
   CONFIG_MODE,
-  // mouse cursor
-  CONFIG_MOUSE_SIZE,
-  CONFIG_MOUSE_X,
-  CONFIG_MOUSE_Y,
   // viewport setup
   CONFIG_VIEWPORT_WIDTH,
   CONFIG_VIEWPORT_HEIGHT,
@@ -49,38 +45,48 @@ enum RenderMode
 class Renderer
 {
 public:
-  void GetResolution(engine_t* engine, int* pWidth, int* pHeight);
-  void Init(engine_t* engine, bool multiview);
-  void Destroy(engine_t* engine);
+  void GetResolution(Base* engine, int* pWidth, int* pHeight);
+  void Init(Base* engine, bool multiview);
+  void Destroy();
 
-  bool InitFrame(engine_t* engine);
-  void BeginFrame(engine_t* engine, int fboIndex);
-  void EndFrame(engine_t* engine);
-  void FinishFrame(engine_t* engine);
+  bool InitFrame(Base* engine);
+  void BeginFrame(int fbo_index);
+  void EndFrame();
+  void FinishFrame(Base* engine);
 
   float GetConfigFloat(ConfigFloat config);
   void SetConfigFloat(ConfigFloat config, float value);
   int GetConfigInt(ConfigInt config);
   void SetConfigInt(ConfigInt config, int value);
 
-  void BindFramebuffer(engine_t* engine);
+  void BindFramebuffer(Base* engine);
   XrView GetView(int eye);
   XrVector3f GetHMDAngles();
 
 private:
-  void Recenter(engine_t* engine);
-  void UpdateStageBounds(engine_t* engine);
+  void HandleSessionStateChanges(Base* engine, XrSessionState state);
+  void HandleXrEvents(Base* engine);
+  void Recenter(Base* engine);
+  void UpdateStageBounds(Base* engine);
 
 private:
+  bool m_session_active = false;
+  bool m_session_focused = false;
   bool m_initialized = false;
   bool m_stage_supported = false;
   float m_config_float[CONFIG_FLOAT_MAX] = {};
   int m_config_int[CONFIG_INT_MAX] = {};
 
+  int m_layer_count = 0;
+  CompositorLayer m_layers[MaxLayerCount] = {};
+  XrViewConfigurationProperties m_viewport_config = {};
+  XrViewConfigurationView m_view_config[MaxNumEyes] = {};
+  Framebuffer m_framebuffer[MaxNumEyes] = {};
+  bool m_multiview = false;
+
   XrFovf m_fov;
   XrView* m_projections;
   XrPosef m_inverted_view_pose[2];
   XrVector3f m_hmd_orientation;
-  XrFrameState m_frame_state = {};
 };
 }  // namespace Common::VR

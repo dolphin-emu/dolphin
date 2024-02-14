@@ -56,8 +56,8 @@ add_library(common
   VR/OpenXRLoader.h
   VR/VRBase.cpp
   VR/VRBase.h
-  VR/VRDisplay.cpp
-  VR/VRDisplay.h
+  VR/VRFramebuffer.cpp
+  VR/VRFramebuffer.h
   VR/VRInput.cpp
   VR/VRInput.h
   VR/VRMath.cpp

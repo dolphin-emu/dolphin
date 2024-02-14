@@ -9,6 +9,16 @@
 
 namespace Common::VR
 {
+double FromXrTime(const XrTime time)
+{
+  return (time * 1e-9);
+}
+
+XrTime ToXrTime(const double time_in_seconds)
+{
+  return (XrTime)(time_in_seconds * 1e9);
+}
+
 float ToDegrees(float rad)
 {
   return (float)(rad / M_PI * 180.0f);
