@@ -13,9 +13,9 @@ public:
   bool Create(XrSession session, int width, int height, bool multiview);
   void Destroy();
 
-  int GetWidth() { return width; }
-  int GetHeight() { return height; }
-  XrSwapchain GetHandle() { return handle; }
+  int GetWidth() { return m_width; }
+  int GetHeight() { return m_height; }
+  XrSwapchain GetHandle() { return m_handle; }
 
   void Acquire();
   void Release();
@@ -26,16 +26,16 @@ private:
   bool CreateGL(XrSession session, int width, int height, bool multiview);
 #endif
 
-  int width;
-  int height;
-  bool acquired;
-  XrSwapchain handle;
+  int m_width;
+  int m_height;
+  bool m_acquired;
+  XrSwapchain m_handle;
 
-  uint32_t swapchain_index;
-  uint32_t swapchain_length;
-  void* swapchain_image;
+  uint32_t m_swapchain_index;
+  uint32_t m_swapchain_length;
+  void* m_swapchain_image;
 
-  unsigned int* gl_depth_buffers;
-  unsigned int* gl_frame_buffers;
+  unsigned int* m_gl_depth_buffers;
+  unsigned int* m_gl_frame_buffers;
 };
 }  // namespace Common::VR
