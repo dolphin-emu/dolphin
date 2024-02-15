@@ -7,11 +7,36 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
+#include "Core/DSP/DSPAccelerator.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+
+namespace DSP
+{
+class DSPManager;
+}
 
 namespace DSP::HLE
 {
 class DSPHLE;
+
+class AESndAccelerator final : public Accelerator
+{
+public:
+  explicit AESndAccelerator(DSP::DSPManager& dsp);
+  AESndAccelerator(const AESndAccelerator&) = delete;
+  AESndAccelerator(AESndAccelerator&&) = delete;
+  AESndAccelerator& operator=(const AESndAccelerator&) = delete;
+  AESndAccelerator& operator=(AESndAccelerator&&) = delete;
+  ~AESndAccelerator();
+
+protected:
+  void OnEndException() override;
+  u8 ReadMemory(u32 address) override;
+  void WriteMemory(u32 address, u8 value) override;
+
+private:
+  DSP::DSPManager& m_dsp;
+};
 
 class AESndUCode final : public UCodeInterface
 {
@@ -45,10 +70,14 @@ public:
   // https://github.com/extremscorner/libogc-rice/commit/cfddd4f3bec77812d6d333954e39d401d2276cd8
   // https://github.com/extremscorner/libogc2/commit/89ae39544e22f720a9c986af3524f7e6f20e7293
   static constexpr u32 HASH_2020_PAD = 0xa02a6131;
-  // July 19, 2022 version (padded to 0x0400 bytes) - fixed MAIL_TERMINATE. This is not currently
-  // included in libogc, only in libogc2 and libogc-rice (which generate a padded header file).
+  // July 19, 2022 version (padded to 0x0400 bytes) - fixed MAIL_TERMINATE. This padded version
+  // is only in libogc2 and libogc-rice (which generate a padded header file).
   // https://github.com/extremscorner/libogc2/commit/38edc9db93232faa612f680c91be1eb4d95dd1c6
   static constexpr u32 HASH_2022_PAD = 0x2e5e4100;
+  // March 13, 2023 version (0x03e8 bytes) - fixed MAIL_TERMINATE. This is the same fix as the
+  // above version, and was released in regular libogc 2.4.0 on April 17, 2023.
+  // https://github.com/devkitPro/libogc/commit/a7e4bcd3ad4477d8dfc3aa196cfeb10cf195cd6a
+  static constexpr u32 HASH_2023 = 0x002e5e41;
 
 private:
   void DMAInParameterBlock();
@@ -100,6 +129,8 @@ private:
   static constexpr u32 NUM_OUTPUT_SAMPLES = 96;
 
   std::array<s16, NUM_OUTPUT_SAMPLES * 2> m_output_buffer{};
+
+  AESndAccelerator m_accelerator;
 
   bool m_has_shown_unsupported_sample_format_warning = false;
 };

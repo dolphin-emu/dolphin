@@ -61,12 +61,14 @@ public:
                            MRCOwned<id<MTLComputePipelineState>> pipeline);
 
   id<MTLComputePipelineState> GetComputePipeline() const { return m_compute_pipeline; }
-  bool UsesTexture(u32 index) const { return m_textures & (1 << index); }
+  u32 GetTextures() const { return m_textures; }
+  u32 GetSamplers() const { return m_samplers; }
   bool UsesBuffer(u32 index) const { return m_buffers & (1 << index); }
 
 private:
   MRCOwned<id<MTLComputePipelineState>> m_compute_pipeline;
   u32 m_textures = 0;
+  u32 m_samplers = 0;
   u32 m_buffers = 0;
 };
 }  // namespace Metal

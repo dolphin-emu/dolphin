@@ -116,15 +116,17 @@ struct NetSettings
 struct NetTraversalConfig
 {
   NetTraversalConfig() = default;
-  NetTraversalConfig(bool use_traversal_, std::string traversal_host_, u16 traversal_port_)
+  NetTraversalConfig(bool use_traversal_, std::string traversal_host_, u16 traversal_port_,
+                     u16 traversal_port_alt_ = 0)
       : use_traversal{use_traversal_}, traversal_host{std::move(traversal_host_)},
-        traversal_port{traversal_port_}
+        traversal_port{traversal_port_}, traversal_port_alt{traversal_port_alt_}
   {
   }
 
   bool use_traversal = false;
   std::string traversal_host;
   u16 traversal_port = 0;
+  u16 traversal_port_alt = 0;
 };
 
 enum class MessageID : u8
@@ -228,6 +230,7 @@ enum class SyncCodeID : u8
 
 constexpr u32 MAX_NAME_LENGTH = 30;
 constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
+constexpr u32 MAX_ENET_MTU = 1392;  // see https://github.com/lsalzman/enet/issues/132
 
 enum : u8
 {

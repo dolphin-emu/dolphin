@@ -22,14 +22,16 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/Emulated/Skylander.h"
+#include "Core/IOS/USB/Emulated/Infinity.h"
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 
 namespace IOS::HLE
 {
-USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+USBHost::USBHost(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
 }
 
@@ -137,14 +139,9 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
         if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
           return true;
 
-        auto usb_device = std::make_unique<USB::LibusbDevice>(m_ios, device, descriptor);
-        if (!ShouldAddDevice(*usb_device))
-          return true;
-
-        const u64 id = usb_device->GetId();
-        new_devices.insert(id);
-        if (AddDevice(std::move(usb_device)) || always_add_hooks)
-          hooks.emplace(GetDeviceById(id), ChangeEvent::Inserted);
+        auto usb_device =
+            std::make_unique<USB::LibusbDevice>(GetEmulationKernel(), device, descriptor);
+        CheckAndAddDevice(std::move(usb_device), new_devices, hooks, always_add_hooks);
         return true;
       });
       if (ret != LIBUSB_SUCCESS)
@@ -190,15 +187,27 @@ void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& 
 {
   if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
-    auto skylanderportal = std::make_unique<USB::SkylanderUSB>(m_ios, "Skylander Portal");
-    if (ShouldAddDevice(*skylanderportal))
+    auto skylanderportal =
+        std::make_unique<USB::SkylanderUSB>(GetEmulationKernel(), "Skylander Portal");
+    CheckAndAddDevice(std::move(skylanderportal), new_devices, hooks, always_add_hooks);
+  }
+  if (Config::Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
+  {
+    auto infinity_base = std::make_unique<USB::InfinityUSB>(GetEmulationKernel(), "Infinity Base");
+    CheckAndAddDevice(std::move(infinity_base), new_devices, hooks, always_add_hooks);
+  }
+}
+
+void USBHost::CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
+                                DeviceChangeHooks& hooks, bool always_add_hooks)
+{
+  if (ShouldAddDevice(*device))
+  {
+    const u64 deviceid = device->GetId();
+    new_devices.insert(deviceid);
+    if (AddDevice(std::move(device)) || always_add_hooks)
     {
-      const u64 skyid = skylanderportal->GetId();
-      new_devices.insert(skyid);
-      if (AddDevice(std::move(skylanderportal)) || always_add_hooks)
-      {
-        hooks.emplace(GetDeviceById(skyid), ChangeEvent::Inserted);
-      }
+      hooks.emplace(GetDeviceById(deviceid), ChangeEvent::Inserted);
     }
   }
 }

@@ -62,7 +62,7 @@ private:
   };
 
 public:
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
   explicit KeyboardAndMouse(void* view);
   ~KeyboardAndMouse() override;

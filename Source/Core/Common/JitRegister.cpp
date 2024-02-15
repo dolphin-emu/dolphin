@@ -36,7 +36,7 @@ static op_agent_t s_agent = nullptr;
 
 static File::IOFile s_perf_map_file;
 
-namespace JitRegister
+namespace Common::JitRegister
 {
 static bool s_is_enabled = false;
 
@@ -108,4 +108,4 @@ void Register(const void* base_address, u32 code_size, const std::string& symbol
   const auto entry = fmt::format("{} {:x} {}\n", fmt::ptr(base_address), code_size, symbol_name);
   s_perf_map_file.WriteBytes(entry.data(), entry.size());
 }
-}  // namespace JitRegister
+}  // namespace Common::JitRegister

@@ -26,12 +26,12 @@ static constexpr auto WORST_ACCEPTABLE_CALIBRATION_UPDATE_FREQUENCY = 25;
 IMUGyroscope::IMUGyroscope(std::string name_, std::string ui_name_)
     : ControlGroup(std::move(name_), std::move(ui_name_), GroupType::IMUGyroscope)
 {
-  AddInput(Translate, _trans("Pitch Up"));
-  AddInput(Translate, _trans("Pitch Down"));
-  AddInput(Translate, _trans("Roll Left"));
-  AddInput(Translate, _trans("Roll Right"));
-  AddInput(Translate, _trans("Yaw Left"));
-  AddInput(Translate, _trans("Yaw Right"));
+  AddInput(Translatability::Translate, _trans("Pitch Up"));
+  AddInput(Translatability::Translate, _trans("Pitch Down"));
+  AddInput(Translatability::Translate, _trans("Roll Left"));
+  AddInput(Translatability::Translate, _trans("Roll Right"));
+  AddInput(Translatability::Translate, _trans("Yaw Left"));
+  AddInput(Translatability::Translate, _trans("Yaw Right"));
 
   AddSetting(&m_deadzone_setting,
              {_trans("Dead Zone"),

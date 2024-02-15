@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 
-namespace JitRegister
+namespace Common::JitRegister
 {
 void Init(const std::string& perf_dir);
 void Shutdown();
@@ -30,4 +30,4 @@ inline void Register(const void* start, const void* end, fmt::format_string<Args
   u32 code_size = (u32)((const char*)end - (const char*)start);
   Register(start, code_size, fmt::format(format, std::forward<Args>(args)...));
 }
-}  // namespace JitRegister
+}  // namespace Common::JitRegister

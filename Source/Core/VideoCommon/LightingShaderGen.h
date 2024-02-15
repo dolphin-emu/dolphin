@@ -47,3 +47,7 @@ constexpr char s_lighting_struct[] = "struct Light {\n"
 void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data,
                                 std::string_view in_color_name, std::string_view dest);
 void GetLightingShaderUid(LightingUidData& uid_data);
+
+void GenerateCustomLightingHeaderDetails(ShaderCode* out, u32 enablelighting, u32 light_mask);
+void GenerateCustomLightingImplementation(ShaderCode* out, const LightingUidData& uid_data,
+                                          std::string_view in_color_name);

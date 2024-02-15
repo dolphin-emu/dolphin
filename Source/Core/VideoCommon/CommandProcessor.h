@@ -155,27 +155,34 @@ union UCPClearReg
   UCPClearReg(u16 _hex) { Hex = _hex; }
 };
 
-u32 GetPhysicalAddressMask();
+constexpr u32 GetPhysicalAddressMask(bool is_wii)
+{
+  // Physical addresses in CP seem to ignore some of the upper bits (depending on platform)
+  // This can be observed in CP MMIO registers by setting to 0xffffffff and then reading back.
+  return is_wii ? 0x1fffffff : 0x03ffffff;
+}
 
 class CommandProcessorManager
 {
 public:
-  void Init(Core::System& system);
+  explicit CommandProcessorManager(Core::System& system);
+
+  void Init();
   void DoState(PointerWrap& p);
 
-  void RegisterMMIO(Core::System& system, MMIO::Mapping* mmio, u32 base);
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-  void SetCPStatusFromGPU(Core::System& system);
-  void SetCPStatusFromCPU(Core::System& system);
-  void GatherPipeBursted(Core::System& system);
-  void UpdateInterrupts(Core::System& system, u64 userdata);
-  void UpdateInterruptsFromVideoBackend(Core::System& system, u64 userdata);
+  void SetCPStatusFromGPU();
+  void SetCPStatusFromCPU();
+  void GatherPipeBursted();
+  void UpdateInterrupts(u64 userdata);
+  void UpdateInterruptsFromVideoBackend(u64 userdata);
 
   bool IsInterruptWaiting() const;
 
   void SetCpClearRegister();
-  void SetCpControlRegister(Core::System& system);
-  void SetCpStatusRegister(Core::System& system);
+  void SetCpControlRegister();
+  void SetCpStatusRegister();
 
   void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess);
 
@@ -203,6 +210,8 @@ private:
   Common::Flag m_interrupt_waiting;
 
   bool m_is_fifo_error_seen = false;
+
+  Core::System& m_system;
 };
 
 }  // namespace CommandProcessor

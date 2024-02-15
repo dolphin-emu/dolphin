@@ -83,12 +83,11 @@ void CEXIMemoryCard::TransferCompleteCallback(Core::System& system, u64 userdata
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
 }
 
-void CEXIMemoryCard::Init()
+void CEXIMemoryCard::Init(CoreTiming::CoreTimingManager& core_timing)
 {
   static_assert(s_et_cmd_done.size() == s_et_transfer_complete.size(), "Event array size differs");
   static_assert(s_et_cmd_done.size() == MEMCARD_SLOTS.size(), "Event array size differs");
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+
   for (Slot slot : MEMCARD_SLOTS)
   {
     s_et_cmd_done[slot] = core_timing.RegisterEvent(
@@ -150,7 +149,8 @@ CEXIMemoryCard::CEXIMemoryCard(Core::System& system, const Slot slot, bool gci_f
 }
 
 std::pair<std::string /* path */, bool /* migrate */>
-CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder)
+CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder,
+                                 Movie::MovieManager& movie)
 {
   std::string path_override = Config::Get(Config::GetInfoForGCIPathOverride(card_slot));
 
@@ -158,9 +158,8 @@ CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_fo
     return {std::move(path_override), false};
 
   const bool use_movie_folder = allow_movie_folder == AllowMovieFolder::Yes &&
-                                Movie::IsPlayingInput() && Movie::IsConfigSaved() &&
-                                Movie::IsUsingMemcard(card_slot) &&
-                                Movie::IsStartingFromClearSave();
+                                movie.IsPlayingInput() && movie.IsConfigSaved() &&
+                                movie.IsUsingMemcard(card_slot) && movie.IsStartingFromClearSave();
 
   const DiscIO::Region region = Config::ToGameCubeRegion(SConfig::GetInstance().m_region);
   if (use_movie_folder)
@@ -183,7 +182,8 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     current_game_id = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
   }
 
-  const auto [dir_path, migrate] = GetGCIFolderPath(m_card_slot, AllowMovieFolder::Yes);
+  const auto [dir_path, migrate] =
+      GetGCIFolderPath(m_card_slot, AllowMovieFolder::Yes, m_system.GetMovie());
 
   const File::FileInfo file_info(dir_path);
   if (!file_info.Exists())
@@ -220,8 +220,9 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
 {
   std::string filename;
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(m_card_slot) &&
-      Movie::IsStartingFromClearSave())
+  auto& movie = m_system.GetMovie();
+  if (movie.IsPlayingInput() && movie.IsConfigSaved() && movie.IsUsingMemcard(m_card_slot) &&
+      movie.IsStartingFromClearSave())
   {
     filename = File::GetUserPath(D_GCUSER_IDX) +
                fmt::format("Movie{}.raw", s_card_short_names[m_card_slot]);
@@ -502,7 +503,7 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
   // otherwise, we'll assume the user wants to keep their memcards and saves separate,
   // unless we're loading (in which case we let the savestate contents decide, in order to stay
   // aligned with them).
-  bool storeContents = (Movie::IsMovieActive());
+  bool storeContents = m_system.GetMovie().IsMovieActive();
   p.Do(storeContents);
 
   if (storeContents)
@@ -533,7 +534,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 
   // Schedule transfer complete later based on read speed
   m_system.GetCoreTiming().ScheduleEvent(
-      size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
+      size * (m_system.GetSystemTimers().GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 
@@ -551,7 +552,7 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 
   // Schedule transfer complete later based on write speed
   m_system.GetCoreTiming().ScheduleEvent(
-      size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
+      size * (m_system.GetSystemTimers().GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 }  // namespace ExpansionInterface

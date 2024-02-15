@@ -170,7 +170,7 @@ static std::optional<std::wstring> GetModulePath(const wchar_t* name)
   if (module == nullptr)
     return std::nullopt;
 
-  return GetModuleName(module);
+  return Common::GetModuleName(module);
 }
 
 static bool GetModuleVersion(const wchar_t* name, Version* version)

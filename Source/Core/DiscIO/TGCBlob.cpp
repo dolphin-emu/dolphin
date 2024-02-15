@@ -98,6 +98,11 @@ TGCFileReader::TGCFileReader(File::IOFile file) : m_file(std::move(file))
   }
 }
 
+std::unique_ptr<BlobReader> TGCFileReader::CopyReader() const
+{
+  return Create(m_file.Duplicate("rb"));
+}
+
 u64 TGCFileReader::GetDataSize() const
 {
   return m_size - Common::swap32(m_header.tgc_header_size);

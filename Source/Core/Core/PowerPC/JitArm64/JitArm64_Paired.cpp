@@ -111,7 +111,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
   ARM64Reg V1Q = ARM64Reg::INVALID_REG;
   ARM64Reg V2Q = ARM64Reg::INVALID_REG;
-  ARM64Reg V3Q = ARM64Reg::INVALID_REG;
 
   ARM64Reg rounded_c_reg = VC;
   if (round_c)
@@ -149,10 +148,8 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     if (V0Q == ARM64Reg::INVALID_REG)
       V0Q = fpr.GetReg();
 
-    V2Q = fpr.GetReg();
-
     if (duplicated_c || VD == result_reg)
-      V3Q = fpr.GetReg();
+      V2Q = fpr.GetReg();
   }
 
   switch (op5)
@@ -239,8 +236,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     const ARM64Reg nan_temp_reg = singles ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
     const ARM64Reg nan_temp_reg_paired = reg_encoder(V0Q);
 
-    const ARM64Reg zero_reg = reg_encoder(V2Q);
-
     // Check if we need to handle NaNs
 
     m_float_emit.FMAXP(nan_temp_reg, result_reg);
@@ -254,17 +249,15 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
     // Pick the right NaNs
 
-    m_float_emit.MOVI(8, zero_reg, 0);
-
     const auto check_input = [&](ARM64Reg input) {
-      m_float_emit.FACGE(size, nan_temp_reg_paired, input, zero_reg);
+      m_float_emit.FCMEQ(size, nan_temp_reg_paired, input, input);
       m_float_emit.BIF(result_reg, input, nan_temp_reg_paired);
     };
 
     ARM64Reg c_reg_for_nan_purposes = VC;
     if (duplicated_c)
     {
-      c_reg_for_nan_purposes = reg_encoder(V3Q);
+      c_reg_for_nan_purposes = reg_encoder(V2Q);
       m_float_emit.DUP(size, c_reg_for_nan_purposes, VC, op5 & 0x1);
     }
 
@@ -279,16 +272,15 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
     // Make the NaNs quiet
 
-    const ARM64Reg quiet_bit_reg = VD == result_reg ? reg_encoder(V3Q) : VD;
-    EmitQuietNaNBitConstant(quiet_bit_reg, singles, temp_gpr);
+    const ARM64Reg quiet_nan_reg = VD == result_reg ? reg_encoder(V2Q) : VD;
 
-    m_float_emit.FACGE(size, nan_temp_reg_paired, result_reg, zero_reg);
-    m_float_emit.ORR(quiet_bit_reg, quiet_bit_reg, result_reg);
+    m_float_emit.FADD(size, quiet_nan_reg, result_reg, result_reg);
+    m_float_emit.FCMEQ(size, nan_temp_reg_paired, result_reg, result_reg);
     if (negate_result)
       m_float_emit.FNEG(size, result_reg, result_reg);
     if (VD == result_reg)
-      m_float_emit.BIF(VD, quiet_bit_reg, nan_temp_reg_paired);
-    else  // quiet_bit_reg == VD
+      m_float_emit.BIF(VD, quiet_nan_reg, nan_temp_reg_paired);
+    else  // quiet_nan_reg == VD
       m_float_emit.BIT(VD, result_reg, nan_temp_reg_paired);
 
     nan_fixup = B();
@@ -312,8 +304,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     fpr.Unlock(V1Q);
   if (V2Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V2Q);
-  if (V3Q != ARM64Reg::INVALID_REG)
-    fpr.Unlock(V3Q);
   if (temp_gpr != ARM64Reg::INVALID_REG)
     gpr.Unlock(temp_gpr);
 
@@ -390,49 +380,21 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   const ARM64Reg VC = fpr.R(c, type);
   const ARM64Reg VD = fpr.RW(d, type);
   const ARM64Reg V0 = fpr.GetReg();
-  const ARM64Reg V1 = m_accurate_nans ? fpr.GetReg() : ARM64Reg::INVALID_REG;
-  const ARM64Reg temp_gpr = m_accurate_nans && !singles ? gpr.GetReg() : ARM64Reg::INVALID_REG;
 
   m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VB), 1);
 
-  FixupBranch a_nan_done, b_nan_done;
   if (m_accurate_nans)
   {
-    const auto check_nan = [&](ARM64Reg input) {
-      m_float_emit.FCMP(scalar_reg_encoder(input));
-      FixupBranch not_nan = B(CCFlags::CC_VC);
-      FixupBranch nan = B();
-      SetJumpTarget(not_nan);
-
-      SwitchToFarCode();
-      SetJumpTarget(nan);
-
-      EmitQuietNaNBitConstant(scalar_reg_encoder(V1), singles, temp_gpr);
-
-      if (upper)
-      {
-        m_float_emit.ORR(EncodeRegToDouble(V1), EncodeRegToDouble(V1), EncodeRegToDouble(input));
-        m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V1));
-      }
-      else if (d != c)
-      {
-        m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(V1), EncodeRegToDouble(input));
-        m_float_emit.INS(size, VD, 1, VC, 1);
-      }
-      else
-      {
-        m_float_emit.ORR(EncodeRegToDouble(V1), EncodeRegToDouble(V1), EncodeRegToDouble(input));
-        m_float_emit.INS(size, VD, 0, V1, 0);
-      }
-
-      FixupBranch nan_done = B();
-      SwitchToNearCode();
-
-      return nan_done;
-    };
-
-    a_nan_done = check_nan(VA);
-    b_nan_done = check_nan(V0);
+    // If the first input is NaN, set the temp register for the second input to 0. This is because:
+    //
+    // - If the second input is also NaN, setting it to 0 ensures that the first NaN will be picked.
+    // - If only the first input is NaN, setting the second input to 0 has no effect on the result.
+    //
+    // Either way, we can then do an FADD as usual, and the FADD will make the NaN quiet.
+    m_float_emit.FCMP(scalar_reg_encoder(VA));
+    FixupBranch a_not_nan = B(CCFlags::CC_VC);
+    m_float_emit.MOVI(64, scalar_reg_encoder(V0), 0);
+    SetJumpTarget(a_not_nan);
   }
 
   if (upper)
@@ -451,17 +413,7 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
     m_float_emit.INS(size, VD, 0, V0, 0);
   }
 
-  if (m_accurate_nans)
-  {
-    SetJumpTarget(a_nan_done);
-    SetJumpTarget(b_nan_done);
-  }
-
   fpr.Unlock(V0);
-  if (m_accurate_nans)
-    fpr.Unlock(V1);
-  if (temp_gpr != ARM64Reg::INVALID_REG)
-    gpr.Unlock(temp_gpr);
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_sumX");
@@ -514,7 +466,7 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   const u32 b = inst.FB;
   const u32 d = inst.FD;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
 
   const ARM64Reg VB = fpr.R(b, RegType::Register);
@@ -529,7 +481,7 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   BL(GetAsmRoutines()->frsqrte);
   m_float_emit.INS(64, EncodeRegToQuad(VD), 1, ARM64Reg::X0);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
 
   fpr.FixSinglePrecision(d);

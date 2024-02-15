@@ -122,7 +122,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif(CMAKE_COMPILER_IS_GNUCC)
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(WIN32)
@@ -222,6 +222,7 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 foreach(target IN LISTS target_libraries)
+    add_library(MbedTLS::${target} ALIAS ${target})  # add_subdirectory support
     # Include public header files from /include and other directories
     # declared by /3rdparty/**/CMakeLists.txt. Include private header files
     # from /library and others declared by /3rdparty/**/CMakeLists.txt.

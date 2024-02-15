@@ -16,7 +16,7 @@ public:
 
   std::string GetName() const override;
   std::string GetDisplayName() const override;
-  void InitBackendInfo() override;
+  void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
   static constexpr const char* NAME = "D3D12";
 

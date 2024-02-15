@@ -96,7 +96,7 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
   m_queue.push(event);
 
   auto& system = Core::System::GetInstance();
-  system.GetFifo().RunGpu(system);
+  system.GetFifo().RunGpu();
   if (blocking)
   {
     m_cond.wait(lock, [this] { return m_queue.empty(); });

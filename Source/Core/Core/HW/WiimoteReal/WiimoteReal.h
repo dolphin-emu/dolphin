@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/SPSCQueue.h"
@@ -66,7 +67,8 @@ public:
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
 
-  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) override;
+  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                    SensorBarState sensor_bar_state) override;
   void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
@@ -157,7 +159,7 @@ private:
   bool m_speaker_enabled_in_dolphin_config = false;
   int m_balance_board_dump_port = 0;
 
-  size_t m_config_changed_callback_id;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
 
 class WiimoteScannerBackend

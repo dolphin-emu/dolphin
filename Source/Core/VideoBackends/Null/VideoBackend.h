@@ -15,7 +15,7 @@ public:
 
   std::string GetName() const override { return NAME; }
   std::string GetDisplayName() const override;
-  void InitBackendInfo() override;
+  void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
   static constexpr const char* NAME = "Null";
 };

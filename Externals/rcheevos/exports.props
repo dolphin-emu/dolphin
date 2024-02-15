@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)rcheevos;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)rcheevos\rcheevos.vcxproj">
+      <Project>{CC99A910-3752-4465-95AA-7DC240D92A99}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

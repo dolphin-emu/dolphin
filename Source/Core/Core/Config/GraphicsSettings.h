@@ -11,6 +11,8 @@ enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
 enum class TextureFilteringMode : int;
+enum class OutputResamplingMode : int;
+enum class ColorCorrectionRegion : int;
 enum class TriState : int;
 
 namespace Config
@@ -26,7 +28,13 @@ extern const Info<int> GFX_ADAPTER;
 
 extern const Info<bool> GFX_WIDESCREEN_HACK;
 extern const Info<AspectMode> GFX_ASPECT_RATIO;
+extern const Info<int> GFX_CUSTOM_ASPECT_RATIO_WIDTH;
+extern const Info<int> GFX_CUSTOM_ASPECT_RATIO_HEIGHT;
 extern const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
+extern const Info<u32> GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD;
+extern const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP;
+extern const Info<float> GFX_WIDESCREEN_HEURISTIC_STANDARD_RATIO;
+extern const Info<float> GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO;
 extern const Info<bool> GFX_CROP;
 extern const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
 extern const Info<bool> GFX_SHOW_FPS;
@@ -46,6 +54,7 @@ extern const Info<bool> GFX_OVERLAY_SCISSOR_STATS;
 extern const Info<bool> GFX_DUMP_TEXTURES;
 extern const Info<bool> GFX_DUMP_MIP_TEXTURES;
 extern const Info<bool> GFX_DUMP_BASE_TEXTURES;
+extern const Info<int> GFX_TEXTURE_PNG_COMPRESSION_LEVEL;
 extern const Info<bool> GFX_HIRES_TEXTURES;
 extern const Info<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const Info<bool> GFX_DUMP_EFB_TARGET;
@@ -99,11 +108,32 @@ extern const Info<bool> GFX_MODS_ENABLE;
 
 extern const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING;
 extern const Info<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
+extern const Info<OutputResamplingMode> GFX_ENHANCE_OUTPUT_RESAMPLING;
 extern const Info<std::string> GFX_ENHANCE_POST_SHADER;
 extern const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
 extern const Info<bool> GFX_ENHANCE_DISABLE_COPY_FILTER;
 extern const Info<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION;
 extern const Info<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD;
+extern const Info<bool> GFX_ENHANCE_HDR_OUTPUT;
+
+// Color.Correction
+
+static constexpr float GFX_CC_GAME_GAMMA_MIN = 2.2f;
+static constexpr float GFX_CC_GAME_GAMMA_MAX = 2.8f;
+
+static constexpr float GFX_CC_DISPLAY_GAMMA_MIN = 2.2f;
+static constexpr float GFX_CC_DISPLAY_GAMMA_MAX = 2.4f;
+
+static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MIN = 80.f;
+static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MAX = 500.f;
+
+extern const Info<bool> GFX_CC_CORRECT_COLOR_SPACE;
+extern const Info<ColorCorrectionRegion> GFX_CC_GAME_COLOR_SPACE;
+extern const Info<bool> GFX_CC_CORRECT_GAMMA;
+extern const Info<float> GFX_CC_GAME_GAMMA;
+extern const Info<bool> GFX_CC_SDR_DISPLAY_GAMMA_SRGB;
+extern const Info<float> GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA;
+extern const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS;
 
 // Graphics.Stereoscopy
 
@@ -146,5 +176,9 @@ extern const Info<bool> GFX_HACK_NO_MIPMAPPING;
 // Graphics.GameSpecific
 
 extern const Info<bool> GFX_PERF_QUERIES_ENABLE;
+
+// Android custom GPU drivers
+
+extern const Info<std::string> GFX_DRIVER_LIB_NAME;
 
 }  // namespace Config

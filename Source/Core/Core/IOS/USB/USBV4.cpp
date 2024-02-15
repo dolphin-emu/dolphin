@@ -46,9 +46,10 @@ struct HIDRequest
 };
 #pragma pack(pop)
 
-V4CtrlMessage::V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl) : CtrlMessage(ios, ioctl, 0)
+V4CtrlMessage::V4CtrlMessage(EmulationKernel& ios, const IOCtlRequest& ioctl)
+    : CtrlMessage(ios, ioctl, 0)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = ios.GetSystem();
   auto& memory = system.GetMemory();
 
   HIDRequest hid_request;
@@ -64,10 +65,10 @@ V4CtrlMessage::V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl) : CtrlMessa
 // Since this is just a standard control request, but with additional requirements
 // (US for the language and replacing non-ASCII characters with '?'),
 // we can simply submit it as a usual control request.
-V4GetUSStringMessage::V4GetUSStringMessage(Kernel& ios, const IOCtlRequest& ioctl)
+V4GetUSStringMessage::V4GetUSStringMessage(EmulationKernel& ios, const IOCtlRequest& ioctl)
     : CtrlMessage(ios, ioctl, 0)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = ios.GetSystem();
   auto& memory = system.GetMemory();
 
   HIDRequest hid_request;
@@ -82,7 +83,7 @@ V4GetUSStringMessage::V4GetUSStringMessage(Kernel& ios, const IOCtlRequest& ioct
 
 void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
   std::string message = memory.GetString(data_address);
@@ -91,9 +92,10 @@ void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
   TransferCommand::OnTransferComplete(return_value);
 }
 
-V4IntrMessage::V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl) : IntrMessage(ios, ioctl, 0)
+V4IntrMessage::V4IntrMessage(EmulationKernel& ios, const IOCtlRequest& ioctl)
+    : IntrMessage(ios, ioctl, 0)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = ios.GetSystem();
   auto& memory = system.GetMemory();
 
   HIDRequest hid_request;

@@ -3,15 +3,22 @@
 
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
+#include <algorithm>
+#include <array>
+#include <utility>
+
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
+
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
+#include "Core/MemTools.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -50,6 +57,31 @@
 // After resetting the stack to the top, we call _resetstkoflw() to restore
 // the guard page at the 256kb mark.
 
+const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JitBase::JIT_SETTINGS{{
+    {&JitBase::bJITOff, &Config::MAIN_DEBUG_JIT_OFF},
+    {&JitBase::bJITLoadStoreOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF},
+    {&JitBase::bJITLoadStorelXzOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF},
+    {&JitBase::bJITLoadStorelwzOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF},
+    {&JitBase::bJITLoadStorelbzxOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF},
+    {&JitBase::bJITLoadStoreFloatingOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF},
+    {&JitBase::bJITLoadStorePairedOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF},
+    {&JitBase::bJITFloatingPointOff, &Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF},
+    {&JitBase::bJITIntegerOff, &Config::MAIN_DEBUG_JIT_INTEGER_OFF},
+    {&JitBase::bJITPairedOff, &Config::MAIN_DEBUG_JIT_PAIRED_OFF},
+    {&JitBase::bJITSystemRegistersOff, &Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF},
+    {&JitBase::bJITBranchOff, &Config::MAIN_DEBUG_JIT_BRANCH_OFF},
+    {&JitBase::bJITRegisterCacheOff, &Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF},
+    {&JitBase::m_enable_debugging, &Config::MAIN_ENABLE_DEBUGGING},
+    {&JitBase::m_enable_branch_following, &Config::MAIN_JIT_FOLLOW_BRANCH},
+    {&JitBase::m_enable_float_exceptions, &Config::MAIN_FLOAT_EXCEPTIONS},
+    {&JitBase::m_enable_div_by_zero_exceptions, &Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS},
+    {&JitBase::m_low_dcbz_hack, &Config::MAIN_LOW_DCBZ_HACK},
+    {&JitBase::m_fprf, &Config::MAIN_FPRF},
+    {&JitBase::m_accurate_nans, &Config::MAIN_ACCURATE_NANS},
+    {&JitBase::m_fastmem_enabled, &Config::MAIN_FASTMEM},
+    {&JitBase::m_accurate_cpu_cache_enabled, &Config::MAIN_ACCURATE_CPU_CACHE},
+}};
+
 const u8* JitBase::Dispatch(JitBase& jit)
 {
   return jit.GetBlockCache()->Dispatch();
@@ -60,43 +92,34 @@ void JitTrampoline(JitBase& jit, u32 em_address)
   jit.Jit(em_address);
 }
 
-JitBase::JitBase() : m_code_buffer(code_buffer_size)
+JitBase::JitBase(Core::System& system)
+    : m_code_buffer(code_buffer_size), m_system(system), m_ppc_state(system.GetPPCState()),
+      m_mmu(system.GetMMU())
 {
-  m_registered_config_callback_id = Config::AddConfigChangedCallback(
-      [this] { Core::RunAsCPUThread([this] { RefreshConfig(); }); });
-  RefreshConfig();
+  m_registered_config_callback_id = CPUThreadConfigCallback::AddConfigChangedCallback([this] {
+    if (DoesConfigNeedRefresh())
+      ClearCache();
+  });
+  // The JIT is responsible for calling RefreshConfig on Init and ClearCache
 }
 
 JitBase::~JitBase()
 {
-  Config::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+}
+
+bool JitBase::DoesConfigNeedRefresh()
+{
+  return std::any_of(JIT_SETTINGS.begin(), JIT_SETTINGS.end(), [this](const auto& pair) {
+    return this->*pair.first != Config::Get(*pair.second);
+  });
 }
 
 void JitBase::RefreshConfig()
 {
-  bJITOff = Config::Get(Config::MAIN_DEBUG_JIT_OFF);
-  bJITLoadStoreOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF);
-  bJITLoadStorelXzOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF);
-  bJITLoadStorelwzOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF);
-  bJITLoadStorelbzxOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF);
-  bJITLoadStoreFloatingOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF);
-  bJITLoadStorePairedOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF);
-  bJITFloatingPointOff = Config::Get(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF);
-  bJITIntegerOff = Config::Get(Config::MAIN_DEBUG_JIT_INTEGER_OFF);
-  bJITPairedOff = Config::Get(Config::MAIN_DEBUG_JIT_PAIRED_OFF);
-  bJITSystemRegistersOff = Config::Get(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF);
-  bJITBranchOff = Config::Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF);
-  bJITRegisterCacheOff = Config::Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF);
-  m_enable_debugging = Config::Get(Config::MAIN_ENABLE_DEBUGGING);
-  m_enable_float_exceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
-  m_enable_div_by_zero_exceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
-  m_low_dcbz_hack = Config::Get(Config::MAIN_LOW_DCBZ_HACK);
-  m_fprf = Config::Get(Config::MAIN_FPRF);
-  m_accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
-  m_fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
-  m_mmu_enabled = Core::System::GetInstance().IsMMUMode();
-  m_pause_on_panic_enabled = Core::System::GetInstance().IsPauseOnPanicMode();
-  m_accurate_cpu_cache_enabled = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
+  for (const auto& [member, config_info] : JIT_SETTINGS)
+    this->*member = Config::Get(*config_info);
+
   if (m_accurate_cpu_cache_enabled)
   {
     m_fastmem_enabled = false;
@@ -105,14 +128,28 @@ void JitBase::RefreshConfig()
   }
 
   analyzer.SetDebuggingEnabled(m_enable_debugging);
-  analyzer.SetBranchFollowingEnabled(Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH));
+  analyzer.SetBranchFollowingEnabled(m_enable_branch_following);
   analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
   analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
+
+  bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
+  jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints) &&
+               EMM::IsExceptionHandlerSupported();
+  jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
+  jo.fp_exceptions = m_enable_float_exceptions;
+  jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
+}
+
+void JitBase::InitFastmemArena()
+{
+  auto& memory = m_system.GetMemory();
+  jo.fastmem_arena = Config::Get(Config::MAIN_FASTMEM_ARENA) && memory.InitFastmemArena();
 }
 
 void JitBase::InitBLROptimization()
 {
-  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
+  m_enable_blr_optimization =
+      jo.enableBlocklink && !m_enable_debugging && EMM::IsExceptionHandlerSupported();
   m_cleanup_after_stackfault = false;
 }
 
@@ -123,7 +160,12 @@ void JitBase::ProtectStack()
 
 #ifdef _WIN32
   ULONG reserveSize = SAFE_STACK_SIZE;
-  SetThreadStackGuarantee(&reserveSize);
+  if (!SetThreadStackGuarantee(&reserveSize))
+  {
+    PanicAlertFmt("Failed to set thread stack guarantee");
+    m_enable_blr_optimization = false;
+    return;
+  }
 #else
   auto [stack_addr, stack_size] = Common::GetCurrentThreadStack();
 
@@ -156,7 +198,12 @@ void JitBase::ProtectStack()
   }
 
   m_stack_guard = reinterpret_cast<u8*>(stack_guard_addr);
-  Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE);
+  if (!Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE))
+  {
+    m_stack_guard = nullptr;
+    m_enable_blr_optimization = false;
+    return;
+  }
 #endif
 }
 
@@ -192,7 +239,7 @@ bool JitBase::HandleStackFault()
   // to reset the guard page.
   // Yeah, it's kind of gross.
   GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
-  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
+  m_system.GetCoreTiming().ForceExceptionCheck(0);
   m_cleanup_after_stackfault = true;
 
   return true;
@@ -213,28 +260,20 @@ void JitBase::CleanUpAfterStackFault()
 
 bool JitBase::CanMergeNextInstructions(int count) const
 {
-  auto& system = Core::System::GetInstance();
-  if (system.GetCPU().IsStepping() || js.instructionsLeft < count)
+  if (m_system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
   {
-    if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+    if (m_enable_debugging &&
+        m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(js.op[i].address))
+    {
       return false;
+    }
     if (js.op[i].isBranchTarget)
       return false;
   }
   return true;
-}
-
-void JitBase::UpdateMemoryAndExceptionOptions()
-{
-  bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem =
-      m_fastmem_enabled && jo.fastmem_arena && (PowerPC::ppcState.msr.DR || !any_watchpoints);
-  jo.memcheck = m_mmu_enabled || m_pause_on_panic_enabled || any_watchpoints;
-  jo.fp_exceptions = m_enable_float_exceptions;
-  jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
 }
 
 bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op)

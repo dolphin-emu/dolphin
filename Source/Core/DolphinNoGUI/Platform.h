@@ -43,6 +43,10 @@ public:
   static std::unique_ptr<Platform> CreateWin32Platform();
 #endif
 
+#ifdef __APPLE__
+  static std::unique_ptr<Platform> CreateMacOSPlatform();
+#endif
+
 protected:
   void UpdateRunningFlag();
 

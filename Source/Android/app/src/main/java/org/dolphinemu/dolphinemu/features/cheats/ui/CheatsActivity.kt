@@ -24,6 +24,7 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.elevation.ElevationOverlayProvider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityCheatsBinding
@@ -160,7 +161,7 @@ class CheatsActivity : AppCompatActivity(), PanelSlideListener {
 
     fun loadGameSpecificSettings(): Settings {
         val settings = Settings()
-        settings.loadSettings(null, gameId, revision, isWii)
+        settings.loadSettings(gameId!!, revision, isWii)
         return settings
     }
 
@@ -171,7 +172,7 @@ class CheatsActivity : AppCompatActivity(), PanelSlideListener {
             .setCancelable(false)
             .show()
 
-        lifecycleScope.launchWhenResumed {
+        lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val codes = downloadCodes(gameTdbId!!)
                 withContext(Dispatchers.Main) {

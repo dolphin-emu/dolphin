@@ -13,6 +13,8 @@ enum class AbstractTextureFormat : u32
 {
   RGBA8,
   BGRA8,
+  RGB10_A2,
+  RGBA16F,
   DXT1,
   DXT3,
   DXT5,
@@ -39,13 +41,20 @@ enum AbstractTextureFlag : u32
   AbstractTextureFlag_ComputeImage = (1 << 1),  // Texture is used as a compute image.
 };
 
+enum class AbstractTextureType
+{
+  Texture_2DArray,  // Used as a 2D texture array
+  Texture_2D,       // Used as a normal 2D texture
+  Texture_CubeMap,  // Used as a cube map texture
+};
+
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
   constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_, u32 samples_,
-                          AbstractTextureFormat format_, u32 flags_)
+                          AbstractTextureFormat format_, u32 flags_, AbstractTextureType type_)
       : width(width_), height(height_), levels(levels_), layers(layers_), samples(samples_),
-        format(format_), flags(flags_)
+        format(format_), flags(flags_), type(type_)
   {
   }
 
@@ -67,12 +76,11 @@ struct TextureConfig
   u32 samples = 1;
   AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
   u32 flags = 0;
+  AbstractTextureType type = AbstractTextureType::Texture_2DArray;
 };
 
-namespace std
-{
 template <>
-struct hash<TextureConfig>
+struct std::hash<TextureConfig>
 {
   using argument_type = TextureConfig;
   using result_type = size_t;
@@ -85,4 +93,3 @@ struct hash<TextureConfig>
     return std::hash<u64>{}(id);
   }
 };
-}  // namespace std

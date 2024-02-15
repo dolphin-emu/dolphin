@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "Common/Common.h"
-#include "Common/ENetUtil.h"
+#include "Common/ENet.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
@@ -347,7 +347,7 @@ void SlippiMatchmaking::startMatchmaking()
     }
 
     net_event.peer->data = &user_info.display_name;
-    m_client->intercept = ENetUtil::InterceptCallback;
+    m_client->intercept = Common::ENet::InterceptCallback;
     is_mm_connected = true;
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Connected to mm server...");
   }

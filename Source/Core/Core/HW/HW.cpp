@@ -9,7 +9,6 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AddressSpace.h"
@@ -33,18 +32,17 @@
 
 namespace HW
 {
-void Init(const Sram* override_sram, const std::string current_file_name)
+void Init(Core::System& system, const Sram* override_sram, const std::string current_file_name)
 {
-  auto& system = Core::System::GetInstance();
   system.GetCoreTiming().Init();
-  SystemTimers::PreInit();
+  system.GetSystemTimers().PreInit();
 
   State::Init();
 
   // Init the whole Hardware
   system.GetAudioInterface().Init();
   system.GetVideoInterface().Init();
-  SerialInterface::Init();
+  system.GetSerialInterface().Init();
   system.GetProcessorInterface().Init();
   system.GetExpansionInterface().Init(override_sram, current_file_name);  // Needs to be initialized before Memory
   system.GetHSP().Init();
@@ -55,24 +53,22 @@ void Init(const Sram* override_sram, const std::string current_file_name)
   system.GetDVDInterface().Init();
   system.GetGPFifo().Init();
   system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
-  SystemTimers::Init();
+  system.GetSystemTimers().Init();
 
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
   {
-    IOS::Init();
-    IOS::HLE::Init();  // Depends on Memory
+    system.GetWiiIPC().Init();
+    IOS::HLE::Init(system);  // Depends on Memory
   }
 }
 
-void Shutdown()
+void Shutdown(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
-
-  // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
+  // IOS should always be shut down regardless of IsWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
-  IOS::Shutdown();
+  system.GetWiiIPC().Shutdown();
 
-  SystemTimers::Shutdown();
+  system.GetSystemTimers().Shutdown();
   system.GetCPU().Shutdown();
   system.GetDVDInterface().Shutdown();
   system.GetDSP().Shutdown();
@@ -81,23 +77,23 @@ void Shutdown()
   AddressSpace::Shutdown();
   system.GetMemory().Shutdown();
   system.GetHSP().Shutdown();
-  SerialInterface::Shutdown();
+  system.GetExpansionInterface().Shutdown();
+  system.GetSerialInterface().Shutdown();
   system.GetAudioInterface().Shutdown();
 
   State::Shutdown();
   system.GetCoreTiming().Shutdown();
 }
 
-void DoState(PointerWrap& p)
+void DoState(Core::System& system, PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
   system.GetMemory().DoState(p);
   p.DoMarker("Memory");
   system.GetMemoryInterface().DoState(p);
   p.DoMarker("MemoryInterface");
   system.GetVideoInterface().DoState(p);
   p.DoMarker("VideoInterface");
-  SerialInterface::DoState(p);
+  system.GetSerialInterface().DoState(p);
   p.DoMarker("SerialInterface");
   system.GetProcessorInterface().DoState(p);
   p.DoMarker("ProcessorInterface");
@@ -114,9 +110,9 @@ void DoState(PointerWrap& p)
   system.GetHSP().DoState(p);
   p.DoMarker("HSP");
 
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
   {
-    IOS::DoState(p);
+    system.GetWiiIPC().DoState(p);
     p.DoMarker("IOS");
     IOS::HLE::GetIOS()->DoState(p);
     p.DoMarker("IOS::HLE");

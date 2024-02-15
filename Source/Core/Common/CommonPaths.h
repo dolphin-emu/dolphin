@@ -99,6 +99,7 @@
 #define SLIPPI_DIR "Slippi"
 #define GRAPHICSMOD_DIR "GraphicMods"
 #define WIISDSYNC_DIR "WiiSDSync"
+#define ASSEMBLY_DIR "SavedAssembly"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -113,10 +114,10 @@
 #define WIIPAD_CONFIG "WiimoteNew.ini"
 #define GCKEYBOARD_CONFIG "GCKeyNew.ini"
 #define GFX_CONFIG "GFX.ini"
-#define DEBUGGER_CONFIG "Debugger.ini"
 #define LOGGER_CONFIG "Logger.ini"
 #define DUALSHOCKUDPCLIENT_CONFIG "DSUClient.ini"
 #define FREELOOK_CONFIG "FreeLook.ini"
+#define RETROACHIEVEMENTS_CONFIG "RetroAchievements.ini"
 
 // Files in the directory returned by GetUserPath(D_LOGS_IDX)
 #define MAIN_LOG "dolphin.log"
@@ -171,3 +172,10 @@
 
 // Subdirs in Config
 #define GRAPHICSMOD_CONFIG_DIR "GraphicMods"
+
+// GPU drivers
+#define GPU_DRIVERS "GpuDrivers"
+#define GPU_DRIVERS_EXTRACTED "Extracted"
+#define GPU_DRIVERS_TMP "Tmp"
+#define GPU_DRIVERS_HOOK "Hook"
+#define GPU_DRIVERS_FILE_REDIRECT "FileRedirect"

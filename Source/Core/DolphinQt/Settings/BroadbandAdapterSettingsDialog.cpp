@@ -100,7 +100,9 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
   switch (m_bba_type)
   {
   case Type::Ethernet:
-    if (!std::regex_match(bba_new_address, std::regex("([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})")))
+  {
+    static const std::regex re_mac_address("([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})");
+    if (!std::regex_match(bba_new_address, re_mac_address))
     {
       ModalMessageBox::critical(
           this, tr("Broadband Adapter Error"),
@@ -111,7 +113,7 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
     }
     Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, bba_new_address);
     break;
-
+  }
   case Type::BuiltIn:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_BUILTIN_DNS, bba_new_address);
     break;

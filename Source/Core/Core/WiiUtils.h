@@ -23,7 +23,7 @@ class VolumeWAD;
 namespace IOS::HLE
 {
 class BluetoothEmuDevice;
-class ESDevice;
+class ESCore;
 class Kernel;
 }  // namespace IOS::HLE
 
@@ -59,7 +59,7 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id);
 // Checks if there's a title.tmd imported for the given title ID. If there is not, we attempt to
 // re-import it from the TMDs stored in /title/00000001/00000002/data/tmds.sys.
 // Returns true if, after this function call, we have an imported title.tmd, or false if not.
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESDevice& es, u64 title_id);
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESCore& es, u64 title_id);
 
 enum class UpdateResult
 {
@@ -101,6 +101,10 @@ struct NANDCheckResult
 {
   bool bad = false;
   std::unordered_set<u64> titles_to_remove;
+  u64 used_clusters_user = 0;
+  u64 used_clusters_system = 0;
+  u64 used_inodes_user = 0;
+  u64 used_inodes_system = 0;
 };
 NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios);
 bool RepairNAND(IOS::HLE::Kernel& ios);

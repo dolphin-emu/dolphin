@@ -31,49 +31,49 @@ static void HostWrite(const Core::CPUThreadGuard& guard, T var, u32 address);
 template <>
 u8 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U8(guard, address);
+  return PowerPC::MMU::HostRead_U8(guard, address);
 }
 
 template <>
 u16 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U16(guard, address);
+  return PowerPC::MMU::HostRead_U16(guard, address);
 }
 
 template <>
 u32 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U32(guard, address);
+  return PowerPC::MMU::HostRead_U32(guard, address);
 }
 
 template <>
 u64 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U64(guard, address);
+  return PowerPC::MMU::HostRead_U64(guard, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u8 var, u32 address)
 {
-  PowerPC::HostWrite_U8(guard, var, address);
+  PowerPC::MMU::HostWrite_U8(guard, var, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u16 var, u32 address)
 {
-  PowerPC::HostWrite_U16(guard, var, address);
+  PowerPC::MMU::HostWrite_U16(guard, var, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u32 var, u32 address)
 {
-  PowerPC::HostWrite_U32(guard, var, address);
+  PowerPC::MMU::HostWrite_U32(guard, var, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u64 var, u32 address)
 {
-  PowerPC::HostWrite_U64(guard, var, address);
+  PowerPC::MMU::HostWrite_U64(guard, var, address);
 }
 
 template <typename T, typename U = T>
@@ -115,9 +115,8 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
   {
-    auto& system = Core::System::GetInstance();
-    Core::CPUThreadGuard guard(system);
-    bool success = Dolphin_Debugger::GetCallstack(system, guard, stack);
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const bool success = Dolphin_Debugger::GetCallstack(guard, stack);
     if (!success)
       return 0;
   }
@@ -146,7 +145,7 @@ static std::optional<std::string> ReadStringArg(const Core::CPUThreadGuard& guar
   if (!std::isnan(num))
   {
     u32 address = static_cast<u32>(num);
-    return PowerPC::HostGetString(guard, address);
+    return PowerPC::MMU::HostGetString(guard, address);
   }
 
   const char* cstr = expr_get_str(e);
@@ -267,21 +266,22 @@ std::optional<Expression> Expression::TryParse(std::string_view text)
   return Expression{text, std::move(ex), std::move(vars)};
 }
 
-double Expression::Evaluate() const
+double Expression::Evaluate(Core::System& system) const
 {
-  SynchronizeBindings(SynchronizeDirection::From);
+  SynchronizeBindings(system, SynchronizeDirection::From);
 
   double result = expr_eval(m_expr.get());
 
-  SynchronizeBindings(SynchronizeDirection::To);
+  SynchronizeBindings(system, SynchronizeDirection::To);
 
   Reporting(result);
 
   return result;
 }
 
-void Expression::SynchronizeBindings(SynchronizeDirection dir) const
+void Expression::SynchronizeBindings(Core::System& system, SynchronizeDirection dir) const
 {
+  auto& ppc_state = system.GetPPCState();
   auto bind = m_binds.begin();
   for (auto* v = m_vars->head; v != nullptr; v = v->next, ++bind)
   {
@@ -293,25 +293,25 @@ void Expression::SynchronizeBindings(SynchronizeDirection dir) const
       break;
     case VarBindingType::GPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PowerPC::ppcState.gpr[bind->index]);
+        v->value = static_cast<double>(ppc_state.gpr[bind->index]);
       else
-        PowerPC::ppcState.gpr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
+        ppc_state.gpr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::FPR:
       if (dir == SynchronizeDirection::From)
-        v->value = PowerPC::ppcState.ps[bind->index].PS0AsDouble();
+        v->value = ppc_state.ps[bind->index].PS0AsDouble();
       else
-        PowerPC::ppcState.ps[bind->index].SetPS0(v->value);
+        ppc_state.ps[bind->index].SetPS0(v->value);
       break;
     case VarBindingType::SPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PowerPC::ppcState.spr[bind->index]);
+        v->value = static_cast<double>(ppc_state.spr[bind->index]);
       else
-        PowerPC::ppcState.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
+        ppc_state.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PowerPC::ppcState.pc);
+        v->value = static_cast<double>(ppc_state.pc);
       break;
     }
   }

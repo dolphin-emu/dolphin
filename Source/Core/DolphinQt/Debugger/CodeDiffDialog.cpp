@@ -4,17 +4,25 @@
 #include "DolphinQt/Debugger/CodeDiffDialog.h"
 
 #include <algorithm>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include <QCheckBox>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
 #include <QPushButton>
+#include <QStyleHints>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
@@ -29,6 +37,10 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
+
+static const QString RECORD_BUTTON_STYLESHEET = QStringLiteral(
+    "QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid;"
+    "padding: 0px; border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}");
 
 CodeDiffDialog::CodeDiffDialog(CodeWidget* parent) : QDialog(parent), m_code_widget(parent)
 {
@@ -49,15 +61,15 @@ void CodeDiffDialog::reject()
 
 void CodeDiffDialog::CreateWidgets()
 {
+  bool running = Core::GetState() != Core::State::Uninitialized;
+
   auto* btns_layout = new QGridLayout;
   m_exclude_btn = new QPushButton(tr("Code did not get executed"));
   m_include_btn = new QPushButton(tr("Code has been executed"));
   m_record_btn = new QPushButton(tr("Start Recording"));
   m_record_btn->setCheckable(true);
-  m_record_btn->setStyleSheet(
-      QStringLiteral("QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid; "
-                     "border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}"));
-
+  m_record_btn->setStyleSheet(RECORD_BUTTON_STYLESHEET);
+  m_record_btn->setEnabled(running);
   m_exclude_btn->setEnabled(false);
   m_include_btn->setEnabled(false);
 
@@ -85,19 +97,31 @@ void CodeDiffDialog::CreateWidgets()
   m_matching_results_table->setColumnWidth(2, 4);
   m_matching_results_table->setColumnWidth(3, 210);
   m_matching_results_table->setColumnWidth(4, 65);
+  m_matching_results_table->setCornerButtonEnabled(false);
+  m_autosave_check = new QCheckBox(tr("Auto Save"));
+  m_save_btn = new QPushButton(tr("Save"));
+  m_save_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  m_save_btn->setEnabled(running);
+  m_load_btn = new QPushButton(tr("Load"));
+  m_load_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  m_load_btn->setEnabled(running);
   m_reset_btn = new QPushButton(tr("Reset All"));
   m_reset_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   m_help_btn = new QPushButton(tr("Help"));
   m_help_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  auto* help_reset_layout = new QHBoxLayout;
-  help_reset_layout->addWidget(m_reset_btn, 0, Qt::AlignLeft);
-  help_reset_layout->addWidget(m_help_btn, 0, Qt::AlignRight);
+  auto* bottom_controls_layout = new QHBoxLayout;
+  bottom_controls_layout->addWidget(m_reset_btn, 0, Qt::AlignLeft);
+  bottom_controls_layout->addStretch();
+  bottom_controls_layout->addWidget(m_autosave_check, 0, Qt::AlignRight);
+  bottom_controls_layout->addWidget(m_save_btn, 0, Qt::AlignRight);
+  bottom_controls_layout->addWidget(m_load_btn, 0, Qt::AlignRight);
+  bottom_controls_layout->addWidget(m_help_btn, 0, Qt::AlignRight);
 
   auto* layout = new QVBoxLayout();
   layout->addLayout(btns_layout);
   layout->addLayout(labels_layout);
   layout->addWidget(m_matching_results_table);
-  layout->addLayout(help_reset_layout);
+  layout->addLayout(bottom_controls_layout);
 
   setLayout(layout);
   resize(515, 400);
@@ -105,10 +129,20 @@ void CodeDiffDialog::CreateWidgets()
 
 void CodeDiffDialog::ConnectWidgets()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
+          [this](Qt::ColorScheme colorScheme) {
+            m_record_btn->setStyleSheet(RECORD_BUTTON_STYLESHEET);
+          });
+#endif
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [this](Core::State state) { UpdateButtons(state != Core::State::Uninitialized); });
   connect(m_record_btn, &QPushButton::toggled, this, &CodeDiffDialog::OnRecord);
-  connect(m_include_btn, &QPushButton::pressed, [this]() { Update(true); });
-  connect(m_exclude_btn, &QPushButton::pressed, [this]() { Update(false); });
+  connect(m_include_btn, &QPushButton::pressed, [this]() { Update(UpdateType::Include); });
+  connect(m_exclude_btn, &QPushButton::pressed, [this]() { Update(UpdateType::Exclude); });
   connect(m_matching_results_table, &QTableWidget::itemClicked, [this]() { OnClickItem(); });
+  connect(m_save_btn, &QPushButton::pressed, this, &CodeDiffDialog::SaveDataBackup);
+  connect(m_load_btn, &QPushButton::pressed, this, &CodeDiffDialog::LoadDataBackup);
   connect(m_reset_btn, &QPushButton::pressed, this, &CodeDiffDialog::ClearData);
   connect(m_help_btn, &QPushButton::pressed, this, &CodeDiffDialog::InfoDisp);
   connect(m_matching_results_table, &CodeDiffDialog::customContextMenuRequested, this,
@@ -120,6 +154,103 @@ void CodeDiffDialog::OnClickItem()
   UpdateItem();
   auto address = m_matching_results_table->currentItem()->data(Qt::UserRole).toUInt();
   m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
+}
+
+void CodeDiffDialog::SaveDataBackup()
+{
+  if (Core::GetState() == Core::State::Uninitialized)
+  {
+    ModalMessageBox::information(this, tr("Code Diff Tool"),
+                                 tr("Emulation must be started before saving a file."));
+    return;
+  }
+
+  if (m_include.empty())
+    return;
+
+  std::string filename =
+      File::GetUserPath(D_LOGS_IDX) + SConfig::GetInstance().GetGameID() + "_CodeDiff.txt";
+  File::IOFile f(filename, "w");
+  if (!f)
+  {
+    ModalMessageBox::information(
+        this, tr("Code Diff Tool"),
+        tr("Failed to save file to: %1").arg(QString::fromStdString(filename)));
+    return;
+  }
+
+  // Copy list of BLR tested functions:
+  std::set<u32> address_blr;
+  for (int i = 0; i < m_matching_results_table->rowCount(); i++)
+  {
+    if (m_matching_results_table->item(i, 4)->text() == QStringLiteral("X"))
+      address_blr.insert(m_matching_results_table->item(i, 4)->data(Qt::UserRole).toUInt());
+  }
+
+  for (const auto& line : m_include)
+  {
+    bool blr = address_blr.contains(line.addr);
+    f.WriteString(
+        fmt::format("{} {} {} {:d} {}\n", line.addr, line.hits, line.total_hits, blr, line.symbol));
+  }
+}
+
+void CodeDiffDialog::LoadDataBackup()
+{
+  if (Core::GetState() == Core::State::Uninitialized)
+  {
+    ModalMessageBox::information(this, tr("Code Diff Tool"),
+                                 tr("Emulation must be started before loading a file."));
+    return;
+  }
+
+  if (g_symbolDB.IsEmpty())
+  {
+    ModalMessageBox::warning(
+        this, tr("Code Diff Tool"),
+        tr("Symbol map not found.\n\nIf one does not exist, you can generate one from "
+           "the Menu bar:\nSymbols -> Generate Symbols From ->\n\tAddress | Signature "
+           "Database | RSO Modules"));
+    return;
+  }
+
+  std::string filename =
+      File::GetUserPath(D_LOGS_IDX) + SConfig::GetInstance().GetGameID() + "_CodeDiff.txt";
+  File::IOFile f(filename, "r");
+  if (!f)
+  {
+    ModalMessageBox::information(
+        this, tr("Code Diff Tool"),
+        tr("Failed to find or open file: %1").arg(QString::fromStdString(filename)));
+    return;
+  };
+
+  ClearData();
+
+  std::set<u32> blr_addresses;
+  char line[512];
+  while (fgets(line, 512, f.GetHandle()))
+  {
+    bool blr = false;
+    Diff temp;
+    std::istringstream iss(line);
+    iss.imbue(std::locale::classic());
+    iss >> temp.addr >> temp.hits >> temp.total_hits >> blr >> std::ws;
+    std::getline(iss, temp.symbol);
+
+    if (blr)
+      blr_addresses.insert(temp.addr);
+
+    m_include.push_back(std::move(temp));
+  }
+
+  Update(UpdateType::Backup);
+
+  for (int i = 0; i < m_matching_results_table->rowCount(); i++)
+  {
+    if (blr_addresses.contains(m_matching_results_table->item(i, 4)->data(Qt::UserRole).toUInt()))
+      MarkRowBLR(i);
+  }
 }
 
 void CodeDiffDialog::ClearData()
@@ -140,7 +271,8 @@ void CodeDiffDialog::ClearData()
   // Swap is used instead of clear for efficiency in the case of huge m_include/m_exclude
   std::vector<Diff>().swap(m_include);
   std::vector<Diff>().swap(m_exclude);
-  JitInterface::SetProfilingState(JitInterface::ProfilingState::Disabled);
+  Core::System::GetInstance().GetJitInterface().SetProfilingState(
+      JitInterface::ProfilingState::Disabled);
 }
 
 void CodeDiffDialog::ClearBlockCache()
@@ -148,9 +280,9 @@ void CodeDiffDialog::ClearBlockCache()
   Core::State old_state = Core::GetState();
 
   if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Paused);
+    Core::SetState(Core::State::Paused, false);
 
-  JitInterface::ClearCache();
+  Core::System::GetInstance().GetJitInterface().ClearCache();
 
   if (old_state == Core::State::Running)
     Core::SetState(Core::State::Running);
@@ -205,7 +337,7 @@ void CodeDiffDialog::OnRecord(bool enabled)
   }
 
   m_record_btn->update();
-  JitInterface::SetProfilingState(state);
+  Core::System::GetInstance().GetJitInterface().SetProfilingState(state);
 }
 
 void CodeDiffDialog::OnInclude()
@@ -267,32 +399,32 @@ void CodeDiffDialog::OnExclude()
   }
 }
 
-std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
+std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile() const
 {
   Profiler::ProfileStats prof_stats;
   auto& blockstats = prof_stats.block_stats;
-  JitInterface::GetProfileResults(&prof_stats);
+  Core::System::GetInstance().GetJitInterface().GetProfileResults(&prof_stats);
   std::vector<Diff> current;
   current.reserve(20000);
 
   // Convert blockstats to smaller struct Diff. Exclude repeat functions via symbols.
-  for (auto& iter : blockstats)
+  for (const auto& iter : blockstats)
   {
-    Diff tmp_diff;
     std::string symbol = g_symbolDB.GetDescription(iter.addr);
     if (!std::any_of(current.begin(), current.end(),
-                     [&symbol](Diff& v) { return v.symbol == symbol; }))
+                     [&symbol](const Diff& v) { return v.symbol == symbol; }))
     {
-      tmp_diff.symbol = symbol;
-      tmp_diff.addr = iter.addr;
-      tmp_diff.hits = iter.run_count;
-      tmp_diff.total_hits = iter.run_count;
-      current.push_back(tmp_diff);
+      current.push_back(Diff{
+          .addr = iter.addr,
+          .symbol = std::move(symbol),
+          .hits = static_cast<u32>(iter.run_count),
+          .total_hits = static_cast<u32>(iter.run_count),
+      });
     }
   }
 
-  sort(current.begin(), current.end(),
-       [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
+  std::sort(current.begin(), current.end(),
+            [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
 
   return current;
 }
@@ -332,24 +464,27 @@ void CodeDiffDialog::RemoveMatchingSymbolsFromIncludes(const std::vector<Diff>& 
                   m_include.end());
 }
 
-void CodeDiffDialog::Update(bool include)
+void CodeDiffDialog::Update(UpdateType type)
 {
   // Wrap everything in a pause
   Core::State old_state = Core::GetState();
   if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Paused);
+    Core::SetState(Core::State::Paused, false);
 
   // Main process
-  if (include)
+  if (type == UpdateType::Include)
   {
     OnInclude();
   }
-  else
+  else if (type == UpdateType::Exclude)
   {
     OnExclude();
   }
 
-  const auto create_item = [](const QString string = {}, const u32 address = 0x00000000) {
+  if (type != UpdateType::Backup && m_autosave_check->isChecked() && !m_include.empty())
+    SaveDataBackup();
+
+  const auto create_item = [](const QString& string = {}, const u32 address = 0x00000000) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setData(Qt::UserRole, address);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -391,7 +526,7 @@ void CodeDiffDialog::Update(bool include)
   m_exclude_size_label->setText(tr("Excluded: %1").arg(m_exclude.size()));
   m_include_size_label->setText(tr("Included: %1").arg(m_include.size()));
 
-  JitInterface::ClearCache();
+  Core::System::GetInstance().GetJitInterface().ClearCache();
   if (old_state == Core::State::Running)
     Core::SetState(Core::State::Running);
 }
@@ -416,7 +551,9 @@ void CodeDiffDialog::InfoDisp()
          "list "
          "and any includes left over will be displayed.\nYou can continue to use "
          "'Code did not get executed'/'Code has been executed' to narrow down the "
-         "results."));
+         "results.\n\n"
+         "Saving will store the current list in Dolphin's Log folder (File -> Open User "
+         "Folder)"));
   ModalMessageBox::information(
       this, tr("Code Diff Tool Help"),
       tr("Example:\n"
@@ -485,20 +622,27 @@ void CodeDiffDialog::OnSetBLR()
   if (!symbol)
     return;
 
+  MarkRowBLR(item->row());
+  if (m_autosave_check->isChecked())
+    SaveDataBackup();
+
   {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    PowerPC::debug_interface.SetPatch(guard, symbol->address, 0x4E800020);
+    auto& system = Core::System::GetInstance();
+    Core::CPUThreadGuard guard(system);
+    system.GetPowerPC().GetDebugInterface().SetPatch(guard, symbol->address, 0x4E800020);
   }
 
-  int row = item->row();
+  m_code_widget->Update();
+}
+
+void CodeDiffDialog::MarkRowBLR(int row)
+{
   m_matching_results_table->item(row, 0)->setForeground(QBrush(Qt::red));
   m_matching_results_table->item(row, 1)->setForeground(QBrush(Qt::red));
   m_matching_results_table->item(row, 2)->setForeground(QBrush(Qt::red));
   m_matching_results_table->item(row, 3)->setForeground(QBrush(Qt::red));
   m_matching_results_table->item(row, 4)->setForeground(QBrush(Qt::red));
   m_matching_results_table->item(row, 4)->setText(QStringLiteral("X"));
-
-  m_code_widget->Update();
 }
 
 void CodeDiffDialog::UpdateItem()
@@ -519,4 +663,11 @@ void CodeDiffDialog::UpdateItem()
   QString newName =
       QString::fromStdString(symbolName).replace(QStringLiteral("\t"), QStringLiteral("  "));
   m_matching_results_table->item(row, 3)->setText(newName);
+}
+
+void CodeDiffDialog::UpdateButtons(bool running)
+{
+  m_save_btn->setEnabled(running);
+  m_load_btn->setEnabled(running);
+  m_record_btn->setEnabled(running);
 }

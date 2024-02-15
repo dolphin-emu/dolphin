@@ -108,8 +108,8 @@ bool Compare(const Core::CPUThreadGuard& guard, u32 address, u32 size, const MEG
 
   for (size_t i = 0; i < sig.code.size(); ++i)
   {
-    if (sig.code[i] != 0 &&
-        PowerPC::HostRead_U32(guard, static_cast<u32>(address + i * sizeof(u32))) != sig.code[i])
+    if (sig.code[i] != 0 && PowerPC::MMU::HostRead_U32(
+                                guard, static_cast<u32>(address + i * sizeof(u32))) != sig.code[i])
     {
       return false;
     }

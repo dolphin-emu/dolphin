@@ -257,7 +257,8 @@ void Interpreter::WriteControlRegister(u16 val)
     val &= ~CR_INIT;
     val |= CR_INIT_CODE;
     // Number obtained from real hardware on a Wii, but it's not perfectly consistent
-    state.control_reg_init_code_clear_time = SystemTimers::GetFakeTimeBase() + 130;
+    state.control_reg_init_code_clear_time =
+        Core::System::GetInstance().GetSystemTimers().GetFakeTimeBase() + 130;
   }
 
   // update cr
@@ -269,10 +270,11 @@ u16 Interpreter::ReadControlRegister()
   auto& state = m_dsp_core.DSPState();
   if ((state.control_reg & CR_INIT_CODE) != 0)
   {
-    if (SystemTimers::GetFakeTimeBase() >= state.control_reg_init_code_clear_time)
+    auto& system = Core::System::GetInstance();
+    if (system.GetSystemTimers().GetFakeTimeBase() >= state.control_reg_init_code_clear_time)
       state.control_reg &= ~CR_INIT_CODE;
     else
-      Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(50);  // Keep checking
+      system.GetCoreTiming().ForceExceptionCheck(50);  // Keep checking
   }
   return state.control_reg;
 }
@@ -589,7 +591,7 @@ void Interpreter::UpdateSR16(s16 value, bool carry, bool overflow, bool over_s32
   }
 }
 
-static constexpr bool IsProperlySignExtended(u64 val)
+[[maybe_unused]] static constexpr bool IsProperlySignExtended(u64 val)
 {
   const u64 topbits = val & 0xffff'ff80'0000'0000ULL;
   return (topbits == 0) || (0xffff'ff80'0000'0000ULL == topbits);

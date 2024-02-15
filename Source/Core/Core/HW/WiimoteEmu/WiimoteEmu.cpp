@@ -23,6 +23,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -206,19 +207,21 @@ void Wiimote::Reset()
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
   for (auto& named_button : {A_BUTTON, B_BUTTON, ONE_BUTTON, TWO_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
   {
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
+    m_buttons->AddInput(Translatability::DoNotTranslate, named_button);
   }
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
+  m_buttons->AddInput(Translatability::DoNotTranslate, HOME_BUTTON, "HOME");
 
   // D-Pad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+    m_dpad->AddInput(Translatability::Translate, named_direction);
   }
 
   // i18n: "Point" refers to the action of pointing a Wii Remote.
@@ -279,7 +282,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
 
   // Rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
+  m_rumble->AddOutput(Translatability::Translate, _trans("Motor"));
 
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
@@ -320,6 +323,11 @@ std::string Wiimote::GetName() const
   if (m_index == WIIMOTE_BALANCE_BOARD)
     return "BalanceBoard";
   return fmt::format("Wiimote{}", 1 + m_index);
+}
+
+InputConfig* Wiimote::GetConfig() const
+{
+  return ::Wiimote::GetConfig();
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
@@ -439,7 +447,8 @@ void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
   m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
 }
 
-void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state)
+void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
+                                       SensorBarState sensor_bar_state)
 {
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
@@ -461,10 +470,18 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state)
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
 
   // Calculate IR camera state.
-  target_state->camera_points = CameraLogic::GetCameraPoints(
-      GetTotalTransformation(),
-      Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
-          float(MathUtil::TAU));
+  if (sensor_bar_state == SensorBarState::Enabled)
+  {
+    target_state->camera_points = CameraLogic::GetCameraPoints(
+        GetTotalTransformation(),
+        Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
+            float(MathUtil::TAU));
+  }
+  else
+  {
+    // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
+    target_state->camera_points = DesiredWiimoteState::DEFAULT_CAMERA;
+  }
 
   // Calculate MotionPlus state.
   if (m_motion_plus_setting.GetValue())
@@ -491,10 +508,11 @@ void Wiimote::SetWiimoteDeviceIndex(u8 index)
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state)
+void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                           SensorBarState sensor_bar_state)
 {
   const auto lock = GetStateLock();
-  BuildDesiredWiimoteState(target_state);
+  BuildDesiredWiimoteState(target_state, sensor_bar_state);
 }
 
 void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
@@ -535,7 +553,8 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
 
 void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 {
-  Movie::SetPolledDevice();
+  auto& movie = Core::System::GetInstance().GetMovie();
+  movie.SetPolledDevice();
 
   if (InputReportID::ReportDisabled == m_reporting_mode)
   {
@@ -552,9 +571,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 
   DataReportBuilder rpt_builder(m_reporting_mode);
 
-  if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension,
-                         GetExtensionEncryptionKey()))
+  if (movie.IsPlayingInput() && movie.PlayWiimote(m_bt_device_index, rpt_builder,
+                                                  m_active_extension, GetExtensionEncryptionKey()))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -623,8 +641,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     }
   }
 
-  Movie::CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
-                            GetExtensionEncryptionKey());
+  movie.CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
+                           GetExtensionEncryptionKey());
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
@@ -676,7 +694,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "`Click 1`");
   // B
   m_buttons->SetControlExpression(1, "`Click 3`");
-#elif __APPLE__
+#elif defined(__APPLE__)
   // A
   m_buttons->SetControlExpression(0, "`Left Click`");
   // B

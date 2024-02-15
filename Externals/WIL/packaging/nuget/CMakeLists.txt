@@ -7,6 +7,7 @@ file(TO_NATIVE_PATH "${nupkg_dir}/Microsoft.Windows.ImplementationLibrary.${WIL_
 file(DOWNLOAD https://dist.nuget.org/win-x86-commandline/latest/nuget.exe ${nuget_exe})
 
 file(GLOB_RECURSE wil_headers ${CMAKE_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE wil_natvis ${CMAKE_SOURCE_DIR}/natvis/*.natvis)
 
 add_custom_command(OUTPUT ${wil_nupkg}
     COMMAND ${nuget_exe} pack ${CMAKE_CURRENT_SOURCE_DIR}/Microsoft.Windows.ImplementationLibrary.nuspec -OutputDirectory ${nupkg_dir} -Version ${WIL_BUILD_VERSION} -NonInteractive
@@ -14,6 +15,7 @@ add_custom_command(OUTPUT ${wil_nupkg}
         ${CMAKE_CURRENT_SOURCE_DIR}/Microsoft.Windows.ImplementationLibrary.nuspec
         ${CMAKE_CURRENT_SOURCE_DIR}/Microsoft.Windows.ImplementationLibrary.targets
         ${wil_headers}
+        ${wil_natvis}
         ${CMAKE_SOURCE_DIR}/LICENSE
         ${CMAKE_SOURCE_DIR}/ThirdPartyNotices.txt)
 

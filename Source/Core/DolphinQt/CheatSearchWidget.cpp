@@ -61,7 +61,7 @@ CheatSearchWidget::CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionB
   CreateWidgets();
   ConnectWidgets();
   OnValueSourceChanged();
-  UpdateGuiTable();
+  RecreateGUITable();
 }
 
 CheatSearchWidget::~CheatSearchWidget()
@@ -69,6 +69,9 @@ CheatSearchWidget::~CheatSearchWidget()
   auto& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("cheatsearchwidget/displayhex"),
                     m_display_values_in_hex_checkbox->isChecked());
+  settings.setValue(QStringLiteral("cheatsearchwidget/autoupdatecurrentvalues"),
+                    m_autoupdate_current_values->isChecked());
+
   if (m_session->IsIntegerType())
   {
     settings.setValue(QStringLiteral("cheatsearchwidget/parsehex"),
@@ -229,16 +232,25 @@ void CheatSearchWidget::CreateWidgets()
   m_info_label_1 = new QLabel(tr("Waiting for first scan..."));
   m_info_label_2 = new QLabel();
 
+  auto* const checkboxes_layout = new QHBoxLayout();
   m_display_values_in_hex_checkbox = new QCheckBox(tr("Display values in Hex"));
   m_display_values_in_hex_checkbox->setChecked(
       settings.value(QStringLiteral("cheatsearchwidget/displayhex")).toBool());
+  checkboxes_layout->addWidget(m_display_values_in_hex_checkbox);
+  checkboxes_layout->setStretchFactor(m_display_values_in_hex_checkbox, 1);
+
+  m_autoupdate_current_values = new QCheckBox(tr("Automatically update Current Values"));
+  m_autoupdate_current_values->setChecked(
+      settings.value(QStringLiteral("cheatsearchwidget/autoupdatecurrentvalues"), true).toBool());
+  checkboxes_layout->addWidget(m_autoupdate_current_values);
+  checkboxes_layout->setStretchFactor(m_autoupdate_current_values, 2);
 
   QVBoxLayout* layout = new QVBoxLayout();
   layout->addWidget(session_info_label);
   layout->addWidget(instructions_label);
   layout->addLayout(value_layout);
   layout->addLayout(button_layout);
-  layout->addWidget(m_display_values_in_hex_checkbox);
+  layout->addLayout(checkboxes_layout);
   layout->addWidget(m_info_label_1);
   layout->addWidget(m_info_label_2);
   layout->addWidget(m_address_table);
@@ -263,6 +275,7 @@ void CheatSearchWidget::ConnectWidgets()
 
 void CheatSearchWidget::OnNextScanClicked()
 {
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   const bool had_old_results = m_session->WasFirstSearchDone();
   const size_t old_count = m_session->GetResultCount();
 
@@ -288,10 +301,7 @@ void CheatSearchWidget::OnNextScanClicked()
     }
   }
 
-  const Cheats::SearchErrorCode error_code = [this] {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    return m_session->RunSearch(guard);
-  }();
+  const Cheats::SearchErrorCode error_code = m_session->RunSearch(guard);
 
   if (error_code == Cheats::SearchErrorCode::Success)
   {
@@ -347,7 +357,7 @@ void CheatSearchWidget::OnNextScanClicked()
           m_session->GetResultValueAsString(i, show_in_hex);
     }
 
-    UpdateGuiTable();
+    RecreateGUITable();
   }
   else
   {
@@ -371,44 +381,22 @@ void CheatSearchWidget::OnNextScanClicked()
   }
 }
 
-bool CheatSearchWidget::RefreshValues()
+bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const size_t begin_index,
+                                        const size_t end_index, const UpdateSource source)
 {
-  const size_t result_count = m_session->GetResultCount();
-  if (result_count == 0)
-  {
-    m_info_label_1->setText(tr("Cannot refresh without results."));
-    return false;
-  }
+  const bool update_status_text = source == UpdateSource::User;
 
-  const bool too_many_results = result_count > TABLE_MAX_ROWS;
-  std::unique_ptr<Cheats::CheatSearchSessionBase> tmp;
-  if (too_many_results)
-  {
-    std::vector<size_t> value_indices;
-    value_indices.reserve(TABLE_MAX_ROWS);
-    for (size_t i = 0; i < TABLE_MAX_ROWS; ++i)
-      value_indices.push_back(i);
-    tmp = m_session->ClonePartial(value_indices);
-  }
-  else
-  {
-    tmp = m_session->Clone();
-  }
-
+  auto tmp = m_session->ClonePartial(begin_index, end_index);
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
 
-  const Cheats::SearchErrorCode error_code = [&tmp] {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    return tmp->RunSearch(guard);
-  }();
-
+  const Cheats::SearchErrorCode error_code = tmp->RunSearch(guard);
   if (error_code != Cheats::SearchErrorCode::Success)
   {
-    m_info_label_1->setText(tr("Refresh failed. Please run the game for a bit and try again."));
+    if (update_status_text)
+      m_info_label_1->setText(tr("Refresh failed. Please run the game for a bit and try again."));
     return false;
   }
 
-  m_address_table_current_values.clear();
   const bool show_in_hex = m_display_values_in_hex_checkbox->isChecked();
   const size_t result_count_to_display = tmp->GetResultCount();
   for (size_t i = 0; i < result_count_to_display; ++i)
@@ -417,22 +405,53 @@ bool CheatSearchWidget::RefreshValues()
         tmp->GetResultValueAsString(i, show_in_hex);
   }
 
-  UpdateGuiTable();
-  m_info_label_1->setText(tr("Refreshed current values."));
+  RefreshGUICurrentValues(begin_index, end_index);
+  if (update_status_text)
+    m_info_label_1->setText(tr("Refreshed current values."));
   return true;
+}
+
+void CheatSearchWidget::UpdateTableVisibleCurrentValues(const UpdateSource source)
+{
+  if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
+    return;
+
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  if (m_address_table->rowCount() == 0)
+    return;
+
+  UpdateTableRows(guard, GetVisibleRowsBeginIndex(), GetVisibleRowsEndIndex(), source);
+}
+
+bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
+{
+  if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
+    return false;
+
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const size_t result_count = m_address_table->rowCount();
+  if (result_count == 0)
+  {
+    if (source == UpdateSource::User)
+      m_info_label_1->setText(tr("Cannot refresh without results."));
+    return false;
+  }
+
+  return UpdateTableRows(guard, 0, result_count, source);
 }
 
 void CheatSearchWidget::OnRefreshClicked()
 {
-  RefreshValues();
+  UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
 void CheatSearchWidget::OnResetClicked()
 {
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   m_session->ResetResults();
   m_address_table_current_values.clear();
 
-  UpdateGuiTable();
+  RecreateGUITable();
   m_info_label_1->setText(tr("Waiting for first scan..."));
   m_info_label_2->clear();
 }
@@ -452,6 +471,18 @@ void CheatSearchWidget::OnAddressTableItemChanged(QTableWidgetItem* item)
   default:
     break;
   }
+}
+
+int CheatSearchWidget::GetVisibleRowsBeginIndex() const
+{
+  return m_address_table->rowAt(0);
+}
+
+int CheatSearchWidget::GetVisibleRowsEndIndex() const
+{
+  const int row_at_bottom_of_viewport = m_address_table->rowAt(m_address_table->height());
+  const int end_index = m_address_table->rowCount();
+  return row_at_bottom_of_viewport == -1 ? end_index : row_at_bottom_of_viewport + 1;
 }
 
 void CheatSearchWidget::OnAddressTableContextMenu()
@@ -487,12 +518,14 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
   if (!m_session->WasFirstSearchDone())
     return;
 
-  if (!RefreshValues())
-    UpdateGuiTable();
+  // If the game is running CheatsManager::OnFrameEnd will update values automatically.
+  if (Core::GetState() != Core::State::Running)
+    UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
 void CheatSearchWidget::GenerateARCode()
 {
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (m_address_table->selectedItems().isEmpty())
     return;
 
@@ -524,7 +557,28 @@ void CheatSearchWidget::GenerateARCode()
   }
 }
 
-void CheatSearchWidget::UpdateGuiTable()
+void CheatSearchWidget::RefreshCurrentValueTableItem(
+    QTableWidgetItem* const current_value_table_item)
+{
+  const auto address = current_value_table_item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+  const auto curr_val_iter = m_address_table_current_values.find(address);
+  if (curr_val_iter != m_address_table_current_values.end())
+    current_value_table_item->setText(QString::fromStdString(curr_val_iter->second));
+  else
+    current_value_table_item->setText(QStringLiteral("---"));
+}
+
+void CheatSearchWidget::RefreshGUICurrentValues(const size_t begin_index, const size_t end_index)
+{
+  for (size_t i = begin_index; i < end_index; ++i)
+  {
+    QTableWidgetItem* const current_value_table_item =
+        m_address_table->item(static_cast<int>(i), ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE);
+    RefreshCurrentValueTableItem(current_value_table_item);
+  }
+}
+
+void CheatSearchWidget::RecreateGUITable()
 {
   const QSignalBlocker blocker(m_address_table);
 
@@ -570,13 +624,9 @@ void CheatSearchWidget::UpdateGuiTable()
 
     auto* current_value_item = new QTableWidgetItem();
     current_value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    const auto curr_val_it = m_address_table_current_values.find(address);
-    if (curr_val_it != m_address_table_current_values.end())
-      current_value_item->setText(QString::fromStdString(curr_val_it->second));
-    else
-      current_value_item->setText(QStringLiteral("---"));
     current_value_item->setData(ADDRESS_TABLE_ADDRESS_ROLE, address);
     current_value_item->setData(ADDRESS_TABLE_RESULT_INDEX_ROLE, static_cast<u32>(i));
     m_address_table->setItem(i, ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE, current_value_item);
+    RefreshCurrentValueTableItem(current_value_item);
   }
 }

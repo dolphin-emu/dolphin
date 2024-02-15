@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Updater.h"
 
+#include <cstdlib>
 #include <utility>
 
 #include <QCheckBox>
@@ -16,6 +17,7 @@
 #include "Common/Version.h"
 
 #include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
@@ -41,6 +43,16 @@ void Updater::CheckForUpdate()
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
+  if (std::getenv("DOLPHIN_UPDATE_SERVER_URL"))
+  {
+    TriggerUpdate(info, AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+    RunOnObject(m_parent, [this] {
+      m_parent->close();
+      return 0;
+    });
+    return;
+  }
+
   bool later = false;
 
   std::optional<int> choice = RunOnObject(m_parent, [&] {
@@ -89,6 +101,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
     connect(buttons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
 
+    SetQWidgetWindowDecorations(dialog);
     return dialog->exec();
   });
 

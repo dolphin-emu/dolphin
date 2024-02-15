@@ -2,23 +2,29 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
+#include "Common/StringUtil.h"
 #include "Common/Version.h"
-#include "DolphinTool/Command.h"
+#include "Core/Core.h"
+
 #include "DolphinTool/ConvertCommand.h"
 #include "DolphinTool/HeaderCommand.h"
 #include "DolphinTool/VerifyCommand.h"
 
-static int PrintUsage(int code)
+static void PrintUsage()
 {
-  std::cerr << "usage: dolphin-tool COMMAND -h" << std::endl << std::endl;
-  std::cerr << "commands supported: [convert, verify, header]" << std::endl;
-
-  return code;
+  fmt::print(std::cerr, "usage: dolphin-tool COMMAND -h\n"
+                        "\n"
+                        "commands supported: [convert, verify, header]\n");
 }
 
 #ifdef _WIN32
@@ -27,34 +33,32 @@ static int PrintUsage(int code)
 
 int main(int argc, char* argv[])
 {
+  Core::DeclareAsHostThread();
+
   if (argc < 2)
-    return PrintUsage(1);
+  {
+    PrintUsage();
+    return EXIT_FAILURE;
+  }
 
-  std::vector<std::string> args(argv, argv + argc);
-
-  std::string command_str = args.at(1);
-
-  // Take off the command selector before passing arguments down
-  args.erase(args.begin(), args.begin() + 1);
-
-  std::unique_ptr<DolphinTool::Command> command;
+  const std::string_view command_str = argv[1];
+  // Take off the program name and command selector before passing arguments down
+  const std::vector<std::string> args(argv + 2, argv + argc);
 
   if (command_str == "convert")
-    command = std::make_unique<DolphinTool::ConvertCommand>();
+    return DolphinTool::ConvertCommand(args);
   else if (command_str == "verify")
-    command = std::make_unique<DolphinTool::VerifyCommand>();
+    return DolphinTool::VerifyCommand(args);
   else if (command_str == "header")
-    command = std::make_unique<DolphinTool::HeaderCommand>();
-  else
-    return PrintUsage(1);
-
-  return command->Main(args);
+    return DolphinTool::HeaderCommand(args);
+  PrintUsage();
+  return EXIT_FAILURE;
 }
 
 #ifdef _WIN32
 int wmain(int, wchar_t*[], wchar_t*[])
 {
-  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(GetCommandLineW());
   const int argc = static_cast<int>(args.size());
   std::vector<char*> argv(args.size());
   for (size_t i = 0; i < args.size(); ++i)

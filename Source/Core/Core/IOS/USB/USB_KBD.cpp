@@ -184,14 +184,15 @@ USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers_, PressedKeyDat
 
 // TODO: support in netplay/movies.
 
-USB_KBD::USB_KBD(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+USB_KBD::USB_KBD(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
 }
 
 std::optional<IPCReply> USB_KBD::Open(const OpenRequest& request)
 {
   INFO_LOG_FMT(IOS, "USB_KBD: Open");
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_keyboard_layout, KBD_LAYOUT_QWERTY);
 
@@ -214,7 +215,7 @@ std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
   if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
       ControlReference::GetInputGate() && !m_message_queue.empty())
   {
-    auto& system = Core::System::GetInstance();
+    auto& system = GetSystem();
     auto& memory = system.GetMemory();
     memory.CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
     m_message_queue.pop();

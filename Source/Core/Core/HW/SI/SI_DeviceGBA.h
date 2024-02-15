@@ -25,7 +25,7 @@ public:
 
   bool Connect();
   bool IsConnected();
-  void ClockSync();
+  void ClockSync(Core::System& system);
   void Send(const u8* si_buffer);
   int Receive(u8* si_buffer, u8 bytes);
   void Flush();
@@ -40,10 +40,10 @@ private:
   bool m_booted = false;
 };
 
-class CSIDevice_GBA : public ISIDevice
+class CSIDevice_GBA final : public ISIDevice
 {
 public:
-  CSIDevice_GBA(SIDevices device, int device_number);
+  CSIDevice_GBA(Core::System& system, SIDevices device, int device_number);
 
   int RunBuffer(u8* buffer, int request_length) override;
   int TransferInterval() override;

@@ -16,6 +16,7 @@
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12
@@ -48,7 +49,10 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
       return {};
 
     ComPtr<IDXGIAdapter> adapter;
-    temp_dxgi_factory->EnumAdapters(adapter_index, &adapter);
+    HRESULT hr = temp_dxgi_factory->EnumAdapters(adapter_index, &adapter);
+
+    if (!SUCCEEDED(hr))
+      return {};
 
     PFN_D3D12_CREATE_DEVICE d3d12_create_device;
     if (!temp_lib.Open("d3d12.dll") ||
@@ -57,17 +61,18 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
       return {};
     }
 
-    HRESULT hr =
-        d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
+    hr = d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
     if (!SUCCEEDED(hr))
       return {};
   }
 
+  const DXGI_FORMAT target_format =
+      D3DCommon::GetDXGIFormatForAbstractFormat(FramebufferManager::GetEFBColorFormat(), false);
   std::vector<u32> aa_modes;
   for (u32 samples = 1; samples < D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
   {
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS multisample_quality_levels = {};
-    multisample_quality_levels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    multisample_quality_levels.Format = target_format;
     multisample_quality_levels.SampleCount = samples;
 
     temp_device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
@@ -83,7 +88,8 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
 
 bool DXContext::SupportsTextureFormat(DXGI_FORMAT format)
 {
-  constexpr u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;
+  constexpr u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_TEXTURECUBE |
+                           D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;
 
   D3D12_FEATURE_DATA_FORMAT_SUPPORT support = {format};
   return SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support,
@@ -221,7 +227,7 @@ bool DXContext::CreateFence()
     return false;
 
   m_fence_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-  ASSERT_MSG(VIDEO, m_fence_event != NULL, "Failed to create fence event");
+  ASSERT_MSG(VIDEO, m_fence_event != nullptr, "Failed to create fence event");
   if (!m_fence_event)
     return false;
 
@@ -333,7 +339,7 @@ bool DXContext::CreateRootSignatures()
 bool DXContext::CreateGXRootSignature()
 {
   // GX:
-  //  - 3 constant buffers (bindings 0-2), 0/1 visible in PS, 2 visible in VS, 1 visible in GS.
+  //  - 4 constant buffers (bindings 0-3), 0/1/2 visible in PS, 2 visible in VS, 1 visible in GS.
   //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS textures (visible in PS).
   //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS samplers (visible in PS).
   //  - 1 UAV (visible in PS).
@@ -361,7 +367,7 @@ bool DXContext::CreateGXRootSignature()
   SetRootParamTable(&params[param_count], &ranges[param_count], D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3,
                     1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
-  SetRootParamConstant(&params[param_count], 3, 1, D3D12_SHADER_VISIBILITY_VERTEX);
+  SetRootParamConstant(&params[param_count], 4, 1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
 
   // Since these must be contiguous, pixel lighting goes to bbox if not enabled.
@@ -376,6 +382,9 @@ bool DXContext::CreateGXRootSignature()
     SetRootParamCBV(&params[param_count], 1, D3D12_SHADER_VISIBILITY_PIXEL);
     param_count++;
   }
+
+  SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_PIXEL);
+  param_count++;
 
   return BuildRootSignature(m_device.Get(), &m_gx_root_signature, params.data(), param_count);
 }

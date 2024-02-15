@@ -49,10 +49,10 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
   AllocCodeSpace(4096);
   ClearCodeSpace();
   GenerateVertexLoader();
-  WriteProtect();
+  WriteProtect(true);
 
-  JitRegister::Register(region, GetCodePtr(), "VertexLoaderX64\nVtx desc: \n{}\nVAT:\n{}", vtx_desc,
-                        vtx_att);
+  Common::JitRegister::Register(region, GetCodePtr(), "VertexLoaderX64\nVtx desc: \n{}\nVAT:\n{}",
+                                vtx_desc, vtx_att);
 }
 
 OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attribute)
@@ -66,7 +66,7 @@ OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attrib
     if (array == CPArray::Position)
     {
       CMP(bits, R(scratch1), Imm8(-1));
-      m_skip_vertex = J_CC(CC_E, true);
+      m_skip_vertex = J_CC(CC_E, Jump::Near);
     }
     IMUL(32, scratch1, MPIC(&g_main_cp_state.array_strides[array]));
     MOV(64, R(scratch2), MPIC(&VertexLoaderManager::cached_arraybases[array]));
@@ -402,6 +402,7 @@ void VertexLoaderX64::GenerateVertexLoader()
   BitSet32 regs = {src_reg,  dst_reg,       scratch1,    scratch2,
                    scratch3, remaining_reg, skipped_reg, base_reg};
   regs &= ABI_ALL_CALLEE_SAVED;
+  regs[RBP] = true;  // Give us a stack frame
   ABI_PushRegistersAndAdjustStack(regs, 0);
 
   // Backup count since we're going to count it down.

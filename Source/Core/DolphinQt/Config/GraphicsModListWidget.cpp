@@ -19,6 +19,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt/Config/GraphicsModWarningWidget.h"
+#include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
 #include "DolphinQt/Settings.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
@@ -184,7 +185,7 @@ void GraphicsModListWidget::ModItemChanged(QListWidgetItem* item)
   m_needs_save = true;
 }
 
-void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_path)
+void GraphicsModListWidget::OnModChanged(const std::optional<std::string>& absolute_path)
 {
   ClearLayoutRecursively(m_mod_meta_layout);
 
@@ -192,12 +193,12 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
 
   if (!absolute_path)
   {
-    m_selected_mod_name->setText(QStringLiteral("No graphics mod selected"));
+    m_selected_mod_name->setText(tr("No graphics mod selected"));
     m_selected_mod_name->setAlignment(Qt::AlignCenter);
     return;
   }
 
-  GraphicsModConfig* mod = m_mod_group.GetMod(*absolute_path);
+  const GraphicsModConfig* mod = m_mod_group.GetMod(*absolute_path);
   if (!mod)
     return;
 
@@ -209,14 +210,14 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
 
   if (!mod->m_author.empty())
   {
-    auto* author_label = new QLabel(tr("By:  ") + QString::fromStdString(mod->m_author));
+    auto* author_label = new QLabel(tr("By: %1").arg(QString::fromStdString(mod->m_author)));
     m_mod_meta_layout->addWidget(author_label);
   }
 
   if (!mod->m_description.empty())
   {
     auto* description_label =
-        new QLabel(tr("Description:  ") + QString::fromStdString(mod->m_description));
+        new QLabel(tr("Description: %1").arg(QString::fromStdString(mod->m_description)));
     description_label->setWordWrap(true);
     m_mod_meta_layout->addWidget(description_label);
   }
@@ -238,31 +239,6 @@ void GraphicsModListWidget::SaveModList()
     g_Config.graphics_mod_config = m_mod_group;
   }
   m_needs_save = true;
-}
-
-void GraphicsModListWidget::ClearLayoutRecursively(QLayout* layout)
-{
-  while (QLayoutItem* child = layout->takeAt(0))
-  {
-    if (child == nullptr)
-      continue;
-
-    if (child->widget())
-    {
-      layout->removeWidget(child->widget());
-      delete child->widget();
-    }
-    else if (child->layout())
-    {
-      ClearLayoutRecursively(child->layout());
-      layout->removeItem(child);
-    }
-    else
-    {
-      layout->removeItem(child);
-    }
-    delete child;
-  }
 }
 
 void GraphicsModListWidget::SaveToDisk()

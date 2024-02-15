@@ -102,10 +102,10 @@ std::string Lexer::FetchDelimString(char delim)
 
 std::string Lexer::FetchWordChars()
 {
-  // Valid word characters:
-  std::regex rx(R"([a-z\d_])", std::regex_constants::icase);
-
-  return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
+  return FetchCharsWhile([](char c) {
+    return std::isalpha(c, std::locale::classic()) || std::isdigit(c, std::locale::classic()) ||
+           c == '_';
+  });
 }
 
 Token Lexer::GetDelimitedLiteral()
@@ -134,7 +134,8 @@ Token Lexer::GetRealLiteral(char first_char)
   value += first_char;
   value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
 
-  if (std::regex_match(value, std::regex(R"(\d+(\.\d+)?)")))
+  static const std::regex re(R"(\d+(\.\d+)?)");
+  if (std::regex_match(value, re))
     return Token(TOK_LITERAL, value);
 
   return Token(TOK_INVALID);
@@ -247,7 +248,7 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
 class ControlExpression : public Expression
 {
 public:
-  explicit ControlExpression(ControlQualifier qualifier) : m_qualifier(qualifier) {}
+  explicit ControlExpression(ControlQualifier qualifier) : m_qualifier(std::move(qualifier)) {}
 
   ControlState GetValue() const override
   {
@@ -437,7 +438,7 @@ protected:
 class LiteralReal : public LiteralExpression
 {
 public:
-  LiteralReal(ControlState value) : m_value(value) {}
+  explicit LiteralReal(ControlState value) : m_value(value) {}
 
   ControlState GetValue() const override { return m_value; }
 
@@ -447,7 +448,7 @@ private:
   const ControlState m_value{};
 };
 
-static ParseResult MakeLiteralExpression(Token token)
+static ParseResult MakeLiteralExpression(const Token& token)
 {
   ControlState val{};
   if (TryParse(token.data, &val))
@@ -459,7 +460,7 @@ static ParseResult MakeLiteralExpression(Token token)
 class VariableExpression : public Expression
 {
 public:
-  VariableExpression(std::string name) : m_name(name) {}
+  explicit VariableExpression(std::string name) : m_name(std::move(name)) {}
 
   ControlState GetValue() const override { return m_variable_ptr ? *m_variable_ptr : 0; }
 
@@ -484,7 +485,7 @@ protected:
 class HotkeyExpression : public Expression
 {
 public:
-  HotkeyExpression(std::vector<std::unique_ptr<ControlExpression>> inputs)
+  explicit HotkeyExpression(std::vector<std::unique_ptr<ControlExpression>> inputs)
       : m_modifiers(std::move(inputs))
   {
     m_final_input = std::move(m_modifiers.back());
@@ -599,7 +600,7 @@ private:
   std::unique_ptr<Expression> m_rhs;
 };
 
-std::shared_ptr<Device> ControlEnvironment::FindDevice(ControlQualifier qualifier) const
+std::shared_ptr<Device> ControlEnvironment::FindDevice(const ControlQualifier& qualifier) const
 {
   if (qualifier.has_device)
     return container.FindDevice(qualifier.device_qualifier);
@@ -607,7 +608,7 @@ std::shared_ptr<Device> ControlEnvironment::FindDevice(ControlQualifier qualifie
     return container.FindDevice(default_device);
 }
 
-Device::Input* ControlEnvironment::FindInput(ControlQualifier qualifier) const
+Device::Input* ControlEnvironment::FindInput(const ControlQualifier& qualifier) const
 {
   const std::shared_ptr<Device> device = FindDevice(qualifier);
   if (!device)
@@ -616,7 +617,7 @@ Device::Input* ControlEnvironment::FindInput(ControlQualifier qualifier) const
   return device->FindInput(qualifier.control_name);
 }
 
-Device::Output* ControlEnvironment::FindOutput(ControlQualifier qualifier) const
+Device::Output* ControlEnvironment::FindOutput(const ControlQualifier& qualifier) const
 {
   const std::shared_ptr<Device> device = FindDevice(qualifier);
   if (!device)
@@ -962,11 +963,9 @@ static ParseResult ParseComplexExpression(const std::string& str)
 
 void RemoveInertTokens(std::vector<Token>* tokens)
 {
-  tokens->erase(std::remove_if(tokens->begin(), tokens->end(),
-                               [](const Token& tok) {
-                                 return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
-                               }),
-                tokens->end());
+  std::erase_if(*tokens, [](const Token& tok) {
+    return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
+  });
 }
 
 static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)

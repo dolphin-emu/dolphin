@@ -113,8 +113,8 @@ void SlippiSavestate::initBackupLocs()
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   // Get Main Heap Boundaries
-  full_backup_regions[3].start_address = PowerPC::HostRead_U32(guard, 0x804d76b8);
-  full_backup_regions[3].end_address = PowerPC::HostRead_U32(guard, 0x804d76bc);
+  full_backup_regions[3].start_address = PowerPC::MMU::HostRead_U32(guard, 0x804d76b8);
+  full_backup_regions[3].end_address = PowerPC::MMU::HostRead_U32(guard, 0x804d76bc);
   WARN_LOG_FMT(SLIPPI_ONLINE, "Heap start is: {:#x}", full_backup_regions[3].start_address);
   WARN_LOG_FMT(SLIPPI_ONLINE, "Heap end is: {:#x}", full_backup_regions[3].end_address);
 

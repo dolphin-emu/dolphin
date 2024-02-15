@@ -42,7 +42,7 @@ std::optional<std::string> VideoBackend::GetWarningMessage() const
 {
   std::optional<std::string> result;
 
-  // If user is on Win7, show a warning about partial DX11.1 support
+  // If relevant, show a warning about partial DX11.1 support
   // This is being called BEFORE FillBackendInfo is called for this backend,
   // so query for logic op support manually
   bool supportsLogicOp = false;
@@ -54,16 +54,17 @@ std::optional<std::string> VideoBackend::GetWarningMessage() const
 
   if (!supportsLogicOp)
   {
-    result = _trans("Direct3D 11 renderer requires support for features not supported by your "
-                    "system configuration. This is most likely because you are using Windows 7. "
-                    "You may still use this backend, but you might encounter graphical artifacts."
-                    "\n\nDo you really want to switch to Direct3D 11? If unsure, select 'No'.");
+    result = _trans("The Direct3D 11 renderer requires support for features not supported by your "
+                    "system configuration. You may still use this backend, but you will encounter "
+                    "graphical artifacts in certain games.\n"
+                    "\n"
+                    "Do you really want to switch to Direct3D 11? If unsure, select 'No'.");
   }
 
   return result;
 }
 
-void VideoBackend::InitBackendInfo()
+void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   if (!D3DCommon::LoadLibraries())
     return;
@@ -114,6 +115,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsSettingObjectNames = true;
   g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
   g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  g_Config.backend_info.bSupportsHDROutput = true;
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
   g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);

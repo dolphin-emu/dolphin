@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include "Common/BitUtils.h"
-#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
@@ -83,60 +83,61 @@ struct EffectiveAddressSpaceAccessors : Accessors
 {
   bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostIsRAMAddress(guard, address);
+    return PowerPC::MMU::HostIsRAMAddress(guard, address);
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U8(guard, address);
+    return PowerPC::MMU::HostRead_U8(guard, address);
   }
   void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
   {
-    PowerPC::HostWrite_U8(guard, value, address);
+    PowerPC::MMU::HostWrite_U8(guard, value, address);
   }
   u16 ReadU16(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U16(guard, address);
+    return PowerPC::MMU::HostRead_U16(guard, address);
   }
   void WriteU16(const Core::CPUThreadGuard& guard, u32 address, u16 value) override
   {
-    PowerPC::HostWrite_U16(guard, value, address);
+    PowerPC::MMU::HostWrite_U16(guard, value, address);
   }
   u32 ReadU32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U32(guard, address);
+    return PowerPC::MMU::HostRead_U32(guard, address);
   }
   void WriteU32(const Core::CPUThreadGuard& guard, u32 address, u32 value) override
   {
-    PowerPC::HostWrite_U32(guard, value, address);
+    PowerPC::MMU::HostWrite_U32(guard, value, address);
   }
   u64 ReadU64(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U64(guard, address);
+    return PowerPC::MMU::HostRead_U64(guard, address);
   }
   void WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 value) override
   {
-    PowerPC::HostWrite_U64(guard, value, address);
+    PowerPC::MMU::HostWrite_U64(guard, value, address);
   }
   float ReadF32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_F32(guard, address);
+    return PowerPC::MMU::HostRead_F32(guard, address);
   };
 
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
                std::size_t needle_size) const
   {
-    auto& system = Core::System::GetInstance();
+    auto& system = guard.GetSystem();
     auto& memory = system.GetMemory();
+    auto& mmu = system.GetMMU();
 
     u32 page_base = haystack_start & 0xfffff000;
     u32 offset = haystack_start & 0x0000fff;
     do
     {
-      if (!PowerPC::HostIsRAMAddress(guard, page_base))
+      if (!PowerPC::MMU::HostIsRAMAddress(guard, page_base))
       {
         return false;
       }
-      auto page_physical_address = PowerPC::GetTranslatedAddress(page_base);
+      auto page_physical_address = mmu.GetTranslatedAddress(page_base);
       if (!page_physical_address.has_value())
       {
         return false;
@@ -144,8 +145,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
 
       // For now, limit to only mem1 and mem2 regions
       // GetPointer can get confused by the locked dcache region that dolphin pins at 0xe0000000
-      u32 memory_area = (*page_physical_address) >> 24;
-      if ((memory_area != 0x00) && (memory_area != 0x01))
+      if (page_physical_address >= 0xE0000000)
       {
         return false;
       }
@@ -183,7 +183,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
     const u32 haystack_offset_change = forward ? 1 : -1;
     do
     {
-      if (PowerPC::HostIsRAMAddress(guard, haystack_address))
+      if (PowerPC::MMU::HostIsRAMAddress(guard, haystack_address))
       {
         do
         {
@@ -208,17 +208,17 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
   static constexpr u32 aram_base_address = 0;
   bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return !SConfig::GetInstance().bWii && (address - aram_base_address) < GetSize();
+    return !guard.GetSystem().IsWii() && (address - aram_base_address) < GetSize();
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    const u8* base = Core::System::GetInstance().GetDSP().GetARAMPtr();
+    const u8* base = guard.GetSystem().GetDSP().GetARAMPtr();
     return base[address];
   }
 
   void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
   {
-    u8* base = Core::System::GetInstance().GetDSP().GetARAMPtr();
+    u8* base = guard.GetSystem().GetDSP().GetARAMPtr();
     base[address] = value;
   }
 
@@ -441,7 +441,7 @@ Accessors* GetAccessors(Type address_space)
   case Type::Effective:
     return &s_effective_address_space_accessors;
   case Type::Physical:
-    if (SConfig::GetInstance().bWii)
+    if (Core::System::GetInstance().IsWii())
     {
       return &s_physical_address_space_accessors_wii;
     }
@@ -452,13 +452,13 @@ Accessors* GetAccessors(Type address_space)
   case Type::Mem1:
     return &s_mem1_address_space_accessors;
   case Type::Mem2:
-    if (SConfig::GetInstance().bWii)
+    if (Core::System::GetInstance().IsWii())
     {
       return &s_mem2_address_space_accessors;
     }
     break;
   case Type::Auxiliary:
-    if (!SConfig::GetInstance().bWii)
+    if (!Core::System::GetInstance().IsWii())
     {
       return &s_auxiliary_address_space_accessors;
     }

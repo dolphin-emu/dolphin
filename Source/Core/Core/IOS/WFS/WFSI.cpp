@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
+#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -94,7 +95,8 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
   }
 }
 
-WFSIDevice::WFSIDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+WFSIDevice::WFSIDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
 }
 
@@ -128,7 +130,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 return_error_code = IPC_SUCCESS;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   switch (request.request)
@@ -142,7 +144,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     m_continue_install = memory.Read_U32(request.buffer_in + 36);
 
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type {}, continue install: {}",
-                 static_cast<u32>(m_patch_type), m_continue_install ? "true" : "false");
+                 Common::ToUnderlying(m_patch_type), m_continue_install ? "true" : "false");
 
     if (m_patch_type == PatchType::PATCH_TYPE_2)
     {
@@ -164,7 +166,8 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     memory.CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    const ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
+    const ES::TicketReader ticket =
+        GetEmulationKernel().GetESCore().FindSignedTicket(m_tmd.GetTitleId());
     if (!ticket.IsValid())
     {
       return_error_code = -11028;
@@ -351,7 +354,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     return_error_code = -3;
     if (homedir_path_len > 0x1FD)
       break;
-    auto device = GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
+    auto device = GetEmulationKernel().GetDeviceByName("/dev/usb/wfssrv");
     if (!device)
       break;
     std::static_pointer_cast<WFSSRVDevice>(device)->SetHomeDir(homedir_path);
@@ -384,14 +387,14 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
   {
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_INIT");
     u64 tid;
-    if (GetIOS()->GetES()->GetTitleId(&tid) < 0)
+    if (GetEmulationKernel().GetESCore().GetTitleId(&tid) < 0)
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_INIT: Could not get title id.");
       return_error_code = IPC_EINVAL;
       break;
     }
 
-    const ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
+    const ES::TMDReader tmd = GetEmulationKernel().GetESCore().FindInstalledTMD(tid);
     SetCurrentTitleIdAndGroupId(tmd.GetTitleId(), tmd.GetGroupId());
     break;
   }
@@ -543,7 +546,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     // TODO(wfs): Should be returning an error. However until we have
     // everything properly stubbed it's easier to simulate the methods
     // succeeding.
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WFS,
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_WFS,
                         Common::Log::LogLevel::LWARNING);
     memory.Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
@@ -564,7 +567,7 @@ u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address,
   }
   if (address)
   {
-    auto& system = Core::System::GetInstance();
+    auto& system = GetSystem();
     auto& memory = system.GetMemory();
     fp.ReadBytes(memory.GetPointer(address), fp.GetSize());
   }

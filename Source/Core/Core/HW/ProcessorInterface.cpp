@@ -18,14 +18,21 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 
 namespace ProcessorInterface
 {
-constexpr u32 FLIPPER_REV_A = 0x046500B0;
-constexpr u32 FLIPPER_REV_B = 0x146500B1;
+constexpr u32 FLIPPER_REV_A [[maybe_unused]] = 0x046500B0;
+constexpr u32 FLIPPER_REV_B [[maybe_unused]] = 0x146500B1;
 constexpr u32 FLIPPER_REV_C = 0x246500B1;
+
+ProcessorInterfaceManager::ProcessorInterfaceManager(Core::System& system) : m_system(system)
+{
+}
+
+ProcessorInterfaceManager::~ProcessorInterfaceManager() = default;
 
 void ProcessorInterfaceManager::DoState(PointerWrap& p)
 {
@@ -49,8 +56,7 @@ void ProcessorInterfaceManager::Init()
   m_reset_code = 0;  // Cold reset
   m_interrupt_cause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  auto& core_timing = m_system.GetCoreTiming();
   m_event_type_toggle_reset_button =
       core_timing.RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
   m_event_type_ios_notify_reset_button =
@@ -65,14 +71,14 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
                    processor_interface.m_interrupt_cause &= ~val;
-                   processor_interface.UpdateException(system);
+                   processor_interface.UpdateException();
                  }));
 
   mmio->Register(base | PI_INTERRUPT_MASK, MMIO::DirectRead<u32>(&m_interrupt_mask),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
                    processor_interface.m_interrupt_mask = val;
-                   processor_interface.UpdateException(system);
+                   processor_interface.UpdateException();
                  }));
 
   mmio->Register(base | PI_FIFO_BASE, MMIO::DirectRead<u32>(&m_fifo_cpu_base),
@@ -118,7 +124,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    processor_interface.m_reset_code = val;
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: {:08x}",
                                 processor_interface.m_reset_code);
-                   if (!SConfig::GetInstance().bWii && ~processor_interface.m_reset_code & 0x4)
+                   if (!system.IsWii() && (~processor_interface.m_reset_code & 0x4))
                    {
                      system.GetDVDInterface().ResetDrive(true);
                    }
@@ -137,9 +143,9 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void ProcessorInterfaceManager::UpdateException(Core::System& system)
+void ProcessorInterfaceManager::UpdateException()
 {
-  auto& ppc_state = system.GetPPCState();
+  auto& ppc_state = m_system.GetPPCState();
   if ((m_interrupt_cause & m_interrupt_mask) != 0)
     ppc_state.Exceptions |= EXCEPTION_EXTERNAL_INT;
   else
@@ -209,7 +215,7 @@ void ProcessorInterfaceManager::SetInterrupt(u32 cause_mask, bool set)
     m_interrupt_cause &= ~cause_mask;  // is there any reason to have this possibility?
   // F|RES: i think the hw devices reset the interrupt in the PI to 0
   // if the interrupt cause is eliminated. that isn't done by software (afaik)
-  UpdateException(Core::System::GetInstance());
+  UpdateException();
 }
 
 void ProcessorInterfaceManager::SetResetButton(bool set)
@@ -252,13 +258,12 @@ void ProcessorInterfaceManager::ResetButton_Tap()
   if (!Core::IsRunning())
     return;
 
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(0, m_event_type_toggle_reset_button, true, CoreTiming::FromThread::ANY);
   core_timing.ScheduleEvent(0, m_event_type_ios_notify_reset_button, 0,
                             CoreTiming::FromThread::ANY);
-  core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, m_event_type_toggle_reset_button,
-                            false, CoreTiming::FromThread::ANY);
+  core_timing.ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond() / 2,
+                            m_event_type_toggle_reset_button, false, CoreTiming::FromThread::ANY);
 }
 
 void ProcessorInterfaceManager::PowerButton_Tap()
@@ -266,8 +271,7 @@ void ProcessorInterfaceManager::PowerButton_Tap()
   if (!Core::IsRunning())
     return;
 
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(0, m_event_type_ios_notify_power_button, 0,
                             CoreTiming::FromThread::ANY);
 }

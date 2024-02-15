@@ -61,8 +61,8 @@ NetWDCommandDevice::Status NetWDCommandDevice::GetTargetStatusForMode(WD::Mode m
   }
 }
 
-NetWDCommandDevice::NetWDCommandDevice(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name)
+NetWDCommandDevice::NetWDCommandDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
   // TODO: use the MPCH setting in setting.txt to determine this value.
   m_nitro_enabled_channels = LegalNitroChannelMask;
@@ -87,6 +87,8 @@ void NetWDCommandDevice::Update()
 
 void NetWDCommandDevice::ProcessRecvRequests()
 {
+  auto& system = GetSystem();
+
   // Because we currently do not actually emulate the wireless driver, we have no frames
   // and no notification data that could be used to reply to requests.
   // Therefore, requests are left pending to simulate the situation where there is nothing to send.
@@ -117,7 +119,7 @@ void NetWDCommandDevice::ProcessRecvRequests()
       }
 
       INFO_LOG_FMT(IOS_NET, "Processed request {:08x} (result {:08x})", request, result);
-      m_ios.EnqueueIPCReply(Request{request}, result);
+      GetEmulationKernel().EnqueueIPCReply(Request{system, request}, result);
       queue.pop_front();
     }
   };
@@ -234,7 +236,7 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
   if (!vector || vector->address == 0)
     return IPCReply(u32(ResultCode::IllegalParameter));
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   const u32 state = memory.Read_U32(vector->address);
   INFO_LOG_FMT(IOS_NET, "WD_SetLinkState called (state={}, mode={})", state, m_mode);
@@ -282,7 +284,7 @@ IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
   if (!vector || vector->address == 0)
     return IPCReply(u32(ResultCode::IllegalParameter));
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   Common::MACAddress mac;
@@ -315,7 +317,7 @@ IPCReply NetWDCommandDevice::GetInfo(const IOCtlVRequest& request) const
   if (!vector || vector->address == 0)
     return IPCReply(u32(ResultCode::IllegalParameter));
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   memory.CopyToEmu(vector->address, &m_info, sizeof(m_info));
   return IPCReply(IPC_SUCCESS);
@@ -342,7 +344,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
     // XXX - unused
     // ScanInfo *scan = (ScanInfo *)memory.GetPointer(request.in_vectors.at(0).m_Address);
 
-    auto& system = Core::System::GetInstance();
+    auto& system = GetSystem();
     auto& memory = system.GetMemory();
     u16* results = (u16*)memory.GetPointer(request.io_vectors.at(0).address);
     // first u16 indicates number of BSSInfo following
@@ -388,7 +390,8 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_VTSF:
   default:
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_WD_UNIMPLEMENTED_IOCTL);
-    request.Dump(GetDeviceName(), Common::Log::LogType::IOS_NET, Common::Log::LogLevel::LWARNING);
+    request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET,
+                 Common::Log::LogLevel::LWARNING);
   }
 
   return IPCReply(IPC_SUCCESS);

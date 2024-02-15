@@ -10,6 +10,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/SmallVector.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
@@ -76,26 +77,7 @@ bool ScissorResult::IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) cons
 
 namespace
 {
-// Dynamically sized small array of ScissorRanges (used as an heap-less alternative to std::vector
-// to reduce allocation overhead)
-struct RangeList
-{
-  static constexpr u32 MAX_RANGES = 9;
-
-  u32 m_num_ranges = 0;
-  std::array<ScissorRange, MAX_RANGES> m_ranges{};
-
-  void AddRange(int offset, int start, int end)
-  {
-    DEBUG_ASSERT(m_num_ranges < MAX_RANGES);
-    m_ranges[m_num_ranges] = ScissorRange(offset, start, end);
-    m_num_ranges++;
-  }
-  auto begin() const { return m_ranges.begin(); }
-  auto end() const { return m_ranges.begin() + m_num_ranges; }
-
-  u32 size() { return m_num_ranges; }
-};
+using RangeList = Common::SmallVector<ScissorRange, 9>;
 
 static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_dim)
 {
@@ -108,7 +90,7 @@ static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_di
     int new_end = std::clamp(end - new_off + 1, 0, efb_dim);
     if (new_start < new_end)
     {
-      ranges.AddRange(new_off, new_start, new_end);
+      ranges.emplace_back(new_off, new_start, new_end);
     }
   }
 

@@ -26,6 +26,7 @@
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
@@ -129,8 +130,7 @@ void NetPlayBrowser::CreateWidgets()
 
 void NetPlayBrowser::ConnectWidgets()
 {
-  connect(m_region_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &NetPlayBrowser::Refresh);
+  connect(m_region_combo, &QComboBox::currentIndexChanged, this, &NetPlayBrowser::Refresh);
 
   connect(m_button_box, &QDialogButtonBox::accepted, this, &NetPlayBrowser::accept);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &NetPlayBrowser::reject);
@@ -303,6 +303,7 @@ void NetPlayBrowser::accept()
     dialog->setWindowModality(Qt::WindowModal);
     dialog->setTextEchoMode(QLineEdit::Password);
 
+    SetQWidgetWindowDecorations(dialog);
     if (dialog->exec() != QDialog::Accepted)
       return;
 

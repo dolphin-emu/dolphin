@@ -11,6 +11,10 @@
         android:title="@string/emulation_toggle_controls"/>
 
     <item
+        android:id="@+id/menu_emulation_latching_controls"
+        android:title="@string/emulation_latching_controls"/>
+
+    <item
         android:id="@+id/menu_emulation_adjust_scale"
         android:title="@string/emulation_control_adjustments"/>
 

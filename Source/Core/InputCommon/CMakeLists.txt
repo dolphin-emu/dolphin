@@ -81,7 +81,8 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  ${spng_target}
+  sfml-network
+  spng::spng
 )
 
 if(WIN32)
@@ -107,11 +108,6 @@ if(WIN32)
   )
 elseif(APPLE)
   target_sources(inputcommon PRIVATE
-    ControllerInterface/OSX/OSX.h
-    ControllerInterface/OSX/OSX.mm
-    ControllerInterface/OSX/OSXJoystick.h
-    ControllerInterface/OSX/OSXJoystick.mm
-    ControllerInterface/OSX/RunLoopStopper.h
     ControllerInterface/Quartz/Quartz.h
     ControllerInterface/Quartz/Quartz.mm
     ControllerInterface/Quartz/QuartzKeyboardAndMouse.h
@@ -124,7 +120,6 @@ elseif(APPLE)
     ${CARBON_LIBRARY}
     ${COCOA_LIBRARY}
     ${FORCEFEEDBACK_LIBRARY}
-    ${IOK_LIBRARY}
   )
   target_compile_options(inputcommon PRIVATE
     -fobjc-arc
@@ -152,7 +147,7 @@ elseif(ANDROID)
 endif()
 
 if(NOT ANDROID)
-  target_link_libraries(inputcommon PUBLIC ${LIBUSB_LIBRARIES})
+  target_link_libraries(inputcommon PUBLIC LibUSB::LibUSB)
 endif()
 
 if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)
@@ -180,15 +175,26 @@ if(UNIX OR WIN32)
   )
 endif()
 
-if(SDL2_FOUND)
+if(ENABLE_SDL)
   target_sources(inputcommon PRIVATE
     ControllerInterface/SDL/SDL.cpp
     ControllerInterface/SDL/SDL.h
   )
   target_link_libraries(inputcommon PRIVATE SDL2::SDL2)
+  target_compile_definitions(inputcommon PUBLIC HAVE_SDL2=1)
 endif()
 
 if(MSVC)
   # Add precompiled header
   target_link_libraries(inputcommon PRIVATE use_pch)
+endif()
+
+if(TARGET Hidapi::Hidapi)
+  target_sources(inputcommon
+  PRIVATE
+    ControllerInterface/SteamDeck/SteamDeck.cpp
+    ControllerInterface/SteamDeck/SteamDeck.h
+  )
+  target_link_libraries(inputcommon PUBLIC Hidapi::Hidapi)
+  target_compile_definitions(inputcommon PRIVATE -DHAVE_HIDAPI=1)
 endif()

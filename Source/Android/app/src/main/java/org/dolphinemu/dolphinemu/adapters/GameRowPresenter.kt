@@ -15,6 +15,7 @@ import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog
 import org.dolphinemu.dolphinemu.utils.CoilUtils
@@ -23,7 +24,7 @@ import org.dolphinemu.dolphinemu.utils.CoilUtils
  * The Leanback library / docs call this a Presenter, but it works very
  * similarly to a RecyclerView.Adapter.
  */
-class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
+class GameRowPresenter : Presenter() {
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         // Create a new view.
@@ -47,40 +48,28 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
 
         holder.apply {
             imageScreenshot.setImageDrawable(null)
-            cardParent.titleText = gameFile.title
+            cardParent.titleText = gameFile.getTitle()
             holder.gameFile = gameFile
 
             // Set the background color of the card
             val background = ContextCompat.getDrawable(context, R.drawable.tv_card_background)
             cardParent.infoAreaBackground = background
-            cardParent.setOnClickListener { view: View ->
+            cardParent.setOnLongClickListener { view: View ->
                 val activity = view.context as FragmentActivity
                 val fragment = GamePropertiesDialog.newInstance(holder.gameFile)
                 activity.supportFragmentManager.beginTransaction()
                     .add(fragment, GamePropertiesDialog.TAG).commit()
+                true
             }
 
             if (GameFileCacheManager.findSecondDisc(gameFile) != null) {
                 holder.cardParent.contentText =
-                    context.getString(R.string.disc_number, gameFile.discNumber + 1)
+                    context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1)
             } else {
-                holder.cardParent.contentText = gameFile.company
+                holder.cardParent.contentText = gameFile.getCompany()
             }
         }
-
-        mActivity.lifecycleScope.launchWhenStarted {
-            withContext(Dispatchers.IO) {
-                val customCoverUri = CoilUtils.findCustomCover(gameFile)
-                withContext(Dispatchers.Main) {
-                    CoilUtils.loadGameCover(
-                        null,
-                        holder.imageScreenshot,
-                        gameFile,
-                        customCoverUri
-                    )
-                }
-            }
-        }
+        CoilUtils.loadGameCover(null, holder.imageScreenshot, gameFile)
     }
 
     override fun onUnbindViewHolder(viewHolder: ViewHolder) {

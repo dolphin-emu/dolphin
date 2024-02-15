@@ -21,7 +21,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
@@ -41,31 +40,33 @@
 
 namespace Memory
 {
-MemoryManager::MemoryManager() = default;
+MemoryManager::MemoryManager(Core::System& system) : m_system(system)
+{
+}
+
 MemoryManager::~MemoryManager() = default;
 
 void MemoryManager::InitMMIO(bool is_wii)
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
 
-  auto& system = Core::System::GetInstance();
-  system.GetCommandProcessor().RegisterMMIO(system, m_mmio_mapping.get(), 0x0C000000);
-  system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
-  system.GetVideoInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
-  system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
-  system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
-  system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
-  system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
-  SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
-  system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
-  system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
+  m_system.GetCommandProcessor().RegisterMMIO(m_mmio_mapping.get(), 0x0C000000);
+  m_system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
+  m_system.GetVideoInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
+  m_system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
+  m_system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
+  m_system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
+  m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
+  m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
+  m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
+  m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
   if (is_wii)
   {
-    IOS::RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
-    system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
-    SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
-    system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
-    system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
+    m_system.GetWiiIPC().RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
+    m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
+    m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
+    m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
+    m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
   }
 }
 
@@ -101,8 +102,8 @@ void MemoryManager::Init()
   m_physical_regions[3] = PhysicalMemoryRegion{
       &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false};
 
-  const bool wii = SConfig::GetInstance().bWii;
-  const bool mmu = Core::System::GetInstance().IsMMUMode();
+  const bool wii = m_system.IsWii();
+  const bool mmu = m_system.IsMMUMode();
 
   // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
   const bool fake_vmem = !wii && !mmu;
@@ -119,7 +120,7 @@ void MemoryManager::Init()
     region.active = true;
     mem_size += region.size;
   }
-  m_arena.GrabSHMSegment(mem_size);
+  m_arena.GrabSHMSegment(mem_size, "dolphin-emu");
 
   m_physical_page_mappings.fill(nullptr);
 
@@ -490,7 +491,7 @@ u8* MemoryManager::GetPointer(u32 address) const
       return m_exram + (address & GetExRamMask());
   }
 
-  auto& ppc_state = Core::System::GetInstance().GetPPCState();
+  auto& ppc_state = m_system.GetPPCState();
   PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
                 LR(ppc_state));
   return nullptr;

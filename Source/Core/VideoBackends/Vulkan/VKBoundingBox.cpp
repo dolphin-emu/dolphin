@@ -77,7 +77,7 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void VKBoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
+void VKBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   // We can't issue vkCmdUpdateBuffer within a render pass.
   // However, the writes must be serialized, so we can't put it in the init buffer.
@@ -91,8 +91,7 @@ void VKBoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
 
   // Write the values to the GPU buffer
   vkCmdUpdateBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
-                    index * sizeof(BBoxType), values.size() * sizeof(BBoxType),
-                    reinterpret_cast<const BBoxType*>(values.data()));
+                    index * sizeof(BBoxType), values.size() * sizeof(BBoxType), values.data());
 
   // Restore fragment shader access to the buffer.
   StagingBuffer::BufferMemoryBarrier(

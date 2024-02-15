@@ -1,6 +1,8 @@
 include_directories(${CMAKE_SOURCE_DIR}/Externals/SlippiRustExtensions/ffi/includes)
 
 add_library(core
+  AchievementManager.cpp
+  AchievementManager.h
   ActionReplay.cpp
   ActionReplay.h
   ARDecrypt.cpp
@@ -23,6 +25,8 @@ add_library(core
   CheatSearch.cpp
   CheatSearch.h
   CommonTitles.h
+  Config/AchievementSettings.cpp
+  Config/AchievementSettings.h
   Config/DefaultLocale.cpp
   Config/DefaultLocale.h
   Config/FreeLookSettings.cpp
@@ -57,6 +61,11 @@ add_library(core
   Core.h
   CoreTiming.cpp
   CoreTiming.h
+  CPUThreadConfigCallback.cpp
+  CPUThreadConfigCallback.h
+  Debugger/CodeTrace.cpp
+  Debugger/CodeTrace.h
+  Debugger/DebugInterface.h
   Debugger/Debugger_SymbolMap.cpp
   Debugger/Debugger_SymbolMap.h
   Debugger/Dump.cpp
@@ -331,6 +340,10 @@ add_library(core
   IOS/Device.h
   IOS/DeviceStub.cpp
   IOS/DeviceStub.h
+  IOS/Crypto/AesDevice.cpp
+  IOS/Crypto/AesDevice.h
+  IOS/Crypto/Sha.cpp
+  IOS/Crypto/Sha.h
   IOS/DI/DI.cpp
   IOS/DI/DI.h
   IOS/DolphinDevice.cpp
@@ -373,6 +386,11 @@ add_library(core
   IOS/Network/KD/VFF/VFFUtil.cpp
   IOS/Network/KD/VFF/VFFUtil.h
   IOS/Network/KD/WC24File.h
+  IOS/Network/KD/Mail/MailCommon.h
+  IOS/Network/KD/Mail/WC24FriendList.cpp
+  IOS/Network/KD/Mail/WC24FriendList.h
+  IOS/Network/KD/Mail/WC24Send.cpp
+  IOS/Network/KD/Mail/WC24Send.h
   IOS/Network/MACUtils.cpp
   IOS/Network/MACUtils.h
   IOS/Network/NCD/Manage.cpp
@@ -403,8 +421,14 @@ add_library(core
   IOS/USB/Bluetooth/WiimoteHIDAttr.h
   IOS/USB/Common.cpp
   IOS/USB/Common.h
-  IOS/USB/Emulated/Skylander.cpp
-  IOS/USB/Emulated/Skylander.h
+  IOS/USB/Emulated/Infinity.cpp
+  IOS/USB/Emulated/Infinity.h
+  IOS/USB/Emulated/Skylanders/Skylander.cpp
+  IOS/USB/Emulated/Skylanders/Skylander.h
+  IOS/USB/Emulated/Skylanders/SkylanderCrypto.cpp
+  IOS/USB/Emulated/Skylanders/SkylanderCrypto.h
+  IOS/USB/Emulated/Skylanders/SkylanderFigure.cpp
+  IOS/USB/Emulated/Skylanders/SkylanderFigure.h
   IOS/USB/Host.cpp
   IOS/USB/Host.h
   IOS/USB/OH0/OH0.cpp
@@ -545,13 +569,15 @@ add_library(core
   System.h
   TitleDatabase.cpp
   TitleDatabase.h
+  WC24PatchEngine.cpp
+  WC24PatchEngine.h
   WiiRoot.cpp
   WiiRoot.h
   WiiUtils.cpp
   WiiUtils.h
 )
 
-if(_M_X86)
+if(_M_X86_64)
   target_sources(core PRIVATE
     DSP/Jit/x64/DSPEmitter.cpp
     DSP/Jit/x64/DSPEmitter.h
@@ -632,16 +658,14 @@ target_link_libraries(core
 PUBLIC
   audiocommon
   common
-  cubeb
   discio
-  enet
+  enet::enet
   expr
   inputcommon
-  ${MBEDTLS_LIBRARIES}
+  MbedTLS::mbedtls
   pugixml
   RangeSet::RangeSet
   sfml-network
-  sfml-system
   videonull
   videoogl
   videosoftware
@@ -651,14 +675,16 @@ PUBLIC
   vcdenc
 
 PRIVATE
+  cubeb::cubeb
   FatFs
   fmt::fmt
-  ${LZO}
+  LZO::LZO
+  LZ4::LZ4
   ZLIB::ZLIB
 )
 
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
-    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
+    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86_64))
   target_link_libraries(core PRIVATE bdisasm)
 endif()
 
@@ -677,9 +703,8 @@ elseif (ANDROID)
   )
 endif()
 
-if(LIBUSB_FOUND)
-  # Using shared LibUSB
-  target_link_libraries(core PUBLIC ${LIBUSB_LIBRARIES})
+if(TARGET LibUSB::LibUSB)
+  target_link_libraries(core PUBLIC LibUSB::LibUSB)
   target_sources(core PRIVATE
     IOS/USB/LibusbDevice.cpp
     IOS/USB/LibusbDevice.h
@@ -788,4 +813,9 @@ endif()
 if(MSVC)
   # Add precompiled header
   target_link_libraries(core PRIVATE use_pch)
+endif()
+
+if(USE_RETRO_ACHIEVEMENTS)
+  target_link_libraries(core PRIVATE rcheevos)
+  target_compile_definitions(core PRIVATE -DUSE_RETRO_ACHIEVEMENTS)
 endif()

@@ -6,17 +6,18 @@
 #include <array>
 #include <bit>
 #include <limits>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitCommon/DivUtils.h"
@@ -148,16 +149,16 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 
   if (arg.IsImm())
   {
-    MOV(64, PPCSTATE(cr.fields[0]), Imm32(arg.SImm32()));
+    MOV(64, PPCSTATE_CR(0), Imm32(arg.SImm32()));
   }
   else if (needs_sext)
   {
     MOVSX(64, 32, RSCRATCH, arg);
-    MOV(64, PPCSTATE(cr.fields[0]), R(RSCRATCH));
+    MOV(64, PPCSTATE_CR(0), R(RSCRATCH));
   }
   else
   {
-    MOV(64, PPCSTATE(cr.fields[0]), arg);
+    MOV(64, PPCSTATE_CR(0), arg);
   }
 
   if (CheckMergedBranch(0))
@@ -391,14 +392,14 @@ void Jit64::DoMergedBranch()
   if (js.op[1].branchIsIdleLoop)
   {
     if (next.LK)
-      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
+      MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
 
     WriteIdleExit(js.op[1].branchTo);
   }
   else if (next.OPCD == 16)  // bcx
   {
     if (next.LK)
-      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
+      MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
 
     u32 destination;
     if (next.AA)
@@ -410,18 +411,18 @@ void Jit64::DoMergedBranch()
   else if ((next.OPCD == 19) && (next.SUBOP10 == 528))  // bcctrx
   {
     if (next.LK)
-      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
-    MOV(32, R(RSCRATCH), PPCSTATE(spr[SPR_CTR]));
+      MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
+    MOV(32, R(RSCRATCH), PPCSTATE_SPR(SPR_CTR));
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     WriteExitDestInRSCRATCH(next.LK, nextPC + 4);
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 16))  // bclrx
   {
-    MOV(32, R(RSCRATCH), PPCSTATE(spr[SPR_LR]));
+    MOV(32, R(RSCRATCH), PPCSTATE_SPR(SPR_LR));
     if (!m_enable_blr_optimization)
       AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     if (next.LK)
-      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
+      MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
     WriteBLRExit();
   }
   else
@@ -443,13 +444,25 @@ void Jit64::DoMergedBranchCondition()
 
   FixupBranch pDontBranch;
   if (test_bit & 8)
-    pDontBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
+  {
+    // Test < 0, so jump over if >= 0.
+    pDontBranch = J_CC(condition ? CC_GE : CC_L, Jump::Near);
+  }
   else if (test_bit & 4)
-    pDontBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
+  {
+    // Test > 0, so jump over if <= 0.
+    pDontBranch = J_CC(condition ? CC_LE : CC_G, Jump::Near);
+  }
   else if (test_bit & 2)
-    pDontBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
-  else  // SO bit, do not branch (we don't emulate SO for cmp).
-    pDontBranch = J(true);
+  {
+    // Test = 0, so jump over if != 0.
+    pDontBranch = J_CC(condition ? CC_NE : CC_E, Jump::Near);
+  }
+  else
+  {
+    // SO bit, do not branch (we don't emulate SO for cmp).
+    pDontBranch = J(Jump::Near);
+  }
 
   {
     RCForkGuard gpr_guard = gpr.Fork();
@@ -551,12 +564,12 @@ void Jit64::cmpXX(UGeckoInstruction inst)
                                         (u64)gpr.Imm32(a) - (u64)comparand.Imm32();
     if (compareResult == (s32)compareResult)
     {
-      MOV(64, PPCSTATE(cr.fields[crf]), Imm32((u32)compareResult));
+      MOV(64, PPCSTATE_CR(crf), Imm32((u32)compareResult));
     }
     else
     {
       MOV(64, R(RSCRATCH), Imm64(compareResult));
-      MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
+      MOV(64, PPCSTATE_CR(crf), R(RSCRATCH));
     }
 
     if (merge_branch)
@@ -573,7 +586,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
     RegCache::Realize(Ra);
 
-    MOV(64, PPCSTATE(cr.fields[crf]), Ra);
+    MOV(64, PPCSTATE_CR(crf), Ra);
     if (merge_branch)
     {
       TEST(64, Ra, Ra);
@@ -621,7 +634,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
   if (comparand.IsImm() && comparand.Imm32() == 0)
   {
-    MOV(64, PPCSTATE(cr.fields[crf]), R(input));
+    MOV(64, PPCSTATE_CR(crf), R(input));
     // Place the comparison next to the branch for macro-op fusion
     if (merge_branch)
       TEST(64, R(input), R(input));
@@ -629,7 +642,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   else
   {
     SUB(64, R(input), comparand);
-    MOV(64, PPCSTATE(cr.fields[crf]), R(input));
+    MOV(64, PPCSTATE_CR(crf), R(input));
   }
 
   if (merge_branch)
@@ -1223,7 +1236,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
     // power of 2; just a shift
     if (MathUtil::IsPow2(imm))
     {
-      u32 shift = IntLog2(imm);
+      u32 shift = MathUtil::IntLog2(imm);
       // use LEA if it saves an op
       if (d != a && shift <= 3 && shift >= 1 && Ra.IsSimpleReg())
       {
@@ -1731,7 +1744,7 @@ void Jit64::divwx(UGeckoInstruction inst)
       TEST(32, R(dividend), R(dividend));
       LEA(32, sum, MDisp(dividend, abs_val - 1));
       CMOVcc(32, Rd, R(src), cond);
-      SAR(32, Rd, Imm8(IntLog2(abs_val)));
+      SAR(32, Rd, Imm8(MathUtil::IntLog2(abs_val)));
 
       if (divisor < 0)
         NEG(32, Rd);
@@ -2710,13 +2723,13 @@ void Jit64::twX(UGeckoInstruction inst)
   }
 
   constexpr std::array<CCFlags, 5> conditions{{CC_A, CC_B, CC_E, CC_G, CC_L}};
-  std::vector<FixupBranch> fixups;
+  Common::SmallVector<FixupBranch, conditions.size()> fixups;
 
   for (size_t i = 0; i < conditions.size(); i++)
   {
     if (inst.TO & (1 << i))
     {
-      FixupBranch f = J_CC(conditions[i], true);
+      FixupBranch f = J_CC(conditions[i], Jump::Near);
       fixups.push_back(f);
     }
   }
@@ -2739,6 +2752,7 @@ void Jit64::twX(UGeckoInstruction inst)
     gpr.Flush();
     fpr.Flush();
 
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     WriteExceptionExit();
 
     SwitchToNearCode();

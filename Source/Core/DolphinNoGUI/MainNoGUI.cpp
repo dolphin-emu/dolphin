@@ -181,6 +181,10 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
   if (platform_name == "win32" || platform_name.empty())
     return Platform::CreateWin32Platform();
 #endif
+#ifdef __APPLE__
+  if (platform_name == "macos" || platform_name.empty())
+    return Platform::CreateMacOSPlatform();
+#endif
 
   if (platform_name == "headless" || platform_name.empty())
     return Platform::CreateHeadlessPlatform();
@@ -194,6 +198,8 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 
 int main(int argc, char* argv[])
 {
+  Core::DeclareAsHostThread();
+
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
   parser->add_option("-p", "--platform")
       .action("store")
@@ -211,6 +217,10 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
             ,
             "win32"
+#endif
+#ifdef __APPLE__
+            ,
+            "macos"
 #endif
       });
 
@@ -342,7 +352,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
 int wmain(int, wchar_t*[], wchar_t*[])
 {
-  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(GetCommandLineW());
   const int argc = static_cast<int>(args.size());
   std::vector<char*> argv(args.size());
   for (size_t i = 0; i < args.size(); ++i)

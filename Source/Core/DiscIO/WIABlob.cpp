@@ -79,7 +79,7 @@ std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compressio
 
 template <bool RVZ>
 WIARVZFileReader<RVZ>::WIARVZFileReader(File::IOFile file, const std::string& path)
-    : m_file(std::move(file)), m_encryption_cache(this)
+    : m_file(std::move(file)), m_path(path), m_encryption_cache(this)
 {
   m_valid = Initialize(path);
 }
@@ -284,6 +284,12 @@ template <bool RVZ>
 BlobType WIARVZFileReader<RVZ>::GetBlobType() const
 {
   return RVZ ? BlobType::RVZ : BlobType::WIA;
+}
+
+template <bool RVZ>
+std::unique_ptr<BlobReader> WIARVZFileReader<RVZ>::CopyReader() const
+{
+  return Create(m_file.Duplicate("rb"), m_path);
 }
 
 template <bool RVZ>
@@ -1771,16 +1777,17 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 
   // An estimate for how much space will be taken up by headers.
   // We will reserve this much space at the beginning of the file, and if the headers don't
-  // fit on that space, we will need to write them at the end of the file instead.
+  // fit in that space, we will need to write them at the end of the file instead.
   const u64 headers_size_upper_bound = [&] {
     // 0x100 is added to account for compression overhead (in particular for Purge).
     u64 upper_bound = sizeof(WIAHeader1) + sizeof(WIAHeader2) + partition_entries_size +
                       raw_data_entries_size + 0x100;
 
-    // RVZ's added data in GroupEntry usually compresses well, so we'll assume the compression ratio
-    // for RVZ GroupEntries is 9 / 16 or better. This constant is somehwat arbitrarily chosen, but
-    // no games were found that get a worse compression ratio than that. There are some games that
-    // get a worse ratio than 1 / 2, such as Metroid: Other M (PAL) with the default settings.
+    // Compared to WIA, RVZ adds an extra member to the GroupEntry struct. This added data usually
+    // compresses well, so we'll assume the compression ratio for RVZ GroupEntries is 9 / 16 or
+    // better. This constant is somehwat arbitrarily chosen, but no games were found that get a
+    // worse compression ratio than that. There are some games that get a worse ratio than 1 / 2,
+    // such as Metroid: Other M (PAL) with the default settings.
     if (RVZ && compression_type > WIARVZCompressionType::Purge)
       upper_bound += static_cast<u64>(group_entries_size) * 9 / 16;
     else
@@ -1798,7 +1805,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 
   if (!infile->Read(0, header_2.disc_header.size(), header_2.disc_header.data()))
     return ConversionResultCode::ReadFailed;
-  // We intentially do not increment bytes_read here, since these bytes will be read again
+  // We intentionally do not increment bytes_read here, since these bytes will be read again
 
   std::map<ReuseID, GroupEntry> reusable_groups;
   std::mutex reusable_groups_mutex;

@@ -11,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <span>
-#include <sstream>
 #include <thread>
 #include <tuple>
 #include <type_traits>
@@ -23,7 +22,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
-#include "Common/ENetUtil.h"
+#include "Common/ENet.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -67,6 +66,7 @@
 #include "Core/NetPlayCommon.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
+#include "Core/System.h"
 #include "DiscIO/Blob.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
@@ -109,9 +109,9 @@ NetPlayClient::~NetPlayClient()
     Disconnect();
   }
 
-  if (g_MainNetHost.get() == m_client)
+  if (Common::g_MainNetHost.get() == m_client)
   {
-    g_MainNetHost.release();
+    Common::g_MainNetHost.release();
   }
   if (m_client)
   {
@@ -121,7 +121,7 @@ NetPlayClient::~NetPlayClient()
 
   if (m_traversal_client)
   {
-    ReleaseTraversalClient();
+    Common::ReleaseTraversalClient();
   }
 }
 
@@ -142,6 +142,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       m_dialog->OnConnectionError(_trans("Could not create client."));
       return;
     }
+
+    m_client->mtu = std::min(m_client->mtu, NetPlay::MAX_ENET_MTU);
 
     ENetAddress addr;
     enet_address_set_host(&addr, address.c_str());
@@ -165,7 +167,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     {
       if (Connect())
       {
-        m_client->intercept = ENetUtil::InterceptCallback;
+        m_client->intercept = Common::ENet::InterceptCallback;
         m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
       }
     }
@@ -176,18 +178,21 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
   }
   else
   {
-    if (address.size() > NETPLAY_CODE_SIZE)
+    if (address.size() > Common::NETPLAY_CODE_SIZE)
     {
       m_dialog->OnConnectionError(
           _trans("The host code is too long.\nPlease recheck that you have the correct code."));
       return;
     }
 
-    if (!EnsureTraversalClient(traversal_config.traversal_host, traversal_config.traversal_port))
+    if (!Common::EnsureTraversalClient(traversal_config.traversal_host,
+                                       traversal_config.traversal_port))
+    {
       return;
-    m_client = g_MainNetHost.get();
+    }
+    m_client = Common::g_MainNetHost.get();
 
-    m_traversal_client = g_TraversalClient.get();
+    m_traversal_client = Common::g_TraversalClient.get();
 
     // If we were disconnected in the background, reconnect.
     if (m_traversal_client->HasFailed())
@@ -238,6 +243,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
 bool NetPlayClient::Connect()
 {
+  INFO_LOG_FMT(NETPLAY, "Connecting to server.");
+
   // send connect message
   sf::Packet packet;
   packet << Common::GetScmRevGitStr();
@@ -249,7 +256,8 @@ bool NetPlayClient::Connect()
   // TODO: make this not hang
   ENetEvent netEvent;
   int net;
-  while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 && netEvent.type == 42)
+  while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 &&
+         static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
   {
     // ignore packets from traversal server
   }
@@ -526,10 +534,7 @@ void NetPlayClient::OnChatMessage(sf::Packet& packet)
   INFO_LOG_FMT(NETPLAY, "Player {} ({}) wrote: {}", player.name, player.pid, msg);
 
   // add to gui
-  std::ostringstream ss;
-  ss << player.name << '[' << char(pid + '0') << "]: " << msg;
-
-  m_dialog->AppendChat(ss.str());
+  m_dialog->AppendChat(fmt::format("{}[{}]: {}", player.name, pid, msg));
 }
 
 void NetPlayClient::OnChunkedDataStart(sf::Packet& packet)
@@ -539,6 +544,8 @@ void NetPlayClient::OnChunkedDataStart(sf::Packet& packet)
   std::string title;
   packet >> title;
   const u64 data_size = Common::PacketReadU64(packet);
+
+  INFO_LOG_FMT(NETPLAY, "Starting data chunk {}.", cid);
 
   m_chunked_data_receive_queue.emplace(cid, sf::Packet{});
 
@@ -554,7 +561,12 @@ void NetPlayClient::OnChunkedDataEnd(sf::Packet& packet)
 
   const auto data_packet_iter = m_chunked_data_receive_queue.find(cid);
   if (data_packet_iter == m_chunked_data_receive_queue.end())
+  {
+    INFO_LOG_FMT(NETPLAY, "Invalid data chunk ID {}.", cid);
     return;
+  }
+
+  INFO_LOG_FMT(NETPLAY, "Ending data chunk {}.", cid);
 
   auto& data_packet = data_packet_iter->second;
   OnData(data_packet);
@@ -574,7 +586,10 @@ void NetPlayClient::OnChunkedDataPayload(sf::Packet& packet)
 
   const auto data_packet_iter = m_chunked_data_receive_queue.find(cid);
   if (data_packet_iter == m_chunked_data_receive_queue.end())
+  {
+    INFO_LOG_FMT(NETPLAY, "Invalid data chunk ID {}.", cid);
     return;
+  }
 
   auto& data_packet = data_packet_iter->second;
   while (!packet.endOfPacket())
@@ -583,6 +598,8 @@ void NetPlayClient::OnChunkedDataPayload(sf::Packet& packet)
     packet >> byte;
     data_packet << byte;
   }
+
+  INFO_LOG_FMT(NETPLAY, "Received {} bytes of data chunk {}.", data_packet.getDataSize(), cid);
 
   m_dialog->SetChunkedProgress(m_local_player->pid, data_packet.getDataSize());
 
@@ -600,7 +617,12 @@ void NetPlayClient::OnChunkedDataAbort(sf::Packet& packet)
 
   const auto iter = m_chunked_data_receive_queue.find(cid);
   if (iter == m_chunked_data_receive_queue.end())
+  {
+    INFO_LOG_FMT(NETPLAY, "Invalid data chunk ID {}.", cid);
     return;
+  }
+
+  INFO_LOG_FMT(NETPLAY, "Aborting data chunk {}.", cid);
 
   m_chunked_data_receive_queue.erase(iter);
   m_dialog->HideChunkedProgressDialog();
@@ -1283,6 +1305,8 @@ void NetPlayClient::OnSyncCodes(sf::Packet& packet)
   SyncCodeID sub_id;
   packet >> sub_id;
 
+  INFO_LOG_FMT(NETPLAY, "Processing OnSyncCodes sub id: {}", static_cast<u8>(sub_id));
+
   // Check Which Operation to Perform with This Packet
   switch (sub_id)
   {
@@ -1330,7 +1354,7 @@ void NetPlayClient::OnSyncCodesNotifyGecko(sf::Packet& packet)
 
   m_sync_gecko_codes_success_count = 0;
 
-  NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
+  INFO_LOG_FMT(NETPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
 
   // Check if no codes to sync, if so return as finished
   if (m_sync_gecko_codes_count == 0)
@@ -1364,7 +1388,7 @@ void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
     packet >> new_code.address;
     packet >> new_code.data;
 
-    NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.address, new_code.data);
+    INFO_LOG_FMT(NETPLAY, "Received {:08x} {:08x}", new_code.address, new_code.data);
 
     gcode.codes.push_back(std::move(new_code));
 
@@ -1397,7 +1421,7 @@ void NetPlayClient::OnSyncCodesNotifyAR(sf::Packet& packet)
 
   m_sync_ar_codes_success_count = 0;
 
-  NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} AR codelines", m_sync_ar_codes_count);
+  INFO_LOG_FMT(NETPLAY, "Receiving {} AR codelines", m_sync_ar_codes_count);
 
   // Check if no codes to sync, if so return as finished
   if (m_sync_ar_codes_count == 0)
@@ -1431,7 +1455,7 @@ void NetPlayClient::OnSyncCodesDataAR(sf::Packet& packet)
     packet >> new_code.cmd_addr;
     packet >> new_code.value;
 
-    NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.cmd_addr, new_code.value);
+    INFO_LOG_FMT(NETPLAY, "Received {:08x} {:08x}", new_code.cmd_addr, new_code.value);
     arcode.ops.push_back(new_code);
 
     if (++m_sync_ar_codes_success_count >= m_sync_ar_codes_count)
@@ -1498,7 +1522,7 @@ void NetPlayClient::OnGameDigestAbort()
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
-  ENetUtil::SendPacket(m_server, packet, channel_id);
+  Common::ENet::SendPacket(m_server, packet, channel_id);
 }
 
 void NetPlayClient::DisplayPlayersPing()
@@ -1553,12 +1577,14 @@ void NetPlayClient::SendAsync(sf::Packet&& packet, const u8 channel_id)
     std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(AsyncQueueEntry{std::move(packet), channel_id});
   }
-  ENetUtil::WakeupThread(m_client);
+  Common::ENet::WakeupThread(m_client);
 }
 
 // called from ---NETPLAY--- thread
 void NetPlayClient::ThreadFunc()
 {
+  INFO_LOG_FMT(NETPLAY, "NetPlayClient starting.");
+
   Common::QoSSession qos_session;
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
   {
@@ -1587,10 +1613,12 @@ void NetPlayClient::ThreadFunc()
     net = enet_host_service(m_client, &netEvent, 250);
     while (!m_async_queue.Empty())
     {
+      INFO_LOG_FMT(NETPLAY, "Processing async queue event.");
       {
         auto& e = m_async_queue.Front();
         Send(e.packet, e.channel_id);
       }
+      INFO_LOG_FMT(NETPLAY, "Processing async queue event done.");
       m_async_queue.Pop();
     }
     if (net > 0)
@@ -1598,13 +1626,20 @@ void NetPlayClient::ThreadFunc()
       sf::Packet rpac;
       switch (netEvent.type)
       {
+      case ENET_EVENT_TYPE_CONNECT:
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: connect event");
+        break;
       case ENET_EVENT_TYPE_RECEIVE:
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: receive event");
+
         rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
         OnData(rpac);
 
         enet_packet_destroy(netEvent.packet);
         break;
       case ENET_EVENT_TYPE_DISCONNECT:
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: disconnect event");
+
         m_dialog->OnConnectionLost();
 
         if (m_is_running.IsSet())
@@ -1612,10 +1647,25 @@ void NetPlayClient::ThreadFunc()
 
         break;
       default:
+        // not a valid switch case due to not technically being part of the enum
+        if (static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
+          INFO_LOG_FMT(NETPLAY, "enet_host_service: skippable packet event");
+        else
+          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
         break;
       }
     }
+    else if (net == 0)
+    {
+      INFO_LOG_FMT(NETPLAY, "enet_host_service: no event occurred");
+    }
+    else
+    {
+      ERROR_LOG_FMT(NETPLAY, "enet_host_service error: {}", net);
+    }
   }
+
+  INFO_LOG_FMT(NETPLAY, "NetPlayClient shutting down.");
 
   Disconnect();
   return;
@@ -1716,8 +1766,9 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   if (m_dialog->IsRecording())
   {
-    if (Movie::IsReadOnly())
-      Movie::SetReadOnly(false);
+    auto& movie = Core::System::GetInstance().GetMovie();
+    if (movie.IsReadOnly())
+      movie.SetReadOnly(false);
 
     Movie::ControllerTypeArray controllers{};
     Movie::WiimoteEnabledArray wiimotes{};
@@ -1731,7 +1782,7 @@ bool NetPlayClient::StartGame(const std::string& path)
         controllers[i] = Movie::ControllerType::None;
       wiimotes[i] = m_wiimote_map[i] > 0;
     }
-    Movie::BeginRecordingInput(controllers, wiimotes);
+    movie.BeginRecordingInput(controllers, wiimotes);
   }
 
   for (unsigned int i = 0; i < 4; ++i)
@@ -1836,11 +1887,12 @@ void NetPlayClient::UpdateDevices()
   u8 local_pad = 0;
   u8 pad = 0;
 
+  auto& si = Core::System::GetInstance().GetSerialInterface();
   for (auto player_id : m_pad_map)
   {
     if (m_gba_config[pad].enabled && player_id > 0)
     {
-      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_GBA_EMULATED, pad);
+      si.ChangeDevice(SerialInterface::SIDEVICE_GC_GBA_EMULATED, pad);
     }
     else if (player_id == m_local_player->pid)
     {
@@ -1849,7 +1901,7 @@ void NetPlayClient::UpdateDevices()
           Config::Get(Config::GetInfoForSIDevice(local_pad));
       if (SerialInterface::SIDevice_IsGCController(si_device))
       {
-        SerialInterface::ChangeDevice(si_device, pad);
+        si.ChangeDevice(si_device, pad);
 
         if (si_device == SerialInterface::SIDEVICE_WIIU_ADAPTER)
         {
@@ -1858,17 +1910,17 @@ void NetPlayClient::UpdateDevices()
       }
       else
       {
-        SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+        si.ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
       }
       local_pad++;
     }
     else if (player_id > 0)
     {
-      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+      si.ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
     }
     else
     {
-      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_NONE, pad);
+      si.ChangeDevice(SerialInterface::SIDEVICE_NONE, pad);
     }
     pad++;
   }
@@ -1891,16 +1943,16 @@ void NetPlayClient::ClearBuffers()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnTraversalStateChanged()
 {
-  const TraversalClient::State state = m_traversal_client->GetState();
+  const Common::TraversalClient::State state = m_traversal_client->GetState();
 
   if (m_connection_state == ConnectionState::WaitingForTraversalClientConnection &&
-      state == TraversalClient::State::Connected)
+      state == Common::TraversalClient::State::Connected)
   {
     m_connection_state = ConnectionState::WaitingForTraversalClientConnectReady;
     m_traversal_client->ConnectToClient(m_host_spec);
   }
   else if (m_connection_state != ConnectionState::Failure &&
-           state == TraversalClient::State::Failure)
+           state == Common::TraversalClient::State::Failure)
   {
     Disconnect();
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
@@ -1919,19 +1971,19 @@ void NetPlayClient::OnConnectReady(ENetAddress addr)
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
+void NetPlayClient::OnConnectFailed(Common::TraversalConnectFailedReason reason)
 {
   m_connecting = false;
   m_connection_state = ConnectionState::Failure;
   switch (reason)
   {
-  case TraversalConnectFailedReason::ClientDidntRespond:
+  case Common::TraversalConnectFailedReason::ClientDidntRespond:
     PanicAlertFmtT("Traversal server timed out connecting to the host");
     break;
-  case TraversalConnectFailedReason::ClientFailure:
+  case Common::TraversalConnectFailedReason::ClientFailure:
     PanicAlertFmtT("Server rejected traversal attempt");
     break;
-  case TraversalConnectFailedReason::NoSuchClient:
+  case Common::TraversalConnectFailedReason::NoSuchClient:
     PanicAlertFmtT("Invalid host");
     break;
   default:
@@ -2066,14 +2118,15 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
 
   m_pad_buffer[pad_nb].Pop(*pad_status);
 
-  if (Movie::IsRecordingInput())
+  auto& movie = Core::System::GetInstance().GetMovie();
+  if (movie.IsRecordingInput())
   {
-    Movie::RecordInput(pad_status, pad_nb);
-    Movie::InputUpdate();
+    movie.RecordInput(pad_status, pad_nb);
+    movie.InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, pad_nb);
+    movie.CheckPadStatus(pad_status, pad_nb);
   }
 
   return true;
@@ -2474,7 +2527,7 @@ void NetPlayClient::SendTimeBase()
 
   if (netplay_client->m_timebase_frame % 60 == 0)
   {
-    const sf::Uint64 timebase = SystemTimers::GetFakeTimeBase();
+    const sf::Uint64 timebase = Core::System::GetInstance().GetSystemTimers().GetFakeTimeBase();
 
     sf::Packet packet;
     packet << MessageID::TimeBase;

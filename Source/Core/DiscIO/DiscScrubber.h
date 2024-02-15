@@ -27,9 +27,8 @@ class DiscScrubber final
 {
 public:
   DiscScrubber();
-  ~DiscScrubber();
 
-  bool SetupScrub(const Volume* disc);
+  bool SetupScrub(const Volume& disc);
 
   // Returns true if the specified 32 KiB block only contains unused data
   bool CanBlockBeScrubbed(u64 offset) const;
@@ -40,16 +39,15 @@ private:
   void MarkAsUsed(u64 offset, u64 size);
   void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
   u64 ToClusterOffset(u64 offset) const;
-  bool ReadFromVolume(u64 offset, u32& buffer, const Partition& partition);
-  bool ReadFromVolume(u64 offset, u64& buffer, const Partition& partition);
-  bool ParseDisc();
-  bool ParsePartitionData(const Partition& partition);
+  bool ReadFromVolume(const Volume& disc, u64 offset, u32& buffer, const Partition& partition);
+  bool ReadFromVolume(const Volume& disc, u64 offset, u64& buffer, const Partition& partition);
+  bool ParseDisc(const Volume& disc);
+  bool ParsePartitionData(const Volume& disc, const Partition& partition);
   void ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory);
-
-  const Volume* m_disc = nullptr;
 
   std::vector<u8> m_free_table;
   u64 m_file_size = 0;
+  bool m_has_wii_hashes = false;
   bool m_is_scrubbing = false;
 };
 

@@ -154,7 +154,7 @@ bool SwapChain::SelectSurfaceFormat()
                                              &format_count, surface_formats.data());
   ASSERT(res == VK_SUCCESS);
 
-  // If there is a single undefined surface format, the device doesn't care, so we'll just use RGBA
+  // If there is a single undefined surface format, the device doesn't care, so we'll just use RGBA8
   if (surface_formats[0].format == VK_FORMAT_UNDEFINED)
   {
     m_surface_format.format = VK_FORMAT_R8G8B8A8_UNORM;
@@ -162,22 +162,61 @@ bool SwapChain::SelectSurfaceFormat()
     return true;
   }
 
-  // Try to find a suitable format.
+  const VkSurfaceFormatKHR* surface_format_RGBA8 = nullptr;
+  const VkSurfaceFormatKHR* surface_format_BGRA8 = nullptr;
+  const VkSurfaceFormatKHR* surface_format_RGB10_A2 = nullptr;
+  const VkSurfaceFormatKHR* surface_format_RGBA16F_scRGB = nullptr;
+
+  // Try to find all suitable formats.
   for (const VkSurfaceFormatKHR& surface_format : surface_formats)
   {
-    // Some drivers seem to return a SRGB format here (Intel Mesa).
-    // This results in gamma correction when presenting to the screen, which we don't want.
-    // Use a linear format instead, if this is the case.
+    // Some drivers seem to return a RGBA8 SRGB format here (Intel Mesa).
+    // Some other drivers return both a RGBA8 SRGB and UNORM formats (Nvidia).
+    // This results in gamma correction when presenting to the screen, which we don't want,
+    // because we already apply gamma ourselves, and we might not use sRGB gamma.
+    // Force using a linear format instead, if this is the case.
     VkFormat format = VKTexture::GetLinearFormat(surface_format.format);
+    if (format == VK_FORMAT_R8G8B8A8_UNORM)
+      surface_format_RGBA8 = &surface_format;
+    else if (format == VK_FORMAT_B8G8R8A8_UNORM)
+      surface_format_BGRA8 = &surface_format;
+    else if (format == VK_FORMAT_A2B10G10R10_UNORM_PACK32 &&
+             surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+      surface_format_RGB10_A2 = &surface_format;
+    else if (format == VK_FORMAT_R16G16B16A16_SFLOAT &&
+             surface_format.colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)
+      surface_format_RGBA16F_scRGB = &surface_format;
+    else
+      continue;
+  }
+
+  const VkSurfaceFormatKHR* surface_format = nullptr;
+
+  // Pick the best format.
+  // "g_ActiveConfig" might not have been been updated yet.
+  if (g_Config.bHDR && surface_format_RGBA16F_scRGB)
+    surface_format = surface_format_RGBA16F_scRGB;
+  else if (surface_format_RGB10_A2)
+    surface_format = surface_format_RGB10_A2;
+  else if (surface_format_RGBA8)
+    surface_format = surface_format_RGBA8;
+  else if (surface_format_BGRA8)
+    surface_format = surface_format_BGRA8;
+
+  if (surface_format)
+  {
+    const VkFormat format = VKTexture::GetLinearFormat(surface_format->format);
     if (format == VK_FORMAT_R8G8B8A8_UNORM)
       m_texture_format = AbstractTextureFormat::RGBA8;
     else if (format == VK_FORMAT_B8G8R8A8_UNORM)
       m_texture_format = AbstractTextureFormat::BGRA8;
-    else
-      continue;
+    else if (format == VK_FORMAT_A2B10G10R10_UNORM_PACK32)
+      m_texture_format = AbstractTextureFormat::RGB10_A2;
+    else if (format == VK_FORMAT_R16G16B16A16_SFLOAT)
+      m_texture_format = AbstractTextureFormat::RGBA16F;
 
     m_surface_format.format = format;
-    m_surface_format.colorSpace = surface_format.colorSpace;
+    m_surface_format.colorSpace = surface_format->colorSpace;
     return true;
   }
 
@@ -389,8 +428,9 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
-  const TextureConfig texture_config(TextureConfig(
-      m_width, m_height, 1, m_layers, 1, m_texture_format, AbstractTextureFlag_RenderTarget));
+  const TextureConfig texture_config(
+      TextureConfig(m_width, m_height, 1, m_layers, 1, m_texture_format,
+                    AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray));
   const VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
       m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_LOAD);
   const VkRenderPass clear_render_pass = g_object_cache->GetRenderPass(
@@ -415,7 +455,7 @@ bool SwapChain::SetupSwapChainImages()
     if (!image.texture)
       return false;
 
-    image.framebuffer = VKFramebuffer::Create(image.texture.get(), nullptr);
+    image.framebuffer = VKFramebuffer::Create(image.texture.get(), nullptr, {});
     if (!image.framebuffer)
     {
       image.texture.reset();

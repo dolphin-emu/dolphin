@@ -29,6 +29,7 @@
 #include "Core/System.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/GameCubePane.h"
@@ -105,7 +106,7 @@ void GBAWidget::GameChanged(const HW::GBA::CoreInfo& info)
   update();
 }
 
-void GBAWidget::SetVideoBuffer(std::vector<u32> video_buffer)
+void GBAWidget::SetVideoBuffer(std::span<const u32> video_buffer)
 {
   m_previous_frame = std::move(m_last_frame);
   if (video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
@@ -364,7 +365,7 @@ void GBAWidget::SaveSettings()
 
 bool GBAWidget::CanControlCore()
 {
-  return !Movie::IsMovieActive() && !NetPlay::IsNetPlayRunning();
+  return !Core::System::GetInstance().GetMovie().IsMovieActive() && !NetPlay::IsNetPlayRunning();
 }
 
 bool GBAWidget::CanResetCore()
@@ -486,6 +487,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   size_menu->addAction(x4_action);
 
   menu->move(event->globalPos());
+  SetQWidgetWindowDecorations(menu);
   menu->show();
 }
 
@@ -514,12 +516,7 @@ void GBAWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (!m_moving)
     return;
-  auto event_pos =
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-      event->globalPosition().toPoint();
-#else
-      event->globalPos();
-#endif
+  auto event_pos = event->globalPosition().toPoint();
   move(event_pos - m_move_pos - (geometry().topLeft() - pos()));
 }
 
@@ -611,7 +608,7 @@ void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info)
   m_widget->GameChanged(info);
 }
 
-void GBAWidgetController::FrameEnded(std::vector<u32> video_buffer)
+void GBAWidgetController::FrameEnded(std::span<const u32> video_buffer)
 {
-  m_widget->SetVideoBuffer(std::move(video_buffer));
+  m_widget->SetVideoBuffer(video_buffer);
 }

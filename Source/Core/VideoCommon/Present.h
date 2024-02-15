@@ -46,19 +46,21 @@ public:
 
   void ConfigChanged(u32 changed_bits);
 
-  // Display resolution
+  // Window resolution (display resolution if fullscreen)
   int GetBackbufferWidth() const { return m_backbuffer_width; }
   int GetBackbufferHeight() const { return m_backbuffer_height; }
   float GetBackbufferScale() const { return m_backbuffer_scale; }
   u32 AutoIntegralScale() const;
   AbstractTextureFormat GetBackbufferFormat() const { return m_backbuffer_format; }
-  void SetWindowSize(int width, int height);
+  void SetSuggestedWindowSize(int width, int height);
   void SetBackbuffer(int backbuffer_width, int backbuffer_height);
   void SetBackbuffer(SurfaceInfo info);
+  void OnBackbufferSet(bool size_changed, bool is_first_set);
 
   void UpdateDrawRectangle();
 
-  float CalculateDrawAspectRatio() const;
+  // Returns the target aspect ratio the XFB output should be drawn with.
+  float CalculateDrawAspectRatio(bool allow_stretch = true) const;
 
   // Crops the target rectangle to the framebuffer dimensions, reducing the size of the source
   // rectangle if it is greater. Works even if the source and target rectangles don't have a
@@ -103,9 +105,14 @@ private:
 
   void ProcessFrameDumping(u64 ticks) const;
 
-  std::tuple<int, int> CalculateOutputDimensions(int width, int height) const;
-  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height) const;
-  std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
+  void OnBackBufferSizeChanged();
+
+  std::tuple<int, int> CalculateOutputDimensions(int width, int height,
+                                                 bool allow_stretch = true) const;
+  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
+                                                   bool allow_stretch = true) const;
+  std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
+                                                     bool allow_stretch = true) const;
 
   // Use this to convert a single target rectangle to two stereo rectangles
   std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>
@@ -123,7 +130,12 @@ private:
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;
 
+  // The presentation rectangle.
+  // Width and height correspond to the final output resolution.
+  // Offsets imply black borders (if the window aspect ratio doesn't match the game's one).
   MathUtil::Rectangle<int> m_target_rectangle = {};
+
+  u32 m_auto_resolution_scale = 1;
 
   RcTcacheEntry m_xfb_entry;
   MathUtil::Rectangle<int> m_xfb_rect;
@@ -131,7 +143,7 @@ private:
   // Tracking of XFB textures so we don't render duplicate frames.
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
 
-  // These will be set on the first call to SetWindowSize.
+  // These will be set on the first call to SetSuggestedWindowSize.
   int m_last_window_request_width = 0;
   int m_last_window_request_height = 0;
 

@@ -40,6 +40,7 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
     config_layer->Set(Config::SYSCONF_LANGUAGE, static_cast<u32>(dtm->language));
   else
     config_layer->Set(Config::MAIN_GC_LANGUAGE, static_cast<int>(dtm->language));
+  config_layer->Set(Config::SYSCONF_WIDESCREEN, dtm->bWidescreen);
 
   config_layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, dtm->bEFBAccessEnable);
   config_layer->Set(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, dtm->bSkipEFBCopyToRam);
@@ -67,6 +68,7 @@ void SaveToDTM(Movie::DTMHeader* dtm)
     dtm->language = Config::Get(Config::SYSCONF_LANGUAGE);
   else
     dtm->language = Config::Get(Config::MAIN_GC_LANGUAGE);
+  dtm->bWidescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 
   dtm->bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   dtm->bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);

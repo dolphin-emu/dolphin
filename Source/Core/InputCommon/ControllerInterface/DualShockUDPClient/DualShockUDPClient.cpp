@@ -128,7 +128,7 @@ private:
   };
 
 public:
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
   Device(std::string name, int index, std::string server_address, u16 server_port, u32 client_uid);
 
@@ -219,7 +219,7 @@ private:
   SteadyClock::time_point m_next_listports_time;
   std::thread m_hotplug_thread;
   Common::Flag m_hotplug_thread_running;
-  std::size_t m_config_change_callback_id;
+  Config::ConfigChangedCallbackID m_config_change_callback_id;
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
@@ -614,7 +614,7 @@ std::string Device::GetSource() const
   return std::string(DUALSHOCKUDP_SOURCE_NAME);
 }
 
-void Device::UpdateInput()
+Core::DeviceRemoval Device::UpdateInput()
 {
   // Regularly tell the UDP server to feed us controller data
   const auto now = SteadyClock::now();
@@ -660,6 +660,8 @@ void Device::UpdateInput()
       m_prev_touch_valid = true;
     }
   }
+
+  return Core::DeviceRemoval::Keep;
 }
 
 std::optional<int> Device::GetPreferredId() const

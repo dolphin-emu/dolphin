@@ -14,6 +14,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
@@ -24,8 +25,9 @@
 namespace SerialInterface
 {
 // --- standard GameCube controller ---
-CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_number)
-    : ISIDevice(device, device_number)
+CSIDevice_GCController::CSIDevice_GCController(Core::System& system, SIDevices device,
+                                               int device_number)
+    : ISIDevice(system, device, device_number)
 {
   // Here we set origin to perfectly centered values.
   // This purposely differs from real hardware which sets origin to current input state.
@@ -35,14 +37,6 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_numb
   m_origin.origin_stick_y = GCPadStatus::MAIN_STICK_CENTER_Y;
   m_origin.substick_x = GCPadStatus::C_STICK_CENTER_X;
   m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
-
-  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
-  RefreshConfig();
-}
-
-CSIDevice_GCController::~CSIDevice_GCController()
-{
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
@@ -126,25 +120,26 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(int device_number, GCPadStatus* pad_status)
+void CSIDevice_GCController::HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
+                                                  GCPadStatus* pad_status)
 {
-  Movie::SetPolledDevice();
+  movie.SetPolledDevice();
   if (NetPlay_GetInput(device_number, pad_status))
   {
   }
-  else if (Movie::IsPlayingInput())
+  else if (movie.IsPlayingInput())
   {
-    Movie::PlayController(pad_status, device_number);
-    Movie::InputUpdate();
+    movie.PlayController(pad_status, device_number);
+    movie.InputUpdate();
   }
-  else if (Movie::IsRecordingInput())
+  else if (movie.IsRecordingInput())
   {
-    Movie::RecordInput(pad_status, device_number);
-    Movie::InputUpdate();
+    movie.RecordInput(pad_status, device_number);
+    movie.InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, device_number);
+    movie.CheckPadStatus(pad_status, device_number);
   }
 }
 
@@ -159,7 +154,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
     pad_status = Pad::GetStatus(m_device_number);
   }
 
-  HandleMoviePadStatus(m_device_number, &pad_status);
+  HandleMoviePadStatus(m_system.GetMovie(), m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
@@ -264,19 +259,19 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   {
     m_last_button_combo = temp_combo;
     if (m_last_button_combo != COMBO_NONE)
-      m_timer_button_combo_start = Core::System::GetInstance().GetCoreTiming().GetTicks();
+      m_timer_button_combo_start = m_system.GetCoreTiming().GetTicks();
   }
 
   if (m_last_button_combo != COMBO_NONE)
   {
-    auto& system = Core::System::GetInstance();
-    const u64 current_time = system.GetCoreTiming().GetTicks();
-    if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
+    const u64 current_time = m_system.GetCoreTiming().GetTicks();
+    const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
+    if (u32(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
         INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_RESET");
-        system.GetProcessorInterface().ResetButton_Tap();
+        m_system.GetProcessorInterface().ResetButton_Tap();
       }
       else if (m_last_button_combo == COMBO_ORIGIN)
       {
@@ -316,7 +311,7 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 
     if (pad_num < 4)
     {
-      const SIDevices device = m_config_si_devices[pad_num];
+      const SIDevices device = m_system.GetSerialInterface().GetDeviceType(pad_num);
       if (type == 1)
         CSIDevice_GCController::Rumble(pad_num, 1.0, device);
       else
@@ -346,17 +341,8 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_last_button_combo);
 }
 
-void CSIDevice_GCController::RefreshConfig()
-{
-  for (int i = 0; i < 4; ++i)
-  {
-    const SerialInterface::SIDevices device = Config::Get(Config::GetInfoForSIDevice(i));
-    m_config_si_devices[i] = device;
-  }
-}
-
-CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)
-    : CSIDevice_GCController(device, device_number)
+CSIDevice_TaruKonga::CSIDevice_TaruKonga(Core::System& system, SIDevices device, int device_number)
+    : CSIDevice_GCController(system, device, device_number)
 {
 }
 

@@ -53,14 +53,16 @@ constexpr std::array<u16, 4> classic_dpad_bitmasks{{
 
 Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
   for (auto& button_name :
        {A_BUTTON, B_BUTTON, X_BUTTON, Y_BUTTON, ZL_BUTTON, ZR_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
   {
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, button_name);
+    m_buttons->AddInput(Translatability::DoNotTranslate, button_name);
   }
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
+  m_buttons->AddInput(Translatability::DoNotTranslate, HOME_BUTTON, "HOME");
 
   // sticks
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / CAL_STICK_RADIUS;
@@ -73,14 +75,14 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(TRIGGERS_GROUP));
   for (const char* trigger_name : {L_DIGITAL, R_DIGITAL, L_ANALOG, R_ANALOG})
   {
-    m_triggers->AddInput(ControllerEmu::Translate, trigger_name);
+    m_triggers->AddInput(Translatability::Translate, trigger_name);
   }
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+    m_dpad->AddInput(Translatability::Translate, named_direction);
   }
 }
 

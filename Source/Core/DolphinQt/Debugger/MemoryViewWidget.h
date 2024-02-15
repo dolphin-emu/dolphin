@@ -18,7 +18,8 @@ enum class Type;
 namespace Core
 {
 class CPUThreadGuard;
-}
+class System;
+}  // namespace Core
 
 class MemoryViewTable;
 
@@ -59,7 +60,7 @@ public:
   void UpdateFont();
   void ToggleBreakpoint(u32 addr, bool row);
 
-  std::vector<u8> ConvertTextToBytes(Type type, QString input_text);
+  std::vector<u8> ConvertTextToBytes(Type type, QStringView input_text) const;
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
@@ -84,6 +85,8 @@ private:
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
   QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+
+  Core::System& m_system;
 
   MemoryViewTable* m_table;
   QScrollBar* m_scrollbar;

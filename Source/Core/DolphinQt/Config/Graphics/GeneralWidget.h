@@ -4,34 +4,32 @@
 #pragma once
 
 #include <array>
-#include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
-class GraphicsBool;
-class GraphicsChoice;
-class GraphicsRadioInt;
+#include <QWidget>
+
+class ConfigBool;
+class ConfigChoice;
+class ConfigInteger;
+class ConfigRadioInt;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
+class QLabel;
 class QRadioButton;
 class QGridLayout;
 class ToolTipComboBox;
 
-namespace X11Utils
-{
-class XRRConfiguration;
-}
-
-class GeneralWidget final : public GraphicsWidget
+class GeneralWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent);
+  explicit GeneralWidget(GraphicsWindow* parent);
 signals:
   void BackendChanged(const QString& backend);
 
 private:
-  void LoadSettings() override;
-  void SaveSettings() override;
+  void LoadSettings();
+  void SaveSettings();
 
   void CreateWidgets();
   void ConnectWidgets();
@@ -44,17 +42,18 @@ private:
   QGridLayout* m_video_layout;
   ToolTipComboBox* m_backend_combo;
   ToolTipComboBox* m_adapter_combo;
-  GraphicsChoice* m_aspect_combo;
-  GraphicsBool* m_enable_vsync;
-  GraphicsBool* m_enable_fullscreen;
+  ConfigChoice* m_aspect_combo;
+  QLabel* m_custom_aspect_label;
+  ConfigInteger* m_custom_aspect_width;
+  ConfigInteger* m_custom_aspect_height;
+  ConfigBool* m_enable_vsync;
+  ConfigBool* m_enable_fullscreen;
 
   // Options
-  GraphicsBool* m_show_ping;
-  GraphicsBool* m_autoadjust_window_size;
-  GraphicsBool* m_show_messages;
-  GraphicsBool* m_render_main_window;
-  std::array<GraphicsRadioInt*, 4> m_shader_compilation_mode{};
-  GraphicsBool* m_wait_for_shaders;
-
-  X11Utils::XRRConfiguration* m_xrr_config;
+  ConfigBool* m_show_ping;
+  ConfigBool* m_autoadjust_window_size;
+  ConfigBool* m_show_messages;
+  ConfigBool* m_render_main_window;
+  std::array<ConfigRadioInt*, 4> m_shader_compilation_mode{};
+  ConfigBool* m_wait_for_shaders;
 };

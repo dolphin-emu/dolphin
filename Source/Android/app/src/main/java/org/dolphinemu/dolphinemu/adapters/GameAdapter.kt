@@ -17,6 +17,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.databinding.CardGameBinding
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog
@@ -24,7 +25,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.utils.CoilUtils
 import java.util.ArrayList
 
-class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapter<GameViewHolder>(),
+class GameAdapter : RecyclerView.Adapter<GameViewHolder>(),
     View.OnClickListener, OnLongClickListener {
     private var mGameFiles: List<GameFile> = ArrayList()
 
@@ -59,32 +60,19 @@ class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapte
         val gameFile = mGameFiles[position]
 
         holder.apply {
-            if (BooleanSetting.MAIN_SHOW_GAME_TITLES.booleanGlobal) {
-                binding.textGameTitle.text = gameFile.title
+            if (BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean) {
+                binding.textGameTitle.text = gameFile.getTitle()
                 binding.textGameTitle.visibility = View.VISIBLE
                 binding.textGameTitleInner.visibility = View.GONE
                 binding.textGameCaption.visibility = View.VISIBLE
             } else {
-                binding.textGameTitleInner.text = gameFile.title
+                binding.textGameTitleInner.text = gameFile.getTitle()
                 binding.textGameTitleInner.visibility = View.VISIBLE
                 binding.textGameTitle.visibility = View.GONE
                 binding.textGameCaption.visibility = View.GONE
             }
         }
-
-        mActivity.lifecycleScope.launchWhenStarted {
-            withContext(Dispatchers.IO) {
-                val customCoverUri = CoilUtils.findCustomCover(gameFile)
-                withContext(Dispatchers.Main) {
-                    CoilUtils.loadGameCover(
-                        holder,
-                        holder.binding.imageGameScreen,
-                        gameFile,
-                        customCoverUri
-                    )
-                }
-            }
-        }
+        CoilUtils.loadGameCover(holder, holder.binding.imageGameScreen, gameFile)
 
         val animateIn = AnimationUtils.loadAnimation(context, R.anim.anim_card_game_in)
         animateIn.fillAfter = true
@@ -93,9 +81,9 @@ class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapte
         holder.apply {
             if (GameFileCacheManager.findSecondDisc(gameFile) != null) {
                 binding.textGameCaption.text =
-                    context.getString(R.string.disc_number, gameFile.discNumber + 1)
+                    context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1)
             } else {
-                binding.textGameCaption.text = gameFile.company
+                binding.textGameCaption.text = gameFile.getCompany()
             }
             holder.gameFile = gameFile
             binding.root.onFocusChangeListener =

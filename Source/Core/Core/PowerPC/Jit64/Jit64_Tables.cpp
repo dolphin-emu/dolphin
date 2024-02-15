@@ -5,17 +5,19 @@
 
 #include <array>
 
+#include "Common/Assert.h"
+#include "Common/TypeUtils.h"
 #include "Core/PowerPC/Gekko.h"
 
 namespace
 {
-struct GekkoOPTemplate
+struct Jit64OpTemplate
 {
   u32 opcode;
   Jit64::Instruction fn;
 };
 
-constexpr std::array<GekkoOPTemplate, 54> s_primary_table{{
+constexpr std::array<Jit64OpTemplate, 54> s_primary_table{{
     {4, &Jit64::DynaRunTable4},    // RunTable4
     {19, &Jit64::DynaRunTable19},  // RunTable19
     {31, &Jit64::DynaRunTable31},  // RunTable31
@@ -85,7 +87,7 @@ constexpr std::array<GekkoOPTemplate, 54> s_primary_table{{
     // missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
 }};
 
-constexpr std::array<GekkoOPTemplate, 13> s_table4{{
+constexpr std::array<Jit64OpTemplate, 13> s_table4{{
     // SUBOP10
     {0, &Jit64::ps_cmpXX},      // ps_cmpu0
     {32, &Jit64::ps_cmpXX},     // ps_cmpo0
@@ -103,7 +105,7 @@ constexpr std::array<GekkoOPTemplate, 13> s_table4{{
     {1014, &Jit64::FallBackToInterpreter},  // dcbz_l
 }};
 
-constexpr std::array<GekkoOPTemplate, 17> s_table4_2{{
+constexpr std::array<Jit64OpTemplate, 17> s_table4_2{{
     {10, &Jit64::ps_sum},     // ps_sum0
     {11, &Jit64::ps_sum},     // ps_sum1
     {12, &Jit64::ps_muls},    // ps_muls0
@@ -123,14 +125,14 @@ constexpr std::array<GekkoOPTemplate, 17> s_table4_2{{
     {31, &Jit64::fmaddXX},    // ps_nmadd
 }};
 
-constexpr std::array<GekkoOPTemplate, 4> s_table4_3{{
+constexpr std::array<Jit64OpTemplate, 4> s_table4_3{{
     {6, &Jit64::psq_lXX},    // psq_lx
     {7, &Jit64::psq_stXX},   // psq_stx
     {38, &Jit64::psq_lXX},   // psq_lux
     {39, &Jit64::psq_stXX},  // psq_stux
 }};
 
-constexpr std::array<GekkoOPTemplate, 13> s_table19{{
+constexpr std::array<Jit64OpTemplate, 13> s_table19{{
     {528, &Jit64::bcctrx},  // bcctrx
     {16, &Jit64::bclrx},    // bclrx
     {257, &Jit64::crXXX},   // crand
@@ -148,7 +150,7 @@ constexpr std::array<GekkoOPTemplate, 13> s_table19{{
     {50, &Jit64::rfi},  // rfi
 }};
 
-constexpr std::array<GekkoOPTemplate, 107> s_table31{{
+constexpr std::array<Jit64OpTemplate, 107> s_table31{{
     {266, &Jit64::addx},      // addx
     {778, &Jit64::addx},      // addox
     {10, &Jit64::addx},       // addcx
@@ -290,7 +292,7 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {566, &Jit64::DoNothing},              // tlbsync
 }};
 
-constexpr std::array<GekkoOPTemplate, 9> s_table59{{
+constexpr std::array<Jit64OpTemplate, 9> s_table59{{
     {18, &Jit64::fp_arith},  // fdivsx
     {20, &Jit64::fp_arith},  // fsubsx
     {21, &Jit64::fp_arith},  // faddsx
@@ -302,7 +304,7 @@ constexpr std::array<GekkoOPTemplate, 9> s_table59{{
     {31, &Jit64::fmaddXX},   // fnmaddsx
 }};
 
-constexpr std::array<GekkoOPTemplate, 15> s_table63{{
+constexpr std::array<Jit64OpTemplate, 15> s_table63{{
     {264, &Jit64::fsign},  // fabsx
     {32, &Jit64::fcmpX},   // fcmpo
     {0, &Jit64::fcmpX},    // fcmpu
@@ -321,7 +323,7 @@ constexpr std::array<GekkoOPTemplate, 15> s_table63{{
     {711, &Jit64::mtfsfx},   // mtfsfx
 }};
 
-constexpr std::array<GekkoOPTemplate, 10> s_table63_2{{
+constexpr std::array<Jit64OpTemplate, 10> s_table63_2{{
     {18, &Jit64::fp_arith},  // fdivx
     {20, &Jit64::fp_arith},  // fsubx
     {21, &Jit64::fp_arith},  // faddx
@@ -334,38 +336,25 @@ constexpr std::array<GekkoOPTemplate, 10> s_table63_2{{
     {31, &Jit64::fmaddXX},   // fnmaddx
 }};
 
-// TODO: This can be replaced with:
-//
-//       table.fill(&Jit64::FallbackToInterpreter);
-//
-//       whenever we end up migrating to C++20. Prior to C++20,
-//       std::array's fill() function is, unfortunately, not constexpr.
-//       Ditto for <algorithm>'s std::fill. Thus, this function exists
-//       to bridge the gap.
-template <size_t N>
-constexpr void FillWithFallbacks(std::array<Jit64::Instruction, N>& table)
+constexpr std::array<Jit64::Instruction, 64> s_dyna_op_table = []() consteval
 {
-  for (auto& entry : table)
-  {
-    entry = &Jit64::FallBackToInterpreter;
-  }
-}
-
-constexpr std::array<Jit64::Instruction, 64> s_dyna_op_table = [] {
   std::array<Jit64::Instruction, 64> table{};
-  FillWithFallbacks(table);
+  Common::Fill(table, &Jit64::FallBackToInterpreter);
 
   for (auto& tpl : s_primary_table)
   {
+    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
     table[tpl.opcode] = tpl.fn;
   }
 
   return table;
-}();
+}
+();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = [] {
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = []() consteval
+{
   std::array<Jit64::Instruction, 1024> table{};
-  FillWithFallbacks(table);
+  Common::Fill(table, &Jit64::FallBackToInterpreter);
 
   for (u32 i = 0; i < 32; i++)
   {
@@ -373,6 +362,7 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = [] {
     for (const auto& tpl : s_table4_2)
     {
       const u32 op = fill + tpl.opcode;
+      ASSERT(table[op] == &Jit64::FallBackToInterpreter);
       table[op] = tpl.fn;
     }
   }
@@ -383,6 +373,7 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = [] {
     for (const auto& tpl : s_table4_3)
     {
       const u32 op = fill + tpl.opcode;
+      ASSERT(table[op] == &Jit64::FallBackToInterpreter);
       table[op] = tpl.fn;
     }
   }
@@ -390,59 +381,68 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = [] {
   for (const auto& tpl : s_table4)
   {
     const u32 op = tpl.opcode;
+    ASSERT(table[op] == &Jit64::FallBackToInterpreter);
     table[op] = tpl.fn;
   }
 
   return table;
-}();
+}
+();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table19 = [] {
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table19 = []() consteval
+{
   std::array<Jit64::Instruction, 1024> table{};
-  FillWithFallbacks(table);
+  Common::Fill(table, &Jit64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table19)
   {
-    const u32 op = tpl.opcode;
-    table[op] = tpl.fn;
+    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
+    table[tpl.opcode] = tpl.fn;
   }
 
   return table;
-}();
+}
+();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table31 = [] {
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table31 = []() consteval
+{
   std::array<Jit64::Instruction, 1024> table{};
-  FillWithFallbacks(table);
+  Common::Fill(table, &Jit64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table31)
   {
-    const u32 op = tpl.opcode;
-    table[op] = tpl.fn;
+    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
+    table[tpl.opcode] = tpl.fn;
   }
 
   return table;
-}();
+}
+();
 
-constexpr std::array<Jit64::Instruction, 32> s_dyna_op_table59 = [] {
+constexpr std::array<Jit64::Instruction, 32> s_dyna_op_table59 = []() consteval
+{
   std::array<Jit64::Instruction, 32> table{};
-  FillWithFallbacks(table);
+  Common::Fill(table, &Jit64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table59)
   {
-    const u32 op = tpl.opcode;
-    table[op] = tpl.fn;
+    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
+    table[tpl.opcode] = tpl.fn;
   }
 
   return table;
-}();
+}
+();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = [] {
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = []() consteval
+{
   std::array<Jit64::Instruction, 1024> table{};
-  FillWithFallbacks(table);
+  Common::Fill(table, &Jit64::FallBackToInterpreter);
 
   for (const auto& tpl : s_table63)
   {
-    const u32 op = tpl.opcode;
-    table[op] = tpl.fn;
+    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
+    table[tpl.opcode] = tpl.fn;
   }
 
   for (u32 i = 0; i < 32; i++)
@@ -451,12 +451,14 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = [] {
     for (const auto& tpl : s_table63_2)
     {
       const u32 op = fill + tpl.opcode;
+      ASSERT(table[op] == &Jit64::FallBackToInterpreter);
       table[op] = tpl.fn;
     }
   }
 
   return table;
-}();
+}
+();
 
 }  // Anonymous namespace
 
@@ -489,16 +491,5 @@ void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
   (this->*s_dyna_op_table[op.inst.OPCD])(op.inst);
 
-  GekkoOPInfo* info = op.opinfo;
-  if (info)
-  {
-#ifdef OPLOG
-    if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
-    {
-      rsplocations.push_back(js.compilerPC);
-    }
-#endif
-    info->compileCount++;
-    info->lastUse = js.compilerPC;
-  }
+  PPCTables::CountInstructionCompile(op.opinfo, js.compilerPC);
 }

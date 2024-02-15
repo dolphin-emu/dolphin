@@ -10,6 +10,7 @@
 
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/System.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/VideoCommon.h"
@@ -22,12 +23,12 @@ static Common::EventHook s_before_frame_event =
     BeforeFrameEvent::Register([] { g_stats.ResetFrame(); }, "Statistics::ResetFrame");
 
 static Common::EventHook s_after_frame_event = AfterFrameEvent::Register(
-    [] {
-      DolphinAnalytics::PerformanceSample perf_sample;
-      perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
-      perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
-      perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
-      DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
+    [](const Core::System& system) {
+      DolphinAnalytics::Instance().ReportPerformanceInfo({
+          .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
+          .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
+          .num_draw_calls = g_stats.this_frame.num_draw_calls,
+      });
     },
     "Statistics::PerformanceSample");
 

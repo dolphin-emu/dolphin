@@ -24,9 +24,20 @@ DynamicLibrary::DynamicLibrary(const char* filename)
   Open(filename);
 }
 
+DynamicLibrary::DynamicLibrary(void* handle)
+{
+  m_handle = handle;
+}
+
 DynamicLibrary::~DynamicLibrary()
 {
   Close();
+}
+
+DynamicLibrary& DynamicLibrary::operator=(void* handle)
+{
+  m_handle = handle;
+  return *this;
 }
 
 std::string DynamicLibrary::GetUnprefixedFilename(const char* filename)

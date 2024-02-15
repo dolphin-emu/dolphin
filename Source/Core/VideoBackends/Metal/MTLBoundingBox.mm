@@ -42,7 +42,7 @@ std::vector<BBoxType> Metal::BoundingBox::Read(u32 index, u32 length)
   }
 }
 
-void Metal::BoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
+void Metal::BoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   const u32 size = values.size() * sizeof(BBoxType);
   if (!g_state_tracker->HasUnflushedData() && !g_state_tracker->GPUBusy())
@@ -54,8 +54,7 @@ void Metal::BoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
   {
     @autoreleasepool
     {
-      StateTracker::Map map = g_state_tracker->Allocate(StateTracker::UploadBuffer::Other, size,
-                                                        StateTracker::AlignMask::Other);
+      StateTracker::Map map = g_state_tracker->AllocateForTextureUpload(size);
       memcpy(map.cpu_buffer, values.data(), size);
       g_state_tracker->EndRenderPass();
       id<MTLBlitCommandEncoder> upload = [g_state_tracker->GetRenderCmdBuf() blitCommandEncoder];

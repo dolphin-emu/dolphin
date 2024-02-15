@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -60,17 +61,25 @@ public:
 
 private:
   void DrawDebugText();
+#ifdef USE_RETRO_ACHIEVEMENTS
+  void DrawChallenges();
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // ImGui resources.
   std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;
   std::vector<std::unique_ptr<AbstractTexture>> m_imgui_textures;
   std::unique_ptr<AbstractPipeline> m_imgui_pipeline;
+  std::map<u32, int> m_dolphin_to_imgui_map;
   std::mutex m_imgui_mutex;
   u64 m_imgui_last_frame_time = 0;
 
   u32 m_backbuffer_width = 1;
   u32 m_backbuffer_height = 1;
   float m_backbuffer_scale = 1.0;
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  std::map<std::string, std::unique_ptr<AbstractTexture>, std::less<>> m_challenge_texture_map;
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   bool m_ready = false;
 };

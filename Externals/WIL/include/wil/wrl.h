@@ -14,6 +14,11 @@
 #include <wrl.h>
 #include "result.h"
 #include "common.h" // wistd type_traits helpers
+#include <libloaderapi.h> // GetModuleHandleW
+
+/// @cond
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
+/// @endcond
 
 namespace wil
 {
@@ -79,6 +84,44 @@ namespace wil
         return result;
     }
 #endif // WIL_ENABLE_EXCEPTIONS
+
+    /** Holds a reference to the host WRL module to prevent it from being unloaded.
+    Normally, the reference is held implicitly because you are a member function
+    of a DLL-hosted COM object, or because you retain a strong reference
+    to some DLL-hosted COM object, but if those do not apply to you, then you
+    will need to hold a reference explicitly. For examples (and for the C++/WinRT
+    equivalent), see winrt_module_reference.
+    */
+    struct [[nodiscard]] wrl_module_reference
+    {
+        wrl_module_reference()
+        {
+            if (auto modulePtr = ::Microsoft::WRL::GetModuleBase())
+            {
+                modulePtr->IncrementObjectCount();
+            }
+            else
+            {
+#ifdef GET_MODULE_HANDLE_EX_FLAG_PIN
+                // If this assertion fails, then you are using wrl_module_reference
+                // from a DLL that does not host WRL objects, and the module reference
+                // has no effect.
+                WI_ASSERT(reinterpret_cast<HMODULE>(&__ImageBase) == GetModuleHandleW(nullptr));
+#endif
+            }
+        }
+
+        wrl_module_reference(wrl_module_reference const&) : wrl_module_reference() {}
+
+        ~wrl_module_reference()
+        {
+            if (auto modulePtr = ::Microsoft::WRL::GetModuleBase())
+            {
+                modulePtr->DecrementObjectCount();
+            }
+        }
+    };
+
 } // namespace wil
 
 #endif // __WIL_WRL_INCLUDED

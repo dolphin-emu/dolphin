@@ -13,6 +13,8 @@
 //
 // Not fully featured, no safety checking yet. Add features as needed.
 
+namespace Common
+{
 template <class T, int N>
 class FixedSizeQueue
 {
@@ -84,3 +86,4 @@ private:
   // Sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
   int count = 0;
 };
+}  // namespace Common

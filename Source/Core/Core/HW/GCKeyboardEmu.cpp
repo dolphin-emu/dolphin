@@ -5,6 +5,9 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/GCKeyboard.h"
+
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -51,35 +54,42 @@ static const char* const named_keys5[] = {"LEFT", "DOWN", "UP", "RIGHT", "ENTER"
 
 GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // buttons
   groups.emplace_back(m_keys0x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys0)
-    m_keys0x->AddInput(ControllerEmu::DoNotTranslate, key);
+    m_keys0x->AddInput(Translatability::DoNotTranslate, key);
 
   groups.emplace_back(m_keys1x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys1)
-    m_keys1x->AddInput(ControllerEmu::DoNotTranslate, key);
+    m_keys1x->AddInput(Translatability::DoNotTranslate, key);
 
   groups.emplace_back(m_keys2x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys2)
-    m_keys2x->AddInput(ControllerEmu::DoNotTranslate, key);
+    m_keys2x->AddInput(Translatability::DoNotTranslate, key);
 
   groups.emplace_back(m_keys3x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys3)
-    m_keys3x->AddInput(ControllerEmu::DoNotTranslate, key);
+    m_keys3x->AddInput(Translatability::DoNotTranslate, key);
 
   groups.emplace_back(m_keys4x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys4)
-    m_keys4x->AddInput(ControllerEmu::DoNotTranslate, key);
+    m_keys4x->AddInput(Translatability::DoNotTranslate, key);
 
   groups.emplace_back(m_keys5x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys5)
-    m_keys5x->AddInput(ControllerEmu::DoNotTranslate, key);
+    m_keys5x->AddInput(Translatability::DoNotTranslate, key);
 }
 
 std::string GCKeyboard::GetName() const
 {
   return std::string("GCKeyboard") + char('1' + m_index);
+}
+
+InputConfig* GCKeyboard::GetConfig() const
+{
+  return Keyboard::GetConfig();
 }
 
 ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGroup group)

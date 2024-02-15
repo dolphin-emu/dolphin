@@ -49,6 +49,10 @@
 				{
 					"type": "efb",
 					"texture_filename": "efb1_n000000_256x256_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_512x512_1"
 				}
 			]
 		}

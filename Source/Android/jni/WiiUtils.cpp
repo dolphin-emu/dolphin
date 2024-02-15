@@ -160,7 +160,7 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuInstalled(JNIEnv* env, jclass)
 {
   IOS::HLE::Kernel ios;
-  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
 
   return tmd.IsValid();
 }
@@ -169,7 +169,7 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuvWii(JNIEnv* env, jclass)
 {
   IOS::HLE::Kernel ios;
-  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
 
   return tmd.IsvWii();
 }
@@ -178,7 +178,7 @@ JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_utils_WiiUtils_getSystemMenuVersion(JNIEnv* env, jclass)
 {
   IOS::HLE::Kernel ios;
-  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
 
   if (!tmd.IsValid())
   {

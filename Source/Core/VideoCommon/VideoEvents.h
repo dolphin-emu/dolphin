@@ -6,6 +6,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/HookableEvent.h"
 
+namespace Core
+{
+class System;
+}
+
 // Called when certain video config setting are changed
 using ConfigChangedEvent = Common::HookableEvent<"ConfigChanged", u32>;
 
@@ -16,7 +21,7 @@ using BeforeFrameEvent = Common::HookableEvent<"BeforeFrame">;
 // Useful for "once per frame" usecases.
 // Note: In a few rare cases, games do multiple XFB copies per frame and join them while presenting.
 //       If this matters to your usecase, you should use BeforePresent instead.
-using AfterFrameEvent = Common::HookableEvent<"AfterFrame">;
+using AfterFrameEvent = Common::HookableEvent<"AfterFrame", Core::System&>;
 
 struct PresentInfo
 {
@@ -81,3 +86,6 @@ using BeforePresentEvent = Common::HookableEvent<"BeforePresent", PresentInfo&>;
 // An event that is triggered after a frame is presented.
 // The exact timing of this event depends on backend/driver support.
 using AfterPresentEvent = Common::HookableEvent<"AfterPresent", PresentInfo&>;
+
+// An end of frame event that runs on the CPU thread
+using VIEndFieldEvent = Common::HookableEvent<"VIEndField">;

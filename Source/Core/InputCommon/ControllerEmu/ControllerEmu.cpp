@@ -139,7 +139,7 @@ void EmulatedController::SetDefaultDevice(ciface::Core::DeviceQualifier devq)
   }
 }
 
-void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& base)
+void EmulatedController::LoadConfig(Common::IniFile::Section* sec, const std::string& base)
 {
   const auto lock = GetStateLock();
   std::string defdev = GetDefaultDevice().ToString();
@@ -153,7 +153,7 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
     cg->LoadConfig(sec, defdev, base);
 }
 
-void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& base)
+void EmulatedController::SaveConfig(Common::IniFile::Section* sec, const std::string& base)
 {
   const auto lock = GetStateLock();
   const std::string defdev = GetDefaultDevice().ToString();
@@ -168,7 +168,7 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
 {
   const auto lock = GetStateLock();
   // load an empty inifile section, clears everything
-  IniFile::Section sec;
+  Common::IniFile::Section sec;
   LoadConfig(&sec);
 
   const std::string& default_device_string = ciface.GetDefaultDeviceString();

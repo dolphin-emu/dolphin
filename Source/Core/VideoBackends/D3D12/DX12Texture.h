@@ -10,8 +10,10 @@
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/RenderBase.h"
 
 namespace DX12
 {
@@ -65,36 +67,42 @@ class DXFramebuffer final : public AbstractFramebuffer
 public:
   ~DXFramebuffer() override;
 
-  const DescriptorHandle& GetRTVDescriptor() const { return m_rtv_descriptor; }
   const DescriptorHandle& GetIntRTVDescriptor() const { return m_int_rtv_descriptor; }
   const DescriptorHandle& GetDSVDescriptor() const { return m_dsv_descriptor; }
 
-  UINT GetRTVDescriptorCount() const { return m_color_attachment ? 1 : 0; }
+  UINT GetRTVDescriptorCount() const { return static_cast<UINT>(m_render_targets.size()); }
   const D3D12_CPU_DESCRIPTOR_HANDLE* GetRTVDescriptorArray() const
   {
-    return m_color_attachment ? &m_rtv_descriptor.cpu_handle : nullptr;
+    return m_render_targets_raw.data();
   }
-  const D3D12_CPU_DESCRIPTOR_HANDLE* GetIntRTVDescriptorArray() const
-  {
-    return m_color_attachment ? &m_int_rtv_descriptor.cpu_handle : nullptr;
-  }
+  const D3D12_CPU_DESCRIPTOR_HANDLE* GetIntRTVDescriptorArray() const;
   const D3D12_CPU_DESCRIPTOR_HANDLE* GetDSVDescriptorArray() const
   {
     return m_depth_attachment ? &m_dsv_descriptor.cpu_handle : nullptr;
   }
 
-  static std::unique_ptr<DXFramebuffer> Create(DXTexture* color_attachment,
-                                               DXTexture* depth_attachment);
+  void Unbind();
+  void ClearRenderTargets(const ClearColor& color_value, const D3D12_RECT* rectangle) const;
+  void ClearDepth(float depth_value, const D3D12_RECT* rectangle) const;
+  void TransitionRenderTargets() const;
+
+  static std::unique_ptr<DXFramebuffer>
+  Create(DXTexture* color_attachment, DXTexture* depth_attachment,
+         std::vector<AbstractTexture*> additional_color_attachments);
 
 private:
   DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                std::vector<AbstractTexture*> additional_color_attachments,
                 AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width,
                 u32 height, u32 layers, u32 samples);
 
-  bool CreateRTVDescriptor();
+  bool CreateRTVDescriptors();
+  bool CreateRTVDescriptor(u32 layers, AbstractTexture* attachment);
+  bool CreateIRTVDescriptor();
   bool CreateDSVDescriptor();
 
-  DescriptorHandle m_rtv_descriptor = {};
+  std::vector<DescriptorHandle> m_render_targets;
+  std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_render_targets_raw;
   DescriptorHandle m_int_rtv_descriptor = {};
   DescriptorHandle m_dsv_descriptor = {};
 };

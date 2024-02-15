@@ -28,10 +28,10 @@ enum
   WFS_FILE_IS_OPENED = -10032,  // Cannot perform operation on an opened file.
 };
 
-class WFSSRVDevice : public Device
+class WFSSRVDevice : public EmulationDevice
 {
 public:
-  WFSSRVDevice(Kernel& ios, const std::string& device_name);
+  WFSSRVDevice(EmulationKernel& ios, const std::string& device_name);
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 

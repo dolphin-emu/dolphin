@@ -25,6 +25,9 @@ public:
 
   static TPipelineFunction GetFunction(VertexComponentFormat type, ColorFormat format);
 
+  // It is important to synchronize colIndex, or else the wrong color array will be used
+  static TPipelineFunction GetDummyFunction();
+
 private:
   template <typename T, auto last_member>
   using EnumMap = typename Common::EnumMap<T, last_member>;

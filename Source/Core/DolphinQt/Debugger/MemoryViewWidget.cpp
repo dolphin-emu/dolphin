@@ -170,7 +170,8 @@ private:
   MemoryViewWidget* m_view;
 };
 
-MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QWidget(parent)
+MemoryViewWidget::MemoryViewWidget(QWidget* parent)
+    : QWidget(parent), m_system(Core::System::GetInstance())
 {
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -207,15 +208,11 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QWidget(parent)
 void MemoryViewWidget::UpdateFont()
 {
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
-  m_font_vspace = fm.lineSpacing();
+  m_font_vspace = fm.lineSpacing() + 4;
   // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
   // fonts have wildly different spacing between two characters and horizontalAdvance includes
   // spacing.
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
   m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
-#else
-  m_font_width = fm.width(QLatin1Char('0'));
-#endif
   m_table->setFont(Settings::Instance().GetDebugFont());
 
   CreateTable();
@@ -286,8 +283,8 @@ void MemoryViewWidget::CreateTable()
 
   // This sets all row heights and determines horizontal ascii spacing.
   // Could be placed in UpdateFont() but doesn't apply correctly unless called more.
-  m_table->verticalHeader()->setDefaultSectionSize(m_font_vspace - 1);
-  m_table->verticalHeader()->setMinimumSectionSize(m_font_vspace - 1);
+  m_table->verticalHeader()->setDefaultSectionSize(m_font_vspace);
+  m_table->verticalHeader()->setMinimumSectionSize(m_font_vspace);
   m_table->horizontalHeader()->setMinimumSectionSize(m_font_width * 2);
 
   const QSignalBlocker blocker(m_table);
@@ -437,6 +434,9 @@ void MemoryViewWidget::Update()
 
 void MemoryViewWidget::UpdateColumns()
 {
+  if (!isVisible())
+    return;
+
   // Check if table is created
   if (m_table->item(1, 1) == nullptr)
     return;
@@ -496,7 +496,7 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   {
     const char value = accessors->ReadU8(guard, address);
     return Common::IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
-                                         QString{QChar::fromLatin1('.')};
+                                                 QString{QChar::fromLatin1('.')};
   }
   case Type::Hex16:
   {
@@ -568,7 +568,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
       }
 
       if (m_address_space == AddressSpace::Type::Effective &&
-          PowerPC::memchecks.GetMemCheck(address, GetTypeSize(m_type)) != nullptr)
+          m_system.GetPowerPC().GetMemChecks().GetMemCheck(address, GetTypeSize(m_type)) != nullptr)
       {
         row_breakpoint = true;
         cell->setBackground(Qt::red);
@@ -583,7 +583,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
     {
       m_table->item(i, 0)->setData(
           Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint")
+          Resources::GetThemeIcon("debugger_breakpoint")
               .pixmap(QSize(m_table->rowHeight(0) - 3, m_table->rowHeight(0) - 3)));
     }
     else
@@ -609,7 +609,7 @@ AddressSpace::Type MemoryViewWidget::GetAddressSpace() const
   return m_address_space;
 }
 
-std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QString input_text)
+std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView input_text) const
 {
   if (type == Type::Null)
     return {};
@@ -805,15 +805,17 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
   const int breaks = row ? (m_bytes_per_row / length) : 1;
   bool overlap = false;
 
+  auto& memchecks = m_system.GetPowerPC().GetMemChecks();
+
   // Row breakpoint should either remove any breakpoint left on the row, or activate all
   // breakpoints.
-  if (row && PowerPC::memchecks.OverlapsMemcheck(addr, m_bytes_per_row))
+  if (row && memchecks.OverlapsMemcheck(addr, m_bytes_per_row))
     overlap = true;
 
   for (int i = 0; i < breaks; i++)
   {
     u32 address = addr + length * i;
-    TMemCheck* check_ptr = PowerPC::memchecks.GetMemCheck(address, length);
+    TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
 
     if (check_ptr == nullptr && !overlap)
     {
@@ -826,12 +828,12 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
       check.log_on_hit = m_do_log;
       check.break_on_hit = true;
 
-      PowerPC::memchecks.Add(std::move(check));
+      memchecks.Add(std::move(check));
     }
     else if (check_ptr != nullptr)
     {
       // Using the pointer fixes misaligned breakpoints (0x11 breakpoint in 0x10 aligned view).
-      PowerPC::memchecks.Remove(check_ptr->start_address);
+      memchecks.Remove(check_ptr->start_address);
     }
   }
 
@@ -885,7 +887,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   auto* copy_hex = menu->addAction(tr("Copy Hex"), this, [this, addr] { OnCopyHex(addr); });
   copy_hex->setEnabled(item_has_value);
 
-  auto* copy_value = menu->addAction(tr("Copy Value"), this, [this, item_selected] {
+  auto* copy_value = menu->addAction(tr("Copy Value"), this, [item_selected] {
     QApplication::clipboard()->setText(item_selected->text());
   });
   copy_value->setEnabled(item_has_value);

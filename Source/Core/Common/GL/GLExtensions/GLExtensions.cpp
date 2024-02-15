@@ -1674,7 +1674,7 @@ const GLFunc gl_function_array[] = {
     GLFUNC_REQUIRES(glDrawArraysInstancedBaseInstance, "VERSION_4_2"),
     GLFUNC_REQUIRES(glDrawElementsInstancedBaseInstance, "VERSION_4_2"),
     GLFUNC_REQUIRES(glDrawElementsInstancedBaseVertexBaseInstance, "VERSION_4_2"),
-    GLFUNC_REQUIRES(glGetInternalformativ, "VERSION_4_2"),
+    GLFUNC_REQUIRES(glGetInternalformativ, "VERSION_4_2 |VERSION_GLES_3"),
     GLFUNC_REQUIRES(glGetActiveAtomicCounterBufferiv, "VERSION_4_2"),
     GLFUNC_REQUIRES(glBindImageTexture, "VERSION_4_2"),
     GLFUNC_REQUIRES(glMemoryBarrier, "VERSION_4_2"),

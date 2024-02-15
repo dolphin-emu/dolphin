@@ -27,12 +27,12 @@ struct ScopedJITPageWriteAndNoExecute
   ~ScopedJITPageWriteAndNoExecute() { JITPageWriteDisableExecuteEnable(); }
 };
 void* AllocateMemoryPages(size_t size);
-void FreeMemoryPages(void* ptr, size_t size);
+bool FreeMemoryPages(void* ptr, size_t size);
 void* AllocateAlignedMemory(size_t size, size_t alignment);
 void FreeAlignedMemory(void* ptr);
-void ReadProtectMemory(void* ptr, size_t size);
-void WriteProtectMemory(void* ptr, size_t size, bool executable = false);
-void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
+bool ReadProtectMemory(void* ptr, size_t size);
+bool WriteProtectMemory(void* ptr, size_t size, bool executable = false);
+bool UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
 size_t MemPhysical();
 
 }  // namespace Common

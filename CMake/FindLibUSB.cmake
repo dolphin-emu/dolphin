@@ -40,4 +40,11 @@ elseif (NOT LIBUSB_FOUND)
 
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARIES)
 endif ()
+if(LIBUSB_FOUND AND NOT TARGET LibUSB::LibUSB)
+    add_library(LibUSB::LibUSB UNKNOWN IMPORTED)
+    set_target_properties(LibUSB::LibUSB PROPERTIES
+        IMPORTED_LOCATION "${LIBUSB_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${LIBUSB_INCLUDE_DIR}"
+    )
+endif()
 

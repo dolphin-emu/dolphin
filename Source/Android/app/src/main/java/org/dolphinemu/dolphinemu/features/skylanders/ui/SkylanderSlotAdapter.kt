@@ -16,7 +16,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.DialogCreateSkylanderBinding
-import org.dolphinemu.dolphinemu.databinding.ListItemSkylanderSlotBinding
+import org.dolphinemu.dolphinemu.databinding.ListItemNfcFigureSlotBinding
 import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig
 import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig.removeSkylander
 import org.dolphinemu.dolphinemu.features.skylanders.model.SkylanderPair
@@ -25,27 +25,27 @@ class SkylanderSlotAdapter(
     private val slots: List<SkylanderSlot>,
     private val activity: EmulationActivity
 ) : RecyclerView.Adapter<SkylanderSlotAdapter.ViewHolder>(), OnItemClickListener {
-    class ViewHolder(var binding: ListItemSkylanderSlotBinding) :
+    class ViewHolder(var binding: ListItemNfcFigureSlotBinding) :
         RecyclerView.ViewHolder(binding.getRoot())
 
     private lateinit var binding: DialogCreateSkylanderBinding
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val binding = ListItemSkylanderSlotBinding.inflate(inflater, parent, false)
+        val binding = ListItemNfcFigureSlotBinding.inflate(inflater, parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val slot = slots[position]
-        holder.binding.textSkylanderName.text = slot.label
+        holder.binding.textFigureName.text = slot.label
 
-        holder.binding.buttonClearSkylander.setOnClickListener {
+        holder.binding.buttonClearFigure.setOnClickListener {
             removeSkylander(slot.portalSlot)
             activity.clearSkylander(slot.slotNum)
         }
 
-        holder.binding.buttonLoadSkylander.setOnClickListener {
+        holder.binding.buttonLoadFigure.setOnClickListener {
             val loadSkylander = Intent(Intent.ACTION_OPEN_DOCUMENT)
             loadSkylander.addCategory(Intent.CATEGORY_OPENABLE)
             loadSkylander.type = "*/*"
@@ -71,14 +71,14 @@ class SkylanderSlotAdapter(
         )
         binding.skylanderDropdown.onItemClickListener = this
 
-        holder.binding.buttonCreateSkylander.setOnClickListener {
+        holder.binding.buttonCreateFigure.setOnClickListener {
             if (binding.getRoot().parent != null) {
                 (binding.getRoot().parent as ViewGroup).removeAllViews()
             }
             val createDialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.create_skylander_title)
                 .setView(binding.getRoot())
-                .setPositiveButton(R.string.create_skylander, null)
+                .setPositiveButton(R.string.create_figure, null)
                 .setNegativeButton(R.string.cancel, null)
                 .show()
             createDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {

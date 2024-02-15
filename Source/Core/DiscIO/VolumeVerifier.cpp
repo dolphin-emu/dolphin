@@ -578,17 +578,17 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     const auto console_type =
         IsDebugSigned() ? IOS::HLE::IOSC::ConsoleType::RVT : IOS::HLE::IOSC::ConsoleType::Retail;
     IOS::HLE::Kernel ios(console_type);
-    const auto es = ios.GetES();
+    auto& es = ios.GetESCore();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
 
     if (IOS::HLE::IPC_SUCCESS !=
-            es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::Ticket,
-                                IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore,
-                                m_volume.GetTicket(partition), cert_chain) ||
+            es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::Ticket,
+                               IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore,
+                               m_volume.GetTicket(partition), cert_chain) ||
         IOS::HLE::IPC_SUCCESS !=
-            es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::TMD,
-                                IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore,
-                                m_volume.GetTMD(partition), cert_chain))
+            es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::TMD,
+                               IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore,
+                               m_volume.GetTMD(partition), cert_chain))
     {
       AddProblem(Severity::Low,
                  Common::FmtFormatT("The {0} partition is not correctly signed.", name));
@@ -982,21 +982,21 @@ void VolumeVerifier::CheckMisc()
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
     IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
-    const auto es = ios.GetES();
+    auto& es = ios.GetESCore();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
 
     if (IOS::HLE::IPC_SUCCESS !=
-        es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::Ticket,
-                            IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore, m_ticket,
-                            cert_chain))
+        es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::Ticket,
+                           IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore, m_ticket,
+                           cert_chain))
     {
       // i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
       AddProblem(Severity::Low, Common::GetStringT("The ticket is not correctly signed."));
     }
 
     if (IOS::HLE::IPC_SUCCESS !=
-        es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::TMD,
-                            IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore, tmd, cert_chain))
+        es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::TMD,
+                           IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore, tmd, cert_chain))
     {
       AddProblem(
           Severity::Medium,
@@ -1059,7 +1059,7 @@ void VolumeVerifier::SetUpHashing()
   else if (m_volume.GetVolumeType() == Platform::WiiDisc)
   {
     // Set up a DiscScrubber for checking whether blocks with errors are unused
-    m_scrubber.SetupScrub(&m_volume);
+    m_scrubber.SetupScrub(m_volume);
   }
 
   std::sort(m_groups.begin(), m_groups.end(),

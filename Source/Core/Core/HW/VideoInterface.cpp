@@ -33,6 +33,7 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 namespace VideoInterface
 {
@@ -476,14 +477,14 @@ float VideoInterfaceManager::GetAspectRatio() const
   // signal (which would be 4:3)
 
   // This function only deals with standard aspect ratios. For widescreen aspect ratios,
-  // multiply the result by 1.33333..
+  // multiply the result by 1.33333... (the ratio between 16:9 and 4:3)
 
   // 1. Get our active area in BT.601 samples (more or less pixels)
   int active_lines = m_vertical_timing_register.ACV;
   int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
-  float tick_length = (1.0f / SystemTimers::GetTicksPerSecond());
+  float tick_length = (1.0f / m_system.GetSystemTimers().GetTicksPerSecond());
   float vertical_period = tick_length * GetTicksPerField();
   float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
   float vertical_active_area = active_lines * horizontal_period;
@@ -544,7 +545,7 @@ float VideoInterfaceManager::GetAspectRatio() const
 
   // 5. Calculate the final ratio and scale to 4:3
   float ratio = horizontal_active_ratio / vertical_active_ratio;
-  bool running_fifo_log = FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates();
+  const bool running_fifo_log = m_system.GetFifoPlayer().IsRunningWithFakeVideoInterfaceUpdates();
   if (std::isnormal(ratio) &&      // Check we have a sane ratio without any infs/nans/zeros
       !running_fifo_log)           // we don't know the correct ratio for fifos
     return ratio * (4.0f / 3.0f);  // Scale to 4:3
@@ -694,7 +695,7 @@ void VideoInterfaceManager::UpdateParameters()
   m_even_field_first_hl = equ_hl + m_vblank_timing_even.PRB + GetHalfLinesPerOddField();
   m_even_field_last_hl = m_even_field_first_hl + acv_hl - 1;
 
-  m_target_refresh_rate_numerator = SystemTimers::GetTicksPerSecond() * 2;
+  m_target_refresh_rate_numerator = m_system.GetSystemTimers().GetTicksPerSecond() * 2;
   m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
   m_target_refresh_rate =
       static_cast<double>(m_target_refresh_rate_numerator) / m_target_refresh_rate_denominator;
@@ -717,7 +718,7 @@ u32 VideoInterfaceManager::GetTargetRefreshRateDenominator() const
 
 u32 VideoInterfaceManager::GetTicksPerSample() const
 {
-  return 2 * SystemTimers::GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock];
+  return 2 * m_system.GetSystemTimers().GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock & 1];
 }
 
 u32 VideoInterfaceManager::GetTicksPerHalfLine() const
@@ -839,6 +840,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
     OutputField(field, ticks);
 
   g_perf_metrics.CountVBlank();
+  VIEndFieldEvent::Trigger();
   Core::OnFrameEnd();
 }
 
@@ -847,7 +849,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 void VideoInterfaceManager::Update(u64 ticks)
 {
   // Try calling SI Poll every time update is called
-  SerialInterface::UpdateDevices();
+  m_system.GetSerialInterface().UpdateDevices();
   Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
                         Config::Get(Config::MAIN_LOCK_CURSOR));
 
@@ -855,7 +857,7 @@ void VideoInterfaceManager::Update(u64 ticks)
   // in case frame counter display is enabled
 
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
-    Movie::FrameUpdate();
+    m_system.GetMovie().FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment
@@ -884,16 +886,16 @@ void VideoInterfaceManager::Update(u64 ticks)
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
     Core::Callback_NewField(m_system);
 
-  // SLIPPINOTES: this section is disable because we would rather poll every chance we get to reduce
+  // SLIPPINOTES: this section is disabled because we would rather poll every chance we get to reduce
   // lag
   // // If an SI poll is scheduled to happen on this half-line, do it!
-
   // if (m_half_line_of_next_si_poll == m_half_line_count)
   // {
   //   Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
   //                         Config::Get(Config::MAIN_LOCK_CURSOR));
-  //   SerialInterface::UpdateDevices();
-  //   m_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
+  //   auto& si = m_system.GetSerialInterface();
+  //   si.UpdateDevices();
+  //   m_half_line_of_next_si_poll += 2 * si.GetPollXLines();
   // }
 
   // // If this half-line is at the actual boundary of either field, schedule an SI poll to happen

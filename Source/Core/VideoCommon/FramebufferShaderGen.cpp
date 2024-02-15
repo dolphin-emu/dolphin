@@ -672,7 +672,7 @@ std::string GenerateImGuiVertexShader()
   return code.GetBuffer();
 }
 
-std::string GenerateImGuiPixelShader()
+std::string GenerateImGuiPixelShader(bool linear_space_output)
 {
   ShaderCode code;
   EmitSamplerDeclarations(code, 0, 1, false);
@@ -680,8 +680,13 @@ std::string GenerateImGuiPixelShader()
   code.Write("{{\n"
              "  ocol0 = ");
   EmitSampleTexture(code, 0, "float3(v_tex0.xy, 0.0)");
-  code.Write(" * v_col0;\n"
-             "}}\n");
+  // We approximate to gamma 2.2 instead of sRGB as it barely matters for this case.
+  // Note that if HDR is enabled, ideally we should multiply by
+  // the paper white brightness for readability.
+  if (linear_space_output)
+    code.Write(" * pow(v_col0, float4(2.2f, 2.2f, 2.2f, 1.0f));\n}}\n");
+  else
+    code.Write(" * v_col0;\n}}\n");
 
   return code.GetBuffer();
 }

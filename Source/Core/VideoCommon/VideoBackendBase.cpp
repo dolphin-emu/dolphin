@@ -20,6 +20,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 
 // TODO: ugly
@@ -65,6 +66,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/Widescreen.h"
+#include "VideoCommon/XFStateManager.h"
 
 VideoBackendBase* g_video_backend = nullptr;
 
@@ -91,7 +93,7 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
 void VideoBackendBase::Video_ExitLoop()
 {
   auto& system = Core::System::GetInstance();
-  system.GetFifo().ExitGpuLoop(system);
+  system.GetFifo().ExitGpuLoop();
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -171,6 +173,8 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
 
 u16 VideoBackendBase::Video_GetBoundingBox(int index)
 {
+  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::READS_BOUNDING_BOX);
+
   if (!g_ActiveConfig.bBBoxEnable)
   {
     static bool warn_once = true;
@@ -277,7 +281,7 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
   g_video_backend = iter->get();
 }
 
-void VideoBackendBase::PopulateBackendInfo()
+void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
 {
   g_Config.Refresh();
   // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
@@ -285,18 +289,18 @@ void VideoBackendBase::PopulateBackendInfo()
   g_Config.backend_info = {};
   ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
   g_Config.backend_info.DisplayName = g_video_backend->GetDisplayName();
-  g_video_backend->InitBackendInfo();
+  g_video_backend->InitBackendInfo(wsi);
   // We validate the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
   g_Config.VerifyValidity();
 }
 
-void VideoBackendBase::PopulateBackendInfoFromUI()
+void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
 {
   // If the core is running, the backend info will have been populated already.
   // If we did it here, the UI thread can race with the with the GPU thread.
   if (!Core::IsRunning())
-    PopulateBackendInfo();
+    PopulateBackendInfo(wsi);
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)
@@ -368,7 +372,8 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
       !g_perf_query->Initialize() || !g_presenter->Initialize() ||
       !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
-      !g_bounding_box->Initialize() || !g_graphics_mod_manager->Initialize())
+      (g_ActiveConfig.backend_info.bSupportsBBox && !g_bounding_box->Initialize()) ||
+      !g_graphics_mod_manager->Initialize())
   {
     PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();
@@ -377,14 +382,15 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
 
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
-  command_processor.Init(system);
-  system.GetFifo().Init(system);
-  system.GetPixelEngine().Init(system);
+  command_processor.Init();
+  system.GetFifo().Init();
+  system.GetPixelEngine().Init();
   BPInit();
   VertexLoaderManager::Init();
   system.GetVertexShaderManager().Init();
   system.GetGeometryShaderManager().Init();
   system.GetPixelShaderManager().Init();
+  system.GetXFStateManager().Init();
   TMEM::Init();
 
   g_Config.VerifyValidity();
@@ -407,6 +413,7 @@ void VideoBackendBase::ShutdownShared()
 
   g_bounding_box.reset();
   g_perf_query.reset();
+  g_graphics_mod_manager.reset();
   g_texture_cache.reset();
   g_framebuffer_manager.reset();
   g_shader_cache.reset();

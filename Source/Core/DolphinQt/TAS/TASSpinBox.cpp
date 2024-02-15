@@ -7,7 +7,7 @@
 
 TASSpinBox::TASSpinBox(QWidget* parent) : QSpinBox(parent)
 {
-  connect(this, QOverload<int>::of(&TASSpinBox::valueChanged), this, &TASSpinBox::OnUIValueChanged);
+  connect(this, &TASSpinBox::valueChanged, this, &TASSpinBox::OnUIValueChanged);
 }
 
 int TASSpinBox::GetValue() const
@@ -28,6 +28,5 @@ void TASSpinBox::OnUIValueChanged(int new_value)
 
 void TASSpinBox::ApplyControllerValueChange()
 {
-  const QSignalBlocker blocker(this);
   setValue(m_state.ApplyControllerValueChange());
 }

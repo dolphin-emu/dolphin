@@ -5,7 +5,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/System.h"
 
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -23,36 +23,39 @@ WidescreenManager::WidescreenManager()
       "Widescreen");
 
   // VertexManager doesn't maintain statistics in Wii mode.
-  if (!SConfig::GetInstance().bWii)
+  auto& system = Core::System::GetInstance();
+  if (!system.IsWii())
   {
-    m_update_widescreen =
-        AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
+    m_update_widescreen = AfterFrameEvent::Register(
+        [this](Core::System&) { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
   }
 }
 
 void WidescreenManager::Update()
 {
-  if (SConfig::GetInstance().bWii)
+  auto& system = Core::System::GetInstance();
+  if (system.IsWii())
     m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 
   // suggested_aspect_mode overrides SYSCONF_WIDESCREEN
-  if (g_ActiveConfig.suggested_aspect_mode == AspectMode::Analog)
+  if (g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceStandard)
     m_is_game_widescreen = false;
-  else if (g_ActiveConfig.suggested_aspect_mode == AspectMode::AnalogWide)
+  else if (g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceWide)
     m_is_game_widescreen = true;
 
   // If widescreen hack is disabled override game's AR if UI is set to 4:3 or 16:9.
   if (!g_ActiveConfig.bWidescreenHack)
   {
     const auto aspect_mode = g_ActiveConfig.aspect_mode;
-    if (aspect_mode == AspectMode::Analog)
+    if (aspect_mode == AspectMode::ForceStandard)
       m_is_game_widescreen = false;
-    else if (aspect_mode == AspectMode::AnalogWide)
+    else if (aspect_mode == AspectMode::ForceWide)
       m_is_game_widescreen = true;
   }
 }
 
 // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
+// Cheats that change the game aspect ratio to natively unsupported ones won't be recognized here.
 void WidescreenManager::UpdateWidescreenHeuristic()
 {
   const auto flush_statistics = g_vertex_manager->ResetFlushAspectRatioCount();
@@ -63,20 +66,21 @@ void WidescreenManager::UpdateWidescreenHeuristic()
 
   Update();
 
-  // If widescreen hack isn't active and aspect_mode (UI) is 4:3 or 16:9 don't use heuristic.
-  if (!g_ActiveConfig.bWidescreenHack && (g_ActiveConfig.aspect_mode == AspectMode::Analog ||
-                                          g_ActiveConfig.aspect_mode == AspectMode::AnalogWide))
+  // If widescreen hack isn't active and aspect_mode (user setting)
+  // is set to a forced aspect ratio, don't use heuristic.
+  if (!g_ActiveConfig.bWidescreenHack && (g_ActiveConfig.aspect_mode == AspectMode::ForceStandard ||
+                                          g_ActiveConfig.aspect_mode == AspectMode::ForceWide))
     return;
 
   // Modify the threshold based on which aspect ratio we're already using:
   // If the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
-  static constexpr u32 TRANSITION_THRESHOLD = 3;
+  const u32 transition_threshold = g_ActiveConfig.widescreen_heuristic_transition_threshold;
 
-  const auto looks_normal = [](auto& counts) {
-    return counts.normal_vertex_count > counts.anamorphic_vertex_count * TRANSITION_THRESHOLD;
+  const auto looks_normal = [transition_threshold](auto& counts) {
+    return counts.normal_vertex_count > counts.anamorphic_vertex_count * transition_threshold;
   };
-  const auto looks_anamorphic = [](auto& counts) {
-    return counts.anamorphic_vertex_count > counts.normal_vertex_count * TRANSITION_THRESHOLD;
+  const auto looks_anamorphic = [transition_threshold](auto& counts) {
+    return counts.anamorphic_vertex_count > counts.normal_vertex_count * transition_threshold;
   };
 
   const auto& persp = flush_statistics.perspective;

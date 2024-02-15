@@ -3,47 +3,47 @@
 
 #pragma once
 
-#include "DolphinQt/Config/Graphics/GraphicsWidget.h"
+#include <QWidget>
 
-class GraphicsBool;
+class ConfigBool;
 class GraphicsWindow;
 class QLabel;
 class ToolTipSlider;
 
-class HacksWidget final : public GraphicsWidget
+class HacksWidget final : public QWidget
 {
   Q_OBJECT
 public:
   explicit HacksWidget(GraphicsWindow* parent);
 
 private:
-  void LoadSettings() override;
-  void SaveSettings() override;
+  void LoadSettings();
+  void SaveSettings();
 
   void OnBackendChanged(const QString& backend_name);
 
   // EFB
-  GraphicsBool* m_skip_efb_cpu;
-  GraphicsBool* m_ignore_format_changes;
-  GraphicsBool* m_store_efb_copies;
-  GraphicsBool* m_defer_efb_copies;
+  ConfigBool* m_skip_efb_cpu;
+  ConfigBool* m_ignore_format_changes;
+  ConfigBool* m_store_efb_copies;
+  ConfigBool* m_defer_efb_copies;
 
   // Texture Cache
   QLabel* m_accuracy_label;
   ToolTipSlider* m_accuracy;
-  GraphicsBool* m_gpu_texture_decoding;
+  ConfigBool* m_gpu_texture_decoding;
 
   // External Framebuffer
-  GraphicsBool* m_store_xfb_copies;
-  GraphicsBool* m_immediate_xfb;
-  GraphicsBool* m_skip_duplicate_xfbs;
+  ConfigBool* m_store_xfb_copies;
+  ConfigBool* m_immediate_xfb;
+  ConfigBool* m_skip_duplicate_xfbs;
 
   // Other
-  GraphicsBool* m_fast_depth_calculation;
-  GraphicsBool* m_disable_bounding_box;
-  GraphicsBool* m_vertex_rounding;
-  GraphicsBool* m_vi_skip;
-  GraphicsBool* m_save_texture_cache_state;
+  ConfigBool* m_fast_depth_calculation;
+  ConfigBool* m_disable_bounding_box;
+  ConfigBool* m_vertex_rounding;
+  ConfigBool* m_vi_skip;
+  ConfigBool* m_save_texture_cache_state;
 
   void CreateWidgets();
   void ConnectWidgets();

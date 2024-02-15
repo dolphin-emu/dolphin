@@ -5,9 +5,11 @@
 
 #include <array>
 #include <cstring>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -15,6 +17,11 @@ struct BootParameters;
 
 struct GCPadStatus;
 class PointerWrap;
+
+namespace Core
+{
+class System;
+}
 
 namespace ExpansionInterface
 {
@@ -29,7 +36,8 @@ class DataReportBuilder;
 namespace WiimoteEmu
 {
 class EncryptionKey;
-}
+enum ExtensionNumber : u8;
+}  // namespace WiimoteEmu
 
 // Per-(video )Movie actions
 
@@ -123,7 +131,8 @@ struct DTMHeader
   bool bFollowBranch;
   bool bUseFMA;
   u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
-  std::array<u8, 7> reserved;       // Padding for any new config options
+  bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
+  std::array<u8, 6> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
@@ -135,68 +144,137 @@ static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
 
 #pragma pack(pop)
 
-void FrameUpdate();
-void InputUpdate();
-void Init(const BootParameters& boot);
+enum class PlayMode
+{
+  None = 0,
+  Recording,
+  Playing,
+};
 
-void SetPolledDevice();
+class MovieManager
+{
+public:
+  explicit MovieManager(Core::System& system);
+  MovieManager(const MovieManager& other) = delete;
+  MovieManager(MovieManager&& other) = delete;
+  MovieManager& operator=(const MovieManager& other) = delete;
+  MovieManager& operator=(MovieManager&& other) = delete;
+  ~MovieManager();
 
-bool IsRecordingInput();
-bool IsRecordingInputFromSaveState();
-bool IsJustStartingRecordingInputFromSaveState();
-bool IsJustStartingPlayingInputFromSaveState();
-bool IsPlayingInput();
-bool IsMovieActive();
-bool IsReadOnly();
-u64 GetRecordingStartTime();
+  void FrameUpdate();
+  void InputUpdate();
+  void Init(const BootParameters& boot);
 
-u64 GetCurrentFrame();
-u64 GetTotalFrames();
-u64 GetCurrentInputCount();
-u64 GetTotalInputCount();
-u64 GetCurrentLagCount();
-u64 GetTotalLagCount();
+  void SetPolledDevice();
 
-void SetClearSave(bool enabled);
-void SignalDiscChange(const std::string& new_path);
-void SetReset(bool reset);
+  bool IsRecordingInput() const;
+  bool IsRecordingInputFromSaveState() const;
+  bool IsJustStartingRecordingInputFromSaveState() const;
+  bool IsJustStartingPlayingInputFromSaveState() const;
+  bool IsPlayingInput() const;
+  bool IsMovieActive() const;
+  bool IsReadOnly() const;
+  u64 GetRecordingStartTime() const;
 
-bool IsConfigSaved();
-bool IsStartingFromClearSave();
-bool IsUsingMemcard(ExpansionInterface::Slot slot);
-void SetGraphicsConfig();
-bool IsNetPlayRecording();
+  u64 GetCurrentFrame() const;
+  u64 GetTotalFrames() const;
+  u64 GetCurrentInputCount() const;
+  u64 GetTotalInputCount() const;
+  u64 GetCurrentLagCount() const;
+  u64 GetTotalLagCount() const;
 
-bool IsUsingPad(int controller);
-bool IsUsingWiimote(int wiimote);
-bool IsUsingBongo(int controller);
-bool IsUsingGBA(int controller);
-void ChangePads();
-void ChangeWiiPads(bool instantly = false);
+  void SetClearSave(bool enabled);
+  void SignalDiscChange(const std::string& new_path);
+  void SetReset(bool reset);
 
-void SetReadOnly(bool bEnabled);
+  bool IsConfigSaved() const;
+  bool IsStartingFromClearSave() const;
+  bool IsUsingMemcard(ExpansionInterface::Slot slot) const;
+  void SetGraphicsConfig();
+  bool IsNetPlayRecording() const;
 
-bool BeginRecordingInput(const ControllerTypeArray& controllers,
-                         const WiimoteEnabledArray& wiimotes);
-void RecordInput(const GCPadStatus* PadStatus, int controllerID);
-void RecordWiimote(int wiimote, const u8* data, u8 size);
+  bool IsUsingPad(int controller) const;
+  bool IsUsingWiimote(int wiimote) const;
+  bool IsUsingBongo(int controller) const;
+  bool IsUsingGBA(int controller) const;
+  void ChangePads();
+  void ChangeWiiPads(bool instantly = false);
 
-bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
-void LoadInput(const std::string& movie_path);
-void ReadHeader();
-void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
-                 const WiimoteEmu::EncryptionKey& key);
-void EndPlayInput(bool cont);
-void SaveRecording(const std::string& filename);
-void DoState(PointerWrap& p);
-void Shutdown();
-void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt, int ext,
-                        const WiimoteEmu::EncryptionKey& key);
+  void SetReadOnly(bool bEnabled);
 
-std::string GetInputDisplay();
-std::string GetRTCDisplay();
-std::string GetRerecords();
+  bool BeginRecordingInput(const ControllerTypeArray& controllers,
+                           const WiimoteEnabledArray& wiimotes);
+  void RecordInput(const GCPadStatus* PadStatus, int controllerID);
+  void RecordWiimote(int wiimote, const u8* data, u8 size);
+
+  bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
+  void LoadInput(const std::string& movie_path);
+  void ReadHeader();
+  void PlayController(GCPadStatus* PadStatus, int controllerID);
+  bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
+                   WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+  void EndPlayInput(bool cont);
+  void SaveRecording(const std::string& filename);
+  void DoState(PointerWrap& p);
+  void Shutdown();
+  void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
+  void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt,
+                          WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+
+  std::string GetInputDisplay();
+  std::string GetRTCDisplay() const;
+  std::string GetRerecords() const;
+
+private:
+  void GetSettings();
+  void CheckInputEnd();
+
+  void CheckMD5();
+  void GetMD5();
+
+  bool m_read_only = true;
+  u32 m_rerecords = 0;
+  PlayMode m_play_mode = PlayMode::None;
+
+  std::array<ControllerType, 4> m_controllers{};
+  std::array<bool, 4> m_wiimotes{};
+  ControllerState m_pad_state{};
+  DTMHeader m_temp_header{};
+  std::vector<u8> m_temp_input;
+  u64 m_current_byte = 0;
+  u64 m_current_frame = 0;
+  u64 m_total_frames = 0;  // VI
+  u64 m_current_lag_count = 0;
+  u64 m_total_lag_count = 0;
+  u64 m_current_input_count = 0;
+  u64 m_total_input_count = 0;
+  u64 m_total_tick_count = 0;
+  u64 m_tick_count_at_last_input = 0;
+  u64 m_recording_start_time = 0;  // seconds since 1970 that recording started
+  bool m_save_config = false;
+  bool m_net_play = false;
+  bool m_clear_save = false;
+  bool m_has_disc_change = false;
+  bool m_reset = false;
+  std::string m_author;
+  std::string m_disc_change_filename;
+  std::array<u8, 16> m_md5{};
+  u8 m_bongos = 0;
+  u8 m_memcards = 0;
+  std::array<u8, 20> m_revision{};
+  u32 m_dsp_irom_hash = 0;
+  u32 m_dsp_coef_hash = 0;
+
+  bool m_recording_from_save_state = false;
+  bool m_polled = false;
+
+  std::string m_current_file_name;
+
+  // m_input_display is used by both CPU and GPU (is mutable).
+  std::mutex m_input_display_lock;
+  std::array<std::string, 8> m_input_display;
+
+  Core::System& m_system;
+};
 
 }  // namespace Movie

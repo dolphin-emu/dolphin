@@ -136,6 +136,11 @@ std::string Device::FullAnalogSurface::GetName() const
   return "Full " + m_high.GetName();
 }
 
+bool Device::FullAnalogSurface::IsDetectable() const
+{
+  return m_low.IsDetectable() && m_high.IsDetectable();
+}
+
 bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
 {
   if (Control::IsMatchingName(name))
@@ -162,15 +167,12 @@ void Device::AddCombinedInput(std::string name, const std::pair<std::string, std
 std::string DeviceQualifier::ToString() const
 {
   if (source.empty() && (cid < 0) && name.empty())
-    return "";
+    return {};
 
-  std::ostringstream ss;
-  ss << source << '/';
   if (cid > -1)
-    ss << cid;
-  ss << '/' << name;
-
-  return ss.str();
+    return fmt::format("{}/{}/{}", source, cid, name);
+  else
+    return fmt::format("{}//{}", source, name);
 }
 
 //

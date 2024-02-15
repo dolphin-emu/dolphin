@@ -75,27 +75,7 @@
 #define __WI_SUPPRESS_NOEXCEPT_ANALYSIS
 #endif
 
-#if !defined(__cplusplus) || defined(__WIL_MIN_KERNEL)
-
-#define WI_ODR_PRAGMA(NAME, TOKEN)
-#define WI_NOEXCEPT
-
-#else
-#pragma warning(push)
-#pragma warning(disable:4714)    // __forceinline not honored
-
-// DO NOT add *any* further includes to this file -- there should be no dependencies from its usage
 #include <sal.h>
-#include "wistd_type_traits.h"
-
-//! This macro inserts ODR violation protection; the macro allows it to be compatible with straight "C" code
-#define WI_ODR_PRAGMA(NAME, TOKEN)  __pragma(detect_mismatch("ODR_violation_" NAME "_mismatch", TOKEN))
-
-#ifdef WIL_KERNEL_MODE
-WI_ODR_PRAGMA("WIL_KERNEL_MODE", "1")
-#else
-WI_ODR_PRAGMA("WIL_KERNEL_MODE", "0")
-#endif
 
 // Some SAL remapping / decoration to better support Doxygen.  Macros that look like function calls can
 // confuse Doxygen when they are used to decorate a function or variable.  We simplify some of these to
@@ -106,73 +86,6 @@ WI_ODR_PRAGMA("WIL_KERNEL_MODE", "0")
 #define __declspec_noinline_ __declspec(noinline)
 #define __declspec_selectany_ __declspec(selectany)
 /// @endcond
-
-#if defined(_CPPUNWIND) && !defined(WIL_SUPPRESS_EXCEPTIONS)
-/** This define is automatically set when exceptions are enabled within wil.
-It is automatically defined when your code is compiled with exceptions enabled (via checking for the built-in
-_CPPUNWIND flag) unless you explicitly define WIL_SUPPRESS_EXCEPTIONS ahead of including your first wil
-header.  All exception-based WIL methods and classes are included behind:
-~~~~
-#ifdef WIL_ENABLE_EXCEPTIONS
-// code
-#endif
-~~~~
-This enables exception-free code to directly include WIL headers without worrying about exception-based
-routines suddenly becoming available. */
-#define WIL_ENABLE_EXCEPTIONS
-#endif
-/// @endcond
-
-/// @cond
-#if defined(WIL_EXCEPTION_MODE)
-static_assert(WIL_EXCEPTION_MODE <= 2, "Invalid exception mode");
-#elif !defined(WIL_LOCK_EXCEPTION_MODE)
-#define WIL_EXCEPTION_MODE 0            // default, can link exception-based and non-exception based libraries together
-#pragma detect_mismatch("ODR_violation_WIL_EXCEPTION_MODE_mismatch", "0")
-#elif defined(WIL_ENABLE_EXCEPTIONS)
-#define WIL_EXCEPTION_MODE 1            // new code optimization:  ONLY support linking libraries together that have exceptions enabled
-#pragma detect_mismatch("ODR_violation_WIL_EXCEPTION_MODE_mismatch", "1")
-#else
-#define WIL_EXCEPTION_MODE 2            // old code optimization:  ONLY support linking libraries that are NOT using exceptions
-#pragma detect_mismatch("ODR_violation_WIL_EXCEPTION_MODE_mismatch", "2")
-#endif
-
-#if WIL_EXCEPTION_MODE == 1 && !defined(WIL_ENABLE_EXCEPTIONS)
-#error Must enable exceptions when WIL_EXCEPTION_MODE == 1
-#endif
-
-// block for documentation only
-#if defined(WIL_DOXYGEN)
-/** This define can be explicitly set to disable exception usage within wil.
-Normally this define is never needed as the WIL_ENABLE_EXCEPTIONS macro is enabled automatically by looking
-at _CPPUNWIND.  If your code compiles with exceptions enabled, but does not want to enable the exception-based
-classes and methods from WIL, define this macro ahead of including the first WIL header. */
-#define WIL_SUPPRESS_EXCEPTIONS
-
-/** This define can be explicitly set to lock the process exception mode to WIL_ENABLE_EXCEPTIONS.
-Locking the exception mode provides optimizations to exception barriers, staging hooks and DLL load costs as it eliminates the need to
-do copy-on-write initialization of various function pointers and the necessary indirection that's done within WIL to avoid ODR violations
-when linking libraries together with different exception handling semantics. */
-#define WIL_LOCK_EXCEPTION_MODE
-
-/** This define explicit sets the exception mode for the process to control optimizations.
-Three exception modes are available:
-0)  This is the default.  This enables a binary to link both exception-based and non-exception based libraries together that
-    use WIL.  This adds overhead to exception barriers, DLL copy on write pages and indirection through function pointers to avoid ODR
-    violations when linking libraries together with different exception handling semantics.
-1)  Prefer this setting when it can be used.  This locks the binary to only supporting libraries which were built with exceptions enabled.
-2)  This locks the binary to libraries built without exceptions. */
-#define WIL_EXCEPTION_MODE
-#endif
-
-#if (__cplusplus >= 201703) || (_MSVC_LANG >= 201703)
-#define WIL_HAS_CXX_17 1
-#else
-#define WIL_HAS_CXX_17 0
-#endif
-
-// Until we'll have C++17 enabled in our code base, we're falling back to SAL
-#define WI_NODISCARD __WI_LIBCPP_NODISCARD_ATTRIBUTE
 
 //! @defgroup macrobuilding Macro Composition
 //! The following macros are building blocks primarily intended for authoring other macros.
@@ -327,8 +240,96 @@ Three exception modes are available:
 
 //! @} // Macro composition helpers
 
-#define __R_ENABLE_IF_IS_CLASS(ptrType)                     wistd::enable_if_t<wistd::is_class<ptrType>::value, void*> = (void*)0
-#define __R_ENABLE_IF_IS_NOT_CLASS(ptrType)                 wistd::enable_if_t<!wistd::is_class<ptrType>::value, void*> = (void*)0
+#if !defined(__cplusplus) || defined(__WIL_MIN_KERNEL)
+
+#define WI_ODR_PRAGMA(NAME, TOKEN)
+#define WI_NOEXCEPT
+
+#else
+#pragma warning(push)
+#pragma warning(disable:4714)    // __forceinline not honored
+
+// DO NOT add *any* further includes to this file -- there should be no dependencies from its usage
+#include "wistd_type_traits.h"
+
+//! This macro inserts ODR violation protection; the macro allows it to be compatible with straight "C" code
+#define WI_ODR_PRAGMA(NAME, TOKEN)  __pragma(detect_mismatch("ODR_violation_" NAME "_mismatch", TOKEN))
+
+#ifdef WIL_KERNEL_MODE
+WI_ODR_PRAGMA("WIL_KERNEL_MODE", "1")
+#else
+WI_ODR_PRAGMA("WIL_KERNEL_MODE", "0")
+#endif
+
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(WIL_SUPPRESS_EXCEPTIONS)
+/** This define is automatically set when exceptions are enabled within wil.
+It is automatically defined when your code is compiled with exceptions enabled (via checking for the built-in
+_CPPUNWIND or __EXCEPTIONS flag) unless you explicitly define WIL_SUPPRESS_EXCEPTIONS ahead of including your first wil
+header.  All exception-based WIL methods and classes are included behind:
+~~~~
+#ifdef WIL_ENABLE_EXCEPTIONS
+// code
+#endif
+~~~~
+This enables exception-free code to directly include WIL headers without worrying about exception-based
+routines suddenly becoming available. */
+#define WIL_ENABLE_EXCEPTIONS
+#endif
+/// @endcond
+
+/// @cond
+#if defined(WIL_EXCEPTION_MODE)
+static_assert(WIL_EXCEPTION_MODE <= 2, "Invalid exception mode");
+#elif !defined(WIL_LOCK_EXCEPTION_MODE)
+#define WIL_EXCEPTION_MODE 0            // default, can link exception-based and non-exception based libraries together
+#pragma detect_mismatch("ODR_violation_WIL_EXCEPTION_MODE_mismatch", "0")
+#elif defined(WIL_ENABLE_EXCEPTIONS)
+#define WIL_EXCEPTION_MODE 1            // new code optimization:  ONLY support linking libraries together that have exceptions enabled
+#pragma detect_mismatch("ODR_violation_WIL_EXCEPTION_MODE_mismatch", "1")
+#else
+#define WIL_EXCEPTION_MODE 2            // old code optimization:  ONLY support linking libraries that are NOT using exceptions
+#pragma detect_mismatch("ODR_violation_WIL_EXCEPTION_MODE_mismatch", "2")
+#endif
+
+#if WIL_EXCEPTION_MODE == 1 && !defined(WIL_ENABLE_EXCEPTIONS)
+#error Must enable exceptions when WIL_EXCEPTION_MODE == 1
+#endif
+
+// block for documentation only
+#if defined(WIL_DOXYGEN)
+/** This define can be explicitly set to disable exception usage within wil.
+Normally this define is never needed as the WIL_ENABLE_EXCEPTIONS macro is enabled automatically by looking
+at _CPPUNWIND.  If your code compiles with exceptions enabled, but does not want to enable the exception-based
+classes and methods from WIL, define this macro ahead of including the first WIL header. */
+#define WIL_SUPPRESS_EXCEPTIONS
+
+/** This define can be explicitly set to lock the process exception mode to WIL_ENABLE_EXCEPTIONS.
+Locking the exception mode provides optimizations to exception barriers, staging hooks and DLL load costs as it eliminates the need to
+do copy-on-write initialization of various function pointers and the necessary indirection that's done within WIL to avoid ODR violations
+when linking libraries together with different exception handling semantics. */
+#define WIL_LOCK_EXCEPTION_MODE
+
+/** This define explicit sets the exception mode for the process to control optimizations.
+Three exception modes are available:
+0)  This is the default.  This enables a binary to link both exception-based and non-exception based libraries together that
+    use WIL.  This adds overhead to exception barriers, DLL copy on write pages and indirection through function pointers to avoid ODR
+    violations when linking libraries together with different exception handling semantics.
+1)  Prefer this setting when it can be used.  This locks the binary to only supporting libraries which were built with exceptions enabled.
+2)  This locks the binary to libraries built without exceptions. */
+#define WIL_EXCEPTION_MODE
+#endif
+
+#if (__cplusplus >= 201703) || (_MSVC_LANG >= 201703)
+#define WIL_HAS_CXX_17 1
+#else
+#define WIL_HAS_CXX_17 0
+#endif
+
+// Until we'll have C++17 enabled in our code base, we're falling back to SAL
+#define WI_NODISCARD __WI_LIBCPP_NODISCARD_ATTRIBUTE
+
+#define __R_ENABLE_IF_IS_CLASS(ptrType)                     wistd::enable_if_t<wistd::is_class<ptrType>::value, void*> = nullptr
+#define __R_ENABLE_IF_IS_NOT_CLASS(ptrType)                 wistd::enable_if_t<!wistd::is_class<ptrType>::value, void*> = nullptr
 
 //! @defgroup bitwise Bitwise Inspection and Manipulation
 //! Bitwise helpers to improve readability and reduce the error rate of bitwise operations.
@@ -612,10 +613,10 @@ namespace wil
     }
 
     template <>
-    _Post_satisfies_(return == !!val)
+    _Post_satisfies_(return == (val != 0))
     __forceinline constexpr bool verify_bool<unsigned char>(unsigned char val)
     {
-        return !!val;
+        return (val != 0);
     }
 
     /** Verify that `val` is a Win32 BOOL value.
@@ -651,15 +652,61 @@ namespace wil
     ~~~~
     RETURN_HR_IF(static_cast<HRESULT>(UIA_E_NOTSUPPORTED), (patternId != UIA_DragPatternId));
     ~~~~
-    @param val The HRESULT returning expression
+    @param hr The HRESULT returning expression
     @return An HRESULT representing the evaluation of `val`. */
     template <typename T>
     _Post_satisfies_(return == hr)
     inline constexpr long verify_hresult(T hr)
     {
-        // Note: Written in terms of 'int' as HRESULT is actually:  typedef _Return_type_success_(return >= 0) long HRESULT
+        // Note: Written in terms of 'long' as HRESULT is actually:  typedef _Return_type_success_(return >= 0) long HRESULT
         static_assert(wistd::is_same<T, long>::value, "Wrong Type: HRESULT expected");
         return hr;
+    }
+
+    /** Verify that `status` is an NTSTATUS value.
+    Other types will generate an intentional compilation error.  Note that this will accept any `long` value as that is the
+    underlying typedef behind NTSTATUS.
+    //!
+    Note that occasionally you might run into an NTSTATUS which is directly defined with a #define, such as:
+    ~~~~
+    #define STATUS_NOT_SUPPORTED             0x1
+    ~~~~
+    Though this looks like an `NTSTATUS`, this is actually an `unsigned long` (the hex specification forces this).  When
+    these are encountered and they are NOT in the public SDK (have not yet shipped to the public), then you should change
+    their definition to match the manner in which `NTSTATUS` constants are defined in ntstatus.h:
+    ~~~~
+    #define STATUS_NOT_SUPPORTED             ((NTSTATUS)0xC00000BBL)
+    ~~~~
+    When these are encountered in the public SDK, their type should not be changed and you should use a static_cast
+    to use this value in a macro that utilizes `verify_ntstatus`, for example:
+    ~~~~
+    NT_RETURN_IF_FALSE(static_cast<NTSTATUS>(STATUS_NOT_SUPPORTED), (dispatch->Version == HKE_V1_0));
+    ~~~~
+    @param status The NTSTATUS returning expression
+    @return An NTSTATUS representing the evaluation of `val`. */
+    template <typename T>
+    _Post_satisfies_(return == status)
+    inline long verify_ntstatus(T status)
+    {
+        // Note: Written in terms of 'long' as NTSTATUS is actually:  typedef _Return_type_success_(return >= 0) long NTSTATUS
+        static_assert(wistd::is_same<T, long>::value, "Wrong Type: NTSTATUS expected");
+        return status;
+    }
+
+    /** Verify that `error` is a Win32 error code.
+    Other types will generate an intentional compilation error. Note that this will accept any `long` value as that is
+    the underlying type used for WIN32 error codes, as well as any `DWORD` (`unsigned long`) value since this is the type
+    commonly used when manipulating Win32 error codes.
+    @param error The Win32 error code returning expression
+    @return An Win32 error code representing the evaluation of `error`. */
+    template <typename T>
+    _Post_satisfies_(return == error)
+    inline T verify_win32(T error)
+    {
+        // Note: Win32 error code are defined as 'long' (#define ERROR_SUCCESS 0L), but are more frequently used as DWORD (unsigned long).
+        // This accept both types.
+        static_assert(wistd::is_same<T, long>::value || wistd::is_same<T, unsigned long>::value, "Wrong Type: Win32 error code (long / unsigned long) expected");
+        return error;
     }
     /// @}      // end type validation routines
 
@@ -706,31 +753,31 @@ namespace wil
         template <>
         struct variable_size<1>
         {
-            typedef unsigned char type;
+            using type = unsigned char;
         };
 
         template <>
         struct variable_size<2>
         {
-            typedef unsigned short type;
+            using type = unsigned short;
         };
 
         template <>
         struct variable_size<4>
         {
-            typedef unsigned long type;
+            using type = unsigned long;
         };
 
         template <>
         struct variable_size<8>
         {
-            typedef unsigned long long type;
+            using type = unsigned long long;
         };
 
         template <typename T>
         struct variable_size_mapping
         {
-            typedef typename variable_size<sizeof(T)>::type type;
+            using type = typename variable_size<sizeof(T)>::type;
         };
     } // details
     /// @endcond
@@ -739,6 +786,10 @@ namespace wil
     This allows code to generically convert any enum class to it's corresponding underlying type. */
     template <typename T>
     using integral_from_enum = typename details::variable_size_mapping<T>::type;
+
+    //! Declares a name that intentionally hides a name from an outer scope.
+    //! Use this to prevent accidental use of a parameter or lambda captured variable.
+    using hide_name = void(struct hidden_name);
 } // wil
 
 #pragma warning(pop)

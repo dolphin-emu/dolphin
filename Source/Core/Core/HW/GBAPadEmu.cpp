@@ -5,6 +5,8 @@
 
 #include <fmt/format.h>
 
+#include "Core/HW/GBAPad.h"
+
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/GCPadStatus.h"
@@ -17,28 +19,35 @@ static const u16 button_bitmasks[] = {PAD_BUTTON_B,  PAD_BUTTON_A,  PAD_TRIGGER_
 
 GBAPad::GBAPad(const unsigned int index) : m_reset_pending(false), m_index(index)
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
   for (const char* named_button : {B_BUTTON, A_BUTTON, L_BUTTON, R_BUTTON})
   {
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
+    m_buttons->AddInput(Translatability::DoNotTranslate, named_button);
   }
   for (const char* named_button : {SELECT_BUTTON, START_BUTTON})
   {
-    m_buttons->AddInput(ControllerEmu::Translate, named_button);
+    m_buttons->AddInput(Translatability::Translate, named_button);
   }
 
   // DPad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+    m_dpad->AddInput(Translatability::Translate, named_direction);
   }
 }
 
 std::string GBAPad::GetName() const
 {
   return fmt::format("GBA{}", m_index + 1);
+}
+
+InputConfig* GBAPad::GetConfig() const
+{
+  return Pad::GetGBAConfig();
 }
 
 ControllerEmu::ControlGroup* GBAPad::GetGroup(GBAPadGroup group) const

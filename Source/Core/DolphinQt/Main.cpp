@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef _WIN32
+#include <cstdio>
 #include <string>
 #include <vector>
 
 #include <Windows.h>
-#include <cstdio>
 #endif
 
 #ifdef __linux__
@@ -34,6 +34,7 @@
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Translation.h"
@@ -91,6 +92,7 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
       return QMessageBox::NoIcon;
     }());
 
+    SetQWidgetWindowDecorations(&message_box);
     const int button = message_box.exec();
     if (button == QMessageBox::Yes)
       return true;
@@ -124,7 +126,7 @@ int main(int argc, char* argv[])
   }
 #endif
 
-  Host::GetInstance()->DeclareAsHostThread();
+  Core::DeclareAsHostThread();
 
 #ifdef __APPLE__
   // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
@@ -144,32 +146,20 @@ int main(int argc, char* argv[])
   // code, which makes mouse inputs work again.
   // For more information: https://bugs.dolphin-emu.org/issues/12913
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
-  putenv("QT_XCB_NO_XI2=1");
+  setenv("QT_XCB_NO_XI2", "1", true);
 #endif
-#endif
-
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
-  const std::vector<std::string> args = parser->args();
-
-  // setHighDpiScaleFactorRoundingPolicy was added in 5.14, but default behavior changed in 6.0
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-  // Set to the previous default behavior
-  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
-#else
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
 
-#ifdef _WIN32
-  QApplication app(__argc, __argv);
-#else
+  // QApplication will parse arguments and remove any it recognizes as targeting Qt
   QApplication app(argc, argv);
-#endif
+
+  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  const std::vector<std::string> args = parser->args();
 
 #ifdef _WIN32
   FreeConsole();
@@ -270,11 +260,43 @@ int main(int argc, char* argv[])
     }
 #endif
 
+    Settings::Instance().InitDefaultPalette();
+    Settings::Instance().UpdateSystemDark();
+    Settings::Instance().ApplyStyle();
+
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
-    Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
-    if (options.is_set("debugger"))
-      Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
+
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
+    if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
+    {
+      ModalMessageBox analytics_prompt(&win);
+
+      analytics_prompt.setIcon(QMessageBox::Question);
+      analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+      analytics_prompt.setWindowTitle(QObject::tr("Allow Usage Statistics Reporting"));
+      analytics_prompt.setText(
+          QObject::tr("Do you authorize Dolphin to report information to Dolphin's developers?"));
+      analytics_prompt.setInformativeText(
+          QObject::tr("If authorized, Dolphin can collect data on its performance, "
+                      "feature usage, and configuration, as well as data on your system's "
+                      "hardware and operating system.\n\n"
+                      "No private data is ever collected. This data helps us understand "
+                      "how people and emulated games use Dolphin and prioritize our "
+                      "efforts. It also helps us identify rare configurations that are "
+                      "causing bugs, performance and stability issues.\n"
+                      "This authorization can be revoked at any time through Dolphin's "
+                      "settings."));
+
+      SetQWidgetWindowDecorations(&analytics_prompt);
+      const int answer = analytics_prompt.exec();
+
+      Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
+      Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
+
+      DolphinAnalytics::Instance().ReloadConfig();
+    }
+#endif
 
     if (!Settings::Instance().IsBatchModeEnabled())
     {

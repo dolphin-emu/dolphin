@@ -783,7 +783,7 @@ static struct expr *expr_create(const char *s, size_t len,
             struct expr *p = &root;
             /* Assign macro parameters */
             for (int j = 0; j < vec_len(&arg.args); j++) {
-              char varname[12];
+              char varname[13];
               snprintf(varname, sizeof(varname), "$%d", (j + 1));
               struct expr_var *v = expr_get_var(vars, varname, strlen(varname));
               struct expr ev = expr_varref(v);
@@ -826,14 +826,14 @@ static struct expr *expr_create(const char *s, size_t len,
       vec_push(&es, expr_const(num));
       paren_next = EXPR_PAREN_FORBIDDEN;
     } else if (n > 1 && *tok == '"') {
-      char *s = (char *)calloc(1, n - 1);
-      if (s == NULL) {
+      char *str = (char *)calloc(1, n - 1);
+      if (str == NULL) {
         goto cleanup; /* allocation failed */
       }
-      strncpy(s, tok + 1, n - 2);
+      strncpy(str, tok + 1, n - 2);
       struct expr e = expr_init();
       e.type = OP_STRING;
-      e.param.str.s = s;
+      e.param.str.s = str;
       vec_push(&es, e);
       paren_next = EXPR_PAREN_FORBIDDEN;
     } else if (expr_op(tok, n, -1) != OP_UNKNOWN) {

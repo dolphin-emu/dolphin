@@ -42,7 +42,7 @@ struct WinRTStorage<HSTRING>
 {
     Microsoft::WRL::Wrappers::HString value;
 
-    HRESULT CopyTo(HSTRING* result)
+    HRESULT CopyTo(HSTRING* result) const
     {
         return value.CopyTo(result);
     }
@@ -63,7 +63,7 @@ struct WinRTStorage<HSTRING>
         value = {};
     }
 
-    bool Equals(HSTRING val)
+    bool Equals(HSTRING val) const
     {
         return value == val;
     }
@@ -207,7 +207,7 @@ private:
     WinRTStorage<Abi> m_storage;
 };
 
-template <typename Logical, typename Abi = Logical, size_t MaxSize = 42>
+template <typename Logical, typename Abi = Logical, size_t MaxSize = 250>
 struct FakeVector : Microsoft::WRL::RuntimeClass<
     ABI::Windows::Foundation::Collections::IVector<Logical>,
     ABI::Windows::Foundation::Collections::IVectorView<Logical>>
@@ -292,7 +292,7 @@ struct FakeVector : Microsoft::WRL::RuntimeClass<
 
         for (size_t i = index + 1; i < m_size; ++i)
         {
-            wistd::swap_wil(m_data[i - 1], m_data[i]);
+            wistd::swap_wil(m_data[i], m_data[i - 1]);
         }
 
         m_data[--m_size].Reset();
@@ -349,8 +349,8 @@ struct FakeVector : Microsoft::WRL::RuntimeClass<
         count = (count > capacity) ? capacity : count;
 
         HRESULT hr = S_OK;
-        unsigned i = 0;
-        for (; (i < count) && SUCCEEDED(hr); ++i)
+        unsigned i;
+        for (i = 0; (i < count) && SUCCEEDED(hr); ++i)
         {
             hr = m_data[startIndex + i].CopyTo(value + i);
         }

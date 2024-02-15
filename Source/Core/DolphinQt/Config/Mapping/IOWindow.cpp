@@ -6,6 +6,8 @@
 #include <optional>
 #include <thread>
 
+#include <QBrush>
+#include <QColor>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QHeaderView>
@@ -38,7 +40,6 @@
 
 namespace
 {
-// TODO: Make sure these functions return colors that will be visible in the current theme.
 QTextCharFormat GetSpecialCharFormat()
 {
   QTextCharFormat format;
@@ -49,7 +50,10 @@ QTextCharFormat GetSpecialCharFormat()
 QTextCharFormat GetLiteralCharFormat()
 {
   QTextCharFormat format;
-  format.setForeground(QBrush{Qt::darkMagenta});
+  if (Settings::Instance().IsThemeDark())
+    format.setForeground(QBrush{QColor(171, 132, 219)});
+  else
+    format.setForeground(QBrush{Qt::darkMagenta});
   return format;
 }
 
@@ -57,35 +61,50 @@ QTextCharFormat GetInvalidCharFormat()
 {
   QTextCharFormat format;
   format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-  format.setUnderlineColor(Qt::darkRed);
+  if (Settings::Instance().IsThemeDark())
+    format.setUnderlineColor(QColor(255, 69, 0));
+  else
+    format.setUnderlineColor(Qt::darkRed);
   return format;
 }
 
 QTextCharFormat GetControlCharFormat()
 {
   QTextCharFormat format;
-  format.setForeground(QBrush{Qt::darkGreen});
+  if (Settings::Instance().IsThemeDark())
+    format.setForeground(QBrush{QColor(0, 220, 0)});
+  else
+    format.setForeground(QBrush{Qt::darkGreen});
   return format;
 }
 
 QTextCharFormat GetVariableCharFormat()
 {
   QTextCharFormat format;
-  format.setForeground(QBrush{Qt::darkYellow});
+  if (Settings::Instance().IsThemeDark())
+    format.setForeground(QBrush{QColor(226, 226, 0)});
+  else
+    format.setForeground(QBrush{Qt::darkYellow});
   return format;
 }
 
 QTextCharFormat GetBarewordCharFormat()
 {
   QTextCharFormat format;
-  format.setForeground(QBrush{Qt::darkBlue});
+  if (Settings::Instance().IsThemeDark())
+    format.setForeground(QBrush{QColor(66, 138, 255)});
+  else
+    format.setForeground(QBrush{Qt::darkBlue});
   return format;
 }
 
 QTextCharFormat GetCommentCharFormat()
 {
   QTextCharFormat format;
-  format.setForeground(QBrush{Qt::darkGray});
+  if (Settings::Instance().IsThemeDark())
+    format.setForeground(QBrush{QColor(176, 176, 176)});
+  else
+    format.setForeground(QBrush{Qt::darkGray});
   return format;
 }
 }  // namespace
@@ -439,13 +458,12 @@ void IOWindow::ConnectWidgets()
 
   connect(m_button_box, &QDialogButtonBox::clicked, this, &IOWindow::OnDialogButtonPressed);
   connect(m_devices_combo, &QComboBox::currentTextChanged, this, &IOWindow::OnDeviceChanged);
-  connect(m_scalar_spinbox, qOverload<int>(&QSpinBox::valueChanged), this,
-          &IOWindow::OnRangeChanged);
+  connect(m_scalar_spinbox, &QSpinBox::valueChanged, this, &IOWindow::OnRangeChanged);
 
   connect(m_expression_text, &QPlainTextEdit::textChanged,
           [this] { UpdateExpression(m_expression_text->toPlainText().toStdString()); });
 
-  connect(m_variables_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
+  connect(m_variables_combo, &QComboBox::activated, [this](int index) {
     if (index == 0)
       return;
 
@@ -463,7 +481,7 @@ void IOWindow::ConnectWidgets()
     m_variables_combo->setCurrentIndex(0);
   });
 
-  connect(m_operators_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
+  connect(m_operators_combo, &QComboBox::activated, [this](int index) {
     if (index == 0)
       return;
 
@@ -472,7 +490,7 @@ void IOWindow::ConnectWidgets()
     m_operators_combo->setCurrentIndex(0);
   });
 
-  connect(m_functions_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
+  connect(m_functions_combo, &QComboBox::activated, [this](int index) {
     if (index == 0)
       return;
 

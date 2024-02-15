@@ -159,7 +159,7 @@ enum class EClassTest
 };
 DEFINE_ENUM_FLAG_OPERATORS(EClassTest);
 
-enum ERawTest
+enum ERawTest : unsigned int
 {
     ER_None = 0x0,
     ER_One = 0x1,

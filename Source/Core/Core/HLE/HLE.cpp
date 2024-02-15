@@ -11,7 +11,6 @@
 #include "Common/Config/Config.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/HLE/HLE_Misc.h"
@@ -85,12 +84,12 @@ void PatchFixedFunctions(Core::System& system)
   // that get patched by MIOS. See https://bugs.dolphin-emu.org/issues/11952 for more info.
   // Not applying the Gecko HLE patches means that Gecko codes will not work under MIOS,
   // but this is better than the alternative of having specific games crash.
-  if (SConfig::GetInstance().m_is_mios)
+  if (system.IsMIOS())
     return;
 
   // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
   // handler
-  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
+  if (!Config::AreCheatsEnabled())
   {
     Patch(system, 0x80001800, "HBReload");
     auto& memory = system.GetMemory();
@@ -166,10 +165,10 @@ void Execute(const Core::CPUThreadGuard& guard, u32 current_pc, u32 hook_index)
   }
 }
 
-void ExecuteFromJIT(u32 current_pc, u32 hook_index)
+void ExecuteFromJIT(u32 current_pc, u32 hook_index, Core::System& system)
 {
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  Core::CPUThreadGuard guard(system);
   Execute(guard, current_pc, hook_index);
 }
 
@@ -200,10 +199,27 @@ HookFlag GetHookFlagsByIndex(u32 index)
   return os_patches[index].flags;
 }
 
-bool IsEnabled(HookFlag flag)
+TryReplaceFunctionResult TryReplaceFunction(u32 address, PowerPC::CoreMode mode)
 {
-  return flag != HLE::HookFlag::Debug || Config::Get(Config::MAIN_ENABLE_DEBUGGING) ||
-         PowerPC::GetMode() == PowerPC::CoreMode::Interpreter;
+  const u32 hook_index = GetHookByFunctionAddress(address);
+  if (hook_index == 0)
+    return {};
+
+  const HookType type = GetHookTypeByIndex(hook_index);
+  if (type != HookType::Start && type != HookType::Replace)
+    return {};
+
+  const HookFlag flags = GetHookFlagsByIndex(hook_index);
+  if (!IsEnabled(flags, mode))
+    return {};
+
+  return {type, hook_index};
+}
+
+bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode)
+{
+  return flag != HLE::HookFlag::Debug || Config::IsDebuggingEnabled() ||
+         mode == PowerPC::CoreMode::Interpreter;
 }
 
 u32 UnPatch(Core::System& system, std::string_view patch_name)

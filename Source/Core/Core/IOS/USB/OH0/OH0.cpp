@@ -22,7 +22,7 @@
 
 namespace IOS::HLE
 {
-OH0::OH0(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
+OH0::OH0(EmulationKernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
 }
 
@@ -93,7 +93,7 @@ IPCReply OH0::CancelInsertionHook(const IOCtlRequest& request)
   if (!request.buffer_in || request.buffer_in_size != 4)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   // IOS assigns random IDs, but ours are simply the VID + PID (see RegisterInsertionHookWithID)
@@ -108,7 +108,7 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(2, 2))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u8 max_entries_count = memory.Read_U8(request.in_vectors[0].address);
@@ -140,12 +140,13 @@ IPCReply OH0::GetRhDesca(const IOCtlRequest& request) const
   if (!request.buffer_out || request.buffer_out_size != 4)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   // Based on a hardware test, this ioctl seems to return a constant value
   memory.Write_U32(0x02000302, request.buffer_out);
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LWARNING);
+  request.Dump(system, GetDeviceName(), Common::Log::LogType::IOS_USB,
+               Common::Log::LogLevel::LWARNING);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -155,7 +156,8 @@ IPCReply OH0::GetRhPortStatus(const IOCtlVRequest& request) const
     return IPCReply(IPC_EINVAL);
 
   ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_GETRHPORTSTATUS");
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LERROR);
+  request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
+               Common::Log::LogLevel::LERROR);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -165,7 +167,8 @@ IPCReply OH0::SetRhPortStatus(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
 
   ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_SETRHPORTSTATUS");
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LERROR);
+  request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
+               Common::Log::LogLevel::LERROR);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -184,7 +187,7 @@ std::optional<IPCReply> OH0::RegisterInsertionHook(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u16 vid = memory.Read_U16(request.in_vectors[0].address);
@@ -203,7 +206,7 @@ std::optional<IPCReply> OH0::RegisterInsertionHookWithID(const IOCtlVRequest& re
   if (!request.HasNumberOfValidVectors(3, 1))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   std::lock_guard lock{m_hooks_mutex};
@@ -224,7 +227,8 @@ std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& reques
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(IPC_EINVAL);
   WARN_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: USB::IOCTLV_USBV0_DEVICECLASSCHANGE (no reply)");
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LWARNING);
+  request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
+               Common::Log::LogLevel::LWARNING);
   return std::nullopt;
 }
 
@@ -251,7 +255,8 @@ void OH0::TriggerHook(std::map<T, u32>& hooks, T value, const ReturnCode return_
   const auto hook = hooks.find(value);
   if (hook == hooks.end())
     return;
-  m_ios.EnqueueIPCReply(Request{hook->second}, return_value, 0, CoreTiming::FromThread::ANY);
+  GetEmulationKernel().EnqueueIPCReply(Request{GetSystem(), hook->second}, return_value, 0,
+                                       CoreTiming::FromThread::ANY);
   hooks.erase(hook);
 }
 
@@ -323,7 +328,7 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
     return HandleTransfer(device, request.request,
                           [&, this]() { return SubmitTransfer(*device, request); });
   case USB::IOCTLV_USBV0_UNKNOWN_32:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB);
+    request.DumpUnknown(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB);
     return IPCReply(IPC_SUCCESS);
   default:
     return IPCReply(IPC_EINVAL);
@@ -332,7 +337,7 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
 
 s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   switch (ioctlv.request)
@@ -341,7 +346,8 @@ s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
     if (!ioctlv.HasNumberOfValidVectors(6, 1) ||
         Common::swap16(memory.Read_U16(ioctlv.in_vectors[4].address)) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
-    return device.SubmitTransfer(std::make_unique<USB::V0CtrlMessage>(m_ios, ioctlv));
+    return device.SubmitTransfer(
+        std::make_unique<USB::V0CtrlMessage>(GetEmulationKernel(), ioctlv));
 
   case USB::IOCTLV_USBV0_BLKMSG:
   case USB::IOCTLV_USBV0_LBLKMSG:
@@ -349,18 +355,19 @@ s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
         memory.Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
     return device.SubmitTransfer(std::make_unique<USB::V0BulkMessage>(
-        m_ios, ioctlv, ioctlv.request == USB::IOCTLV_USBV0_LBLKMSG));
+        GetEmulationKernel(), ioctlv, ioctlv.request == USB::IOCTLV_USBV0_LBLKMSG));
 
   case USB::IOCTLV_USBV0_INTRMSG:
     if (!ioctlv.HasNumberOfValidVectors(2, 1) ||
         memory.Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
-    return device.SubmitTransfer(std::make_unique<USB::V0IntrMessage>(m_ios, ioctlv));
+    return device.SubmitTransfer(
+        std::make_unique<USB::V0IntrMessage>(GetEmulationKernel(), ioctlv));
 
   case USB::IOCTLV_USBV0_ISOMSG:
     if (!ioctlv.HasNumberOfValidVectors(3, 2))
       return IPC_EINVAL;
-    return device.SubmitTransfer(std::make_unique<USB::V0IsoMessage>(m_ios, ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V0IsoMessage>(GetEmulationKernel(), ioctlv));
 
   default:
     return IPC_EINVAL;

@@ -52,6 +52,7 @@ void Mixer::DoState(PointerWrap& p)
   m_dma_mixer.DoState(p);
   m_streaming_mixer.DoState(p);
   m_wiimote_speaker_mixer.DoState(p);
+  m_skylander_portal_mixer.DoState(p);
   for (auto& mixer : m_gba_mixers)
     mixer.DoState(p);
 }
@@ -183,6 +184,8 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
                           timing_variance);
     m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
                                 timing_variance);
+    m_skylander_portal_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+                                 timing_variance);
     for (auto& mixer : m_gba_mixers)
     {
       mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
@@ -202,6 +205,7 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
     m_dma_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
     m_streaming_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
     m_wiimote_speaker_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
+    m_skylander_portal_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
     for (auto& mixer : m_gba_mixers)
       mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
     m_is_stretching = false;
@@ -315,6 +319,30 @@ void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_sam
     }
 
     m_wiimote_speaker_mixer.PushSamples(samples_stereo.data(), num_samples);
+  }
+}
+
+void Mixer::PushSkylanderPortalSamples(const u8* samples, unsigned int num_samples)
+{
+  // Skylander samples are always supplied as 64 bytes, 32 x 16 bit samples
+  // The portal speaker is 1 channel, so duplicate and play as stereo audio
+  static constexpr u32 MAX_PORTAL_SPEAKER_SAMPLES = 32;
+  std::array<short, MAX_PORTAL_SPEAKER_SAMPLES * 2> samples_stereo;
+
+  ASSERT_MSG(AUDIO, num_samples <= MAX_PORTAL_SPEAKER_SAMPLES,
+             "num_samples is not less or equal to 32: {} > {}", num_samples,
+             MAX_PORTAL_SPEAKER_SAMPLES);
+
+  if (num_samples <= MAX_PORTAL_SPEAKER_SAMPLES)
+  {
+    for (unsigned int i = 0; i < num_samples; ++i)
+    {
+      s16 sample = static_cast<u16>(samples[i * 2 + 1]) << 8 | static_cast<u16>(samples[i * 2]);
+      samples_stereo[i * 2] = sample;
+      samples_stereo[i * 2 + 1] = sample;
+    }
+
+    m_skylander_portal_mixer.PushSamples(samples_stereo.data(), num_samples);
   }
 }
 

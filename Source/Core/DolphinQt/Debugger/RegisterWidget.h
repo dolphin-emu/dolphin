@@ -13,6 +13,10 @@
 class QTableWidget;
 class QCloseEvent;
 class QShowEvent;
+namespace Core
+{
+class System;
+}
 
 class RegisterWidget : public QDockWidget
 {
@@ -48,6 +52,8 @@ private:
 
   void AutoStep(const std::string& reg) const;
   void Update();
+
+  Core::System& m_system;
 
   QTableWidget* m_table;
   bool m_updating = false;

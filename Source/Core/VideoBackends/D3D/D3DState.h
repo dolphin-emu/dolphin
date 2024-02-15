@@ -91,13 +91,16 @@ public:
     m_pending.samplers[index] = sampler;
   }
 
-  void SetPixelConstants(ID3D11Buffer* buffer0, ID3D11Buffer* buffer1 = nullptr)
+  void SetPixelConstants(ID3D11Buffer* buffer0, ID3D11Buffer* buffer1 = nullptr,
+                         ID3D11Buffer* buffer2 = nullptr)
   {
-    if (m_current.pixelConstants[0] != buffer0 || m_current.pixelConstants[1] != buffer1)
+    if (m_current.pixelConstants[0] != buffer0 || m_current.pixelConstants[1] != buffer1 ||
+        m_current.pixelConstants[2] != buffer2)
       m_dirtyFlags.set(DirtyFlag_PixelConstants);
 
     m_pending.pixelConstants[0] = buffer0;
     m_pending.pixelConstants[1] = buffer1;
+    m_pending.pixelConstants[2] = buffer2;
   }
 
   void SetVertexConstants(ID3D11Buffer* buffer)
@@ -218,7 +221,7 @@ public:
 
   // Binds constant buffers/textures/samplers to the compute shader stage.
   // We don't track these explicitly because it's not often-used.
-  void SetComputeUAV(ID3D11UnorderedAccessView* uav);
+  void SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav);
   void SetComputeShader(ID3D11ComputeShader* shader);
   void SyncComputeBindings();
 
@@ -252,7 +255,7 @@ private:
   {
     std::array<ID3D11ShaderResourceView*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures;
     std::array<ID3D11SamplerState*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers;
-    std::array<ID3D11Buffer*, 2> pixelConstants;
+    std::array<ID3D11Buffer*, 3> pixelConstants;
     ID3D11Buffer* vertexConstants;
     ID3D11Buffer* geometryConstants;
     ID3D11Buffer* vertexBuffer;
@@ -277,9 +280,11 @@ private:
 
   // Compute resources are synced with the graphics resources when we need them.
   ID3D11Buffer* m_compute_constants = nullptr;
-  std::array<ID3D11ShaderResourceView*, 8> m_compute_textures{};
-  std::array<ID3D11SamplerState*, 8> m_compute_samplers{};
-  ID3D11UnorderedAccessView* m_compute_image = nullptr;
+  std::array<ID3D11ShaderResourceView*, VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS>
+      m_compute_textures{};
+  std::array<ID3D11SamplerState*, VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS> m_compute_samplers{};
+  std::array<ID3D11UnorderedAccessView*, VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS>
+      m_compute_images{};
   ID3D11ComputeShader* m_compute_shader = nullptr;
 };
 

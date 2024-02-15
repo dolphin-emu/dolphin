@@ -7,10 +7,10 @@
 
 #include "Common/CommonTypes.h"
 
-namespace UPnP
+namespace Common::UPnP
 {
 void TryPortmapping(u16 port);
 void StopPortmapping();
-}  // namespace UPnP
+}  // namespace Common::UPnP
 
 #endif

@@ -57,3 +57,27 @@
 [submodule "Externals/SlippiRustExtensions"]
 	path = Externals/SlippiRustExtensions
 	url = https://github.com/project-slippi/slippi-rust-extensions.git
+[submodule "Externals/rcheevos/rcheevos"]
+	path = Externals/rcheevos/rcheevos
+	url = https://github.com/RetroAchievements/rcheevos.git
+[submodule "Externals/libadrenotools"]
+	path = Externals/libadrenotools
+	url = https://github.com/bylaws/libadrenotools.git
+[submodule "Externals/curl/curl"]
+	path = Externals/curl/curl
+	url = https://github.com/curl/curl.git
+[submodule "Externals/fmt/fmt"]
+	path = Externals/fmt/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "Externals/lz4/lz4"]
+	path = Externals/lz4/lz4
+	url = https://github.com/lz4/lz4
+[submodule "Externals/xxhash/xxHash"]
+	path = Externals/xxhash/xxHash
+	url = https://github.com/Cyan4973/xxHash.git
+[submodule "Externals/enet/enet"]
+	path = Externals/enet/enet
+	url = https://github.com/lsalzman/enet.git
+[submodule "hidapi-src"]
+	path = Externals/hidapi/hidapi-src
+	url = https://github.com/libusb/hidapi

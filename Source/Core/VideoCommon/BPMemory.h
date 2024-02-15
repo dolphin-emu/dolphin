@@ -56,7 +56,7 @@ enum
   BPMEM_EFB_TL = 0x49,
   BPMEM_EFB_WH = 0x4A,
   BPMEM_EFB_ADDR = 0x4B,
-  BPMEM_MIPMAP_STRIDE = 0x4D,
+  BPMEM_EFB_STRIDE = 0x4D,
   BPMEM_COPYYSCALE = 0x4E,
   BPMEM_CLEAR_AR = 0x4F,
   BPMEM_CLEAR_GB = 0x50,
@@ -1037,12 +1037,12 @@ struct fmt::formatter<TexImage1>
   auto format(const TexImage1& teximg, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Even TMEM Offset: {:x}\n"
+                          "Even TMEM Line: 0x{:04x} (byte 0x{:05x})\n"
                           "Even TMEM Width: {}\n"
                           "Even TMEM Height: {}\n"
                           "Cache is manually managed: {}",
-                          teximg.tmem_even, teximg.cache_width, teximg.cache_height,
-                          teximg.cache_manually_managed ? "Yes" : "No");
+                          teximg.tmem_even, teximg.tmem_even * 32, teximg.cache_width,
+                          teximg.cache_height, teximg.cache_manually_managed ? "Yes" : "No");
   }
 };
 
@@ -1061,10 +1061,11 @@ struct fmt::formatter<TexImage2>
   auto format(const TexImage2& teximg, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Odd TMEM Offset: {:x}\n"
+                          "Odd TMEM Line: 0x{:04x} (byte 0x{:05x})\n"
                           "Odd TMEM Width: {}\n"
                           "Odd TMEM Height: {}",
-                          teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
+                          teximg.tmem_odd, teximg.tmem_odd * 32, teximg.cache_width,
+                          teximg.cache_height);
   }
 };
 
@@ -1080,7 +1081,7 @@ struct fmt::formatter<TexImage3>
   template <typename FormatContext>
   auto format(const TexImage3& teximg, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Source address (32 byte aligned): 0x{:06X}",
+    return fmt::format_to(ctx.out(), "Source address (32 byte aligned): 0x{:06x}",
                           teximg.image_base << 5);
   }
 };
@@ -1098,7 +1099,7 @@ struct fmt::formatter<TexTLUT>
   template <typename FormatContext>
   auto format(const TexTLUT& tlut, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Address: {:08x}\nFormat: {}", tlut.tmem_offset << 9,
+    return fmt::format_to(ctx.out(), "Tmem address: 0x{:05x}\nFormat: {}", tlut.tmem_offset << 9,
                           tlut.tlut_format);
   }
 };
@@ -1107,6 +1108,16 @@ union ZTex1
 {
   BitField<0, 24, u32> bias;
   u32 hex;
+};
+template <>
+struct fmt::formatter<ZTex1>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const ZTex1& ztex1, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "Bias: 0x{:06x}", ztex1.bias);
+  }
 };
 
 union ZTex2
@@ -1863,7 +1874,7 @@ enum class ColorChannel : u32
 template <>
 struct fmt::formatter<ColorChannel> : EnumFormatter<ColorChannel::Alpha>
 {
-  formatter() : EnumFormatter({"Red", "Green", "Blue", "Alpha"}) {}
+  constexpr formatter() : EnumFormatter({"Red", "Green", "Blue", "Alpha"}) {}
 };
 
 enum class KonstSel : u32
@@ -2218,7 +2229,7 @@ union CopyFilterCoefficients
 union BPU_PreloadTileInfo
 {
   BitField<0, 15, u32> count;
-  BitField<15, 2, u32> type;
+  BitField<15, 2, u32> type;  // TODO: enum for this?
   u32 hex;
 };
 template <>
@@ -2228,7 +2239,33 @@ struct fmt::formatter<BPU_PreloadTileInfo>
   template <typename FormatContext>
   auto format(const BPU_PreloadTileInfo& info, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Type: {}\nCount: {}", info.type, info.count);
+    if (info.count == 0 && info.type == 0)
+    {
+      return fmt::format_to(ctx.out(), "GX_TexModeSync (type and count are both 0)");
+    }
+    else
+    {
+      return fmt::format_to(ctx.out(), "Type: {}\nCount: 0x{:x} lines (0x{:x} bytes)", info.type,
+                            info.count, info.count * 32);
+    }
+  }
+};
+
+union BPU_LoadTlutInfo
+{
+  BitField<0, 10, u32> tmem_addr;
+  BitField<10, 11, u32> tmem_line_count;
+  u32 hex;
+};
+template <>
+struct fmt::formatter<BPU_LoadTlutInfo>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const BPU_LoadTlutInfo& info, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "Tmem address: 0x{:05x}\nCount: 0x{:x} lines (0x{:x} bytes)",
+                          info.tmem_addr << 9, info.tmem_line_count, info.tmem_line_count * 32);
   }
 };
 
@@ -2239,7 +2276,7 @@ struct BPS_TmemConfig
   u32 preload_tmem_odd;
   BPU_PreloadTileInfo preload_tile_info;
   u32 tlut_src;
-  u32 tlut_dest;
+  BPU_LoadTlutInfo tlut_dest;
   u32 texinvalidate;
 };
 
@@ -2426,35 +2463,32 @@ struct BPMemory
   // the 3 offset matrices can either be indirect type, S-type, or T-type
   // 6bit scale factor s is distributed across IND_MTXA/B/C.
   // before using matrices scale by 2^-(s-17)
-  IND_MTX indmtx[3];               // 0x06-0x0e: GXSetIndTexMtx, 2x3 matrices
-  IND_IMASK imask;                 // 0x0f
-  TevStageIndirect tevind[16];     // 0x10-0x1f: GXSetTevIndirect
-  ScissorPos scissorTL;            // 0x20
-  ScissorPos scissorBR;            // 0x21
-  LPSize lineptwidth;              // 0x22
-  u32 sucounter;                   // 0x23
-  u32 rascounter;                  // 0x24
-  TEXSCALE texscale[2];            // 0x25,0x26: GXSetIndTexCoordScale
-  RAS1_IREF tevindref;             // 0x27: GXSetIndTexOrder
-  TwoTevStageOrders tevorders[8];  // 0x28-0x2f
-  TCoordInfo texcoords[8];         // 0x30-0x4f: s,t,s,t,s,t,s,t...
-  ZMode zmode;                     // 0x40
-  BlendMode blendmode;             // 0x41
-  ConstantAlpha dstalpha;          // 0x42
-  PEControl zcontrol;              // 0x43: GXSetZCompLoc, GXPixModeSync
-  FieldMask fieldmask;             // 0x44
-  u32 drawdone;                    // 0x45: bit1=1 if end of list
-  u32 unknown5;                    // 0x46: clock?
-  u32 petoken;                     // 0x47
-  u32 petokenint;                  // 0x48
-  X10Y10 copyTexSrcXY;             // 0x49
-  X10Y10 copyTexSrcWH;             // 0x4a
-  u32 copyTexDest;                 // 0x4b: CopyAddress (GXDispCopy and GXTexCopy use it)
-  u32 unknown6;                    // 0x4c
-  // usually set to 4 when dest is single channel, 8 when dest is 2 channel, 16 when dest is RGBA
-  // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do
-  // with number of bytes to look at when smoothing
-  u32 copyMipMapStrideChannels;       // 0x4d
+  IND_MTX indmtx[3];                  // 0x06-0x0e: GXSetIndTexMtx, 2x3 matrices
+  IND_IMASK imask;                    // 0x0f
+  TevStageIndirect tevind[16];        // 0x10-0x1f: GXSetTevIndirect
+  ScissorPos scissorTL;               // 0x20
+  ScissorPos scissorBR;               // 0x21
+  LPSize lineptwidth;                 // 0x22
+  u32 sucounter;                      // 0x23
+  u32 rascounter;                     // 0x24
+  TEXSCALE texscale[2];               // 0x25,0x26: GXSetIndTexCoordScale
+  RAS1_IREF tevindref;                // 0x27: GXSetIndTexOrder
+  TwoTevStageOrders tevorders[8];     // 0x28-0x2f
+  TCoordInfo texcoords[8];            // 0x30-0x3f: s,t,s,t,s,t,s,t...
+  ZMode zmode;                        // 0x40
+  BlendMode blendmode;                // 0x41
+  ConstantAlpha dstalpha;             // 0x42
+  PEControl zcontrol;                 // 0x43: GXSetZCompLoc, GXPixModeSync
+  FieldMask fieldmask;                // 0x44
+  u32 drawdone;                       // 0x45: bit1=1 if end of list
+  u32 unknown5;                       // 0x46: clock?
+  u32 petoken;                        // 0x47
+  u32 petokenint;                     // 0x48
+  X10Y10 copyTexSrcXY;                // 0x49
+  X10Y10 copyTexSrcWH;                // 0x4a
+  u32 copyTexDest;                    // 0x4b: CopyAddress (GXDispCopy and GXTexCopy use it)
+  u32 unknown6;                       // 0x4c
+  u32 copyDestStride;                 // 0x4d
   u32 dispcopyyscale;                 // 0x4e
   u32 clearcolorAR;                   // 0x4f
   u32 clearcolorGB;                   // 0x50

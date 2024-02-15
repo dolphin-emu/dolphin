@@ -5,6 +5,19 @@
 
 #include "Common/Logging/Log.h"
 
+void GraphicsTargetGroupConfig::SerializeToConfig(picojson::object& json_obj) const
+{
+  picojson::array serialized_targets;
+  for (const auto& target : m_targets)
+  {
+    picojson::object serialized_target;
+    SerializeTargetToConfig(serialized_target, target);
+    serialized_targets.emplace_back(std::move(serialized_target));
+  }
+  json_obj.emplace("targets", std::move(serialized_targets));
+  json_obj.emplace("name", m_name);
+}
+
 bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& obj)
 {
   if (auto name_iter = obj.find("name"); name_iter != obj.end())
@@ -59,9 +72,9 @@ void GraphicsTargetGroupConfig::SerializeToProfile(picojson::object* obj) const
   {
     picojson::object serialized_target;
     SerializeTargetToProfile(&serialized_target, target);
-    serialized_targets.push_back(picojson::value{serialized_target});
+    serialized_targets.emplace_back(std::move(serialized_target));
   }
-  json_obj["targets"] = picojson::value{serialized_targets};
+  json_obj.emplace("targets", std::move(serialized_targets));
 }
 
 void GraphicsTargetGroupConfig::DeserializeFromProfile(const picojson::object& obj)
@@ -70,7 +83,7 @@ void GraphicsTargetGroupConfig::DeserializeFromProfile(const picojson::object& o
   {
     if (it->second.is<picojson::array>())
     {
-      auto serialized_targets = it->second.get<picojson::array>();
+      const auto& serialized_targets = it->second.get<picojson::array>();
       if (serialized_targets.size() != m_targets.size())
         return;
 

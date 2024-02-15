@@ -143,7 +143,18 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
     {
       // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
       app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
+      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.1, supported: {}.{}",
+                   VK_VERSION_MAJOR(supported_api_version),
+                   VK_VERSION_MINOR(supported_api_version));
     }
+    else
+    {
+      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
+    }
+  }
+  else
+  {
+    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
   }
 
   *out_vk_api_version = app_info.apiVersion;
@@ -371,6 +382,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsPartialMultisampleResolve = true;  // Assumed support.
   config->backend_info.bSupportsDynamicVertexLoader = true;        // Assumed support.
   config->backend_info.bSupportsVSLinePointExpand = true;          // Assumed support.
+  config->backend_info.bSupportsHDROutput = true;                  // Assumed support.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
@@ -981,9 +993,11 @@ void VulkanContext::PopulateShaderSubgroupSupport()
 
   // We require basic ops (for gl_SubgroupInvocationID), ballot (for subgroupBallot,
   // subgroupBallotFindLSB), and arithmetic (for subgroupMin/subgroupMax).
-  constexpr VkSubgroupFeatureFlags required_operations = VK_SUBGROUP_FEATURE_BASIC_BIT |
-                                                         VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
-                                                         VK_SUBGROUP_FEATURE_BALLOT_BIT;
+  // Shuffle is enabled as a workaround until SPIR-V >= 1.5 is enabled with broadcast(uniform)
+  // support.
+  constexpr VkSubgroupFeatureFlags required_operations =
+      VK_SUBGROUP_FEATURE_BASIC_BIT | VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
+      VK_SUBGROUP_FEATURE_BALLOT_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_BIT;
   m_supports_shader_subgroup_operations =
       (subgroup_properties.supportedOperations & required_operations) == required_operations &&
       subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT &&

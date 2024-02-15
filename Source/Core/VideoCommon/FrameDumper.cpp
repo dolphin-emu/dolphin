@@ -27,7 +27,8 @@ static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)
 
 FrameDumper::FrameDumper()
 {
-  m_frame_end_handle = AfterFrameEvent::Register([this] { FlushFrameDump(); }, "FrameDumper");
+  m_frame_end_handle =
+      AfterFrameEvent::Register([this](Core::System&) { FlushFrameDump(); }, "FrameDumper");
 }
 
 FrameDumper::~FrameDumper()
@@ -82,7 +83,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
   m_frame_dump_render_texture.reset();
   m_frame_dump_render_texture = g_gfx->CreateTexture(
       TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8,
-                    AbstractTextureFlag_RenderTarget),
+                    AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray),
       "Frame dump render texture");
   if (!m_frame_dump_render_texture)
   {
@@ -102,9 +103,10 @@ bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_hei
     return true;
 
   rbtex.reset();
-  rbtex = g_gfx->CreateStagingTexture(
-      StagingTextureType::Readback,
-      TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0));
+  rbtex = g_gfx->CreateStagingTexture(StagingTextureType::Readback,
+                                      TextureConfig(target_width, target_height, 1, 1, 1,
+                                                    AbstractTextureFormat::RGBA8, 0,
+                                                    AbstractTextureType::Texture_2DArray));
   if (!rbtex)
     return false;
 

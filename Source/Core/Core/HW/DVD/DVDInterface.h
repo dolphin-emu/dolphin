@@ -178,8 +178,9 @@ public:
 private:
   void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
                             s64 cycles_late);
-  size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data);
-  u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process);
+  size_t ProcessDTKSamples(s16* target_samples, size_t target_block_count,
+                           const std::vector<u8>& audio_data);
+  u32 AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process);
 
   void SetLidOpen();
   void UpdateInterrupts();
@@ -273,7 +274,7 @@ private:
   u32 m_current_length = 0;
   u64 m_next_start = 0;
   u32 m_next_length = 0;
-  u32 m_pending_samples = 0;
+  u32 m_pending_blocks = 0;
   bool m_enable_dtk = false;
   u8 m_dtk_buffer_length = 0;  // TODO: figure out how this affects the regular buffer
 

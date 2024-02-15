@@ -24,7 +24,7 @@ ModifySettingsButton::ModifySettingsButton(std::string button_name)
 
 void ModifySettingsButton::AddInput(std::string button_name, bool toggle)
 {
-  ControlGroup::AddInput(Translate, std::move(button_name));
+  ControlGroup::AddInput(Translatability::Translate, std::move(button_name));
   m_threshold_exceeded.emplace_back(false);
   m_associated_settings.emplace_back(false);
   m_associated_settings_toggle.emplace_back(toggle);

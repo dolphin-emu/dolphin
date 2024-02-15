@@ -41,12 +41,12 @@ IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u64 TitleID = memory.Read_U64(request.in_vectors[0].address);
 
-  const ES::TicketReader ticket = FindSignedTicket(TitleID);
+  const ES::TicketReader ticket = m_core.FindSignedTicket(TitleID);
   u32 view_count = ticket.IsValid() ? static_cast<u32>(ticket.GetNumberOfTickets()) : 0;
 
   if (!IsEmulated(TitleID))
@@ -54,7 +54,7 @@ IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
     view_count = 0;
     ERROR_LOG_FMT(IOS_ES, "GetViewCount: Dolphin doesn't emulate IOS title {:016x}", TitleID);
   }
-  else if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
+  else if (ShouldReturnFakeViewsForIOSes(TitleID, m_core.m_title_context))
   {
     view_count = 1;
     WARN_LOG_FMT(IOS_ES, "GetViewCount: Faking IOS title {:016x} being present", TitleID);
@@ -72,13 +72,13 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u64 TitleID = memory.Read_U64(request.in_vectors[0].address);
   const u32 maxViews = memory.Read_U32(request.in_vectors[1].address);
 
-  const ES::TicketReader ticket = FindSignedTicket(TitleID);
+  const ES::TicketReader ticket = m_core.FindSignedTicket(TitleID);
 
   if (!IsEmulated(TitleID))
   {
@@ -94,7 +94,7 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
                        ticket_view.data(), ticket_view.size());
     }
   }
-  else if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
+  else if (ShouldReturnFakeViewsForIOSes(TitleID, m_core.m_title_context))
   {
     memory.Memset(request.io_vectors[0].address, 0, sizeof(ES::TicketView));
     WARN_LOG_FMT(IOS_ES, "GetViews: Faking IOS title {:016x} being present", TitleID);
@@ -105,8 +105,8 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-ReturnCode ESDevice::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
-                                       std::optional<u8> desired_version) const
+ReturnCode ESCore::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
+                                     std::optional<u8> desired_version) const
 {
   const u64 title_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, ticket_id)]);
@@ -160,10 +160,11 @@ IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  return IPCReply(GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
-                                    memory.GetPointer(request.io_vectors[0].address), nullptr, 0));
+  return IPCReply(m_core.GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
+                                           memory.GetPointer(request.io_vectors[0].address),
+                                           nullptr, 0));
 }
 
 IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
@@ -176,10 +177,10 @@ IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  const ReturnCode ret = GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
-                                           nullptr, &ticket_size, std::nullopt);
+  const ReturnCode ret = m_core.GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
+                                                  nullptr, &ticket_size, std::nullopt);
   memory.Write_U32(ticket_size, request.io_vectors[0].address);
   return IPCReply(ret);
 }
@@ -193,16 +194,16 @@ IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   u32 ticket_size = memory.Read_U32(request.in_vectors[1].address);
   if (ticket_size != request.io_vectors[0].size)
     return IPCReply(ES_EINVAL);
 
-  return IPCReply(GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
-                                    memory.GetPointer(request.io_vectors[0].address), &ticket_size,
-                                    std::nullopt));
+  return IPCReply(m_core.GetTicketFromView(memory.GetPointer(request.in_vectors[0].address),
+                                           memory.GetPointer(request.io_vectors[0].address),
+                                           &ticket_size, std::nullopt));
 }
 
 IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
@@ -210,11 +211,11 @@ IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u64 TitleID = memory.Read_U64(request.in_vectors[0].address);
-  const ES::TMDReader tmd = FindInstalledTMD(TitleID);
+  const ES::TMDReader tmd = m_core.FindInstalledTMD(TitleID);
 
   if (!tmd.IsValid())
     return IPCReply(FS_ENOENT);
@@ -228,7 +229,7 @@ IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
 
 IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   if (!request.HasNumberOfValidVectors(2, 1) ||
@@ -240,7 +241,7 @@ IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request)
   }
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
-  const ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const ES::TMDReader tmd = m_core.FindInstalledTMD(title_id);
 
   if (!tmd.IsValid())
     return IPCReply(FS_ENOENT);
@@ -267,7 +268,7 @@ IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
   if (request.io_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const bool has_tmd = request.in_vectors[0].size != 0;
@@ -289,10 +290,10 @@ IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
   else
   {
     // If no TMD was passed in and no title is active, IOS returns -1017.
-    if (!m_title_context.active)
+    if (!m_core.m_title_context.active)
       return IPCReply(ES_EINVAL);
 
-    tmd_view_size = m_title_context.tmd.GetRawView().size();
+    tmd_view_size = m_core.m_title_context.tmd.GetRawView().size();
   }
 
   memory.Write_U32(static_cast<u32>(tmd_view_size), request.io_vectors[0].address);
@@ -308,7 +309,7 @@ IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request)
   if (request.in_vectors[0].size >= 4 * 1024 * 1024)
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   // Check whether the TMD view size is consistent.
@@ -335,10 +336,10 @@ IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request)
   else
   {
     // If no TMD was passed in and no title is active, IOS returns -1017.
-    if (!m_title_context.active)
+    if (!m_core.m_title_context.active)
       return IPCReply(ES_EINVAL);
 
-    tmd_view = m_title_context.tmd.GetRawView();
+    tmd_view = m_core.m_title_context.tmd.GetRawView();
   }
 
   if (tmd_view.size() > request.io_vectors[0].size)
@@ -362,7 +363,7 @@ IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request)
   if (!has_ticket_vector && request.in_vectors[0].size != 0)
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   std::vector<u8> view;
@@ -371,10 +372,10 @@ IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request)
   // Of course, this returns -1017 if no title is active and no ticket is passed.
   if (!has_ticket_vector)
   {
-    if (!m_title_context.active)
+    if (!m_core.m_title_context.active)
       return IPCReply(ES_EINVAL);
 
-    view = m_title_context.ticket.GetRawTicketView(0);
+    view = m_core.m_title_context.ticket.GetRawTicketView(0);
   }
   else
   {
@@ -394,12 +395,12 @@ IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  if (!m_title_context.active)
+  if (!m_core.m_title_context.active)
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  memory.Write_U32(static_cast<u32>(m_title_context.tmd.GetBytes().size()),
+  memory.Write_U32(static_cast<u32>(m_core.m_title_context.tmd.GetBytes().size()),
                    request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
@@ -409,17 +410,17 @@ IPCReply ESDevice::DIGetTMD(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u32 tmd_size = memory.Read_U32(request.in_vectors[0].address);
   if (tmd_size != request.io_vectors[0].size)
     return IPCReply(ES_EINVAL);
 
-  if (!m_title_context.active)
+  if (!m_core.m_title_context.active)
     return IPCReply(ES_EINVAL);
 
-  const std::vector<u8>& tmd_bytes = m_title_context.tmd.GetBytes();
+  const std::vector<u8>& tmd_bytes = m_core.m_title_context.tmd.GetBytes();
 
   if (static_cast<u32>(tmd_bytes.size()) > tmd_size)
     return IPCReply(ES_EINVAL);

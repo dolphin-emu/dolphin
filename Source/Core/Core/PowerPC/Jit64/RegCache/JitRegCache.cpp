@@ -12,6 +12,7 @@
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/MsgHandler.h"
 #include "Common/VariantUtil.h"
 #include "Common/x64Emitter.h"
@@ -389,7 +390,7 @@ void RegCache::Discard(BitSet32 pregs)
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, static_cast<u32>(RX(i)));
+               i, Common::ToUnderlying(RX(i)));
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
@@ -413,14 +414,16 @@ void RegCache::Flush(BitSet32 pregs)
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, static_cast<u32>(RX(i)));
+               i, Common::ToUnderlying(RX(i)));
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
     switch (m_regs[i].GetLocationType())
     {
     case PPCCachedReg::LocationType::Default:
+      break;
     case PPCCachedReg::LocationType::Discarded:
+      ASSERT_MSG(DYNA_REC, false, "Attempted to flush discarded PPC reg {}", i);
       break;
     case PPCCachedReg::LocationType::SpeculativeImmediate:
       // We can have a cached value without a host register through speculative constants.
@@ -497,7 +500,8 @@ BitSet32 RegCache::RegistersInUse() const
 
 void RegCache::FlushX(X64Reg reg)
 {
-  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}", static_cast<u32>(reg));
+  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}",
+             Common::ToUnderlying(reg));
   ASSERT(!m_xregs[reg].IsLocked());
   if (!m_xregs[reg].IsFree())
   {
@@ -521,7 +525,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
   {
     X64Reg xr = GetFreeXReg();
 
-    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg {} already dirty", static_cast<u32>(xr));
+    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg {} already dirty", Common::ToUnderlying(xr));
     ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Invalid transaction state");
 
@@ -538,7 +542,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
                             [xr](const auto& r) {
                               return r.Location().has_value() && r.Location()->IsSimpleReg(xr);
                             }),
-               "Xreg {} already bound", static_cast<u32>(xr));
+               "Xreg {} already bound", Common::ToUnderlying(xr));
 
     m_regs[i].SetBoundTo(xr);
   }
@@ -551,7 +555,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
   }
 
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(),
-             "WTF, this reg ({} -> {}) should have been flushed", i, static_cast<u32>(RX(i)));
+             "WTF, this reg ({} -> {}) should have been flushed", i, Common::ToUnderlying(RX(i)));
 }
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
@@ -588,29 +592,25 @@ void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
 
 X64Reg RegCache::GetFreeXReg()
 {
-  size_t aCount;
-  const X64Reg* aOrder = GetAllocationOrder(&aCount);
-  for (size_t i = 0; i < aCount; i++)
+  const auto order = GetAllocationOrder();
+  for (const X64Reg xr : order)
   {
-    X64Reg xr = aOrder[i];
     if (m_xregs[xr].IsFree())
-    {
       return xr;
-    }
   }
 
-  // Okay, not found; run the register allocator heuristic and figure out which register we should
-  // clobber.
+  // Okay, not found; run the register allocator heuristic and
+  // figure out which register we should clobber.
   float min_score = std::numeric_limits<float>::max();
   X64Reg best_xreg = INVALID_REG;
   size_t best_preg = 0;
-  for (size_t i = 0; i < aCount; i++)
+  for (const X64Reg xreg : order)
   {
-    X64Reg xreg = (X64Reg)aOrder[i];
-    preg_t preg = m_xregs[xreg].Contents();
+    const preg_t preg = m_xregs[xreg].Contents();
     if (m_xregs[xreg].IsLocked() || m_regs[preg].IsLocked())
       continue;
-    float score = ScoreRegister(xreg);
+
+    const float score = ScoreRegister(xreg);
     if (score < min_score)
     {
       min_score = score;
@@ -633,11 +633,11 @@ X64Reg RegCache::GetFreeXReg()
 int RegCache::NumFreeRegisters() const
 {
   int count = 0;
-  size_t aCount;
-  const X64Reg* aOrder = GetAllocationOrder(&aCount);
-  for (size_t i = 0; i < aCount; i++)
-    if (m_xregs[aOrder[i]].IsFree())
+  for (const X64Reg reg : GetAllocationOrder())
+  {
+    if (m_xregs[reg].IsFree())
       count++;
+  }
   return count;
 }
 

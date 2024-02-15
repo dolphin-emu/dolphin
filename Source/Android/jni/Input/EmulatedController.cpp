@@ -5,6 +5,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -91,7 +92,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
   ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
 
   // Loading an empty IniFile section clears everything.
-  IniFile::Section section;
+  Common::IniFile::Section section;
 
   controller->LoadConfig(&section);
   controller->UpdateReferences(g_controller_interface);
@@ -103,7 +104,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 {
   ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
 
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(GetJString(env, j_path));
 
   controller->LoadConfig(ini.GetOrCreateSection("Profile"));
@@ -118,10 +119,33 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 
   File::CreateFullPath(path);
 
-  IniFile ini;
+  Common::IniFile ini;
 
   EmulatedControllerFromJava(env, obj)->SaveConfig(ini.GetOrCreateSection("Profile"));
   ini.Save(path);
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getProfileKey(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetProfileKey());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getUserProfileDirectoryPath(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(
+      env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetUserProfileDirectoryPath());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getSysProfileDirectoryPath(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env,
+                   EmulatedControllerFromJava(env, obj)->GetConfig()->GetSysProfileDirectoryPath());
 }
 
 JNIEXPORT jobject JNICALL
@@ -129,6 +153,13 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
     JNIEnv* env, jclass, jint controller_index)
 {
   return EmulatedControllerToJava(env, Pad::GetConfig()->GetController(controller_index));
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGcKeyboard(
+    JNIEnv* env, jclass, jint controller_index)
+{
+  return EmulatedControllerToJava(env, Keyboard::GetConfig()->GetController(controller_index));
 }
 
 JNIEXPORT jobject JNICALL

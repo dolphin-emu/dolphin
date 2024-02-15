@@ -116,6 +116,7 @@ LogManager::LogManager()
   slprs_logging_init(SlippiRustExtensionsLogger);
 
   // create log containers
+  m_log[LogType::ACHIEVEMENTS] = {"RetroAchievements", "Achievements"};
   m_log[LogType::ACTIONREPLAY] = {"ActionReplay", "Action Replay"};
   m_log[LogType::AUDIO] = {"Audio", "Audio Emulator"};
   m_log[LogType::AUDIO_INTERFACE] = {"AI", "Audio Interface"};

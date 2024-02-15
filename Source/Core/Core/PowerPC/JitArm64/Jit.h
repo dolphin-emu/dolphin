@@ -22,7 +22,11 @@
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
-  JitArm64();
+  explicit JitArm64(Core::System& system);
+  JitArm64(const JitArm64&) = delete;
+  JitArm64(JitArm64&&) = delete;
+  JitArm64& operator=(const JitArm64&) = delete;
+  JitArm64& operator=(JitArm64&&) = delete;
   ~JitArm64() override;
 
   void Init() override;
@@ -176,17 +180,15 @@ public:
 
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
-  // temp_gpr can be INVALID_REG if single is true
-  void EmitQuietNaNBitConstant(Arm64Gen::ARM64Reg dest_reg, bool single,
-                               Arm64Gen::ARM64Reg temp_gpr);
-
   bool IsFPRStoreSafe(size_t guest_reg) const;
+
+  void rlwinmx_internal(UGeckoInstruction inst, u32 sh);
 
 protected:
   struct FastmemArea
   {
-    const u8* fastmem_code;
-    const u8* slowmem_code;
+    const u8* fast_access_code;
+    const u8* slow_access_code;
   };
 
   void SetBlockLinkingEnabled(bool enabled);
@@ -225,11 +227,11 @@ protected:
   {
     // Always calls the slow C++ code. For performance reasons, should generally only be used if
     // the guest address is known in advance and IsOptimizableRAMAddress returns false for it.
-    AlwaysSafe,
+    AlwaysSlowAccess,
     // Only emits fast access code. Must only be used if the guest address is known in advance
     // and IsOptimizableRAMAddress returns true for it, otherwise Dolphin will likely crash!
-    AlwaysUnsafe,
-    // Best in most cases. If backpatching is possible (!emitting_routine && jo.fastmem_arena):
+    AlwaysFastAccess,
+    // Best in most cases. If backpatching is possible (!emitting_routine && jo.fastmem):
     // Tries to run fast access code, and if that fails, uses backpatching to replace the code
     // with a call to the slow C++ code. Otherwise: Checks whether the fast access code will work,
     // then branches to either the fast access code or the slow C++ code.
@@ -242,26 +244,28 @@ protected:
   // Registers used:
   //
   //                 addr     scratch
-  // Store:          X1       X0
-  // Load:           X0
-  // Zero 256:       X0       X30
-  // Store float:    X1       Q0
-  // Load float:     X0
+  // Store:          X2       X1
+  // Load:           X1
+  // Zero 256:       X1       X30
+  // Store float:    X2       Q0
+  // Load float:     X1
   //
-  // If mode == AlwaysUnsafe, the addr argument can be any register.
+  // If mode == AlwaysFastAccess, the addr argument can be any register.
   // Otherwise it must be the register listed in the table above.
   //
   // Additional scratch registers are used in the following situations:
   //
-  // emitting_routine && mode == Auto:                                            X2
+  // emitting_routine && mode == Auto:                                            X0
   // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):    X3
-  // emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                 X3
-  // mode != AlwaysSafe && !jo.fastmem_arena:                                     X2
-  // !emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                X30
-  // !emitting_routine && mode == Auto && jo.fastmem_arena:                       X30
+  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                 X3
+  // mode != AlwaysSlowAccess && !jo.fastmem:                                     X0
+  // !emitting_routine && mode != AlwaysFastAccess && jo.memcheck &&
+  //         (flags & BackPatchInfo::FLAG_LOAD):                                  X0
+  // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                X30
+  // !emitting_routine && mode == Auto && jo.fastmem:                             X30
   //
   // Furthermore, any callee-saved register which isn't marked in gprs_to_push/fprs_to_push
-  // may be clobbered if mode != AlwaysUnsafe.
+  // may be clobbered if mode != AlwaysFastAccess.
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
@@ -307,9 +311,17 @@ protected:
   void BeginTimeProfile(JitBlock* b);
   void EndTimeProfile(JitBlock* b);
 
+  void EmitUpdateMembase();
+  void MSRUpdated(u32 msr);
+  void MSRUpdated(Arm64Gen::ARM64Reg msr);
+
   // Exits
-  void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
-  void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);
+  void
+  WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0,
+            Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+  void
+  WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0,
+            Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
   void WriteExceptionExit(u32 destination, bool only_external = false,
                           bool always_exception = false);
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
@@ -318,7 +330,9 @@ protected:
   void WriteConditionalExceptionExit(int exception, Arm64Gen::ARM64Reg temp_gpr,
                                      Arm64Gen::ARM64Reg temp_fpr = Arm64Gen::ARM64Reg::INVALID_REG,
                                      u64 increment_sp_on_exit = 0);
-  void FakeLKExit(u32 exit_address_after_return);
+  void
+  FakeLKExit(u32 exit_address_after_return,
+             Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
@@ -343,7 +357,7 @@ protected:
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input);
 
-  // <Fastmem fault location, slowmem handler location>
+  // <Fast path fault location, slow path handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;

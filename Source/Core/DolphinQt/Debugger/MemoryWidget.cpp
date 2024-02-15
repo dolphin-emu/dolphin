@@ -249,12 +249,12 @@ void MemoryWidget::CreateWidgets()
   QMenuBar* menubar = new QMenuBar(sidebar);
   menubar->setNativeMenuBar(false);
 
-  QMenu* menu_import = new QMenu(tr("&Import"));
+  QMenu* menu_import = new QMenu(tr("&Import"), menubar);
   menu_import->addAction(tr("&Load file to current address"), this,
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
-  QMenu* menu_export = new QMenu(tr("&Export"));
+  QMenu* menu_export = new QMenu(tr("&Export"), menubar);
   menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
   menu_export->addAction(tr("Dump &ExRAM"), this, &MemoryWidget::OnDumpExRAM);
   menu_export->addAction(tr("Dump &ARAM"), this, &MemoryWidget::OnDumpARAM);
@@ -307,7 +307,7 @@ void MemoryWidget::ConnectWidgets()
   connect(m_search_offset, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
   connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateAndPreviewInputValue);
 
-  connect(m_input_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_input_combo, &QComboBox::currentIndexChanged, this,
           &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
 
@@ -321,8 +321,7 @@ void MemoryWidget::ConnectWidgets()
   }
   for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo})
   {
-    connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            &MemoryWidget::OnDisplayChanged);
+    connect(combo, &QComboBox::currentIndexChanged, this, &MemoryWidget::OnDisplayChanged);
   }
 
   connect(m_dual_check, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);

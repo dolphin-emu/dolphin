@@ -36,7 +36,7 @@ static size_t GetNonArrayEntrySize(SysConf::Entry::Type type)
     return 0;
   }
 }
-SysConf::SysConf(std::shared_ptr<IOS::HLE::FS::FileSystem> fs) : m_fs{fs}
+SysConf::SysConf(std::shared_ptr<IOS::HLE::FS::FileSystem> fs) : m_fs{std::move(fs)}
 {
   Load();
 }
@@ -250,9 +250,7 @@ SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)
 
 void SysConf::RemoveEntry(std::string_view key)
 {
-  m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(),
-                                 [&key](const auto& entry) { return entry.name == key; }),
-                  m_entries.end());
+  std::erase_if(m_entries, [&key](const auto& entry) { return entry.name == key; });
 }
 
 void SysConf::InsertDefaultEntries()

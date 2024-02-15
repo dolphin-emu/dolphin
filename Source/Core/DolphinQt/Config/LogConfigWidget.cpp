@@ -47,6 +47,7 @@ void LogConfigWidget::CreateWidgets()
   m_verbosity_warning = new QRadioButton(tr("Warning"));
   m_verbosity_info = new QRadioButton(tr("Info"));
   m_verbosity_debug = new QRadioButton(tr("Debug"));
+  m_verbosity_debug->setVisible(Common::Log::MAX_LOGLEVEL == Common::Log::LogLevel::LDEBUG);
 
   auto* outputs = new QGroupBox(tr("Logger Outputs"));
   auto* outputs_layout = new QVBoxLayout;
@@ -77,10 +78,7 @@ void LogConfigWidget::CreateWidgets()
   verbosity_layout->addWidget(m_verbosity_error);
   verbosity_layout->addWidget(m_verbosity_warning);
   verbosity_layout->addWidget(m_verbosity_info);
-  if constexpr (Common::Log::MAX_LOGLEVEL == Common::Log::LogLevel::LDEBUG)
-  {
-    verbosity_layout->addWidget(m_verbosity_debug);
-  }
+  verbosity_layout->addWidget(m_verbosity_debug);
 
   layout->addWidget(outputs);
   outputs_layout->addWidget(m_out_file);

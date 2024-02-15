@@ -58,6 +58,8 @@ struct alignas(16) PixelShaderConstants
   // For shader_framebuffer_fetch logic ops:
   u32 logic_op_enable;  // bool
   LogicOp logic_op_mode;
+  // For custom shaders...
+  u32 time_ms;
 };
 
 struct alignas(16) VertexShaderConstants

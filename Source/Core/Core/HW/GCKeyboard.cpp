@@ -17,7 +17,7 @@
 
 namespace Keyboard
 {
-static InputConfig s_config("GCKeyNew", _trans("Keyboard"), "GCKey");
+static InputConfig s_config("GCKeyNew", _trans("Keyboard"), "GCKey", "GCKey");
 InputConfig* GetConfig()
 {
   return &s_config;
@@ -41,12 +41,12 @@ void Initialize()
   s_config.RegisterHotplugCallback();
 
   // Load the saved controller config
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+  s_config.LoadConfig();
 }
 
 void LoadConfig()
 {
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+  s_config.LoadConfig();
 }
 
 ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group)

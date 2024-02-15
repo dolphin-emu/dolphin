@@ -11,6 +11,7 @@
 
 #include "Common/MsgHandler.h"
 
+#include "VideoCommon/Constants.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Spirv.h"
 
@@ -193,20 +194,18 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
   config->backend_info.bSupportsST3CTextures = true;
   config->backend_info.bSupportsBPTCTextures = true;
 #else
-  bool supports_mac1 = false;
   bool supports_apple4 = false;
+  bool supports_bcn = false;
   if (@available(iOS 13, *))
-  {
-    supports_mac1 = [device supportsFamily:MTLGPUFamilyMac1];
     supports_apple4 = [device supportsFamily:MTLGPUFamilyApple4];
-  }
   else
-  {
     supports_apple4 = [device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1];
-  }
-  config->backend_info.bSupportsDepthClamp = supports_mac1 || supports_apple4;
-  config->backend_info.bSupportsST3CTextures = supports_mac1;
-  config->backend_info.bSupportsBPTCTextures = supports_mac1;
+  if (@available(iOS 16.4, *))
+    supports_bcn = [device supportsBCTextureCompression];
+  config->backend_info.bSupportsDepthClamp = supports_apple4;
+  config->backend_info.bSupportsST3CTextures = supports_bcn;
+  config->backend_info.bSupportsBPTCTextures = supports_bcn;
+
   config->backend_info.bSupportsFramebufferFetch = true;
 #endif
 
@@ -265,12 +264,12 @@ AbstractTextureFormat Metal::Util::ToAbstract(MTLPixelFormat format)
   {
   case MTLPixelFormatRGBA8Unorm:            return AbstractTextureFormat::RGBA8;
   case MTLPixelFormatBGRA8Unorm:            return AbstractTextureFormat::BGRA8;
-#if TARGET_OS_OSX
+  case MTLPixelFormatRGB10A2Unorm:          return AbstractTextureFormat::RGB10_A2;
+  case MTLPixelFormatRGBA16Float:           return AbstractTextureFormat::RGBA16F;
   case MTLPixelFormatBC1_RGBA:              return AbstractTextureFormat::DXT1;
   case MTLPixelFormatBC2_RGBA:              return AbstractTextureFormat::DXT3;
   case MTLPixelFormatBC3_RGBA:              return AbstractTextureFormat::DXT5;
   case MTLPixelFormatBC7_RGBAUnorm:         return AbstractTextureFormat::BPTC;
-#endif
   case MTLPixelFormatR16Unorm:              return AbstractTextureFormat::R16;
   case MTLPixelFormatDepth16Unorm:          return AbstractTextureFormat::D16;
 #if TARGET_OS_OSX
@@ -283,18 +282,22 @@ AbstractTextureFormat Metal::Util::ToAbstract(MTLPixelFormat format)
   }
 }
 
+// Don't complain about BCn formats requiring iOS 16.4, these are just enum conversions
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability"
+
 MTLPixelFormat Metal::Util::FromAbstract(AbstractTextureFormat format)
 {
   switch (format)
   {
   case AbstractTextureFormat::RGBA8:     return MTLPixelFormatRGBA8Unorm;
   case AbstractTextureFormat::BGRA8:     return MTLPixelFormatBGRA8Unorm;
-#if TARGET_OS_OSX
+  case AbstractTextureFormat::RGB10_A2:  return MTLPixelFormatRGB10A2Unorm;
+  case AbstractTextureFormat::RGBA16F:   return MTLPixelFormatRGBA16Float;
   case AbstractTextureFormat::DXT1:      return MTLPixelFormatBC1_RGBA;
   case AbstractTextureFormat::DXT3:      return MTLPixelFormatBC2_RGBA;
   case AbstractTextureFormat::DXT5:      return MTLPixelFormatBC3_RGBA;
   case AbstractTextureFormat::BPTC:      return MTLPixelFormatBC7_RGBAUnorm;
-#endif
   case AbstractTextureFormat::R16:       return MTLPixelFormatR16Unorm;
   case AbstractTextureFormat::D16:       return MTLPixelFormatDepth16Unorm;
 #if TARGET_OS_OSX
@@ -306,6 +309,8 @@ MTLPixelFormat Metal::Util::FromAbstract(AbstractTextureFormat format)
   default:                               return MTLPixelFormatInvalid;
   }
 }
+
+#pragma clang diagnostic pop
 
 // clang-format on
 
@@ -361,10 +366,10 @@ static const std::string_view COMPUTE_SHADER_HEADER = R"(
 #extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
 #extension GL_EXT_shader_explicit_arithmetic_types_int16 : require
 
-// All resources are packed into one descriptor set for compute.
 #define UBO_BINDING(packing, x) layout(packing, set = 0, binding = (x - 1))
+#define SAMPLER_BINDING(x) layout(set = 1, binding = x)
 #define SSBO_BINDING(x) layout(std430, set = 2, binding = x)
-#define IMAGE_BINDING(format, x) layout(format, set = 1, binding = x)
+#define IMAGE_BINDING(format, x) layout(format, set = 3, binding = x)
 
 // hlsl to glsl function translation
 #define API_METAL 1
@@ -454,24 +459,17 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   static const spirv_cross::MSLResourceBinding resource_bindings[] = {
       MakeResourceBinding(spv::ExecutionModelVertex,    0, 0, 1, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelVertex,    0, 1, 1, 0, 0), // vs/ubo
-      MakeResourceBinding(spv::ExecutionModelVertex,    0, 2, 2, 0, 0), // vs/ubo
+      MakeResourceBinding(spv::ExecutionModelVertex,    0, 3, 2, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelVertex,    2, 1, 0, 0, 0), // vs/ssbo
       MakeResourceBinding(spv::ExecutionModelFragment,  0, 0, 0, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelFragment,  0, 1, 1, 0, 0), // vs/ubo
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 0, 0, 0, 0), // ps/samp0
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 1, 0, 1, 1), // ps/samp1
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 2, 0, 2, 2), // ps/samp2
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 3, 0, 3, 3), // ps/samp3
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 4, 0, 4, 4), // ps/samp4
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 5, 0, 5, 5), // ps/samp5
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 6, 0, 6, 6), // ps/samp6
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 7, 0, 7, 7), // ps/samp7
-      MakeResourceBinding(spv::ExecutionModelFragment,  1, 8, 0, 8, 8), // ps/samp8
+      // Dynamic list initialized below      Fragment,  1, N, 0, N, N   // ps/samp0-N
       MakeResourceBinding(spv::ExecutionModelFragment,  2, 0, 2, 0, 0), // ps/ssbo
       MakeResourceBinding(spv::ExecutionModelGLCompute, 0, 1, 0, 0, 0), // cs/ubo
-      MakeResourceBinding(spv::ExecutionModelGLCompute, 1, 0, 0, 0, 0), // cs/output_image
+      // Dynamic list initialized below      GLCompute, 1, N, 0, N, N,  // cs/samp0-N
       MakeResourceBinding(spv::ExecutionModelGLCompute, 2, 0, 2, 0, 0), // cs/ssbo
       MakeResourceBinding(spv::ExecutionModelGLCompute, 2, 1, 3, 0, 0), // cs/ssbo
+      // Dynamic list initialized below      GLCompute, 3, N, 0, N, 0,  // cs/img0-N
   };
 
   spirv_cross::CompilerMSL::Options options;
@@ -499,6 +497,29 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
 
   for (auto& binding : resource_bindings)
     compiler.add_msl_resource_binding(binding);
+  if (stage == ShaderStage::Pixel)
+  {
+    for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)  // ps/samp0-N
+    {
+      compiler.add_msl_resource_binding(
+          MakeResourceBinding(spv::ExecutionModelFragment, 1, i, 0, i, i));
+    }
+  }
+  else if (stage == ShaderStage::Compute)
+  {
+    u32 img = 0;
+    u32 smp = 0;
+    for (u32 i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; i++)  // cs/samp0-N
+    {
+      compiler.add_msl_resource_binding(
+          MakeResourceBinding(spv::ExecutionModelGLCompute, 1, i, 0, img++, smp++));
+    }
+    for (u32 i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; i++)  // cs/img0-N
+    {
+      compiler.add_msl_resource_binding(
+          MakeResourceBinding(spv::ExecutionModelGLCompute, 3, i, 0, img++, 0));
+    }
+  }
 
   std::string output(MSL_HEADER);
   std::string compiled = compiler.compile();

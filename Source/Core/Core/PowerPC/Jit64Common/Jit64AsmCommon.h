@@ -9,6 +9,8 @@
 
 enum EQuantizeType : u32;
 
+class Jit64;
+
 class QuantizedMemoryRoutines : public EmuCodeBlock
 {
 public:

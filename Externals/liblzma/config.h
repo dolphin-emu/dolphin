@@ -151,7 +151,7 @@
 /* Define if you have the iconv() function and it works. */
 /* #undef HAVE_ICONV */
 
-#ifdef _M_X86
+#ifdef _M_X86_64
 /* Define to 1 if you have the <immintrin.h> header file. */
 #define HAVE_IMMINTRIN_H 1
 #endif
@@ -367,7 +367,7 @@
    sysctl(). */
 /* #undef TUKLIB_CPUCORES_SYSCTL */
 
-#ifdef _M_X86
+#ifdef _M_X86_64
 /* Define to 1 if the system supports fast unaligned access to 16-bit and
    32-bit integers. */
 #define TUKLIB_FAST_UNALIGNED_ACCESS 1

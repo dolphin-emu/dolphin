@@ -83,7 +83,7 @@ TextureInfo::TextureInfo(u32 stage, const u8* ptr, const u8* tlut_ptr, u32 addre
     // e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,0x0, so
     // we limit the mipmap count to 6 there
     const u32 limited_mip_count =
-        std::min<u32>(IntLog2(std::max(width, height)) + 1, raw_mip_count + 1) - 1;
+        std::min<u32>(MathUtil::IntLog2(std::max(width, height)) + 1, raw_mip_count + 1) - 1;
 
     // load mips
     const u8* src_data = m_ptr + GetTextureSize();

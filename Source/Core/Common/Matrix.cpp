@@ -250,11 +250,7 @@ Matrix33 Matrix33::Inverted() const
 {
   const auto m = [this](int x, int y) { return data[y + x * 3]; };
 
-  const auto det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
-                   m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
-                   m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
-
-  const auto invdet = 1 / det;
+  const auto invdet = 1 / Determinant();
 
   Matrix33 result;
 
@@ -271,6 +267,15 @@ Matrix33 Matrix33::Inverted() const
   minv(2, 2) = (m(0, 0) * m(1, 1) - m(1, 0) * m(0, 1)) * invdet;
 
   return result;
+}
+
+float Matrix33::Determinant() const
+{
+  const auto m = [this](int x, int y) { return data[y + x * 3]; };
+
+  return m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
+         m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
+         m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
 }
 
 Matrix44 Matrix44::Identity()
@@ -358,6 +363,19 @@ Vec3 Matrix44::Transform(const Vec3& v, float w) const
 void Matrix44::Multiply(const Matrix44& a, const Vec4& vec, Vec4* result)
 {
   result->data = MatrixMultiply<4, 4, 1>(a.data, vec.data);
+}
+
+float Matrix44::Determinant() const
+{
+  const auto& m = data;
+  return m[12] * m[9] * m[6] * m[3] - m[8] * m[13] * m[6] * m[3] - m[12] * m[5] * m[10] * m[3] +
+         m[4] * m[13] * m[10] * m[3] + m[8] * m[5] * m[14] * m[3] - m[4] * m[9] * m[14] * m[3] -
+         m[12] * m[9] * m[2] * m[7] + m[8] * m[13] * m[2] * m[7] + m[12] * m[1] * m[10] * m[7] -
+         m[0] * m[13] * m[10] * m[7] - m[8] * m[1] * m[14] * m[7] + m[0] * m[9] * m[14] * m[7] +
+         m[12] * m[5] * m[2] * m[11] - m[4] * m[13] * m[2] * m[11] - m[12] * m[1] * m[6] * m[11] +
+         m[0] * m[13] * m[6] * m[11] + m[4] * m[1] * m[14] * m[11] - m[0] * m[5] * m[14] * m[11] -
+         m[8] * m[5] * m[2] * m[15] + m[4] * m[9] * m[2] * m[15] + m[8] * m[1] * m[6] * m[15] -
+         m[0] * m[9] * m[6] * m[15] - m[4] * m[1] * m[10] * m[15] + m[0] * m[5] * m[10] * m[15];
 }
 
 }  // namespace Common

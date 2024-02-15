@@ -25,7 +25,7 @@
 
 namespace Null
 {
-void VideoBackend::InitBackendInfo()
+void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   g_Config.backend_info.api_type = APIType::Nothing;
   g_Config.backend_info.MaxTextureSize = 16384;

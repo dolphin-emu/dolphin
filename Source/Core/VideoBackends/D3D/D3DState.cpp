@@ -41,7 +41,8 @@ void StateManager::Apply()
           m_pending.framebuffer->GetNumRTVs(),
           m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
                                       m_pending.framebuffer->GetRTVArray(),
-          m_pending.framebuffer->GetDSV(), 2, 1, &m_pending.uav, nullptr);
+          m_pending.framebuffer->GetDSV(), m_pending.framebuffer->GetNumRTVs() + 1, 1,
+          &m_pending.uav, nullptr);
     }
     else
     {
@@ -68,12 +69,18 @@ void StateManager::Apply()
   if (dirtyConstants)
   {
     if (m_current.pixelConstants[0] != m_pending.pixelConstants[0] ||
-        m_current.pixelConstants[1] != m_pending.pixelConstants[1])
+        m_current.pixelConstants[1] != m_pending.pixelConstants[1] ||
+        m_current.pixelConstants[2] != m_pending.pixelConstants[2])
     {
-      D3D::context->PSSetConstantBuffers(0, m_pending.pixelConstants[1] ? 2 : 1,
-                                         m_pending.pixelConstants.data());
+      u32 count = 1;
+      if (m_pending.pixelConstants[1])
+        count++;
+      if (m_pending.pixelConstants[2])
+        count++;
+      D3D::context->PSSetConstantBuffers(0, count, m_pending.pixelConstants.data());
       m_current.pixelConstants[0] = m_pending.pixelConstants[0];
       m_current.pixelConstants[1] = m_pending.pixelConstants[1];
+      m_current.pixelConstants[2] = m_pending.pixelConstants[2];
     }
 
     if (m_current.vertexConstants != m_pending.vertexConstants)
@@ -221,13 +228,14 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
   }
 }
 
-void StateManager::SetComputeUAV(ID3D11UnorderedAccessView* uav)
+void StateManager::SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav)
 {
-  if (m_compute_image == uav)
+  if (m_compute_images[index] == uav)
     return;
 
-  m_compute_image = uav;
-  D3D::context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+  m_compute_images[index] = uav;
+  D3D::context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
+                                          m_compute_images.data(), nullptr);
 }
 
 void StateManager::SetComputeShader(ID3D11ComputeShader* shader)

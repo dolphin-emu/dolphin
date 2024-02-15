@@ -137,12 +137,12 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_loadCodes(JNIEnv* e
                                                                        jint revision)
 {
   const std::string game_id = GetJString(env, jGameID);
-  IniFile game_ini_local;
+  Common::IniFile game_ini_local;
 
   // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
   // will always be stored in GS/${GAMEID}.ini
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini");
-  const IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, revision);
+  const Common::IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, revision);
 
   const std::vector<ActionReplay::ARCode> codes =
       ActionReplay::LoadCodes(game_ini_default, game_ini_local);
@@ -167,7 +167,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCh
   const std::string game_id = GetJString(env, jGameID);
   const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
 
-  IniFile game_ini_local;
+  Common::IniFile game_ini_local;
   game_ini_local.Load(ini_path);
   ActionReplay::SaveCodes(&game_ini_local, vector);
   game_ini_local.Save(ini_path);

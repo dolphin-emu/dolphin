@@ -1,0 +1,15 @@
+{
+	"meta":
+	{
+		"title": "DOF Removal",
+		"author": "Dolphin Team",
+		"description": "Skips drawing DOF effects.  May be preferable when using a DOF solution from Dolphin's post processing shaders or a third party tool."
+	},
+	"features":
+	[
+		{
+			"group": "DOF",
+			"action": "skip"
+		}
+	]
+}

@@ -8,12 +8,14 @@
 
     <TextView
         android:id="@+id/text_header_name"
-        android:layout_width="wrap_content"
-        android:layout_height="46dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginHorizontal="@dimen/spacing_large"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"
         android:gravity="start|center_vertical"
         android:textColor="?attr/colorPrimary"
         android:textStyle="bold"

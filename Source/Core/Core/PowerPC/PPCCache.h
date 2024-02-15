@@ -5,8 +5,10 @@
 
 #include <array>
 #include <optional>
+#include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 
 class PointerWrap;
 
@@ -36,9 +38,9 @@ struct Cache
 
   // Note: This is only for performance purposes; this same data could be computed at runtime
   // from the tags and valid fields (and that's how it's done on the actual cache)
-  std::array<u8, 1 << 20> lookup_table{};
-  std::array<u8, 1 << 21> lookup_table_ex{};
-  std::array<u8, 1 << 20> lookup_table_vmem{};
+  std::vector<u8> lookup_table{};
+  std::vector<u8> lookup_table_ex{};
+  std::vector<u8> lookup_table_vmem{};
 
   void Store(u32 addr);
   void Invalidate(u32 addr);
@@ -60,7 +62,7 @@ struct Cache
 
 struct InstructionCache : public Cache
 {
-  std::optional<size_t> m_config_callback_id = std::nullopt;
+  std::optional<Config::ConfigChangedCallbackID> m_config_callback_id = std::nullopt;
 
   bool m_disable_icache = false;
 

@@ -42,6 +42,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 using namespace ExpansionInterface;
 
@@ -502,7 +503,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
   }
 }
 
-void GCMemcardManager::ImportFiles(Slot slot, const std::vector<Memcard::Savefile>& savefiles)
+void GCMemcardManager::ImportFiles(Slot slot, std::span<const Memcard::Savefile> savefiles)
 {
   auto& card = m_slot_memcard[slot];
   if (!card)
@@ -695,6 +696,7 @@ void GCMemcardManager::FixChecksums()
 void GCMemcardManager::CreateNewCard(Slot slot)
 {
   GCMemcardCreateNewDialog dialog(this);
+  SetQWidgetWindowDecorations(&dialog);
   if (dialog.exec() == QDialog::Accepted)
     m_slot_file_edit[slot]->setText(QString::fromStdString(dialog.GetMemoryCardPath()));
 }

@@ -43,6 +43,8 @@ public:
 
   std::string GetName() const override;
 
+  InputConfig* GetConfig() const override;
+
   ControllerEmu::ControlGroup* GetGroup(PadGroup group);
 
   void LoadDefaults(const ControllerInterface& ciface) override;

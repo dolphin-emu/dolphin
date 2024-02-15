@@ -368,11 +368,19 @@
     <string-array name="gcpadTypeEntries">
         <item>@string/gcpad_disabled</item>
         <item>@string/gcpad_emulated</item>
+        <item>@string/gcpad_keyboard</item>
+        <item>@string/gcpad_steering_wheel</item>
+        <item>@string/gcpad_dance_mat</item>
+        <item>@string/gcpad_taru_konga</item>
         <item>@string/gcpad_gc_adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
         <item>0</item>
         <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
         <item>12</item>
     </integer-array>
 
@@ -401,6 +409,17 @@
         <item>@string/gamepad_c_stick</item>
     </string-array>
 
+    <string-array name="gcpadLatchableButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>Z</item>
+        <item>@string/gamepad_start</item>
+        <item>L</item>
+        <item>R</item>
+    </string-array>
+
     <string-array name="wiimoteButtons">
         <item>A</item>
         <item>B</item>
@@ -410,6 +429,16 @@
         <item>-</item>
         <item>@string/gamepad_home</item>
         <item>@string/gamepad_d_pad</item>
+    </string-array>
+
+    <string-array name="wiimoteLatchableButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+        <item>@string/gamepad_home</item>
     </string-array>
 
     <string-array name="nunchukButtons">
@@ -424,6 +453,18 @@
         <item>C</item>
         <item>Z</item>
         <item>@string/gamepad_nunchuk_stick</item>
+    </string-array>
+
+    <string-array name="nunchukLatchableButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+        <item>@string/gamepad_home</item>
+        <item>C</item>
+        <item>Z</item>
     </string-array>
 
     <string-array name="classicButtons">
@@ -441,6 +482,20 @@
         <item>@string/gamepad_d_pad</item>
         <item>@string/gamepad_left_stick</item>
         <item>@string/gamepad_right_stick</item>
+    </string-array>
+
+    <string-array name="classicLatchableButtons">
+        <item>a</item>
+        <item>b</item>
+        <item>x</item>
+        <item>y</item>
+        <item>+</item>
+        <item>-</item>
+        <item>@string/gamepad_home</item>
+        <item>L</item>
+        <item>R</item>
+        <item>ZL</item>
+        <item>ZR</item>
     </string-array>
 
     <string-array name="irModeEntries">
@@ -685,5 +740,16 @@
         <item>20</item>
         <item>21</item>
         <item>22</item>
+    </integer-array>
+
+    <string-array name="colorSpaceEntries">
+        <item>@string/ntscm_space</item>
+        <item>@string/ntscj_space</item>
+        <item>@string/pal_space</item>
+    </string-array>
+    <integer-array name="colorSpaceValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </integer-array>
 </resources>

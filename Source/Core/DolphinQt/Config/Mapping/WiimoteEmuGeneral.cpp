@@ -76,10 +76,9 @@ void WiimoteEmuGeneral::CreateMainLayout()
 
 void WiimoteEmuGeneral::Connect()
 {
-  connect(m_extension_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_extension_combo, &QComboBox::currentIndexChanged, this,
           &WiimoteEmuGeneral::OnAttachmentChanged);
-  connect(m_extension_combo, qOverload<int>(&QComboBox::activated), this,
-          &WiimoteEmuGeneral::OnAttachmentSelected);
+  connect(m_extension_combo, &QComboBox::activated, this, &WiimoteEmuGeneral::OnAttachmentSelected);
   connect(this, &MappingWidget::ConfigChanged, this, &WiimoteEmuGeneral::ConfigChanged);
   connect(this, &MappingWidget::Update, this, &WiimoteEmuGeneral::Update);
 }

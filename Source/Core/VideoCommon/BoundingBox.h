@@ -5,6 +5,7 @@
 
 #include <array>
 #include <memory>
+#include <span>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -38,8 +39,7 @@ public:
 
 protected:
   virtual std::vector<BBoxType> Read(u32 index, u32 length) = 0;
-  // TODO: This can likely use std::span once we're on C++20
-  virtual void Write(u32 index, const std::vector<BBoxType>& values) = 0;
+  virtual void Write(u32 index, std::span<const BBoxType> values) = 0;
 
 private:
   void Readback();

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup Label="UserMacros">
-    <ExternalsQtDir>$(ExternalsDir)Qt\Qt6.3.0\</ExternalsQtDir>
+    <ExternalsQtDir>$(ExternalsDir)Qt\Qt6.5.1\</ExternalsQtDir>
     <QtTargetDirDefault>$(ExternalsQtDir)$(Platform)\</QtTargetDirDefault>
     <QTDIR Condition="Exists('$(QtTargetDirDefault)') And ('$(QTDIR)'=='' Or !Exists('$(QTDIR)'))">$(QtTargetDirDefault)</QTDIR>
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
@@ -51,9 +51,14 @@
     but not the include paths, as passing include paths drastically slows down
     moc, and it doesn't appear to actually need them anyway.
   -->
-  <Import Project="qtmoc.props" />
+  <Import Project="qt_globals.targets"/>
+  <Import Project="qt_tasks.targets"/>
   <ItemDefinitionGroup>
+    <!--From qtmoc.props-->
     <QtMoc>
+      <ExecutionDescription>moc %(Identity)</ExecutionDescription>
+      <QTDIR>$(QtHostToolsDir)</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
       <!--
         moc task does not properly detect outputs are outdated if Qt version changes
         (possibly causing Q_MOC_OUTPUT_REVISION to change). This *might* be because we
@@ -62,14 +67,40 @@
         to avoid conflicts. (the numeric postfix is the value of Q_MOC_OUTPUT_REVISION)
         -->
       <OutputFile>$(QtToolOutDir)moc_68\moc_%(Filename).cpp</OutputFile>
+      <QtMocDir>$(QtToolOutDir)moc_68\</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+      <DynamicSource>output</DynamicSource>
+      <ParallelProcess>true</ParallelProcess>
+      <CommandLineTemplate>[AllOptions] [AdditionalOptions]</CommandLineTemplate>
+      <Outputs>%(OutputFile)</Outputs>
+      <OverrideClCompile>false</OverrideClCompile>
     </QtMoc>
   </ItemDefinitionGroup>
-  <Import Project="qt_globals.targets"/>
-  <Import Project="qt_tasks.targets"/>
   <Import Project="qtmoc.targets" />
   <Target Name="QtCheckQtDir" BeforeTargets="QtMocInit" Condition="!$(QtDirValid)">
     <Error Text="QTDIR not set or non-existent (pull the submodule?)" />
   </Target>
+
+  <!--Similar story with rcc-->
+  <ItemDefinitionGroup>
+    <!--From qtrcc.props-->
+    <QtRcc>
+      <ExecutionDescription>rcc %(Identity)</ExecutionDescription>
+      <QTDIR>$(QtHostToolsDir)</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
+      <OutputFile>$(QtToolOutDir)rcc\qrc_%(Filename).cpp</OutputFile>
+      <QtRccDir>$(QtToolOutDir)rcc\</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+      <InitFuncName>%(Filename)</InitFuncName>
+      <Compression>default</Compression>
+      <TwoPass>false</TwoPass>
+      <DynamicSource>output</DynamicSource>
+      <ParallelProcess>true</ParallelProcess>
+      <CommandLineTemplate>[AllOptions] [AdditionalOptions]</CommandLineTemplate>
+      <Outputs>%(OutputFile)</Outputs>
+    </QtRcc>
+  </ItemDefinitionGroup>
+  <Import Project="qtrcc.targets" />
 
   <!--Expose the new targets to VS-->
   <ItemGroup>
@@ -78,13 +109,11 @@
 
   <!--Copy the needed dlls-->
   <ItemGroup>
-    <QtDllNames_ Include="Qt6Core;Qt6Gui;Qt6Widgets" />
+    <QtDllNames_ Include="Qt6Core;Qt6Gui;Qt6Widgets;Qt6Svg" />
     <QtDllNames Include="@(QtDllNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
     <QtDllsSrc Include="@(QtDllNames -> '$(QtBinDir)%(Identity)')" />
     <QtDllsDst Include="@(QtDllNames -> '$(BinaryOutputDir)%(Identity)')" />
-    <QtPluginNames_ Include="imageformats\qgif;imageformats\qicns;imageformats\qico;imageformats\qjpeg;
-      imageformats\qtga;imageformats\qwbmp;platforms\qdirect2d;platforms\qminimal;platforms\qoffscreen;
-      platforms\qwindows;styles\qwindowsvistastyle"/>
+    <QtPluginNames_ Include="iconengines\qsvgicon;imageformats\qsvg;platforms\qdirect2d;platforms\qwindows;styles\qwindowsvistastyle"/>
     <QtPluginNames Include="@(QtPluginNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
     <QtPluginsSrc Include="@(QtPluginNames -> '$(QtPluginsDir)%(Identity)')" />
     <QtPluginsDst Include="@(QtPluginNames -> '$(BinaryOutputDir)$(QtPluginFolder)\%(Identity)')" />

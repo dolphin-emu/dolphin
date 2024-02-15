@@ -21,7 +21,9 @@
 #include <processthreadsapi.h>
 
 // for GetUserNameEx()
+#ifndef SECURITY_WIN32
 #define SECURITY_WIN32
+#endif
 #include <Security.h>
 
 namespace wil
@@ -34,25 +36,25 @@ namespace wil
         // be an info class value that uses the same structure. That is the case for the file
         // system information.
         template<typename T> struct MapTokenStructToInfoClass;
-        template<> struct MapTokenStructToInfoClass<TOKEN_ACCESS_INFORMATION> { static const TOKEN_INFORMATION_CLASS infoClass = TokenAccessInformation; static const bool FixedSize = false; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_APPCONTAINER_INFORMATION> { static const TOKEN_INFORMATION_CLASS infoClass = TokenAppContainerSid; static const bool FixedSize = false; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_DEFAULT_DACL> { static const TOKEN_INFORMATION_CLASS infoClass = TokenDefaultDacl; static const bool FixedSize = false; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_GROUPS_AND_PRIVILEGES> { static const TOKEN_INFORMATION_CLASS infoClass = TokenGroupsAndPrivileges; static const bool FixedSize = false; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_MANDATORY_LABEL> { static const TOKEN_INFORMATION_CLASS infoClass = TokenIntegrityLevel; static const bool FixedSize = false; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_OWNER> { static const TOKEN_INFORMATION_CLASS infoClass = TokenOwner; static const bool FixedSize = false;  };
-        template<> struct MapTokenStructToInfoClass<TOKEN_PRIMARY_GROUP> { static const TOKEN_INFORMATION_CLASS infoClass = TokenPrimaryGroup; static const bool FixedSize = false;  };
-        template<> struct MapTokenStructToInfoClass<TOKEN_PRIVILEGES> { static const TOKEN_INFORMATION_CLASS infoClass = TokenPrivileges; static const bool FixedSize = false;  };
-        template<> struct MapTokenStructToInfoClass<TOKEN_USER> { static const TOKEN_INFORMATION_CLASS infoClass = TokenUser; static const bool FixedSize = false;  };
+        template<> struct MapTokenStructToInfoClass<TOKEN_ACCESS_INFORMATION> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenAccessInformation; static constexpr bool FixedSize = false; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_APPCONTAINER_INFORMATION> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenAppContainerSid; static constexpr bool FixedSize = false; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_DEFAULT_DACL> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenDefaultDacl; static constexpr bool FixedSize = false; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_GROUPS_AND_PRIVILEGES> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenGroupsAndPrivileges; static constexpr bool FixedSize = false; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_MANDATORY_LABEL> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenIntegrityLevel; static constexpr bool FixedSize = false; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_OWNER> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenOwner; static constexpr bool FixedSize = false;  };
+        template<> struct MapTokenStructToInfoClass<TOKEN_PRIMARY_GROUP> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenPrimaryGroup; static constexpr bool FixedSize = false;  };
+        template<> struct MapTokenStructToInfoClass<TOKEN_PRIVILEGES> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenPrivileges; static constexpr bool FixedSize = false;  };
+        template<> struct MapTokenStructToInfoClass<TOKEN_USER> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenUser; static constexpr bool FixedSize = false;  };
 
         // fixed size cases
-        template<> struct MapTokenStructToInfoClass<TOKEN_ELEVATION_TYPE> { static const TOKEN_INFORMATION_CLASS infoClass = TokenElevationType; static const bool FixedSize = true; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_MANDATORY_POLICY> { static const TOKEN_INFORMATION_CLASS infoClass = TokenMandatoryPolicy; static const bool FixedSize = true; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_ORIGIN> { static const TOKEN_INFORMATION_CLASS infoClass = TokenOrigin; static const bool FixedSize = true; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_SOURCE> { static const TOKEN_INFORMATION_CLASS infoClass = TokenSource; static const bool FixedSize = true; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_STATISTICS> { static const TOKEN_INFORMATION_CLASS infoClass = TokenStatistics; static const bool FixedSize = true; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_TYPE> { static const TOKEN_INFORMATION_CLASS infoClass = TokenType; static const bool FixedSize = true; };
-        template<> struct MapTokenStructToInfoClass<SECURITY_IMPERSONATION_LEVEL> { static const TOKEN_INFORMATION_CLASS infoClass = TokenImpersonationLevel;  static const bool FixedSize = true; };
-        template<> struct MapTokenStructToInfoClass<TOKEN_ELEVATION> { static const TOKEN_INFORMATION_CLASS infoClass = TokenElevation; static const bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_ELEVATION_TYPE> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenElevationType; static constexpr bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_MANDATORY_POLICY> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenMandatoryPolicy; static constexpr bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_ORIGIN> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenOrigin; static constexpr bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_SOURCE> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenSource; static constexpr bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_STATISTICS> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenStatistics; static constexpr bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_TYPE> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenType; static constexpr bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<SECURITY_IMPERSONATION_LEVEL> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenImpersonationLevel;  static constexpr bool FixedSize = true; };
+        template<> struct MapTokenStructToInfoClass<TOKEN_ELEVATION> { static constexpr TOKEN_INFORMATION_CLASS infoClass = TokenElevation; static constexpr bool FixedSize = true; };
     }
     /// @endcond
 
@@ -85,13 +87,12 @@ namespace wil
     or privilege-adjustment are examples of uses.
     ~~~~
     wil::unique_handle callerToken;
-    RETURN_IF_FAILED(wil::open_current_access_token_nothrow(&theToken, TOKEN_QUERY | TOKEN_IMPERSONATE, true));
+    RETURN_IF_FAILED(wil::open_current_access_token_nothrow(&theToken, TOKEN_QUERY | TOKEN_IMPERSONATE, OpenThreadTokenAs::Self));
     ~~~~
     @param tokenHandle Receives the token opened during the operation. Must be CloseHandle'd by the caller, or
                 (preferably) stored in a wil::unique_handle
     @param access Bits from the TOKEN_* access mask which are passed to OpenThreadToken/OpenProcessToken
-    @param asSelf When true, and if the thread is impersonating, the thread token is opened using the
-                process token's rights.
+    @param openAs Current to use current thread security context, or Self to use process security context.
     */
     inline HRESULT open_current_access_token_nothrow(_Out_ HANDLE* tokenHandle, unsigned long access = TOKEN_QUERY, OpenThreadTokenAs openAs = OpenThreadTokenAs::Current)
     {
@@ -122,6 +123,7 @@ namespace wil
     }
 #endif // WIL_ENABLE_EXCEPTIONS
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
     // Returns tokenHandle or the effective thread token if tokenHandle is null.
     // Note, this returns an token handle who's lifetime is managed independently
     // and it may be a pseudo token, don't free it!
@@ -287,11 +289,12 @@ namespace wil
         return tokenInfo;
     }
 #endif
+#endif // _WIN32_WINNT >= _WIN32_WINNT_WIN8
 
     /// @cond
     namespace details
     {
-        inline void RevertImpersonateToken(_Pre_opt_valid_ _Frees_ptr_opt_ HANDLE oldToken)
+        inline void RevertImpersonateToken(_In_ _Post_ptr_invalid_ HANDLE oldToken)
         {
             FAIL_FAST_IMMEDIATE_IF(!::SetThreadToken(nullptr, oldToken));
 
@@ -524,6 +527,7 @@ namespace wil
         return S_OK;
     }
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
     /** Determine whether a token represents an app container
     This method uses the passed in token and emits a boolean indicating that
     whether TokenIsAppContainer is true.
@@ -573,6 +577,7 @@ namespace wil
         return value;
     }
 #endif // WIL_ENABLE_EXCEPTIONS
+#endif // _WIN32_WINNT >= _WIN32_WINNT_WIN8
 
     template<typename... Ts> bool test_token_membership_failfast(_In_opt_ HANDLE token,
         const SID_IDENTIFIER_AUTHORITY& sidAuthority, Ts&&... subAuthorities)

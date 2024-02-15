@@ -15,33 +15,177 @@
 #include <sysinfoapi.h> // GetSystemTimeAsFileTime
 #include <libloaderapi.h> // GetProcAddress
 #include <Psapi.h> // GetModuleFileNameExW (macro), K32GetModuleFileNameExW
-#include <PathCch.h>
+#include <winreg.h>
 #include <objbase.h>
+
+// detect std::bit_cast
+#ifdef __has_include
+#  if (__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+#    include <bit>
+#  endif
+#endif
+
+#if __cpp_lib_bit_cast >= 201806L
+#  define __WI_CONSTEXPR_BIT_CAST constexpr
+#else
+#  define __WI_CONSTEXPR_BIT_CAST inline
+#endif
 
 #include "result.h"
 #include "resource.h"
 #include "wistd_functional.h"
 #include "wistd_type_traits.h"
 
+#if _HAS_CXX20 && defined(_STRING_VIEW_) && defined(_COMPARE_)
+// If we're using c++20, then <compare> must be included to use the string ordinal functions
+#  define __WI_DEFINE_STRING_ORDINAL_FUNCTIONS
+#elif !_HAS_CXX20 && defined(_STRING_VIEW_)
+#  define __WI_DEFINE_STRING_ORDINAL_FUNCTIONS
+#endif
+
+namespace wistd
+{
+#if defined(__WI_DEFINE_STRING_ORDINAL_FUNCTIONS)
+
+#if _HAS_CXX20
+    
+    using weak_ordering = std::weak_ordering;
+    
+#else // _HAS_CXX20
+
+    struct weak_ordering
+    {
+        static const weak_ordering less;
+        static const weak_ordering equivalent;
+        static const weak_ordering greater;
+
+        [[nodiscard]] friend constexpr bool operator==(const weak_ordering left, std::nullptr_t) noexcept
+        {
+            return left.m_value == 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator!=(const weak_ordering left, std::nullptr_t) noexcept
+        {
+            return left.m_value != 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator<(const weak_ordering left, std::nullptr_t) noexcept
+        {
+            return left.m_value < 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator>(const weak_ordering left, std::nullptr_t) noexcept
+        {
+            return left.m_value > 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator<=(const weak_ordering left, std::nullptr_t) noexcept
+        {
+            return left.m_value <= 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator>=(const weak_ordering left, std::nullptr_t) noexcept
+        {
+            return left.m_value >= 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator==(std::nullptr_t, const weak_ordering right) noexcept
+        {
+            return right == 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator!=(std::nullptr_t, const weak_ordering right) noexcept
+        {
+            return right != 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator<(std::nullptr_t, const weak_ordering right) noexcept
+        {
+            return right > 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator>(std::nullptr_t, const weak_ordering right) noexcept
+        {
+            return right < 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator<=(std::nullptr_t, const weak_ordering right) noexcept
+        {
+            return right >= 0;
+        }
+
+        [[nodiscard]] friend constexpr bool operator>=(std::nullptr_t, const weak_ordering right) noexcept
+        {
+            return right <= 0;
+        }
+
+        signed char m_value;
+    };
+
+    inline constexpr weak_ordering weak_ordering::less{static_cast<signed char>(-1)};
+    inline constexpr weak_ordering weak_ordering::equivalent{static_cast<signed char>(0)};
+    inline constexpr weak_ordering weak_ordering::greater{static_cast<signed char>(1)};
+
+#endif // !_HAS_CXX20
+
+#endif // defined(__WI_DEFINE_STRING_ORDINAL_FUNCTIONS)
+
+}
+
 namespace wil
 {
     //! Strictly a function of the file system but this is the value for all known file system, NTFS, FAT.
     //! CDFs has a limit of 254.
-    size_t const max_path_segment_length = 255;
+    constexpr size_t max_path_segment_length = 255;
 
     //! Character length not including the null, MAX_PATH (260) includes the null.
-    size_t const max_path_length = 259;
+    constexpr size_t max_path_length = 259;
 
     //! 32743 Character length not including the null. This is a system defined limit.
     //! The 24 is for the expansion of the roots from "C:" to "\Device\HarddiskVolume4"
     //! It will be 25 when there are more than 9 disks.
-    size_t const max_extended_path_length = 0x7FFF - 24;
+    constexpr size_t max_extended_path_length = 0x7FFF - 24;
 
     //! For {guid} string form. Includes space for the null terminator.
-    size_t const guid_string_buffer_length = 39;
+    constexpr size_t guid_string_buffer_length = 39;
 
     //! For {guid} string form. Not including the null terminator.
-    size_t const guid_string_length = 38;
+    constexpr size_t guid_string_length = 38;
+
+#pragma region String and identifier comparisons
+    // Using CompareStringOrdinal functions:
+    //
+    // Indentifiers require a locale-less (ordinal), and often case-insensitive, comparison (filenames, registry keys, XML node names, etc).
+    // DO NOT use locale-sensitive (lexical) comparisons for resource identifiers (e.g.wcs*() functions in the CRT).
+    
+#if defined(__WI_DEFINE_STRING_ORDINAL_FUNCTIONS)
+
+    namespace details
+    {
+        [[nodiscard]] inline int CompareStringOrdinal(std::wstring_view left, std::wstring_view right, bool caseInsensitive) WI_NOEXCEPT
+        {
+            // Casting from size_t (unsigned) to int (signed) should be safe from overrun to a negative,
+            // merely truncating the string.  CompareStringOrdinal should be resilient to negatives.
+            return ::CompareStringOrdinal(left.data(), static_cast<int>(left.size()), right.data(), static_cast<int>(right.size()), caseInsensitive);
+        }
+    }
+
+    [[nodiscard]] inline wistd::weak_ordering compare_string_ordinal(std::wstring_view left, std::wstring_view right, bool caseInsensitive) WI_NOEXCEPT
+    {
+        switch (wil::details::CompareStringOrdinal(left, right, caseInsensitive))
+        {
+        case CSTR_LESS_THAN:
+            return wistd::weak_ordering::less;
+        case CSTR_GREATER_THAN:
+            return wistd::weak_ordering::greater;
+        default:
+            return wistd::weak_ordering::equivalent;
+        }
+    }
+
+#endif // defined(__WI_DEFINE_STRING_ORDINAL_FUNCTIONS)
+
+#pragma endregion
 
 #pragma region FILETIME helpers
     // FILETIME duration values. FILETIME is in 100 nanosecond units.
@@ -56,36 +200,126 @@ namespace wil
 
     namespace filetime
     {
-        inline unsigned long long to_int64(const FILETIME &ft)
+        constexpr unsigned long long to_int64(const FILETIME &ft) WI_NOEXCEPT
         {
+#if __cpp_lib_bit_cast >= 201806L
+            return std::bit_cast<unsigned long long>(ft);
+#else
             // Cannot reinterpret_cast FILETIME* to unsigned long long*
             // due to alignment differences.
             return (static_cast<unsigned long long>(ft.dwHighDateTime) << 32) + ft.dwLowDateTime;
+#endif
         }
 
-        inline FILETIME from_int64(unsigned long long i64)
+        __WI_CONSTEXPR_BIT_CAST FILETIME from_int64(unsigned long long i64) WI_NOEXCEPT
         {
+#if __cpp_lib_bit_cast >= 201806L
+            return std::bit_cast<FILETIME>(i64);
+#else
             static_assert(sizeof(i64) == sizeof(FILETIME), "sizes don't match");
             static_assert(__alignof(unsigned long long) >= __alignof(FILETIME), "alignment not compatible with type pun");
             return *reinterpret_cast<FILETIME *>(&i64);
+#endif
         }
 
-        inline FILETIME add(_In_ FILETIME const &ft, long long delta)
+        __WI_CONSTEXPR_BIT_CAST FILETIME add(_In_ FILETIME const &ft, long long delta100ns) WI_NOEXCEPT
         {
-            return from_int64(to_int64(ft) + delta);
+            return from_int64(to_int64(ft) + delta100ns);
         }
 
-        inline bool is_empty(const FILETIME &ft)
+        constexpr bool is_empty(const FILETIME &ft) WI_NOEXCEPT
         {
             return (ft.dwHighDateTime == 0) && (ft.dwLowDateTime == 0);
         }
 
-        inline FILETIME get_system_time()
+        inline FILETIME get_system_time() WI_NOEXCEPT
         {
             FILETIME ft;
             GetSystemTimeAsFileTime(&ft);
             return ft;
         }
+
+        /// Convert time as units of 100 nanoseconds to milliseconds. Fractional milliseconds are truncated.
+        constexpr unsigned long long convert_100ns_to_msec(unsigned long long time100ns) WI_NOEXCEPT
+        {
+            return time100ns / filetime_duration::one_millisecond;
+        }
+
+        /// Convert time as milliseconds to units of 100 nanoseconds.
+        constexpr unsigned long long convert_msec_to_100ns(unsigned long long timeMsec) WI_NOEXCEPT
+        {
+            return timeMsec * filetime_duration::one_millisecond;
+        }
+
+#if defined(_APISETREALTIME_) && (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
+        /// Returns the current unbiased interrupt-time count, in units of 100 nanoseconds. The unbiased interrupt-time count does not include time the system spends in sleep or hibernation.
+        ///
+        /// This API avoids prematurely shortcircuiting timing loops due to system sleep/hibernation.
+        ///
+        /// This is equivalent to GetTickCount64() except it returns units of 100 nanoseconds instead of milliseconds, and it doesn't include time the system spends in sleep or hibernation.
+        /// For example
+        ///
+        ///     start = GetTickCount64();
+        ///     hibernate();
+        ///     ...wake from hibernation 30 minutes later...;
+        ///     elapsed = GetTickCount64() - start;
+        ///     // elapsed = 30min
+        ///
+        /// Do the same using unbiased interrupt-time and elapsed is 0 (or nearly so).
+        ///
+        /// @note This is identical to QueryUnbiasedInterruptTime() but returns the value as a return value (rather than an out parameter).
+        /// @see https://msdn.microsoft.com/en-us/library/windows/desktop/ee662307(v=vs.85).aspx
+        inline unsigned long long QueryUnbiasedInterruptTimeAs100ns() WI_NOEXCEPT
+        {
+            ULONGLONG now{};
+            QueryUnbiasedInterruptTime(&now);
+            return now;
+        }
+
+        /// Returns the current unbiased interrupt-time count, in units of milliseconds. The unbiased interrupt-time count does not include time the system spends in sleep or hibernation.
+        /// @see QueryUnbiasedInterruptTimeAs100ns
+        inline unsigned long long QueryUnbiasedInterruptTimeAsMSec() WI_NOEXCEPT
+        {
+            return convert_100ns_to_msec(QueryUnbiasedInterruptTimeAs100ns());
+        }
+#endif // _APISETREALTIME_
+    }
+#pragma endregion
+
+#pragma region RECT helpers
+    template<typename rect_type>
+    constexpr auto rect_width(rect_type const& rect)
+    {
+        return rect.right - rect.left;
+    }
+
+    template<typename rect_type>
+    constexpr auto rect_height(rect_type const& rect)
+    {
+        return rect.bottom - rect.top;
+    }
+
+    template<typename rect_type>
+    constexpr auto rect_is_empty(rect_type const& rect)
+    {
+        return (rect.left >= rect.right) || (rect.top >= rect.bottom);
+    }
+
+    template<typename rect_type, typename point_type>
+    constexpr auto rect_contains_point(rect_type const& rect, point_type const& point)
+    {
+        return (point.x >= rect.left) && (point.x < rect.right) && (point.y >= rect.top) && (point.y < rect.bottom);
+    }
+
+    template<typename rect_type, typename length_type>
+    constexpr rect_type rect_from_size(length_type x, length_type y, length_type width, length_type height)
+    {
+        rect_type rect;
+        rect.left = x;
+        rect.top = y;
+        rect.right = x + width;
+        rect.bottom = y + height;
+        return rect;
     }
 #pragma endregion
 
@@ -95,7 +329,7 @@ namespace wil
     // Adjust stackBufferLength based on typical result sizes to optimize use and
     // to test the boundary cases.
     template <typename string_type, size_t stackBufferLength = 256>
-    HRESULT AdaptFixedSizeToAllocatedResult(string_type& result, wistd::function<HRESULT(PWSTR, size_t, size_t*)> callback)
+    HRESULT AdaptFixedSizeToAllocatedResult(string_type& result, wistd::function<HRESULT(PWSTR, size_t, size_t*)> callback) WI_NOEXCEPT
     {
         details::string_maker<string_type> maker;
 
@@ -112,14 +346,24 @@ namespace wil
         else
         {
             // Did not fit in the stack allocated buffer, need to do 2 phase construction.
-            // valueLengthNeededWithNull includes the null so subtract that as make() will add space for it.
-            RETURN_IF_FAILED(maker.make(nullptr, valueLengthNeededWithNull - 1));
+            // May need to loop more than once if external conditions cause the value to change.
+            size_t bufferLength;
+            do
+            {
+                bufferLength = valueLengthNeededWithNull;
+                // bufferLength includes the null so subtract that as make() will add space for it.
+                RETURN_IF_FAILED(maker.make(nullptr, bufferLength - 1));
 
-            size_t secondLength{};
-            RETURN_IF_FAILED(callback(maker.buffer(), valueLengthNeededWithNull, &secondLength));
+                RETURN_IF_FAILED_EXPECTED(callback(maker.buffer(), bufferLength, &valueLengthNeededWithNull));
+                WI_ASSERT(valueLengthNeededWithNull > 0);
 
-            // Ensure callback produces consistent result.
-            FAIL_FAST_IF(valueLengthNeededWithNull != secondLength);
+                // If the value shrunk, then adjust the string to trim off the excess buffer.
+                if (valueLengthNeededWithNull < bufferLength)
+                {
+                    RETURN_IF_FAILED(maker.trim_at_existing_null(valueLengthNeededWithNull - 1));
+                }
+            }
+            while (valueLengthNeededWithNull > bufferLength);
         }
         result = maker.release();
         return S_OK;
@@ -167,9 +411,6 @@ namespace wil
         });
     }
 
-    // This function does not work beyond the default stack buffer size (255).
-    // Needs to to retry in a loop similar to wil::GetModuleFileNameExW
-    // These updates and unit tests are tracked by https://github.com/Microsoft/wil/issues/3
     template <typename string_type, size_t stackBufferLength = 256>
     HRESULT QueryFullProcessImageNameW(HANDLE processHandle, _In_ DWORD flags, string_type& result) WI_NOEXCEPT
     {
@@ -179,8 +420,9 @@ namespace wil
             DWORD lengthToUse = static_cast<DWORD>(valueLength);
             BOOL const success = ::QueryFullProcessImageNameW(processHandle, flags, value, &lengthToUse);
             RETURN_LAST_ERROR_IF((success == FALSE) && (::GetLastError() != ERROR_INSUFFICIENT_BUFFER));
-            // On both success or insufficient buffer case, add +1 for the null-terminating character
-            *valueLengthNeededWithNul = lengthToUse + 1;
+
+            // On success, return the amount used; on failure, try doubling
+            *valueLengthNeededWithNul = success ? (lengthToUse + 1) : (lengthToUse * 2);
             return S_OK;
         });
     }
@@ -201,13 +443,11 @@ namespace wil
     }
 #endif
 
-    /** Looks up the environment variable 'key' and fails if it is not found.
-    'key' should not have '%' prefix and suffix.
-    Dangerous since environment variable generally are optional. */
-    template <typename string_type>
+    /** Looks up the environment variable 'key' and fails if it is not found. */
+    template <typename string_type, size_t initialBufferLength = 128>
     inline HRESULT GetEnvironmentVariableW(_In_ PCWSTR key, string_type& result) WI_NOEXCEPT
     {
-        return wil::AdaptFixedSizeToAllocatedResult(result,
+        return wil::AdaptFixedSizeToAllocatedResult<string_type, initialBufferLength>(result,
             [&](_Out_writes_(valueLength) PWSTR value, size_t valueLength, _Out_ size_t* valueLengthNeededWithNul) -> HRESULT
         {
             // If the function succeeds, the return value is the number of characters stored in the buffer
@@ -232,12 +472,11 @@ namespace wil
         });
     }
 
-    /** Looks up the environment variable 'key' and returns null if it is not found.
-    'key' should not have '%' prefix and suffix. */
-    template <typename string_type>
+    /** Looks up the environment variable 'key' and returns null if it is not found. */
+    template <typename string_type, size_t initialBufferLength = 128>
     HRESULT TryGetEnvironmentVariableW(_In_ PCWSTR key, string_type& result) WI_NOEXCEPT
     {
-        const auto hr = wil::GetEnvironmentVariableW<string_type>(key, result);
+        const auto hr = wil::GetEnvironmentVariableW<string_type, initialBufferLength>(key, result);
         RETURN_HR_IF(hr, FAILED(hr) && (hr != HRESULT_FROM_WIN32(ERROR_ENVVAR_NOT_FOUND)));
         return S_OK;
     }
@@ -245,68 +484,44 @@ namespace wil
     /** Retrieves the fully qualified path for the file containing the specified module loaded
     by a given process. Note GetModuleFileNameExW is a macro.*/
     template <typename string_type, size_t initialBufferLength = 128>
-    HRESULT GetModuleFileNameExW(_In_opt_ HANDLE process, _In_opt_ HMODULE module, string_type& path)
+    HRESULT GetModuleFileNameExW(_In_opt_ HANDLE process, _In_opt_ HMODULE module, string_type& path) WI_NOEXCEPT
     {
-        // initialBufferLength is a template parameter to allow for testing.  It creates some waste for
-        // shorter paths, but avoids iteration through the loop in common cases where paths are less
-        // than 128 characters.
-        // wil::max_extended_path_length + 1 (for the null char)
-        // + 1 (to be certain GetModuleFileNameExW didn't truncate)
-        size_t const ensureNoTrucation = (process != nullptr) ? 1 : 0;
-        size_t const maxExtendedPathLengthWithNull = wil::max_extended_path_length + 1 + ensureNoTrucation;
-
-        details::string_maker<string_type> maker;
-
-        for (size_t lengthWithNull = initialBufferLength;
-             lengthWithNull <= maxExtendedPathLengthWithNull;
-             lengthWithNull = (wistd::min)(lengthWithNull * 2, maxExtendedPathLengthWithNull))
+        auto adapter = [&](_Out_writes_(valueLength) PWSTR value, size_t valueLength, _Out_ size_t* valueLengthNeededWithNul) -> HRESULT
         {
-            // make() adds space for the trailing null
-            RETURN_IF_FAILED(maker.make(nullptr, lengthWithNull - 1));
-
             DWORD copiedCount;
+            size_t valueUsedWithNul;
             bool copyFailed;
             bool copySucceededWithNoTruncation;
-
             if (process != nullptr)
             {
                 // GetModuleFileNameExW truncates and provides no error or other indication it has done so.
-                // The only way to be sure it didn't truncate is if it didn't need the whole buffer.
-                copiedCount = ::GetModuleFileNameExW(process, module, maker.buffer(), static_cast<DWORD>(lengthWithNull));
+                // The only way to be sure it didn't truncate is if it didn't need the whole buffer. The
+                // count copied to the buffer includes the nul-character as well.
+                copiedCount = ::GetModuleFileNameExW(process, module, value, static_cast<DWORD>(valueLength));
+                valueUsedWithNul = copiedCount + 1;
                 copyFailed = (0 == copiedCount);
-                copySucceededWithNoTruncation = !copyFailed && (copiedCount < lengthWithNull - 1);
+                copySucceededWithNoTruncation = !copyFailed && (copiedCount < valueLength - 1);
             }
             else
             {
                 // In cases of insufficient buffer, GetModuleFileNameW will return a value equal to lengthWithNull
-                // and set the last error to ERROR_INSUFFICIENT_BUFFER.
-                copiedCount = ::GetModuleFileNameW(module, maker.buffer(), static_cast<DWORD>(lengthWithNull));
+                // and set the last error to ERROR_INSUFFICIENT_BUFFER. The count returned does not include
+                // the nul-character
+                copiedCount = ::GetModuleFileNameW(module, value, static_cast<DWORD>(valueLength));
+                valueUsedWithNul = copiedCount + 1;
                 copyFailed = (0 == copiedCount);
-                copySucceededWithNoTruncation = !copyFailed && (copiedCount < lengthWithNull);
+                copySucceededWithNoTruncation = !copyFailed && (copiedCount < valueLength);
             }
 
-            if (copyFailed)
-            {
-                RETURN_LAST_ERROR();
-            }
-            else if (copySucceededWithNoTruncation)
-            {
-                path = maker.release();
-                return S_OK;
-            }
+            RETURN_LAST_ERROR_IF(copyFailed);
 
-            WI_ASSERT((process != nullptr) || (::GetLastError() == ERROR_INSUFFICIENT_BUFFER));
+            // When the copy truncated, request another try with more space.
+            *valueLengthNeededWithNul = copySucceededWithNoTruncation ? valueUsedWithNul : (valueLength * 2);
 
-            if (lengthWithNull == maxExtendedPathLengthWithNull)
-            {
-                // If we've reached this point, there's no point in trying a larger buffer size.
-                break;
-            }
-        }
+            return S_OK;
+        };
 
-        // Any path should fit into the maximum max_extended_path_length. If we reached here, something went
-        // terribly wrong.
-        FAIL_FAST();
+        return wil::AdaptFixedSizeToAllocatedResult<string_type, initialBufferLength>(path, wistd::move(adapter));
     }
 
     /** Retrieves the fully qualified path for the file that contains the specified module.
@@ -314,7 +529,7 @@ namespace wil
     same format that was specified when the module was loaded. Therefore, the path can be a
     long or short file name, and can have the prefix '\\?\'. */
     template <typename string_type, size_t initialBufferLength = 128>
-    HRESULT GetModuleFileNameW(HMODULE module, string_type& path)
+    HRESULT GetModuleFileNameW(HMODULE module, string_type& path) WI_NOEXCEPT
     {
         return wil::GetModuleFileNameExW<string_type, initialBufferLength>(nullptr, module, path);
     }
@@ -357,42 +572,106 @@ namespace wil
     }
 #endif
 
-    /** Looks up the environment variable 'key' and fails if it is not found.
-    'key' should not have '%' prefix and suffix.
-    Dangerous since environment variable generally are optional. */
-    template <typename string_type = wil::unique_cotaskmem_string>
+    /** Looks up the environment variable 'key' and fails if it is not found. */
+    template <typename string_type = wil::unique_cotaskmem_string, size_t initialBufferLength = 128>
     string_type GetEnvironmentVariableW(_In_ PCWSTR key)
     {
         string_type result;
-        THROW_IF_FAILED(wil::GetEnvironmentVariableW<string_type>(key, result));
+        THROW_IF_FAILED((wil::GetEnvironmentVariableW<string_type, initialBufferLength>(key, result)));
         return result;
     }
 
-    /** Looks up the environment variable 'key' and returns null if it is not found.
-    'key' should not have '%' prefix and suffix. */
-    template <typename string_type = wil::unique_cotaskmem_string>
+    /** Looks up the environment variable 'key' and returns null if it is not found. */
+    template <typename string_type = wil::unique_cotaskmem_string, size_t initialBufferLength = 128>
     string_type TryGetEnvironmentVariableW(_In_ PCWSTR key)
     {
         string_type result;
-        THROW_IF_FAILED(wil::TryGetEnvironmentVariableW<string_type>(key, result));
+        THROW_IF_FAILED((wil::TryGetEnvironmentVariableW<string_type, initialBufferLength>(key, result)));
         return result;
     }
 
-    template <typename string_type = wil::unique_cotaskmem_string>
-    string_type GetModuleFileNameW(HMODULE module)
+    template <typename string_type = wil::unique_cotaskmem_string, size_t initialBufferLength = 128>
+    string_type GetModuleFileNameW(HMODULE module = nullptr /* current process module */)
     {
         string_type result;
-        THROW_IF_FAILED(wil::GetModuleFileNameW(module, result));
+        THROW_IF_FAILED((wil::GetModuleFileNameW<string_type, initialBufferLength>(module, result)));
         return result;
     }
 
-    template <typename string_type = wil::unique_cotaskmem_string>
+    template <typename string_type = wil::unique_cotaskmem_string, size_t initialBufferLength = 128>
     string_type GetModuleFileNameExW(HANDLE process, HMODULE module)
     {
         string_type result;
-        THROW_IF_FAILED(wil::GetModuleFileNameExW(process, module, result));
+        THROW_IF_FAILED((wil::GetModuleFileNameExW<string_type, initialBufferLength>(process, module, result)));
         return result;
     }
+
+    template <typename string_type = wil::unique_cotaskmem_string, size_t stackBufferLength = 256>
+    string_type QueryFullProcessImageNameW(HANDLE processHandle = GetCurrentProcess(), DWORD flags = 0)
+    {
+        string_type result;
+        THROW_IF_FAILED((wil::QueryFullProcessImageNameW<string_type, stackBufferLength>(processHandle, flags, result)));
+        return result;
+    }
+
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM)
+
+    // Lookup a DWORD value under HKLM\...\Image File Execution Options\<current process name>
+    inline DWORD GetCurrentProcessExecutionOption(PCWSTR valueName, DWORD defaultValue = 0)
+    {
+        auto filePath = wil::GetModuleFileNameW<wil::unique_cotaskmem_string>();
+        if (auto lastSlash = wcsrchr(filePath.get(), L'\\'))
+        {
+            const auto fileName = lastSlash + 1;
+            auto keyPath = wil::str_concat<wil::unique_cotaskmem_string>(LR"(SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\)",
+                fileName);
+            DWORD value{}, sizeofValue = sizeof(value);
+            if (::RegGetValueW(HKEY_LOCAL_MACHINE, keyPath.get(), valueName,
+#ifdef RRF_SUBKEY_WOW6464KEY
+                RRF_RT_REG_DWORD | RRF_SUBKEY_WOW6464KEY,
+#else
+                RRF_RT_REG_DWORD,
+#endif
+                nullptr, &value, &sizeofValue) == ERROR_SUCCESS)
+            {
+                return value;
+            }
+        }
+        return defaultValue;
+    }
+
+    // Waits for a debugger to attach to the current process based on registry configuration.
+    //
+    // Example:
+    //     HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\explorer.exe
+    //         WaitForDebuggerPresent=1
+    //
+    // REG_DWORD value of
+    //     missing or 0 -> don't break
+    //     1 -> wait for the debugger, continue execution once it is attached
+    //     2 -> wait for the debugger, break here once attached.
+    inline void WaitForDebuggerPresent(bool checkRegistryConfig = true)
+    {
+        for (;;)
+        {
+            auto configValue = checkRegistryConfig ? GetCurrentProcessExecutionOption(L"WaitForDebuggerPresent") : 1;
+            if (configValue == 0)
+            {
+                return; // not configured, don't wait
+            }
+
+            if (IsDebuggerPresent())
+            {
+                if (configValue == 2)
+                {
+                    DebugBreak(); // debugger attached, SHIFT+F11 to return to the caller
+                }
+                return; // debugger now attached, continue executing
+            }
+            Sleep(500);
+        }
+    }
+#endif // WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM)
 
 #endif
 
@@ -400,7 +679,27 @@ namespace wil
     the linker provides for every module. This avoids the need for a global HINSTANCE variable
     and provides access to this value for static libraries. */
     EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-    inline HINSTANCE GetModuleInstanceHandle() { return reinterpret_cast<HINSTANCE>(&__ImageBase); }
+    inline HINSTANCE GetModuleInstanceHandle() WI_NOEXCEPT { return reinterpret_cast<HINSTANCE>(&__ImageBase); }
+
+    // GetModuleHandleExW was added to the app partition in version 22000 of the SDK
+#if defined(NTDDI_WIN10_CO) ? \
+    WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP | WINAPI_PARTITION_SYSTEM | WINAPI_PARTITION_GAMES) : \
+    WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM | WINAPI_PARTITION_GAMES)
+    // Use this in threads that can outlive the object or API call that created them.
+    // Without this COM, or the API caller, can unload the DLL, resulting in a crash.
+    // It is very important that this be the first object created in the thread proc
+    // as when this runs down the thread exits and no destructors of objects created before
+    // it will run.
+    [[nodiscard]] inline auto get_module_reference_for_thread() noexcept
+    {
+        HMODULE thisModule{};
+        FAIL_FAST_IF(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, L"", &thisModule));
+        return wil::scope_exit([thisModule]
+        {
+            FreeLibraryAndExitThread(thisModule, 0);
+        });
+    }
+#endif
 
     /// @cond
     namespace details
@@ -410,19 +709,19 @@ namespace wil
             INIT_ONCE& m_once;
             unsigned long m_flags = INIT_ONCE_INIT_FAILED;
         public:
-            init_once_completer(_In_ INIT_ONCE& once) : m_once(once)
+            init_once_completer(_In_ INIT_ONCE& once) WI_NOEXCEPT : m_once(once)
             {
             }
 
             #pragma warning(push)
             #pragma warning(disable:4702) // https://github.com/Microsoft/wil/issues/2
-            void success()
+            void success() WI_NOEXCEPT
             {
                 m_flags = 0;
             }
             #pragma warning(pop)
 
-            ~init_once_completer()
+            ~init_once_completer() WI_NOEXCEPT
             {
                 ::InitOnceComplete(&m_once, m_flags, nullptr);
             }

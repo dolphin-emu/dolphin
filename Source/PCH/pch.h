@@ -6,7 +6,7 @@
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 
-#if defined _MSC_FULL_VER && _MSC_FULL_VER < 193431937
+#if defined _MSC_FULL_VER && _MSC_FULL_VER < 193632532
 #pragma message("Current _MSC_FULL_VER: " STRINGIFY(_MSC_FULL_VER))
 #error Please update your build environment to the latest Visual Studio 2022!
 #endif

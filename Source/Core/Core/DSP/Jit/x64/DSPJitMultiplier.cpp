@@ -84,7 +84,7 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
   //		prod = (s16)a * (s16)b; //signed
   MOVSX(64, 16, RAX, R(RAX));
   IMUL(64, R(RCX));
-  FixupBranch signedMul = J(true);
+  FixupBranch signedMul = J(Jump::Near);
 
   SetJumpTarget(unsignedMul);
   DSPJitRegCache c(m_gpr);

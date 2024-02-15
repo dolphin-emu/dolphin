@@ -28,6 +28,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/SysConf.h"
+#include "Core/System.h"
 
 namespace Core
 {
@@ -127,61 +128,53 @@ static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_fi
 static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
                                             const BootSessionData& boot_session_data)
 {
+  auto& movie = Core::System::GetInstance().GetMovie();
   const u64 title_id = SConfig::GetInstance().GetTitleID();
   const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
-  if (Movie::IsRecordingInput())
+  if (movie.IsRecordingInput())
   {
     if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
     {
-      Movie::SetClearSave(true);
+      movie.SetClearSave(true);
     }
     else
     {
       // TODO: Check for the actual save data
       const std::string path = Common::GetTitleDataPath(title_id) + "/banner.bin";
-      Movie::SetClearSave(!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, path));
+      movie.SetClearSave(!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, path));
     }
   }
 
   if ((NetPlay::IsNetPlayRunning() && SConfig::GetInstance().bCopyWiiSaveNetplay) ||
-      (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
+      (movie.IsMovieActive() && !movie.IsStartingFromClearSave()))
   {
-    // Copy the current user's save to the Blank NAND
     auto* sync_fs = boot_session_data.GetWiiSyncFS();
     auto& sync_titles = boot_session_data.GetWiiSyncTitles();
-    if (sync_fs)
+
+    auto* source_fs = sync_fs ? sync_fs : configured_fs.get();
+    INFO_LOG_FMT(CORE, "Wii Save Init: Copying from {} to session_fs.",
+                 sync_fs ? "sync_fs" : "configured_fs");
+
+    // Copy the current user's save to the Blank NAND
+    if (movie.IsMovieActive() && !NetPlay::IsNetPlayRunning())
     {
-      INFO_LOG_FMT(CORE, "Wii Save Init: Copying from sync_fs to session_fs.");
-
-      for (const u64 title : sync_titles)
-      {
-        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
-        CopySave(sync_fs, session_fs, title);
-      }
-
-      // Copy Mii data
-      if (!CopyNandFile(sync_fs, Common::GetMiiDatabasePath(), session_fs,
-                        Common::GetMiiDatabasePath()))
-      {
-        WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
-      }
+      INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title_id);
+      CopySave(source_fs, session_fs, title_id);
     }
     else
     {
-      INFO_LOG_FMT(CORE, "Wii Save Init: Copying from configured_fs to session_fs.");
-
       for (const u64 title : sync_titles)
       {
         INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
-        CopySave(configured_fs.get(), session_fs, title);
+        CopySave(source_fs, session_fs, title);
       }
+    }
 
-      // Copy Mii data
-      if (!CopyNandFile(configured_fs.get(), Common::GetMiiDatabasePath(), session_fs,
-                        Common::GetMiiDatabasePath()))
-      {
-        WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
-      }
+    // Copy Mii data
+    if (!CopyNandFile(source_fs, Common::GetMiiDatabasePath(), session_fs,
+                      Common::GetMiiDatabasePath()))
+    {
+      WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
     }
 
     const auto& netplay_redirect_folder = boot_session_data.GetWiiSyncRedirectFolder();
@@ -365,7 +358,7 @@ void InitializeWiiFileSystemContents(
       File::CreateDirs(save_redirect->m_target_path);
       if (save_redirect->m_clone)
       {
-        File::Copy(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT),
+        File::Copy(Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Session),
                    save_redirect->m_target_path);
       }
     }
@@ -425,7 +418,7 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
   // cleanup process.
   const bool copy_all = !netplay_settings || netplay_settings->savedata_sync_all_wii;
   for (const u64 title_id :
-       (copy_all ? ios->GetES()->GetInstalledTitles() : boot_session_data.GetWiiSyncTitles()))
+       (copy_all ? ios->GetESCore().GetInstalledTitles() : boot_session_data.GetWiiSyncTitles()))
   {
     INFO_LOG_FMT(CORE, "Wii FS Cleanup: Copying {0:016x}.", title_id);
 

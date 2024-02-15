@@ -344,10 +344,10 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
   case 0xAE010000:
   case 0xAE090000:                  // start DMA
     m_eeprom_write_status = false;  // ToDo: Verify with hardware which commands disable EEPROM CS
-  // Fall-through intentional
+    [[fallthrough]];
   case 0xAE0A0000:  // end DMA
     m_eeprom_pos = 0;
-  // Fall-through intentional
+    [[fallthrough]];
   default:
     m_current_cmd = _uData;
     m_return_pos = 0;

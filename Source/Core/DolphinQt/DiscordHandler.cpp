@@ -16,6 +16,7 @@
 
 #include "DolphinQt/DiscordJoinRequestDialog.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 DiscordHandler::DiscordHandler(QWidget* parent) : QObject{parent}, m_parent{parent}
 {
@@ -60,6 +61,7 @@ void DiscordHandler::ShowNewJoinRequest(const std::string& id, const std::string
   std::lock_guard<std::mutex> lock(m_request_dialogs_mutex);
   m_request_dialogs.emplace_front(m_parent, id, discord_tag, avatar);
   DiscordJoinRequestDialog& request_dialog = m_request_dialogs.front();
+  SetQWidgetWindowDecorations(&request_dialog);
   request_dialog.show();
   request_dialog.raise();
   request_dialog.activateWindow();
