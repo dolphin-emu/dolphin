@@ -117,9 +117,9 @@ jobs:
             echo "not release, skipping code signing"
             exit 0;
           }
-          mkdir CodeSignTool
-          cd .\CodeSignTool
-          if (!(Test-Path ".\CodeSignTool\CodeSignTool.bat" -PathType Leaf)) { 
+          if (!(Test-Path ".\CodeSignTool\CodeSignTool.bat" -PathType Leaf)) {
+            mkdir CodeSignTool
+            cd .\CodeSignTool
             Invoke-WebRequest -Uri https://www.ssl.com/download/codesigntool-for-windows/ -UseBasicParsing -OutFile ".\CodeSignTool.zip"
             7z x CodeSignTool.zip
             Remove-Item CodeSignTool.zip
