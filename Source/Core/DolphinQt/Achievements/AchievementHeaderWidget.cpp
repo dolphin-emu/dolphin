@@ -150,10 +150,7 @@ void AchievementHeaderWidget::UpdateData()
     m_game_progress_hard->setVisible(false);
     m_game_progress_soft->setVisible(false);
     m_rich_presence->setVisible(false);
-    if (instance.IsDisabled())
-    {
-      m_locked_warning->setVisible(true);
-    }
+    m_locked_warning->setVisible(instance.IsDisabled());
   }
 }
 
