@@ -36,7 +36,6 @@ public:
 private:
   std::unique_ptr<u8[]> m_rom;
 
-  char m_osreport_eol = '\n';
   bool m_osreport_sjis = false;
 
   // TODO these ranges are highly suspect
