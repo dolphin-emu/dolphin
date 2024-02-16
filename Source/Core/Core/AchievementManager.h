@@ -148,6 +148,8 @@ public:
   const NamedIconMap& GetChallengeIcons() const;
   std::vector<std::string> GetActiveLeaderboards() const;
 
+  void DoState(PointerWrap& p);
+
   void CloseGame();
   void Logout();
   void Shutdown();

@@ -396,6 +396,46 @@ std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
   return display_values;
 }
 
+void AchievementManager::DoState(PointerWrap& p)
+{
+  if (!m_client || !Config::Get(Config::RA_ENABLED))
+    return;
+  size_t size = 0;
+  if (!p.IsReadMode())
+    size = rc_client_progress_size(m_client);
+  p.Do(size);
+  auto buffer = std::make_unique<u8[]>(size);
+  if (!p.IsReadMode())
+  {
+    int result = rc_client_serialize_progress_sized(m_client, buffer.get(), size);
+    if (result != RC_OK)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed serializing achievement client with error code {}",
+                    result);
+      return;
+    }
+  }
+  p.DoArray(buffer.get(), (u32)size);
+  if (p.IsReadMode())
+  {
+    int result = rc_client_deserialize_progress_sized(m_client, buffer.get(), size);
+    if (result != RC_OK)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed deserializing achievement client with error code {}",
+                    result);
+      return;
+    }
+    size_t new_size = rc_client_progress_size(m_client);
+    if (size != new_size)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Loaded client size {} does not match size in state {}", new_size,
+                    size);
+      return;
+    }
+  }
+  p.DoMarker("AchievementManager");
+}
+
 void AchievementManager::CloseGame()
 {
   {
