@@ -97,7 +97,7 @@ static size_t s_state_writes_in_queue;
 static std::condition_variable s_state_write_queue_is_empty;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 167;  // Last changed in PR 12494
+constexpr u32 STATE_VERSION = 168;  // Last changed in PR 12584
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
@@ -199,6 +199,10 @@ static void DoState(PointerWrap& p)
   p.DoMarker("Wiimote");
   Gecko::DoState(p);
   p.DoMarker("Gecko");
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance().DoState(p);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)

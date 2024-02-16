@@ -147,6 +147,7 @@ public:
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
+  void DoState(PointerWrap& p);
 
   void CloseGame();
   void Logout();

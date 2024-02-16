@@ -895,6 +895,51 @@ const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() 
   return m_active_challenges;
 }
 
+void AchievementManager::DoState(PointerWrap& p)
+{
+  if (!m_is_runtime_initialized || !Config::Get(Config::RA_ENABLED))
+    return;
+  int size = 0;
+  if (!p.IsReadMode())
+    size = rc_runtime_progress_size(&m_runtime, nullptr);
+  if (size < 0)
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Runtime sizing for save state returned invalid value {}", size);
+    return;
+  }
+  p.Do(size);
+  auto buffer = std::make_unique<u8[]>(size);
+  if (!p.IsReadMode())
+  {
+    int result = rc_runtime_serialize_progress(buffer.get(), &m_runtime, nullptr);
+    if (result != RC_OK)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed serializing achievement runtime with error code {}",
+                    result);
+      return;
+    }
+  }
+  p.DoArray(buffer.get(), size);
+  if (p.IsReadMode())
+  {
+    int result = rc_runtime_deserialize_progress(&m_runtime, buffer.get(), nullptr);
+    if (result != RC_OK)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed deserializing achievement runtime with error code {}",
+                    result);
+      return;
+    }
+    int new_size = rc_runtime_progress_size(&m_runtime, nullptr);
+    if (size != rc_runtime_progress_size(&m_runtime, nullptr))
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Loaded runtime size {} does not match size in state {}",
+                    new_size, size);
+      return;
+    }
+  }
+  p.DoMarker("AchievementManager");
+}
+
 void AchievementManager::CloseGame()
 {
   {
