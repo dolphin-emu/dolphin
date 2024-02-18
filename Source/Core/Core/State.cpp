@@ -29,6 +29,7 @@
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
+#include "Common/TimeUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
@@ -282,10 +283,12 @@ static std::string SystemTimeAsDoubleToString(double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
   const time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
-  const tm local_time = fmt::localtime(seconds);
+  const auto local_time = Common::Localtime(seconds);
+  if (!local_time)
+    return "";
 
   // fmt is locale agnostic by default, so explicitly use current locale.
-  return fmt::format(std::locale{""}, "{:%x %X}", local_time);
+  return fmt::format(std::locale{""}, "{:%x %X}", *local_time);
 }
 
 static std::string MakeStateFilename(int number);
