@@ -370,10 +370,15 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   else
 #endif
   {
-    out.Write("{} {} {} {};\n", "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
-              use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
-              uid_data->uint_output ? "uvec4" : "vec4",
-              use_framebuffer_fetch ? "real_ocol0" : "ocol0");
+    if (use_framebuffer_fetch)
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+    }
+    else
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out {} ocol0;\n",
+                uid_data->uint_output ? "uvec4" : "vec4");
+    }
 
     if (use_dual_source)
     {
