@@ -161,6 +161,7 @@
     <ClInclude Include="Common\SymbolDB.h" />
     <ClInclude Include="Common\Thread.h" />
     <ClInclude Include="Common\Timer.h" />
+    <ClInclude Include="Common\TimeUtil.h" />
     <ClInclude Include="Common\TraversalClient.h" />
     <ClInclude Include="Common\TraversalProto.h" />
     <ClInclude Include="Common\TypeUtils.h" />
@@ -832,6 +833,7 @@
     <ClCompile Include="Common\SymbolDB.cpp" />
     <ClCompile Include="Common\Thread.cpp" />
     <ClCompile Include="Common\Timer.cpp" />
+    <ClCompile Include="Common\TimeUtil.cpp" />
     <ClCompile Include="Common\TraversalClient.cpp" />
     <ClCompile Include="Common\UPnP.cpp" />
     <ClCompile Include="Common\WindowsRegistry.cpp" />
