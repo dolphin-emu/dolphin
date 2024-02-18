@@ -884,10 +884,14 @@ void AchievementManager::SetDisabled(bool disable)
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been disabled.");
     OSD::AddMessage("Please close all games to re-enable achievements.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
+    m_update_callback();
   }
 
   if (previously_disabled && !disable)
+  {
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been re-enabled.");
+    m_update_callback();
+  }
 };
 
 const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() const
@@ -926,6 +930,7 @@ void AchievementManager::Logout()
   {
     std::lock_guard lg{m_lock};
     CloseGame();
+    SetDisabled(false);
     m_player_badge.name.clear();
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
   }
@@ -937,6 +942,7 @@ void AchievementManager::Logout()
 void AchievementManager::Shutdown()
 {
   CloseGame();
+  SetDisabled(false);
   m_is_runtime_initialized = false;
   m_queue.Shutdown();
   // DON'T log out - keep those credentials for next run.
