@@ -46,7 +46,7 @@ HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wi
   if (wii_path.compare(0, 1, "/") == 0)
     return HostFilename{m_root_path + Common::EscapePath(wii_path), false};
 
-  ASSERT(false);
+  ASSERT_MSG(IOS_FS, false, "Invalid Wii path '{}' given to BuildFilename()", wii_path);
   return HostFilename{m_root_path, false};
 }
 
