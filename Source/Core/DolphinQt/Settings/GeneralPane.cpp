@@ -85,12 +85,8 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
   const bool running = state != Core::State::Uninitialized;
 
   m_checkbox_dualcore->setEnabled(!running);
-#ifdef USE_RETRO_ACHIEVEMENTS
   bool hardcore = Config::Get(Config::RA_HARDCORE_ENABLED);
   m_checkbox_cheats->setEnabled(!running && !hardcore);
-#else   // USE_RETRO_ACHIEVEMENTS
-  m_checkbox_cheats->setEnabled(!running);
-#endif  // USE_RETRO_ACHIEVEMENTS
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);

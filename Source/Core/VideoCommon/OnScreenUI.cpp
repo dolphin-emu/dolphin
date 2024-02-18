@@ -330,7 +330,6 @@ void OnScreenUI::DrawDebugText()
     ImGui::TextUnformatted(profile_output.c_str());
 }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 void OnScreenUI::DrawChallenges()
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
@@ -389,7 +388,6 @@ void OnScreenUI::DrawChallenges()
 
   ImGui::End();
 }
-#endif  // USE_RETRO_ACHIEVEMENTS
 
 void OnScreenUI::Finalize()
 {
@@ -398,9 +396,7 @@ void OnScreenUI::Finalize()
   g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
   DrawDebugText();
   OSD::DrawMessages();
-#ifdef USE_RETRO_ACHIEVEMENTS
   DrawChallenges();
-#endif  // USE_RETRO_ACHIEVEMENTS
   ImGui::Render();
 }
 

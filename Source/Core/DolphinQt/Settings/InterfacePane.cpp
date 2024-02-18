@@ -255,7 +255,6 @@ void InterfacePane::LoadConfig()
   SignalBlocking(m_checkbox_show_debugging_ui)
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   bool hardcore = Config::Get(Config::RA_HARDCORE_ENABLED);
   SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
   if (hardcore)
@@ -267,7 +266,6 @@ void InterfacePane::LoadConfig()
   {
     m_checkbox_show_debugging_ui->SetDescription({});
   }
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   SignalBlocking(m_combobox_language)
       ->setCurrentIndex(m_combobox_language->findData(

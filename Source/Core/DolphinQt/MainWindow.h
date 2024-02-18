@@ -174,10 +174,8 @@ private:
   void ShowCheatsManager();
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   void ShowAchievementsWindow();
   void ShowAchievementSettings();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -257,9 +255,7 @@ private:
   static constexpr int num_wii_controllers = 4;
   std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementsWindow* m_achievements_window = nullptr;
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   AssemblerWidget* m_assembler_widget;
   BreakpointWidget* m_breakpoint_widget;

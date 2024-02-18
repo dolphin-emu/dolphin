@@ -124,14 +124,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_screenshot_action->setEnabled(running);
   m_state_save_menu->setEnabled(running);
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_state_load_menu->setEnabled(running && !hardcore);
   m_frame_advance_action->setEnabled(running && !hardcore);
-#else   // USE_RETRO_ACHIEVEMENTS
-  m_state_load_menu->setEnabled(running);
-  m_frame_advance_action->setEnabled(running);
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Movie
   m_recording_read_only->setEnabled(running);
@@ -141,11 +136,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_export->setEnabled(false);
   }
   m_recording_play->setEnabled(m_game_selected && !running);
-#ifdef USE_RETRO_ACHIEVEMENTS
   m_recording_play->setEnabled(m_game_selected && !running && !hardcore);
-#else   // USE_RETRO_ACHIEVEMENTS
-  m_recording_play->setEnabled(m_game_selected && !running);
-#endif  // USE_RETRO_ACHIEVEMENTS
   m_recording_start->setEnabled((m_game_selected || running) &&
                                 !Core::System::GetInstance().GetMovie().IsPlayingInput());
 
@@ -246,14 +237,12 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (Config::Get(Config::RA_ENABLED))
   {
     tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
 
     tools_menu->addSeparator();
   }
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
 

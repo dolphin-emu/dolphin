@@ -1,16 +1,16 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef USE_RETRO_ACHIEVEMENTS
-
 #include "Core/AchievementManager.h"
 
 #include <memory>
 
 #include <fmt/format.h>
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 #include <rcheevos/include/rc_api_info.h>
 #include <rcheevos/include/rc_hash.h>
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 #include "Common/HttpRequest.h"
 #include "Common/Image.h"
@@ -24,9 +24,11 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 static constexpr bool hardcore_mode_enabled = false;
 
 static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 AchievementManager& AchievementManager::GetInstance()
 {
@@ -36,6 +38,7 @@ AchievementManager& AchievementManager::GetInstance()
 
 void AchievementManager::Init()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!m_is_runtime_initialized && Config::Get(Config::RA_ENABLED))
   {
     std::string host_url = Config::Get(Config::RA_HOST_URL);
@@ -50,20 +53,24 @@ void AchievementManager::Init()
       LoginAsync("", [](ResponseType r_type) {});
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
   }
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::SetUpdateCallback(UpdateCallback callback)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   m_update_callback = std::move(callback);
 
   if (!m_update_callback)
     m_update_callback = [] {};
 
   m_update_callback();
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 AchievementManager::ResponseType AchievementManager::Login(const std::string& password)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!m_is_runtime_initialized)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted login (sync) to RetroAchievements server without "
@@ -76,10 +83,14 @@ AchievementManager::ResponseType AchievementManager::Login(const std::string& pa
 
   m_update_callback();
   return r_type;
+#else   // USE_RETRO_ACHIEVEMENTS
+  return ResponseType::NOT_ENABLED;
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::LoginAsync(const std::string& password, const ResponseCallback& callback)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!m_is_runtime_initialized)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted login (async) to RetroAchievements server without "
@@ -92,15 +103,23 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
     FetchBadges();
     m_update_callback();
   });
+#else   // USE_RETRO_ACHIEVEMENTS
+  callback(ResponseType::NOT_ENABLED);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 bool AchievementManager::IsLoggedIn() const
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   return !Config::Get(Config::RA_API_TOKEN).empty();
+#else   // USE_RETRO_ACHIEVEMENTS
+  return false;
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::HashGame(const std::string& file_path, const ResponseCallback& callback)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
     callback(ResponseType::NOT_ENABLED);
@@ -152,10 +171,14 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
     }
     LoadGameSync(callback);
   });
+#else   // USE_RETRO_ACHIEVEMENTS
+  callback(ResponseType::NOT_ENABLED);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
     callback(ResponseType::NOT_ENABLED);
@@ -230,8 +253,12 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
     }
     LoadGameSync(callback);
   });
+#else   // USE_RETRO_ACHIEVEMENTS
+  callback(ResponseType::NOT_ENABLED);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 void AchievementManager::LoadGameSync(const ResponseCallback& callback)
 {
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
@@ -322,14 +349,20 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
   m_update_callback();
   callback(fetch_game_data_response);
 }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 bool AchievementManager::IsGameLoaded() const
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   return m_is_game_loaded;
+#else   // USE_RETRO_ACHIEVEMENTS
+  return false;
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
     callback(ResponseType::NOT_ENABLED);
@@ -348,10 +381,14 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
     callback(FetchUnlockData(false));
     m_update_callback();
   });
+#else   // USE_RETRO_ACHIEVEMENTS
+  callback(ResponseType::NOT_ENABLED);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::ActivateDeactivateAchievements()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
     return;
   bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
@@ -367,10 +404,12 @@ void AchievementManager::ActivateDeactivateAchievements()
     ActivateDeactivateAchievement(iter.first->first, enabled, unofficial, encore);
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Achievements (de)activated.");
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::ActivateDeactivateLeaderboards()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
     return;
   bool leaderboards_enabled = Config::Get(Config::RA_LEADERBOARDS_ENABLED);
@@ -392,10 +431,12 @@ void AchievementManager::ActivateDeactivateLeaderboards()
     }
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Leaderboards (de)activated.");
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::ActivateDeactivateRichPresence()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
     return;
   rc_runtime_activate_richpresence(
@@ -405,10 +446,12 @@ void AchievementManager::ActivateDeactivateRichPresence()
           "",
       nullptr, 0);
   INFO_LOG_FMT(ACHIEVEMENTS, "Rich presence (de)activated.");
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::FetchBadges()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!m_is_runtime_initialized || !IsLoggedIn() || !Config::Get(Config::RA_BADGES_ENABLED))
   {
     m_update_callback();
@@ -656,10 +699,12 @@ void AchievementManager::FetchBadges()
   }
 
   m_update_callback();
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::DoFrame()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!m_is_game_loaded)
     return;
   if (m_framecount == 0x200)
@@ -691,8 +736,10 @@ void AchievementManager::DoFrame()
     m_last_ping_time = current_time;
     m_update_callback();
   }
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
 {
   if (!m_system)
@@ -722,7 +769,9 @@ u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
     return 0u;
   }
 }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
 {
   {
@@ -755,6 +804,7 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
 
   m_update_callback();
 }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 std::recursive_mutex& AchievementManager::GetLock()
 {
@@ -763,6 +813,7 @@ std::recursive_mutex& AchievementManager::GetLock()
 
 bool AchievementManager::IsHardcoreModeActive() const
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   std::lock_guard lg{m_lock};
   if (!Config::Get(Config::RA_HARDCORE_ENABLED))
     return false;
@@ -771,31 +822,49 @@ bool AchievementManager::IsHardcoreModeActive() const
   if (!IsGameLoaded())
     return false;
   return (m_runtime.trigger_count + m_runtime.lboard_count > 0);
+#else   // USE_RETRO_ACHIEVEMENTS
+  return false;
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 std::string AchievementManager::GetPlayerDisplayName() const
 {
-  return IsLoggedIn() ? m_display_name : "";
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (IsLoggedIn())
+    return m_display_name;
+#endif  // USE_RETRO_ACHIEVEMENTS
+  return "";
 }
 
 u32 AchievementManager::GetPlayerScore() const
 {
-  return IsLoggedIn() ? m_player_score : 0;
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (IsLoggedIn())
+    return m_player_score;
+#endif  // USE_RETRO_ACHIEVEMENTS
+  return 0;
 }
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 const AchievementManager::BadgeStatus& AchievementManager::GetPlayerBadge() const
 {
   return m_player_badge;
 }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 std::string AchievementManager::GetGameDisplayName() const
 {
-  return IsGameLoaded() ? m_game_data.title : "";
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (IsGameLoaded())
+    return m_game_data.title;
+#endif  // USE_RETRO_ACHIEVEMENTS
+  return "";
 }
 
 AchievementManager::PointSpread AchievementManager::TallyScore() const
 {
   PointSpread spread{};
+#ifdef USE_RETRO_ACHIEVEMENTS
   if (!IsGameLoaded())
     return spread;
   for (const auto& entry : m_unlock_map)
@@ -818,9 +887,11 @@ AchievementManager::PointSpread AchievementManager::TallyScore() const
       spread.soft_points += points;
     }
   }
+#endif  // USE_RETRO_ACHIEVEMENTS
   return spread;
 }
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 rc_api_fetch_game_data_response_t* AchievementManager::GetGameData()
 {
   return &m_game_data;
@@ -869,9 +940,11 @@ AchievementManager::RichPresence AchievementManager::GetRichPresence() const
   std::lock_guard lg{m_lock};
   return m_rich_presence;
 }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 void AchievementManager::SetDisabled(bool disable)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   bool previously_disabled;
   {
     std::lock_guard lg{m_lock};
@@ -894,7 +967,8 @@ void AchievementManager::SetDisabled(bool disable)
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been re-enabled.");
     m_update_callback();
   }
-};
+#endif  // USE_RETRO_ACHIEVEMENTS
+}
 
 const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() const
 {
@@ -903,6 +977,7 @@ const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() 
 
 void AchievementManager::CloseGame()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   {
     std::lock_guard lg{m_lock};
     if (m_is_game_loaded)
@@ -925,10 +1000,12 @@ void AchievementManager::CloseGame()
 
   m_update_callback();
   INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::Logout()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   {
     std::lock_guard lg{m_lock};
     CloseGame();
@@ -939,10 +1016,12 @@ void AchievementManager::Logout()
 
   m_update_callback();
   INFO_LOG_FMT(ACHIEVEMENTS, "Logged out from server.");
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void AchievementManager::Shutdown()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   CloseGame();
   SetDisabled(false);
   m_is_runtime_initialized = false;
@@ -950,8 +1029,10 @@ void AchievementManager::Shutdown()
   // DON'T log out - keep those credentials for next run.
   rc_runtime_destroy(&m_runtime);
   INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager shut down.");
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 void* AchievementManager::FilereaderOpenByFilepath(const char* path_utf8)
 {
   auto state = std::make_unique<FilereaderState>();
@@ -1704,5 +1785,4 @@ static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager:
   }
   return icon;
 }
-
 #endif  // USE_RETRO_ACHIEVEMENTS

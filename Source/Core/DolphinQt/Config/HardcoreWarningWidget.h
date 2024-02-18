@@ -3,7 +3,6 @@
 
 #pragma once
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 #include <QWidget>
 
 class QLabel;
@@ -27,4 +26,3 @@ private:
   QLabel* m_text;
   QPushButton* m_settings_button;
 };
-#endif  // USE_RETRO_ACHIEVEMENTS

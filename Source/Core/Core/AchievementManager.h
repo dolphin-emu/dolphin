@@ -3,7 +3,6 @@
 
 #pragma once
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 #include <array>
 #include <ctime>
 #include <functional>
@@ -13,9 +12,11 @@
 #include <thread>
 #include <unordered_map>
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
 #include <rcheevos/include/rc_runtime.h>
+#endif
 
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
@@ -70,6 +71,7 @@ public:
   using Badge = std::vector<u8>;
   using NamedIconMap = std::map<std::string, std::unique_ptr<OSD::Icon>, std::less<>>;
 
+#ifdef USE_RETRO_ACHIEVEMENTS
   struct BadgeStatus
   {
     std::string name = "";
@@ -91,6 +93,7 @@ public:
     BadgeStatus unlocked_badge;
     u32 category = RC_ACHIEVEMENT_CATEGORY_CORE;
   };
+#endif
 
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
@@ -128,16 +131,16 @@ public:
   void FetchBadges();
 
   void DoFrame();
-  u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
-  void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
   std::recursive_mutex& GetLock();
   bool IsHardcoreModeActive() const;
   std::string GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
-  const BadgeStatus& GetPlayerBadge() const;
   std::string GetGameDisplayName() const;
   PointSpread TallyScore() const;
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  const BadgeStatus& GetPlayerBadge() const;
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
   const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
@@ -145,7 +148,16 @@ public:
                                                           u32* target);
   const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
   RichPresence GetRichPresence() const;
-  bool IsDisabled() const { return m_disabled; };
+#endif
+
+  bool IsDisabled() const
+  {
+#ifdef USE_RETRO_ACHIEVEMENTS
+    return m_disabled;
+#else
+    return true;
+#endif
+  };
   void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
 
@@ -156,6 +168,7 @@ public:
 private:
   AchievementManager() = default;
 
+#ifdef USE_RETRO_ACHIEVEMENTS
   struct FilereaderState
   {
     int64_t position = 0;
@@ -187,6 +200,9 @@ private:
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
   void DisplayWelcomeMessage();
+
+  u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
+  void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
@@ -222,12 +238,13 @@ private:
 
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
-  NamedIconMap m_active_challenges;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
-  mutable std::recursive_mutex m_lock;
   std::recursive_mutex m_filereader_lock;
-};  // class AchievementManager
+#endif
 
-#endif  // USE_RETRO_ACHIEVEMENTS
+  NamedIconMap m_active_challenges;
+
+  mutable std::recursive_mutex m_lock;
+};  // class AchievementManager
