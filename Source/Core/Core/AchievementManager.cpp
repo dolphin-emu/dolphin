@@ -359,11 +359,11 @@ void AchievementManager::ActivateDeactivateAchievements()
   bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
   for (u32 ix = 0; ix < m_game_data.num_achievements; ix++)
   {
-    u32 points = (m_game_data.achievements[ix].category == RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL) ?
-                     0 :
-                     m_game_data.achievements[ix].points;
-    auto iter = m_unlock_map.insert(
-        {m_game_data.achievements[ix].id, UnlockStatus{.game_data_index = ix, .points = points}});
+    auto iter =
+        m_unlock_map.insert({m_game_data.achievements[ix].id,
+                             UnlockStatus{.game_data_index = ix,
+                                          .points = m_game_data.achievements[ix].points,
+                                          .category = m_game_data.achievements[ix].category}});
     ActivateDeactivateAchievement(iter.first->first, enabled, unofficial, encore);
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Achievements (de)activated.");
@@ -800,6 +800,8 @@ AchievementManager::PointSpread AchievementManager::TallyScore() const
     return spread;
   for (const auto& entry : m_unlock_map)
   {
+    if (entry.second.category != RC_ACHIEVEMENT_CATEGORY_CORE)
+      continue;
     u32 points = entry.second.points;
     spread.total_count++;
     spread.total_points += points;
@@ -1466,22 +1468,27 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
                   (Config::Get(Config::RA_BADGES_ENABLED)) ?
                       DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
                       nullptr);
-  PointSpread spread = TallyScore();
-  if (spread.hard_points == spread.total_points)
+  if (m_game_data.achievements[game_data_index].category == RC_ACHIEVEMENT_CATEGORY_CORE)
   {
-    OSD::AddMessage(
-        fmt::format("Congratulations! {} has mastered {}", m_display_name, m_game_data.title),
-        OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
-        (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                   nullptr);
-  }
-  else if (spread.hard_points + spread.soft_points == spread.total_points)
-  {
-    OSD::AddMessage(
-        fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
-        OSD::Duration::VERY_LONG, OSD::Color::CYAN,
-        (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                   nullptr);
+    PointSpread spread = TallyScore();
+    if (spread.hard_points == spread.total_points &&
+        it->second.remote_unlock_status != UnlockStatus::UnlockType::HARDCORE)
+    {
+      OSD::AddMessage(
+          fmt::format("Congratulations! {} has mastered {}", m_display_name, m_game_data.title),
+          OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
+          (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                                                     nullptr);
+    }
+    else if (spread.hard_points + spread.soft_points == spread.total_points &&
+             it->second.remote_unlock_status == UnlockStatus::UnlockType::LOCKED)
+    {
+      OSD::AddMessage(
+          fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
+          OSD::Duration::VERY_LONG, OSD::Color::CYAN,
+          (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                                                     nullptr);
+    }
   }
   ActivateDeactivateAchievement(event_id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
                                 Config::Get(Config::RA_UNOFFICIAL_ENABLED),
