@@ -156,7 +156,7 @@ if(UNIX)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH
-  ${CMAKE_SOURCE_DIR}/CMake
+  ${CMAKE_CURRENT_SOURCE_DIR}/CMake
 )
 
 # Support functions
