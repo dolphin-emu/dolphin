@@ -69,6 +69,32 @@ static std::tuple<int, int> FindClosestIntegerResolution(float width, float heig
   return std::make_tuple(int_width, int_height);
 }
 
+static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_height)
+{
+  // Screen is blanking (e.g. game booting up), nothing to do here
+  if (xfb_width == 0 || xfb_height == 0)
+    return;
+
+  // If there's only 1 pixel of either horizontal or vertical resolution difference,
+  // make the output size match a multiple of the XFB native resolution,
+  // to achieve the highest quality (least scaling).
+  // The reason why the threshold is 1 pixel (per internal resolution multiplier) is because of
+  // minor inaccuracies of the VI aspect ratio (and because some resolutions are rounded
+  // while other are floored).
+  const unsigned int efb_scale = g_framebuffer_manager->GetEFBScale();
+  const unsigned int pixel_difference_width = std::abs(width - xfb_width);
+  const unsigned int pixel_difference_height = std::abs(height - xfb_height);
+  // We ignore this if there's an offset on both hor and ver size,
+  // as then we'd be changing the aspect ratio too much and would need to
+  // re-calculate a lot of stuff (like black bars).
+  if ((pixel_difference_width <= efb_scale && pixel_difference_height == 0) ||
+      (pixel_difference_height <= efb_scale && pixel_difference_width == 0))
+  {
+    width = xfb_width;
+    height = xfb_height;
+  }
+}
+
 Presenter::Presenter()
 {
   m_config_changed =
@@ -114,6 +140,7 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
   {
     // Game is blanking the screen
     m_xfb_entry.reset();
+    m_xfb_rect = MathUtil::Rectangle<int>();
     m_last_xfb_id = std::numeric_limits<u64>::max();
   }
   else
@@ -534,6 +561,7 @@ void Presenter::UpdateDrawRectangle()
   // FIXME: this breaks at very low widget sizes
   // Make ControllerInterface aware of the render window region actually being used
   // to adjust mouse cursor inputs.
+  // This also fails to acknowledge "g_ActiveConfig.bCrop".
   g_controller_interface.SetAspectRatioAdjustment(draw_aspect_ratio / win_aspect_ratio);
 
   float draw_width = draw_aspect_ratio;
@@ -576,10 +604,20 @@ void Presenter::UpdateDrawRectangle()
   }
   else
   {
+    // Find the best integer resolution: the closest aspect ratio with the least black bars
+    const float updated_draw_aspect_ratio = draw_width / draw_height;
     const auto int_draw_res =
-        FindClosestIntegerResolution(draw_width, draw_height, win_aspect_ratio);
+        FindClosestIntegerResolution(draw_width, draw_height, updated_draw_aspect_ratio);
     int_draw_width = std::get<0>(int_draw_res);
     int_draw_height = std::get<1>(int_draw_res);
+    if (!g_ActiveConfig.bCrop)
+    {
+      TryToSnapToXFBSize(int_draw_width, int_draw_height, m_xfb_rect.GetWidth(),
+                         m_xfb_rect.GetHeight());
+      // We can't draw something bigger than the window, it will crop
+      int_draw_width = std::min(int_draw_width, static_cast<int>(win_width));
+      int_draw_height = std::min(int_draw_height, static_cast<int>(win_height));
+    }
   }
 
   m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - int_draw_width / 2.0));
@@ -620,13 +658,14 @@ std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
   if (!allow_stretch && aspect_mode == AspectMode::Stretch)
     aspect_mode = AspectMode::Auto;
 
-  // Find the closest integer aspect ratio,
-  // this avoids a small black line from being drawn on one of the four edges
   if (!g_ActiveConfig.bCrop && aspect_mode != AspectMode::Stretch)
   {
+    // Find the closest integer resolution for the aspect ratio,
+    // this avoids a small black line from being drawn on one of the four edges
     const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch);
-    const auto [int_width, int_height] =
+    auto [int_width, int_height] =
         FindClosestIntegerResolution(scaled_width, scaled_height, draw_aspect_ratio);
+    TryToSnapToXFBSize(int_width, int_height, m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
     width = int_width;
     height = int_height;
   }
