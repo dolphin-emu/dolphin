@@ -29,6 +29,7 @@ private:
 
   bool m_is_game_widescreen = false;
   bool m_was_orthographically_anamorphic = false;
+  bool m_widescreen_heuristics_active_and_successful = false;
 
   Common::EventHook m_update_widescreen;
   Common::EventHook m_config_changed;

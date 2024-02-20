@@ -33,24 +33,39 @@ WidescreenManager::WidescreenManager()
 
 void WidescreenManager::Update()
 {
+  std::optional<bool> is_game_widescreen;
+
   auto& system = Core::System::GetInstance();
   if (system.IsWii())
-    m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
+    is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 
   // suggested_aspect_mode overrides SYSCONF_WIDESCREEN
   if (g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceStandard)
-    m_is_game_widescreen = false;
+    is_game_widescreen = false;
   else if (g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceWide)
-    m_is_game_widescreen = true;
+    is_game_widescreen = true;
 
   // If widescreen hack is disabled override game's AR if UI is set to 4:3 or 16:9.
   if (!g_ActiveConfig.bWidescreenHack)
   {
     const auto aspect_mode = g_ActiveConfig.aspect_mode;
     if (aspect_mode == AspectMode::ForceStandard)
-      m_is_game_widescreen = false;
+      is_game_widescreen = false;
     else if (aspect_mode == AspectMode::ForceWide)
-      m_is_game_widescreen = true;
+      is_game_widescreen = true;
+
+    // Reset settings to default if heuristics aren't currently running and
+    // the user selected the automatic aspect ratio.
+    if (!is_game_widescreen.has_value() && !m_widescreen_heuristics_active_and_successful &&
+        aspect_mode == AspectMode::Auto)
+    {
+      is_game_widescreen = false;
+    }
+  }
+
+  if (is_game_widescreen.has_value())
+  {
+    m_is_game_widescreen = is_game_widescreen.value();
   }
 }
 
@@ -62,12 +77,16 @@ void WidescreenManager::UpdateWidescreenHeuristic()
 
   // If suggested_aspect_mode (GameINI) is configured don't use heuristic.
   if (g_ActiveConfig.suggested_aspect_mode != AspectMode::Auto)
+  {
+    m_widescreen_heuristics_active_and_successful = false;
     return;
+  }
 
   Update();
 
-  // If widescreen hack isn't active and aspect_mode (user setting)
-  // is set to a forced aspect ratio, don't use heuristic.
+  m_widescreen_heuristics_active_and_successful = false;
+
+  // If widescreen hack isn't active and aspect_mode (UI) is 4:3 or 16:9 don't use heuristic.
   if (!g_ActiveConfig.bWidescreenHack && (g_ActiveConfig.aspect_mode == AspectMode::ForceStandard ||
                                           g_ActiveConfig.aspect_mode == AspectMode::ForceWide))
     return;
@@ -92,6 +111,7 @@ void WidescreenManager::UpdateWidescreenHeuristic()
   {
     // If either perspective or orthographic projections look anamorphic, it's a safe bet.
     m_is_game_widescreen = true;
+    m_widescreen_heuristics_active_and_successful = true;
   }
   else if (looks_normal(persp) || (m_was_orthographically_anamorphic && looks_normal(ortho)))
   {
@@ -102,6 +122,7 @@ void WidescreenManager::UpdateWidescreenHeuristic()
     // Unless we were in a situation which was orthographically anamorphic
     // we won't consider orthographic data for changes from 16:9 to 4:3.
     m_is_game_widescreen = false;
+    m_widescreen_heuristics_active_and_successful = true;
   }
 
   m_was_orthographically_anamorphic = ortho_looks_anamorphic;
@@ -114,5 +135,6 @@ void WidescreenManager::DoState(PointerWrap& p)
   if (p.IsReadMode())
   {
     m_was_orthographically_anamorphic = false;
+    m_widescreen_heuristics_active_and_successful = false;
   }
 }
