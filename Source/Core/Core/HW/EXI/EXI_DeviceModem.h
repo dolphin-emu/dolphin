@@ -17,7 +17,7 @@ class PointerWrap;
 namespace ExpansionInterface
 {
 
-#define MODEM_RECV_SIZE 0x800
+static constexpr std::size_t MODEM_RECV_SIZE = 0x800;
 
 enum
 {
@@ -44,13 +44,20 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
+  // Note: The names in these enums are based on reverse-engineering of PSO and
+  // not on any documentation of the GC modem or its chipset. If official
+  // documentation is found, any names in there probably will not match these
+  // names.
+
   enum Interrupt
-  {  // Used for Register::INTERRUPT_MASK and Register::PENDING_INTERRUPT_MASK
+  {
+    // Used for Register::INTERRUPT_MASK and Register::PENDING_INTERRUPT_MASK
     AT_REPLY_DATA_AVAILABLE = 0x02,
     SEND_BUFFER_BELOW_THRESHOLD = 0x10,
     RECEIVE_BUFFER_ABOVE_THRESHOLD = 0x20,
     RECEIVE_BUFFER_NOT_EMPTY = 0x40,
   };
+
   enum Register
   {
     DEVICE_TYPE = 0x00,
@@ -90,18 +97,22 @@ private:
   {
     return transfer_descriptor == 0x80000000;
   }
+
   static inline bool IsWriteTransfer(u32 transfer_descriptor)
   {
     return transfer_descriptor & 0x40000000;
   }
+
   static inline bool IsModemTransfer(u32 transfer_descriptor)
   {
     return transfer_descriptor & 0x20000000;
   }
+
   static inline u16 GetModemTransferSize(u32 transfer_descriptor)
   {
     return (transfer_descriptor >> 8) & 0xFFFF;
   }
+
   static inline u32 SetModemTransferSize(u32 transfer_descriptor, u16 new_size)
   {
     return (transfer_descriptor & 0xFF000000) | (new_size << 8);
@@ -117,7 +128,7 @@ private:
     virtual bool Activate() { return false; }
     virtual void Deactivate() {}
     virtual bool IsActivated() { return false; }
-    virtual bool SendAndRemoveAllHDLCFrames(std::string&) { return false; }
+    virtual bool SendAndRemoveAllHDLCFrames(std::string*) { return false; }
     virtual bool RecvInit() { return false; }
     virtual void RecvStart() {}
     virtual void RecvStop() {}
@@ -134,7 +145,7 @@ private:
     virtual bool Activate() override;
     virtual void Deactivate() override;
     virtual bool IsActivated() override;
-    virtual bool SendAndRemoveAllHDLCFrames(std::string& send_buffer) override;
+    virtual bool SendAndRemoveAllHDLCFrames(std::string* send_buffer) override;
     virtual bool RecvInit() override;
     virtual void RecvStart() override;
     virtual void RecvStop() override;

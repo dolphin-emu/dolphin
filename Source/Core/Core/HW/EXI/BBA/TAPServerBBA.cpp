@@ -3,21 +3,9 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2ipdef.h>
-#else
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
-#include <unistd.h>
-#endif
+#include <cstring>
 
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Core/HW/EXI/EXI_Device.h"
 
 namespace ExpansionInterface
 {
@@ -64,7 +52,7 @@ void CEXIETHERNET::TAPServerNetworkInterface::RecvStop()
 
 bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
-  bool ret = m_tapserver_if.SendFrame(frame, size);
+  const bool ret = m_tapserver_if.SendFrame(frame, size);
   if (ret)
     m_eth_ref->SendComplete();
   return ret;
@@ -76,13 +64,12 @@ void CEXIETHERNET::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& 
   {
     ERROR_LOG_FMT(SP1, "Received BBA frame of size {}, which is larger than maximum size {}",
                   data.size(), BBA_RECV_SIZE);
+    return;
   }
-  else
-  {
-    memcpy(m_eth_ref->mRecvBuffer.get(), data.data(), data.size());
-    m_eth_ref->mRecvBufferLength = static_cast<u32>(data.size());
-    m_eth_ref->RecvHandlePacket();
-  }
+
+  std::memcpy(m_eth_ref->mRecvBuffer.get(), data.data(), data.size());
+  m_eth_ref->mRecvBufferLength = static_cast<u32>(data.size());
+  m_eth_ref->RecvHandlePacket();
 }
 
 }  // namespace ExpansionInterface

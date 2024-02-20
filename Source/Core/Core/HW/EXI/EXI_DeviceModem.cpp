@@ -6,6 +6,7 @@
 #include <inttypes.h>
 
 #include <algorithm>
+#include <cstring>
 #include <memory>
 #include <optional>
 #include <string>
@@ -87,12 +88,8 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
   {  // Write device register
     u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
     bool should_update_interrupts = false;
-    for (; size; size--)
+    for (; size && reg_num < m_regs.size(); size--)
     {
-      if (reg_num >= m_regs.size())
-      {
-        break;
-      }
       should_update_interrupts |=
           ((reg_num == Register::INTERRUPT_MASK) || (reg_num == Register::PENDING_INTERRUPT_MASK));
       m_regs[reg_num++] = (data >> 24);
@@ -153,8 +150,9 @@ u32 CEXIModem::ImmRead(u32 size)
     return ntohl(be_data);
   }
   else
-  {  // Read device register
-    u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
+  {
+    // Read device register
+    const u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
     if (reg_num == 0)
     {
       return 0x02020000;  // Device ID (modem)
@@ -214,7 +212,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
   {
     // AT command buffer
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_at_reply_data.size());
-    memcpy(data, m_at_reply_data.data(), bytes_to_copy);
+    std::memcpy(data, m_at_reply_data.data(), bytes_to_copy);
     m_at_reply_data = m_at_reply_data.substr(bytes_to_copy);
     m_regs[Register::AT_REPLY_SIZE] = static_cast<u8>(m_at_reply_data.size());
     SetInterruptFlag(Interrupt::AT_REPLY_DATA_AVAILABLE, !m_at_reply_data.empty(), true);
@@ -224,7 +222,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
     // Packet receive buffer
     std::lock_guard<std::mutex> g(m_receive_buffer_lock);
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_receive_buffer.size());
-    memcpy(data, m_receive_buffer.data(), bytes_to_copy);
+    std::memcpy(data, m_receive_buffer.data(), bytes_to_copy);
     m_receive_buffer = m_receive_buffer.substr(bytes_to_copy);
     OnReceiveBufferSizeChangedLocked(true);
   }
@@ -264,7 +262,7 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
     // from the emulated program's perspective, so we always tell it the send
     // FIFO is empty.
     SetInterruptFlag(Interrupt::SEND_BUFFER_BELOW_THRESHOLD, true, true);
-    m_network_interface->SendAndRemoveAllHDLCFrames(m_send_buffer);
+    m_network_interface->SendAndRemoveAllHDLCFrames(&m_send_buffer);
   }
   else
   {

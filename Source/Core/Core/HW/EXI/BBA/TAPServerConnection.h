@@ -3,24 +3,12 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2ipdef.h>
-#else
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
-#include <unistd.h>
-#endif
-
 #include <functional>
+#include <string>
 #include <thread>
 
-#include "Common/CommonFuncs.h"
-#include "Common/Logging/Log.h"
+#include "Common/Flag.h"
 #include "Common/SocketContext.h"
-#include "Common/StringUtil.h"
 
 namespace ExpansionInterface
 {
@@ -28,7 +16,9 @@ namespace ExpansionInterface
 class TAPServerConnection
 {
 public:
-  TAPServerConnection(const std::string& destination, std::function<void(std::string&&)> recv_cb,
+  using RecvCallback = std::function<void(std::string&&)>;
+
+  TAPServerConnection(const std::string& destination, RecvCallback recv_cb,
                       std::size_t max_frame_size);
 
   bool Activate();
@@ -37,7 +27,7 @@ public:
   bool RecvInit();
   void RecvStart();
   void RecvStop();
-  bool SendAndRemoveAllHDLCFrames(std::string& send_buf);
+  bool SendAndRemoveAllHDLCFrames(std::string* send_buf);
   bool SendFrame(const u8* frame, u32 size);
 
 private:
@@ -49,9 +39,9 @@ private:
     Skip,
   };
 
-  std::string m_destination;
-  std::function<void(std::string&&)> m_recv_cb;
-  std::size_t m_max_frame_size;
+  const std::string m_destination;
+  const std::function<void(std::string&&)> m_recv_cb;
+  const std::size_t m_max_frame_size;
   Common::SocketContext m_socket_context;
 
   int m_fd = -1;

@@ -3,21 +3,7 @@
 
 #include "Core/HW/EXI/EXI_DeviceModem.h"
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2ipdef.h>
-#else
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
-#include <unistd.h>
-#endif
-
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Core/HW/EXI/EXI_Device.h"
 
 namespace ExpansionInterface
 {
@@ -47,11 +33,11 @@ bool CEXIModem::TAPServerNetworkInterface::IsActivated()
   return m_tapserver_if.IsActivated();
 }
 
-bool CEXIModem::TAPServerNetworkInterface::SendAndRemoveAllHDLCFrames(std::string& send_buffer)
+bool CEXIModem::TAPServerNetworkInterface::SendAndRemoveAllHDLCFrames(std::string* send_buffer)
 {
-  std::size_t orig_size = send_buffer.size();
-  bool send_succeeded = m_tapserver_if.SendAndRemoveAllHDLCFrames(send_buffer);
-  if (send_succeeded && (send_buffer.size() < orig_size))
+  const std::size_t orig_size = send_buffer->size();
+  const bool send_succeeded = m_tapserver_if.SendAndRemoveAllHDLCFrames(send_buffer);
+  if (send_succeeded && (send_buffer->size() < orig_size))
     m_modem_ref->SendComplete();
   return send_succeeded;
 }
