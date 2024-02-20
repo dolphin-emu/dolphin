@@ -773,9 +773,7 @@ endif()
 
 # OpenXR
 if (OPENXR)
-  # Externals/OpenXR-SDK isn't supported on Meta QuestOS V62 yet.
-  include(Externals/openxr/OpenXR-SDK-Source/src/cmake/FindEGL.cmake)
-  add_subdirectory(Externals/openxr/OpenXR-SDK-Source)
+  add_subdirectory(Externals/openxr/OpenXR-SDK)
 else()
   include_directories(Externals/openxr/OpenXR-SDK/include)
 endif()

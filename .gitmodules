@@ -78,9 +78,6 @@
 [submodule "Externals/openxr/OpenXR-SDK"]
 	path = Externals/openxr/OpenXR-SDK
 	url = https://github.com/KhronosGroup/OpenXR-SDK.git
-[submodule "Externals/openxr/OpenXR-SDK-Source"]
-	path = Externals/openxr/OpenXR-SDK-Source
-	url = https://github.com/amwatson/OpenXR-SDK-Source.git
 [submodule "Externals/tinygltf/tinygltf"]
 	path = Externals/tinygltf/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
