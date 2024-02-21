@@ -221,7 +221,7 @@ void LogConfigWidget::SaveSettings()
   bool was_enabled = log_manager->IsEnabledConvertSJIS();
 
   if (enabled != was_enabled)
-      log_manager->SetEnableConvertSJIS(enabled);
+    log_manager->SetEnableConvertSJIS(enabled);
 }
 
 void LogConfigWidget::closeEvent(QCloseEvent*)

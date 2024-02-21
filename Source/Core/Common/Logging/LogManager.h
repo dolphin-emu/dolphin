@@ -48,7 +48,7 @@ public:
   void SetEnable(LogType type, bool enable);
   bool IsEnabled(LogType type, LogLevel level = LogLevel::LNOTICE) const;
 
-  void SetEnableConvertSJIS(bool enable) { m_convert_sjis = enable;}
+  void SetEnableConvertSJIS(bool enable) { m_convert_sjis = enable; }
   bool IsEnabledConvertSJIS() const { return m_convert_sjis; }
 
   std::map<std::string, std::string> GetLogTypes();

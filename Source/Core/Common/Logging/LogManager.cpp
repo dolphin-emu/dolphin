@@ -32,7 +32,8 @@ const Config::Info<bool> LOGGER_WRITE_TO_WINDOW{
     {Config::System::Logger, "Options", "WriteToWindow"}, true};
 const Config::Info<LogLevel> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"},
                                               LogLevel::LNOTICE};
-const Config::Info<bool> LOGGER_CONVERT_FROM_SJIS{{Config::System::Logger, "Options", "ConvertFromSJIS"}, true};
+const Config::Info<bool> LOGGER_CONVERT_FROM_SJIS{
+    {Config::System::Logger, "Options", "ConvertFromSJIS"}, true};
 
 class FileLogListener : public LogListener
 {
@@ -168,7 +169,8 @@ LogManager::LogManager()
     container.m_enable = Config::Get(
         Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
   }
-  m_convert_sjis = Config::Get(Config::Info<bool>{{Config::System::Logger, "Options", "ConvertFromSJIS"}, true});
+  m_convert_sjis =
+      Config::Get(Config::Info<bool>{{Config::System::Logger, "Options", "ConvertFromSJIS"}, true});
   m_path_cutoff_point = DeterminePathCutOffPoint();
 }
 
