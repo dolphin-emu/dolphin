@@ -80,6 +80,16 @@ enum class TriState : int
   Auto
 };
 
+enum class FrameDumpResolutionType : int
+{
+  // Window resolution (not including potential back buffer black borders)
+  WINDOW_RESOLUTION,
+  // The aspect ratio corrected XFB resolution (XFB pixels might not have been square)
+  XFB_ASPECT_RATIO_CORRECTED_RESOLUTION,
+  // The raw unscaled XFB resolution (based on "internal resolution" scale)
+  XFB_RAW_RESOLUTION,
+};
+
 // Bitmask containing information about which configuration has changed for the backend.
 enum ConfigChangeBits : u32
 {
@@ -189,7 +199,8 @@ struct VideoConfig final
   std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;
-  bool bInternalResolutionFrameDumps = false;
+  FrameDumpResolutionType frame_dumps_resolution_type =
+      FrameDumpResolutionType::XFB_ASPECT_RATIO_CORRECTED_RESOLUTION;
   bool bBorderlessFullscreen = false;
   bool bEnableGPUTextureDecoding = false;
   bool bPreferVSForLinePointExpansion = false;

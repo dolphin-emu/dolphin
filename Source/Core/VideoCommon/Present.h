@@ -107,10 +107,13 @@ private:
 
   void OnBackBufferSizeChanged();
 
+  // Scales a raw XFB resolution to the target (display) aspect ratio,
+  // also accounting for crop and other minor adjustments
   std::tuple<int, int> CalculateOutputDimensions(int width, int height,
                                                  bool allow_stretch = true) const;
   std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
                                                    bool allow_stretch = true) const;
+  // Scales a raw XFB resolution to the target (display) aspect ratio
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
                                                      bool allow_stretch = true) const;
 
