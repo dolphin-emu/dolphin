@@ -135,21 +135,24 @@ void AdvancedWidget::CreateWidgets()
   auto* dump_layout = new QGridLayout();
   dump_box->setLayout(dump_layout);
 
-  m_use_fullres_framedumps = new ConfigBool(tr("Dump at Internal Resolution"),
-                                            Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
+  m_frame_dumps_resolution_type =
+      new ConfigChoice({tr("Window Resolution"), tr("Aspect Ratio Corrected Internal Resolution"),
+                        tr("Raw Internal Resolution")},
+                       Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE);
   m_dump_use_ffv1 = new ConfigBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
   m_dump_bitrate = new ConfigInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
   m_png_compression_level = new ConfigInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL);
 
-  dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
+  dump_layout->addWidget(new QLabel(tr("Resolution Type:")), 0, 0);
+  dump_layout->addWidget(m_frame_dumps_resolution_type, 0, 1);
 #if defined(HAVE_FFMPEG)
-  dump_layout->addWidget(m_dump_use_ffv1, 0, 1);
-  dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 1, 0);
-  dump_layout->addWidget(m_dump_bitrate, 1, 1);
+  dump_layout->addWidget(m_dump_use_ffv1, 1, 0);
+  dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 2, 0);
+  dump_layout->addWidget(m_dump_bitrate, 2, 1);
 #endif
-  dump_layout->addWidget(new QLabel(tr("PNG Compression Level:")), 2, 0);
+  dump_layout->addWidget(new QLabel(tr("PNG Compression Level:")), 3, 0);
   m_png_compression_level->SetTitle(tr("PNG Compression Level"));
-  dump_layout->addWidget(m_png_compression_level, 2, 1);
+  dump_layout->addWidget(m_png_compression_level, 3, 1);
 
   // Misc.
   auto* misc_box = new QGroupBox(tr("Misc"));
@@ -338,10 +341,18 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_LOAD_GRAPHICS_MODS_DESCRIPTION[] =
       QT_TR_NOOP("Loads graphics mods from User/Load/GraphicsMods/.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Creates frame dumps and screenshots at the raw internal resolution of the renderer,"
-      "rather than using the size it is displayed within the window.<br><br>"
-      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION[] = QT_TR_NOOP(
+      "Selects how frame dumps (videos) and screenshots are going to be captured.<br>"
+      "If the video resolution changes during a recording, multiple video files will be created."
+      "<br><br><b>Window Resolution</b>: Uses the output window resolution (without black bars)."
+      "<br><b>Aspect Ratio Corrected Internal Resolution</b>: Uses the Internal Resolution (XFB "
+      "size), and corrects it by the target aspect ratio."
+      "<br><b>Raw Internal Resolution</b>: Uses the Internal Resolution (XFB size)"
+      " without correcting it with the target aspect ratio, "
+      "thus dumps will appears more crips.<br>This is "
+      "mostly meant to be used in case you need your videos to be in the highest quality possible,"
+      "without any post processing applied.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this at \"Window Resolution\".</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
   static const char TR_USE_FFV1_DESCRIPTION[] =
       QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
@@ -432,7 +443,7 @@ void AdvancedWidget::AddDescriptions()
   m_dump_xfb_target->SetDescription(tr(TR_DUMP_XFB_DESCRIPTION));
   m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
   m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
-  m_use_fullres_framedumps->SetDescription(tr(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
+  m_frame_dumps_resolution_type->SetDescription(tr(TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION));
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif
