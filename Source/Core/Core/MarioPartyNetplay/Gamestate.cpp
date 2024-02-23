@@ -47,7 +47,7 @@ bool mpn_init_state()
     break;
   case MPN_GAMEID_MP8:
     CurrentState.Addresses = &MP8_ADDRESSES;
-    CurrentState.Boards = NULL;
+    CurrentState.Boards = MP8_BOARDS;
     CurrentState.Image = "box-mp8";
     CurrentState.IsMarioParty = true;
     CurrentState.Scenes = MP8_GAMESTATES;
