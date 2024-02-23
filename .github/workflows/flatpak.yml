@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v2
     # Purge .git for space reasons
     - name: Purge .git for space reasons
-      run: rm -rf /home/runner/work/Dolphin-MPN-src/.git
+      run: rm -rf /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/.git
     # Setup Packages
     - name: Setup Packages
       run: sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && sudo flatpak install org.kde.Sdk//5.15 org.kde.Platform//5.15 -y && sudo dnf install libusb1-devel cmake git gcc-c++ libXext-devel libgudev qt6-qtbase-devel systemd-devel openal-soft-devel libevdev-devel libao-devel SOIL-devel libXrandr-devel pulseaudio-libs-devel bluez-libs-devel p7zip SDL2-devel -y
