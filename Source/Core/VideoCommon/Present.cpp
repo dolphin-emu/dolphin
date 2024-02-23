@@ -213,19 +213,29 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
   {
     MathUtil::Rectangle<int> target_rect;
     if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_gfx->IsHeadless())
-    {
-      // This is already scaled by "VIDEO_ENCODER_LCM"
       target_rect = GetTargetRectangle();
-    }
     else
-    {
       target_rect = m_xfb_rect;
-      ASSERT(target_rect.top == 0 && target_rect.left == 0);
-      // Scale positively to make sure the least amount of information is lost.
-      // TODO: this should be added as black padding on the edges by the frame dumper
-      target_rect.right += VIDEO_ENCODER_LCM - (target_rect.GetWidth() % VIDEO_ENCODER_LCM);
-      target_rect.bottom += VIDEO_ENCODER_LCM - (target_rect.GetHeight() % VIDEO_ENCODER_LCM);
-    }
+
+    int width = target_rect.GetWidth();
+    int height = target_rect.GetHeight();
+
+    // Ensure divisibility by "VIDEO_ENCODER_LCM" to make it compatible with all the video
+    // encoders. Note that this is theoretically only necessary when recording videos and not
+    // screenshots.
+    // We always scale positively to make sure the least amount of information is lost.
+    //
+    // TODO: this should be added as black padding on the edges by the frame dumper.
+    if ((width % VIDEO_ENCODER_LCM) != 0)
+      width += VIDEO_ENCODER_LCM - (width % VIDEO_ENCODER_LCM);
+    if ((height % VIDEO_ENCODER_LCM) != 0)
+      height += VIDEO_ENCODER_LCM - (height % VIDEO_ENCODER_LCM);
+
+    // Remove any black borders, there would be no point in including them in the recording
+    target_rect.left = 0;
+    target_rect.top = 0;
+    target_rect.right = width;
+    target_rect.bottom = height;
 
     g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
                                      m_frame_count);
@@ -607,18 +617,7 @@ void Presenter::UpdateDrawRectangle()
   int int_draw_width;
   int int_draw_height;
 
-  if (g_frame_dumper->IsFrameDumping())
-  {
-    // ensure divisibility by "VIDEO_ENCODER_LCM" to make it compatible with all the video encoders.
-    // Note that this is theoretically only necessary when recording videos and not screenshots.
-    draw_width =
-        std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % VIDEO_ENCODER_LCM;
-    draw_height =
-        std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % VIDEO_ENCODER_LCM;
-    int_draw_width = static_cast<int>(draw_width);
-    int_draw_height = static_cast<int>(draw_height);
-  }
-  else if (g_ActiveConfig.aspect_mode != AspectMode::Raw || !m_xfb_entry)
+  if (g_ActiveConfig.aspect_mode != AspectMode::Raw || !m_xfb_entry)
   {
     // Find the best integer resolution: the closest aspect ratio with the least black bars.
     // This should have no influence if "AspectMode::Stretch" is active.
@@ -701,14 +700,6 @@ std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
   {
     width = static_cast<int>(std::ceil(scaled_width));
     height = static_cast<int>(std::ceil(scaled_height));
-  }
-
-  if (g_frame_dumper->IsFrameDumping())
-  {
-    // UpdateDrawRectangle() makes sure that the rendered image is divisible by "VIDEO_ENCODER_LCM"
-    // for video encoders, so do that here too to match it
-    width -= width % VIDEO_ENCODER_LCM;
-    height -= height % VIDEO_ENCODER_LCM;
   }
 
   return std::make_tuple(width, height);
