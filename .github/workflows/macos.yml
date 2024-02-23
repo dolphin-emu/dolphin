@@ -22,7 +22,7 @@ jobs:
       run: git submodule update --init --recursive
     # Setup Packages
     - name: Setup Packages
-      run: brew install qt6 moltenvk p7zip pkgconfig
+      run: brew install qt6 molten-vk p7zip pkgconfig
     # Setup CMake
     - name: Setup CMake
       uses: Symbitic/install-cmake@v0.1.1
