@@ -5,9 +5,6 @@
 
 #include <QIcon>
 #include <QList>
-// slippi: needed to import these two to fix build errors on macOS
-#include <QPixmap>
-#include <QIcon>
 #include <string_view>
 
 namespace DiscIO
