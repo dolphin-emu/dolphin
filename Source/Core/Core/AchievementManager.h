@@ -73,6 +73,7 @@ public:
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = std::vector<u8>;
   using NamedIconMap = std::map<std::string, std::unique_ptr<OSD::Icon>, std::less<>>;
+  static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
 
   struct BadgeStatus
   {
@@ -146,6 +147,7 @@ public:
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
+  std::vector<std::string> GetActiveLeaderboards() const;
 
   void CloseGame();
   void Logout();
@@ -190,6 +192,9 @@ private:
   static void HandleLeaderboardStartedEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardFailedEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardTrackerShowEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardTrackerHideEvent(const rc_client_event_t* client_event);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
@@ -224,6 +229,7 @@ private:
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   NamedIconMap m_active_challenges;
+  std::vector<rc_client_leaderboard_tracker_t> m_active_leaderboards;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
