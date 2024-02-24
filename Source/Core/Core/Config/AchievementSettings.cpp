@@ -21,6 +21,8 @@ const Info<bool> RA_LEADERBOARDS_ENABLED{
     {System::Achievements, "Achievements", "LeaderboardsEnabled"}, false};
 const Info<bool> RA_RICH_PRESENCE_ENABLED{
     {System::Achievements, "Achievements", "RichPresenceEnabled"}, false};
+const Info<bool> RA_DISCORD_PRESENCE_ENABLED{
+    {System::Achievements, "Achievements", "DiscordPresenceEnabled"}, false};
 const Info<bool> RA_HARDCORE_ENABLED{{System::Achievements, "Achievements", "HardcoreEnabled"},
                                      false};
 const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},

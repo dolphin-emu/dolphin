@@ -17,6 +17,7 @@ extern const Info<std::string> RA_API_TOKEN;
 extern const Info<bool> RA_ACHIEVEMENTS_ENABLED;
 extern const Info<bool> RA_LEADERBOARDS_ENABLED;
 extern const Info<bool> RA_RICH_PRESENCE_ENABLED;
+extern const Info<bool> RA_DISCORD_PRESENCE_ENABLED;
 extern const Info<bool> RA_HARDCORE_ENABLED;
 extern const Info<bool> RA_PROGRESS_ENABLED;
 extern const Info<bool> RA_BADGES_ENABLED;
