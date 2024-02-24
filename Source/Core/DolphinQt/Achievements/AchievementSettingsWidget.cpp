@@ -16,6 +16,7 @@
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+#include "UICommon/DiscordPresence.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
@@ -71,8 +72,10 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_rich_presence_enabled_input->SetDescription(
       tr("Enable detailed rich presence on the RetroAchievements website.<br><br>This provides a "
          "detailed description of what the player is doing in game to the website. If this is "
-         "disabled, the website will only report what game is being played.<br><br>This has no "
-         "bearing on Discord rich presence."));
+         "disabled, the website will only report what game is being played."));
+  m_common_discord_presence_enabled_input = new ToolTipCheckBox(tr("Enable Discord Presence"));
+  m_common_discord_presence_enabled_input->SetDescription(
+      tr("Use RetroAchievements rich presence in your Discord status."));
   m_common_unofficial_enabled_input = new ToolTipCheckBox(tr("Enable Unofficial Achievements"));
   m_common_unofficial_enabled_input->SetDescription(
       tr("Enable unlocking unofficial achievements as well as official "
@@ -120,6 +123,7 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_achievements_enabled_input);
   m_common_layout->addWidget(m_common_leaderboards_enabled_input);
   m_common_layout->addWidget(m_common_rich_presence_enabled_input);
+  m_common_layout->addWidget(m_common_discord_presence_enabled_input);
   m_common_layout->addWidget(m_common_hardcore_enabled_input);
   m_common_layout->addWidget(m_common_progress_enabled_input);
   m_common_layout->addWidget(m_common_badges_enabled_input);
@@ -142,6 +146,8 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleLeaderboards);
   connect(m_common_rich_presence_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleRichPresence);
+  connect(m_common_discord_presence_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleDiscordPresence);
   connect(m_common_hardcore_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleHardcore);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
@@ -167,6 +173,7 @@ void AchievementSettingsWidget::LoadSettings()
   bool enabled = Config::Get(Config::RA_ENABLED);
   bool achievements_enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
   bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
+  bool rp_enabled = Config::Get(Config::RA_RICH_PRESENCE_ENABLED);
   bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
   std::string username = Config::Get(Config::RA_USERNAME);
 
@@ -191,9 +198,12 @@ void AchievementSettingsWidget::LoadSettings()
       ->setChecked(Config::Get(Config::RA_LEADERBOARDS_ENABLED));
   SignalBlocking(m_common_leaderboards_enabled_input)->setEnabled(enabled && hardcore_enabled);
 
-  SignalBlocking(m_common_rich_presence_enabled_input)
-      ->setChecked(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
+  SignalBlocking(m_common_rich_presence_enabled_input)->setChecked(rp_enabled);
   SignalBlocking(m_common_rich_presence_enabled_input)->setEnabled(enabled);
+
+  SignalBlocking(m_common_discord_presence_enabled_input)
+      ->setChecked(Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED));
+  SignalBlocking(m_common_discord_presence_enabled_input)->setEnabled(enabled && rp_enabled);
 
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
@@ -228,6 +238,8 @@ void AchievementSettingsWidget::SaveSettings()
                            m_common_leaderboards_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_RICH_PRESENCE_ENABLED,
                            m_common_rich_presence_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
+                           m_common_discord_presence_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
                            m_common_hardcore_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
@@ -281,6 +293,13 @@ void AchievementSettingsWidget::ToggleRichPresence()
 {
   SaveSettings();
   AchievementManager::GetInstance().ActivateDeactivateRichPresence();
+  Discord::UpdateDiscordPresence();
+}
+
+void AchievementSettingsWidget::ToggleDiscordPresence()
+{
+  SaveSettings();
+  Discord::UpdateDiscordPresence();
 }
 
 void AchievementSettingsWidget::ToggleHardcore()
