@@ -21,6 +21,8 @@
 #include "Common/HttpRequest.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/System.h"
 
 #endif
@@ -34,6 +36,9 @@ namespace
 {
 Handler* event_handler = nullptr;
 const char* username = "";
+static int64_t s_start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+                                       std::chrono::system_clock::now().time_since_epoch())
+                                       .count();
 
 void HandleDiscordReady(const DiscordUser* user)
 {
@@ -195,7 +200,7 @@ bool UpdateDiscordPresenceRaw(const std::string& details, const std::string& sta
 }
 
 void UpdateDiscordPresence(int party_size, SecretType type, const std::string& secret,
-                           const std::string& current_game)
+                           const std::string& current_game, bool reset_timer)
 {
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
@@ -224,10 +229,17 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
     discord_presence.smallImageText = "Dolphin is an emulator for the GameCube and the Wii.";
   }
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
-  discord_presence.startTimestamp = std::chrono::duration_cast<std::chrono::seconds>(
-                                        std::chrono::system_clock::now().time_since_epoch())
-                                        .count();
+  if (reset_timer)
+  {
+    s_start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+                            std::chrono::system_clock::now().time_since_epoch())
+                            .count();
+  }
+  discord_presence.startTimestamp = s_start_timestamp;
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  std::string state_string;
+#endif  // USE_RETRO_ACHIEVEMENTS
   if (party_size > 0)
   {
     if (party_size < 4)
@@ -244,6 +256,19 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
       // Note: joining still works without partyMax
     }
   }
+#ifdef USE_RETRO_ACHIEVEMENTS
+  else if (Config::Get(Config::RA_ENABLED) && Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+  {
+    state_string = AchievementManager::GetInstance().GetRichPresence().data();
+    if (state_string.length() >= 128)
+    {
+      // 124 characters + 3 dots + null terminator - thanks to Stenzek for format
+      state_string.resize(124);
+      state_string += "...";
+    }
+    discord_presence.state = state_string.c_str();
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   std::string party_id;
   std::string secret_final;
