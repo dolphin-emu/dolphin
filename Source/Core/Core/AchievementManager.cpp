@@ -402,6 +402,16 @@ const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() 
   return m_active_challenges;
 }
 
+std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
+{
+  std::vector<std::string> display_values;
+  for (u32 ix = 0; ix < MAX_DISPLAYED_LBOARDS && ix < m_active_leaderboards.size(); ix++)
+  {
+    display_values.push_back(std::string(m_active_leaderboards[ix].display));
+  }
+  return display_values;
+}
+
 void AchievementManager::CloseGame()
 {
   {
@@ -409,6 +419,7 @@ void AchievementManager::CloseGame()
     if (rc_client_get_game_info(m_client))
     {
       m_active_challenges.clear();
+      m_active_leaderboards.clear();
       m_game_badge.name.clear();
       m_unlocked_badges.clear();
       m_locked_badges.clear();
@@ -827,6 +838,33 @@ void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t
                   OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
 }
 
+void AchievementManager::HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event)
+{
+  auto& active_leaderboards = AchievementManager::GetInstance().m_active_leaderboards;
+  for (auto& leaderboard : active_leaderboards)
+  {
+    if (leaderboard.id == client_event->leaderboard_tracker->id)
+    {
+      strncpy(leaderboard.display, client_event->leaderboard_tracker->display,
+              RC_CLIENT_LEADERBOARD_DISPLAY_SIZE);
+    }
+  }
+}
+
+void AchievementManager::HandleLeaderboardTrackerShowEvent(const rc_client_event_t* client_event)
+{
+  AchievementManager::GetInstance().m_active_leaderboards.push_back(
+      *client_event->leaderboard_tracker);
+}
+
+void AchievementManager::HandleLeaderboardTrackerHideEvent(const rc_client_event_t* client_event)
+{
+  auto& active_leaderboards = AchievementManager::GetInstance().m_active_leaderboards;
+  std::erase_if(active_leaderboards, [client_event](const auto& leaderboard) {
+    return leaderboard.id == client_event->leaderboard_tracker->id;
+  });
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values
@@ -1022,6 +1060,15 @@ void AchievementManager::EventHandlerV2(const rc_client_event_t* event, rc_clien
     break;
   case RC_CLIENT_EVENT_LEADERBOARD_SUBMITTED:
     HandleLeaderboardSubmittedEvent(event);
+    break;
+  case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_UPDATE:
+    HandleLeaderboardTrackerUpdateEvent(event);
+    break;
+  case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_SHOW:
+    HandleLeaderboardTrackerShowEvent(event);
+    break;
+  case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_HIDE:
+    HandleLeaderboardTrackerHideEvent(event);
     break;
   default:
     INFO_LOG_FMT(ACHIEVEMENTS, "Event triggered of unhandled type {}", event->type);
