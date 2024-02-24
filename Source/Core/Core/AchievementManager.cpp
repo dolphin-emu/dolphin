@@ -21,6 +21,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
+#include "UICommon/DiscordPresence.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
 
@@ -687,6 +688,8 @@ void AchievementManager::DoFrame()
   if (difftime(current_time, m_last_ping_time) > 120)
   {
     GenerateRichPresence();
+    if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+      Discord::UpdateDiscordPresence();
     m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
     m_last_ping_time = current_time;
     m_update_callback();
