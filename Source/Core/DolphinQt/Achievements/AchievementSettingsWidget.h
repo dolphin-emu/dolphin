@@ -36,6 +36,7 @@ private:
   void ToggleUnofficial();
   void ToggleEncore();
   void ToggleSpectator();
+  void ToggleDiscordPresence();
   void ToggleProgress();
   void ToggleBadges();
 
@@ -53,6 +54,7 @@ private:
   ToolTipCheckBox* m_common_unofficial_enabled_input;
   ToolTipCheckBox* m_common_encore_enabled_input;
   ToolTipCheckBox* m_common_spectator_enabled_input;
+  ToolTipCheckBox* m_common_discord_presence_enabled_input;
   ToolTipCheckBox* m_common_progress_enabled_input;
   ToolTipCheckBox* m_common_badges_enabled_input;
 };

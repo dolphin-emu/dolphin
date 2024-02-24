@@ -351,6 +351,9 @@ void GeneralPane::OnSaveConfig()
 
 #ifdef USE_DISCORD_PRESENCE
   Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
+#ifdef USE_RETRO_ACHIEVEMENTS
+  emit Settings::Instance().ConfigChanged();
+#endif  // USE_RETRO_ACHIEVEMENTS
 #endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
