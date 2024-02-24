@@ -13,9 +13,11 @@
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/UISettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+#include "UICommon/DiscordPresence.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
@@ -94,6 +96,10 @@ void AchievementSettingsWidget::CreateLayout()
          "submitted to the server.<br><br>If this is on at game launch, it will not be turned off "
          "until game close, because a RetroAchievements session will not be created.<br><br>If "
          "this is off at game launch, it can be toggled freely while the game is running."));
+  m_common_discord_presence_enabled_input = new ToolTipCheckBox(tr("Enable Discord Presence"));
+  m_common_discord_presence_enabled_input->SetDescription(
+      tr("Use RetroAchievements rich presence in your Discord status.<br><br>Show Current Game on "
+         "Discord must be enabled."));
   m_common_progress_enabled_input = new ToolTipCheckBox(tr("Enable Progress Notifications"));
   m_common_progress_enabled_input->SetDescription(
       tr("Enable progress notifications on achievements.<br><br>Displays a brief popup message "
@@ -119,6 +125,9 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_encore_enabled_input);
   m_common_layout->addWidget(m_common_spectator_enabled_input);
   m_common_layout->addWidget(new QLabel(tr("Display Settings")));
+#ifdef USE_DISCORD_PRESENCE
+  m_common_layout->addWidget(m_common_discord_presence_enabled_input);
+#endif  // USE_DISCORD_PRESENCE
   m_common_layout->addWidget(m_common_progress_enabled_input);
   m_common_layout->addWidget(m_common_badges_enabled_input);
 
@@ -140,6 +149,8 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleEncore);
   connect(m_common_spectator_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleSpectator);
+  connect(m_common_discord_presence_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleDiscordPresence);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleProgress);
   connect(m_common_badges_enabled_input, &QCheckBox::toggled, this,
@@ -195,6 +206,11 @@ void AchievementSettingsWidget::LoadSettings()
       ->setChecked(Config::Get(Config::RA_SPECTATOR_ENABLED));
   SignalBlocking(m_common_spectator_enabled_input)->setEnabled(enabled);
 
+  SignalBlocking(m_common_discord_presence_enabled_input)
+      ->setChecked(Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED));
+  SignalBlocking(m_common_discord_presence_enabled_input)
+      ->setEnabled(enabled && Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
@@ -215,6 +231,8 @@ void AchievementSettingsWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
                            m_common_spectator_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
+                           m_common_discord_presence_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
                            m_common_progress_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_BADGES_ENABLED, m_common_badges_enabled_input->isChecked());
@@ -277,6 +295,12 @@ void AchievementSettingsWidget::ToggleSpectator()
 {
   SaveSettings();
   AchievementManager::GetInstance().SetSpectatorMode();
+}
+
+void AchievementSettingsWidget::ToggleDiscordPresence()
+{
+  SaveSettings();
+  Discord::UpdateDiscordPresence();
 }
 
 void AchievementSettingsWidget::ToggleProgress()
