@@ -69,6 +69,7 @@ public:
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = std::vector<u8>;
   using NamedIconMap = std::map<std::string, std::unique_ptr<OSD::Icon>, std::less<>>;
+  static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
 
   struct BadgeStatus
   {
@@ -111,6 +112,13 @@ public:
     std::unordered_map<u32, LeaderboardEntry> entries;
   };
 
+  struct LeaderboardDisplay
+  {
+    AchievementId id;
+    FormattedValue value;
+    int format;
+  };
+
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
@@ -148,6 +156,7 @@ public:
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
+  std::vector<FormattedValue> GetActiveLeaderboards() const;
 
   void CloseGame();
   void Logout();
@@ -193,6 +202,7 @@ private:
   void HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
+  void HandleLeaderboardUpdatedEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
 
@@ -223,6 +233,7 @@ private:
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   NamedIconMap m_active_challenges;
+  std::vector<LeaderboardDisplay> m_active_leaderboards;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
