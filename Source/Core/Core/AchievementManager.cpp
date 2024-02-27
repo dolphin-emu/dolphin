@@ -908,6 +908,7 @@ void AchievementManager::CloseGame()
     if (m_is_game_loaded)
     {
       m_is_game_loaded = false;
+      m_active_challenges.clear();
       ActivateDeactivateAchievements();
       ActivateDeactivateLeaderboards();
       ActivateDeactivateRichPresence();
