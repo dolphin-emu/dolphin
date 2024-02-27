@@ -13,6 +13,7 @@
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/HttpRequest.h"
+#include "Common/IOFile.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/WorkQueueThread.h"
@@ -34,6 +35,7 @@ AchievementManager& AchievementManager::GetInstance()
 
 void AchievementManager::Init()
 {
+  LoadDefaultBadges();
   if (!m_is_runtime_initialized && Config::Get(Config::RA_ENABLED))
   {
     std::string host_url = Config::Get(Config::RA_HOST_URL);
@@ -1014,6 +1016,46 @@ size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, size_
 void AchievementManager::FilereaderClose(void* file_handle)
 {
   delete static_cast<FilereaderState*>(file_handle);
+}
+
+void AchievementManager::LoadDefaultBadges()
+{
+  std::lock_guard lg{m_lock};
+  File::IOFile file;
+
+  if (m_default_player_badge.empty())
+  {
+    file.Open(DEFAULT_PLAYER_BADGE_FILENAME.data(), "rb");
+    m_default_player_badge.resize(file.GetSize());
+    file.ReadBytes(m_default_player_badge.data(), file.GetSize());
+    file.Close();
+  }
+  m_player_badge.badge = m_default_player_badge;
+
+  if (m_default_game_badge.empty())
+  {
+    file.Open(DEFAULT_GAME_BADGE_FILENAME.data(), "rb");
+    m_default_game_badge.resize(file.GetSize());
+    file.ReadBytes(m_default_game_badge.data(), file.GetSize());
+    file.Close();
+  }
+  m_game_badge.badge = m_default_game_badge;
+
+  if (m_default_unlocked_badge.empty())
+  {
+    file.Open(DEFAULT_UNLOCKED_BADGE_FILENAME.data(), "rb");
+    m_default_unlocked_badge.resize(file.GetSize());
+    file.ReadBytes(m_default_unlocked_badge.data(), file.GetSize());
+    file.Close();
+  }
+
+  if (m_default_locked_badge.empty())
+  {
+    file.Open(DEFAULT_LOCKED_BADGE_FILENAME.data(), "rb");
+    m_default_locked_badge.resize(file.GetSize());
+    file.ReadBytes(m_default_locked_badge.data(), file.GetSize());
+    file.Close();
+  }
 }
 
 AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std::string& password)
