@@ -13,6 +13,7 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -291,10 +292,10 @@ void EnhancementsWidget::LoadPPShaders()
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
 
+  const auto display_name = Core::System::GetInstance().GetVideoBackend()->GetDisplayName();
   m_pp_effect->setToolTip(supports_postprocessing ?
                               QString{} :
-                              tr("%1 doesn't support this feature.")
-                                  .arg(tr(g_video_backend->GetDisplayName().c_str())));
+                              tr("%1 doesn't support this feature.").arg(tr(display_name.c_str())));
 
   VideoCommon::PostProcessingConfiguration pp_shader;
   if (selected_shader != "" && supports_postprocessing)

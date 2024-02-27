@@ -260,11 +260,12 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
   // Manually reactivate the video backend in case a GameINI overrides the video backend setting.
-  VideoBackendBase::PopulateBackendInfo(wsi);
+  system.PopulateVideoBackendInfo(wsi);
 
   // Issue any API calls which must occur on the main thread for the graphics backend.
   WindowSystemInfo prepared_wsi(wsi);
-  g_video_backend->PrepareWindow(prepared_wsi);
+  auto* video_backend = system.GetVideoBackend();
+  video_backend->PrepareWindow(prepared_wsi);
 
   // Start the emu thread
   s_is_booting.Set();
@@ -318,7 +319,7 @@ void Stop()  // - Hammertime!
     // in this function. We no longer rely on Postmessage.
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
 
-    g_video_backend->Video_ExitLoop();
+    system.GetVideoBackend()->Video_ExitLoop();
   }
 
   s_last_actual_emulation_speed = 1.0;
@@ -581,18 +582,19 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     system.GetPowerPC().GetDebugInterface().Clear(guard);
   }};
 
-  VideoBackendBase::PopulateBackendInfo(wsi);
+  system.PopulateVideoBackendInfo(wsi);
 
-  if (!g_video_backend->Initialize(wsi))
+  auto* video_backend = system.GetVideoBackend();
+  if (!video_backend->Initialize(wsi))
   {
     PanicAlertFmt("Failed to initialize video backend!");
     return;
   }
-  Common::ScopeGuard video_guard{[] {
+  Common::ScopeGuard video_guard{[video_backend] {
     // Clear on screen messages that haven't expired
     OSD::ClearMessages();
 
-    g_video_backend->Shutdown();
+    video_backend->Shutdown();
   }};
 
   if (cpu_info.HTT)
@@ -938,11 +940,13 @@ void Callback_NewField(Core::System& system)
 
 void UpdateTitle()
 {
+  const auto& system = System::GetInstance();
+
   // Settings are shown the same for both extended and summary info
-  const std::string SSettings = fmt::format(
-      "{} {} | {} | {}", Core::System::GetInstance().GetPowerPC().GetCPUName(),
-      Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
-      Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
+  const std::string SSettings =
+      fmt::format("{} {} | {} | {}", system.GetPowerPC().GetCPUName(),
+                  system.IsDualCoreMode() ? "DC" : "SC", system.GetVideoBackend()->GetDisplayName(),
+                  Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
   if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))

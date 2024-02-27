@@ -392,13 +392,14 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
     {
       ERROR_LOG_FMT(VIDEO, "{} failed compilation:\n{}", prefix, info_log);
 
-      std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
+      const auto filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
+      const auto display_name = Core::System::GetInstance().GetVideoBackend()->GetDisplayName();
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       file << s_glsl_header << code << info_log;
       file << "\n";
       file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-      file << "Video Backend: " + g_video_backend->GetDisplayName();
+      file << "Video Backend: " + display_name;
       file.close();
 
       PanicAlertFmt("Failed to compile {} shader: {}\n"
@@ -430,7 +431,8 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
     if (linkStatus != GL_TRUE)
     {
       ERROR_LOG_FMT(VIDEO, "Program failed linking:\n{}", info_log);
-      std::string filename = VideoBackendBase::BadShaderFilename("p", num_failures++);
+      const auto filename = VideoBackendBase::BadShaderFilename("p", num_failures++);
+      const auto display_name = Core::System::GetInstance().GetVideoBackend()->GetDisplayName();
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       if (!vcode.empty())
@@ -443,7 +445,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
       file << info_log;
       file << "\n";
       file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-      file << "Video Backend: " + g_video_backend->GetDisplayName();
+      file << "Video Backend: " + display_name;
       file.close();
 
       PanicAlertFmt("Failed to link shaders: {}\n"

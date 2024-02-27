@@ -124,6 +124,8 @@ static void RefreshConfig()
 
 void Init()
 {
+  auto& system = Core::System::GetInstance();
+
   Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
 
   Config::Init();
@@ -132,7 +134,7 @@ void Init()
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
+  system.ActivateVideoBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   s_config_changed_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
   RefreshConfig();

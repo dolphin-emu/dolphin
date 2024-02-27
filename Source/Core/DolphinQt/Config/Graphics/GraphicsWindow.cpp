@@ -13,6 +13,7 @@
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
@@ -67,10 +68,11 @@ void GraphicsWindow::CreateMainLayout()
 
 void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
-  VideoBackendBase::PopulateBackendInfoFromUI(m_main_window->GetWindowSystemInfo());
+  auto& system = Core::System::GetInstance();
+  system.PopulateVideoBackendInfoFromUI(m_main_window->GetWindowSystemInfo());
 
-  setWindowTitle(
-      tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));
+  const auto display_name = system.GetVideoBackend()->GetDisplayName();
+  setWindowTitle(tr("%1 Graphics Configuration").arg(tr(display_name.c_str())));
 
   emit BackendChanged(backend_name);
 }

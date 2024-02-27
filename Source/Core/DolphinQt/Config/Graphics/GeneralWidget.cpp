@@ -17,6 +17,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -75,7 +76,7 @@ void GeneralWidget::CreateWidgets()
 
   m_video_box->setLayout(m_video_layout);
 
-  for (auto& backend : VideoBackendBase::GetAvailableBackends())
+  for (auto& backend : Core::System::GetInstance().GetAvailableVideoBackends())
   {
     m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()),
                              QVariant(QString::fromStdString(backend->GetName())));
@@ -187,16 +188,17 @@ void GeneralWidget::SaveSettings()
 
   if (Config::GetActiveLayerForConfig(Config::MAIN_GFX_BACKEND) == Config::LayerType::Base)
   {
-    auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
-                              ->GetWarningMessage();
-    if (warningMessage)
+    const auto& backends = Core::System::GetInstance().GetAvailableVideoBackends();
+    const auto warning_message = backends[m_backend_combo->currentIndex()]->GetWarningMessage();
+
+    if (warning_message)
     {
       ModalMessageBox confirm_sw(this);
 
       confirm_sw.setIcon(QMessageBox::Warning);
       confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       confirm_sw.setWindowTitle(tr("Confirm backend change"));
-      confirm_sw.setText(tr(warningMessage->c_str()));
+      confirm_sw.setText(tr(warning_message->c_str()));
 
       SetQWidgetWindowDecorations(&confirm_sw);
       if (confirm_sw.exec() != QMessageBox::Yes)
@@ -355,8 +357,8 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"
                  "<dolphin_emphasis>%1 doesn't support this feature.</dolphin_emphasis>");
 
-  m_adapter_combo->SetDescription(supports_adapters ?
-                                      tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
-                                      tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION)
-                                          .arg(tr(g_video_backend->GetDisplayName().c_str())));
+  const auto display_name = Core::System::GetInstance().GetVideoBackend()->GetDisplayName();
+  m_adapter_combo->SetDescription(
+      supports_adapters ? tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
+                          tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION).arg(tr(display_name.c_str())));
 }

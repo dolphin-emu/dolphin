@@ -95,7 +95,7 @@ static constexpr bool IsNoExceptionFlag(XCheckTLBFlag flag)
 }
 
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
-static u32 EFB_Read(const u32 addr)
+static u32 EFB_Read(VideoBackendBase* video, const u32 addr)
 {
   u32 var = 0;
   // Convert address to coordinates. It's possible that this should be done
@@ -109,19 +109,19 @@ static u32 EFB_Read(const u32 addr)
   }
   else if (addr & 0x00400000)
   {
-    var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekZ, x, y, 0);
+    var = video->Video_AccessEFB(EFBAccessType::PeekZ, x, y, 0);
     DEBUG_LOG_FMT(MEMMAP, "EFB Z Read @ {}, {}\t= {:#010x}", x, y, var);
   }
   else
   {
-    var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekColor, x, y, 0);
+    var = video->Video_AccessEFB(EFBAccessType::PeekColor, x, y, 0);
     DEBUG_LOG_FMT(MEMMAP, "EFB Color Read @ {}, {}\t= {:#010x}", x, y, var);
   }
 
   return var;
 }
 
-static void EFB_Write(u32 data, u32 addr)
+static void EFB_Write(VideoBackendBase* video, u32 data, u32 addr)
 {
   const u32 x = (addr & 0xfff) >> 2;
   const u32 y = (addr >> 12) & 0x3ff;
@@ -134,12 +134,12 @@ static void EFB_Write(u32 data, u32 addr)
   }
   else if (addr & 0x00400000)
   {
-    g_video_backend->Video_AccessEFB(EFBAccessType::PokeZ, x, y, data);
+    video->Video_AccessEFB(EFBAccessType::PokeZ, x, y, data);
     DEBUG_LOG_FMT(MEMMAP, "EFB Z Write {:08x} @ {}, {}", data, x, y);
   }
   else
   {
-    g_video_backend->Video_AccessEFB(EFBAccessType::PokeColor, x, y, data);
+    video->Video_AccessEFB(EFBAccessType::PokeColor, x, y, data);
     DEBUG_LOG_FMT(MEMMAP, "EFB Color Write {:08x} @ {}, {}", data, x, y);
   }
 }
@@ -189,7 +189,7 @@ T MMU::ReadFromHardware(u32 em_address)
   {
     if (em_address < 0x0c000000)
     {
-      return EFB_Read(em_address);
+      return EFB_Read(m_system.GetVideoBackend(), em_address);
     }
     else
     {
@@ -343,7 +343,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   {
     if (em_address < 0x0c000000)
     {
-      EFB_Write(data, em_address);
+      EFB_Write(m_system.GetVideoBackend(), data, em_address);
       return;
     }
 
@@ -1027,7 +1027,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
       const u32 data = Common::swap32(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF));
-      EFB_Write(data, mem_address + i);
+      EFB_Write(m_system.GetVideoBackend(), data, mem_address + i);
     }
     return;
   }
@@ -1063,7 +1063,7 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(EFB_Read(mem_address + i));
+      const u32 data = Common::swap32(EFB_Read(m_system.GetVideoBackend(), mem_address + i));
       std::memcpy(m_memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
     }
     return;

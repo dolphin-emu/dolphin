@@ -20,6 +20,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "Core/System.h"
+
 #include "VideoCommon/Spirv.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -258,7 +260,9 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
     file << "\n";
     file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-    file << "Video Backend: " + g_video_backend->GetDisplayName();
+
+    const auto display_name = Core::System::GetInstance().GetVideoBackend()->GetDisplayName();
+    file << "Video Backend: " + display_name;
 
     if (const auto spirv = GetSpirv(stage, source))
     {

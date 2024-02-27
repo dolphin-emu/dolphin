@@ -23,23 +23,6 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 
-// TODO: ugly
-#ifdef _WIN32
-#include "VideoBackends/D3D/VideoBackend.h"
-#include "VideoBackends/D3D12/VideoBackend.h"
-#endif
-#include "VideoBackends/Null/VideoBackend.h"
-#ifdef HAS_OPENGL
-#include "VideoBackends/OGL/VideoBackend.h"
-#include "VideoBackends/Software/VideoBackend.h"
-#endif
-#ifdef HAS_VULKAN
-#include "VideoBackends/Vulkan/VideoBackend.h"
-#endif
-#ifdef __APPLE__
-#include "VideoBackends/Metal/VideoBackend.h"
-#endif
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -68,8 +51,6 @@
 #include "VideoCommon/Widescreen.h"
 #include "VideoCommon/XFStateManager.h"
 
-VideoBackendBase* g_video_backend = nullptr;
-
 #ifdef _WIN32
 #include <windows.h>
 
@@ -86,8 +67,9 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 
 std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int counter)
 {
+  const auto* backend = Core::System::GetInstance().GetVideoBackend();
   return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage,
-                     g_video_backend->GetName(), counter);
+                     backend->GetName(), counter);
 }
 
 void VideoBackendBase::Video_ExitLoop()
@@ -211,97 +193,6 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
   AsyncRequests::GetInstance()->PushEvent(e, true);
 
   return result;
-}
-
-static VideoBackendBase* GetDefaultVideoBackend()
-{
-  const auto& backends = VideoBackendBase::GetAvailableBackends();
-  if (backends.empty())
-    return nullptr;
-  return backends.front().get();
-}
-
-std::string VideoBackendBase::GetDefaultBackendName()
-{
-  auto* default_backend = GetDefaultVideoBackend();
-  return default_backend ? default_backend->GetName() : "";
-}
-
-const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvailableBackends()
-{
-  static auto s_available_backends = [] {
-    std::vector<std::unique_ptr<VideoBackendBase>> backends;
-
-    // OGL > D3D11 > D3D12 > Vulkan > SW > Null
-    // On macOS, we prefer Vulkan over OpenGL due to OpenGL support being deprecated by Apple.
-#ifdef HAS_OPENGL
-    backends.push_back(std::make_unique<OGL::VideoBackend>());
-#endif
-#ifdef _WIN32
-    backends.push_back(std::make_unique<DX11::VideoBackend>());
-    backends.push_back(std::make_unique<DX12::VideoBackend>());
-#endif
-#ifdef HAS_VULKAN
-#ifdef __APPLE__
-    // Emplace the Vulkan backend at the beginning so it takes precedence over OpenGL.
-    backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
-#else
-    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
-#endif
-#endif
-#ifdef __APPLE__
-    backends.emplace(backends.begin(), std::make_unique<Metal::VideoBackend>());
-#endif
-#ifdef HAS_OPENGL
-    backends.push_back(std::make_unique<SW::VideoSoftware>());
-#endif
-    backends.push_back(std::make_unique<Null::VideoBackend>());
-
-    if (!backends.empty())
-      g_video_backend = backends.front().get();
-
-    return backends;
-  }();
-  return s_available_backends;
-}
-
-void VideoBackendBase::ActivateBackend(const std::string& name)
-{
-  // If empty, set it to the default backend (expected behavior)
-  if (name.empty())
-    g_video_backend = GetDefaultVideoBackend();
-
-  const auto& backends = GetAvailableBackends();
-  const auto iter = std::find_if(backends.begin(), backends.end(), [&name](const auto& backend) {
-    return name == backend->GetName();
-  });
-
-  if (iter == backends.end())
-    return;
-
-  g_video_backend = iter->get();
-}
-
-void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
-{
-  g_Config.Refresh();
-  // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
-  // a value from the previously used renderer
-  g_Config.backend_info = {};
-  ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
-  g_Config.backend_info.DisplayName = g_video_backend->GetDisplayName();
-  g_video_backend->InitBackendInfo(wsi);
-  // We validate the config after initializing the backend info, as system-specific settings
-  // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
-  g_Config.VerifyValidity();
-}
-
-void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
-{
-  // If the core is running, the backend info will have been populated already.
-  // If we did it here, the UI thread can race with the with the GPU thread.
-  if (!Core::IsRunning())
-    PopulateBackendInfo(wsi);
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)
