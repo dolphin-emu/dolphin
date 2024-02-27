@@ -579,6 +579,11 @@ void AchievementManager::FetchBadges()
                   name_to_fetch, current_name);
               return;
             }
+            if (m_active_challenges.count("default" + achievement.id))
+            {
+              m_active_challenges.erase("default" + achievement.id);
+              m_active_challenges[name_to_fetch] = DecodeBadgeToOSDIcon(fetched_badge);
+            }
             unlock_itr->second.unlocked_badge.badge = std::move(fetched_badge);
             unlock_itr->second.unlocked_badge.name = std::move(name_to_fetch);
           }
@@ -685,6 +690,12 @@ void AchievementManager::FetchBadges()
 
       const auto& initial_achievement = m_game_data.achievements[index];
       UnlockStatus& unlock_status = m_unlock_map[initial_achievement.id];
+      if (m_active_challenges.count(unlock_status.unlocked_badge.name))
+      {
+        m_active_challenges.erase(unlock_status.unlocked_badge.name);
+        m_active_challenges["default" + initial_achievement.id] =
+            DecodeBadgeToOSDIcon(m_default_unlocked_badge);
+      }
       if (!unlock_status.unlocked_badge.name.empty())
       {
         unlock_status.unlocked_badge.badge = m_default_unlocked_badge;
@@ -1602,8 +1613,9 @@ void AchievementManager::HandleAchievementPrimedEvent(const rc_runtime_event_t* 
     ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement primed event with id {}.", runtime_event->id);
     return;
   }
-  m_active_challenges[it->second.unlocked_badge.name] =
-      DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge);
+  std::string name = (it->second.unlocked_badge.name.empty()) ? "default" + runtime_event->id :
+                                                                it->second.unlocked_badge.name;
+  m_active_challenges[name] = DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge);
 }
 
 void AchievementManager::HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event)
@@ -1615,7 +1627,9 @@ void AchievementManager::HandleAchievementUnprimedEvent(const rc_runtime_event_t
                   runtime_event->id);
     return;
   }
-  m_active_challenges.erase(it->second.unlocked_badge.name);
+  std::string name = (it->second.unlocked_badge.name.empty()) ? "default" + runtime_event->id :
+                                                                it->second.unlocked_badge.name;
+  m_active_challenges.erase(name);
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event)
