@@ -84,50 +84,38 @@ void AchievementHeaderWidget::UpdateData()
   m_user_icon->setVisible(false);
   m_user_icon->clear();
   m_user_icon->setText({});
-  if (Config::Get(Config::RA_BADGES_ENABLED))
+  QImage i_user_icon{};
+  if (i_user_icon.loadFromData(&player_badge.badge.front(), (int)player_badge.badge.size()))
   {
-    if (!player_badge.name.empty())
-    {
-      QImage i_user_icon{};
-      if (i_user_icon.loadFromData(&player_badge.badge.front(), (int)player_badge.badge.size()))
-      {
-        m_user_icon->setPixmap(QPixmap::fromImage(i_user_icon)
-                                   .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        m_user_icon->adjustSize();
-        m_user_icon->setStyleSheet(QStringLiteral("border: 4px solid transparent"));
-        m_user_icon->setVisible(true);
-      }
-    }
+    m_user_icon->setPixmap(QPixmap::fromImage(i_user_icon)
+                               .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    m_user_icon->adjustSize();
+    m_user_icon->setStyleSheet(QStringLiteral("border: 4px solid transparent"));
+    m_user_icon->setVisible(true);
   }
   m_game_icon->setVisible(false);
   m_game_icon->clear();
   m_game_icon->setText({});
-  if (Config::Get(Config::RA_BADGES_ENABLED))
+  QImage i_game_icon{};
+  if (i_game_icon.loadFromData(&game_badge.badge.front(), (int)game_badge.badge.size()))
   {
-    if (!game_badge.name.empty())
-    {
-      QImage i_game_icon{};
-      if (i_game_icon.loadFromData(&game_badge.badge.front(), (int)game_badge.badge.size()))
-      {
-        m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
-                                   .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        m_game_icon->adjustSize();
-        std::string_view color = AchievementManager::GRAY;
-        if (point_spread.hard_unlocks == point_spread.total_count)
-          color = AchievementManager::GOLD;
-        else if (point_spread.hard_unlocks + point_spread.soft_unlocks == point_spread.total_count)
-          color = AchievementManager::BLUE;
-        m_game_icon->setStyleSheet(
-            QStringLiteral("border: 4px solid %1").arg(QString::fromStdString(std::string(color))));
-        m_game_icon->setVisible(true);
-      }
-    }
+    m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
+                               .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    m_game_icon->adjustSize();
+    std::string_view color = AchievementManager::GRAY;
+    if (point_spread.hard_unlocks == point_spread.total_count)
+      color = AchievementManager::GOLD;
+    else if (point_spread.hard_unlocks + point_spread.soft_unlocks == point_spread.total_count)
+      color = AchievementManager::BLUE;
+    m_game_icon->setStyleSheet(
+        QStringLiteral("border: 4px solid %1").arg(QString::fromStdString(std::string(color))));
   }
 
   if (!game_name.isEmpty())
   {
     m_name->setText(tr("%1 is playing %2").arg(user_name).arg(game_name));
     m_points->setText(GetPointsString(user_name, point_spread));
+    m_game_icon->setVisible(true);
 
     m_game_progress_hard->setRange(0, point_spread.total_count);
     if (!m_game_progress_hard->isVisible())
@@ -146,6 +134,7 @@ void AchievementHeaderWidget::UpdateData()
   {
     m_name->setText(user_name);
     m_points->setText(tr("%1 points").arg(instance.GetPlayerScore()));
+    m_game_icon->setVisible(false);
 
     m_game_progress_hard->setVisible(false);
     m_game_progress_soft->setVisible(false);

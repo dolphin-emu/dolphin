@@ -1513,9 +1513,7 @@ void AchievementManager::DisplayWelcomeMessage()
     OSD::AddMessage(
         fmt::format("You have {}/{} achievements worth {}/{} points", spread.hard_unlocks,
                     spread.total_count, spread.hard_points, spread.total_points),
-        OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
-        (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                   nullptr);
+        OSD::Duration::VERY_LONG, OSD::Color::YELLOW, DecodeBadgeToOSDIcon(m_game_badge.badge));
     OSD::AddMessage("Hardcore mode is ON", OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
   }
   else
@@ -1524,9 +1522,7 @@ void AchievementManager::DisplayWelcomeMessage()
                                 spread.hard_unlocks + spread.soft_unlocks, spread.total_count,
                                 spread.hard_points + spread.soft_points, spread.total_points),
                     OSD::Duration::VERY_LONG, OSD::Color::CYAN,
-                    (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                        DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                        nullptr);
+                    DecodeBadgeToOSDIcon(m_game_badge.badge));
     OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
   }
 }
@@ -1547,9 +1543,7 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
                               m_game_data.achievements[game_data_index].points),
                   OSD::Duration::VERY_LONG,
                   (hardcore_mode_enabled) ? OSD::Color::YELLOW : OSD::Color::CYAN,
-                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                      DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
-                      nullptr);
+                  DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge));
   if (m_game_data.achievements[game_data_index].category == RC_ACHIEVEMENT_CATEGORY_CORE)
   {
     m_queue.EmplaceItem([this, event_id] { AwardAchievement(event_id); });
@@ -1559,18 +1553,14 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
     {
       OSD::AddMessage(
           fmt::format("Congratulations! {} has mastered {}", m_display_name, m_game_data.title),
-          OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
-          (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                     nullptr);
+          OSD::Duration::VERY_LONG, OSD::Color::YELLOW, DecodeBadgeToOSDIcon(m_game_badge.badge));
     }
     else if (spread.hard_points + spread.soft_points == spread.total_points &&
              it->second.remote_unlock_status == UnlockStatus::UnlockType::LOCKED)
     {
       OSD::AddMessage(
           fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
-          OSD::Duration::VERY_LONG, OSD::Color::CYAN,
-          (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                     nullptr);
+          OSD::Duration::VERY_LONG, OSD::Color::CYAN, DecodeBadgeToOSDIcon(m_game_badge.badge));
     }
   }
   ActivateDeactivateAchievement(event_id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
@@ -1601,15 +1591,11 @@ void AchievementManager::HandleAchievementProgressUpdatedEvent(
   OSD::AddMessage(
       fmt::format("{} {}", m_game_data.achievements[game_data_index].title, value.data()),
       OSD::Duration::SHORT, OSD::Color::GREEN,
-      (Config::Get(Config::RA_BADGES_ENABLED)) ?
-          DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
-          nullptr);
+      DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge));
 }
 
 void AchievementManager::HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event)
 {
-  if (!Config::Get(Config::RA_BADGES_ENABLED))
-    return;
   auto it = m_unlock_map.find(runtime_event->id);
   if (it == m_unlock_map.end())
   {
@@ -1622,8 +1608,6 @@ void AchievementManager::HandleAchievementPrimedEvent(const rc_runtime_event_t* 
 
 void AchievementManager::HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event)
 {
-  if (!Config::Get(Config::RA_BADGES_ENABLED))
-    return;
   auto it = m_unlock_map.find(runtime_event->id);
   if (it == m_unlock_map.end())
   {

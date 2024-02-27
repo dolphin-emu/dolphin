@@ -74,17 +74,14 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
     badge = &unlock_status.unlocked_badge;
     color = AchievementManager::BLUE;
   }
-  if (Config::Get(Config::RA_BADGES_ENABLED) && badge->name != "")
+  QImage i_badge{};
+  if (i_badge.loadFromData(&badge->badge.front(), (int)badge->badge.size()))
   {
-    QImage i_badge{};
-    if (i_badge.loadFromData(&badge->badge.front(), (int)badge->badge.size()))
-    {
-      a_badge->setPixmap(QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio,
-                                                            Qt::SmoothTransformation));
-      a_badge->adjustSize();
-      a_badge->setStyleSheet(
-          QStringLiteral("border: 4px solid %1").arg(QString::fromStdString(std::string(color))));
-    }
+    a_badge->setPixmap(
+        QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    a_badge->adjustSize();
+    a_badge->setStyleSheet(
+        QStringLiteral("border: 4px solid %1").arg(QString::fromStdString(std::string(color))));
   }
 
   QLabel* a_title = new QLabel(QString::fromUtf8(achievement->title, strlen(achievement->title)));
