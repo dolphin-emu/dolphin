@@ -40,7 +40,7 @@ private:
   };
 
   const std::string m_destination;
-  const std::function<void(std::string&&)> m_recv_cb;
+  const RecvCallback m_recv_cb;
   const std::size_t m_max_frame_size;
   Common::SocketContext m_socket_context;
 

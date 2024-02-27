@@ -32,7 +32,7 @@ using ws_ssize_t = int;
 using ws_ssize_t = ssize_t;
 #endif
 
-#ifdef __LINUX__
+#ifdef __linux__
 #define SEND_FLAGS MSG_NOSIGNAL
 #else
 #define SEND_FLAGS 0
@@ -262,7 +262,13 @@ void TAPServerConnection::ReadThreadHandler()
     timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 50000;
-    if (select(m_fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
+    int select_res = select(m_fd + 1, &rfds, nullptr, nullptr, &timeout);
+    if (select_res < 0)
+    {
+      ERROR_LOG_FMT(SP1, "Can\'t poll tapserver fd: {}", Common::StrNetworkError());
+      break;
+    }
+    if (select_res == 0)
       continue;
 
     // The tapserver protocol is very simple: there is a 16-bit little-endian
