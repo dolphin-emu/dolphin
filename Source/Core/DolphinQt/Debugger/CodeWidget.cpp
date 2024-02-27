@@ -359,7 +359,7 @@ void CodeWidget::UpdateCallstack()
   {
     const QString name = QString::fromStdString(frame.Name.substr(0, frame.Name.length() - 1));
 
-    if (name.toUpper().indexOf(filter.toUpper()) == -1)
+    if (!name.contains(filter, Qt::CaseInsensitive))
       continue;
 
     auto* item = new QListWidgetItem(name);
@@ -389,7 +389,7 @@ void CodeWidget::UpdateSymbols()
 
     item->setData(Qt::UserRole, symbol.second.address);
 
-    if (name.toUpper().indexOf(m_symbol_filter.toUpper()) != -1)
+    if (name.contains(m_symbol_filter, Qt::CaseInsensitive))
       m_symbols_list->addItem(item);
   }
 
@@ -411,7 +411,7 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
       const QString name =
           QString::fromStdString(fmt::format("> {} ({:08x})", call_symbol->name, addr));
 
-      if (name.toUpper().indexOf(filter.toUpper()) == -1)
+      if (!name.contains(filter, Qt::CaseInsensitive))
         continue;
 
       auto* item = new QListWidgetItem(name);
@@ -436,7 +436,7 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
       const QString name =
           QString::fromStdString(fmt::format("< {} ({:08x})", caller_symbol->name, addr));
 
-      if (name.toUpper().indexOf(filter.toUpper()) == -1)
+      if (!name.contains(filter, Qt::CaseInsensitive))
         continue;
 
       auto* item = new QListWidgetItem(name);
