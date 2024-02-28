@@ -759,9 +759,9 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   // Check if any code blocks have been freed in the block cache and transfer this information to
   // the local rangesets to allow overwriting them with new code.
-  for (auto range : blocks.GetRangesToFreeNear())
+  for (const auto& range : blocks.GetRangesToFreeNear())
     m_free_ranges_near.insert(range.first, range.second);
-  for (auto range : blocks.GetRangesToFreeFar())
+  for (const auto& range : blocks.GetRangesToFreeFar())
     m_free_ranges_far.insert(range.first, range.second);
   blocks.ClearRangesToFree();
 
