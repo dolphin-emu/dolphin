@@ -541,7 +541,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
       if (File::Exists(save_path))
         File::Delete(save_path);
 
-      State::SaveAs(save_path);
+      State::SaveAs(m_system, save_path);
       m_recording_from_save_state = true;
 
       std::thread md5thread(&MovieManager::GetMD5, this);
