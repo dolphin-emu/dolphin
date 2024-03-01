@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <QStyledItemDelegate>
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
@@ -20,6 +21,21 @@ namespace Core
 class CPUThreadGuard;
 class System;
 }  // namespace Core
+
+// Captures direct editing of the table.
+class TableEditDelegate : public QStyledItemDelegate
+{
+  Q_OBJECT
+
+public:
+  explicit TableEditDelegate(QObject* parent) : QStyledItemDelegate(parent) {}
+
+  void setModelData(QWidget* editor, QAbstractItemModel* model,
+                    const QModelIndex& index) const override;
+
+signals:
+  void editFinished(const int row, const int column, const QString& text) const;
+};
 
 class MemoryViewTable;
 
@@ -57,6 +73,7 @@ public:
 
   void CreateTable();
   void Update();
+  void UpdateOnFrameEnd();
   void UpdateFont();
   void ToggleBreakpoint(u32 addr, bool row);
 
@@ -64,6 +81,8 @@ public:
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
+  void ToggleHighlights(bool enabled);
+  void SetHighlightColor();
   void SetBPType(BPType type);
   void SetAddress(u32 address);
   void SetFocus() const;
@@ -84,7 +103,7 @@ private:
   void UpdateColumns(const Core::CPUThreadGuard* guard);
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
-  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+  std::optional<QString> ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
 
   Core::System& m_system;
 
@@ -102,6 +121,8 @@ private:
   int m_alignment = 16;
   int m_data_columns;
   bool m_dual_view = false;
+  bool m_updating = false;
+  QColor m_highlight_color = QColor(120, 255, 255, 100);
 
   friend class MemoryViewTable;
 };
