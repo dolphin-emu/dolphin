@@ -54,8 +54,10 @@ constexpr int ADDRESS_TABLE_COLUMN_INDEX_ADDRESS = 1;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_LAST_VALUE = 2;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE = 3;
 
-CheatSearchWidget::CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionBase> session)
-    : m_session(std::move(session))
+CheatSearchWidget::CheatSearchWidget(Core::System& system,
+                                     std::unique_ptr<Cheats::CheatSearchSessionBase> session,
+                                     QWidget* parent)
+    : QWidget(parent), m_system(system), m_session(std::move(session))
 {
   setAttribute(Qt::WA_DeleteOnClose);
   CreateWidgets();
@@ -275,13 +277,10 @@ void CheatSearchWidget::ConnectWidgets()
 
 void CheatSearchWidget::OnNextScanClicked()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   const bool had_old_results = m_session->WasFirstSearchDone();
-  const size_t old_count = m_session->GetResultCount();
 
   const auto filter_type = m_value_source_dropdown->currentData().value<Cheats::FilterType>();
-  if (filter_type == Cheats::FilterType::CompareAgainstLastValue &&
-      !m_session->WasFirstSearchDone())
+  if (filter_type == Cheats::FilterType::CompareAgainstLastValue && !had_old_results)
   {
     m_info_label_1->setText(tr("Cannot compare against last value on first search."));
     return;
@@ -301,7 +300,8 @@ void CheatSearchWidget::OnNextScanClicked()
     }
   }
 
-  const Cheats::SearchErrorCode error_code = m_session->RunSearch(guard);
+  const size_t old_count = m_session->GetResultCount();
+  const Cheats::SearchErrorCode error_code = m_session->RunSearch(Core::CPUThreadGuard{m_system});
 
   if (error_code == Cheats::SearchErrorCode::Success)
   {
@@ -416,11 +416,11 @@ void CheatSearchWidget::UpdateTableVisibleCurrentValues(const UpdateSource sourc
   if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
     return;
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (m_address_table->rowCount() == 0)
     return;
 
-  UpdateTableRows(guard, GetVisibleRowsBeginIndex(), GetVisibleRowsEndIndex(), source);
+  UpdateTableRows(Core::CPUThreadGuard{m_system}, GetVisibleRowsBeginIndex(),
+                  GetVisibleRowsEndIndex(), source);
 }
 
 bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
@@ -428,7 +428,6 @@ bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
   if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
     return false;
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   const size_t result_count = m_address_table->rowCount();
   if (result_count == 0)
   {
@@ -437,7 +436,7 @@ bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
     return false;
   }
 
-  return UpdateTableRows(guard, 0, result_count, source);
+  return UpdateTableRows(Core::CPUThreadGuard{m_system}, 0, result_count, source);
 }
 
 void CheatSearchWidget::OnRefreshClicked()
@@ -447,7 +446,6 @@ void CheatSearchWidget::OnRefreshClicked()
 
 void CheatSearchWidget::OnResetClicked()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   m_session->ResetResults();
   m_address_table_current_values.clear();
 
@@ -525,7 +523,6 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
 
 void CheatSearchWidget::GenerateARCode()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (m_address_table->selectedItems().isEmpty())
     return;
 
