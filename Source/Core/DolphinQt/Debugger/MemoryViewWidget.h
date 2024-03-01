@@ -53,7 +53,7 @@ public:
     WriteOnly
   };
 
-  explicit MemoryViewWidget(QWidget* parent = nullptr);
+  explicit MemoryViewWidget(Core::System& system, QWidget* parent = nullptr);
 
   void CreateTable();
   void Update();
