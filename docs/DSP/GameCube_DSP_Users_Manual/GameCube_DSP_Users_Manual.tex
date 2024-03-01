@@ -1323,7 +1323,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     $pc++
   \end{DSPOpcodeOperation}
 
-  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDR}
@@ -3211,6 +3211,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeOperation}
     $acR += $prod
+    FLAGS($acR)
     $prod = $axS.l * $axS.h
     $pc++
   \end{DSPOpcodeOperation}
@@ -3219,7 +3220,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
 
-  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULAXH}
@@ -3292,6 +3293,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     temp = $prod
     $prod = $acS.m * $axS.h
     $acR += temp
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 
@@ -3299,7 +3301,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
 
-  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULCMV}
@@ -3464,6 +3466,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeOperation}
     $acR += $prod
+    FLAGS($acR)
     $prod = (S == 0) ? $ax0.l : ax0.h * (T == 0) ? $ax1.l : $ax1.h
     $pc++
   \end{DSPOpcodeOperation}
@@ -3472,7 +3475,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
 
-  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULXMV}

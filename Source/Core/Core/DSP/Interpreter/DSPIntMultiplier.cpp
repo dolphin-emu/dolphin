@@ -103,22 +103,20 @@ void Interpreter::movpz(const UDSPInstruction opc)
 // in accumulator register. Low 16-bits of $acD ($acD.l) are set (round) to 0.
 //
 // TODO: ugly code and still small error here (+/- 1 in .m - randomly)
-// flags out: --xx xx0x
+// flags out: x-xx xxxx
 void Interpreter::addpaxz(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 8) & 0x1;
   const u8 sreg = (opc >> 9) & 0x1;
 
-  const s64 oldprod = GetLongProduct();
   const s64 prod = GetLongProductRounded();
-  const s64 ax = GetLongACX(sreg);
-  s64 res = prod + (ax & ~0xffff);
+  const s64 ax = GetLongACX(sreg) & ~0xffff;
+  s64 res = prod + ax;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarryAdd(oldprod, res), false);  // TODO: Why doesn't this set the overflow bit?
+  UpdateSR64Add(prod, ax, GetLongAcc(dreg));
 }
 
 //----
@@ -160,13 +158,15 @@ void Interpreter::mul(const UDSPInstruction opc)
 // $axS.l of secondary accumulator $axS by high part $axS.h of secondary
 // accumulator $axS (treat them both as signed).
 //
-// flags out: --xx xx0x
+// flags out: x-xx xxxx
 void Interpreter::mulac(const UDSPInstruction opc)
 {
   const u8 rreg = (opc >> 8) & 0x1;
   const u8 sreg = (opc >> 11) & 0x1;
 
-  const s64 acc = GetLongAcc(rreg) + GetLongProduct();
+  const s64 acc = GetLongAcc(rreg);
+  const s64 oldprod = GetLongProduct();
+  const s64 sum = acc + oldprod;
   const u16 axl = GetAXLow(sreg);
   const u16 axh = GetAXHigh(sreg);
   const s64 prod = Multiply(axl, axh);
@@ -174,8 +174,8 @@ void Interpreter::mulac(const UDSPInstruction opc)
   ZeroWriteBackLog();
 
   SetLongProduct(prod);
-  SetLongAcc(rreg, acc);
-  UpdateSR64(GetLongAcc(rreg));
+  SetLongAcc(rreg, sum);
+  UpdateSR64Add(acc, oldprod, GetLongAcc(rreg));
 }
 
 // MULMV $axS.l, $axS.h, $acR
@@ -253,14 +253,16 @@ void Interpreter::mulx(const UDSPInstruction opc)
 // $ax0 by one part $ax1. Part is selected by S and
 // T bits. Zero selects low part, one selects high part.
 //
-// flags out: --xx xx0x
+// flags out: x-xx xxxx
 void Interpreter::mulxac(const UDSPInstruction opc)
 {
   const u8 rreg = (opc >> 8) & 0x1;
   const u8 treg = (opc >> 11) & 0x1;
   const u8 sreg = (opc >> 12) & 0x1;
 
-  const s64 acc = GetLongAcc(rreg) + GetLongProduct();
+  const s64 acc = GetLongAcc(rreg);
+  const s64 oldprod = GetLongProduct();
+  const s64 sum = acc + oldprod;
   const u16 val1 = (sreg == 0) ? GetAXLow(0) : GetAXHigh(0);
   const u16 val2 = (treg == 0) ? GetAXLow(1) : GetAXHigh(1);
   const s64 prod = MultiplyMulX(sreg, treg, val1, val2);
@@ -268,8 +270,8 @@ void Interpreter::mulxac(const UDSPInstruction opc)
   ZeroWriteBackLog();
 
   SetLongProduct(prod);
-  SetLongAcc(rreg, acc);
-  UpdateSR64(GetLongAcc(rreg));
+  SetLongAcc(rreg, sum);
+  UpdateSR64Add(acc, oldprod, GetLongAcc(rreg));
 }
 
 // MULXMV $ax0.S, $ax1.T, $acR
@@ -349,14 +351,16 @@ void Interpreter::mulc(const UDSPInstruction opc)
 // secondary accumulator $axS  (treat them both as signed). Add product
 // register before multiplication to accumulator $acR.
 //
-// flags out: --xx xx0x
+// flags out: x-xx xxxx
 void Interpreter::mulcac(const UDSPInstruction opc)
 {
   const u8 rreg = (opc >> 8) & 0x1;
   const u8 treg = (opc >> 11) & 0x1;
   const u8 sreg = (opc >> 12) & 0x1;
 
-  const s64 acc = GetLongAcc(rreg) + GetLongProduct();
+  const s64 acc = GetLongAcc(rreg);
+  const s64 oldprod = GetLongProduct();
+  const s64 sum = acc + oldprod;
   const u16 accm = GetAccMid(sreg);
   const u16 axh = GetAXHigh(treg);
   const s64 prod = Multiply(accm, axh);
@@ -364,8 +368,8 @@ void Interpreter::mulcac(const UDSPInstruction opc)
   ZeroWriteBackLog();
 
   SetLongProduct(prod);
-  SetLongAcc(rreg, acc);
-  UpdateSR64(GetLongAcc(rreg));
+  SetLongAcc(rreg, sum);
+  UpdateSR64Add(acc, oldprod, GetLongAcc(rreg));
 }
 
 // MULCMV $acS.m, $axT.h, $acR
