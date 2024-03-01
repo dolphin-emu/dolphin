@@ -28,9 +28,13 @@ static constexpr bool hardcore_mode_enabled = false;
 
 static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge);
 
+AchievementManager::AchievementManager(Core::System& system) : m_system(system)
+{
+}
+
 AchievementManager& AchievementManager::GetInstance()
 {
-  static AchievementManager s_instance;
+  static AchievementManager s_instance(Core::System::GetInstance());
   return s_instance;
 }
 
@@ -120,7 +124,6 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     return;
   }
-  m_system = &Core::System::GetInstance();
   m_queue.EmplaceItem([this, callback, file_path] {
     Hash new_hash;
     {
@@ -197,7 +200,6 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
     callback(ResponseType::EXPIRED_CONTEXT);
     return;
   }
-  m_system = &Core::System::GetInstance();
   m_queue.EmplaceItem([this, callback] {
     Hash new_hash;
     {
@@ -670,7 +672,8 @@ void AchievementManager::DoFrame()
   {
     m_framecount++;
   }
-  Core::RunAsCPUThread([&] {
+  {
+    const Core::CPUThreadGuard guard(m_system);
     rc_runtime_do_frame(
         &m_runtime,
         [](const rc_runtime_event_t* runtime_event) {
@@ -680,9 +683,7 @@ void AchievementManager::DoFrame()
           return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
         },
         this, nullptr);
-  });
-  if (!m_system)
-    return;
+  }
   time_t current_time = std::time(nullptr);
   if (difftime(current_time, m_last_ping_time) > 120)
   {
@@ -695,26 +696,21 @@ void AchievementManager::DoFrame()
 
 u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
 {
-  if (!m_system)
-    return 0u;
-  Core::CPUThreadGuard threadguard(*m_system);
+  const Core::CPUThreadGuard guard(m_system);
   switch (num_bytes)
   {
   case 1:
-    return m_system->GetMMU()
-        .HostTryReadU8(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
+    return PowerPC::MMU::HostTryReadU8(guard, address, PowerPC::RequestedAddressSpace::Physical)
         .value_or(PowerPC::ReadResult<u8>(false, 0u))
         .value;
   case 2:
     return Common::swap16(
-        m_system->GetMMU()
-            .HostTryReadU16(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
+        PowerPC::MMU::HostTryReadU16(guard, address, PowerPC::RequestedAddressSpace::Physical)
             .value_or(PowerPC::ReadResult<u16>(false, 0u))
             .value);
   case 4:
     return Common::swap32(
-        m_system->GetMMU()
-            .HostTryReadU32(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
+        PowerPC::MMU::HostTryReadU32(guard, address, PowerPC::RequestedAddressSpace::Physical)
             .value_or(PowerPC::ReadResult<u32>(false, 0u))
             .value);
   default:
@@ -920,7 +916,6 @@ void AchievementManager::CloseGame()
       m_game_data = {};
       m_queue.Cancel();
       m_image_queue.Cancel();
-      m_system = nullptr;
     }
   }
 
@@ -1343,15 +1338,14 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
 
 void AchievementManager::GenerateRichPresence()
 {
-  Core::RunAsCPUThread([&] {
-    std::lock_guard lg{m_lock};
-    rc_runtime_get_richpresence(
-        &m_runtime, m_rich_presence.data(), RP_SIZE,
-        [](unsigned address, unsigned num_bytes, void* ud) {
-          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
-        },
-        this, nullptr);
-  });
+  const Core::CPUThreadGuard guard(m_system);
+  const std::lock_guard lg{m_lock};
+  rc_runtime_get_richpresence(
+      &m_runtime, m_rich_presence.data(), RP_SIZE,
+      [](unsigned address, unsigned num_bytes, void* ud) {
+        return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+      },
+      this, nullptr);
 }
 
 AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)

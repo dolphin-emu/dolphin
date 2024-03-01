@@ -154,7 +154,7 @@ public:
   void Shutdown();
 
 private:
-  AchievementManager() = default;
+  explicit AchievementManager(Core::System& system);
 
   struct FilereaderState
   {
@@ -203,7 +203,7 @@ private:
   ResponseType RequestImage(rc_api_fetch_image_request_t rc_request, Badge* rc_response);
 
   rc_runtime_t m_runtime{};
-  Core::System* m_system{};
+  Core::System& m_system;
   bool m_is_runtime_initialized = false;
   UpdateCallback m_update_callback = [] {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
