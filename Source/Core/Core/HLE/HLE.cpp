@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
@@ -27,7 +28,7 @@ namespace HLE
 static std::map<u32, u32> s_hooked_addresses;
 
 // clang-format off
-constexpr std::array<Hook, 23> os_patches{{
+constexpr std::array<Hook, 27> os_patches{{
     // Placeholder, os_patches[0] is the "non-existent function" index
     {"FAKE_TO_SKIP_0",               HLE_Misc::UnimplementedFunction,       HookType::Replace, HookFlag::Generic},
 
@@ -59,7 +60,12 @@ constexpr std::array<Hook, 23> os_patches{{
 
     {"GeckoCodehandler",             HLE_Misc::GeckoCodeHandlerICacheFlush, HookType::Start,   HookFlag::Fixed},
     {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline,       HookType::Replace, HookFlag::Fixed},
-    {"AppLoaderReport",              HLE_OS::HLE_GeneralDebugPrint,         HookType::Start,   HookFlag::Fixed} // apploader needs OSReport-like function
+
+    {"HLEAppLoaderAfterEntry",       CBoot::HLEAppLoaderAfterEntry,         HookType::Start,   HookFlag::Fixed},
+    {"HLEAppLoaderAfterInit",        CBoot::HLEAppLoaderAfterInit,          HookType::Start,   HookFlag::Fixed},
+    {"HLEAppLoaderAfterMain",        CBoot::HLEAppLoaderAfterMain,          HookType::Start,   HookFlag::Fixed},
+    {"HLEAppLoaderAfterClose",       CBoot::HLEAppLoaderAfterClose,         HookType::Start,   HookFlag::Fixed},
+    {"HLEAppLoaderReport",           HLE_OS::HLE_AppLoaderReport,           HookType::Start,   HookFlag::Fixed},
 }};
 // clang-format on
 

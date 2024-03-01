@@ -544,7 +544,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!EmulatedBS2(system, guard, system.IsWii(), *volume, riivolution_patches))
         return false;
 
-      SConfig::OnNewTitleLoad(guard);
+      // SConfig::OnNewTitleLoad(guard) is called by apploader runner code
       return true;
     }
 
