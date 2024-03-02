@@ -7,9 +7,9 @@
 #include <QString>
 
 #include "Common/CommonTypes.h"
-#include "DolphinQt/Debugger/CodeDiffDialog.h"
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 
+class BranchWatchDialog;
 class QCloseEvent;
 class QLineEdit;
 class QShowEvent;
@@ -41,7 +41,7 @@ public:
   void ShowPC();
   void SetPC();
 
-  void OnDiff();
+  void OnBranchWatchDialog();
   void ToggleBreakpoint();
   void AddBreakpoint();
   void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
@@ -72,9 +72,9 @@ private:
 
   Core::System& m_system;
 
-  CodeDiffDialog* m_diff_dialog = nullptr;
+  BranchWatchDialog* m_branch_watch_dialog;
   QLineEdit* m_search_address;
-  QPushButton* m_code_diff;
+  QPushButton* m_branch_watch;
 
   QLineEdit* m_search_callstack;
   QListWidget* m_callstack_list;

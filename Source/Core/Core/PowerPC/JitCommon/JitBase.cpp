@@ -94,7 +94,7 @@ void JitTrampoline(JitBase& jit, u32 em_address)
 
 JitBase::JitBase(Core::System& system)
     : m_code_buffer(code_buffer_size), m_system(system), m_ppc_state(system.GetPPCState()),
-      m_mmu(system.GetMMU())
+      m_mmu(system.GetMMU()), m_branch_watch(system.GetPowerPC().GetBranchWatch())
 {
   m_registered_config_callback_id = CPUThreadConfigCallback::AddConfigChangedCallback([this] {
     if (DoesConfigNeedRefresh())
