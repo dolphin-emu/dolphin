@@ -3,8 +3,6 @@
 
 #pragma once
 
-#ifdef USE_RETRO_ACHIEVEMENTS
-
 #include "Common/Config/Config.h"
 
 namespace Config
@@ -23,5 +21,3 @@ extern const Info<bool> RA_BADGES_ENABLED;
 extern const Info<bool> RA_UNOFFICIAL_ENABLED;
 extern const Info<bool> RA_ENCORE_ENABLED;
 }  // namespace Config
-
-#endif  // USE_RETRO_ACHIEVEMENTS

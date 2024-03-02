@@ -246,21 +246,16 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
   connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
           &MainWindow::ShowGeneralWindow);
-
-#ifdef USE_RETRO_ACHIEVEMENTS
   connect(m_cheats_manager, &CheatsManager::OpenAchievementSettings, this,
           &MainWindow::ShowAchievementSettings);
   connect(m_game_list, &GameList::OpenAchievementSettings, this,
           &MainWindow::ShowAchievementSettings);
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   InitCoreCallbacks();
 
   NetPlayInit();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().Init();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   auto* daemon = new SignalDaemon(this);
@@ -327,9 +322,7 @@ MainWindow::~MainWindow()
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().Shutdown();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   delete m_render_widget;
   delete m_netplay_dialog;
@@ -560,10 +553,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
-
-#ifdef USE_RETRO_ACHIEVEMENTS
   connect(m_menu_bar, &MenuBar::ShowAchievementsWindow, this, &MainWindow::ShowAchievementsWindow);
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -1262,10 +1252,8 @@ void MainWindow::ShowFreeLookWindow()
     m_freelook_window = new FreeLookWindow(this);
     InstallHotkeyFilter(m_freelook_window);
 
-#ifdef USE_RETRO_ACHIEVEMENTS
     connect(m_freelook_window, &FreeLookWindow::OpenAchievementSettings, this,
             &MainWindow::ShowAchievementSettings);
-#endif  // USE_RETRO_ACHIEVEMENTS
   }
 
   SetQWidgetWindowDecorations(m_freelook_window);
@@ -1997,7 +1985,6 @@ void MainWindow::OnConnectWiiRemote(int id)
   });
 }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 void MainWindow::ShowAchievementsWindow()
 {
   if (!m_achievements_window)
@@ -2016,7 +2003,6 @@ void MainWindow::ShowAchievementSettings()
   ShowAchievementsWindow();
   m_achievements_window->ForceSettingsTab();
 }
-#endif  // USE_RETRO_ACHIEVEMENTS
 
 void MainWindow::ShowMemcardManager()
 {
@@ -2057,10 +2043,8 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
                           disc.volume->GetDiscNumber(), game.GetFilePath(), this);
   SetQWidgetWindowDecorations(&w);
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   connect(&w, &RiivolutionBootWidget::OpenAchievementSettings, this,
           &MainWindow::ShowAchievementSettings);
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   w.exec();
   if (!w.ShouldBoot())

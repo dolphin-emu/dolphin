@@ -1,12 +1,13 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementsWindow.h"
 
 #include <mutex>
 
 #include <QDialogButtonBox>
+#include <QGroupBox>
+#include <QLabel>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -43,6 +44,7 @@ void AchievementsWindow::showEvent(QShowEvent* event)
 
 void AchievementsWindow::CreateMainLayout()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   const auto is_game_loaded = AchievementManager::GetInstance().IsGameLoaded();
 
   m_header_widget = new AchievementHeaderWidget(this);
@@ -55,12 +57,23 @@ void AchievementsWindow::CreateMainLayout()
   m_tab_widget->setTabVisible(1, is_game_loaded);
   m_tab_widget->addTab(GetWrappedWidget(m_leaderboard_widget, this, 125, 100), tr("Leaderboards"));
   m_tab_widget->setTabVisible(2, is_game_loaded);
+#else   // USE_RETRO_ACHIEVEMENTS
+  auto* achievements_disabled_layout = new QVBoxLayout();
+  achievements_disabled_layout->addWidget(
+      new QLabel(tr("This build of Dolphin was compiled without Achievement support.")));
+  auto* achievements_disabled_box = new QGroupBox(tr("Achievements not supported"));
+  achievements_disabled_box->setLayout(achievements_disabled_layout);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   auto* layout = new QVBoxLayout();
+#ifdef USE_RETRO_ACHIEVEMENTS
   layout->addWidget(m_header_widget);
   layout->addWidget(m_tab_widget);
+#else   // USE_RETRO_ACHIEVEMENTS
+  layout->addWidget(achievements_disabled_box);
+#endif  // USE_RETRO_ACHIEVEMENTS
   layout->addWidget(m_button_box);
 
   WrapInScrollArea(this, layout);
@@ -73,6 +86,7 @@ void AchievementsWindow::ConnectWidgets()
 
 void AchievementsWindow::UpdateData()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   {
     auto& instance = AchievementManager::GetInstance();
     std::lock_guard lg{instance.GetLock()};
@@ -86,12 +100,13 @@ void AchievementsWindow::UpdateData()
     m_leaderboard_widget->UpdateData();
     m_tab_widget->setTabVisible(2, is_game_loaded);
   }
+#endif  // USE_RETRO_ACHIEVEMENTS
   update();
 }
 
 void AchievementsWindow::ForceSettingsTab()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   m_tab_widget->setCurrentIndex(0);
-}
-
 #endif  // USE_RETRO_ACHIEVEMENTS
+}

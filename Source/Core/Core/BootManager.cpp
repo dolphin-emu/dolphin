@@ -166,9 +166,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     }
   }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().SetDisabled(false);
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   const bool load_ipl = !system.IsWii() && !Config::Get(Config::MAIN_SKIP_IPL) &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);

@@ -743,21 +743,13 @@ bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
 
 bool AreCheatsEnabled()
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   return Config::Get(::Config::MAIN_ENABLE_CHEATS) && !::Config::Get(::Config::RA_HARDCORE_ENABLED);
-#else   // USE_RETRO_ACHIEVEMENTS
-  return Config::Get(::Config::MAIN_ENABLE_CHEATS);
-#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 bool IsDebuggingEnabled()
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   return Config::Get(::Config::MAIN_ENABLE_DEBUGGING) &&
          !::Config::Get(::Config::RA_HARDCORE_ENABLED);
-#else   // USE_RETRO_ACHIEVEMENTS
-  return Config::Get(::Config::MAIN_ENABLE_DEBUGGING);
-#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 }  // namespace Config

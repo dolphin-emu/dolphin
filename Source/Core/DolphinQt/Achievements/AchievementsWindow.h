@@ -3,16 +3,17 @@
 
 #pragma once
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 #include <QDialog>
 
+class QDialogButtonBox;
+
+#ifdef USE_RETRO_ACHIEVEMENTS
 class AchievementHeaderWidget;
 class AchievementLeaderboardWidget;
 class AchievementSettingsWidget;
 class AchievementProgressWidget;
-class QDialogButtonBox;
 class QTabWidget;
-class UpdateCallback;
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 class AchievementsWindow : public QDialog
 {
@@ -27,12 +28,13 @@ private:
   void showEvent(QShowEvent* event) override;
   void ConnectWidgets();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementHeaderWidget* m_header_widget;
   QTabWidget* m_tab_widget;
   AchievementSettingsWidget* m_settings_widget;
   AchievementProgressWidget* m_progress_widget;
   AchievementLeaderboardWidget* m_leaderboard_widget;
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   QDialogButtonBox* m_button_box;
 };
-
-#endif  // USE_RETRO_ACHIEVEMENTS

@@ -46,11 +46,7 @@ void Config::Refresh()
   }
 
   camera_config.control_type = ::Config::Get(::Config::FL1_CONTROL_TYPE);
-#ifdef USE_RETRO_ACHIEVEMENTS
   enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED) &&
             !AchievementManager::GetInstance().IsHardcoreModeActive();
-#else   // USE_RETRO_ACHIEVEMENTS
-  enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED);
-#endif  // USE_RETRO_ACHIEVEMENTS
 }
 }  // namespace FreeLook

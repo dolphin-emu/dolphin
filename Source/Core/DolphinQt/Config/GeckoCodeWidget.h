@@ -11,9 +11,7 @@
 #include "Common/CommonTypes.h"
 
 class CheatWarningWidget;
-#ifdef USE_RETRO_ACHIEVEMENTS
 class HardcoreWarningWidget;
-#endif  // USE_RETRO_ACHIEVEMENTS
 class QLabel;
 class QListWidget;
 class QListWidgetItem;
@@ -35,9 +33,7 @@ public:
 
 signals:
   void OpenGeneralSettings();
-#ifdef USE_RETRO_ACHIEVEMENTS
   void OpenAchievementSettings();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
 private:
   void OnSelectionChanged();
@@ -62,9 +58,7 @@ private:
   u16 m_game_revision;
 
   CheatWarningWidget* m_warning;
-#ifdef USE_RETRO_ACHIEVEMENTS
   HardcoreWarningWidget* m_hc_warning;
-#endif  // USE_RETRO_ACHIEVEMENTS
   QListWidget* m_code_list;
   QLabel* m_name_label;
   QLabel* m_creator_label;

@@ -11,9 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/PatchEngine.h"
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 class HardcoreWarningWidget;
-#endif  // USE_RETRO_ACHIEVEMENTS
 class QListWidget;
 class QListWidgetItem;
 class QPushButton;
@@ -29,10 +27,8 @@ class PatchesWidget : public QWidget
 public:
   explicit PatchesWidget(const UICommon::GameFile& game);
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 signals:
   void OpenAchievementSettings();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
 private:
   void CreateWidgets();
@@ -46,9 +42,7 @@ private:
   void OnRemove();
   void OnEdit();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   HardcoreWarningWidget* m_hc_warning;
-#endif  // USE_RETRO_ACHIEVEMENTS
   QListWidget* m_list;
   QPushButton* m_add_button;
   QPushButton* m_edit_button;

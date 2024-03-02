@@ -940,10 +940,8 @@ bool MovieManager::PlayInput(const std::string& movie_path,
 
   ReadHeader();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
     return false;
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   m_total_frames = m_temp_header.frameCount;
   m_total_lag_count = m_temp_header.lagCount;
@@ -982,10 +980,8 @@ bool MovieManager::PlayInput(const std::string& movie_path,
 
     m_recording_from_save_state = true;
 
-#ifdef USE_RETRO_ACHIEVEMENTS
     // On the chance someone tries to re-enable before the TAS can start
     Config::SetBase(Config::RA_HARDCORE_ENABLED, false);
-#endif  // USE_RETRO_ACHIEVEMENTS
 
     LoadInput(movie_path);
   }

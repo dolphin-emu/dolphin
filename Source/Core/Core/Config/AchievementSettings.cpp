@@ -1,7 +1,6 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 #include "Core/Config/AchievementSettings.h"
 
 #include <string>
@@ -30,5 +29,3 @@ const Info<bool> RA_UNOFFICIAL_ENABLED{{System::Achievements, "Achievements", "U
                                        false};
 const Info<bool> RA_ENCORE_ENABLED{{System::Achievements, "Achievements", "EncoreEnabled"}, false};
 }  // namespace Config
-
-#endif  // USE_RETRO_ACHIEVEMENTS

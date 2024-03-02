@@ -169,17 +169,14 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   if (!was_changed)
     return;
 
-#ifdef USE_RETRO_ACHIEVEMENTS
-  if (game_id != "00000000")
-    AchievementManager::GetInstance().SetDisabled(true);
-#endif  // USE_RETRO_ACHIEVEMENTS
-
   if (game_id == "00000000")
   {
     m_title_name.clear();
     m_title_description.clear();
     return;
   }
+
+  AchievementManager::GetInstance().SetDisabled(true);
 
   const Core::TitleDatabase title_database;
   auto& system = Core::System::GetInstance();
