@@ -1463,7 +1463,6 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
     return;
   }
   it->second.session_unlock_count++;
-  m_queue.EmplaceItem([this, event_id] { AwardAchievement(event_id); });
   AchievementId game_data_index = it->second.game_data_index;
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", m_game_data.achievements[game_data_index].title,
                               m_game_data.achievements[game_data_index].points),
@@ -1474,6 +1473,7 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
                       nullptr);
   if (m_game_data.achievements[game_data_index].category == RC_ACHIEVEMENT_CATEGORY_CORE)
   {
+    m_queue.EmplaceItem([this, event_id] { AwardAchievement(event_id); });
     PointSpread spread = TallyScore();
     if (spread.hard_points == spread.total_points &&
         it->second.remote_unlock_status != UnlockStatus::UnlockType::HARDCORE)
