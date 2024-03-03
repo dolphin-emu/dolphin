@@ -25,9 +25,6 @@
 
 std::unique_ptr<VideoCommon::Presenter> g_presenter;
 
-// The video encoder needs the image to be a multiple of x samples.
-static constexpr int VIDEO_ENCODER_LCM = 4;
-
 namespace VideoCommon
 {
 // Stretches the native/internal analog resolution aspect ratio from ~4:3 to ~16:9
@@ -246,16 +243,18 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     int width = target_rect.GetWidth();
     int height = target_rect.GetHeight();
 
-    // Ensure divisibility by "VIDEO_ENCODER_LCM" and a min of 1 to make it compatible with all the
+    const int resolution_lcm = g_frame_dumper->GetRequiredResolutionLeastCommonMultiple();
+
+    // Ensure divisibility by the dumper LCM and a min of 1 to make it compatible with all the
     // video encoders. Note that this is theoretically only necessary when recording videos and not
     // screenshots.
     // We always scale positively to make sure the least amount of information is lost.
     //
     // TODO: this should be added as black padding on the edges by the frame dumper.
-    if ((width % VIDEO_ENCODER_LCM) != 0 || width == 0)
-      width += VIDEO_ENCODER_LCM - (width % VIDEO_ENCODER_LCM);
-    if ((height % VIDEO_ENCODER_LCM) != 0 || height == 0)
-      height += VIDEO_ENCODER_LCM - (height % VIDEO_ENCODER_LCM);
+    if ((width % resolution_lcm) != 0 || width == 0)
+      width += resolution_lcm - (width % resolution_lcm);
+    if ((height % resolution_lcm) != 0 || height == 0)
+      height += resolution_lcm - (height % resolution_lcm);
 
     // Remove any black borders, there would be no point in including them in the recording
     target_rect.left = 0;
