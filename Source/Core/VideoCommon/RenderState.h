@@ -205,7 +205,7 @@ struct SamplerState
     BitField<7, 1, LODType> diag_lod;
     BitField<8, 16, s32> lod_bias;         // multiplied by 256, higher precision than normal
     BitField<24, 1, bool, u32> lod_clamp;  // TODO: This isn't currently implemented
-    BitField<25, 1, bool, u32> anisotropic_filtering;  // TODO: This doesn't use the BP one yet
+    BitField<25, 4, u32> anisotropic_filtering;
     u32 hex = 0;
   };
   union TM1
