@@ -94,7 +94,7 @@ void Renderer::GetResolution(Base* engine, int* pWidth, int* pHeight)
   }
 }
 
-void Renderer::Init(Base* engine, bool multiview)
+void Renderer::Init(Base* engine)
 {
   if (m_initialized)
   {
@@ -136,21 +136,18 @@ void Renderer::Init(Base* engine, bool multiview)
   m_projections = (XrView*)(malloc(MaxNumEyes * sizeof(XrView)));
 
   // Create framebuffers.
-  m_multiview = multiview;
-  int instances = multiview ? 1 : MaxNumEyes;
   int width = m_view_config[0].recommendedImageRectWidth;
   int height = m_view_config[0].recommendedImageRectHeight;
-  for (int i = 0; i < instances; i++)
+  for (int i = 0; i < MaxNumEyes; i++)
   {
-    m_framebuffer[i].Create(engine->GetSession(), width, height, multiview);
+    m_framebuffer[i].Create(engine->GetSession(), width, height);
   }
   m_initialized = true;
 }
 
 void Renderer::Destroy()
 {
-  int instances = m_multiview ? 1 : MaxNumEyes;
-  for (int i = 0; i < instances; i++)
+  for (int i = 0; i < MaxNumEyes; i++)
   {
     m_framebuffer[i].Destroy();
     m_framebuffer[i] = {};
@@ -237,15 +234,11 @@ void Renderer::FinishFrame(Base* engine)
 
     for (int eye = 0; eye < MaxNumEyes; eye++)
     {
-      int image_layer = m_multiview ? eye : 0;
       Framebuffer* framebuffer = &m_framebuffer[0];
       XrPosef pose = m_inverted_view_pose[0];
       if (mode != RENDER_MODE_MONO_6DOF)
       {
-        if (!m_multiview)
-        {
-          framebuffer = &m_framebuffer[eye];
-        }
+        framebuffer = &m_framebuffer[eye];
         pose = m_inverted_view_pose[eye];
       }
 
@@ -260,7 +253,7 @@ void Renderer::FinishFrame(Base* engine)
       projection_layer_elements[eye].subImage.imageRect.offset.y = 0;
       projection_layer_elements[eye].subImage.imageRect.extent.width = framebuffer->GetWidth();
       projection_layer_elements[eye].subImage.imageRect.extent.height = framebuffer->GetHeight();
-      projection_layer_elements[eye].subImage.imageArrayIndex = image_layer;
+      projection_layer_elements[eye].subImage.imageArrayIndex = 0;
     }
 
     XrCompositionLayerProjection projection_layer = {};
@@ -308,14 +301,6 @@ void Renderer::FinishFrame(Base* engine)
     if (mode == RENDER_MODE_MONO_SCREEN)
     {
       cylinder_layer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-      m_layers[m_layer_count++].cylinder = cylinder_layer;
-    }
-    else if (m_multiview)
-    {
-      cylinder_layer.eyeVisibility = XR_EYE_VISIBILITY_LEFT;
-      m_layers[m_layer_count++].cylinder = cylinder_layer;
-      cylinder_layer.eyeVisibility = XR_EYE_VISIBILITY_RIGHT;
-      cylinder_layer.subImage.imageArrayIndex = 1;
       m_layers[m_layer_count++].cylinder = cylinder_layer;
     }
     else

@@ -139,7 +139,7 @@ bool StartRender()
   auto engine = s_module_base;
   if (!s_module_renderer->GetConfigInt(CONFIG_VIEWPORT_VALID))
   {
-    s_module_renderer->Init(engine, false);
+    s_module_renderer->Init(engine);
     s_module_renderer->SetConfigInt(CONFIG_VIEWPORT_VALID, true);
   }
 

@@ -10,7 +10,7 @@ namespace Common::VR
 class Framebuffer
 {
 public:
-  bool Create(XrSession session, int width, int height, bool multiview);
+  bool Create(XrSession session, int width, int height);
   void Destroy();
 
   int GetWidth() { return m_width; }
@@ -23,7 +23,7 @@ public:
 
 private:
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-  bool CreateGL(XrSession session, int width, int height, bool multiview);
+  bool CreateGL(XrSession session, int width, int height);
 #endif
 
   int m_width;

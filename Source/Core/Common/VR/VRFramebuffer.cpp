@@ -28,10 +28,10 @@
 
 namespace Common::VR
 {
-bool Framebuffer::Create(XrSession session, int width, int height, bool multiview)
+bool Framebuffer::Create(XrSession session, int width, int height)
 {
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-  return CreateGL(session, width, height, multiview);
+  return CreateGL(session, width, height);
 #else
   return false;
 #endif
@@ -86,14 +86,6 @@ void Framebuffer::Release()
 {
   if (m_acquired)
   {
-    // Clear the alpha channel, other way OpenXR would not transfer the framebuffer fully
-#if XR_USE_GRAPHICS_API_OPENGL_ES
-    GL(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE));
-    GL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-    GL(glClear(GL_COLOR_BUFFER_BIT));
-    GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
-#endif
-
     XrSwapchainImageReleaseInfo release_info = {XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO, NULL};
     OXR(xrReleaseSwapchainImage(m_handle, &release_info));
     m_acquired = false;
@@ -108,22 +100,8 @@ void Framebuffer::SetCurrent()
 }
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-bool Framebuffer::CreateGL(XrSession session, int width, int height, bool multiview)
+bool Framebuffer::CreateGL(XrSession session, int width, int height)
 {
-  if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_OVR_multiview2") == nullptr)
-  {
-    ERROR_LOG_FMT(VR, "OpenGL implementation does not support GL_OVR_multiview2 extension");
-  }
-
-  typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)(GLenum, GLenum, GLuint, GLint, GLint,
-                                                      GLsizei);
-  PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR glFramebufferTextureMultiviewOVR;
-  glFramebufferTextureMultiviewOVR =
-      (PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)eglGetProcAddress("glFramebufferTextureMultiviewOVR");
-  if (!glFramebufferTextureMultiviewOVR)
-  {
-    ERROR_LOG_FMT(VR, "Can not get proc address for glFramebufferTextureMultiviewOVR");
-  }
   XrSwapchainCreateInfo swapchain_info;
   memset(&swapchain_info, 0, sizeof(swapchain_info));
   swapchain_info.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
@@ -132,7 +110,7 @@ bool Framebuffer::CreateGL(XrSession session, int width, int height, bool multiv
   swapchain_info.height = height;
   swapchain_info.faceCount = 1;
   swapchain_info.mipCount = 1;
-  swapchain_info.arraySize = multiview ? 2 : 1;
+  swapchain_info.arraySize = 1;
 
   m_width = swapchain_info.width;
   m_height = swapchain_info.height;
@@ -160,51 +138,28 @@ bool Framebuffer::CreateGL(XrSession session, int width, int height, bool multiv
   {
     // Create color texture.
     GLuint color_texture = ((XrSwapchainImageOpenGLESKHR*)m_swapchain_image)[i].image;
-    GLenum color_texture_target = multiview ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
-    GL(glBindTexture(color_texture_target, color_texture));
-    GL(glTexParameteri(color_texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GL(glTexParameteri(color_texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GL(glTexParameteri(color_texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GL(glTexParameteri(color_texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    GL(glBindTexture(color_texture_target, 0));
+    GL(glBindTexture(GL_TEXTURE_2D, color_texture));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GL(glBindTexture(GL_TEXTURE_2D, 0));
 
     // Create depth buffer.
-    if (multiview)
-    {
-      GL(glGenTextures(1, &m_gl_depth_buffers[i]));
-      GL(glBindTexture(GL_TEXTURE_2D_ARRAY, m_gl_depth_buffers[i]));
-      GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH24_STENCIL8, width, height, 2));
-      GL(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
-    }
-    else
-    {
-      GL(glGenRenderbuffers(1, &m_gl_depth_buffers[i]));
-      GL(glBindRenderbuffer(GL_RENDERBUFFER, m_gl_depth_buffers[i]));
-      GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
-      GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-    }
+    GL(glGenRenderbuffers(1, &m_gl_depth_buffers[i]));
+    GL(glBindRenderbuffer(GL_RENDERBUFFER, m_gl_depth_buffers[i]));
+    GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
+    GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
     // Create the frame buffer.
     GL(glGenFramebuffers(1, &m_gl_frame_buffers[i]));
     GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_gl_frame_buffers[i]));
-    if (multiview)
-    {
-      GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                                          m_gl_depth_buffers[i], 0, 0, 2));
-      GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                          m_gl_depth_buffers[i], 0, 0, 2));
-      GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, color_texture,
-                                          0, 0, 2));
-    }
-    else
-    {
-      GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                                   m_gl_depth_buffers[i]));
-      GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
-                                   m_gl_depth_buffers[i]));
-      GL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                                color_texture, 0));
-    }
+    GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                                 m_gl_depth_buffers[i]));
+    GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
+                                 m_gl_depth_buffers[i]));
+    GL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                              color_texture, 0));
     GL(GLenum renderFramebufferStatus = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER));
     GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
     if (renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)

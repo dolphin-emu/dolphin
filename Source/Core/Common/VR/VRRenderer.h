@@ -46,7 +46,7 @@ class Renderer
 {
 public:
   void GetResolution(Base* engine, int* pWidth, int* pHeight);
-  void Init(Base* engine, bool multiview);
+  void Init(Base* engine);
   void Destroy();
 
   bool InitFrame(Base* engine);
@@ -82,7 +82,6 @@ private:
   XrViewConfigurationProperties m_viewport_config = {};
   XrViewConfigurationView m_view_config[MaxNumEyes] = {};
   Framebuffer m_framebuffer[MaxNumEyes] = {};
-  bool m_multiview = false;
 
   XrFovf m_fov;
   XrView* m_projections;
