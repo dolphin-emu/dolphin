@@ -275,14 +275,6 @@ void ProcessorInterfaceManager::ResetButton_Tap_FromUser()
     ResetButton_Tap();
 }
 
-void ProcessorInterfaceManager::ResetButton_Tap_FromUser()
-{
-  if (NetPlay::IsNetPlayRunning())
-    NetPlay::ScheduleResetButtonTap();
-  else
-    ResetButton_Tap();
-}
-
 void ProcessorInterfaceManager::PowerButton_Tap()
 {
   if (!Core::IsRunning())
