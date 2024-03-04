@@ -211,59 +211,47 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
-  const u32 data_size = sizeof(T);
   std::vector<Cheats::SearchResult<T>> results;
-  Cheats::SearchErrorCode error_code = Cheats::SearchErrorCode::Success;
-  Core::RunAsCPUThread([&] {
-    const Core::State core_state = Core::GetState();
-    if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    {
-      error_code = Cheats::SearchErrorCode::NoEmulationActive;
-      return;
-    }
+  const Core::State core_state = Core::GetState();
+  if (core_state != Core::State::Running && core_state != Core::State::Paused)
+    return Cheats::SearchErrorCode::NoEmulationActive;
 
-    const auto& ppc_state = guard.GetSystem().GetPPCState();
-    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    {
-      error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
-      return;
-    }
+  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
+    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
-    for (const Cheats::MemoryRange& range : memory_ranges)
+  for (const Cheats::MemoryRange& range : memory_ranges)
+  {
+    if (range.m_length < sizeof(T))
+      continue;
+
+    const u32 increment_per_loop = aligned ? sizeof(T) : 1;
+    const u32 start_address = aligned ? Common::AlignUp(range.m_start, sizeof(T)) : range.m_start;
+    const u64 aligned_length = range.m_length - (start_address - range.m_start);
+
+    if (aligned_length < sizeof(T))
+      continue;
+
+    const u64 length = aligned_length - (sizeof(T) - 1);
+    for (u64 i = 0; i < length; i += increment_per_loop)
     {
-      if (range.m_length < data_size)
+      const u32 addr = start_address + i;
+      const auto current_value = TryReadValueFromEmulatedMemory<T>(guard, addr, address_space);
+      if (!current_value)
         continue;
 
-      const u32 increment_per_loop = aligned ? data_size : 1;
-      const u32 start_address = aligned ? Common::AlignUp(range.m_start, data_size) : range.m_start;
-      const u64 aligned_length = range.m_length - (start_address - range.m_start);
-
-      if (aligned_length < data_size)
-        continue;
-
-      const u64 length = aligned_length - (data_size - 1);
-      for (u64 i = 0; i < length; i += increment_per_loop)
+      if (validator(current_value->value))
       {
-        const u32 addr = start_address + i;
-        const auto current_value = TryReadValueFromEmulatedMemory<T>(guard, addr, address_space);
-        if (!current_value)
-          continue;
-
-        if (validator(current_value->value))
-        {
-          auto& r = results.emplace_back();
-          r.m_value = current_value->value;
-          r.m_value_state = current_value->translated ?
-                                Cheats::SearchResultValueState::ValueFromVirtualMemory :
-                                Cheats::SearchResultValueState::ValueFromPhysicalMemory;
-          r.m_address = addr;
-        }
+        auto& r = results.emplace_back();
+        r.m_value = current_value->value;
+        r.m_value_state = current_value->translated ?
+                              Cheats::SearchResultValueState::ValueFromVirtualMemory :
+                              Cheats::SearchResultValueState::ValueFromPhysicalMemory;
+        r.m_address = addr;
       }
     }
-  });
-  if (error_code == Cheats::SearchErrorCode::Success)
-    return results;
-  return error_code;
+  }
+  return results;
 }
 
 template <typename T>
@@ -278,51 +266,39 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
   std::vector<Cheats::SearchResult<T>> results;
-  Cheats::SearchErrorCode error_code = Cheats::SearchErrorCode::Success;
-  Core::RunAsCPUThread([&] {
-    const Core::State core_state = Core::GetState();
-    if (core_state != Core::State::Running && core_state != Core::State::Paused)
+  const Core::State core_state = Core::GetState();
+  if (core_state != Core::State::Running && core_state != Core::State::Paused)
+    return Cheats::SearchErrorCode::NoEmulationActive;
+
+  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
+    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
+
+  for (const auto& previous_result : previous_results)
+  {
+    const u32 addr = previous_result.m_address;
+    const auto current_value = TryReadValueFromEmulatedMemory<T>(guard, addr, address_space);
+    if (!current_value)
     {
-      error_code = Cheats::SearchErrorCode::NoEmulationActive;
-      return;
+      auto& r = results.emplace_back();
+      r.m_address = addr;
+      r.m_value_state = Cheats::SearchResultValueState::AddressNotAccessible;
+      continue;
     }
 
-    const auto& ppc_state = guard.GetSystem().GetPPCState();
-    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
+    // if the previous state was invalid we always update the value to avoid getting stuck in an
+    // invalid state
+    if (!previous_result.IsValueValid() || validator(current_value->value, previous_result.m_value))
     {
-      error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
-      return;
+      auto& r = results.emplace_back();
+      r.m_value = current_value->value;
+      r.m_value_state = current_value->translated ?
+                            Cheats::SearchResultValueState::ValueFromVirtualMemory :
+                            Cheats::SearchResultValueState::ValueFromPhysicalMemory;
+      r.m_address = addr;
     }
-
-    for (const auto& previous_result : previous_results)
-    {
-      const u32 addr = previous_result.m_address;
-      const auto current_value = TryReadValueFromEmulatedMemory<T>(guard, addr, address_space);
-      if (!current_value)
-      {
-        auto& r = results.emplace_back();
-        r.m_address = addr;
-        r.m_value_state = Cheats::SearchResultValueState::AddressNotAccessible;
-        continue;
-      }
-
-      // if the previous state was invalid we always update the value to avoid getting stuck in an
-      // invalid state
-      if (!previous_result.IsValueValid() ||
-          validator(current_value->value, previous_result.m_value))
-      {
-        auto& r = results.emplace_back();
-        r.m_value = current_value->value;
-        r.m_value_state = current_value->translated ?
-                              Cheats::SearchResultValueState::ValueFromVirtualMemory :
-                              Cheats::SearchResultValueState::ValueFromPhysicalMemory;
-        r.m_address = addr;
-      }
-    }
-  });
-  if (error_code == Cheats::SearchErrorCode::Success)
-    return results;
-  return error_code;
+  }
+  return results;
 }
 
 Cheats::CheatSearchSessionBase::~CheatSearchSessionBase() = default;

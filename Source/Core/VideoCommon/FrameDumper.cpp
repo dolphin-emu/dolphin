@@ -27,7 +27,8 @@ static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)
 
 FrameDumper::FrameDumper()
 {
-  m_frame_end_handle = AfterFrameEvent::Register([this] { FlushFrameDump(); }, "FrameDumper");
+  m_frame_end_handle =
+      AfterFrameEvent::Register([this](Core::System&) { FlushFrameDump(); }, "FrameDumper");
 }
 
 FrameDumper::~FrameDumper()

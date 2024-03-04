@@ -64,10 +64,8 @@ bool g_needs_cp_xf_consistency_check;
 void Init()
 {
   MarkAllDirty();
-  for (auto& map_entry : g_main_vertex_loaders)
-    map_entry = nullptr;
-  for (auto& map_entry : g_preprocess_vertex_loaders)
-    map_entry = nullptr;
+  g_main_vertex_loaders.fill(nullptr);
+  g_preprocess_vertex_loaders.fill(nullptr);
   SETSTAT(g_stats.num_vertex_loaders, 0);
 }
 
@@ -117,16 +115,6 @@ void UpdateVertexArrayPointers()
 
   g_bases_dirty = false;
 }
-
-namespace
-{
-struct entry
-{
-  std::string text;
-  u64 num_verts;
-  bool operator<(const entry& other) const { return num_verts > other.num_verts; }
-};
-}  // namespace
 
 void MarkAllDirty()
 {

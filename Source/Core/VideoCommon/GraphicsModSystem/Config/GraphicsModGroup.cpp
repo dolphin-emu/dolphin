@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 
+#include <picojson.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -83,7 +85,7 @@ void GraphicsModGroupConfig::Load()
 
           auto mod_full_path = graphics_mod->GetAbsolutePath();
           known_paths.insert(std::move(mod_full_path));
-          m_graphics_mods.push_back(*graphics_mod);
+          m_graphics_mods.push_back(std::move(*graphics_mod));
         }
       }
     }
@@ -93,15 +95,11 @@ void GraphicsModGroupConfig::Load()
                                                 GraphicsModConfig::Source source) {
     auto file = dir + DIR_SEP + "metadata.json";
     UnifyPathSeparators(file);
-    if (known_paths.find(file) != known_paths.end())
-    {
+    if (known_paths.contains(file))
       return;
-    }
-    const auto mod = GraphicsModConfig::Create(file, source);
-    if (mod)
-    {
-      m_graphics_mods.push_back(*mod);
-    }
+
+    if (auto mod = GraphicsModConfig::Create(file, source))
+      m_graphics_mods.push_back(std::move(*mod));
   };
 
   const std::set<std::string> graphics_mod_user_directories =
@@ -174,7 +172,7 @@ std::vector<GraphicsModConfig>& GraphicsModGroupConfig::GetMods()
   return m_graphics_mods;
 }
 
-GraphicsModConfig* GraphicsModGroupConfig::GetMod(const std::string& absolute_path) const
+GraphicsModConfig* GraphicsModGroupConfig::GetMod(std::string_view absolute_path) const
 {
   if (const auto iter = m_path_to_graphics_mod.find(absolute_path);
       iter != m_path_to_graphics_mod.end())

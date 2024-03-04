@@ -301,9 +301,7 @@ void CheatSearchWidget::OnNextScanClicked()
     }
   }
 
-  const Cheats::SearchErrorCode error_code = [this, &guard] {
-    return m_session->RunSearch(guard);
-  }();
+  const Cheats::SearchErrorCode error_code = m_session->RunSearch(guard);
 
   if (error_code == Cheats::SearchErrorCode::Success)
   {

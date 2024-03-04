@@ -14,7 +14,6 @@
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
@@ -118,9 +117,11 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
-  m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame(); }, "VertexManagerBase");
+  m_frame_end_event =
+      AfterFrameEvent::Register([this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
   m_after_present_event = AfterPresentEvent::Register(
-      [this](PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; }, "VertexManagerBase");
+      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; },
+      "VertexManagerBase");
   m_index_generator.Init();
   m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
@@ -511,7 +512,8 @@ void VertexManagerBase::Flush()
 #endif
 
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
-  if (!SConfig::GetInstance().bWii)
+  auto& system = Core::System::GetInstance();
+  if (!system.IsWii())
   {
     const bool is_perspective = xfmem.projection.type == ProjectionType::Perspective;
 
@@ -538,7 +540,6 @@ void VertexManagerBase::Flush()
     }
   }
 
-  auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();

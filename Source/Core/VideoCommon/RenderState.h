@@ -220,17 +220,14 @@ struct SamplerState
   TM1 tm1;
 };
 
-namespace std
-{
 template <>
-struct hash<SamplerState>
+struct std::hash<SamplerState>
 {
-  std::size_t operator()(SamplerState const& state) const noexcept
+  std::size_t operator()(const SamplerState& state) const noexcept
   {
     return std::hash<u64>{}(state.Hex());
   }
 };
-}  // namespace std
 
 namespace RenderState
 {

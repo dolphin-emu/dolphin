@@ -64,8 +64,9 @@ void Interpreter::UpdatePC()
   m_ppc_state.pc = m_ppc_state.npc;
 }
 
-Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu)
-    : m_system(system), m_ppc_state(ppc_state), m_mmu(mmu)
+Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu,
+                         Core::BranchWatch& branch_watch)
+    : m_system(system), m_ppc_state(ppc_state), m_mmu(mmu), m_branch_watch(branch_watch)
 {
 }
 

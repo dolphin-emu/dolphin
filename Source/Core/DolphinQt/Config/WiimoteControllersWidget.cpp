@@ -28,6 +28,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "Core/WiiUtils.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -208,7 +209,7 @@ void WiimoteControllersWidget::ConnectWidgets()
 
 void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = Core::System::GetInstance().GetIOS();
 
   if (!ios)
   {
@@ -225,7 +226,7 @@ void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
 
 void WiimoteControllersWidget::OnBluetoothPassthroughSyncPressed()
 {
-  const auto ios = IOS::HLE::GetIOS();
+  const auto ios = Core::System::GetInstance().GetIOS();
 
   if (!ios)
   {
@@ -295,7 +296,7 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   m_wiimote_emu->setEnabled(!running);
   m_wiimote_passthrough->setEnabled(!running);
 
-  const bool running_gc = running && !SConfig::GetInstance().bWii;
+  const bool running_gc = running && !Core::System::GetInstance().IsWii();
   const bool enable_passthrough = m_wiimote_passthrough->isChecked() && !running_gc;
   const bool enable_emu_bt = !m_wiimote_passthrough->isChecked() && !running_gc;
   const bool is_netplay = NetPlay::IsNetPlayRunning();

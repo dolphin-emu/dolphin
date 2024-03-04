@@ -54,7 +54,6 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
@@ -102,9 +101,9 @@ void SystemTimersManager::AudioDMACallback(Core::System& system, u64 userdata, s
 void SystemTimersManager::IPC_HLE_UpdateCallback(Core::System& system, u64 userdata,
                                                  s64 cycles_late)
 {
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
   {
-    IOS::HLE::GetIOS()->UpdateDevices();
+    system.GetIOS()->UpdateDevices();
     auto& system_timers = system.GetSystemTimers();
     system.GetCoreTiming().ScheduleEvent(system_timers.m_ipc_hle_period - cycles_late,
                                          system_timers.m_event_type_ipc_hle);
@@ -241,7 +240,7 @@ double SystemTimersManager::GetEstimatedEmulationPerformance() const
 // SystemTimers::Init
 void SystemTimersManager::PreInit()
 {
-  ChangePPCClock(SConfig::GetInstance().bWii ? Mode::Wii : Mode::GC);
+  ChangePPCClock(m_system.IsWii() ? Mode::Wii : Mode::GC);
 }
 
 void SystemTimersManager::ChangePPCClock(Mode mode)
@@ -256,7 +255,7 @@ void SystemTimersManager::ChangePPCClock(Mode mode)
 
 void SystemTimersManager::Init()
 {
-  if (SConfig::GetInstance().bWii)
+  if (m_system.IsWii())
   {
     // AyuanX: TO BE TWEAKED
     // Now the 1500 is a pure assumption
@@ -306,7 +305,7 @@ void SystemTimersManager::Init()
 
   core_timing.ScheduleEvent(vi.GetTicksPerField(), m_event_type_patch_engine);
 
-  if (SConfig::GetInstance().bWii)
+  if (m_system.IsWii())
     core_timing.ScheduleEvent(m_ipc_hle_period, m_event_type_ipc_hle);
 }
 

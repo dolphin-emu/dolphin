@@ -46,7 +46,6 @@
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI.h"
@@ -437,7 +436,7 @@ void GameList::ShowContextMenu(const QPoint&)
                                                     // system menu, trigger a refresh.
                                                     Settings::Instance().NANDRefresh();
                                                   });
-      perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+      perform_disc_update->setEnabled(!Core::IsRunning() || !Core::System::GetInstance().IsWii());
     }
 
     if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)

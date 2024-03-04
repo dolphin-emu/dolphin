@@ -352,6 +352,6 @@ u32 AudioInterfaceManager::Get32KHzSampleRateDivisor() const
 
 u32 AudioInterfaceManager::Get48KHzSampleRateDivisor() const
 {
-  return (SConfig::GetInstance().bWii ? 1125 : 1124) * 2;
+  return (m_system.IsWii() ? 1125 : 1124) * 2;
 }
 }  // namespace AudioInterface

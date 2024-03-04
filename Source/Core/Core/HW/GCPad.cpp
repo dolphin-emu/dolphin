@@ -14,7 +14,7 @@
 
 namespace Pad
 {
-static InputConfig s_config("GCPadNew", _trans("Pad"), "GCPad");
+static InputConfig s_config("GCPadNew", _trans("Pad"), "GCPad", "Pad");
 InputConfig* GetConfig()
 {
   return &s_config;
@@ -38,12 +38,12 @@ void Initialize()
   s_config.RegisterHotplugCallback();
 
   // Load the saved controller config
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+  s_config.LoadConfig();
 }
 
 void LoadConfig()
 {
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+  s_config.LoadConfig();
 }
 
 bool IsInitialized()

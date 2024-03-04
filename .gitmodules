@@ -72,3 +72,9 @@
 [submodule "Externals/enet/enet"]
 	path = Externals/enet/enet
 	url = https://github.com/lsalzman/enet.git
+[submodule "hidapi-src"]
+	path = Externals/hidapi/hidapi-src
+	url = https://github.com/libusb/hidapi
+[submodule "Externals/tinygltf/tinygltf"]
+	path = Externals/tinygltf/tinygltf
+	url = https://github.com/syoyo/tinygltf.git

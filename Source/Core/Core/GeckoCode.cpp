@@ -16,7 +16,6 @@
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -136,7 +135,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   }
 
   u8 mmio_addr = 0xCC;
-  if (SConfig::GetInstance().bWii)
+  if (guard.GetSystem().IsWii())
   {
     mmio_addr = 0xCD;
   }
