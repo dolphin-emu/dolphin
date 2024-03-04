@@ -11,18 +11,18 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: macos-11
+    runs-on: macos-12
  
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
     # Submoudle
-    - name: Checkout Submodles
+    - name: Checkout Submodules
       run: git submodule update --init --recursive
     # Setup Packages
     - name: Setup Packages
-      run: brew install qt6 molten-vk p7zip pkgconfig
+      run: brew install qt6 molten-vk p7zip pkgconfig cmake
     # Setup CMake
     - name: Setup CMake
       uses: Symbitic/install-cmake@v0.1.1
