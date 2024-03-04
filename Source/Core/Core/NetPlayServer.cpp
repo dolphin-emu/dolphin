@@ -1264,7 +1264,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     // executing the sync function, because one of them may be waiting for controller input while
     // another is waiting for the event timepoint sync.
     const u64 target_timepoint =
-        static_cast<u64>(core_timing.GetGlobals().global_timer) + SystemTimers::GetTicksPerSecond();
+        static_cast<u64>(core_timing.GetGlobals().global_timer) + Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond();
     spac << sf::Uint64(target_timepoint);
     SendToClients(spac);
   }
