@@ -214,8 +214,6 @@ public:
 
   static SyncIdentifier GetSDCardIdentifier();
 
-  void OnFrameEnd();
-
 protected:
   struct AsyncQueueEntry
   {
@@ -402,6 +400,4 @@ bool NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataBatchEntry
 unsigned int NetPlay_GetLocalWiimoteForSlot(unsigned int slot);
 
 void NetPlay_RegisterEvents();
-void OnFrameEnd();
-
 }  // namespace NetPlay
