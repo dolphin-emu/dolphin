@@ -563,6 +563,9 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   HW::Init(system,
            NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
 
+  if (NetPlay::IsNetPlayRunning())
+    NetPlay::NetPlay_RegisterEvents();
+
   Common::ScopeGuard hw_guard{[&system] {
     // We must set up this flag before executing HW::Shutdown()
     s_hardware_initialized = false;

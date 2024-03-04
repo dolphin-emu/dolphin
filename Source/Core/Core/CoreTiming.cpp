@@ -212,6 +212,9 @@ void CoreTimingManager::DoState(PointerWrap& p)
     // The stave state has changed the time, so our previous Throttle targets are invalid.
     // Especially when global_time goes down; So we create a fake throttle update.
     ResetThrottle(m_globals.global_timer);
+
+    // Throw away pending external events when loading state, they no longer apply.
+    m_external_event_queue.clear();
   }
 }
 
@@ -282,6 +285,24 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
   }
 }
 
+void CoreTimingManager::ScheduleExternalEvent(u64 timepoint, EventType* event_type, u64 userdata,
+                                              u64 unique_id)
+{
+  if (Core::IsCPUThread())
+  {
+    m_external_event_queue.emplace_back(
+        Event{static_cast<s64>(timepoint), unique_id, userdata, event_type});
+    std::push_heap(m_external_event_queue.begin(), m_external_event_queue.end(),
+                   std::greater<Event>());
+  }
+  else
+  {
+    std::lock_guard lk(m_ts_write_lock);
+    m_external_pending_queue.Push(
+        Event{static_cast<s64>(timepoint), unique_id, userdata, event_type});
+  }
+}
+
 void CoreTimingManager::RemoveEvent(EventType* event_type)
 {
   auto itr = std::remove_if(m_event_queue.begin(), m_event_queue.end(),
@@ -322,6 +343,13 @@ void CoreTimingManager::MoveEvents()
     m_event_queue.emplace_back(std::move(ev));
     std::push_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
   }
+
+  for (Event ev; m_external_pending_queue.Pop(ev);)
+  {
+    m_external_event_queue.emplace_back(std::move(ev));
+    std::push_heap(m_external_event_queue.begin(), m_external_event_queue.end(),
+                   std::greater<Event>());
+  }
 }
 
 void CoreTimingManager::Advance()
@@ -348,6 +376,16 @@ void CoreTimingManager::Advance()
     m_event_queue.pop_back();
 
     Throttle(evt.time);
+    evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
+  }
+
+  while (!m_external_event_queue.empty() &&
+         m_external_event_queue.front().time <= m_globals.global_timer)
+  {
+    Event evt = std::move(m_external_event_queue.front());
+    std::pop_heap(m_external_event_queue.begin(), m_external_event_queue.end(),
+                  std::greater<Event>());
+    m_external_event_queue.pop_back();
     evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
