@@ -848,13 +848,14 @@ AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* va
         achievement_id);
     return ResponseType::INVALID_REQUEST;
   }
-  int result = rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
-  if (result == 0)
+  auto it = m_unlock_map.find(achievement_id);
+  if (it == m_unlock_map.end())
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to get measured data for achievement ID {}.",
-                 achievement_id);
-    return ResponseType::MALFORMED_OBJECT;
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to find achievement with ID {}.", achievement_id);
+    return ResponseType::INVALID_REQUEST;
   }
+  *value = it->second.measured_value;
+  *target = it->second.measured_target;
   return ResponseType::SUCCESS;
 }
 
@@ -1301,7 +1302,7 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
     ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted to unlock unknown achievement id {}.", id);
     return;
   }
-  const UnlockStatus& status = it->second;
+  UnlockStatus& status = it->second;
   u32 index = status.game_data_index;
   bool active = (rc_runtime_get_achievement(&m_runtime, id) != nullptr);
   bool hardcore_mode_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
@@ -1337,6 +1338,11 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
   {
     rc_runtime_activate_achievement(&m_runtime, id, m_game_data.achievements[index].definition,
                                     nullptr, 0);
+    if (rc_runtime_get_achievement_measured(&m_runtime, id, &status.measured_value,
+                                            &status.measured_target) == 0)
+    {
+      WARN_LOG_FMT(ACHIEVEMENTS, "Failed to get measured data for achievement ID {}.", id);
+    }
   }
   if (active && !activate)
     rc_runtime_deactivate_achievement(&m_runtime, id);
@@ -1511,6 +1517,13 @@ void AchievementManager::HandleAchievementProgressUpdatedEvent(
                   runtime_event->id);
     return;
   }
+  if (rc_runtime_get_achievement_measured(&m_runtime, runtime_event->id, &it->second.measured_value,
+                                          &it->second.measured_target) == 0)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to get measured data for achievement ID {}.",
+                 runtime_event->id);
+  }
+  m_update_callback();
   AchievementId game_data_index = it->second.game_data_index;
   FormattedValue value{};
   if (rc_runtime_format_achievement_measured(&m_runtime, runtime_event->id, value.data(),
