@@ -49,14 +49,13 @@ const char UPDATER_LOG_FILE[] = "Updater.log";
 
 std::string UpdaterPath(bool relocated = false)
 {
-  std::string path(File::GetExeDirectory() + DIR_SEP);
 #ifdef __APPLE__
   if (relocated)
-    path += ".Dolphin Updater.2.app";
+    return fmt::format("{}/Dolphin Updater.app", File::GetTempDir());
   else
-    path += "Dolphin Updater.app";
-  return path;
+    return fmt::format("{}/Contents/Helpers/Dolphin Updater.app", File::GetBundleDirectory());
 #else
+  std::string path(File::GetExeDirectory() + DIR_SEP);
   return path + "Updater.exe";
 #endif
 }
@@ -271,7 +270,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
 #ifdef __APPLE__
   // Copy the updater so it can update itself if needed.
   const std::string reloc_updater_path = UpdaterPath(true);
-  if (!File::Copy(UpdaterPath(), reloc_updater_path))
+  if (!File::Copy(UpdaterPath(), reloc_updater_path, true))
   {
     CriticalAlertFmtT("Unable to create updater copy.");
     return;

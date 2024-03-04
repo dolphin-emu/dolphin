@@ -7,7 +7,7 @@ add_executable(winupdater WIN32
   ${MANIFEST_FILE})
 
 target_link_libraries(winupdater PRIVATE
-  uicommon
+  common
   updatercommon
   Comctl32
 )

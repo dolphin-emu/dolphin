@@ -638,13 +638,21 @@ bool SetCurrentDir(const std::string& directory)
   return true;
 }
 
-std::string CreateTempDir()
-{
+std::string GetTempDir() {
 #ifdef _WIN32
   TCHAR temp[MAX_PATH];
   if (!GetTempPath(MAX_PATH, temp))
     return "";
+  return TStrToUTF8(temp);
+#else
+  return getenv("TMPDIR") ?: "/tmp";
+#endif
+}
 
+std::string CreateTempDir()
+{
+  std::string temp = GetTempDir();
+#ifdef _WIN32
   GUID guid;
   if (FAILED(CoCreateGuid(&guid)))
   {
@@ -655,14 +663,13 @@ std::string CreateTempDir()
   {
     return "";
   }
-  std::string dir = TStrToUTF8(temp) + "/" + TStrToUTF8(tguid);
+  std::string dir = temp + "/" + TStrToUTF8(tguid);
   if (!CreateDir(dir))
     return "";
   dir = ReplaceAll(dir, "\\", DIR_SEP);
   return dir;
 #else
-  const char* base = getenv("TMPDIR") ?: "/tmp";
-  std::string path = std::string(base) + "/DolphinWii.XXXXXX";
+  std::string path = temp + "/DolphinWii.XXXXXX";
   if (!mkdtemp(&path[0]))
     return "";
   return path;
