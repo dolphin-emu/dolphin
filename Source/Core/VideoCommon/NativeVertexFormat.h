@@ -79,14 +79,12 @@ struct PortableVertexDeclaration
 static_assert(std::is_trivially_copyable_v<PortableVertexDeclaration>,
               "Make sure we can memset-initialize");
 
-namespace std
-{
 template <>
-struct hash<PortableVertexDeclaration>
+struct std::hash<PortableVertexDeclaration>
 {
   // Implementation from Wikipedia.
   template <typename T>
-  u32 Fletcher32(const T& data) const
+  static u32 Fletcher32(const T& data)
   {
     static_assert(sizeof(T) % sizeof(u16) == 0);
 
@@ -114,9 +112,11 @@ struct hash<PortableVertexDeclaration>
     sum2 = (sum2 & 0xffff) + (sum2 >> 16);
     return (sum2 << 16 | sum1);
   }
-  size_t operator()(const PortableVertexDeclaration& decl) const { return Fletcher32(decl); }
+  size_t operator()(const PortableVertexDeclaration& decl) const noexcept
+  {
+    return Fletcher32(decl);
+  }
 };
-}  // namespace std
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective backend, not here in VideoCommon.

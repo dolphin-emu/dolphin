@@ -17,15 +17,17 @@ namespace
 {
 bool IsQualifier(std::string_view value)
 {
-  static std::array<std::string_view, 7> qualifiers = {"attribute", "const",   "highp",  "lowp",
-                                                       "mediump",   "uniform", "varying"};
+  static constexpr std::array<std::string_view, 7> qualifiers = {
+      "attribute", "const", "highp", "lowp", "mediump", "uniform", "varying",
+  };
   return std::find(qualifiers.begin(), qualifiers.end(), value) != qualifiers.end();
 }
 
 bool IsBuiltInMacro(std::string_view value)
 {
-  static std::array<std::string_view, 5> built_in = {"__LINE__", "__FILE__", "__VERSION__",
-                                                     "GL_core_profile", "GL_compatibility_profile"};
+  static constexpr std::array<std::string_view, 5> built_in = {
+      "__LINE__", "__FILE__", "__VERSION__", "GL_core_profile", "GL_compatibility_profile",
+  };
   return std::find(built_in.begin(), built_in.end(), value) != built_in.end();
 }
 
@@ -101,7 +103,7 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
         {
           i++;
         }
-        global_result.push_back(std::string{parse_identifier()});
+        global_result.emplace_back(parse_identifier());
         parse_until_end_of_preprocessor();
       }
       else
@@ -121,11 +123,11 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
 
       // Since we handle equality, we can assume the identifier
       // before '(' is a function definition
-      global_result.push_back(std::string{last_identifier});
+      global_result.emplace_back(last_identifier);
     }
     else if (source[i] == '=')
     {
-      global_result.push_back(std::string{last_identifier});
+      global_result.emplace_back(last_identifier);
       i++;
       for (; i < source.size(); i++)
       {
@@ -197,8 +199,7 @@ void CustomPipeline::UpdatePixelData(
     {
       max_material_data_size += VideoCommon::MaterialProperty::GetMemorySize(property);
       VideoCommon::MaterialProperty::WriteAsShaderCode(m_last_generated_material_code, property);
-      if (auto* texture_asset_id =
-              std::get_if<VideoCommon::CustomAssetLibrary::AssetID>(&property.m_value))
+      if (std::holds_alternative<VideoCommon::CustomAssetLibrary::AssetID>(property.m_value))
       {
         texture_count++;
       }

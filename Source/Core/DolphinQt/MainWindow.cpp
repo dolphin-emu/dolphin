@@ -45,8 +45,8 @@
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Config/UISettings.h"
 #include "Core/Config/WiimoteSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -1511,18 +1511,24 @@ void MainWindow::ShowInfinityBase()
 
 void MainWindow::StateLoad()
 {
-  QString path =
-      DolphinFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
-                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString dialog_path = (Config::Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
+                            QDir::currentPath() :
+                            QString::fromStdString(Config::Get(Config::MAIN_CURRENT_STATE_PATH));
+  QString path = DolphinFileDialog::getOpenFileName(
+      this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
+  Config::SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
     State::LoadAs(path.toStdString());
 }
 
 void MainWindow::StateSave()
 {
-  QString path =
-      DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString dialog_path = (Config::Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
+                            QDir::currentPath() :
+                            QString::fromStdString(Config::Get(Config::MAIN_CURRENT_STATE_PATH));
+  QString path = DolphinFileDialog::getSaveFileName(
+      this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
+  Config::SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
     State::SaveAs(path.toStdString());
 }
@@ -2077,7 +2083,7 @@ void MainWindow::ShowTASInput()
   for (int i = 0; i < num_wii_controllers; i++)
   {
     if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
-        (!Core::IsRunning() || SConfig::GetInstance().bWii))
+        (!Core::IsRunning() || Core::System::GetInstance().IsWii()))
     {
       SetQWidgetWindowDecorations(m_wii_tas_input_windows[i]);
       m_wii_tas_input_windows[i]->show();

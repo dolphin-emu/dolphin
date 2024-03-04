@@ -29,6 +29,7 @@
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
+#include "Common/TimeUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
@@ -139,7 +140,9 @@ void EnableCompression(bool compression)
 
 static void DoState(PointerWrap& p)
 {
-  bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
+  auto& system = Core::System::GetInstance();
+
+  bool is_wii = system.IsWii() || system.IsMIOS();
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
@@ -152,7 +155,6 @@ static void DoState(PointerWrap& p)
   }
 
   // Check to make sure the emulated memory sizes are the same as the savestate
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   u32 state_mem1_size = memory.GetRamSizeReal();
   u32 state_mem2_size = memory.GetExRamSizeReal();
@@ -193,7 +195,7 @@ static void DoState(PointerWrap& p)
   system.GetPowerPC().DoState(p);
   p.DoMarker("PowerPC");
 
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
     Wiimote::DoState(p);
   p.DoMarker("Wiimote");
   Gecko::DoState(p);
@@ -281,10 +283,12 @@ static std::string SystemTimeAsDoubleToString(double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
   const time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
-  const tm local_time = fmt::localtime(seconds);
+  const auto local_time = Common::Localtime(seconds);
+  if (!local_time)
+    return "";
 
   // fmt is locale agnostic by default, so explicitly use current locale.
-  return fmt::format(std::locale{""}, "{:%x %X}", local_time);
+  return fmt::format(std::locale{""}, "{:%x %X}", *local_time);
 }
 
 static std::string MakeStateFilename(int number);

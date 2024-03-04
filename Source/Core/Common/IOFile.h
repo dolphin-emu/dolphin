@@ -116,7 +116,8 @@ public:
   void ClearError()
   {
     m_good = true;
-    std::clearerr(m_file);
+    if (IsOpen())
+      std::clearerr(m_file);
   }
 
 private:

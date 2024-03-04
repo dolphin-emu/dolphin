@@ -315,6 +315,16 @@ protected:
   void MSRUpdated(u32 msr);
   void MSRUpdated(Arm64Gen::ARM64Reg msr);
 
+  // Branch Watch
+  template <bool condition>
+  void WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst,
+                        Arm64Gen::ARM64Reg reg_a, Arm64Gen::ARM64Reg reg_b,
+                        BitSet32 gpr_caller_save, BitSet32 fpr_caller_save);
+  void WriteBranchWatchDestInRegister(u32 origin, Arm64Gen::ARM64Reg destination,
+                                      UGeckoInstruction inst, Arm64Gen::ARM64Reg reg_a,
+                                      Arm64Gen::ARM64Reg reg_b, BitSet32 gpr_caller_save,
+                                      BitSet32 fpr_caller_save);
+
   // Exits
   void
   WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0,

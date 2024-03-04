@@ -24,6 +24,8 @@
 #include "Common/HttpRequest.h"
 #include "Common/StringUtil.h"
 
+#include "Core/System.h"
+
 #endif
 
 namespace Discord
@@ -98,7 +100,7 @@ void HandleDiscordJoin(const char* join_secret)
 std::string ArtworkForGameId()
 {
   const DiscIO::Region region = SConfig::GetInstance().m_region;
-  const bool is_wii = SConfig::GetInstance().bWii;
+  const bool is_wii = Core::System::GetInstance().IsWii();
   const std::string region_code = SConfig::GetInstance().GetGameTDBImageRegionCode(is_wii, region);
 
   static constexpr char cover_url[] = "https://discord.dolphin-emu.org/cover-art/{}/{}.png";

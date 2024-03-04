@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AddressSpace.h"
@@ -54,7 +53,7 @@ void Init(Core::System& system, const Sram* override_sram)
   system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
   system.GetSystemTimers().Init();
 
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
   {
     system.GetWiiIPC().Init();
     IOS::HLE::Init(system);  // Depends on Memory
@@ -63,8 +62,8 @@ void Init(Core::System& system, const Sram* override_sram)
 
 void Shutdown(Core::System& system)
 {
-  // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
-  IOS::HLE::Shutdown();  // Depends on Memory
+  // IOS should always be shut down regardless of IsWii because it can be running in GC mode (MIOS).
+  IOS::HLE::Shutdown(system);  // Depends on Memory
   system.GetWiiIPC().Shutdown();
 
   system.GetSystemTimers().Shutdown();
@@ -108,11 +107,11 @@ void DoState(Core::System& system, PointerWrap& p)
   system.GetHSP().DoState(p);
   p.DoMarker("HSP");
 
-  if (SConfig::GetInstance().bWii)
+  if (system.IsWii())
   {
     system.GetWiiIPC().DoState(p);
     p.DoMarker("IOS");
-    IOS::HLE::GetIOS()->DoState(p);
+    system.GetIOS()->DoState(p);
     p.DoMarker("IOS::HLE");
   }
 

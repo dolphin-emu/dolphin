@@ -20,7 +20,6 @@
 
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
@@ -168,7 +167,7 @@ void PowerPCManager::ResetRegisters()
   // 0x00083214 = gekko 2.4e (8SE) - retail HW2
   // Wii:
   // 0x00087102 = broadway retail hw
-  if (SConfig::GetInstance().bWii)
+  if (m_system.IsWii())
   {
     m_ppc_state.spr[SPR_PVR] = 0x00087102;
   }

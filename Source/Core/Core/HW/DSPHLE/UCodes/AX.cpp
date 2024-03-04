@@ -27,9 +27,15 @@
 
 namespace DSP::HLE
 {
-AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+AXUCode::AXUCode(DSPHLE* dsphle, u32 crc, bool dummy) : UCodeInterface(dsphle, crc)
+{
+}
+
+AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc, false)
 {
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
+
+  m_accelerator = std::make_unique<HLEAccelerator>(dsphle->GetSystem().GetDSP());
 }
 
 AXUCode::~AXUCode() = default;
@@ -37,8 +43,6 @@ AXUCode::~AXUCode() = default;
 void AXUCode::Initialize()
 {
   InitializeShared();
-
-  m_accelerator = std::make_unique<HLEAccelerator>(m_dsphle->GetSystem().GetDSP());
 }
 
 void AXUCode::InitializeShared()

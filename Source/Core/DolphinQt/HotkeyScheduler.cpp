@@ -23,7 +23,6 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/Host.h"
@@ -266,7 +265,7 @@ void HotkeyScheduler::Run()
 
       // TODO: HK_MBP_ADD
 
-      if (SConfig::GetInstance().bWii)
+      if (Core::System::GetInstance().IsWii())
       {
         int wiimote_id = -1;
         if (IsHotkey(HK_WIIMOTE1_CONNECT))
@@ -410,6 +409,12 @@ void HotkeyScheduler::Run()
           break;
         case AspectMode::Custom:
           OSD::AddMessage("Custom");
+          break;
+        case AspectMode::CustomStretch:
+          OSD::AddMessage("Custom (Stretch)");
+          break;
+        case AspectMode::Raw:
+          OSD::AddMessage("Raw (Square Pixels)");
           break;
         case AspectMode::Auto:
         default:

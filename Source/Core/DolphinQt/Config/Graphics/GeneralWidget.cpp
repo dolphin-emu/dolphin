@@ -55,9 +55,9 @@ void GeneralWidget::CreateWidgets()
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new ToolTipComboBox();
-  m_aspect_combo = new ConfigChoice(
-      {tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window"), tr("Custom")},
-      Config::GFX_ASPECT_RATIO);
+  m_aspect_combo = new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"),
+                                     tr("Stretch to Window"), tr("Custom"), tr("Custom (Stretch)")},
+                                    Config::GFX_ASPECT_RATIO);
   m_custom_aspect_label = new QLabel(tr("Custom Aspect Ratio:"));
   m_custom_aspect_label->setHidden(true);
   constexpr int MAX_CUSTOM_ASPECT_RATIO_RESOLUTION = 10000;
@@ -157,7 +157,8 @@ void GeneralWidget::ConnectWidgets()
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
   connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
-    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom));
+    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
+                                        (index == static_cast<int>(AspectMode::CustomStretch));
     m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
     m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
     m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
@@ -172,7 +173,9 @@ void GeneralWidget::LoadSettings()
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
       QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
 
-  const bool is_custom_aspect_ratio = (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom);
+  const bool is_custom_aspect_ratio =
+      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
+      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
   m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
@@ -249,15 +252,19 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
                  "a separate render window.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_ASPECT_RATIO_DESCRIPTION[] =
-      QT_TR_NOOP("Selects which aspect ratio to use when rendering.<br>"
-                 "Each game can have a slightly different native aspect ratio."
-                 "<br><br>Auto: Uses the native aspect ratio"
-                 "<br>Force 16:9: Mimics an analog TV with a widescreen aspect ratio."
-                 "<br>Force 4:3: Mimics a standard 4:3 analog TV."
-                 "<br>Stretch to Window: Stretches the picture to the window size."
-                 "<br>Custom: For games running with specific custom aspect ratio cheats.<br><br>"
-                 "<dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
+  static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
+      "Selects which aspect ratio to use when drawing on the render window.<br>"
+      "Each game can have a slightly different native aspect ratio.<br>They can vary by "
+      "scene and settings and rarely ever exactly match 4:3 or 16:9."
+      "<br><br><b>Auto</b>: Uses the native aspect ratio"
+      "<br><br><b>Force 16:9</b>: Mimics an analog TV with a widescreen aspect ratio."
+      "<br><br><b>Force 4:3</b>: Mimics a standard 4:3 analog TV."
+      "<br><br><b>Stretch to Window</b>: Stretches the picture to the window size."
+      "<br><br><b>Custom</b>: Forces the specified aspect ratio."
+      "<br>This is mostly intended to be used with aspect ratio cheats/mods."
+      "<br><br><b>Custom (Stretch)</b>: Similar to `Custom` but not relative to the "
+      "title's native aspect ratio.<br>This is not meant to be used under normal circumstances."
+      "<br><br><dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
   static const char TR_VSYNC_DESCRIPTION[] = QT_TR_NOOP(
       "Waits for vertical blanks in order to prevent tearing.<br><br>Decreases performance "
       "if emulation speed is below 100%.<br><br><dolphin_emphasis>If unsure, leave "

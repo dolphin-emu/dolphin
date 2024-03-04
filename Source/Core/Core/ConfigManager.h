@@ -22,7 +22,8 @@ class IniFile;
 namespace Core
 {
 class CPUThreadGuard;
-}
+class System;
+}  // namespace Core
 
 namespace DiscIO
 {
@@ -43,16 +44,12 @@ struct BootParameters;
 struct SConfig
 {
   // Settings
-  bool bAutomaticStart = false;
   bool bBootToPause = false;
 
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 
   bool bCopyWiiSaveNetplay = true;
-
-  bool bWii = false;
-  bool m_is_mios = false;
 
   DiscIO::Region m_region;
 
@@ -80,7 +77,7 @@ struct SConfig
 
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);
-  bool SetPathsAndGameMetadata(const BootParameters& boot);
+  bool SetPathsAndGameMetadata(Core::System& system, const BootParameters& boot);
   DiscIO::Language GetCurrentLanguage(bool wii) const;
   DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const;
   std::string GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) const;

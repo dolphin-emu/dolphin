@@ -10,6 +10,7 @@
 #include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/VertexLoaderManager.h"
 
@@ -186,7 +187,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
   // Pointers to vertex arrays in GC RAM
   case ARRAY_BASE:
     array_bases[static_cast<CPArray>(sub_cmd & CP_ARRAY_MASK)] =
-        value & CommandProcessor::GetPhysicalAddressMask();
+        value & CommandProcessor::GetPhysicalAddressMask(Core::System::GetInstance().IsWii());
     break;
 
   case ARRAY_STRIDE:

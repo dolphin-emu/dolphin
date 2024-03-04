@@ -102,7 +102,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       .action("store")
       .help("Compression method to use when converting to WIA/RVZ. Suggested value for RVZ: zstd "
             "[%choices]")
-      .choices({"none", "zstd", "bzip", "lzma", "lzma2"});
+      .choices({"none", "zstd", "bzip2", "lzma", "lzma2"});
 
   parser.add_option("-l", "--compression_level")
       .type("int")

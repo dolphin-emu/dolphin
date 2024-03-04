@@ -52,14 +52,16 @@ struct System::Impl
         m_memory(system), m_pixel_engine{system}, m_power_pc(system),
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
         m_serial_interface(system), m_system_timers(system), m_video_interface(system),
-        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system),
-        m_fifo_player(system), m_fifo_recorder(system), m_movie(system)
+        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu, m_power_pc.GetBranchWatch()),
+        m_jit_interface(system), m_fifo_player(system), m_fifo_recorder(system), m_movie(system)
   {
   }
 
   std::unique_ptr<SoundStream> m_sound_stream;
   bool m_sound_stream_running = false;
   bool m_audio_dump_started = false;
+
+  std::unique_ptr<IOS::HLE::EmulationKernel> m_ios;
 
   AudioInterface::AudioInterfaceManager m_audio_interface;
   CoreTiming::CoreTimingManager m_core_timing;
@@ -138,6 +140,16 @@ bool System::IsAudioDumpStarted() const
 void System::SetAudioDumpStarted(bool started)
 {
   m_impl->m_audio_dump_started = started;
+}
+
+IOS::HLE::EmulationKernel* System::GetIOS() const
+{
+  return m_impl->m_ios.get();
+}
+
+void System::SetIOS(std::unique_ptr<IOS::HLE::EmulationKernel> ios)
+{
+  m_impl->m_ios = std::move(ios);
 }
 
 AudioInterface::AudioInterfaceManager& System::GetAudioInterface() const

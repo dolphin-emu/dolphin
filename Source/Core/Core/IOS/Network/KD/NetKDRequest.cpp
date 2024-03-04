@@ -884,6 +884,19 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   // Always 0 for some reason, never modified anywhere else
   memory.Write_U32(0, request.buffer_out + 4);
 
+  if (m_ios.GetIOSC().IsUsingDefaultId())
+  {
+    // If the user is using the default console ID, the below will always throw an error if it needs
+    // to be registered. Due to the high likelihood of multiple users having the same Wii Number,
+    // Nintendo's register endpoint will most likely return a duplicate registration error.
+    m_config.SetCreationStage(NWC24::NWC24CreationStage::Registered);
+    m_config.WriteConfig();
+    m_config.WriteCBK();
+
+    WriteReturnValue(memory, NWC24::WC24_OK, request.buffer_out);
+    return IPCReply{IPC_SUCCESS};
+  }
+
   // First check if the message config file is in the correct state to handle this.
   if (m_config.IsRegistered())
   {
@@ -936,14 +949,23 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
 
   const std::string response_str = {response->begin(), response->end()};
   const std::string code = GetValueFromCGIResponse(response_str, "cd");
-  if (code != "100")
+  s32 cgi_code{};
+  const bool did_parse = TryParse(code, &cgi_code);
+  if (!did_parse)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server "
+                            "returned invalid CGI response code.");
+    LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
+  }
+
+  if (cgi_code != 100)
   {
     ERROR_LOG_FMT(IOS_WC24,
                   "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server returned "
                   "non-success code: {}",
-                  code);
+                  cgi_code);
     WriteReturnValue(memory, NWC24::WC24_ERR_SERVER, request.buffer_out);
-    LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
+    LogError(ErrorType::CGI, cgi_code);
     return IPCReply{IPC_SUCCESS};
   }
 
