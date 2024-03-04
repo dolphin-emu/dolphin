@@ -23,11 +23,6 @@ jobs:
     # Setup Packages
     - name: Setup Packages
       run: brew install qt6 molten-vk p7zip pkgconfig cmake
-    # Setup CMake
-    - name: Setup CMake
-      uses: Symbitic/install-cmake@v0.1.1
-      with:
-        platform: mac
     # Use Static ZSTD
     - name: Remove ZSTD
       run: brew uninstall zstd curl php --force --ignore-dependencies
