@@ -104,6 +104,13 @@ public:
   void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata = 0,
                      FromThread from = FromThread::CPU);
 
+  // Similar to ScheduleEvent, but enqueues an event in the secondary event queue that does not
+  // affect timing logic and isn't savestated. Used primarily for handling events in a deterministic
+  // manner during netplay. Note that 'timepoint' is absolute (instead of ScheduleEvent's relative)
+  // and that the user should try to provide a 'unique_id' for consistent event ordering if they
+  // happen to be at the same timepoint.
+  void ScheduleExternalEvent(u64 timepoint, EventType* event_type, u64 userdata, u64 unique_id);
+
   // We only permit one event of each type in the queue at a time.
   void RemoveEvent(EventType* event_type);
   void RemoveAllEvents(EventType* event_type);
@@ -171,6 +178,15 @@ private:
   u64 m_event_fifo_id = 0;
   std::mutex m_ts_write_lock;
   Common::SPSCQueue<Event, false> m_ts_queue;
+
+  // A second event queue that is used for timing 'external' events that are sent by the emulator
+  // rather than by the emulated game. Netplay uses these for syncing non-controller-button events
+  // sent by a single client, such as a press of the physical Reset button on the console, or an
+  // unplugging of a controller. These don't affect timing logic (and thus will not run at a precise
+  // time, but instead at the first opportunity given by the regular events) and do not get written
+  // to savestates.
+  std::vector<Event> m_external_event_queue;
+  Common::SPSCQueue<Event, false> m_external_pending_queue;
 
   float m_last_oc_factor = 0.0f;
 

@@ -62,6 +62,7 @@
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "Core/NetPlayCommon.h"
 #include "Core/SyncIdentifier.h"
+#include "Core/System.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionPatcher.h"
@@ -1240,6 +1241,47 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
           static_cast<u8>(sub_id), player.pid);
       return 1;
     }
+  }
+  break;
+
+  case MessageID::ScheduleExternalEvent:
+  {
+    ExternalEventID eeid;
+    packet >> eeid;
+
+    sf::Packet spac;
+    spac << MessageID::ScheduleExternalEvent;
+    spac << eeid;
+    const u64 uid = m_external_event_uid_counter++;
+    spac << sf::Uint64(uid);
+    auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+
+    // We schedule the event in the future so that it's likely it will reach all users in time.
+    // There's a syncing logic in place to ensure the event executes at the same timepoint
+    // everywhere even if this packet is a bit too late, but the sync can get tripped up (and
+    // subsequently time out) if there's too large of a time distance between multiple players
+    // executing the sync function, because one of them may be waiting for controller input while
+    // another is waiting for the event timepoint sync.
+    const u64 target_timepoint =
+        static_cast<u64>(core_timing.GetGlobals().global_timer) + SystemTimers::GetTicksPerSecond();
+    spac << sf::Uint64(target_timepoint);
+    SendToClients(spac);
+  }
+  break;
+
+  case MessageID::SyncTimepointForExternalEvent:
+  {
+    sf::Uint64 uid;
+    packet >> uid;
+    sf::Uint64 timepoint;
+    packet >> timepoint;
+
+    sf::Packet spac;
+    spac << MessageID::SyncTimepointForExternalEvent;
+    spac << player.pid;
+    spac << uid;
+    spac << timepoint;
+    SendToClients(spac, player.pid);
   }
   break;
 

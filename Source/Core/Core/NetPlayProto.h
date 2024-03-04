@@ -169,6 +169,9 @@ enum class MessageID : u8
   HostInputAuthority = 0xA6,
   PowerButton = 0xA7,
 
+  ScheduleExternalEvent = 0xA8,
+  SyncTimepointForExternalEvent = 0xA9,
+
   TimeBase = 0xB0,
   DesyncDetected = 0xB1,
 
@@ -220,6 +223,12 @@ enum class SyncCodeID : u8
   Failure = 6,
 };
 
+enum class ExternalEventID : u8
+{
+  None = 0,
+  ResetButton = 1,
+};
+
 constexpr u32 MAX_NAME_LENGTH = 30;
 constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
 constexpr u32 MAX_ENET_MTU = 1392;  // see https://github.com/lsalzman/enet/issues/132
@@ -257,6 +266,7 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
                                    const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
 void SetSIPollBatching(bool state);
+void ScheduleResetButtonTap();
 void SendPowerButtonEvent();
 std::string GetGBASavePath(int pad_num);
 PadDetails GetPadDetails(int pad_num);

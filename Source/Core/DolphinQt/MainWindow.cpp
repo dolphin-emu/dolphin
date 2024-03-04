@@ -1122,7 +1122,7 @@ void MainWindow::Reset()
   auto& movie = system.GetMovie();
   if (movie.IsRecordingInput())
     movie.SetReset(true);
-  system.GetProcessorInterface().ResetButton_Tap();
+  system.GetProcessorInterface().ResetButton_Tap_FromUser();
 }
 
 void MainWindow::FrameAdvance()
