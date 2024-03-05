@@ -408,12 +408,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
                                                                                  jboolean enable)
 {
   HostThreadLock guard;
-  Core::SetState(Core::State::Paused);
-  auto& jit_interface = Core::System::GetInstance().GetJitInterface();
-  jit_interface.ClearCache();
+  auto& system = Core::System::GetInstance();
+  auto& jit_interface = system.GetJitInterface();
+  const Core::CPUThreadGuard cpu_guard(system);
+  jit_interface.ClearCache(cpu_guard);
   jit_interface.SetProfilingState(enable ? JitInterface::ProfilingState::Enabled :
                                            JitInterface::ProfilingState::Disabled);
-  Core::SetState(Core::State::Running);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv*,
