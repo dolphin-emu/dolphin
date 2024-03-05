@@ -72,7 +72,7 @@ private:
 
   Core::System& m_system;
 
-  BranchWatchDialog* m_branch_watch_dialog;
+  BranchWatchDialog* m_branch_watch_dialog = nullptr;
   QLineEdit* m_search_address;
   QPushButton* m_branch_watch;
 

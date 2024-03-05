@@ -504,15 +504,9 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
 }
 
-void BranchWatchDialog::done(int r)
+BranchWatchDialog::~BranchWatchDialog()
 {
-  if (m_timer->isActive())
-    m_timer->stop();
-  auto& settings = Settings::GetQSettings();
-  settings.setValue(QStringLiteral("branchwatchdialog/geometry"), saveGeometry());
-  settings.setValue(QStringLiteral("branchwatchdialog/tableheader/state"),
-                    m_table_view->horizontalHeader()->saveState());
-  QDialog::done(r);
+  SaveSettings();
 }
 
 static constexpr int BRANCH_WATCH_TOOL_TIMER_DELAY_MS = 100;
@@ -523,18 +517,18 @@ static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State st
   return branch_watch.GetRecordingActive() && state > Core::State::Paused;
 }
 
-int BranchWatchDialog::exec()
+void BranchWatchDialog::hideEvent(QHideEvent* event)
 {
-  if (TimerCondition(m_branch_watch, Core::GetState()))
-    m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
-  return QDialog::exec();
+  if (m_timer->isActive())
+    m_timer->stop();
+  QDialog::hideEvent(event);
 }
 
-void BranchWatchDialog::open()
+void BranchWatchDialog::showEvent(QShowEvent* event)
 {
   if (TimerCondition(m_branch_watch, Core::GetState()))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
-  QDialog::open();
+  QDialog::showEvent(event);
 }
 
 void BranchWatchDialog::OnStartPause(bool checked)
@@ -925,6 +919,14 @@ void BranchWatchDialog::OnTableCopyAddress(QModelIndexList index_list)
     text.append(QChar::fromLatin1('\n'));
   }
   QApplication::clipboard()->setText(text);
+}
+
+void BranchWatchDialog::SaveSettings()
+{
+  auto& settings = Settings::GetQSettings();
+  settings.setValue(QStringLiteral("branchwatchdialog/geometry"), saveGeometry());
+  settings.setValue(QStringLiteral("branchwatchdialog/tableheader/state"),
+                    m_table_view->horizontalHeader()->saveState());
 }
 
 void BranchWatchDialog::Update()
