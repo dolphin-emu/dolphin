@@ -751,8 +751,6 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
       break;
     }
   }
-
-  m_update_callback();
 }
 
 std::recursive_mutex& AchievementManager::GetLock()
