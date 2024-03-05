@@ -89,6 +89,7 @@ public:
     u32 points = 0;
     BadgeStatus locked_badge;
     BadgeStatus unlocked_badge;
+    u32 category = RC_ACHIEVEMENT_CATEGORY_CORE;
   };
 
   static constexpr std::string_view GRAY = "transparent";

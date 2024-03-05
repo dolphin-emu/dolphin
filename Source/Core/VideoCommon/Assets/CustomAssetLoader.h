@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "Common/Flag.h"
+#include "Common/Logging/Log.h"
 #include "Common/WorkQueueThread.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
@@ -71,6 +72,11 @@ private:
         std::lock_guard lk(m_asset_load_lock);
         m_total_bytes_loaded -= a->GetByteSizeInMemory();
         m_assets_to_monitor.erase(a->GetAssetId());
+        if (m_max_memory_available >= m_total_bytes_loaded && m_memory_exceeded)
+        {
+          INFO_LOG_FMT(VIDEO, "Asset memory went below limit, new assets can begin loading.");
+          m_memory_exceeded = false;
+        }
       }
       delete a;
     });
@@ -90,6 +96,7 @@ private:
 
   std::size_t m_total_bytes_loaded = 0;
   std::size_t m_max_memory_available = 0;
+  std::atomic_bool m_memory_exceeded = false;
 
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<CustomAsset>> m_assets_to_monitor;
 

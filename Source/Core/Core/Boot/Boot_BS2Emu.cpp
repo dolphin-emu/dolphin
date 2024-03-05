@@ -19,6 +19,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Debugger/BranchWatch.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -158,6 +159,11 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
 
   auto& ppc_state = system.GetPPCState();
   auto& mmu = system.GetMMU();
+  auto& branch_watch = system.GetPowerPC().GetBranchWatch();
+
+  const bool resume_branch_watch = branch_watch.GetRecordingActive();
+  if (system.IsBranchWatchIgnoreApploader())
+    branch_watch.Pause();
 
   // Call iAppLoaderEntry.
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderEntry");
@@ -219,6 +225,8 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
 
   // return
   ppc_state.pc = ppc_state.gpr[3];
+
+  branch_watch.SetRecordingActive(resume_branch_watch);
 
   return true;
 }

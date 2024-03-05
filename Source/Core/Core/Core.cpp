@@ -291,6 +291,7 @@ void Stop()  // - Hammertime!
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().CloseGame();
+  AchievementManager::GetInstance().SetDisabled(false);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   s_is_stopping = true;

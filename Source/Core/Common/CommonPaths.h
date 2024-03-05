@@ -75,6 +75,8 @@
 #define DUMP_AUDIO_DIR "Audio"
 #define DUMP_DSP_DIR "DSP"
 #define DUMP_SSL_DIR "SSL"
+#define DUMP_DEBUG_DIR "Debug"
+#define DUMP_DEBUG_BRANCHWATCH_DIR "BranchWatch"
 #define LOGS_DIR "Logs"
 #define MAIL_LOGS_DIR "Mail"
 #define SHADERS_DIR "Shaders"

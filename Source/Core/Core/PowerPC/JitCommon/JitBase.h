@@ -23,8 +23,9 @@
 
 namespace Core
 {
+class BranchWatch;
 class System;
-}
+}  // namespace Core
 namespace PowerPC
 {
 class MMU;
@@ -206,6 +207,7 @@ public:
   Core::System& m_system;
   PowerPC::PowerPCState& m_ppc_state;
   PowerPC::MMU& m_mmu;
+  Core::BranchWatch& m_branch_watch;
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);

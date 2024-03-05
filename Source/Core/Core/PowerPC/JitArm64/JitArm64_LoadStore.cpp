@@ -13,6 +13,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/BranchWatch.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
@@ -769,18 +770,15 @@ void JitArm64::dcbx(UGeckoInstruction inst)
                          js.op[1].inst.RA_6 == b && js.op[1].inst.RD_2 == b &&
                          js.op[2].inst.hex == 0x4200fff8;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1);
-  if (make_loop)
-    gpr.Lock(ARM64Reg::W2);
+  constexpr ARM64Reg WA = ARM64Reg::W0, WB = ARM64Reg::W1, loop_counter = ARM64Reg::W2;
+  // Be careful, loop_counter is only locked when make_loop == true.
+  gpr.Lock(WA, WB);
 
-  ARM64Reg WA = ARM64Reg::W0;
-
-  if (make_loop)
-    gpr.BindToRegister(b, true);
-
-  ARM64Reg loop_counter = ARM64Reg::INVALID_REG;
   if (make_loop)
   {
+    gpr.Lock(loop_counter);
+    gpr.BindToRegister(b, true);
+
     // We'll execute somewhere between one single cacheline invalidation and however many are needed
     // to reduce the downcount to zero, never exceeding the amount requested by the game.
     // To stay consistent with the rest of the code we adjust the involved registers (CTR and Rb)
@@ -788,10 +786,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
     // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
 
-    ARM64Reg reg_cycle_count = gpr.GetReg();
-    ARM64Reg reg_downcount = gpr.GetReg();
-    loop_counter = ARM64Reg::W2;
-    ARM64Reg WB = ARM64Reg::W1;
+    const ARM64Reg reg_cycle_count = gpr.GetReg();
+    const ARM64Reg reg_downcount = gpr.GetReg();
 
     // Figure out how many loops we want to do.
     const u8 cycle_count_per_loop =
@@ -828,11 +824,43 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     // Load the loop_counter register with the amount of invalidations to execute.
     ADD(loop_counter, WA, 1);
 
+    if (IsDebuggingEnabled())
+    {
+      const ARM64Reg branch_watch = EncodeRegTo64(reg_cycle_count);
+      MOVP2R(branch_watch, &m_branch_watch);
+      LDRB(IndexType::Unsigned, WB, branch_watch, Core::BranchWatch::GetOffsetOfRecordingActive());
+      FixupBranch branch_over = CBZ(WB);
+
+      FixupBranch branch_in = B();
+      SwitchToFarCode();
+      SetJumpTarget(branch_in);
+
+      const BitSet32 gpr_caller_save =
+          gpr.GetCallerSavedUsed() &
+          ~BitSet32{DecodeReg(WB), DecodeReg(reg_cycle_count), DecodeReg(reg_downcount)};
+      ABI_PushRegisters(gpr_caller_save);
+      const ARM64Reg float_emit_tmp = EncodeRegTo64(WB);
+      const BitSet32 fpr_caller_save = fpr.GetCallerSavedUsed();
+      m_float_emit.ABI_PushRegisters(fpr_caller_save, float_emit_tmp);
+      const PPCAnalyst::CodeOp& op = js.op[2];
+      ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
+                                            &Core::BranchWatch::HitPhysicalTrue_fk_n,
+                       branch_watch, Core::FakeBranchWatchCollectionKey{op.address, op.branchTo},
+                       op.inst.hex, WA);
+      m_float_emit.ABI_PopRegisters(fpr_caller_save, float_emit_tmp);
+      ABI_PopRegisters(gpr_caller_save);
+
+      FixupBranch branch_out = B();
+      SwitchToNearCode();
+      SetJumpTarget(branch_out);
+      SetJumpTarget(branch_over);
+    }
+
     gpr.Unlock(reg_cycle_count, reg_downcount);
   }
 
-  ARM64Reg effective_addr = ARM64Reg::W1;
-  ARM64Reg physical_addr = gpr.GetReg();
+  constexpr ARM64Reg effective_addr = WB;
+  const ARM64Reg physical_addr = gpr.GetReg();
 
   if (a)
     ADD(effective_addr, gpr.R(a), gpr.R(b));
@@ -911,7 +939,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   SwitchToNearCode();
   SetJumpTarget(near_addr);
 
-  gpr.Unlock(effective_addr, physical_addr, WA);
+  gpr.Unlock(WA, WB, physical_addr);
   if (make_loop)
     gpr.Unlock(loop_counter);
 }

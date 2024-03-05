@@ -21,11 +21,13 @@ constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
 enum class AspectMode : int
 {
-  Auto,           // 4:3 or 16:9
-  ForceWide,      // 16:9
-  ForceStandard,  // 4:3
+  Auto,           // ~4:3 or ~16:9 (auto detected)
+  ForceWide,      // ~16:9
+  ForceStandard,  // ~4:3
   Stretch,
-  Custom,
+  Custom,         // Forced relative custom AR
+  CustomStretch,  // Forced absolute custom AR
+  Raw,            // Forced squared pixels
 };
 
 enum class StereoMode : int

@@ -856,6 +856,9 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
     s_user_paths[D_DUMPSSL_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_SSL_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DEBUG_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_BRANCHWATCH_IDX] =
+        s_user_paths[D_DUMPDEBUG_IDX] + DUMP_DEBUG_BRANCHWATCH_DIR DIR_SEP;
     s_user_paths[D_LOGS_IDX] = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
     s_user_paths[D_MAILLOGS_IDX] = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
     s_user_paths[D_THEMES_IDX] = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
@@ -932,6 +935,9 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
     s_user_paths[D_DUMPSSL_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_SSL_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DEBUG_DIR DIR_SEP;
+    s_user_paths[D_DUMPDEBUG_BRANCHWATCH_IDX] =
+        s_user_paths[D_DUMP_IDX] + DUMP_DEBUG_BRANCHWATCH_DIR DIR_SEP;
     s_user_paths[F_MEM1DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM1_DUMP;
     s_user_paths[F_MEM2DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM2_DUMP;
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
