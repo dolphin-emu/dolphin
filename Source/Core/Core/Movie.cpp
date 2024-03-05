@@ -1254,13 +1254,12 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
 
   if (m_pad_state.disc)
   {
-    Core::RunAsCPUThread([this] {
-      if (!m_system.GetDVDInterface().AutoChangeDisc())
-      {
-        m_system.GetCPU().Break();
-        PanicAlertFmtT("Change the disc to {0}", m_disc_change_filename);
-      }
-    });
+    const Core::CPUThreadGuard guard(m_system);
+    if (!m_system.GetDVDInterface().AutoChangeDisc(guard))
+    {
+      m_system.GetCPU().Break();
+      PanicAlertFmtT("Change the disc to {0}", m_disc_change_filename);
+    }
   }
 
   if (m_pad_state.reset)
