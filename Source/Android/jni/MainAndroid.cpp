@@ -315,7 +315,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JN
                                                                               jboolean wait)
 {
   HostThreadLock guard;
-  State::Save(slot, wait);
+  State::Save(Core::CPUThreadGuard{Core::System::GetInstance()}, slot, wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(JNIEnv* env, jclass,
@@ -323,21 +323,21 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(
                                                                                 jboolean wait)
 {
   HostThreadLock guard;
-  State::SaveAs(GetJString(env, path), wait);
+  State::SaveAs(Core::CPUThreadGuard{Core::System::GetInstance()}, GetJString(env, path), wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv*, jclass,
                                                                               jint slot)
 {
   HostThreadLock guard;
-  State::Load(slot);
+  State::Load(Core::CPUThreadGuard{Core::System::GetInstance()}, slot);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadStateAs(JNIEnv* env, jclass,
                                                                                 jstring path)
 {
   HostThreadLock guard;
-  State::LoadAs(GetJString(env, path));
+  State::LoadAs(Core::CPUThreadGuard{Core::System::GetInstance()}, GetJString(env, path));
 }
 
 JNIEXPORT jlong JNICALL

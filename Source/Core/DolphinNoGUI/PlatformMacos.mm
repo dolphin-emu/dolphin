@@ -7,6 +7,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/System.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 
@@ -54,27 +55,27 @@
 
 - (void)loadLastSaved
 {
-  State::LoadLastSaved();
+  State::LoadLastSaved(Core::CPUThreadGuard{Core::System::GetInstance()});
 }
 
 - (void)undoLoadState
 {
-  State::UndoLoadState();
+  State::UndoLoadState(Core::CPUThreadGuard{Core::System::GetInstance()});
 }
 
 - (void)undoSaveState
 {
-  State::UndoSaveState();
+  State::UndoSaveState(Core::CPUThreadGuard{Core::System::GetInstance()});
 }
 
 - (void)loadState:(id)sender
 {
-  State::Load([sender tag]);
+  State::Load(Core::CPUThreadGuard{Core::System::GetInstance()}, [sender tag]);
 }
 
 - (void)saveState:(id)sender
 {
-  State::Save([sender tag]);
+  State::Save(Core::CPUThreadGuard{Core::System::GetInstance()}, [sender tag]);
 }
 @end
 

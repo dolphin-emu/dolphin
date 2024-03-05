@@ -13,6 +13,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Core
+{
+class CPUThreadGuard;
+}
+
 namespace State
 {
 // number of states
@@ -95,19 +100,19 @@ u64 GetUnixTimeOfSlot(int slot);
 //    If we're in the main CPU thread then they run immediately instead
 //    because some things (like Lua) need them to run immediately.
 // Slots from 0-99.
-void Save(int slot, bool wait = false);
-void Load(int slot);
+void Save(const Core::CPUThreadGuard& guard, int slot, bool wait = false);
+void Load(const Core::CPUThreadGuard& guard, int slot);
 
-void SaveAs(const std::string& filename, bool wait = false);
-void LoadAs(const std::string& filename);
+void SaveAs(const Core::CPUThreadGuard& guard, const std::string& filename, bool wait = false);
+void LoadAs(const Core::CPUThreadGuard& guard, const std::string& filename);
 
-void SaveToBuffer(std::vector<u8>& buffer);
-void LoadFromBuffer(std::vector<u8>& buffer);
+void SaveToBuffer(const Core::CPUThreadGuard& guard, std::vector<u8>& buffer);
+void LoadFromBuffer(const Core::CPUThreadGuard& guard, std::vector<u8>& buffer);
 
-void LoadLastSaved(int i = 1);
-void SaveFirstSaved();
-void UndoSaveState();
-void UndoLoadState();
+void LoadLastSaved(const Core::CPUThreadGuard& guard, int i = 1);
+void SaveFirstSaved(const Core::CPUThreadGuard& guard);
+void UndoSaveState(const Core::CPUThreadGuard& guard);
+void UndoLoadState(const Core::CPUThreadGuard& guard);
 
 // for calling back into UI code without introducing a dependency on it in core
 using AfterLoadCallbackFunc = std::function<void()>;

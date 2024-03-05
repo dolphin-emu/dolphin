@@ -22,6 +22,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -129,7 +130,7 @@ void RenderWidget::dropEvent(QDropEvent* event)
     return;
   }
 
-  State::LoadAs(path.toStdString());
+  State::LoadAs(Core::CPUThreadGuard{Core::System::GetInstance()}, path.toStdString());
 }
 
 void RenderWidget::OnHideCursorChanged()
