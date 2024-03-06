@@ -1336,31 +1336,39 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
 
 void AchievementManager::DoPeriodically()
 {
+  if (!m_is_game_loaded)
+    return;
   auto current_time = std::chrono::steady_clock::now();
   if (current_time - m_last_rp_time > std::chrono::seconds{10})
   {
-    Core::RunAsCPUThread([&] {
-      std::lock_guard lg{m_lock};
-      rc_runtime_get_richpresence(
-          &m_runtime, m_rich_presence.data(), RP_SIZE,
-          [](unsigned address, unsigned num_bytes, void* ud) {
-            return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
-          },
-          this, nullptr);
-    });
+    if (Config::Get(Config::RA_RICH_PRESENCE_ENABLED))
+    {
+      Core::RunAsCPUThread([&] {
+        std::lock_guard lg{m_lock};
+        rc_runtime_get_richpresence(
+            &m_runtime, m_rich_presence.data(), RP_SIZE,
+            [](unsigned address, unsigned num_bytes, void* ud) {
+              return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+            },
+            this, nullptr);
+      });
+    }
     m_last_rp_time = current_time;
     m_update_callback();
 
     if (current_time - m_last_ping_time > std::chrono::minutes{2})
     {
-      m_queue.EmplaceItem([this] {
-        auto response = PingRichPresence(m_rich_presence);
-        if (response != ResponseType::SUCCESS)
-        {
-          WARN_LOG_FMT(ACHIEVEMENTS, "Failed to ping server with rich presence, error code {}.",
-                       (int)response);
-        }
-      });
+      if (Config::Get(Config::RA_RICH_PRESENCE_ENABLED))
+      {
+        m_queue.EmplaceItem([this] {
+          auto response = PingRichPresence(m_rich_presence);
+          if (response != ResponseType::SUCCESS)
+          {
+            WARN_LOG_FMT(ACHIEVEMENTS, "Failed to ping server with rich presence, error code {}.",
+                         (int)response);
+          }
+        });
+      }
       m_last_ping_time = current_time;
     }
   }
