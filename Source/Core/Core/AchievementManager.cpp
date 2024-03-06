@@ -313,8 +313,8 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
     ActivateDeactivateRichPresence();
   }
   FetchBadges();
-  // Reset this to zero so that RP immediately triggers on the first frame
-  m_last_ping_time = 0;
+  // Set this to a value that will immediately trigger RP
+  m_last_ping_time = std::chrono::steady_clock::now() - std::chrono::minutes{2};
   INFO_LOG_FMT(ACHIEVEMENTS, "RetroAchievements successfully loaded for {}.", m_game_data.title);
 
   m_update_callback();
@@ -1336,8 +1336,8 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
 
 void AchievementManager::DoPeriodically()
 {
-  time_t current_time = std::time(nullptr);
-  if (difftime(current_time, m_last_ping_time) > 120)
+  auto current_time = std::chrono::steady_clock::now();
+  if (current_time - m_last_rp_time > std::chrono::seconds{10})
   {
     Core::RunAsCPUThread([&] {
       std::lock_guard lg{m_lock};
@@ -1348,10 +1348,14 @@ void AchievementManager::DoPeriodically()
           },
           this, nullptr);
     });
-
-    m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
-    m_last_ping_time = current_time;
+    m_last_rp_time = current_time;
     m_update_callback();
+
+    if (current_time - m_last_ping_time > std::chrono::minutes{2})
+    {
+      m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
+      m_last_ping_time = current_time;
+    }
   }
 }
 
