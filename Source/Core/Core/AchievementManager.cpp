@@ -904,6 +904,7 @@ void AchievementManager::CloseGame()
       ActivateDeactivateAchievements();
       ActivateDeactivateLeaderboards();
       ActivateDeactivateRichPresence();
+      m_rich_presence.fill('\0');
       m_game_id = 0;
       m_game_badge.name.clear();
       m_unlock_map.clear();
