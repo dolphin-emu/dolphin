@@ -4,34 +4,34 @@
 #include "Common/VR/VRBase.h"
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-
-#include <Common/GL/GLExtensions/ARB_framebuffer_object.h>
-#include <Common/GL/GLExtensions/ARB_texture_storage.h>
-#include <Common/GL/GLExtensions/gl_1_1.h>
-#include <Common/GL/GLExtensions/gl_1_2.h>
-#include <Common/GL/GLExtensions/gl_2_1.h>
-#include <Common/GL/GLExtensions/gl_3_0.h>
-#include <Common/GL/GLExtensions/gl_common.h>
-
-#endif
-
-#include <cassert>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-
-#if !defined(_WIN32)
-#include <pthread.h>
+#include <Common/GL/GLUtil.h>
 #endif
 
 namespace Common::VR
 {
 bool Framebuffer::Create(XrSession session, int width, int height)
 {
+  m_width = width;
+  m_height = height;
+
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-  return CreateGL(session, width, height);
+  CreateSwapchain(session, m_color_handle, GL_SRGB8_ALPHA8,
+                  XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT);
+  CreateSwapchain(session, m_depth_handle, GL_DEPTH24_STENCIL8,
+                  XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+  m_color_images = CreateImages(m_color_handle);
+  m_depth_images = CreateImages(m_depth_handle);
+  m_frame_buffers = new GLuint[m_length];
+  for (uint32_t i = 0; i < m_length; i++)
+  {
+    GLuint color = ((XrSwapchainImageOpenGLESKHR*)m_color_images)[i].image;
+    GLuint depth = ((XrSwapchainImageOpenGLESKHR*)m_depth_images)[i].image;
+    if (!GLUtil::CreateFrameBuffer(((GLuint*)m_frame_buffers)[i], color, depth, depth))
+    {
+      return false;
+    }
+  }
+  return true;
 #else
   return false;
 #endif
@@ -40,29 +40,28 @@ bool Framebuffer::Create(XrSession session, int width, int height)
 void Framebuffer::Destroy()
 {
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-  GL(glDeleteRenderbuffers(m_swapchain_length, m_gl_depth_buffers));
-  GL(glDeleteFramebuffers(m_swapchain_length, m_gl_frame_buffers));
-  delete[] m_gl_depth_buffers;
-  delete[] m_gl_frame_buffers;
+  GLUtil::DestroyFrameBuffers((GLuint*)m_frame_buffers, m_length);
 #endif
-  OXR(xrDestroySwapchain(m_handle));
-  free(m_swapchain_image);
+  OXR(xrDestroySwapchain(m_color_handle));
+  OXR(xrDestroySwapchain(m_depth_handle));
+  delete[] m_color_images;
+  delete[] m_depth_images;
 }
 
 void Framebuffer::Acquire()
 {
   XrSwapchainImageAcquireInfo acquire_info = {XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO, NULL};
-  OXR(xrAcquireSwapchainImage(m_handle, &acquire_info, &m_swapchain_index));
+  OXR(xrAcquireSwapchainImage(m_color_handle, &acquire_info, &m_index));
 
   XrSwapchainImageWaitInfo wait_info;
   wait_info.type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO;
   wait_info.next = NULL;
   wait_info.timeout = 1000000; /* timeout in nanoseconds */
-  XrResult res = xrWaitSwapchainImage(m_handle, &wait_info);
+  XrResult res = xrWaitSwapchainImage(m_color_handle, &wait_info);
   int i = 0;
   while ((res != XR_SUCCESS) && (i < 10))
   {
-    res = xrWaitSwapchainImage(m_handle, &wait_info);
+    res = xrWaitSwapchainImage(m_color_handle, &wait_info);
     i++;
     DEBUG_LOG_FMT(VR, "Retry xrWaitSwapchainImage {} times due XR_TIMEOUT_EXPIRED (duration {} ms",
                   i, wait_info.timeout * (1E-9));
@@ -72,13 +71,7 @@ void Framebuffer::Acquire()
   SetCurrent();
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-  GL(glEnable(GL_SCISSOR_TEST));
-  GL(glViewport(0, 0, m_width, m_height));
-  GL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-  GL(glScissor(0, 0, m_width, m_height));
-  GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-  GL(glScissor(0, 0, 0, 0));
-  GL(glDisable(GL_SCISSOR_TEST));
+  GLUtil::ClearViewportRect(0, 0, m_width, m_height);
 #endif
 }
 
@@ -87,7 +80,7 @@ void Framebuffer::Release()
   if (m_acquired)
   {
     XrSwapchainImageReleaseInfo release_info = {XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO, NULL};
-    OXR(xrReleaseSwapchainImage(m_handle, &release_info));
+    OXR(xrReleaseSwapchainImage(m_color_handle, &release_info));
     m_acquired = false;
   }
 }
@@ -95,81 +88,41 @@ void Framebuffer::Release()
 void Framebuffer::SetCurrent()
 {
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-  GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_gl_frame_buffers[m_swapchain_index]));
+  GLUtil::BindFrameBuffer(((GLuint*)m_frame_buffers)[m_index]);
 #endif
 }
 
+XrSwapchainImageBaseHeader* Framebuffer::CreateImages(XrSwapchain handle)
+{
+  XrSwapchainImageBaseHeader* output;
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-bool Framebuffer::CreateGL(XrSession session, int width, int height)
+  output = (XrSwapchainImageBaseHeader*)(new XrSwapchainImageOpenGLESKHR[m_length]);
+  for (uint32_t i = 0; i < m_length; i++)
+  {
+    XrSwapchainImageOpenGLESKHR* swapchain = (XrSwapchainImageOpenGLESKHR*)output;
+    swapchain[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
+    swapchain[i].next = NULL;
+  }
+  OXR(xrEnumerateSwapchainImages(handle, m_length, &m_length, output));
+#endif
+  return output;
+}
+
+void Framebuffer::CreateSwapchain(XrSession session, XrSwapchain& handle, int64_t format,
+                                  XrFlags64 usage)
 {
   XrSwapchainCreateInfo swapchain_info;
   memset(&swapchain_info, 0, sizeof(swapchain_info));
   swapchain_info.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
   swapchain_info.sampleCount = 1;
-  swapchain_info.width = width;
-  swapchain_info.height = height;
+  swapchain_info.width = m_width;
+  swapchain_info.height = m_height;
   swapchain_info.faceCount = 1;
   swapchain_info.mipCount = 1;
   swapchain_info.arraySize = 1;
-
-  m_width = swapchain_info.width;
-  m_height = swapchain_info.height;
-
-  // Create the color swapchain.
-  swapchain_info.format = GL_SRGB8_ALPHA8;
-  swapchain_info.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-  OXR(xrCreateSwapchain(session, &swapchain_info, &m_handle));
-  OXR(xrEnumerateSwapchainImages(m_handle, 0, &m_swapchain_length, NULL));
-  m_swapchain_image = malloc(m_swapchain_length * sizeof(XrSwapchainImageOpenGLESKHR));
-
-  // Populate the swapchain image array.
-  for (uint32_t i = 0; i < m_swapchain_length; i++)
-  {
-    XrSwapchainImageOpenGLESKHR* swapchain = (XrSwapchainImageOpenGLESKHR*)m_swapchain_image;
-    swapchain[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
-    swapchain[i].next = NULL;
-  }
-  OXR(xrEnumerateSwapchainImages(m_handle, m_swapchain_length, &m_swapchain_length,
-                                 (XrSwapchainImageBaseHeader*)m_swapchain_image));
-
-  m_gl_depth_buffers = new GLuint[m_swapchain_length];
-  m_gl_frame_buffers = new GLuint[m_swapchain_length];
-  for (uint32_t i = 0; i < m_swapchain_length; i++)
-  {
-    // Create color texture.
-    GLuint color_texture = ((XrSwapchainImageOpenGLESKHR*)m_swapchain_image)[i].image;
-    GL(glBindTexture(GL_TEXTURE_2D, color_texture));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    GL(glBindTexture(GL_TEXTURE_2D, 0));
-
-    // Create depth buffer.
-    GL(glGenRenderbuffers(1, &m_gl_depth_buffers[i]));
-    GL(glBindRenderbuffer(GL_RENDERBUFFER, m_gl_depth_buffers[i]));
-    GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
-    GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-
-    // Create the frame buffer.
-    GL(glGenFramebuffers(1, &m_gl_frame_buffers[i]));
-    GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_gl_frame_buffers[i]));
-    GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                                 m_gl_depth_buffers[i]));
-    GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
-                                 m_gl_depth_buffers[i]));
-    GL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                              color_texture, 0));
-    GL(GLenum renderFramebufferStatus = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER));
-    GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
-    if (renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
-    {
-      ERROR_LOG_FMT(VR, "Incomplete frame buffer object: {}", renderFramebufferStatus);
-      return false;
-    }
-  }
-
-  return true;
+  swapchain_info.format = format;
+  swapchain_info.usageFlags = usage;
+  OXR(xrCreateSwapchain(session, &swapchain_info, &handle));
+  OXR(xrEnumerateSwapchainImages(handle, 0, &m_length, NULL));
 }
-#endif
 }  // namespace Common::VR

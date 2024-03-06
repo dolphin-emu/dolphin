@@ -117,4 +117,42 @@ void EnablePrimitiveRestart(const GLContext* context)
     }
   }
 }
+
+void BindFrameBuffer(GLuint buffer)
+{
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, buffer);
+}
+
+void ClearViewportRect(int x, int y, int width, int height)
+{
+  glEnable(GL_SCISSOR_TEST);
+  glViewport(x, y, width, height);
+  glScissor(x, y, width, height);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glDisable(GL_SCISSOR_TEST);
+}
+
+bool CreateFrameBuffer(GLuint& buffer, GLuint color, GLuint depth, GLuint stencil)
+{
+  glGenFramebuffers(1, &buffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, buffer);
+  glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
+  glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+  glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, stencil, 0);
+  GLenum status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  if (status != GL_FRAMEBUFFER_COMPLETE)
+  {
+    ERROR_LOG_FMT(VIDEO, "Incomplete frame buffer object: {}", status);
+    return false;
+  }
+  return true;
+}
+
+void DestroyFrameBuffers(GLuint* buffers, int count)
+{
+  glDeleteFramebuffers(count, buffers);
+  delete[] buffers;
+}
 }  // namespace GLUtil

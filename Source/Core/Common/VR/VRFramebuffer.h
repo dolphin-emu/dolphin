@@ -15,27 +15,26 @@ public:
 
   int GetWidth() { return m_width; }
   int GetHeight() { return m_height; }
-  XrSwapchain GetHandle() { return m_handle; }
+  XrSwapchain GetHandle() { return m_color_handle; }
 
   void Acquire();
   void Release();
   void SetCurrent();
 
 private:
-#if XR_USE_GRAPHICS_API_OPENGL_ES
-  bool CreateGL(XrSession session, int width, int height);
-#endif
+  XrSwapchainImageBaseHeader* CreateImages(XrSwapchain handle);
+  void CreateSwapchain(XrSession session, XrSwapchain& handle, int64_t format, XrFlags64 usage);
 
   int m_width;
   int m_height;
   bool m_acquired;
-  XrSwapchain m_handle;
+  uint32_t m_index;
+  uint32_t m_length;
 
-  uint32_t m_swapchain_index;
-  uint32_t m_swapchain_length;
-  void* m_swapchain_image;
-
-  unsigned int* m_gl_depth_buffers;
-  unsigned int* m_gl_frame_buffers;
+  XrSwapchain m_color_handle;
+  XrSwapchain m_depth_handle;
+  XrSwapchainImageBaseHeader* m_color_images;
+  XrSwapchainImageBaseHeader* m_depth_images;
+  void* m_frame_buffers;
 };
 }  // namespace Common::VR

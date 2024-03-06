@@ -16,4 +16,9 @@ namespace GLUtil
 {
 GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);
 void EnablePrimitiveRestart(const GLContext* context);
+
+void BindFrameBuffer(GLuint buffer);
+void ClearViewportRect(int x, int y, int width, int height);
+bool CreateFrameBuffer(GLuint& buffer, GLuint color, GLuint depth, GLuint stencil);
+void DestroyFrameBuffers(GLuint* buffers, int count);
 }  // namespace GLUtil

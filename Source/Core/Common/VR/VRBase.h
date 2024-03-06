@@ -10,7 +10,6 @@
 #include <cassert>
 #include <cmath>
 
-#define GL(func) func;
 #define OXR(func) func;
 
 namespace Common::VR
