@@ -762,7 +762,7 @@ void WiimoteScanner::ThreadFunc()
       }
     }
 
-    // Stop scanning if not in continous mode.
+    // Stop scanning if not in continuous mode.
     auto scan_mode = WiimoteScanMode::SCAN_ONCE;
     m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
   }
