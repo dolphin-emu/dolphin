@@ -1353,7 +1353,14 @@ void AchievementManager::DoPeriodically()
 
     if (current_time - m_last_ping_time > std::chrono::minutes{2})
     {
-      m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
+      m_queue.EmplaceItem([this] {
+        auto response = PingRichPresence(m_rich_presence);
+        if (response != ResponseType::SUCCESS)
+        {
+          WARN_LOG_FMT(ACHIEVEMENTS, "Failed to ping server with rich presence, error code {}.",
+                       (int)response);
+        }
+      });
       m_last_ping_time = current_time;
     }
   }
