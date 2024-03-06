@@ -686,14 +686,7 @@ void AchievementManager::DoFrame()
   }
   if (!m_system)
     return;
-  time_t current_time = std::time(nullptr);
-  if (difftime(current_time, m_last_ping_time) > 120)
-  {
-    GenerateRichPresence();
-    m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
-    m_last_ping_time = current_time;
-    m_update_callback();
-  }
+  DoPeriodically();
 }
 
 u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
@@ -1341,17 +1334,25 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
     rc_runtime_deactivate_achievement(&m_runtime, id);
 }
 
-void AchievementManager::GenerateRichPresence()
+void AchievementManager::DoPeriodically()
 {
-  Core::RunAsCPUThread([&] {
-    std::lock_guard lg{m_lock};
-    rc_runtime_get_richpresence(
-        &m_runtime, m_rich_presence.data(), RP_SIZE,
-        [](unsigned address, unsigned num_bytes, void* ud) {
-          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
-        },
-        this, nullptr);
-  });
+  time_t current_time = std::time(nullptr);
+  if (difftime(current_time, m_last_ping_time) > 120)
+  {
+    Core::RunAsCPUThread([&] {
+      std::lock_guard lg{m_lock};
+      rc_runtime_get_richpresence(
+          &m_runtime, m_rich_presence.data(), RP_SIZE,
+          [](unsigned address, unsigned num_bytes, void* ud) {
+            return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+          },
+          this, nullptr);
+    });
+
+    m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
+    m_last_ping_time = current_time;
+    m_update_callback();
+  }
 }
 
 AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)
