@@ -1536,7 +1536,6 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
       // (input & ~BL_mask) == BEPI. For now, assume it's
       // implemented this way for invalid BATs as well.
       WARN_LOG_FMT(POWERPC, "Bad BAT setup: BEPI overlaps BL");
-      continue;
     }
     if ((batl.BRPN & batu.BL) != 0)
     {
