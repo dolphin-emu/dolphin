@@ -139,9 +139,10 @@ public:
   const BadgeStatus& GetPlayerBadge() const;
   std::string GetGameDisplayName() const;
   PointSpread TallyScore() const;
+  rc_client_t* GetClient();
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
-  const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
+  const UnlockStatus* GetUnlockStatus(AchievementId achievement_id) const;
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
   const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
