@@ -859,10 +859,12 @@ AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* va
   return ResponseType::SUCCESS;
 }
 
-const std::unordered_map<AchievementManager::AchievementId, AchievementManager::LeaderboardStatus>&
-AchievementManager::GetLeaderboardsInfo() const
+const AchievementManager::LeaderboardStatus*
+AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderboard_id) const
 {
-  return m_leaderboard_map;
+  if (m_leaderboard_map.count(leaderboard_id) < 1)
+    return nullptr;
+  return &m_leaderboard_map.at(leaderboard_id);
 }
 
 AchievementManager::RichPresence AchievementManager::GetRichPresence() const
