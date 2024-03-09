@@ -143,7 +143,7 @@ public:
   const UnlockStatus* GetUnlockStatus(AchievementId achievement_id) const;
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
-  const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
+  const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id) const;
   RichPresence GetRichPresence() const;
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
