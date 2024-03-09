@@ -1519,7 +1519,7 @@ void AchievementManager::HandleAchievementProgressUpdatedEvent(
   }
   OSD::AddMessage(
       fmt::format("{} {}", m_game_data.achievements[game_data_index].title, value.data()),
-      OSD::Duration::VERY_LONG, OSD::Color::GREEN,
+      OSD::Duration::SHORT, OSD::Color::GREEN,
       (Config::Get(Config::RA_BADGES_ENABLED)) ?
           DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
           nullptr);
