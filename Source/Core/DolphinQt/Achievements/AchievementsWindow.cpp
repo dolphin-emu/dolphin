@@ -83,7 +83,7 @@ void AchievementsWindow::UpdateData()
     m_settings_widget->UpdateData();
     m_progress_widget->UpdateData(true);
     m_tab_widget->setTabVisible(1, is_game_loaded);
-    m_leaderboard_widget->UpdateData();
+    m_leaderboard_widget->UpdateData(true);
     m_tab_widget->setTabVisible(2, is_game_loaded);
   }
   update();
