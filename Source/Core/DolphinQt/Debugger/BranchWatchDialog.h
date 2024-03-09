@@ -49,9 +49,11 @@ class BranchWatchDialog : public QDialog
 public:
   explicit BranchWatchDialog(Core::System& system, Core::BranchWatch& branch_watch,
                              CodeWidget* code_widget, QWidget* parent = nullptr);
-  void done(int r) override;
-  int exec() override;
-  void open() override;
+  ~BranchWatchDialog() override;
+
+protected:
+  void hideEvent(QHideEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
   void OnStartPause(bool checked);
@@ -81,6 +83,8 @@ private:
   void OnTableSetBLR(QModelIndexList index_list);
   void OnTableSetNOP(QModelIndexList index_list);
   void OnTableCopyAddress(QModelIndexList index_list);
+
+  void SaveSettings();
 
 public:
   // TODO: Step doesn't cause EmulationStateChanged to be emitted, so it has to call this manually.

@@ -36,10 +36,7 @@ static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
     "margin-right: 10px; }");
 
-CodeWidget::CodeWidget(QWidget* parent)
-    : QDockWidget(parent), m_system(Core::System::GetInstance()),
-      m_branch_watch_dialog(
-          new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(), this))
+CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::System::GetInstance())
 {
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
@@ -215,7 +212,12 @@ void CodeWidget::ConnectWidgets()
 
 void CodeWidget::OnBranchWatchDialog()
 {
-  m_branch_watch_dialog->open();
+  if (m_branch_watch_dialog == nullptr)
+  {
+    m_branch_watch_dialog =
+        new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(), this, this);
+  }
+  m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
   m_branch_watch_dialog->activateWindow();
 }
@@ -397,7 +399,8 @@ void CodeWidget::UpdateSymbols()
 
   // TODO: There seems to be a lack of a ubiquitous signal for when symbols change.
   // This is the best location to catch the signals from MenuBar and CodeViewWidget.
-  m_branch_watch_dialog->UpdateSymbols();
+  if (m_branch_watch_dialog != nullptr)
+    m_branch_watch_dialog->UpdateSymbols();
 }
 
 void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
@@ -470,7 +473,8 @@ void CodeWidget::Step()
   // Will get a UpdateDisasmDialog(), don't update the GUI here.
 
   // TODO: Step doesn't cause EmulationStateChanged to be emitted, so it has to call this manually.
-  m_branch_watch_dialog->Update();
+  if (m_branch_watch_dialog != nullptr)
+    m_branch_watch_dialog->Update();
 }
 
 void CodeWidget::StepOver()
