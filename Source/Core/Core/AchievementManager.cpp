@@ -830,10 +830,12 @@ const AchievementManager::BadgeStatus& AchievementManager::GetGameBadge() const
   return m_game_badge;
 }
 
-const AchievementManager::UnlockStatus&
+const AchievementManager::UnlockStatus*
 AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
 {
-  return m_unlock_map.at(achievement_id);
+  if (m_unlock_map.count(achievement_id) < 1)
+    return nullptr;
+  return &m_unlock_map.at(achievement_id);
 }
 
 AchievementManager::ResponseType
