@@ -136,9 +136,11 @@ public:
   const BadgeStatus& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
   PointSpread TallyScore() const;
+  rc_client_t* GetClient();
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
-  const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
+  const BadgeStatus& GetAchievementBadge(AchievementId id, bool locked) const;
+  const UnlockStatus* GetUnlockStatus(AchievementId achievement_id) const;
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
   const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
@@ -162,6 +164,8 @@ private:
     int64_t position = 0;
     std::unique_ptr<DiscIO::Volume> volume;
   };
+
+  const BadgeStatus m_default_badge;
 
   static void* FilereaderOpenByFilepath(const char* path_utf8);
   static void* FilereaderOpenByVolume(const char* path_utf8);

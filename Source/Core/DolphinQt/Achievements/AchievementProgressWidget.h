@@ -24,9 +24,6 @@ public:
   void UpdateData();
 
 private:
-  QGroupBox* CreateAchievementBox(const rc_api_achievement_definition_t* achievement);
-  QString GetStatusString(u32 achievement_id) const;
-
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
 };
