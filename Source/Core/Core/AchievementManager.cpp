@@ -306,6 +306,11 @@ AchievementManager::PointSpread AchievementManager::TallyScore() const
   return spread;
 }
 
+rc_client_t* AchievementManager::GetClient()
+{
+  return m_client;
+}
+
 rc_api_fetch_game_data_response_t* AchievementManager::GetGameData()
 {
   return &m_game_data;
@@ -316,10 +321,20 @@ const AchievementManager::BadgeStatus& AchievementManager::GetGameBadge() const
   return m_game_badge;
 }
 
-const AchievementManager::UnlockStatus&
+const AchievementManager::BadgeStatus& AchievementManager::GetAchievementBadge(AchievementId id,
+                                                                               bool locked) const
+{
+  auto& badge_list = locked ? m_locked_badges : m_locked_badges;
+  auto itr = badge_list.find(id);
+  return (itr == badge_list.end()) ? m_default_badge : itr->second;
+}
+
+const AchievementManager::UnlockStatus*
 AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
 {
-  return m_unlock_map.at(achievement_id);
+  if (m_unlock_map.count(achievement_id) < 1)
+    return nullptr;
+  return &m_unlock_map.at(achievement_id);
 }
 
 AchievementManager::ResponseType
