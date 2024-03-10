@@ -1261,35 +1261,37 @@ void MenuBar::ClearSymbols()
   if (result == QMessageBox::Cancel)
     return;
 
-  g_symbolDB.Clear();
+  Core::System::GetInstance().GetPPCSymbolDB().Clear();
   emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
-
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
+
+  const Core::CPUThreadGuard guard(system);
 
   PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
-                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
+                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
   emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
-
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
+
+  const Core::CPUThreadGuard guard(system);
 
   PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
-                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
+                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
   SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
-    db.Apply(guard, &g_symbolDB);
+    db.Apply(guard, &ppc_symbol_db);
     ModalMessageBox::information(
         this, tr("Information"),
         tr("Generated symbol names from '%1'").arg(QString::fromStdString(TOTALDB)));
@@ -1325,12 +1327,13 @@ void MenuBar::GenerateSymbolsFromRSO()
     return;
   }
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  auto& system = Core::System::GetInstance();
+  const Core::CPUThreadGuard guard(system);
 
   RSOChainView rso_chain;
   if (rso_chain.Load(guard, static_cast<u32>(address)))
   {
-    rso_chain.Apply(guard, &g_symbolDB);
+    rso_chain.Apply(guard, &system.GetPPCSymbolDB());
     emit NotifySymbolsUpdated();
   }
   else
@@ -1382,11 +1385,12 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   RSOChainView rso_chain;
   const u32 address = item.mid(0, item.indexOf(QLatin1Char(' '))).toUInt(nullptr, 16);
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  auto& system = Core::System::GetInstance();
+  const Core::CPUThreadGuard guard(system);
 
   if (rso_chain.Load(guard, address))
   {
-    rso_chain.Apply(guard, &g_symbolDB);
+    rso_chain.Apply(guard, &system.GetPPCSymbolDB());
     emit NotifySymbolsUpdated();
   }
   else
@@ -1502,22 +1506,23 @@ void MenuBar::LoadSymbolMap()
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
   std::string existing_map_file, writable_map_file;
   bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
   if (!map_exists)
   {
-    g_symbolDB.Clear();
+    ppc_symbol_db.Clear();
 
     {
-      Core::CPUThreadGuard guard(Core::System::GetInstance());
+      const Core::CPUThreadGuard guard(system);
 
       PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR + 0x1300000,
-                                Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
+                                Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
       SignatureDB db(SignatureDB::HandlerType::DSY);
       if (db.Load(File::GetSysDirectory() + TOTALDB))
-        db.Apply(guard, &g_symbolDB);
+        db.Apply(guard, &ppc_symbol_db);
     }
 
     ModalMessageBox::warning(this, tr("Warning"),
@@ -1603,13 +1608,8 @@ void MenuBar::SaveCode()
   const std::string path =
       writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
-  bool success;
-  {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    success = g_symbolDB.SaveCodeMap(guard, path);
-  }
-
-  if (!success)
+  auto& system = Core::System::GetInstance();
+  if (!system.GetPPCSymbolDB().SaveCodeMap(Core::CPUThreadGuard{system}, path))
   {
     ModalMessageBox::warning(
         this, tr("Error"),
@@ -1619,9 +1619,10 @@ void MenuBar::SaveCode()
 
 bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  auto& system = Core::System::GetInstance();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
-  if (!g_symbolDB.LoadMap(guard, path.toStdString(), bad))
+  if (!ppc_symbol_db.LoadMap(Core::CPUThreadGuard{system}, path.toStdString(), bad))
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
     return false;
@@ -1632,7 +1633,7 @@ bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 
 void MenuBar::TrySaveSymbolMap(const QString& path)
 {
-  if (g_symbolDB.SaveSymbolMap(path.toStdString()))
+  if (Core::System::GetInstance().GetPPCSymbolDB().SaveSymbolMap(path.toStdString()))
     return;
 
   ModalMessageBox::warning(this, tr("Error"),
@@ -1653,7 +1654,7 @@ void MenuBar::CreateSignatureFile()
   const std::string prefix = text.toStdString();
   const std::string save_path = file.toStdString();
   SignatureDB db(save_path);
-  db.Populate(&g_symbolDB, prefix);
+  db.Populate(&Core::System::GetInstance().GetPPCSymbolDB(), prefix);
 
   if (!db.Save(save_path))
   {
@@ -1678,7 +1679,7 @@ void MenuBar::AppendSignatureFile()
   const std::string prefix = text.toStdString();
   const std::string signature_path = file.toStdString();
   SignatureDB db(signature_path);
-  db.Populate(&g_symbolDB, prefix);
+  db.Populate(&Core::System::GetInstance().GetPPCSymbolDB(), prefix);
   db.List();
   db.Load(signature_path);
   if (!db.Save(signature_path))
@@ -1699,15 +1700,13 @@ void MenuBar::ApplySignatureFile()
   if (file.isEmpty())
     return;
 
+  auto& system = Core::System::GetInstance();
+
   const std::string load_path = file.toStdString();
   SignatureDB db(load_path);
   db.Load(load_path);
-  {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    db.Apply(guard, &g_symbolDB);
-  }
+  db.Apply(Core::CPUThreadGuard{system}, &system.GetPPCSymbolDB());
   db.List();
-  auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }

@@ -558,8 +558,7 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 
   mc->num_hits++;
 
-  const bool pause = mc->Action(m_system, &m_power_pc.GetDebugInterface(), var, address, write,
-                                size, m_ppc_state.pc);
+  const bool pause = mc->Action(m_system, var, address, write, size, m_ppc_state.pc);
   if (!pause)
     return;
 

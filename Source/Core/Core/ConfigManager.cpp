@@ -205,13 +205,14 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   if (!Core::IsRunning())
     return;
 
-  if (!g_symbolDB.IsEmpty())
+  auto& system = guard.GetSystem();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
+  if (!ppc_symbol_db.IsEmpty())
   {
-    g_symbolDB.Clear();
+    ppc_symbol_db.Clear();
     Host_NotifyMapLoaded();
   }
-  CBoot::LoadMapFromFilename(guard);
-  auto& system = Core::System::GetInstance();
+  CBoot::LoadMapFromFilename(guard, ppc_symbol_db);
   HLE::Reload(system);
   PatchEngine::Reload();
   HiresTexture::Update();

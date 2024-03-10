@@ -1285,7 +1285,7 @@ void Jit64::IntializeSpeculativeConstants()
 
 bool Jit64::HandleFunctionHooking(u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(address, PowerPC::CoreMode::JIT);
+  const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::JIT);
   if (!result)
     return false;
 

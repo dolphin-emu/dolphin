@@ -52,7 +52,8 @@ struct System::Impl
         m_memory(system), m_pixel_engine{system}, m_power_pc(system),
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
         m_serial_interface(system), m_system_timers(system), m_video_interface(system),
-        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu, m_power_pc.GetBranchWatch()),
+        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu, m_power_pc.GetBranchWatch(),
+                      m_power_pc.GetSymbolDB()),
         m_jit_interface(system), m_fifo_player(system), m_fifo_recorder(system), m_movie(system)
   {
   }
@@ -285,6 +286,11 @@ PowerPC::PowerPCManager& System::GetPowerPC() const
 PowerPC::PowerPCState& System::GetPPCState() const
 {
   return m_impl->m_power_pc.GetPPCState();
+}
+
+PPCSymbolDB& System::GetPPCSymbolDB() const
+{
+  return m_impl->m_power_pc.GetSymbolDB();
 }
 
 ProcessorInterface::ProcessorInterfaceManager& System::GetProcessorInterface() const

@@ -271,7 +271,7 @@ bool CachedInterpreter::HandleFunctionHooking(u32 address)
 {
   // CachedInterpreter inherits from JitBase and is considered a JIT by relevant code.
   // (see JitInterface and how m_mode is set within PowerPC.cpp)
-  const auto result = HLE::TryReplaceFunction(address, PowerPC::CoreMode::JIT);
+  const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::JIT);
   if (!result)
     return false;
 

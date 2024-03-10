@@ -138,7 +138,7 @@ void JitInterface::WriteProfileResults(const std::string& filename) const
                 "ms)\tblkCodeSize\n");
   for (auto& stat : prof_stats.block_stats)
   {
-    std::string name = g_symbolDB.GetDescription(stat.addr);
+    std::string name = m_system.GetPPCSymbolDB().GetDescription(stat.addr);
     double percent = 100.0 * (double)stat.cost / (double)prof_stats.cost_sum;
     double timePercent = 100.0 * (double)stat.tick_counter / (double)prof_stats.timecost_sum;
     f.WriteString(fmt::format("{0:08x}\t{1}\t{2}\t{3}\t{4}\t{5:.2f}\t{6:.2f}\t{7:.2f}\t{8}\n",

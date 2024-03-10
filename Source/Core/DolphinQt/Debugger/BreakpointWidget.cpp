@@ -178,6 +178,7 @@ void BreakpointWidget::Update()
   auto& power_pc = m_system.GetPowerPC();
   auto& breakpoints = power_pc.GetBreakPoints();
   auto& memchecks = power_pc.GetMemChecks();
+  auto& ppc_symbol_db = power_pc.GetSymbolDB();
 
   // Breakpoints
   for (const auto& bp : breakpoints.GetBreakPoints())
@@ -192,10 +193,10 @@ void BreakpointWidget::Update()
     m_table->setItem(i, 0, active);
     m_table->setItem(i, 1, create_item(QStringLiteral("BP")));
 
-    if (g_symbolDB.GetSymbolFromAddr(bp.address))
+    if (ppc_symbol_db.GetSymbolFromAddr(bp.address))
     {
-      m_table->setItem(i, 2,
-                       create_item(QString::fromStdString(g_symbolDB.GetDescription(bp.address))));
+      m_table->setItem(
+          i, 2, create_item(QString::fromStdString(ppc_symbol_db.GetDescription(bp.address))));
     }
 
     m_table->setItem(i, 3,
@@ -233,10 +234,11 @@ void BreakpointWidget::Update()
     m_table->setItem(i, 0, active);
     m_table->setItem(i, 1, create_item(QStringLiteral("MBP")));
 
-    if (g_symbolDB.GetSymbolFromAddr(mbp.start_address))
+    if (ppc_symbol_db.GetSymbolFromAddr(mbp.start_address))
     {
       m_table->setItem(
-          i, 2, create_item(QString::fromStdString(g_symbolDB.GetDescription(mbp.start_address))));
+          i, 2,
+          create_item(QString::fromStdString(ppc_symbol_db.GetDescription(mbp.start_address))));
     }
 
     if (mbp.is_ranged)

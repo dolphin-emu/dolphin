@@ -85,7 +85,8 @@ std::ostream& operator<<(std::ostream& os, CPUCore core)
 }
 
 PowerPCManager::PowerPCManager(Core::System& system)
-    : m_breakpoints(system), m_memchecks(system), m_debug_interface(system), m_system(system)
+    : m_breakpoints(system), m_memchecks(system), m_debug_interface(system, m_symbol_db),
+      m_system(system)
 {
 }
 
@@ -668,7 +669,7 @@ void PowerPCManager::CheckBreakPoints()
     NOTICE_LOG_FMT(MEMMAP,
                    "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
                    "{:08x}) LR={:08x}",
-                   m_ppc_state.pc, g_symbolDB.GetDescription(m_ppc_state.pc), m_ppc_state.gpr[3],
+                   m_ppc_state.pc, m_symbol_db.GetDescription(m_ppc_state.pc), m_ppc_state.gpr[3],
                    m_ppc_state.gpr[4], m_ppc_state.gpr[5], m_ppc_state.gpr[6], m_ppc_state.gpr[7],
                    m_ppc_state.gpr[8], m_ppc_state.gpr[9], m_ppc_state.gpr[10], m_ppc_state.gpr[11],
                    m_ppc_state.gpr[12], LR(m_ppc_state));

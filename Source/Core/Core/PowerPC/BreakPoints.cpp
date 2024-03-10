@@ -365,8 +365,7 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(Core::System& system, Core::DebugInterface* debug_interface, u64 value,
-                       u32 addr, bool write, size_t size, u32 pc)
+bool TMemCheck::Action(Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc)
 {
   if (!is_enabled)
     return false;
@@ -376,9 +375,10 @@ bool TMemCheck::Action(Core::System& system, Core::DebugInterface* debug_interfa
   {
     if (log_on_hit)
     {
+      auto& ppc_symbol_db = system.GetPPCSymbolDB();
       NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
-                     debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8, value,
-                     addr, debug_interface->GetDescription(addr));
+                     ppc_symbol_db.GetDescription(pc), write ? "Write" : "Read", size * 8, value,
+                     addr, ppc_symbol_db.GetDescription(addr));
     }
     if (break_on_hit)
       return true;

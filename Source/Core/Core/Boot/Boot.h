@@ -19,6 +19,8 @@
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
+class PPCSymbolDB;
+
 namespace Core
 {
 class CPUThreadGuard;
@@ -168,7 +170,7 @@ public:
   //
   // Returns true if a map file exists, false if none could be found.
   static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
-  static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard);
+  static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db);
 
 private:
   static bool DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
@@ -215,7 +217,7 @@ public:
   virtual bool IsValid() const = 0;
   virtual bool IsWii() const = 0;
   virtual bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const = 0;
-  virtual bool LoadSymbols(const Core::CPUThreadGuard& guard) const = 0;
+  virtual bool LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db) const = 0;
 
 protected:
   std::vector<u8> m_bytes;

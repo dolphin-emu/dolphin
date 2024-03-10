@@ -27,7 +27,10 @@ public:
   bool IsAncast() const { return m_is_ancast; };
   u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
   bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const override;
-  bool LoadSymbols(const Core::CPUThreadGuard& guard) const override { return false; }
+  bool LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db) const override
+  {
+    return false;
+  }
 
 private:
   enum

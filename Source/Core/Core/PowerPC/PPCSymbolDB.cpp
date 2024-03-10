@@ -26,8 +26,6 @@
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/System.h"
 
-PPCSymbolDB g_symbolDB;
-
 PPCSymbolDB::PPCSymbolDB() = default;
 
 PPCSymbolDB::~PPCSymbolDB() = default;

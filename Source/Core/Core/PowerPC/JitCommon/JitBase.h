@@ -31,6 +31,7 @@ namespace PowerPC
 class MMU;
 struct PowerPCState;
 }  // namespace PowerPC
+class PPCSymbolDB;
 
 //#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
 //#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
@@ -208,6 +209,7 @@ public:
   PowerPC::PowerPCState& m_ppc_state;
   PowerPC::MMU& m_mmu;
   Core::BranchWatch& m_branch_watch;
+  PPCSymbolDB& m_ppc_symbol_db;
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);
