@@ -7,7 +7,9 @@
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
+#include "Core/AchievementManager.h"
 
+class AchievementBox;
 class QCheckBox;
 class QGroupBox;
 class QLineEdit;
@@ -21,11 +23,13 @@ class AchievementProgressWidget final : public QWidget
   Q_OBJECT
 public:
   explicit AchievementProgressWidget(QWidget* parent);
-  void UpdateData();
+  void UpdateData(bool clean_all);
+  void UpdateData(std::set<AchievementManager::AchievementId> update_ids);
 
 private:
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
+  std::map<AchievementManager::AchievementId, AchievementBox*> m_achievement_boxes;
 };
 
 #endif  // USE_RETRO_ACHIEVEMENTS

@@ -29,10 +29,7 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   m_common_box = new QGroupBox();
   m_common_layout = new QVBoxLayout();
 
-  {
-    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-    UpdateData();
-  }
+  UpdateData(true);
 
   m_common_box->setLayout(m_common_layout);
 
@@ -43,18 +40,46 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   setLayout(layout);
 }
 
-void AchievementProgressWidget::UpdateData()
+void AchievementProgressWidget::UpdateData(bool clean_all)
 {
-  ClearLayoutRecursively(m_common_layout);
-
-  auto& instance = AchievementManager::GetInstance();
-  if (!instance.IsGameLoaded())
-    return;
-
-  const auto* game_data = instance.GetGameData();
-  for (u32 ix = 0; ix < game_data->num_achievements; ix++)
+  if (clean_all)
   {
-    m_common_layout->addWidget(new AchievementBox(this, game_data->achievements + ix));
+    m_achievement_boxes.clear();
+    ClearLayoutRecursively(m_common_layout);
+
+    auto& instance = AchievementManager::GetInstance();
+    if (!instance.IsGameLoaded())
+      return;
+
+    rc_api_fetch_game_data_response_t* game_data;
+    {
+      std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+      game_data = instance.GetGameData();
+    }
+    for (u32 ix = 0; ix < game_data->num_achievements; ix++)
+    {
+      const auto* achievement = game_data->achievements + ix;
+      m_achievement_boxes[achievement->id] = new AchievementBox(this, game_data->achievements + ix);
+      m_common_layout->addWidget(m_achievement_boxes[achievement->id]);
+    }
+  }
+  else
+  {
+    for (auto box : m_achievement_boxes)
+    {
+      box.second->UpdateData();
+    }
+  }
+}
+
+void AchievementProgressWidget::UpdateData(std::set<AchievementManager::AchievementId> update_ids)
+{
+  for (auto box : m_achievement_boxes)
+  {
+    if (update_ids.count(box.first) > 0)
+    {
+      box.second->UpdateData();
+    }
   }
 }
 
