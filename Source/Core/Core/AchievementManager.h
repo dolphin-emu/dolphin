@@ -50,7 +50,6 @@ public:
     UNKNOWN_FAILURE
   };
   using ResponseCallback = std::function<void(ResponseType)>;
-  using UpdateCallback = std::function<void()>;
   using BadgeNameFunction = std::function<std::string(const AchievementManager&)>;
 
   struct PointSpread
@@ -115,6 +114,19 @@ public:
     u32 player_index = 0;
     std::unordered_map<u32, LeaderboardEntry> entries;
   };
+
+  struct UpdatedItems
+  {
+    bool all = false;
+    bool player_icon = false;
+    bool game_icon = false;
+    bool all_achievements = false;
+    std::set<AchievementId> achievements{};
+    bool all_leaderboards = false;
+    std::set<AchievementId> leaderboards{};
+    bool rich_presence = false;
+  };
+  using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
   static AchievementManager& GetInstance();
   void Init();
@@ -213,14 +225,15 @@ private:
   static void RequestV2(const rc_api_request_t* request, rc_client_server_callback_t callback,
                         void* callback_data, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
-  void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function);
+  void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function,
+                  const UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
-  UpdateCallback m_update_callback = [] {};
+  UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   bool m_disabled = false;
   BadgeStatus m_player_badge;

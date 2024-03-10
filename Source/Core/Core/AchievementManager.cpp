@@ -61,9 +61,9 @@ void AchievementManager::SetUpdateCallback(UpdateCallback callback)
   m_update_callback = std::move(callback);
 
   if (!m_update_callback)
-    m_update_callback = [] {};
+    m_update_callback = [](UpdatedItems) {};
 
-  m_update_callback();
+  m_update_callback(UpdatedItems{.all = true});
 }
 
 void AchievementManager::Login(const std::string& password)
@@ -147,22 +147,26 @@ bool AchievementManager::IsGameLoaded() const
 
 void AchievementManager::FetchPlayerBadge()
 {
-  FetchBadge(&m_player_badge, RC_IMAGE_TYPE_USER, [](const AchievementManager& manager) {
-    auto* user_info = rc_client_get_user_info(manager.m_client);
-    if (!user_info)
-      return std::string("");
-    return std::string(user_info->display_name);
-  });
+  FetchBadge(&m_player_badge, RC_IMAGE_TYPE_USER,
+             [](const AchievementManager& manager) {
+               auto* user_info = rc_client_get_user_info(manager.m_client);
+               if (!user_info)
+                 return std::string("");
+               return std::string(user_info->display_name);
+             },
+             {.player_icon = true});
 }
 
 void AchievementManager::FetchGameBadges()
 {
-  FetchBadge(&m_game_badge, RC_IMAGE_TYPE_GAME, [](const AchievementManager& manager) {
-    auto* game_info = rc_client_get_game_info(manager.m_client);
-    if (!game_info)
-      return std::string("");
-    return std::string(game_info->badge_name);
-  });
+  FetchBadge(&m_game_badge, RC_IMAGE_TYPE_GAME,
+             [](const AchievementManager& manager) {
+               auto* game_info = rc_client_get_game_info(manager.m_client);
+               if (!game_info)
+                 return std::string("");
+               return std::string(game_info->badge_name);
+             },
+             {.game_icon = true});
 
   if (!rc_client_has_achievements(m_client))
     return;
@@ -188,7 +192,8 @@ void AchievementManager::FetchGameBadges()
               return std::string("");
             return std::string(
                 rc_client_get_achievement_info(manager.m_client, achievement_id)->badge_name);
-          });
+          },
+          {.achievements = {achievement_id}});
       FetchBadge(
           &m_locked_badges[achievement_id], RC_IMAGE_TYPE_ACHIEVEMENT_LOCKED,
           [achievement_id](const AchievementManager& manager) {
@@ -196,7 +201,8 @@ void AchievementManager::FetchGameBadges()
               return std::string("");
             return std::string(
                 rc_client_get_achievement_info(manager.m_client, achievement_id)->badge_name);
-          });
+          },
+          {.achievements = {achievement_id}});
     }
   }
   rc_client_destroy_achievement_list(achievement_list);
@@ -226,7 +232,7 @@ void AchievementManager::DoFrame()
     GenerateRichPresence(Core::CPUThreadGuard{*m_system});
     m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
     m_last_ping_time = current_time;
-    m_update_callback();
+    m_update_callback(UpdatedItems{.rich_presence = true});
   }
 }
 
@@ -394,13 +400,13 @@ void AchievementManager::SetDisabled(bool disable)
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been disabled.");
     OSD::AddMessage("Please close all games to re-enable achievements.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
-    m_update_callback();
+    m_update_callback(UpdatedItems{.all = true});
   }
 
   if (previously_disabled && !disable)
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been re-enabled.");
-    m_update_callback();
+    m_update_callback(UpdatedItems{.all = true});
   }
 };
 
@@ -481,7 +487,7 @@ void AchievementManager::CloseGame()
     }
   }
 
-  m_update_callback();
+  m_update_callback(UpdatedItems{.all = true});
   INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
 }
 
@@ -495,7 +501,7 @@ void AchievementManager::Logout()
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
   }
 
-  m_update_callback();
+  m_update_callback(UpdatedItems{.all = true});
   INFO_LOG_FMT(ACHIEVEMENTS, "Logged out from server.");
 }
 
@@ -655,7 +661,7 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
     memcpy(map_entry.score.data(), response_entry.display, FORMAT_SIZE);
     map_entry.rank = response_entry.rank;
   }
-  AchievementManager::GetInstance().m_update_callback();
+  AchievementManager::GetInstance().m_update_callback({.leaderboards = {leaderboard_id}});
 }
 
 void AchievementManager::GenerateRichPresence(const Core::CPUThreadGuard& guard)
@@ -701,6 +707,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
 
   AchievementManager::GetInstance().FetchGameBadges();
   AchievementManager::GetInstance().m_system = &Core::System::GetInstance();
+  AchievementManager::GetInstance().m_update_callback({.all = true});
 }
 
 void AchievementManager::DisplayWelcomeMessage()
@@ -987,15 +994,17 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
 }
 
 void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 badge_type,
-                                    const AchievementManager::BadgeNameFunction function)
+                                    const AchievementManager::BadgeNameFunction function,
+                                    const UpdatedItems callback_data)
 {
   if (!m_client || !HasAPIToken() || !Config::Get(Config::RA_BADGES_ENABLED))
   {
-    m_update_callback();
+    m_update_callback(callback_data);
     return;
   }
 
-  m_image_queue.EmplaceItem([this, badge, badge_type, function = std::move(function)] {
+  m_image_queue.EmplaceItem([this, badge, badge_type, function = std::move(function),
+                             callback_data = std::move(callback_data)] {
     std::string name_to_fetch;
     {
       std::lock_guard lg{m_lock};
@@ -1019,7 +1028,7 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
       WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed on image request.\n URL: {}",
                    api_request.url);
       rc_api_destroy_request(&api_request);
-      m_update_callback();
+      m_update_callback(callback_data);
       return;
     }
 
@@ -1036,7 +1045,7 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
     badge->badge = std::move(fetched_badge);
     badge->name = std::move(name_to_fetch);
 
-    m_update_callback();
+    m_update_callback(callback_data);
   });
 }
 
