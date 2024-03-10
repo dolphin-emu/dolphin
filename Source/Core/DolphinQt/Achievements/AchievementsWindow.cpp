@@ -81,7 +81,7 @@ void AchievementsWindow::UpdateData()
     m_header_widget->UpdateData();
     m_header_widget->setVisible(instance.IsLoggedIn());
     m_settings_widget->UpdateData();
-    m_progress_widget->UpdateData();
+    m_progress_widget->UpdateData(true);
     m_tab_widget->setTabVisible(1, is_game_loaded);
     m_leaderboard_widget->UpdateData();
     m_tab_widget->setTabVisible(2, is_game_loaded);

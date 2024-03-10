@@ -29,10 +29,7 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   m_common_box = new QGroupBox();
   m_common_layout = new QVBoxLayout();
 
-  {
-    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-    UpdateData();
-  }
+  UpdateData(true);
 
   m_common_box->setLayout(m_common_layout);
 
@@ -43,24 +40,45 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   setLayout(layout);
 }
 
-void AchievementProgressWidget::UpdateData()
+void AchievementProgressWidget::UpdateData(bool clean_all)
 {
-  ClearLayoutRecursively(m_common_layout);
-
-  auto& instance = AchievementManager::GetInstance();
-  if (!instance.IsGameLoaded())
-    return;
-
-  auto* client = instance.GetClient();
-  auto* achievement_list =
-      rc_client_create_achievement_list(client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE_AND_UNOFFICIAL,
-                                        RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_LOCK_STATE);
-  for (u32 ix = 0; ix < achievement_list->num_buckets; ix++)
+  if (clean_all)
   {
-    for (u32 jx = 0; jx < achievement_list->buckets[ix].num_achievements; jx++)
+    m_achievement_boxes.clear();
+    ClearLayoutRecursively(m_common_layout);
+
+    auto& instance = AchievementManager::GetInstance();
+    if (!instance.IsGameLoaded())
+      return;
+    auto* client = instance.GetClient();
+    auto* achievement_list = rc_client_create_achievement_list(
+        client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE_AND_UNOFFICIAL,
+        RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_LOCK_STATE);
+    for (u32 ix = 0; ix < achievement_list->num_buckets; ix++)
     {
-      m_common_layout->addWidget(
-          new AchievementBox(this, achievement_list->buckets[ix].achievements[jx]));
+      for (u32 jx = 0; jx < achievement_list->buckets[ix].num_achievements; jx++)
+      {
+        m_common_layout->addWidget(
+            new AchievementBox(this, achievement_list->buckets[ix].achievements[jx]));
+      }
+    }
+  }
+  else
+  {
+    for (auto box : m_achievement_boxes)
+    {
+      box.second->UpdateData();
+    }
+  }
+}
+
+void AchievementProgressWidget::UpdateData(std::set<AchievementManager::AchievementId> update_ids)
+{
+  for (auto box : m_achievement_boxes)
+  {
+    if (update_ids.count(box.first) > 0)
+    {
+      box.second->UpdateData();
     }
   }
 }
