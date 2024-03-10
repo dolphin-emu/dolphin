@@ -9,51 +9,63 @@ MaxValue = 6.0
 StepAmount = 0.25
 DefaultValue = 2.5
 
-[OptionRangeFloat]
-GUIName = Desaturation
-OptionName = DESATURATION
-MinValue = 0.0
-MaxValue = 1.0
-StepAmount = 0.1
-DefaultValue = 0.0
-
 [/configuration]
 */
 
-/***** Linear <--> Oklab *****/
+// ICtCP Colorspace as defined by Dolby here:
+// https://professional.dolby.com/siteassets/pdfs/ictcp_dolbywhitepaper_v071.pdf
 
-const mat4 RGBtoLMS = mat4(
-    0.4122214708, 0.2119034982, 0.0883024619, 0.0000000000,
-    0.5363325363, 0.6806995451, 0.2817188376, 0.0000000000,
-    0.0514459929, 0.1073969566, 0.6299787005, 0.0000000000,
-    0.0000000000, 0.0000000000, 0.0000000000, 1.0000000000);
+/***** Transfer Function *****/
 
-const mat4 LMStoOklab = mat4(
-    0.2104542553, 1.9779984951, 0.0259040371, 0.0000000000,
-    0.7936177850, -2.4285922050, 0.7827717662, 0.0000000000,
-    -0.0040720468, 0.4505937099, -0.8086757660, 0.0000000000,
-    0.0000000000, 0.0000000000, 0.0000000000, 1.0000000000);
+const float4 m_1 = float4(2610.0 / 16384.0);
+const float4 m_2 = float4(128.0 * 2523.0 / 4096.0);
+const float4 m_1_inv = float4(16384.0 / 2610.0);
+const float4 m_2_inv = float4(4096.0 / (128.0 * 2523.0));
 
-float4 LinearRGBToOklab(float4 c)
-{
-    return LMStoOklab * pow(RGBtoLMS * c, float4(1.0 / 3.0));
+const float4 c_1 = float4(3424.0 / 4096.0);
+const float4 c_2 = float4(2413.0 / 4096.0 * 32.0);
+const float4 c_3 = float4(2392.0 / 4096.0 * 32.0);
+
+float4 EOTF_inv(float4 lms) {
+    float4 y = pow(lms, m_1);
+    return pow((c_1 + c_2 * y) / (1.0 + c_3 * y), m_2);
 }
 
-const mat4 OklabtoLMS = mat4(
-    1.0000000000, 1.0000000000, 1.0000000000, 0.0000000000,
-    0.3963377774, -0.1055613458, -0.0894841775, 0.0000000000,
-    0.2158037573, -0.0638541728, -1.2914855480, 0.0000000000,
-    0.0000000000, 0.0000000000, 0.0000000000, 1.0000000000);
+float4 EOTF(float4 lms) {
+    float4 x = pow(lms, m_2_inv);
+    return pow(-(x - c_1) / (c_3 * x - c_2), m_1_inv);
+}
 
-const mat4 LMStoRGB = mat4(
-    4.0767416621, -1.2684380046, -0.0041960863, 0.0000000000,
-    -3.3077115913, 2.6097574011, -0.7034186147, 0.0000000000,
-    0.2309699292, -0.3413193965, 1.7076147010, 0.0000000000,
-    0.0000000000, 0.0000000000, 0.0000000000, 1.0000000000);
+// This is required as scaling in EOTF space is not linear.
+float EOTF_AMPLIFICATION = EOTF_inv(float4(AMPLIFICATION)).x;
 
-float4 OklabToLinearRGB(float4 c)
+/***** Linear <--> ICtCp *****/
+
+const mat4 RGBtoLMS = mat4(
+    1688.0, 683.0,  99.0,   0.0,
+    2146.0, 2951.0, 309.0,  0.0,
+    262.0,  462.0,  3688.0, 0.0,
+    0.0,    0.0,    0.0,    4096.0) / 4096.0;
+
+const mat4 LMStoICtCp = mat4(
+    +2048.0, +6610.0,  +17933.0, 0.0,
+    +2048.0, -13613.0, -17390.0, 0.0,
+    +0.0,    +7003.0,  -543.0,   0.0,
+    +0.0,    +0.0,     +0.0,     4096.0) / 4096.0;
+
+float4 LinearRGBToICtCP(float4 c)
 {
-    return max(LMStoRGB * pow(OklabtoLMS * c, float4(3.0)), 0.0);
+    return LMStoICtCp * EOTF_inv(RGBtoLMS * c);
+}
+
+/***** ICtCp <--> Linear *****/
+
+mat4 ICtCptoLMS = inverse(LMStoICtCp);
+mat4 LMStoRGB = inverse(RGBtoLMS);
+
+float4 ICtCpToLinearRGB(float4 c)
+{
+    return LMStoRGB * EOTF(ICtCptoLMS * c);
 }
 
 void main()
@@ -66,27 +78,32 @@ void main()
         return;
     }
 
-    // Renormalize Color to be in SDR Space
+    // Renormalize Color to be in [0.0 - 1.0] SDR Space. We will revert this later.
     const float hdr_paper_white = hdr_paper_white_nits / hdr_sdr_white_nits;
     color.rgb /= hdr_paper_white;
 
-    // Convert Color to Oklab (previous conditions garuntee color is linear)
-    float4 oklab_color = LinearRGBToOklab(color);
+    // Convert Color to Perceptual Color Space. This will allow us to do perceptual
+    // scaling while also being able to use the luminance channel.
+    float4 ictcp_color = LinearRGBToICtCP(color);
 
-    // Amount to raise hdr_paper_white to the power of.
-    // We divide by 3 because Oklab is a cubic space, this accounts for that.
-    float lum_pow = pow(oklab_color.x, 1.0) / 3.0;
-    float sat_pow = pow(oklab_color.x, DESATURATION) / 3.0;
+    // Scale the color in perceptual space depending on the percieved luminance.
+    //
+    // At low luminances, ~0.0, pow(EOTF_AMPLIFICATION, ~0.0) ~= 1.0, so the
+    // color will appear to be unchanged. This is important as we don't want to
+    // over expose dark colors which would not have otherwise been seen.
+    //
+    // At high luminances, ~1.0, pow(EOTF_AMPLIFICATION, ~1.0) ~= EOTF_AMPLIFICATION,
+    // which is equivilant to scaling the color by EOTF_AMPLIFICATION. This is
+    // important as we want to get the most out of the display, and we want to
+    // get bright colors to hit their target brightness.
+    //
+    // For more information, see this desmos demonstrating this scaling process:
+    // https://www.desmos.com/calculator/syjyrjsj5c
+    const float luminance = ictcp_color.x;
+    ictcp_color *= pow(EOTF_AMPLIFICATION, luminance);
 
-    // The reason we raise hdr_paper_white to a power is so that at low
-    // luminosities, very little about the colors / brightnesses change.
-    // However at luminosities of 1.0, the colors and brightnesses are
-    // able to reach the full range of hdr_paper_white.
-
-    // This is the key to PerceptualHDR working.
-    oklab_color.x *= pow(AMPLIFICATION, lum_pow);
-    oklab_color.z *= pow(AMPLIFICATION, sat_pow);
-    oklab_color.y *= pow(AMPLIFICATION, sat_pow);
-
-    SetOutput(hdr_paper_white * OklabToLinearRGB(oklab_color));
+    // Convert back to Linear RGB and output the color to the display.
+    // We use hdr_paper_white to renormalize the color to the comfortable
+    // SDR viewing range.
+    SetOutput(hdr_paper_white * ICtCpToLinearRGB(ictcp_color));
 }
