@@ -28,11 +28,13 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
   CreateMainLayout();
   ConnectWidgets();
   AchievementManager::GetInstance().SetUpdateCallback(
-      [this] { QueueOnObject(this, &AchievementsWindow::UpdateData); });
+      [this](AchievementManager::UpdatedItems updated_items) {
+        QueueOnObject(this, [this, updated_items = std::move(updated_items)] {
+          AchievementsWindow::UpdateData(std::move(updated_items));
+        });
+      });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &AchievementsWindow::UpdateData);
-
-  UpdateData();
+          [this] { AchievementsWindow::UpdateData({.all = true}); });
 }
 
 void AchievementsWindow::showEvent(QShowEvent* event)
@@ -71,19 +73,38 @@ void AchievementsWindow::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
-void AchievementsWindow::UpdateData()
+void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_items)
 {
+  m_settings_widget->UpdateData();
+  if (updated_items.all)
+  {
+    m_header_widget->UpdateData();
+    m_progress_widget->UpdateData(true);
+    m_leaderboard_widget->UpdateData(true);
+  }
+  else
+  {
+    if (updated_items.player_icon || updated_items.game_icon || updated_items.rich_presence ||
+        updated_items.all_achievements || updated_items.achievements.size() > 0)
+    {
+      m_header_widget->UpdateData();
+    }
+    if (updated_items.all_achievements)
+      m_progress_widget->UpdateData(false);
+    else if (updated_items.achievements.size() > 0)
+      m_progress_widget->UpdateData(updated_items.achievements);
+    if (updated_items.all_leaderboards)
+      m_leaderboard_widget->UpdateData(false);
+    else if (updated_items.leaderboards.size() > 0)
+      m_leaderboard_widget->UpdateData(updated_items.leaderboards);
+  }
+
   {
     auto& instance = AchievementManager::GetInstance();
     std::lock_guard lg{instance.GetLock()};
     const bool is_game_loaded = instance.IsGameLoaded();
-
-    m_header_widget->UpdateData();
     m_header_widget->setVisible(instance.HasAPIToken());
-    m_settings_widget->UpdateData();
-    m_progress_widget->UpdateData(true);
     m_tab_widget->setTabVisible(1, is_game_loaded);
-    m_leaderboard_widget->UpdateData(true);
     m_tab_widget->setTabVisible(2, is_game_loaded);
   }
   update();

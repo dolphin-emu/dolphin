@@ -27,8 +27,6 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   m_common_box = new QGroupBox();
   m_common_layout = new QVBoxLayout();
 
-  UpdateData(true);
-
   m_common_box->setLayout(m_common_layout);
 
   auto* layout = new QVBoxLayout;
