@@ -49,7 +49,6 @@ public:
     UNKNOWN_FAILURE
   };
   using ResponseCallback = std::function<void(ResponseType)>;
-  using UpdateCallback = std::function<void()>;
 
   struct PointSpread
   {
@@ -112,6 +111,19 @@ public:
     u32 player_index = 0;
     std::unordered_map<u32, LeaderboardEntry> entries;
   };
+
+  struct UpdatedItems
+  {
+    bool all = false;
+    bool player_icon = false;
+    bool game_icon = false;
+    bool all_achievements = false;
+    std::set<AchievementId> achievements{};
+    bool all_leaderboards = false;
+    std::set<AchievementId> leaderboards{};
+    bool rich_presence = false;
+  };
+  using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
   static AchievementManager& GetInstance();
   void Init();
@@ -215,7 +227,7 @@ private:
   rc_client_t* m_client{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
-  UpdateCallback m_update_callback = [] {};
+  UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   bool m_disabled = false;
   BadgeStatus m_player_badge;

@@ -61,13 +61,11 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_total->setContentsMargins(0, 0, 0, 0);
   m_total->setAlignment(Qt::AlignTop);
   setLayout(m_total);
-
-  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-  UpdateData();
 }
 
 void AchievementHeaderWidget::UpdateData()
 {
+  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   auto& instance = AchievementManager::GetInstance();
   if (!instance.IsLoggedIn())
   {
