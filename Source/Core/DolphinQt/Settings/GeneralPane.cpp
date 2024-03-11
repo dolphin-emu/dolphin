@@ -15,7 +15,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "Core/Config/AchievementSettings.h"
+#include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
@@ -86,7 +86,7 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
 #ifdef USE_RETRO_ACHIEVEMENTS
-  bool hardcore = Config::Get(Config::RA_HARDCORE_ENABLED);
+  bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_checkbox_cheats->setEnabled(!running && !hardcore);
 #else   // USE_RETRO_ACHIEVEMENTS
   m_checkbox_cheats->setEnabled(!running);

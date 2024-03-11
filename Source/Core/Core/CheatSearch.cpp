@@ -16,7 +16,7 @@
 #include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Config/AchievementSettings.h"
+#include "Core/AchievementManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
@@ -208,7 +208,7 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
                   const std::function<bool(const T& value)>& validator)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
   std::vector<Cheats::SearchResult<T>> results;
@@ -262,7 +262,7 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
                    const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
   std::vector<Cheats::SearchResult<T>> results;
@@ -428,7 +428,7 @@ template <typename T>
 Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPUThreadGuard& guard)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
   Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =

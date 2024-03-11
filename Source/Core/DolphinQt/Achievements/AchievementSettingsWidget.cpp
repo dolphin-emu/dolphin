@@ -243,6 +243,9 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 {
   SaveSettings();
 
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    ToggleHardcore();
+
   auto& instance = AchievementManager::GetInstance();
   if (Config::Get(Config::RA_ENABLED))
     instance.Init();

@@ -761,7 +761,7 @@ std::recursive_mutex& AchievementManager::GetLock()
 bool AchievementManager::IsHardcoreModeActive() const
 {
   std::lock_guard lg{m_lock};
-  if (!Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (!Config::Get(Config::RA_ENABLED) || !Config::Get(Config::RA_HARDCORE_ENABLED))
     return false;
   if (!Core::IsRunning())
     return true;
