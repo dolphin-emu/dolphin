@@ -7,16 +7,31 @@
 
 namespace ciface::Quartz
 {
+std::string GetSourceName()
+{
+  return "Quartz";
+}
+
 class InputBackend final : public ciface::InputBackend
 {
 public:
   using ciface::InputBackend::InputBackend;
   void PopulateDevices() override;
+  void HandleWindowChange() override;
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
 {
   return std::make_unique<InputBackend>(controller_interface);
+}
+
+void InputBackend::HandleWindowChange()
+{
+  const std::string source_name = GetSourceName();
+  GetControllerInterface().RemoveDevice(
+      [&](const auto* dev) { return dev->GetSource() == source_name; }, true);
+
+  PopulateDevices();
 }
 
 void InputBackend::PopulateDevices()

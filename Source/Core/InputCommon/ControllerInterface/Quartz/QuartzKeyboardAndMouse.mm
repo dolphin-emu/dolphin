@@ -280,7 +280,7 @@ std::string KeyboardAndMouse::GetName() const
 
 std::string KeyboardAndMouse::GetSource() const
 {
-  return "Quartz";
+  return Quartz::GetSourceName();
 }
 
 ControlState KeyboardAndMouse::Cursor::GetState() const

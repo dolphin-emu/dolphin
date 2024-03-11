@@ -128,7 +128,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   // or removing them as we are populating them (causing missing or duplicate devices).
   std::lock_guard lk_population(m_devices_population_mutex);
 
-#if defined(CIFACE_USE_WIN32) && !defined(CIFACE_USE_OSX)
   // If only the window changed, avoid removing and re-adding all devices.
   // Instead only refresh devices that require the window handle.
   if (reason == RefreshReason::WindowChangeOnly)
@@ -140,9 +139,9 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 
     if (m_populating_devices_counter.fetch_sub(1) == 1)
       InvokeDevicesChangedCallbacks();
+
     return;
   }
-#endif
 
   m_populating_devices_counter.fetch_add(1);
 
