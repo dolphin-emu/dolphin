@@ -66,16 +66,27 @@ constexpr int XINPUT_MAJOR = 2, XINPUT_MINOR = 1;
 
 namespace ciface::XInput2
 {
+constexpr std::string_view SOURCE_NAME = "XInput2";
+
 class InputBackend final : public ciface::InputBackend
 {
 public:
   using ciface::InputBackend::InputBackend;
   void PopulateDevices() override;
+  void HandleWindowChange() override;
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
 {
   return std::make_unique<InputBackend>(controller_interface);
+}
+
+void InputBackend::HandleWindowChange()
+{
+  GetControllerInterface().RemoveDevice(
+      [](const auto* dev) { return dev->GetSource() == SOURCE_NAME; }, true);
+
+  PopulateDevices();
 }
 
 // This function will add zero or more KeyboardMouse objects to devices.
@@ -400,7 +411,7 @@ std::string KeyboardMouse::GetName() const
 
 std::string KeyboardMouse::GetSource() const
 {
-  return "XInput2";
+  return std::string(SOURCE_NAME);
 }
 
 KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
