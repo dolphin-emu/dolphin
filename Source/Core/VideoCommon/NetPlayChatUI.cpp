@@ -1,6 +1,8 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/MsgHandler.h"
+
 #include "VideoCommon/NetPlayChatUI.h"
 
 #include <imgui.h>
@@ -28,7 +30,7 @@ void NetPlayChatUI::Display()
       ImVec2(DEFAULT_WINDOW_WIDTH * scale, DEFAULT_WINDOW_HEIGHT * scale),
       ImGui::GetIO().DisplaySize);
 
-  if (!ImGui::Begin("Chat", nullptr, ImGuiWindowFlags_None))
+  if (!ImGui::Begin(GetStringT("Chat").c_str(), nullptr, ImGuiWindowFlags_None))
   {
     ImGui::End();
     return;
@@ -73,7 +75,7 @@ void NetPlayChatUI::Display()
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Send"))
+  if (ImGui::Button(GetStringT("Send").c_str()))
     SendMessage();
 
   ImGui::End();
