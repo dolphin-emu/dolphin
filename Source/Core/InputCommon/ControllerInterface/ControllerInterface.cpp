@@ -77,7 +77,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   m_input_backends.emplace_back(ciface::evdev::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_PIPES
-// nothing needed
+  m_input_backends.emplace_back(ciface::Pipes::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
   m_input_backends.emplace_back(ciface::DualShockUDPClient::CreateInputBackend(this));
@@ -164,9 +164,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 #endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
-#endif
-#ifdef CIFACE_USE_PIPES
-  ciface::Pipes::PopulateDevices();
 #endif
 
   for (auto& backend : m_input_backends)
