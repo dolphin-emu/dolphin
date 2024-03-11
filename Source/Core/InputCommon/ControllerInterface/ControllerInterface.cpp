@@ -423,6 +423,11 @@ ciface::InputChannel ControllerInterface::GetCurrentInputChannel()
   return tls_input_channel;
 }
 
+WindowSystemInfo ControllerInterface::GetWindowSystemInfo() const
+{
+  return m_wsi;
+}
+
 void ControllerInterface::SetAspectRatioAdjustment(float value)
 {
   m_aspect_ratio_adjustment = value;
