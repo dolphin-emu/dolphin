@@ -201,13 +201,13 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
   SetQWidgetWindowDecorations(this);
   setLayout([this]() {
-    auto* layout = new QVBoxLayout;
+    auto* main_layout = new QVBoxLayout;
 
     // Controls Toolbar (widgets are added later)
-    layout->addWidget(m_control_toolbar = new QToolBar);
+    main_layout->addWidget(m_control_toolbar = new QToolBar);
 
     // Branch Watch Table
-    layout->addWidget(m_table_view = [this]() {
+    main_layout->addWidget(m_table_view = [this]() {
       const auto& ui_settings = Settings::Instance();
 
       m_table_proxy = new BranchWatchProxyModel(m_branch_watch);
@@ -271,7 +271,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     }();
 
     // Menu Bar
-    layout->setMenuBar([this]() {
+    main_layout->setMenuBar([this]() {
       QMenuBar* const menu_bar = new QMenuBar;
       menu_bar->setNativeMenuBar(false);
 
@@ -308,7 +308,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     }());
 
     // Status Bar
-    layout->addWidget(m_status_bar = []() {
+    main_layout->addWidget(m_status_bar = []() {
       auto* const status_bar = new QStatusBar;
       status_bar->setSizeGripEnabled(false);
       return status_bar;
@@ -394,7 +394,8 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     m_control_toolbar->addWidget([this]() {
       auto* const layout = new QGridLayout;
 
-      const auto routine = [this, layout](const QString& text, int row, int column, int width,
+      const auto routine = [this, layout](const QString& placeholder_text, int row, int column,
+                                          int width,
                                           void (BranchWatchProxyModel::*slot)(const QString&)) {
         QLineEdit* const line_edit = new QLineEdit;
         layout->addWidget(line_edit, row, column, 1, width);
@@ -402,7 +403,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
           (m_table_proxy->*slot)(text);
           UpdateStatus();
         });
-        line_edit->setPlaceholderText(text);
+        line_edit->setPlaceholderText(placeholder_text);
         return line_edit;
       };
 
@@ -487,7 +488,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     connect(m_table_proxy, &BranchWatchProxyModel::layoutChanged, this,
             &BranchWatchDialog::UpdateStatus);
 
-    return layout;
+    return main_layout;
   }());
 
   // FIXME: On Linux, Qt6 has recently been resetting column widths to their defaults in many
@@ -820,8 +821,8 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
     QAction* const action = menu->addAction(tr("Insert &BLR"));
     const bool enable_action =
         Core::GetState() != Core::State::Uninitialized &&
-        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& index) {
-          const QModelIndex sibling = index.siblingAtColumn(Column::Instruction);
+        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
+          const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
           return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
         });
     if (enable_action)
@@ -840,8 +841,8 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
     QAction* const action = menu->addAction(tr("Insert &BLR at start"));
     const bool enable_action =
         Core::GetState() != Core::State::Uninitialized &&
-        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& index) {
-          return m_table_proxy->data(index, UserRole::ClickRole).isValid();
+        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
+          return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
         });
     if (enable_action)
       connect(action, &QAction::triggered, [this, index_list = std::move(index_list)]() {
