@@ -7,15 +7,25 @@
 
 namespace ciface::Quartz
 {
-void PopulateDevices(void* window)
+class InputBackend final : public ciface::InputBackend
 {
-  if (!window)
+public:
+  using ciface::InputBackend::InputBackend;
+  void PopulateDevices() override;
+};
+
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
+{
+  return std::make_unique<InputBackend>(controller_interface);
+}
+
+void InputBackend::PopulateDevices()
+{
+  const WindowSystemInfo wsi = GetControllerInterface().GetWindowSystemInfo();
+  if (wsi.type != WindowSystemType::MacOS)
     return;
 
-  g_controller_interface.AddDevice(std::make_shared<KeyboardAndMouse>(window));
+  GetControllerInterface().AddDevice(std::make_shared<KeyboardAndMouse>(wsi.render_window));
 }
 
-void DeInit()
-{
-}
 }  // namespace ciface::Quartz

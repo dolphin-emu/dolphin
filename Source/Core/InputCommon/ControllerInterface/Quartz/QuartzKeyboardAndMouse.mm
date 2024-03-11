@@ -12,6 +12,7 @@
 #include "Core/Host.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 
 /// Helper class to get window position data from threads other than the main thread
 @interface DolWindowPositionObserver : NSObject
