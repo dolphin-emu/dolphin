@@ -350,6 +350,7 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 
 void AchievementManager::ActivateDeactivateAchievements()
 {
+  std::lock_guard lg{m_lock};
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
     return;
   bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
@@ -369,6 +370,7 @@ void AchievementManager::ActivateDeactivateAchievements()
 
 void AchievementManager::ActivateDeactivateLeaderboards()
 {
+  std::lock_guard lg{m_lock};
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
     return;
   bool leaderboards_enabled =
@@ -395,6 +397,7 @@ void AchievementManager::ActivateDeactivateLeaderboards()
 
 void AchievementManager::ActivateDeactivateRichPresence()
 {
+  std::lock_guard lg{m_lock};
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
     return;
   rc_runtime_activate_richpresence(
@@ -659,7 +662,7 @@ void AchievementManager::FetchBadges()
 
 void AchievementManager::DoFrame()
 {
-  if (!m_is_game_loaded)
+  if (!m_is_game_loaded || !Core::IsCPUThread())
     return;
   if (m_framecount == 0x200)
   {
@@ -669,7 +672,8 @@ void AchievementManager::DoFrame()
   {
     m_framecount++;
   }
-  Core::RunAsCPUThread([&] {
+  {
+    std::lock_guard lg{m_lock};
     rc_runtime_do_frame(
         &m_runtime,
         [](const rc_runtime_event_t* runtime_event) {
@@ -679,7 +683,7 @@ void AchievementManager::DoFrame()
           return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
         },
         this, nullptr);
-  });
+  }
   if (!m_system)
     return;
   time_t current_time = std::time(nullptr);
@@ -724,32 +728,29 @@ u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
 
 void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
 {
+  switch (runtime_event->type)
   {
-    std::lock_guard lg{m_lock};
-    switch (runtime_event->type)
-    {
-    case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
-      HandleAchievementTriggeredEvent(runtime_event);
-      break;
-    case RC_RUNTIME_EVENT_ACHIEVEMENT_PROGRESS_UPDATED:
-      HandleAchievementProgressUpdatedEvent(runtime_event);
-      break;
-    case RC_RUNTIME_EVENT_ACHIEVEMENT_PRIMED:
-      HandleAchievementPrimedEvent(runtime_event);
-      break;
-    case RC_RUNTIME_EVENT_ACHIEVEMENT_UNPRIMED:
-      HandleAchievementUnprimedEvent(runtime_event);
-      break;
-    case RC_RUNTIME_EVENT_LBOARD_STARTED:
-      HandleLeaderboardStartedEvent(runtime_event);
-      break;
-    case RC_RUNTIME_EVENT_LBOARD_CANCELED:
-      HandleLeaderboardCanceledEvent(runtime_event);
-      break;
-    case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
-      HandleLeaderboardTriggeredEvent(runtime_event);
-      break;
-    }
+  case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
+    HandleAchievementTriggeredEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_ACHIEVEMENT_PROGRESS_UPDATED:
+    HandleAchievementProgressUpdatedEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_ACHIEVEMENT_PRIMED:
+    HandleAchievementPrimedEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_ACHIEVEMENT_UNPRIMED:
+    HandleAchievementUnprimedEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_LBOARD_STARTED:
+    HandleLeaderboardStartedEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_LBOARD_CANCELED:
+    HandleLeaderboardCanceledEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
+    HandleLeaderboardTriggeredEvent(runtime_event);
+    break;
   }
 }
 
