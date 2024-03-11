@@ -59,7 +59,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   m_populating_devices_counter = 1;
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::Init(wsi.render_window);
+  m_input_backends.emplace_back(ciface::Win32::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_XLIB
   m_input_backends.emplace_back(ciface::XInput2::CreateInputBackend(this));
@@ -135,9 +135,8 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   {
     m_populating_devices_counter.fetch_add(1);
 
-    // No need to do anything else in this case.
-    // Only (Win32) DInput needs the window handle to be updated.
-    ciface::Win32::ChangeWindow(m_wsi.render_window);
+    for (auto& backend : m_input_backends)
+      backend->HandleWindowChange();
 
     if (m_populating_devices_counter.fetch_sub(1) == 1)
       InvokeDevicesChangedCallbacks();
@@ -159,9 +158,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   // do it async, to not risk the emulated controllers default config loading not finding a default
   // device.
 
-#ifdef CIFACE_USE_WIN32
-  ciface::Win32::PopulateDevices(m_wsi.render_window);
-#endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
 #endif
@@ -204,9 +200,6 @@ void ControllerInterface::Shutdown()
   // Update control references so shared_ptr<Device>s are freed up BEFORE we shutdown the backends.
   ClearDevices();
 
-#ifdef CIFACE_USE_WIN32
-  ciface::Win32::DeInit();
-#endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::Shutdown();
 #endif
