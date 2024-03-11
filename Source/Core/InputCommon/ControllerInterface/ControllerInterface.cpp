@@ -62,7 +62,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   ciface::Win32::Init(wsi.render_window);
 #endif
 #ifdef CIFACE_USE_XLIB
-// nothing needed
+  m_input_backends.emplace_back(ciface::XInput2::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_OSX
   m_input_backends.emplace_back(ciface::Quartz::CreateInputBackend(this));
@@ -162,10 +162,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 #ifdef CIFACE_USE_WIN32
   ciface::Win32::PopulateDevices(m_wsi.render_window);
 #endif
-#ifdef CIFACE_USE_XLIB
-  if (m_wsi.type == WindowSystemType::X11)
-    ciface::XInput2::PopulateDevices(m_wsi.render_window);
-#endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
 #endif
@@ -213,9 +209,6 @@ void ControllerInterface::Shutdown()
 
 #ifdef CIFACE_USE_WIN32
   ciface::Win32::DeInit();
-#endif
-#ifdef CIFACE_USE_XLIB
-// nothing needed
 #endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::Shutdown();
