@@ -48,6 +48,8 @@ void WiimoteEmuMotionControlIMU::CreateMainLayout()
   auto* groups_layout = new QHBoxLayout();
   groups_layout->addWidget(
       CreateGroupBox(Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::IMUPoint)));
+  groups_layout->addWidget(
+      CreateGroupBox(Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::IRPassthrough)));
   groups_layout->addWidget(CreateGroupBox(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::IMUAccelerometer)));
   groups_layout->addWidget(
