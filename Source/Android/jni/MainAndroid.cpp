@@ -570,7 +570,7 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
   s_need_nonblocking_alert_msg = true;
   std::unique_lock<std::mutex> surface_guard(s_surface_lock);
 
-  if (BootManager::BootCore(std::move(boot), wsi))
+  if (BootManager::BootCore(Core::System::GetInstance(), std::move(boot), wsi))
   {
     static constexpr int WAIT_STEP = 25;
     while (Core::GetState() == Core::State::Starting)
