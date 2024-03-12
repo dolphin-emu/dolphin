@@ -154,7 +154,7 @@ public:
     u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
     AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(m_view->m_system);
 
     if (!bytes.empty() && accessors->IsValidAddress(guard, address) &&
         accessors->IsValidAddress(guard, end_address))
@@ -170,8 +170,8 @@ private:
   MemoryViewWidget* m_view;
 };
 
-MemoryViewWidget::MemoryViewWidget(QWidget* parent)
-    : QWidget(parent), m_system(Core::System::GetInstance())
+MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
+    : QWidget(parent), m_system(system)
 {
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -443,7 +443,7 @@ void MemoryViewWidget::UpdateColumns()
 
   if (Core::GetState() == Core::State::Paused)
   {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(m_system);
     UpdateColumns(&guard);
   }
   else
@@ -850,12 +850,8 @@ void MemoryViewWidget::OnCopyHex(u32 addr)
 {
   const auto length = GetTypeSize(m_type);
 
-  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
-
-  const u64 value = [addr, accessors] {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    return accessors->ReadU64(guard, addr);
-  }();
+  const u64 value =
+      AddressSpace::GetAccessors(m_address_space)->ReadU64(Core::CPUThreadGuard{m_system}, addr);
 
   QApplication::clipboard()->setText(
       QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
@@ -873,12 +869,8 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   const u32 addr = item_selected->data(USER_ROLE_CELL_ADDRESS).toUInt();
   const bool item_has_value =
       item_selected->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null) &&
-      [this, addr] {
-        const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
-
-        Core::CPUThreadGuard guard(Core::System::GetInstance());
-        return accessors->IsValidAddress(guard, addr);
-      }();
+      AddressSpace::GetAccessors(m_address_space)
+          ->IsValidAddress(Core::CPUThreadGuard{m_system}, addr);
 
   auto* menu = new QMenu(this);
 

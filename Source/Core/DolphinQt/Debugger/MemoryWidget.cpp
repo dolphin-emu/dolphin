@@ -40,7 +40,8 @@
 
 using Type = MemoryViewWidget::Type;
 
-MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
+MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
+    : QDockWidget(parent), m_system(system)
 {
   setWindowTitle(tr("Memory"));
   setObjectName(QStringLiteral("memory"));
@@ -287,7 +288,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_scroll->setWidget(sidebar);
   sidebar_scroll->setWidgetResizable(true);
 
-  m_memory_view = new MemoryViewWidget(this);
+  m_memory_view = new MemoryViewWidget(m_system, this);
 
   m_splitter->addWidget(m_memory_view);
   m_splitter->addWidget(sidebar_scroll);
@@ -496,7 +497,7 @@ void MemoryWidget::SetAddress(u32 address)
     AddressSpace::Accessors* accessors =
         AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(m_system);
     good = accessors->IsValidAddress(guard, current_addr);
   }
 
@@ -653,7 +654,7 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(m_system);
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
   u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
@@ -715,7 +716,7 @@ void MemoryWidget::OnSetValueFromFile()
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(m_system);
 
   for (u8 b : file_contents)
     accessors->WriteU8(guard, target_addr.address++, b);
@@ -833,7 +834,7 @@ void MemoryWidget::FindValue(bool next)
     AddressSpace::Accessors* accessors =
         AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(m_system);
     return accessors->Search(guard, target_addr.address,
                              reinterpret_cast<const u8*>(search_for.data()),
                              static_cast<u32>(search_for.size()), next);
