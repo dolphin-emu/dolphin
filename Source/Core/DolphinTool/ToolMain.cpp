@@ -16,8 +16,8 @@
 #include "Common/Version.h"
 #include "Core/Core.h"
 
-#include "DolphinTool/ExtractCommand.h"
 #include "DolphinTool/ConvertCommand.h"
+#include "DolphinTool/ExtractCommand.h"
 #include "DolphinTool/HeaderCommand.h"
 #include "DolphinTool/VerifyCommand.h"
 
@@ -54,7 +54,6 @@ int main(int argc, char* argv[])
     return DolphinTool::HeaderCommand(args);
   else if (command_str == "extract")
     return DolphinTool::Extract(args);
-
   PrintUsage();
   return EXIT_FAILURE;
 }

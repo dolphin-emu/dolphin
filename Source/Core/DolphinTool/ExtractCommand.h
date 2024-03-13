@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace DolphinTool
 {
-    int Extract(const std::vector<std::string>& args);
-}
+int Extract(const std::vector<std::string>& args);
+} // namespace DolphinTool
