@@ -10,6 +10,8 @@
     <OutDir>$(IntDir)bin\</OutDir>
     <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with deterministic build)-->
     <LinkIncremental>false</LinkIncremental>
+    <!--Disable vcpkg to avoid accidentally linking to its packages-->
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
