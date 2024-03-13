@@ -45,7 +45,6 @@ int main(int argc, char* argv[])
   const std::string_view command_str = argv[1];
   // Take off the program name and command selector before passing arguments down
   const std::vector<std::string> args(argv + 2, argv + argc);
-  
   if (command_str == "convert")
     return DolphinTool::ConvertCommand(args);
   else if (command_str == "verify")

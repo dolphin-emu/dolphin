@@ -28,7 +28,7 @@ static void ExtractDirectory(const DiscIO::Partition& partition, const std::stri
   u32 size = info->GetTotalChildren();
 
   std::future<void> future = std::async(std::launch::async, [&] {
-  u32 files = 0;
+    u32 files = 0;
 
     DiscIO::ExportDirectory(*disc_volume, partition, *info, true, path, out,
                             [&files, &size](const std::string& current) {
