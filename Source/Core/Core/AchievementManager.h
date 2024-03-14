@@ -15,9 +15,11 @@
 
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
+#include <rcheevos/include/rc_client.h>
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/Event.h"
+#include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
 
@@ -202,6 +204,8 @@ private:
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
                        const std::function<int(RcResponse*, const char*)>& process_response);
   ResponseType RequestImage(rc_api_fetch_image_request_t rc_request, Badge* rc_response);
+  static void RequestV2(const rc_api_request_t* request, rc_client_server_callback_t callback,
+                        void* callback_data, rc_client_t* client);
 
   rc_runtime_t m_runtime{};
   Core::System* m_system{};
