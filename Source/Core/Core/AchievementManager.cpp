@@ -1749,4 +1749,21 @@ void AchievementManager::RequestV2(const rc_api_request_t* request,
   });
 }
 
+u32 AchievementManager::MemoryPeekerV2(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+{
+  if (buffer == nullptr)
+    return 0u;
+  auto& system = Core::System::GetInstance();
+  Core::CPUThreadGuard threadguard(system);
+  for (u32 num_read = 0; num_read < num_bytes; num_read++)
+  {
+    auto value = system.GetMMU().HostTryReadU8(threadguard, address + num_read,
+                                               PowerPC::RequestedAddressSpace::Physical);
+    if (!value.has_value())
+      return num_read;
+    buffer[num_read] = value.value().value;
+  }
+  return num_bytes;
+}
+
 #endif  // USE_RETRO_ACHIEVEMENTS
