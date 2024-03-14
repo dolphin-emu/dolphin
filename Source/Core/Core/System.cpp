@@ -37,6 +37,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModEditor/EditorMain.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -100,6 +101,7 @@ struct System::Impl
   FifoRecorder m_fifo_recorder;
   Movie::MovieManager m_movie;
   GraphicsModEditor::EditorMain m_graphics_mod_editor;
+  GraphicsModSystem::Runtime::GraphicsModManager m_graphics_mod_manager;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -338,5 +340,9 @@ VideoCommon::CustomAssetLoader& System::GetCustomAssetLoader() const
 GraphicsModEditor::EditorMain& System::GetGraphicsModEditor() const
 {
   return m_impl->m_graphics_mod_editor;
+}
+GraphicsModSystem::Runtime::GraphicsModManager& System::GetGraphicsModManager() const
+{
+  return m_impl->m_graphics_mod_manager;
 }
 }  // namespace Core
