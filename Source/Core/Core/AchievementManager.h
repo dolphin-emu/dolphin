@@ -204,8 +204,10 @@ private:
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
                        const std::function<int(RcResponse*, const char*)>& process_response);
   ResponseType RequestImage(rc_api_fetch_image_request_t rc_request, Badge* rc_response);
+
   static void RequestV2(const rc_api_request_t* request, rc_client_server_callback_t callback,
                         void* callback_data, rc_client_t* client);
+  static u32 MemoryPeekerV2(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
 
   rc_runtime_t m_runtime{};
   Core::System* m_system{};
