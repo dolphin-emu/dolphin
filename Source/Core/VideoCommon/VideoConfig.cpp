@@ -301,14 +301,16 @@ void CheckForConfigChanges()
 
   if (g_ActiveConfig.bGraphicMods && !old_graphics_mods_enabled)
   {
-    g_ActiveConfig.graphics_mod_config = GraphicsModGroupConfig(SConfig::GetInstance().GetGameID());
+    g_ActiveConfig.graphics_mod_config =
+        GraphicsModSystem::Config::GraphicsModGroup(SConfig::GetInstance().GetGameID());
     g_ActiveConfig.graphics_mod_config->Load();
   }
 
+  auto& system = Core::System::GetInstance();
   if (g_ActiveConfig.graphics_mod_config &&
       (old_game_mod_changes != g_ActiveConfig.graphics_mod_config->GetChangeCount()))
   {
-    g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
+    system.GetGraphicsModManager().Load(*g_ActiveConfig.graphics_mod_config);
   }
 
   // Update texture cache settings with any changed options.
@@ -363,7 +365,6 @@ void CheckForConfigChanges()
 
   if (old_scale != g_framebuffer_manager->GetEFBScale())
   {
-    auto& system = Core::System::GetInstance();
     auto& pixel_shader_manager = system.GetPixelShaderManager();
     pixel_shader_manager.Dirty();
   }
