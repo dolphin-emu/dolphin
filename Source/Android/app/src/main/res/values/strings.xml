@@ -64,8 +64,6 @@
     <string name="graphics_settings">Graphics Settings</string>
     <string name="gcpad_settings">GameCube Input</string>
     <string name="wiimote_settings">Wii Input</string>
-    <string name="settings_saved">Saved settings to INI files</string>
-    <string name="settings_saved_game_specific">Saved settings for %1$s</string>
 
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
