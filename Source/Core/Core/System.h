@@ -57,6 +57,10 @@ namespace GraphicsModEditor
 {
 class EditorMain;
 }
+namespace GraphicsModSystem::Runtime
+{
+class GraphicsModManager;
+}
 namespace IOS::HLE
 {
 class EmulationKernel;
@@ -199,6 +203,7 @@ public:
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
   VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
   GraphicsModEditor::EditorMain& GetGraphicsModEditor() const;
+  GraphicsModSystem::Runtime::GraphicsModManager& GetGraphicsModManager() const;
 
 private:
   System();
