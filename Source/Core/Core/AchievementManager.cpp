@@ -12,7 +12,6 @@
 #include <rcheevos/include/rc_api_info.h>
 #include <rcheevos/include/rc_hash.h>
 
-#include "Common/HttpRequest.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/WorkQueueThread.h"
@@ -1704,6 +1703,50 @@ static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager:
     return nullptr;
   }
   return icon;
+}
+
+void AchievementManager::RequestV2(const rc_api_request_t* request,
+                                   rc_client_server_callback_t callback, void* callback_data,
+                                   rc_client_t* client)
+{
+  std::string url = request->url;
+  std::string post_data = request->post_data;
+  AchievementManager::GetInstance().m_queue.EmplaceItem([url = std::move(url),
+                                                         post_data = std::move(post_data),
+                                                         callback = std::move(callback),
+                                                         callback_data = std::move(callback_data)] {
+    const Common::HttpRequest::Headers USER_AGENT_HEADER = {{"User-Agent", "Dolphin/Placeholder"}};
+
+    Common::HttpRequest http_request;
+    Common::HttpRequest::Response http_response;
+    if (!post_data.empty())
+    {
+      http_response = http_request.Post(url, post_data, USER_AGENT_HEADER,
+                                        Common::HttpRequest::AllowedReturnCodes::All);
+    }
+    else
+    {
+      http_response =
+          http_request.Get(url, USER_AGENT_HEADER, Common::HttpRequest::AllowedReturnCodes::All);
+    }
+
+    rc_api_server_response_t server_response;
+    if (http_response.has_value() && http_response->size() > 0)
+    {
+      server_response.body = reinterpret_cast<const char*>(http_response->data());
+      server_response.body_length = http_response->size();
+      server_response.http_status_code = http_request.GetLastResponseCode();
+    }
+    else
+    {
+      constexpr char error_message[] = "Failed HTTP request.";
+      server_response.body = error_message;
+      server_response.body_length = sizeof(error_message);
+      server_response.http_status_code = RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR;
+    }
+
+    callback(&server_response, callback_data);
+  });
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS
