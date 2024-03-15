@@ -125,6 +125,11 @@ bool Device::Control::IsMatchingName(std::string_view name) const
   return GetName() == name;
 }
 
+bool Device::Control::IsHidden() const
+{
+  return false;
+}
+
 ControlState Device::FullAnalogSurface::GetState() const
 {
   return (1 + std::max(0.0, m_high.GetState()) - std::max(0.0, m_low.GetState())) / 2;
@@ -139,6 +144,11 @@ std::string Device::FullAnalogSurface::GetName() const
 bool Device::FullAnalogSurface::IsDetectable() const
 {
   return m_low.IsDetectable() && m_high.IsDetectable();
+}
+
+bool Device::FullAnalogSurface::IsHidden() const
+{
+  return m_low.IsHidden() && m_high.IsHidden();
 }
 
 bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
