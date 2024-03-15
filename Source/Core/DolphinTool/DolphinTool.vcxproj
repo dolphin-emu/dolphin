@@ -53,6 +53,7 @@
     <ClInclude Include="ConvertCommand.h" />
     <ClInclude Include="VerifyCommand.h" />
     <ClInclude Include="HeaderCommand.h" />
+    <ClInclude Include="ExtractCommand.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="DolphinTool.exe.manifest" />
