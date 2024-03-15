@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace DolphinTool {
-int Extract(const std::vector<std::string> &args);
-} // namespace DolphinTool
+namespace DolphinTool
+{
+int Extract(const std::vector<std::string>& args);
+}  // namespace DolphinTool
