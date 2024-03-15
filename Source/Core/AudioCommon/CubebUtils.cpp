@@ -36,7 +36,7 @@ static void LogCallback(const char* format, ...)
   const std::string message = StringFromFormatV(adapted_format.c_str(), args);
   va_end(args);
 
-  instance->LogWithFullPath(Common::Log::LogLevel::LNOTICE, log_type, filename, lineno,
+  instance->LogWithFullPath(Common::Log::LogLevel::LINFO, log_type, filename, lineno,
                             message.c_str());
 }
 
