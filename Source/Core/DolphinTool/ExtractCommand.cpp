@@ -222,23 +222,20 @@ int Extract(const std::vector<std::string>& args)
         {
           file.append(partition_name);
           ExtractPartition(*disc_volume, p, file, mute);
+          continue;
         }
-        else
-        {
-          if (auto file_info = GetFileInfo(*disc_volume, p, single_file_path); file_info != nullptr)
-          {
-            file.append(single_file_path);
 
-            if (file_info->IsDirectory())
-              ExtractDirectory(*disc_volume, p, single_file_path, output_folder_path, mute);
-            else
-              ExtractFile(*disc_volume, p, single_file_path, file);
-          }
+        if (auto file_info = GetFileInfo(*disc_volume, p, single_file_path); file_info != nullptr)
+        {
+          file.append(single_file_path);
+
+          if (file_info->IsDirectory())
+            ExtractDirectory(*disc_volume, p, single_file_path, output_folder_path, mute);
           else
-          {
-            extracted_one = false;
-          }
+            ExtractFile(*disc_volume, p, single_file_path, file);
+          continue;
         }
+        extracted_one = false;
       }
     }
   }
