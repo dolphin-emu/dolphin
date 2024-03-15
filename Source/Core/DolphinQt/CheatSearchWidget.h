@@ -18,6 +18,10 @@ namespace ActionReplay
 {
 struct ARCode;
 }
+namespace Core
+{
+class System;
+}
 
 class QCheckBox;
 class QComboBox;
@@ -36,7 +40,9 @@ class CheatSearchWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionBase> session);
+  explicit CheatSearchWidget(Core::System& system,
+                             std::unique_ptr<Cheats::CheatSearchSessionBase> session,
+                             QWidget* parent = nullptr);
   ~CheatSearchWidget() override;
 
   enum class UpdateSource
@@ -73,6 +79,8 @@ private:
   void GenerateARCode();
   int GetVisibleRowsBeginIndex() const;
   int GetVisibleRowsEndIndex() const;
+
+  Core::System& m_system;
 
   std::unique_ptr<Cheats::CheatSearchSessionBase> m_session;
 
