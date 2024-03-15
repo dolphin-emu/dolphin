@@ -17,6 +17,8 @@
 
 #include "Common/MathUtil.h"
 
+#include "Core/HW/WiimoteEmu/Camera.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
@@ -821,6 +823,35 @@ void GyroMappingIndicator::Draw()
   // Blue dot target.
   p.setPen(GetCenterColor());
   p.drawEllipse(QPointF{}, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+}
+
+void IRPassthroughMappingIndicator::Draw()
+{
+  QPainter p(this);
+  DrawBoundingBox(p);
+  TransformPainter(p);
+
+  p.scale(1.0, -1.0);
+
+  auto pen = GetInputDotPen(m_ir_group.enabled ? GetAdjustedInputColor() : GetRawInputColor());
+
+  for (std::size_t i = 0; i != WiimoteEmu::CameraLogic::NUM_POINTS; ++i)
+  {
+    const auto size = m_ir_group.GetObjectSize(i);
+
+    const bool is_visible = size > 0;
+    if (!is_visible)
+      continue;
+
+    const auto point =
+        (QPointF{m_ir_group.GetObjectPositionX(i), m_ir_group.GetObjectPositionY(i)} -
+         QPointF{0.5, 0.5}) *
+        2.0;
+
+    pen.setWidth(size * NORMAL_INDICATOR_WIDTH / 2);
+    p.setPen(pen);
+    p.drawPoint(point);
+  }
 }
 
 void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)

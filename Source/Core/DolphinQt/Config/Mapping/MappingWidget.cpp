@@ -95,6 +95,11 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     indicator = new AnalogStickIndicator(*static_cast<ControllerEmu::ReshapableInput*>(group));
     break;
 
+  case ControllerEmu::GroupType::IRPassthrough:
+    indicator =
+        new IRPassthroughMappingIndicator(*static_cast<ControllerEmu::IRPassthrough*>(group));
+    break;
+
   default:
     break;
   }
