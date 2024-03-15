@@ -33,6 +33,26 @@ static std::unique_ptr<DiscIO::FileInfo> GetFileInfo(const DiscIO::Volume& disc_
   return info;
 }
 
+static int VolumeSupported(const DiscIO::Volume& disc_volume)
+{
+  switch (disc_volume.GetVolumeType())
+  {
+  case DiscIO::Platform::WiiWAD:
+    fmt::println(std::cerr, "Error: Wii WADs are not supported.");
+    return EXIT_FAILURE;
+  case DiscIO::Platform::ELFOrDOL:
+    fmt::println(std::cerr,
+                 "Error: *.elf or *.dol have no filesystem and are therefore not supported.");
+    return EXIT_FAILURE;
+  case DiscIO::Platform::WiiDisc:
+  case DiscIO::Platform::GameCubeDisc:
+    return EXIT_SUCCESS;
+  default:
+    fmt::println("Error: Unknown volume type.");
+    return EXIT_FAILURE;
+  }
+}
+
 static void ExtractDirectory(const DiscIO::Volume& disc_volume, const DiscIO::Partition& partition,
                              const std::string& path, const std::string& out, bool mute)
 {
@@ -49,7 +69,7 @@ static void ExtractDirectory(const DiscIO::Volume& disc_volume, const DiscIO::Pa
                     const float progress =
                         static_cast<float>(files) / static_cast<float>(size) * 100;
                     if (!mute)
-                      fmt::print("Extracting: {} | {}% \n", current, static_cast<int>(progress));
+                      fmt::println("Extracting: {} | {}%", current, static_cast<int>(progress));
                     return false;
                   });
 }
@@ -90,7 +110,7 @@ int Extract(const std::vector<std::string>& args)
       .action("store")
       .help("Which specific partition you want to extract.");
 
-  parser.add_option("-s", "--singular")
+  parser.add_option("-s", "--single")
       .type("string")
       .action("store")
       .help("Which specific file/directory you want to extract.");
@@ -110,26 +130,48 @@ int Extract(const std::vector<std::string>& args)
 
   if (!options.is_set("input"))
   {
-    fmt::print(std::cerr, "Error: No input image set\n");
+    fmt::println(std::cerr, "Error: No input image set");
     return EXIT_FAILURE;
   }
   const std::string& input_file_path = options["input"];
 
   if (!options.is_set("output"))
   {
-    fmt::print(std::cerr, "Error: No output folder set\n");
+    fmt::println(std::cerr, "Error: No output folder set");
     return EXIT_FAILURE;
   }
+
   const std::string& output_folder_path = options["output"];
-  const std::string& singular_file_path = options["singular"];
+  const std::string& single_file_path = options["single"];
   std::string& specific_partition = const_cast<std::string&>(options["partition"]);
 
   if (gameonly)
     specific_partition = std::string("data");
 
-  if (const std::unique_ptr<DiscIO::Volume> disc_volume = DiscIO::CreateVolume(input_file_path);
-      disc_volume->GetPartitions().empty())
+  if (const std::unique_ptr<DiscIO::BlobReader> blob_reader =
+          DiscIO::CreateBlobReader(input_file_path);
+      !blob_reader)
   {
+    fmt::println(std::cerr, "Error: Unable to open disc image");
+    return EXIT_FAILURE;
+  }
+
+  const std::unique_ptr<DiscIO::Volume> disc_volume = DiscIO::CreateVolume(input_file_path);
+  if (VolumeSupported(*disc_volume) == EXIT_FAILURE)
+    return EXIT_FAILURE;
+
+  if (!disc_volume)
+  {
+    fmt::println("Error: Unable to open volume");
+    return EXIT_FAILURE;
+  }
+
+  if (disc_volume->GetPartitions().empty())
+  {
+    if (options.is_set("partition"))
+      fmt::println(
+          std::cerr,
+          "Warning: --partition has a value even though this image doesn't have any partitions.");
     ExtractPartition(*disc_volume, DiscIO::PARTITION_NONE, output_folder_path, mute);
   }
   else
@@ -151,22 +193,21 @@ int Extract(const std::vector<std::string>& args)
         std::string file;
         file.append(output_folder_path).append("/");
 
-        if (!options.is_set("singular"))
+        if (!options.is_set("single"))
         {
           file.append(partition_name);
           ExtractPartition(*disc_volume, p, file, mute);
         }
         else
         {
-          if (auto file_info = GetFileInfo(*disc_volume, p, singular_file_path);
-              file_info != nullptr)
+          if (auto file_info = GetFileInfo(*disc_volume, p, single_file_path); file_info != nullptr)
           {
-            file.append(singular_file_path);
+            file.append(single_file_path);
 
             if (file_info->IsDirectory())
-              ExtractDirectory(*disc_volume, p, singular_file_path, output_folder_path, mute);
+              ExtractDirectory(*disc_volume, p, single_file_path, output_folder_path, mute);
             else
-              ExtractFile(*disc_volume, p, singular_file_path, file);
+              ExtractFile(*disc_volume, p, single_file_path, file);
           }
           else
           {
@@ -178,19 +219,18 @@ int Extract(const std::vector<std::string>& args)
 
     if (!extracted_one)
     {
-      if (options.is_set("singular"))
-        fmt::print(std::cerr, "Error: No File/Folder was extracted.\n");
+      if (options.is_set("single"))
+        fmt::print(std::cerr, "Error: No File/Folder was extracted.");
       else
-        fmt::print(std::cerr, "Error: No partitions were extracted..\n");
-
+        fmt::print(std::cerr, "Error: No partitions were extracted..");
       if (options.is_set("partition"))
-        fmt::print(std::cerr, " Maybe you misspelled your specified partition?\n");
-      fmt::print(std::cerr, "\n");
+        fmt::println(std::cerr, " Maybe you misspelled your specified partition?");
+      fmt::println(std::cerr, "\n");
       return EXIT_FAILURE;
     }
   }
 
-  fmt::print(std::cerr, "Finished Successfully!\n");
+  fmt::println(std::cerr, "Finished Successfully!");
   return EXIT_SUCCESS;
 }
 }  // namespace DolphinTool
