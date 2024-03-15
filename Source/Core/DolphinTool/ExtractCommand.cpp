@@ -3,6 +3,7 @@
 
 #include <DolphinTool/ExtractCommand.h>
 #include <OptionParser.h>
+#include <filesystem>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <future>
@@ -60,7 +61,7 @@ static void ExtractDirectory(const DiscIO::Volume& disc_volume, const DiscIO::Pa
   if (!filesystem)
     return;
 
-  std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
+  const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
   u32 size = info->GetTotalChildren();
   u32 files = 0;
   ExportDirectory(disc_volume, partition, *info, true, path, out,
@@ -142,6 +143,9 @@ int Extract(const std::vector<std::string>& args)
   }
 
   const std::string& output_folder_path = options["output"];
+
+  std::filesystem::create_directories(output_folder_path);
+
   const std::string& single_file_path = options["single"];
   std::string& specific_partition = const_cast<std::string&>(options["partition"]);
 
@@ -166,18 +170,39 @@ int Extract(const std::vector<std::string>& args)
     return EXIT_FAILURE;
   }
 
+  bool extracted_one = false;
+
   if (disc_volume->GetPartitions().empty())
   {
     if (options.is_set("partition"))
       fmt::println(
           std::cerr,
           "Warning: --partition has a value even though this image doesn't have any partitions.");
-    ExtractPartition(*disc_volume, DiscIO::PARTITION_NONE, output_folder_path, mute);
+
+    if (!options.is_set("single"))
+    {
+      ExtractPartition(*disc_volume, DiscIO::PARTITION_NONE, output_folder_path, mute);
+      extracted_one = true;
+    }
+    else if (auto file_info = GetFileInfo(*disc_volume, DiscIO::PARTITION_NONE, single_file_path);
+             file_info != nullptr)
+    {
+      std::string file;
+      file.append(output_folder_path).append("/");
+
+      file.append(single_file_path);
+
+      if (file_info->IsDirectory())
+        ExtractDirectory(*disc_volume, DiscIO::PARTITION_NONE, single_file_path, output_folder_path,
+                         mute);
+      else
+        ExtractFile(*disc_volume, DiscIO::PARTITION_NONE, single_file_path, file);
+
+      extracted_one = true;
+    }
   }
   else
   {
-    bool extracted_one = false;
-
     for (DiscIO::Partition& p : disc_volume->GetPartitions())
     {
       if (const std::optional<u32> partition_type = disc_volume->GetPartitionType(p))
@@ -216,18 +241,18 @@ int Extract(const std::vector<std::string>& args)
         }
       }
     }
+  }
 
-    if (!extracted_one)
-    {
-      if (options.is_set("single"))
-        fmt::print(std::cerr, "Error: No File/Folder was extracted.");
-      else
-        fmt::print(std::cerr, "Error: No partitions were extracted..");
-      if (options.is_set("partition"))
-        fmt::println(std::cerr, " Maybe you misspelled your specified partition?");
-      fmt::println(std::cerr, "\n");
-      return EXIT_FAILURE;
-    }
+  if (!extracted_one)
+  {
+    if (options.is_set("single"))
+      fmt::print(std::cerr, "Error: No File/Folder was extracted.");
+    else
+      fmt::print(std::cerr, "Error: No partitions were extracted..");
+    if (options.is_set("partition"))
+      fmt::println(std::cerr, " Maybe you misspelled your specified partition?");
+    fmt::println(std::cerr, "\n");
+    return EXIT_FAILURE;
   }
 
   fmt::println(std::cerr, "Finished Successfully!");
