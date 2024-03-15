@@ -115,38 +115,30 @@ private:
   };
 
   // Rumble
-  class Motor : public Output
+  template <int LowEnable, int HighEnable, int SuffixIndex>
+  class GenericMotor : public Output
   {
   public:
-    explicit Motor(SDL_GameController* gc) : m_gc(gc) {}
-    std::string GetName() const override;
-    void SetState(ControlState state) override;
+    explicit GenericMotor(SDL_GameController* gc) : m_gc(gc) {}
+    std::string GetName() const override
+    {
+      return std::string("Motor") + motor_suffixes[SuffixIndex];
+    }
+    void SetState(ControlState state) override
+    {
+      Uint16 rumble = state * std::numeric_limits<Uint16>::max();
+      SDL_GameControllerRumble(m_gc, rumble * LowEnable, rumble * HighEnable, RUMBLE_LENGTH_MS);
+    }
 
   private:
     SDL_GameController* const m_gc;
   };
 
-  class MotorL : public Output
-  {
-  public:
-    explicit MotorL(SDL_GameController* gc) : m_gc(gc) {}
-    std::string GetName() const override;
-    void SetState(ControlState state) override;
+  static constexpr const char* motor_suffixes[] = {"", " L", " R"};
 
-  private:
-    SDL_GameController* const m_gc;
-  };
-
-  class MotorR : public Output
-  {
-  public:
-    explicit MotorR(SDL_GameController* gc) : m_gc(gc) {}
-    std::string GetName() const override;
-    void SetState(ControlState state) override;
-
-  private:
-    SDL_GameController* const m_gc;
-  };
+  using Motor = GenericMotor<1, 1, 0>;
+  using MotorL = GenericMotor<1, 0, 1>;
+  using MotorR = GenericMotor<0, 1, 2>;
 
   class HapticEffect : public Output
   {
@@ -762,39 +754,6 @@ GameController::~GameController()
   }
   // close joystick
   SDL_JoystickClose(m_joystick);
-}
-
-std::string GameController::Motor::GetName() const
-{
-  return "Motor";
-}
-
-void GameController::Motor::SetState(ControlState state)
-{
-  Uint16 rumble = state * std::numeric_limits<Uint16>::max();
-  SDL_GameControllerRumble(m_gc, rumble, rumble, std::numeric_limits<Uint32>::max());
-}
-
-std::string GameController::MotorL::GetName() const
-{
-  return "Motor L";
-}
-
-void GameController::MotorL::SetState(ControlState state)
-{
-  Uint16 rumble = state * std::numeric_limits<Uint16>::max();
-  SDL_GameControllerRumble(m_gc, rumble, 0, std::numeric_limits<Uint32>::max());
-}
-
-std::string GameController::MotorR::GetName() const
-{
-  return "Motor R";
-}
-
-void GameController::MotorR::SetState(ControlState state)
-{
-  Uint16 rumble = state * std::numeric_limits<Uint16>::max();
-  SDL_GameControllerRumble(m_gc, 0, rumble, std::numeric_limits<Uint32>::max());
 }
 
 void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove)
