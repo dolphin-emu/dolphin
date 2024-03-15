@@ -22,6 +22,7 @@ static void ExtractFile(const DiscIO::Volume &disc_volume,
 
   ExportFile(disc_volume, partition, filesystem->FindFileInfo(path).get(), out);
 }
+
 static std::unique_ptr<DiscIO::FileInfo>
 GetFileInfo(const DiscIO::Volume &disc_volume,
             const DiscIO::Partition &partition, const std::string &path) {
@@ -61,8 +62,8 @@ static bool ExtractSystemData(const DiscIO::Volume &disc_volume,
 
 static void ExtractPartition(const DiscIO::Volume &disc_volume,
                              const DiscIO::Partition &partition,
-                             const std::string &out) {
-  ExtractDirectory(disc_volume, partition, "", out + "/files", true);
+                             const std::string &out, bool mute) {
+  ExtractDirectory(disc_volume, partition, "", out + "/files", mute);
   ExtractSystemData(disc_volume, partition, out);
 }
 
@@ -97,9 +98,15 @@ int Extract(const std::vector<std::string> &args) {
       .action("store_true")
       .help("Mute all messages except for errors.");
 
+  parser.add_option("-g", "--gameonly")
+      .action("store_true")
+      .help(
+          "Only extracts the DATA partition, where the game files are stored.");
+
   const optparse::Values &options = parser.parse_args(args);
 
-  const bool mute = options.get("mute");
+  const bool mute = options.is_set_by_user("mute");
+  const bool gameonly = options.is_set_by_user("gameonly");
 
   if (!options.is_set("input")) {
     fmt::print(std::cerr, "Error: No input image set\n");
@@ -113,11 +120,17 @@ int Extract(const std::vector<std::string> &args) {
   }
   const std::string &output_folder_path = options["output"];
   const std::string &singular_file_path = options["singular"];
-  const std::string &specific_partition = options["partition"];
+  std::string &specific_partition =
+      const_cast<std::string &>(options["partition"]);
+
+  if (gameonly)
+    specific_partition = std::string("data");
+
   if (const std::unique_ptr<DiscIO::Volume> disc_volume =
           DiscIO::CreateVolume(input_file_path);
       disc_volume->GetPartitions().empty()) {
-    ExtractPartition(*disc_volume, DiscIO::PARTITION_NONE, output_folder_path);
+    ExtractPartition(*disc_volume, DiscIO::PARTITION_NONE, output_folder_path,
+                     mute);
   } else {
     bool extracted_one = false;
 
@@ -127,7 +140,7 @@ int Extract(const std::vector<std::string> &args) {
         const std::string partition_name =
             DiscIO::NameForPartitionType(*partition_type, true);
 
-        if (options.is_set("partition") &&
+        if (!specific_partition.empty() &&
             !Common::CaseInsensitiveEquals(specific_partition, partition_name))
           continue;
 
@@ -138,7 +151,7 @@ int Extract(const std::vector<std::string> &args) {
 
         if (!options.is_set("singular")) {
           file.append(partition_name);
-          ExtractPartition(*disc_volume, p, file);
+          ExtractPartition(*disc_volume, p, file, mute);
         } else {
           if (auto file_info = GetFileInfo(*disc_volume, p, singular_file_path);
               file_info != nullptr) {
