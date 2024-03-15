@@ -161,14 +161,15 @@ int Extract(const std::vector<std::string>& args)
   }
 
   const std::unique_ptr<DiscIO::Volume> disc_volume = DiscIO::CreateVolume(input_file_path);
-  if (VolumeSupported(*disc_volume) == EXIT_FAILURE)
-    return EXIT_FAILURE;
 
   if (!disc_volume)
   {
     fmt::println("Error: Unable to open volume");
     return EXIT_FAILURE;
   }
+
+  if (VolumeSupported(*disc_volume) == EXIT_FAILURE)
+    return EXIT_FAILURE;
 
   bool extracted_one = false;
 
