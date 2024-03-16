@@ -170,7 +170,7 @@ int Extract(const std::vector<std::string>& args)
   }
   const std::string& input_file_path = options["input"];
 
-  if (!options.is_set("output"))
+  if (!options.is_set("output") && !options.is_set("list"))
   {
     fmt::println(std::cerr, "Error: No output folder set");
     return EXIT_FAILURE;
