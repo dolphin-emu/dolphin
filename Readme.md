@@ -203,7 +203,7 @@ is intended for debugging purposes only.
 ```
 usage: dolphin-tool COMMAND -h
 
-commands supported: [convert, verify, header]
+commands supported: [convert, verify, header, extract]
 ```
 
 ```
