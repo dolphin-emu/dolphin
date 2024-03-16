@@ -113,6 +113,9 @@ static void ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
     const DiscIO::FileSystem* filesystem = disc_volume.GetFileSystem(p);
     const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
 
+    if (!info)
+      return;
+
     for (auto it = info->begin(); it != info->end(); ++it)
     {
       const std::string file_name = fmt::format("{}\n", it->GetName());
