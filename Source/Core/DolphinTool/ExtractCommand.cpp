@@ -114,7 +114,9 @@ static void ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
     const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
 
     if (!info)
-      return;
+    {
+      fmt::println("Error: {} does not exist in this partition.", path);
+    }
 
     for (auto it = info->begin(); it != info->end(); ++it)
     {
