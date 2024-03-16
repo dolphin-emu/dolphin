@@ -182,7 +182,7 @@ int Extract(const std::vector<std::string>& args)
   const std::string& list_path = options["list"];
   std::string& specific_partition = const_cast<std::string&>(options["partition"]);
 
-  if (options.is_set(output_folder_path))
+  if (options.is_set("output"))
     std::filesystem::create_directories(output_folder_path);
 
   if (gameonly)
