@@ -60,9 +60,22 @@ std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optiona
   return filenames;
 }
 
+struct SectionKey
+{
+  std::string section;
+  std::string key;
+  friend auto operator<=>(const SectionKey&, const SectionKey&) = default;
+};
+
+struct SystemSection
+{
+  Config::System system;
+  std::string section;
+};
+
 using Location = Config::Location;
-using INIToLocationMap = std::map<std::pair<std::string, std::string>, Location>;
-using INIToSectionMap = std::map<std::string, std::pair<Config::System, std::string>>;
+using INIToLocationMap = std::map<SectionKey, Location>;
+using INIToSectionMap = std::map<std::string, SystemSection>;
 
 // This is a mapping from the legacy section-key pairs to Locations.
 // New settings do not need to be added to this mapping.
@@ -123,7 +136,7 @@ static Location MapINIToRealLocation(const std::string& section, const std::stri
   static const INIToSectionMap& ini_to_section = GetINIToSectionMap();
   const auto it2 = ini_to_section.find(section);
   if (it2 != ini_to_section.end())
-    return {it2->second.first, it2->second.second, key};
+    return {it2->second.system, it2->second.section, key};
 
   // Attempt to load it as a configuration option
   // It will be in the format of '<System>.<Section>'
@@ -144,20 +157,19 @@ static Location MapINIToRealLocation(const std::string& section, const std::stri
   return {Config::System::Main, "", ""};
 }
 
-static std::pair<std::string, std::string> GetINILocationFromConfig(const Location& location)
+static SectionKey GetINILocationFromConfig(const Location& location)
 {
-  static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
-  const auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
-                               [&location](const auto& entry) { return entry.second == location; });
-  if (it != ini_to_location.end())
-    return it->first;
+  for (auto& [ini_location, config_location] : GetINIToLocationMap())
+  {
+    if (config_location == location)
+      return ini_location;
+  }
 
-  static const INIToSectionMap& ini_to_section = GetINIToSectionMap();
-  const auto it2 = std::ranges::find_if(ini_to_section, [&location](const auto& entry) {
-    return entry.second.first == location.system && entry.second.second == location.section;
-  });
-  if (it2 != ini_to_section.end())
-    return {it2->first, location.key};
+  for (auto& [section_name, sys_sec] : GetINIToSectionMap())
+  {
+    if (sys_sec.system == location.system && sys_sec.section == location.section)
+      return {section_name, location.key};
+  }
 
   return {Config::GetSystemName(location.system) + "." + location.section, location.key};
 }
@@ -293,17 +305,17 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
       continue;
 
     const auto ini_location = GetINILocationFromConfig(location);
-    if (ini_location.first.empty() && ini_location.second.empty())
+    if (ini_location.section.empty() && ini_location.key.empty())
       continue;
 
     if (value)
     {
-      auto* ini_section = ini.GetOrCreateSection(ini_location.first);
-      ini_section->Set(ini_location.second, *value);
+      auto* ini_section = ini.GetOrCreateSection(ini_location.section);
+      ini_section->Set(ini_location.key, *value);
     }
     else
     {
-      ini.DeleteKey(ini_location.first, ini_location.second);
+      ini.DeleteKey(ini_location.section, ini_location.key);
     }
   }
 
