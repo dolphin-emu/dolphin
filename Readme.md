@@ -274,8 +274,10 @@ Options:
                         Path to the destination FOLDER. *
   -p PARTITION, --partition=PARTITION
                         Which specific partition you want to extract.
-  -s SINGULAR, --singular=SINGULAR
+  -s SINGLE, --single=SINGLE
                         Which specific file/directory you want to extract.
+  -l LIST, --list=LIST  List all files in volume/partition and prints it out
+                        to a text file (ls.txt).
   -m, --mute            Mute all messages except for errors.
   -g, --gameonly        Only extracts the DATA partition.
 ```

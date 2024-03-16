@@ -88,6 +88,41 @@ static void ExtractPartition(const DiscIO::Volume& disc_volume, const DiscIO::Pa
   ExtractSystemData(disc_volume, partition, out);
 }
 
+static void ListVolume(const DiscIO::Volume& disc_volume, const std::string& path,
+                       std::string& specific_partition_name)
+{
+  std::ofstream output_file;
+  output_file.open("ls.txt");
+
+  for (DiscIO::Partition& p : disc_volume.GetPartitions())
+  {
+    const std::optional<u32> partition_type = disc_volume.GetPartitionType(p);
+    if (!partition_type)
+    {
+      fmt::println(std::cerr, "Error: Could not get partition type.");
+    }
+    const std::string partition_name = DiscIO::NameForPartitionType(*partition_type, true);
+
+    if (!specific_partition_name.empty() &&
+        !Common::CaseInsensitiveEquals(partition_name, specific_partition_name))
+      continue;
+
+    const std::string partition_start = fmt::format("///PARTITION: {}///\n", partition_name);
+    fmt::print("{}", partition_start);
+    output_file.write(partition_start.c_str(), static_cast<long>(partition_start.length()));
+    const DiscIO::FileSystem* filesystem = disc_volume.GetFileSystem(p);
+    const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
+
+    for (auto it = info->begin(); it != info->end(); ++it)
+    {
+      const std::string file_name = fmt::format("{}\n", it->GetName());
+      fmt::print("{}", file_name);
+      output_file.write(file_name.c_str(), static_cast<long>(file_name.length()));
+    }
+  }
+  output_file.close();
+}
+
 int Extract(const std::vector<std::string>& args)
 {
   optparse::OptionParser parser;
@@ -99,27 +134,26 @@ int Extract(const std::vector<std::string>& args)
       .action("store")
       .help("Path to disc image FILE. *")
       .metavar("FILE");
-
   parser.add_option("-o", "--output")
       .type("string")
       .action("store")
       .help("Path to the destination FOLDER. *")
       .metavar("FOLDER");
-
   parser.add_option("-p", "--partition")
       .type("string")
       .action("store")
       .help("Which specific partition you want to extract.");
-
   parser.add_option("-s", "--single")
       .type("string")
       .action("store")
       .help("Which specific file/directory you want to extract.");
-
+  parser.add_option("-l", "--list")
+      .type("string")
+      .action("store")
+      .help("List all files in volume/partition and print it out to a text file (ls.txt).");
   parser.add_option("-m", "--mute")
       .action("store_true")
       .help("Mute all messages except for errors.");
-
   parser.add_option("-g", "--gameonly")
       .action("store_true")
       .help("Only extracts the DATA partition.");
@@ -147,6 +181,7 @@ int Extract(const std::vector<std::string>& args)
   std::filesystem::create_directories(output_folder_path);
 
   const std::string& single_file_path = options["single"];
+  const std::string& list_path = options["list"];
   std::string& specific_partition = const_cast<std::string&>(options["partition"]);
 
   if (gameonly)
@@ -170,6 +205,12 @@ int Extract(const std::vector<std::string>& args)
 
   if (VolumeSupported(*disc_volume) == EXIT_FAILURE)
     return EXIT_FAILURE;
+
+  if (options.is_set_by_user("list"))
+  {
+    ListVolume(*disc_volume, list_path, specific_partition);
+    return EXIT_SUCCESS;
+  }
 
   bool extracted_one = false;
 
