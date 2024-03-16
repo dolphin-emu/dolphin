@@ -170,19 +170,20 @@ int Extract(const std::vector<std::string>& args)
   }
   const std::string& input_file_path = options["input"];
 
+  const std::string& output_folder_path = options["output"];
+
   if (!options.is_set("output") && !options.is_set("list"))
   {
     fmt::println(std::cerr, "Error: No output folder set");
     return EXIT_FAILURE;
   }
 
-  const std::string& output_folder_path = options["output"];
-
-  std::filesystem::create_directories(output_folder_path);
-
   const std::string& single_file_path = options["single"];
   const std::string& list_path = options["list"];
   std::string& specific_partition = const_cast<std::string&>(options["partition"]);
+
+  if (options.is_set(output_folder_path))
+    std::filesystem::create_directories(output_folder_path);
 
   if (gameonly)
     specific_partition = std::string("data");
