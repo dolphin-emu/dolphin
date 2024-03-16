@@ -116,6 +116,7 @@ static void ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
     if (!info)
     {
       fmt::println("Error: {} does not exist in this partition.", path);
+      return;
     }
 
     for (auto it = info->begin(); it != info->end(); ++it)
