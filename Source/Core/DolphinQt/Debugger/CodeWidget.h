@@ -61,6 +61,7 @@ private:
   void UpdateFunctionCalls(const Common::Symbol* symbol);
   void UpdateFunctionCallers(const Common::Symbol* symbol);
 
+  void OnPPCSymbolsChanged();
   void OnSearchAddress();
   void OnSearchSymbols();
   void OnSelectSymbol();

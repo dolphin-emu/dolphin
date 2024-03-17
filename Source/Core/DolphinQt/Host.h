@@ -32,14 +32,13 @@ public:
   void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void ResizeSurface(int new_width, int new_height);
-  void RequestNotifyMapLoaded();
 
 signals:
   void RequestTitle(const QString& title);
   void RequestStop();
   void RequestRenderSize(int w, int h);
   void UpdateDisasmDialog();
-  void NotifyMapLoaded();
+  void PPCSymbolsChanged();
 
 private:
   Host();

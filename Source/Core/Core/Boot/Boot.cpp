@@ -351,11 +351,6 @@ bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, 
   return true;
 }
 
-void CBoot::UpdateDebugger_MapLoaded()
-{
-  Host_NotifyMapLoaded();
-}
-
 // Get map file paths for the active title.
 bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
 {
@@ -382,7 +377,7 @@ bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& 
   bool found = FindMapFile(&strMapFilename, nullptr);
   if (found && ppc_symbol_db.LoadMap(guard, strMapFilename))
   {
-    UpdateDebugger_MapLoaded();
+    Host_PPCSymbolsChanged();
     return true;
   }
 
@@ -517,7 +512,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
   if (auto& ppc_symbol_db = system.GetPPCSymbolDB(); !ppc_symbol_db.IsEmpty())
   {
     ppc_symbol_db.Clear();
-    UpdateDebugger_MapLoaded();
+    Host_PPCSymbolsChanged();
   }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
@@ -597,7 +592,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB()))
       {
-        UpdateDebugger_MapLoaded();
+        Host_PPCSymbolsChanged();
         HLE::PatchFunctions(system);
       }
       return true;

@@ -238,14 +238,9 @@ void Host_UpdateDisasmDialog()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
-void Host::RequestNotifyMapLoaded()
+void Host_PPCSymbolsChanged()
 {
-  QueueOnObject(QApplication::instance(), [this] { emit NotifyMapLoaded(); });
-}
-
-void Host_NotifyMapLoaded()
-{
-  Host::GetInstance()->RequestNotifyMapLoaded();
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->PPCSymbolsChanged(); });
 }
 
 // We ignore these, and their purpose should be questioned individually.

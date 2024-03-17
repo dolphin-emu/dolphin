@@ -92,8 +92,6 @@ private:
 public:
   // TODO: Step doesn't cause EmulationStateChanged to be emitted, so it has to call this manually.
   void Update();
-  // TODO: There seems to be a lack of a ubiquitous signal for when symbols change.
-  void UpdateSymbols();
 
 private:
   void UpdateStatus();

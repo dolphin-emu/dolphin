@@ -125,9 +125,6 @@ signals:
   void RecordingStatusChanged(bool recording);
   void ReadOnlyModeChanged(bool read_only);
 
-  // Synbols
-  void NotifySymbolsUpdated();
-
 private:
   void OnEmulationStateChanged(Core::State state);
 
