@@ -264,37 +264,34 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
       mc.condition = Expression::TryParse(condition);
     }
 
-    Add(std::move(mc));
+    Add(std::move(mc), false);
   }
+
+  Update();
 }
 
-void MemChecks::Add(TMemCheck memory_check)
+void MemChecks::Add(TMemCheck memory_check, bool update)
 {
-  bool had_any = HasAny();
-  Core::RunAsCPUThread([&] {
-    // Check for existing breakpoint, and overwrite with new info.
-    // This is assuming we usually want the new breakpoint over an old one.
-    const u32 address = memory_check.start_address;
-    auto old_mem_check =
-        std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
-                     [address](const auto& check) { return check.start_address == address; });
-    if (old_mem_check != m_mem_checks.end())
-    {
-      const bool is_enabled = old_mem_check->is_enabled;  // Preserve enabled status
-      *old_mem_check = std::move(memory_check);
-      old_mem_check->is_enabled = is_enabled;
-      old_mem_check->num_hits = 0;
-    }
-    else
-    {
-      m_mem_checks.emplace_back(std::move(memory_check));
-    }
-    // If this is the first one, clear the JIT cache so it can switch to
-    // watchpoint-compatible code.
-    if (!had_any)
-      m_system.GetJitInterface().ClearCache();
-    m_system.GetMMU().DBATUpdated();
-  });
+  // Check for existing breakpoint, and overwrite with new info.
+  // This is assuming we usually want the new breakpoint over an old one.
+  const u32 address = memory_check.start_address;
+  auto old_mem_check =
+      std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
+                   [address](const auto& check) { return check.start_address == address; });
+  if (old_mem_check != m_mem_checks.end())
+  {
+    const bool is_enabled = old_mem_check->is_enabled;  // Preserve enabled status
+    *old_mem_check = std::move(memory_check);
+    old_mem_check->is_enabled = is_enabled;
+    old_mem_check->num_hits = 0;
+  }
+  else
+  {
+    m_mem_checks.emplace_back(std::move(memory_check));
+  }
+
+  if (update)
+    Update();
 }
 
 bool MemChecks::ToggleBreakPoint(u32 address)
@@ -309,7 +306,7 @@ bool MemChecks::ToggleBreakPoint(u32 address)
   return true;
 }
 
-void MemChecks::Remove(u32 address)
+void MemChecks::Remove(u32 address, bool update)
 {
   const auto iter =
       std::find_if(m_mem_checks.cbegin(), m_mem_checks.cend(),
@@ -318,19 +315,28 @@ void MemChecks::Remove(u32 address)
   if (iter == m_mem_checks.cend())
     return;
 
-  Core::RunAsCPUThread([&] {
-    m_mem_checks.erase(iter);
-    if (!HasAny())
-      m_system.GetJitInterface().ClearCache();
-    m_system.GetMMU().DBATUpdated();
-  });
+  m_mem_checks.erase(iter);
+
+  if (update)
+    Update();
 }
 
 void MemChecks::Clear()
 {
+  m_mem_checks.clear();
+  Update();
+}
+
+void MemChecks::Update()
+{
   Core::RunAsCPUThread([&] {
-    m_mem_checks.clear();
-    m_system.GetJitInterface().ClearCache();
+    // Clear the JIT cache so it can switch the watchpoint-compatible mode.
+    if (m_breakpoints_set != HasAny())
+    {
+      m_system.GetJitInterface().ClearCache();
+      m_breakpoints_set = HasAny();
+    }
+
     m_system.GetMMU().DBATUpdated();
   });
 }
