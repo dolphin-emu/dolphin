@@ -194,25 +194,26 @@ void BranchWatchProxyModel::SetInspected(const QModelIndex& index)
 }
 
 BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& branch_watch,
-                                     CodeWidget* code_widget, QWidget* parent)
+                                     PPCSymbolDB& ppc_symbol_db, CodeWidget* code_widget,
+                                     QWidget* parent)
     : QDialog(parent), m_system(system), m_branch_watch(branch_watch), m_code_widget(code_widget)
 {
   setWindowTitle(tr("Branch Watch Tool"));
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
   SetQWidgetWindowDecorations(this);
-  setLayout([this]() {
+  setLayout([this, &ppc_symbol_db]() {
     auto* main_layout = new QVBoxLayout;
 
     // Controls Toolbar (widgets are added later)
     main_layout->addWidget(m_control_toolbar = new QToolBar);
 
     // Branch Watch Table
-    main_layout->addWidget(m_table_view = [this]() {
+    main_layout->addWidget(m_table_view = [this, &ppc_symbol_db]() {
       const auto& ui_settings = Settings::Instance();
 
       m_table_proxy = new BranchWatchProxyModel(m_branch_watch);
-      m_table_proxy->setSourceModel(m_table_model =
-                                        new BranchWatchTableModel(m_system, m_branch_watch));
+      m_table_proxy->setSourceModel(
+          m_table_model = new BranchWatchTableModel(m_system, m_branch_watch, ppc_symbol_db));
       m_table_proxy->setSortRole(UserRole::SortRole);
 
       m_table_model->setFont(ui_settings.GetDebugFont());

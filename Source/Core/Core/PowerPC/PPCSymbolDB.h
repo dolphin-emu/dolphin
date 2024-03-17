@@ -39,5 +39,3 @@ public:
   void PrintCallers(u32 funcAddr) const;
   void LogFunctionCall(u32 addr);
 };
-
-extern PPCSymbolDB g_symbolDB;

@@ -17,6 +17,8 @@ class BranchWatch;
 class CPUThreadGuard;
 class System;
 }  // namespace Core
+class PPCSymbolDB;
+
 class BranchWatchProxyModel;
 class BranchWatchTableModel;
 class CodeWidget;
@@ -48,7 +50,8 @@ class BranchWatchDialog : public QDialog
 
 public:
   explicit BranchWatchDialog(Core::System& system, Core::BranchWatch& branch_watch,
-                             CodeWidget* code_widget, QWidget* parent = nullptr);
+                             PPCSymbolDB& ppc_symbol_db, CodeWidget* code_widget,
+                             QWidget* parent = nullptr);
   ~BranchWatchDialog() override;
 
 protected:

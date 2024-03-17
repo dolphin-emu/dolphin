@@ -138,7 +138,8 @@ constexpr int CODE_VIEW_COLUMN_DESCRIPTION = 4;
 constexpr int CODE_VIEW_COLUMN_BRANCH_ARROWS = 5;
 constexpr int CODE_VIEW_COLUMNCOUNT = 6;
 
-CodeViewWidget::CodeViewWidget() : m_system(Core::System::GetInstance())
+CodeViewWidget::CodeViewWidget()
+    : m_system(Core::System::GetInstance()), m_ppc_symbol_db(m_system.GetPPCSymbolDB())
 {
   setColumnCount(CODE_VIEW_COLUMNCOUNT);
   setShowGrid(false);
@@ -382,7 +383,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     if (debug_interface.IsBreakpoint(addr))
     {
       auto icon = Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
-      if (!m_system.GetPowerPC().GetBreakPoints().IsBreakPointEnable(addr))
+      if (!power_pc.GetBreakPoints().IsBreakPointEnable(addr))
       {
         QPixmap disabled_icon(icon.size());
         disabled_icon.fill(Qt::transparent);
@@ -410,7 +411,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
   CalculateBranchIndentation();
 
-  g_symbolDB.FillInCallers();
+  m_ppc_symbol_db.FillInCallers();
 
   repaint();
   m_updating = false;
@@ -561,7 +562,7 @@ void CodeViewWidget::OnContextMenu()
 
   const u32 addr = GetContextAddress();
 
-  bool has_symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  const bool has_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
   auto* follow_branch_action =
       menu->addAction(tr("Follow &branch"), this, &CodeViewWidget::OnFollowBranch);
@@ -819,7 +820,7 @@ void CodeViewWidget::OnCopyFunction()
 {
   const u32 address = GetContextAddress();
 
-  const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
+  const Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(address);
   if (!symbol)
     return;
 
@@ -877,7 +878,7 @@ void CodeViewWidget::OnAddFunction()
 
   Core::CPUThreadGuard guard(m_system);
 
-  g_symbolDB.AddFunction(guard, addr);
+  m_ppc_symbol_db.AddFunction(guard, addr);
   emit SymbolsChanged();
   Update(&guard);
 }
@@ -915,7 +916,7 @@ void CodeViewWidget::OnRenameSymbol()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
@@ -950,7 +951,7 @@ void CodeViewWidget::OnSetSymbolSize()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
@@ -975,7 +976,7 @@ void CodeViewWidget::OnSetSymbolEndAddress()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;

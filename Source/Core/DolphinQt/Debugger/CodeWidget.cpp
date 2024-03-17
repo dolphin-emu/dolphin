@@ -36,7 +36,9 @@ static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
     "margin-right: 10px; }");
 
-CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::System::GetInstance())
+CodeWidget::CodeWidget(QWidget* parent)
+    : QDockWidget(parent), m_system(Core::System::GetInstance()),
+      m_ppc_symbol_db(m_system.GetPPCSymbolDB())
 {
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
@@ -171,13 +173,11 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
   connect(m_search_calls, &QLineEdit::textChanged, this, [this]() {
-    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
-    if (symbol)
+    if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCalls(symbol);
   });
   connect(m_search_callers, &QLineEdit::textChanged, this, [this]() {
-    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
-    if (symbol)
+    if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCallers(symbol);
   });
   connect(m_search_callstack, &QLineEdit::textChanged, this, &CodeWidget::UpdateCallstack);
@@ -194,8 +194,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, [this]() {
     UpdateCallstack();
     UpdateSymbols();
-    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
-    if (symbol)
+    if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
     {
       UpdateFunctionCalls(symbol);
       UpdateFunctionCallers(symbol);
@@ -214,8 +213,8 @@ void CodeWidget::OnBranchWatchDialog()
 {
   if (m_branch_watch_dialog == nullptr)
   {
-    m_branch_watch_dialog =
-        new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(), this, this);
+    m_branch_watch_dialog = new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(),
+                                                  m_ppc_symbol_db, this, this);
   }
   m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
@@ -260,7 +259,7 @@ void CodeWidget::OnSelectSymbol()
     return;
 
   const u32 address = items[0]->data(Qt::UserRole).toUInt();
-  const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
+  const Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(address);
 
   m_code_view->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
   UpdateCallstack();
@@ -321,7 +320,7 @@ void CodeWidget::Update()
   if (!isVisible())
     return;
 
-  const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
+  const Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress());
 
   UpdateCallstack();
 
@@ -343,13 +342,7 @@ void CodeWidget::UpdateCallstack()
     return;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
-
-  const bool success = [this, &stack] {
-    Core::CPUThreadGuard guard(m_system);
-    return Dolphin_Debugger::GetCallstack(guard, stack);
-  }();
-
-  if (!success)
+  if (!Dolphin_Debugger::GetCallstack(Core::CPUThreadGuard{m_system}, stack))
   {
     m_callstack_list->addItem(tr("Invalid callstack"));
     return;
@@ -377,7 +370,7 @@ void CodeWidget::UpdateSymbols()
                                 m_symbols_list->selectedItems()[0]->text();
   m_symbols_list->clear();
 
-  for (const auto& symbol : g_symbolDB.Symbols())
+  for (const auto& symbol : m_ppc_symbol_db.Symbols())
   {
     QString name = QString::fromStdString(symbol.second.name);
 
@@ -411,7 +404,7 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
   for (const auto& call : symbol->calls)
   {
     const u32 addr = call.function;
-    const Common::Symbol* call_symbol = g_symbolDB.GetSymbolFromAddr(addr);
+    const Common::Symbol* const call_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
     if (call_symbol)
     {
@@ -436,7 +429,7 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
   for (const auto& caller : symbol->callers)
   {
     const u32 addr = caller.call_address;
-    const Common::Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(addr);
+    const Common::Symbol* const caller_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
     if (caller_symbol)
     {

@@ -92,6 +92,7 @@ class MMU;
 class PowerPCManager;
 struct PowerPCState;
 }  // namespace PowerPC
+class PPCSymbolDB;
 namespace ProcessorInterface
 {
 class ProcessorInterfaceManager;
@@ -184,6 +185,7 @@ public:
   PixelShaderManager& GetPixelShaderManager() const;
   PowerPC::PowerPCManager& GetPowerPC() const;
   PowerPC::PowerPCState& GetPPCState() const;
+  PPCSymbolDB& GetPPCSymbolDB() const;
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
   SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
