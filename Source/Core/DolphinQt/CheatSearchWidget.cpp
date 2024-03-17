@@ -498,7 +498,7 @@ void CheatSearchWidget::OnAddressTableContextMenu()
     const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
     emit RequestWatch(name, address);
   });
-  menu->addAction(tr("Generate Action Replay Code"), this, &CheatSearchWidget::GenerateARCode);
+  menu->addAction(tr("Generate Action Replay Code(s)"), this, &CheatSearchWidget::GenerateARCodes);
 
   menu->exec(QCursor::pos());
 }
@@ -521,36 +521,66 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
     UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
-void CheatSearchWidget::GenerateARCode()
+void CheatSearchWidget::GenerateARCodes()
 {
   if (m_address_table->selectedItems().isEmpty())
     return;
 
-  auto* item = m_address_table->selectedItems()[0];
-  if (!item)
-    return;
+  bool had_success = false;
+  bool had_error = false;
+  std::optional<Cheats::GenerateActionReplayCodeErrorCode> error_code;
 
-  const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
-  auto result = Cheats::GenerateActionReplayCode(*m_session, index);
-  if (result)
+  for (auto* const item : m_address_table->selectedItems())
   {
-    emit ActionReplayCodeGenerated(*result);
-    m_info_label_1->setText(tr("Generated AR code."));
-  }
-  else
-  {
-    switch (result.Error())
+    const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
+    auto result = Cheats::GenerateActionReplayCode(*m_session, index);
+    if (result)
     {
-    case Cheats::GenerateActionReplayCodeErrorCode::NotVirtualMemory:
-      m_info_label_1->setText(tr("Can only generate AR code for values in virtual memory."));
-      break;
-    case Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress:
-      m_info_label_1->setText(tr("Cannot generate AR code for this address."));
-      break;
-    default:
-      m_info_label_1->setText(tr("Internal error while generating AR code."));
-      break;
+      emit ActionReplayCodeGenerated(*result);
+      had_success = true;
     }
+    else
+    {
+      const auto new_error_code = result.Error();
+      if (!had_error)
+      {
+        error_code = new_error_code;
+      }
+      else if (error_code != new_error_code)
+      {
+        // If we have a different error code signify multiple errors with an empty optional<>.
+        error_code.reset();
+      }
+
+      had_error = true;
+    }
+  }
+
+  if (had_error)
+  {
+    if (error_code.has_value())
+    {
+      switch (*error_code)
+      {
+      case Cheats::GenerateActionReplayCodeErrorCode::NotVirtualMemory:
+        m_info_label_1->setText(tr("Can only generate AR code for values in virtual memory."));
+        break;
+      case Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress:
+        m_info_label_1->setText(tr("Cannot generate AR code for this address."));
+        break;
+      default:
+        m_info_label_1->setText(tr("Internal error while generating AR code."));
+        break;
+      }
+    }
+    else
+    {
+      m_info_label_1->setText(tr("Multiple errors while generating AR codes."));
+    }
+  }
+  else if (had_success)
+  {
+    m_info_label_1->setText(tr("Generated AR code(s)."));
   }
 }
 
