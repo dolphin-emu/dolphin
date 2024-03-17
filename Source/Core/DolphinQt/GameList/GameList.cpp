@@ -879,9 +879,8 @@ void GameList::ChangeDisc()
   if (!game)
     return;
 
-  Core::RunAsCPUThread([file_path = game->GetFilePath()] {
-    Core::System::GetInstance().GetDVDInterface().ChangeDisc(file_path);
-  });
+  auto& system = Core::System::GetInstance();
+  system.GetDVDInterface().ChangeDisc(Core::CPUThreadGuard{system}, game->GetFilePath());
 }
 
 QAbstractItemView* GameList::GetActiveView() const

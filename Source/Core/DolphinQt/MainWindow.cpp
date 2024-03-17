@@ -794,15 +794,17 @@ void MainWindow::ChangeDisc()
 {
   std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
 
-  if (!paths.empty())
-    Core::RunAsCPUThread(
-        [&paths] { Core::System::GetInstance().GetDVDInterface().ChangeDisc(paths); });
+  if (paths.empty())
+    return;
+
+  auto& system = Core::System::GetInstance();
+  system.GetDVDInterface().ChangeDisc(Core::CPUThreadGuard{system}, paths);
 }
 
 void MainWindow::EjectDisc()
 {
-  Core::RunAsCPUThread(
-      [] { Core::System::GetInstance().GetDVDInterface().EjectDisc(DVD::EjectCause::User); });
+  auto& system = Core::System::GetInstance();
+  system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{system}, DVD::EjectCause::User);
 }
 
 void MainWindow::OpenUserFolder()
