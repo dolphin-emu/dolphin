@@ -100,6 +100,7 @@ static void ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
     if (!partition_type)
     {
       fmt::println(std::cerr, "Error: Could not get partition type.");
+      return;
     }
     const std::string partition_name = DiscIO::NameForPartitionType(*partition_type, true);
 
