@@ -210,6 +210,7 @@ private:
   static u32 MemoryPeekerV2(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
 
   rc_runtime_t m_runtime{};
+  rc_client_t* m_client{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
   UpdateCallback m_update_callback = [] {};
