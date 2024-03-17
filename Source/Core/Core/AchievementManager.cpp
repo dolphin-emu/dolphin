@@ -33,13 +33,18 @@ AchievementManager& AchievementManager::GetInstance()
 
 void AchievementManager::Init()
 {
-  if (!m_is_runtime_initialized && Config::Get(Config::RA_ENABLED))
+  if (!m_client && Config::Get(Config::RA_ENABLED))
   {
+    m_client = rc_client_create(MemoryPeekerV2, RequestV2);
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
-      rc_api_set_host(host_url.c_str());
-    rc_runtime_init(&m_runtime);
-    m_is_runtime_initialized = true;
+      rc_client_set_host(m_client, host_url.c_str());
+    rc_client_enable_logging(m_client, RC_CLIENT_LOG_LEVEL_VERBOSE,
+                             [](const char* message, const rc_client_t* client) {
+                               INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
+                             });
+    rc_client_set_hardcore_enabled(m_client, 0);
+    rc_client_set_unofficial_enabled(m_client, 1);
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
@@ -942,13 +947,16 @@ void AchievementManager::Logout()
 
 void AchievementManager::Shutdown()
 {
-  CloseGame();
-  SetDisabled(false);
-  m_is_runtime_initialized = false;
-  m_queue.Shutdown();
-  // DON'T log out - keep those credentials for next run.
-  rc_runtime_destroy(&m_runtime);
-  INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager shut down.");
+  if (m_client)
+  {
+    CloseGame();
+    SetDisabled(false);
+    m_queue.Shutdown();
+    // DON'T log out - keep those credentials for next run.
+    rc_client_destroy(m_client);
+    m_client = nullptr;
+    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager shut down.");
+  }
 }
 
 void* AchievementManager::FilereaderOpenByFilepath(const char* path_utf8)
