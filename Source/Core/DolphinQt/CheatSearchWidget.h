@@ -76,7 +76,7 @@ private:
   bool UpdateTableRows(const Core::CPUThreadGuard& guard, size_t begin_index, size_t end_index,
                        UpdateSource source);
   void RecreateGUITable();
-  void GenerateARCode();
+  void GenerateARCodes();
   int GetVisibleRowsBeginIndex() const;
   int GetVisibleRowsEndIndex() const;
 
