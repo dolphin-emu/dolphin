@@ -49,7 +49,7 @@ static int VolumeSupported(const DiscIO::Volume& disc_volume)
   case DiscIO::Platform::GameCubeDisc:
     return EXIT_SUCCESS;
   default:
-    fmt::println("Error: Unknown volume type.");
+    fmt::println(std::cerr, "Error: Unknown volume type.");
     return EXIT_FAILURE;
   }
 }
@@ -64,15 +64,15 @@ static void ExtractDirectory(const DiscIO::Volume& disc_volume, const DiscIO::Pa
   const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
   u32 size = info->GetTotalChildren();
   u32 files = 0;
-  ExportDirectory(disc_volume, partition, *info, true, path, out,
-                  [&files, &size, &mute](const std::string& current) {
-                    files++;
-                    const float progress =
-                        static_cast<float>(files) / static_cast<float>(size) * 100;
-                    if (!mute)
-                      fmt::println("Extracting: {} | {}%", current, static_cast<int>(progress));
-                    return false;
-                  });
+  ExportDirectory(
+      disc_volume, partition, *info, true, path, out,
+      [&files, &size, &mute](const std::string& current) {
+        files++;
+        const float progress = static_cast<float>(files) / static_cast<float>(size) * 100;
+        if (!mute)
+          fmt::println(std::cerr, "Extracting: {} | {}%", current, static_cast<int>(progress));
+        return false;
+      });
 }
 
 static bool ExtractSystemData(const DiscIO::Volume& disc_volume, const DiscIO::Partition& partition,
@@ -108,22 +108,23 @@ static void ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
         !Common::CaseInsensitiveEquals(partition_name, specific_partition_name))
       continue;
 
-    const std::string partition_start = fmt::format("///PARTITION: {}///\n", partition_name);
-    fmt::print("{}", partition_start);
+    const std::string partition_start =
+        fmt::format("/// PARTITION: {} <{}> ///\n", partition_name, path);
+    fmt::print(std::cerr, "{}", partition_start);
     output_file.write(partition_start.c_str(), static_cast<long>(partition_start.length()));
     const DiscIO::FileSystem* filesystem = disc_volume.GetFileSystem(p);
     const std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path);
 
     if (!info)
     {
-      fmt::println("Error: {} does not exist in this partition.", path);
+      fmt::println(std::cerr, "Error: {} does not exist in this partition.", path);
       return;
     }
 
     for (auto it = info->begin(); it != info->end(); ++it)
     {
       const std::string file_name = fmt::format("{}\n", it->GetName());
-      fmt::print("{}", file_name);
+      fmt::print(std::cerr, "{}", file_name);
       output_file.write(file_name.c_str(), static_cast<long>(file_name.length()));
     }
   }
@@ -207,7 +208,7 @@ int Extract(const std::vector<std::string>& args)
 
   if (!disc_volume)
   {
-    fmt::println("Error: Unable to open volume");
+    fmt::println(std::cerr, "Error: Unable to open volume");
     return EXIT_FAILURE;
   }
 
