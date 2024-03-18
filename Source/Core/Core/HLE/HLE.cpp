@@ -66,12 +66,14 @@ constexpr std::array<Hook, 23> os_patches{{
 void Patch(Core::System& system, u32 addr, std::string_view func_name)
 {
   auto& ppc_state = system.GetPPCState();
+  auto& memory = system.GetMemory();
+  auto& jit_interface = system.GetJitInterface();
   for (u32 i = 1; i < os_patches.size(); ++i)
   {
     if (os_patches[i].name == func_name)
     {
       s_hooked_addresses[addr] = i;
-      ppc_state.iCache.Invalidate(addr);
+      ppc_state.iCache.Invalidate(memory, jit_interface, addr);
       return;
     }
   }
@@ -108,6 +110,8 @@ void PatchFunctions(Core::System& system)
 {
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
+  auto& memory = system.GetMemory();
+  auto& jit_interface = system.GetJitInterface();
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
 
   // Remove all hooks that aren't fixed address hooks
@@ -115,7 +119,7 @@ void PatchFunctions(Core::System& system)
   {
     if (os_patches[i->second].flags != HookFlag::Fixed)
     {
-      ppc_state.iCache.Invalidate(i->first);
+      ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
       i = s_hooked_addresses.erase(i);
     }
     else
@@ -135,7 +139,7 @@ void PatchFunctions(Core::System& system)
       for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
       {
         s_hooked_addresses[addr] = i;
-        ppc_state.iCache.Invalidate(addr);
+        ppc_state.iCache.Invalidate(memory, jit_interface, addr);
       }
       INFO_LOG_FMT(OSHLE, "Patching {} {:08x}", os_patches[i].name, symbol->address);
     }
@@ -234,6 +238,8 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
 
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
+  auto& memory = system.GetMemory();
+  auto& jit_interface = system.GetJitInterface();
 
   if (patch->flags == HookFlag::Fixed)
   {
@@ -245,7 +251,7 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
       if (i->second == patch_idx)
       {
         addr = i->first;
-        ppc_state.iCache.Invalidate(i->first);
+        ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
         i = s_hooked_addresses.erase(i);
       }
       else
@@ -263,7 +269,7 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
     for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
     {
       s_hooked_addresses.erase(addr);
-      ppc_state.iCache.Invalidate(addr);
+      ppc_state.iCache.Invalidate(memory, jit_interface, addr);
     }
     return symbol->address;
   }
@@ -274,6 +280,8 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
 u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr)
 {
   auto& ppc_state = system.GetPPCState();
+  auto& memory = system.GetMemory();
+  auto& jit_interface = system.GetJitInterface();
 
   u32 count = 0;
 
@@ -282,7 +290,7 @@ u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr)
   {
     INFO_LOG_FMT(OSHLE, "Unpatch HLE hooks [{:08x};{:08x}): {} at {:08x}", start_addr, end_addr,
                  os_patches[i->second].name, i->first);
-    ppc_state.iCache.Invalidate(i->first);
+    ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
     i = s_hooked_addresses.erase(i);
     count += 1;
   }
