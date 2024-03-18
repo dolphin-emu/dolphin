@@ -254,9 +254,9 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 void AchievementSettingsWidget::Login()
 {
   Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
-  AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
+  AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString(),
+                                               [](AchievementManager::ResponseType r_type) {});
   m_common_password_input->setText(QString());
-  m_common_login_failed->setVisible(Config::Get(Config::RA_API_TOKEN).empty());
   SaveSettings();
 }
 
