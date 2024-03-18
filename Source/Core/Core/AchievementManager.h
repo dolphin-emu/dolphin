@@ -117,8 +117,7 @@ public:
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
-  ResponseType Login(const std::string& password);
-  void LoginAsync(const std::string& password, const ResponseCallback& callback);
+  void Login(const std::string& password, const ResponseCallback& callback);
   bool IsLoggedIn() const;
   void HashGame(const std::string& file_path, const ResponseCallback& callback);
   void HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback);
