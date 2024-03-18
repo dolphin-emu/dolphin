@@ -10,6 +10,14 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 
+namespace Core
+{
+class System;
+}
+namespace Memory
+{
+class MemoryManager;
+}
 class PointerWrap;
 
 namespace PowerPC
@@ -42,6 +50,11 @@ struct Cache
   std::vector<u8> lookup_table_ex{};
   std::vector<u8> lookup_table_vmem{};
 
+  Core::System& m_system;
+  Memory::MemoryManager& m_memory;
+
+  explicit Cache(Core::System& system, Memory::MemoryManager& memory);
+
   void Store(u32 addr);
   void Invalidate(u32 addr);
   void Flush(u32 addr);
@@ -66,7 +79,10 @@ struct InstructionCache : public Cache
 
   bool m_disable_icache = false;
 
-  InstructionCache() = default;
+  explicit InstructionCache(Core::System& system, Memory::MemoryManager& memory)
+      : Cache(system, memory)
+  {
+  }
   ~InstructionCache();
   u32 ReadInstruction(u32 addr);
   void Invalidate(u32 addr);

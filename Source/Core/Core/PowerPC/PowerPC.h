@@ -28,6 +28,10 @@ namespace CoreTiming
 {
 struct EventType;
 }
+namespace Memory
+{
+class MemoryManager;
+}
 
 namespace PowerPC
 {
@@ -193,6 +197,11 @@ struct PowerPCState
   bool reserve;
   u32 reserve_address;
 
+  explicit PowerPCState(Core::System& system, Memory::MemoryManager& memory)
+      : iCache(system, memory), dCache(system, memory)
+  {
+  }
+
   void UpdateCR1()
   {
     cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
@@ -254,7 +263,7 @@ CPUCore DefaultCPUCore();
 class PowerPCManager
 {
 public:
-  explicit PowerPCManager(Core::System& system);
+  explicit PowerPCManager(Core::System& system, Memory::MemoryManager& memory);
   PowerPCManager(const PowerPCManager& other) = delete;
   PowerPCManager(PowerPCManager&& other) = delete;
   PowerPCManager& operator=(const PowerPCManager& other) = delete;

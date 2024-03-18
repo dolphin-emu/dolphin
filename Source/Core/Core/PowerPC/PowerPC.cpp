@@ -84,9 +84,9 @@ std::ostream& operator<<(std::ostream& os, CPUCore core)
   return os;
 }
 
-PowerPCManager::PowerPCManager(Core::System& system)
-    : m_breakpoints(system), m_memchecks(system), m_debug_interface(system, m_symbol_db),
-      m_system(system)
+PowerPCManager::PowerPCManager(Core::System& system, Memory::MemoryManager& memory)
+    : m_ppc_state(system, memory), m_breakpoints(system), m_memchecks(system),
+      m_debug_interface(system, m_symbol_db), m_system(system)
 {
 }
 
