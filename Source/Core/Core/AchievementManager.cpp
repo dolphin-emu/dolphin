@@ -49,7 +49,7 @@ void AchievementManager::Init()
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
     if (IsLoggedIn())
-      LoginAsync("", [](ResponseType r_type) {});
+      Login("", [](ResponseType r_type) {});
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
   }
 }
@@ -64,23 +64,7 @@ void AchievementManager::SetUpdateCallback(UpdateCallback callback)
   m_update_callback();
 }
 
-AchievementManager::ResponseType AchievementManager::Login(const std::string& password)
-{
-  if (!m_is_runtime_initialized)
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted login (sync) to RetroAchievements server without "
-                                "Achievement Manager initialized.");
-    return ResponseType::MANAGER_NOT_INITIALIZED;
-  }
-
-  const ResponseType r_type = VerifyCredentials(password);
-  FetchBadges();
-
-  m_update_callback();
-  return r_type;
-}
-
-void AchievementManager::LoginAsync(const std::string& password, const ResponseCallback& callback)
+void AchievementManager::Login(const std::string& password, const ResponseCallback& callback)
 {
   if (!m_is_runtime_initialized)
   {
