@@ -120,7 +120,7 @@ static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 
 struct HostJob
 {
-  std::function<void()> job;
+  std::function<void(Core::System&)> job;
   bool run_after_stop;
 };
 static std::mutex s_host_jobs_lock;
@@ -166,13 +166,13 @@ void FrameUpdateOnCPUThread()
     NetPlay::NetPlayClient::SendTimeBase();
 }
 
-void OnFrameEnd()
+void OnFrameEnd(Core::System& system)
 {
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
   {
     ASSERT(IsCPUThread());
-    CPUThreadGuard guard(Core::System::GetInstance());
+    const CPUThreadGuard guard(system);
 
     s_memory_watcher->Step(guard);
   }
@@ -252,7 +252,7 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
   }
 
   // Drain any left over jobs
-  HostDispatchJobs();
+  HostDispatchJobs(system);
 
   INFO_LOG_FMT(BOOT, "Starting core = {} mode", system.IsWii() ? "Wii" : "GameCube");
   INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", system.IsDualCoreMode() ? "Yes" : "No");
@@ -284,7 +284,7 @@ static void ResetRumble()
 }
 
 // Called from GUI thread
-void Stop()  // - Hammertime!
+void Stop(Core::System& system)  // - Hammertime!
 {
   if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
@@ -299,9 +299,7 @@ void Stop()  // - Hammertime!
   CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
-  HostDispatchJobs();
-
-  auto& system = Core::System::GetInstance();
+  HostDispatchJobs(system);
 
   system.GetFifo().EmulatorState(false);
 
@@ -359,7 +357,7 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
   // SetState must be called on the host thread, so we defer it for later.
-  QueueHostJob([force_paused]() {
+  QueueHostJob([force_paused](Core::System&) {
     bool paused = SConfig::GetInstance().bBootToPause || force_paused;
     SetState(paused ? State::Paused : State::Running);
     Host_UpdateDisasmDialog();
@@ -663,7 +661,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     system.GetPowerPC().SetMode(PowerPC::CoreMode::Interpreter);
   }
 
-  UpdateTitle();
+  UpdateTitle(system);
 
   // ENTER THE VIDEO THREAD LOOP
   if (system.IsDualCoreMode())
@@ -936,13 +934,12 @@ void Callback_NewField(Core::System& system)
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
-void UpdateTitle()
+void UpdateTitle(Core::System& system)
 {
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
-      "{} {} | {} | {}", Core::System::GetInstance().GetPowerPC().GetCPUName(),
-      Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
-      Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
+      "{} {} | {} | {}", system.GetPowerPC().GetCPUName(), system.IsDualCoreMode() ? "DC" : "SC",
+      g_video_backend->GetDisplayName(), Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
   if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
@@ -955,7 +952,7 @@ void UpdateTitle()
   Host_UpdateTitle(message);
 }
 
-void Shutdown()
+void Shutdown(Core::System& system)
 {
   // During shutdown DXGI expects us to handle some messages on the UI thread.
   // Therefore we can't immediately block and wait for the emu thread to shut
@@ -967,7 +964,7 @@ void Shutdown()
     s_emu_thread.join();
 
   // Make sure there's nothing left over in case we're about to exit.
-  HostDispatchJobs();
+  HostDispatchJobs(system);
 }
 
 int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
@@ -1004,12 +1001,11 @@ void CallOnStateChangedCallbacks(Core::State state)
   }
 }
 
-void UpdateWantDeterminism(bool initial)
+void UpdateWantDeterminism(Core::System& system, bool initial)
 {
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
-  auto& system = Core::System::GetInstance();
   bool new_want_determinism = system.GetMovie().IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != s_wants_determinism || initial)
   {
@@ -1030,7 +1026,7 @@ void UpdateWantDeterminism(bool initial)
   }
 }
 
-void QueueHostJob(std::function<void()> job, bool run_during_stop)
+void QueueHostJob(std::function<void(Core::System&)> job, bool run_during_stop)
 {
   if (!job)
     return;
@@ -1046,7 +1042,7 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop)
     Host_Message(HostMessageID::WMUserJobDispatch);
 }
 
-void HostDispatchJobs()
+void HostDispatchJobs(Core::System& system)
 {
   // WARNING: This should only run on the Host Thread.
   // NOTE: This function is potentially re-entrant. If a job calls
@@ -1066,7 +1062,7 @@ void HostDispatchJobs()
       continue;
 
     guard.unlock();
-    job.job();
+    job.job(system);
     guard.lock();
   }
 }

@@ -909,7 +909,7 @@ bool MainWindow::RequestStop()
 {
   if (!Core::IsRunning())
   {
-    Core::QueueHostJob([this] { OnStopComplete(); }, true);
+    Core::QueueHostJob([this](Core::System&) { OnStopComplete(); }, true);
     return true;
   }
 
@@ -1009,7 +1009,7 @@ bool MainWindow::RequestStop()
 
 void MainWindow::ForceStop()
 {
-  Core::Stop();
+  Core::Stop(Core::System::GetInstance());
 }
 
 void MainWindow::Reset()

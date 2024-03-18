@@ -190,7 +190,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   Host_TitleChanged();
   if (Core::IsRunning())
   {
-    Core::UpdateTitle();
+    Core::UpdateTitle(system);
   }
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
