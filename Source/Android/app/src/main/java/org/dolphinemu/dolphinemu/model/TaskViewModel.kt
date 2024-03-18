@@ -5,21 +5,27 @@ package org.dolphinemu.dolphinemu.model
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 
 class TaskViewModel : ViewModel() {
+    enum class State {
+        NOT_STARTED,
+        RUNNING,
+        COMPLETE
+    }
+
     var cancelled = false
     var mustRestartApp = false
 
     private val _result = MutableLiveData<Int>()
     val result: LiveData<Int> get() = _result
 
-    private val _isComplete = MutableLiveData<Boolean>()
-    val isComplete: LiveData<Boolean> get() = _isComplete
-
-    private val _isRunning = MutableLiveData<Boolean>()
-    val isRunning: LiveData<Boolean> get() = _isRunning
+    private val state = MutableLiveData<State>()
+    val isComplete: LiveData<Boolean> get() = state.map {
+        state -> state == State.COMPLETE
+    }
 
     lateinit var task: () -> Unit
     var onResultDismiss: (() -> Unit)? = null
@@ -30,22 +36,20 @@ class TaskViewModel : ViewModel() {
 
     fun clear() {
         _result.value = 0
-        _isComplete.value = false
         cancelled = false
         mustRestartApp = false
         onResultDismiss = null
-        _isRunning.value = false
+        state.value = State.NOT_STARTED
     }
 
     fun runTask() {
-        if (isRunning.value == true) return
-        _isRunning.value = true
+        if (state.value == State.RUNNING) return
+        state.value = State.RUNNING
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 task.invoke()
-                _isRunning.postValue(false)
-                _isComplete.postValue(true)
+                state.postValue(State.COMPLETE)
             }
         }
     }
