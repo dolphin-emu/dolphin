@@ -44,6 +44,7 @@ CEXIModem::CEXIModem(Core::System& system, ModemDeviceType type) : IEXIDevice(sy
 
 CEXIModem::~CEXIModem()
 {
+  m_network_interface->RecvStop();
   m_network_interface->Deactivate();
 }
 
@@ -69,6 +70,7 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
     m_transfer_descriptor = data;
     if (m_transfer_descriptor == 0x00008000)
     {  // Reset
+      m_network_interface->RecvStop();
       m_network_interface->Deactivate();
       m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
     }
@@ -366,6 +368,7 @@ void CEXIModem::RunAllPendingATCommands()
     if (command.substr(0, 3) == "ATZ" || command == "ATH0")
     {
       // Reset (ATZ) or hang up (ATH0)
+      m_network_interface->RecvStop();
       m_network_interface->Deactivate();
       AddATReply("OK\r");
     }
@@ -374,6 +377,7 @@ void CEXIModem::RunAllPendingATCommands()
       // Dial
       if (m_network_interface->Activate())
       {
+        m_network_interface->RecvStart();
         AddATReply("OK\rCONNECT 115200\r");  // Maximum baud rate
       }
       else

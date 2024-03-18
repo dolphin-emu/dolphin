@@ -266,7 +266,7 @@ void TAPServerConnection::ReadThreadHandler()
     if (select_res < 0)
     {
       ERROR_LOG_FMT(SP1, "Can\'t poll tapserver fd: {}", Common::StrNetworkError());
-      break;
+      continue;
     }
     if (select_res == 0)
       continue;
@@ -295,7 +295,10 @@ void TAPServerConnection::ReadThreadHandler()
         }
         else
         {
-          read_state = ReadState::DATA;
+          // If read is disabled, we still need to actually read the frame in
+          // order to avoid applying backpressure on the remote end, but we
+          // should drop the frame instead of forwarding it to the client.
+          read_state = m_read_enabled.IsSet() ? ReadState::DATA : ReadState::SKIP;
         }
       }
       else
@@ -326,7 +329,7 @@ void TAPServerConnection::ReadThreadHandler()
       }
       else
       {
-        read_state = ReadState::DATA;
+        read_state = m_read_enabled.IsSet() ? ReadState::DATA : ReadState::SKIP;
       }
       break;
     }
