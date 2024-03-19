@@ -215,8 +215,6 @@ private:
   UpdateCallback m_update_callback = [] {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   bool m_disabled = false;
-  std::string m_display_name;
-  u32 m_player_score = 0;
   BadgeStatus m_player_badge;
   Hash m_game_hash{};
   u32 m_game_id = 0;
