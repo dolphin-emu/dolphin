@@ -15,6 +15,7 @@
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
 
+#include "DolphinQt/QtUtils/FromStdString.h"
 #include "DolphinQt/Settings.h"
 
 AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(parent)
@@ -76,7 +77,7 @@ void AchievementHeaderWidget::UpdateData()
   }
 
   AchievementManager::PointSpread point_spread = instance.TallyScore();
-  QString user_name = QString::fromStdString(instance.GetPlayerDisplayName());
+  QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
   QString game_name = QString::fromStdString(instance.GetGameDisplayName());
   AchievementManager::BadgeStatus player_badge = instance.GetPlayerBadge();
   AchievementManager::BadgeStatus game_badge = instance.GetGameBadge();
