@@ -79,7 +79,7 @@ void AchievementsWindow::UpdateData()
     const bool is_game_loaded = instance.IsGameLoaded();
 
     m_header_widget->UpdateData();
-    m_header_widget->setVisible(instance.IsLoggedIn());
+    m_header_widget->setVisible(instance.HasAPIToken());
     m_settings_widget->UpdateData();
     m_progress_widget->UpdateData();
     m_tab_widget->setTabVisible(1, is_game_loaded);

@@ -5,6 +5,7 @@
 
 #include "Core/AchievementManager.h"
 
+#include <cctype>
 #include <memory>
 
 #include <fmt/format.h>
@@ -48,8 +49,8 @@ void AchievementManager::Init()
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
-    if (IsLoggedIn())
-      Login("", [](ResponseType r_type) {});
+    if (HasAPIToken())
+      Login("");
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
   }
 }
@@ -64,30 +65,36 @@ void AchievementManager::SetUpdateCallback(UpdateCallback callback)
   m_update_callback();
 }
 
-void AchievementManager::Login(const std::string& password, const ResponseCallback& callback)
+void AchievementManager::Login(const std::string& password)
 {
-  if (!m_is_runtime_initialized)
+  if (!m_client)
   {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted login (async) to RetroAchievements server without "
-                                "Achievement Manager initialized.");
-    callback(ResponseType::MANAGER_NOT_INITIALIZED);
+    ERROR_LOG_FMT(
+        ACHIEVEMENTS,
+        "Attempted login to RetroAchievements server without achievement client initialized.");
     return;
   }
-  m_queue.EmplaceItem([this, password, callback] {
-    callback(VerifyCredentials(password));
-    FetchBadges();
-    m_update_callback();
-  });
+  if (password.empty())
+  {
+    rc_client_begin_login_with_token(m_client, Config::Get(Config::RA_USERNAME).c_str(),
+                                     Config::Get(Config::RA_API_TOKEN).c_str(), LoginCallback,
+                                     nullptr);
+  }
+  else
+  {
+    rc_client_begin_login_with_password(m_client, Config::Get(Config::RA_USERNAME).c_str(),
+                                        password.c_str(), LoginCallback, nullptr);
+  }
 }
 
-bool AchievementManager::IsLoggedIn() const
+bool AchievementManager::HasAPIToken() const
 {
   return !Config::Get(Config::RA_API_TOKEN).empty();
 }
 
 void AchievementManager::HashGame(const std::string& file_path, const ResponseCallback& callback)
 {
-  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
   {
     callback(ResponseType::NOT_ENABLED);
     return;
@@ -142,7 +149,7 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
 
 void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback)
 {
-  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
   {
     callback(ResponseType::NOT_ENABLED);
     return;
@@ -220,7 +227,7 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
 
 void AchievementManager::LoadGameSync(const ResponseCallback& callback)
 {
-  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
   {
     callback(ResponseType::NOT_ENABLED);
     return;
@@ -316,7 +323,7 @@ bool AchievementManager::IsGameLoaded() const
 
 void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 {
-  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
   {
     callback(ResponseType::NOT_ENABLED);
     return;
@@ -339,7 +346,7 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 void AchievementManager::ActivateDeactivateAchievements()
 {
   std::lock_guard lg{m_lock};
-  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
     return;
   bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
   bool unofficial = Config::Get(Config::RA_UNOFFICIAL_ENABLED);
@@ -359,7 +366,7 @@ void AchievementManager::ActivateDeactivateAchievements()
 void AchievementManager::ActivateDeactivateLeaderboards()
 {
   std::lock_guard lg{m_lock};
-  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
     return;
   bool leaderboards_enabled =
       Config::Get(Config::RA_LEADERBOARDS_ENABLED) && Config::Get(Config::RA_HARDCORE_ENABLED);
@@ -386,7 +393,7 @@ void AchievementManager::ActivateDeactivateLeaderboards()
 void AchievementManager::ActivateDeactivateRichPresence()
 {
   std::lock_guard lg{m_lock};
-  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  if (!Config::Get(Config::RA_ENABLED) || !HasAPIToken())
     return;
   rc_runtime_activate_richpresence(
       &m_runtime,
@@ -399,7 +406,7 @@ void AchievementManager::ActivateDeactivateRichPresence()
 
 void AchievementManager::FetchBadges()
 {
-  if (!m_is_runtime_initialized || !IsLoggedIn() || !Config::Get(Config::RA_BADGES_ENABLED))
+  if (!m_is_runtime_initialized || !HasAPIToken() || !Config::Get(Config::RA_BADGES_ENABLED))
   {
     m_update_callback();
     return;
@@ -761,12 +768,12 @@ bool AchievementManager::IsHardcoreModeActive() const
 
 std::string AchievementManager::GetPlayerDisplayName() const
 {
-  return IsLoggedIn() ? m_display_name : "";
+  return HasAPIToken() ? m_display_name : "";
 }
 
 u32 AchievementManager::GetPlayerScore() const
 {
-  return IsLoggedIn() ? m_player_score : 0;
+  return HasAPIToken() ? m_player_score : 0;
 }
 
 const AchievementManager::BadgeStatus& AchievementManager::GetPlayerBadge() const
@@ -1007,40 +1014,49 @@ void AchievementManager::FilereaderClose(void* file_handle)
   delete static_cast<FilereaderState*>(file_handle);
 }
 
-AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std::string& password)
+void AchievementManager::LoginCallback(int result, const char* error_message, rc_client_t* client,
+                                       void* userdata)
 {
-  rc_api_login_response_t login_data{};
-  std::string username, api_token;
+  if (result != RC_OK)
   {
-    std::lock_guard lg{m_lock};
-    username = Config::Get(Config::RA_USERNAME);
-    api_token = Config::Get(Config::RA_API_TOKEN);
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
+                 Config::Get(Config::RA_USERNAME));
+    return;
   }
-  rc_api_login_request_t login_request = {
-      .username = username.c_str(), .api_token = api_token.c_str(), .password = password.c_str()};
-  ResponseType r_type = Request<rc_api_login_request_t, rc_api_login_response_t>(
-      login_request, &login_data, rc_api_init_login_request, rc_api_process_login_response);
-  if (r_type == ResponseType::SUCCESS)
+
+  const rc_client_user_t* user;
   {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.", username);
-    std::lock_guard lg{m_lock};
-    if (username != Config::Get(Config::RA_USERNAME))
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+    user = rc_client_get_user_info(client);
+  }
+  if (!user)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve user information from client.");
+    return;
+  }
+
+  std::string config_username = Config::Get(Config::RA_USERNAME);
+  if (config_username != user->username)
+  {
+    if (Common::CaseInsensitiveEquals(config_username, user->username))
     {
-      INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.", username,
-                   Config::Get(Config::RA_USERNAME));
-      Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
-      return ResponseType::EXPIRED_CONTEXT;
+      INFO_LOG_FMT(ACHIEVEMENTS,
+                   "Case mismatch between site {} and local {}; updating local config.",
+                   user->username, Config::Get(Config::RA_USERNAME));
+      Config::SetBaseOrCurrent(Config::RA_USERNAME, user->username);
     }
-    Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
-    m_display_name = login_data.display_name;
-    m_player_score = login_data.score;
+    else
+    {
+      INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.",
+                   user->username, Config::Get(Config::RA_USERNAME));
+      rc_client_logout(client);
+      return;
+    }
   }
-  else
-  {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.", username);
-  }
-  rc_api_destroy_login_response(&login_data);
-  return r_type;
+  INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.",
+               user->username);
+  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+  Config::SetBaseOrCurrent(Config::RA_API_TOKEN, user->token);
 }
 
 AchievementManager::ResponseType AchievementManager::ResolveHash(const Hash& game_hash,
