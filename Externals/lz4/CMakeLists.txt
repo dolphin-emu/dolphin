@@ -8,6 +8,6 @@ set(LZ4_BUNDLED_MODE ON)
 
 add_subdirectory(lz4/build/cmake)
 
-dolphin_disable_warnings_msvc(lz4_static)
+dolphin_disable_warnings(lz4_static)
 add_library(LZ4::LZ4 ALIAS lz4_static)
 target_compile_definitions(lz4_static PRIVATE XXH_NAMESPACE=LZ4_)
