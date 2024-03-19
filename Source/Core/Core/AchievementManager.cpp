@@ -413,15 +413,16 @@ void AchievementManager::FetchBadges()
   }
   m_image_queue.Cancel();
 
-  if (m_player_badge.name != m_display_name)
+  auto* user = rc_client_get_user_info(m_client);
+  if (m_player_badge.name.compare(user->display_name) != 0)
   {
-    m_image_queue.EmplaceItem([this] {
+    m_image_queue.EmplaceItem([this, user] {
       std::string name_to_fetch;
       {
         std::lock_guard lg{m_lock};
-        if (m_display_name == m_player_badge.name)
+        if (m_player_badge.name.compare(user->display_name) == 0)
           return;
-        name_to_fetch = m_display_name;
+        name_to_fetch.assign(user->display_name);
       }
       rc_api_fetch_image_request_t icon_request = {.image_name = name_to_fetch.c_str(),
                                                    .image_type = RC_IMAGE_TYPE_USER};
@@ -430,10 +431,10 @@ void AchievementManager::FetchBadges()
       {
         INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded player badge id {}.", name_to_fetch);
         std::lock_guard lg{m_lock};
-        if (name_to_fetch != m_display_name)
+        if (name_to_fetch.compare(user->display_name) != 0)
         {
           INFO_LOG_FMT(ACHIEVEMENTS, "Requested outdated badge id {} for player id {}.",
-                       name_to_fetch, m_display_name);
+                       name_to_fetch, user->display_name);
           return;
         }
         m_player_badge.badge = std::move(fetched_badge);
@@ -766,14 +767,24 @@ bool AchievementManager::IsHardcoreModeActive() const
   return (m_runtime.trigger_count + m_runtime.lboard_count > 0);
 }
 
-std::string AchievementManager::GetPlayerDisplayName() const
+std::string_view AchievementManager::GetPlayerDisplayName() const
 {
-  return HasAPIToken() ? m_display_name : "";
+  if (!HasAPIToken())
+    return "";
+  auto* user = rc_client_get_user_info(m_client);
+  if (!user)
+    return "";
+  return std::string_view(user->display_name);
 }
 
 u32 AchievementManager::GetPlayerScore() const
 {
-  return HasAPIToken() ? m_player_score : 0;
+  if (!HasAPIToken())
+    return 0;
+  auto* user = rc_client_get_user_info(m_client);
+  if (!user)
+    return 0;
+  return user->score;
 }
 
 const AchievementManager::BadgeStatus& AchievementManager::GetPlayerBadge() const
@@ -1477,13 +1488,14 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
                       nullptr);
   if (m_game_data.achievements[game_data_index].category == RC_ACHIEVEMENT_CATEGORY_CORE)
   {
+    auto* user = rc_client_get_user_info(m_client);
     m_queue.EmplaceItem([this, event_id] { AwardAchievement(event_id); });
     PointSpread spread = TallyScore();
     if (spread.hard_points == spread.total_points &&
         it->second.remote_unlock_status != UnlockStatus::UnlockType::HARDCORE)
     {
       OSD::AddMessage(
-          fmt::format("Congratulations! {} has mastered {}", m_display_name, m_game_data.title),
+          fmt::format("Congratulations! {} has mastered {}", user->display_name, m_game_data.title),
           OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
           (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
                                                      nullptr);
@@ -1491,11 +1503,12 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
     else if (spread.hard_points + spread.soft_points == spread.total_points &&
              it->second.remote_unlock_status == UnlockStatus::UnlockType::LOCKED)
     {
-      OSD::AddMessage(
-          fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
-          OSD::Duration::VERY_LONG, OSD::Color::CYAN,
-          (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                     nullptr);
+      OSD::AddMessage(fmt::format("Congratulations! {} has completed {}", user->display_name,
+                                  m_game_data.title),
+                      OSD::Duration::VERY_LONG, OSD::Color::CYAN,
+                      (Config::Get(Config::RA_BADGES_ENABLED)) ?
+                          DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                          nullptr);
     }
   }
   ActivateDeactivateAchievement(event_id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
