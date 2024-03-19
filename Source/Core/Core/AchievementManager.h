@@ -117,8 +117,8 @@ public:
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
-  void Login(const std::string& password, const ResponseCallback& callback);
-  bool IsLoggedIn() const;
+  void Login(const std::string& password);
+  bool HasAPIToken() const;
   void HashGame(const std::string& file_path, const ResponseCallback& callback);
   void HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback);
   bool IsGameLoaded() const;
@@ -171,7 +171,8 @@ private:
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
 
-  ResponseType VerifyCredentials(const std::string& password);
+  static void LoginCallback(int result, const char* error_message, rc_client_t* client,
+                            void* userdata);
   ResponseType ResolveHash(const Hash& game_hash, u32* game_id);
   void LoadGameSync(const ResponseCallback& callback);
   ResponseType StartRASession();

@@ -69,7 +69,7 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
 void AchievementHeaderWidget::UpdateData()
 {
   auto& instance = AchievementManager::GetInstance();
-  if (!instance.IsLoggedIn())
+  if (!instance.HasAPIToken())
   {
     m_header_box->setVisible(false);
     return;
