@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include <picojson.h>
@@ -29,14 +30,13 @@ picojson::array ToJsonArray(const Range& data)
 }
 
 template <typename Type>
-Type ReadNumericOrDefault(const picojson::object& obj, const std::string& key,
-                          Type default_value = Type{})
+std::optional<Type> ReadNumericFromJson(const picojson::object& obj, const std::string& key)
 {
   const auto it = obj.find(key);
   if (it == obj.end())
-    return default_value;
+    return std::nullopt;
   if (!it->second.is<double>())
-    return default_value;
+    return std::nullopt;
   return MathUtil::SaturatingCast<Type>(it->second.get<double>());
 }
 

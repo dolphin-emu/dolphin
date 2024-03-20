@@ -14,7 +14,7 @@ picojson::object ToJsonObject(const Common::Vec3& vec)
 
 void FromJson(const picojson::object& obj, Common::Vec3& vec)
 {
-  vec.x = ReadNumericOrDefault<float>(obj, "x");
-  vec.y = ReadNumericOrDefault<float>(obj, "y");
-  vec.z = ReadNumericOrDefault<float>(obj, "z");
+  vec.x = ReadNumericFromJson<float>(obj, "x").value_or(0.0f);
+  vec.y = ReadNumericFromJson<float>(obj, "y").value_or(0.0f);
+  vec.z = ReadNumericFromJson<float>(obj, "z").value_or(0.0f);
 }
