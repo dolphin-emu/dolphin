@@ -16,5 +16,8 @@
 	<!-- Allows the Steam overlay library to be injected into our process -->
 	<key>com.apple.security.cs.allow-dyld-environment-variables</key>
 	<true/>
+	<!-- This is needed to attach a debugger to the process or to view the memory with an external tool such a dolphin-memory-engine -->
+	<key>com.apple.security.get-task-allow</key>
+	<true/>
 </dict>
 </plist>
