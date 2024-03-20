@@ -400,12 +400,40 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
 
 // Execute a low pass filter on the samples using one history value. Returns
 // the new history value.
-s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
+static void LowPassFilter(s16* samples, u32 count, PBLowPassFilter& f)
 {
   for (u32 i = 0; i < count; ++i)
-    yn1 = samples[i] = (a0 * (s32)samples[i] + b0 * (s32)yn1) >> 15;
-  return yn1;
+    f.yn1 = samples[i] = (f.a0 * (s32)samples[i] + f.b0 * (s32)f.yn1) >> 15;
 }
+
+#ifdef AX_WII
+static void BiquadFilter(s16* samples, u32 count, PBBiquadFilter& f)
+{
+  for (u32 i = 0; i < count; ++i)
+  {
+    s16 xn0 = samples[i];
+    s64 tmp = 0;
+    tmp += f.b0 * s32(xn0);
+    tmp += f.b1 * s32(f.xn1);
+    tmp += f.b2 * s32(f.xn2);
+    tmp += f.a1 * s32(f.yn1);
+    tmp += f.a2 * s32(f.yn2);
+    tmp <<= 2;
+    // CLRL
+    if (tmp & 0x10000)
+      tmp += 0x8000;
+    else
+      tmp += 0x7FFF;
+    tmp >>= 16;
+    s16 yn0 = s16(tmp);
+    f.xn2 = f.xn1;
+    f.yn2 = f.yn1;
+    f.xn1 = xn0;
+    f.yn1 = yn0;
+    samples[i] = yn0;
+  }
+}
+#endif
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
@@ -435,11 +463,18 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }
 
-  // Optionally, execute a low pass filter
-  if (pb.lpf.enabled)
+  // Optionally, execute a low-pass and/or biquad filter.
+  if (pb.lpf.on != 0)
   {
-    pb.lpf.yn1 = LowPassFilter(samples, count, pb.lpf.yn1, pb.lpf.a0, pb.lpf.b0);
+    LowPassFilter(samples, count, pb.lpf);
   }
+
+#ifdef AX_WII
+  if (pb.biquad.on != 0)
+  {
+    BiquadFilter(samples, count, pb.biquad);
+  }
+#endif
 
   // Mix LRS, AUXA and AUXB depending on mixer_control
   // TODO: Handle DPL2 on AUXB.
@@ -529,6 +564,14 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   {
     // Old AXWii versions process ms per ms.
     u16 wm_count = count == 96 ? 18 : 6;
+
+    if (pb.remote_iir.on)
+    {
+      if (pb.remote_iir.on == 2)
+        BiquadFilter(samples, wm_count, pb.remote_iir.biquad);
+      else
+        LowPassFilter(samples, wm_count, pb.remote_iir.lpf);
+    }
 
     // Interpolate at most 18 samples from the 96 samples we read before.
     s16 wm_samples[18];
