@@ -118,8 +118,8 @@ public:
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool IsLoggedIn() const;
-  void HashGame(const std::string& file_path, const ResponseCallback& callback);
-  void HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback);
+  void LoadGame(const std::string& file_path);
+  void LoadGame(const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
 
   void LoadUnlockData(const ResponseCallback& callback);
@@ -188,6 +188,8 @@ private:
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
+  static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
+                               void* userdata);
   void DisplayWelcomeMessage();
 
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);

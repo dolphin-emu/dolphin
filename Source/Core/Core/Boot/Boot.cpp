@@ -581,8 +581,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       }
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-      AchievementManager::GetInstance().HashGame(executable.path,
-                                                 [](AchievementManager::ResponseType r_type) {});
+      AchievementManager::GetInstance().LoadGame(executable.path);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
       if (!executable.reader->LoadIntoMemory(system))

@@ -88,18 +88,16 @@ bool AchievementManager::IsLoggedIn() const
   return !Config::Get(Config::RA_API_TOKEN).empty();
 }
 
-void AchievementManager::HashGame(const std::string& file_path, const ResponseCallback& callback)
+void AchievementManager::LoadGame(const std::string& file_path)
 {
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
-    callback(ResponseType::NOT_ENABLED);
     return;
   }
-  if (!m_is_runtime_initialized)
+  if (!m_client)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS,
-                  "Attempted to load game achievements without Achievement Manager initialized.");
-    callback(ResponseType::MANAGER_NOT_INITIALIZED);
+                  "Attempted to load game achievements without achievement client initialized.");
     return;
   }
   if (m_disabled)
@@ -109,67 +107,38 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     return;
   }
-  m_system = &Core::System::GetInstance();
-  m_queue.EmplaceItem([this, callback, file_path] {
-    Hash new_hash;
-    {
-      std::lock_guard lg{m_filereader_lock};
-      rc_hash_filereader volume_reader{
-          .open = &AchievementManager::FilereaderOpenByFilepath,
-          .seek = &AchievementManager::FilereaderSeek,
-          .tell = &AchievementManager::FilereaderTell,
-          .read = &AchievementManager::FilereaderRead,
-          .close = &AchievementManager::FilereaderClose,
-      };
-      rc_hash_init_custom_filereader(&volume_reader);
-      if (!rc_hash_generate_from_file(new_hash.data(), RC_CONSOLE_GAMECUBE, file_path.c_str()))
-      {
-        ERROR_LOG_FMT(ACHIEVEMENTS, "Unable to generate achievement hash from game file {}.",
-                      file_path);
-        callback(ResponseType::MALFORMED_OBJECT);
-      }
-    }
-    {
-      std::lock_guard lg{m_lock};
-      if (m_disabled)
-      {
-        INFO_LOG_FMT(ACHIEVEMENTS, "Achievements disabled while hash was resolving.");
-        callback(ResponseType::EXPIRED_CONTEXT);
-        return;
-      }
-      m_game_hash = std::move(new_hash);
-    }
-    LoadGameSync(callback);
-  });
+  std::lock_guard lg{m_filereader_lock};
+  rc_hash_filereader volume_reader{
+      .open = &AchievementManager::FilereaderOpenByFilepath,
+      .seek = &AchievementManager::FilereaderSeek,
+      .tell = &AchievementManager::FilereaderTell,
+      .read = &AchievementManager::FilereaderRead,
+      .close = &AchievementManager::FilereaderClose,
+  };
+  rc_hash_init_custom_filereader(&volume_reader);
+  rc_client_begin_identify_and_load_game(m_client, RC_CONSOLE_GAMECUBE, file_path.c_str(), NULL, 0,
+                                         LoadGameCallback, NULL);
 }
 
-void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback)
+void AchievementManager::LoadGame(const DiscIO::Volume* volume)
 {
   if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
   {
-    callback(ResponseType::NOT_ENABLED);
     return;
   }
-  if (!m_is_runtime_initialized)
+  if (!m_client)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS,
-                  "Attempted to load game achievements without Achievement Manager initialized.");
-    callback(ResponseType::MANAGER_NOT_INITIALIZED);
-    return;
-  }
-  if (volume == nullptr)
-  {
-    INFO_LOG_FMT(ACHIEVEMENTS, "New volume is empty.");
+                  "Attempted to load game achievements without achievement client initialized.");
     return;
   }
   if (m_disabled)
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager is disabled until core is rebooted.");
-    OSD::AddMessage("Achievements are disabled until core is rebooted.", OSD::Duration::VERY_LONG,
-                    OSD::Color::RED);
+    OSD::AddMessage("Achievements are disabled until you restart emulation.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
     return;
   }
-  // Need to SetDisabled outside a lock because it uses m_lock internally.
   bool disable = true;
   {
     std::lock_guard lg{m_lock};
@@ -183,42 +152,19 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "Disabling Achievement Manager due to hash spam.");
     SetDisabled(true);
-    callback(ResponseType::EXPIRED_CONTEXT);
     return;
   }
-  m_system = &Core::System::GetInstance();
-  m_queue.EmplaceItem([this, callback] {
-    Hash new_hash;
-    {
-      std::lock_guard lg{m_filereader_lock};
-      rc_hash_filereader volume_reader{
-          .open = &AchievementManager::FilereaderOpenByVolume,
-          .seek = &AchievementManager::FilereaderSeek,
-          .tell = &AchievementManager::FilereaderTell,
-          .read = &AchievementManager::FilereaderRead,
-          .close = &AchievementManager::FilereaderClose,
-      };
-      rc_hash_init_custom_filereader(&volume_reader);
-      if (!rc_hash_generate_from_file(new_hash.data(), RC_CONSOLE_GAMECUBE, ""))
-      {
-        ERROR_LOG_FMT(ACHIEVEMENTS, "Unable to generate achievement hash from volume.");
-        callback(ResponseType::MALFORMED_OBJECT);
-        return;
-      }
-    }
-    {
-      std::lock_guard lg{m_lock};
-      if (m_disabled)
-      {
-        INFO_LOG_FMT(ACHIEVEMENTS, "Achievements disabled while hash was resolving.");
-        callback(ResponseType::EXPIRED_CONTEXT);
-        return;
-      }
-      m_game_hash = std::move(new_hash);
-      m_loading_volume.reset();
-    }
-    LoadGameSync(callback);
-  });
+  std::lock_guard lg{m_filereader_lock};
+  rc_hash_filereader volume_reader{
+      .open = &AchievementManager::FilereaderOpenByVolume,
+      .seek = &AchievementManager::FilereaderSeek,
+      .tell = &AchievementManager::FilereaderTell,
+      .read = &AchievementManager::FilereaderRead,
+      .close = &AchievementManager::FilereaderClose,
+  };
+  rc_hash_init_custom_filereader(&volume_reader);
+  rc_client_begin_identify_and_load_game(m_client, RC_CONSOLE_GAMECUBE, "", NULL, 0,
+                                         LoadGameCallback, NULL);
 }
 
 void AchievementManager::LoadGameSync(const ResponseCallback& callback)
@@ -1431,6 +1377,21 @@ AchievementManager::PingRichPresence(const RichPresence& rich_presence)
       ping_request, &ping_response, rc_api_init_ping_request, rc_api_process_ping_response);
   rc_api_destroy_ping_response(&ping_response);
   return r_type;
+}
+
+void AchievementManager::LoadGameCallback(int result, const char* error_message,
+                                          rc_client_t* client, void* userdata)
+{
+  if (result != RC_OK)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
+    return;
+  }
+
+  auto* game = rc_client_get_game_info(client);
+  INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
+
+  AchievementManager::GetInstance().FetchBadges();
 }
 
 void AchievementManager::DisplayWelcomeMessage()
