@@ -268,19 +268,16 @@ void AchievementSettingsWidget::Logout()
 void AchievementSettingsWidget::ToggleAchievements()
 {
   SaveSettings();
-  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 void AchievementSettingsWidget::ToggleLeaderboards()
 {
   SaveSettings();
-  AchievementManager::GetInstance().ActivateDeactivateLeaderboards();
 }
 
 void AchievementSettingsWidget::ToggleRichPresence()
 {
   SaveSettings();
-  AchievementManager::GetInstance().ActivateDeactivateRichPresence();
 }
 
 void AchievementSettingsWidget::ToggleHardcore()
@@ -311,13 +308,11 @@ void AchievementSettingsWidget::ToggleBadges()
 void AchievementSettingsWidget::ToggleUnofficial()
 {
   SaveSettings();
-  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 void AchievementSettingsWidget::ToggleEncore()
 {
   SaveSettings();
-  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS

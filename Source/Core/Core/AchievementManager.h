@@ -119,14 +119,9 @@ public:
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool HasAPIToken() const;
-  void HashGame(const std::string& file_path, const ResponseCallback& callback);
-  void HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback);
+  void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
 
-  void LoadUnlockData(const ResponseCallback& callback);
-  void ActivateDeactivateAchievements();
-  void ActivateDeactivateLeaderboards();
-  void ActivateDeactivateRichPresence();
   void FetchBadges();
 
   void DoFrame();
@@ -173,11 +168,7 @@ private:
 
   static void LoginCallback(int result, const char* error_message, rc_client_t* client,
                             void* userdata);
-  ResponseType ResolveHash(const Hash& game_hash, u32* game_id);
-  void LoadGameSync(const ResponseCallback& callback);
-  ResponseType StartRASession();
-  ResponseType FetchGameData();
-  ResponseType FetchUnlockData(bool hardcore);
+
   ResponseType FetchBoardInfo(AchievementId leaderboard_id);
 
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
@@ -189,6 +180,8 @@ private:
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
+  static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
+                               void* userdata);
   void DisplayWelcomeMessage();
 
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
