@@ -5,6 +5,7 @@
 
 #include <optional>
 #include <string>
+#include <type_traits>
 
 #include <picojson.h>
 
@@ -18,12 +19,21 @@
 template <typename Range>
 picojson::array ToJsonArray(const Range& data)
 {
+  using RangeUnderlyingType = typename Range::value_type;
   picojson::array result;
   result.reserve(std::size(data));
 
   for (const auto& value : data)
   {
-    result.emplace_back(static_cast<double>(value));
+    if constexpr (std::is_integral_v<RangeUnderlyingType> ||
+                  std::is_floating_point_v<RangeUnderlyingType>)
+    {
+      result.emplace_back(static_cast<double>(value));
+    }
+    else
+    {
+      result.emplace_back(value);
+    }
   }
 
   return result;
@@ -39,6 +49,10 @@ std::optional<Type> ReadNumericFromJson(const picojson::object& obj, const std::
     return std::nullopt;
   return MathUtil::SaturatingCast<Type>(it->second.get<double>());
 }
+
+std::optional<std::string> ReadStringFromJson(const picojson::object& obj, const std::string& key);
+
+std::optional<bool> ReadBoolFromJson(const picojson::object& obj, const std::string& key);
 
 picojson::object ToJsonObject(const Common::Vec3& vec);
 void FromJson(const picojson::object& obj, Common::Vec3& vec);
