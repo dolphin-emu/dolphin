@@ -34,7 +34,7 @@ constexpr auto Lerp(const T& x, const T& y, const F& a) -> decltype(x + (y - x) 
 template <typename Dest, typename T>
 constexpr Dest SaturatingCast(T value)
 {
-  static_assert(std::is_integral<Dest>());
+  static_assert(std::is_integral<Dest>() || std::is_floating_point<Dest>());
 
   [[maybe_unused]] constexpr Dest lo = std::numeric_limits<Dest>::lowest();
   constexpr Dest hi = std::numeric_limits<Dest>::max();
