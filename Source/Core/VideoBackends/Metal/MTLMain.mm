@@ -164,8 +164,23 @@ void Metal::VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
     return;
   NSView* view = static_cast<NSView*>(wsi.render_surface);
   CAMetalLayer* layer = [CAMetalLayer layer];
+
+  Util::PopulateBackendInfo(&g_Config);
+
+  if (g_Config.backend_info.bSupportsHDROutput && g_Config.bHDR)
+  {
+    [layer setWantsExtendedDynamicRangeContent:YES];
+    [layer setPixelFormat:MTLPixelFormatRGBA16Float];
+
+    const CFStringRef name = kCGColorSpaceExtendedLinearSRGB;
+    CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
+    [layer setColorspace:colorspace];
+    CGColorSpaceRelease(colorspace);
+  }
+
   [view setWantsLayer:YES];
   [view setLayer:layer];
+
   wsi.render_surface = layer;
 #endif
 }
