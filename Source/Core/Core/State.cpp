@@ -402,7 +402,7 @@ static void CompressAndDumpState(CompressAndDumpState_args& save_args)
   File::IOFile f(temp_filename, "wb");
   if (!f)
   {
-    Core::DisplayMessage("Could not save state", 2000);
+    Core::DisplayMessage("Failed to create state file", 2000);
     return;
   }
 
@@ -412,6 +412,9 @@ static void CompressAndDumpState(CompressAndDumpState_args& save_args)
     CompressBufferToFile(buffer_data, buffer_size, f);
   else
     f.WriteBytes(buffer_data, buffer_size);
+
+  if (!f.IsGood())
+    Core::DisplayMessage("Failed to write state file", 2000);
 
   const std::string last_state_filename = File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav";
   const std::string last_state_dtmname = last_state_filename + ".dtm";
@@ -448,12 +451,20 @@ static void CompressAndDumpState(CompressAndDumpState_args& save_args)
     // Move written state to final location.
     // TODO: This should also be atomic. This is possible on all systems, but needs a special
     // implementation of IOFile on Windows.
-    f.Close();
-    File::Rename(temp_filename, filename);
+    if (!f.Close())
+      Core::DisplayMessage("Failed to close state file", 2000);
+
+    if (!File::Rename(temp_filename, filename))
+    {
+      Core::DisplayMessage("Failed to rename state file", 2000);
+    }
+    else
+    {
+      const std::filesystem::path temp_path(filename);
+      Core::DisplayMessage(fmt::format("Saved State to {}", temp_path.filename().string()), 2000);
+    }
   }
 
-  std::filesystem::path tempfilename(filename);
-  Core::DisplayMessage(fmt::format("Saved State to {}", tempfilename.filename().string()), 2000);
   Host_UpdateMainFrame();
 }
 
