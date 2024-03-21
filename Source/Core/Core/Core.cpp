@@ -210,11 +210,6 @@ bool IsRunningAndStarted()
   return s_is_started && !s_is_stopping;
 }
 
-bool IsRunningInCurrentThread()
-{
-  return IsRunning() && IsCPUThread();
-}
-
 bool IsCPUThread()
 {
   return tls_is_cpu_thread;
