@@ -830,6 +830,12 @@ private:
       // Interpret it as a unary minus function.
       return ParseFunctionArguments("minus", MakeFunctionExpression("minus"), tok);
     }
+    case TOK_ADD:
+    {
+      // An atom was expected but we got an addition symbol.
+      // Interpret it as a unary plus.
+      return ParseFunctionArguments("plus", MakeFunctionExpression("plus"), tok);
+    }
     default:
     {
       return ParseResult::MakeErrorResult(tok, _trans("Expected start of expression."));
