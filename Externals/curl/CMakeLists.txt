@@ -45,7 +45,7 @@ if(NOT CURL_CA_PATH_SET)
     endif()
 endif()
 
-dolphin_disable_warnings_msvc(curl)
+dolphin_disable_warnings(curl)
 target_link_libraries(curl ${CURL_LIBS})
 target_include_directories(curl PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/curl/include")
 target_compile_definitions(curl PRIVATE "BUILDING_LIBCURL=1")

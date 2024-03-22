@@ -31,7 +31,7 @@ if(WIN32)
     add_definitions(-DDISCORD_WINDOWS)
     set(BASE_RPC_SRC ${BASE_RPC_SRC} connection_win.cpp discord_register_win.cpp)
     add_library(discord-rpc ${BASE_RPC_SRC})
-    dolphin_disable_warnings_msvc(discord-rpc)
+    dolphin_disable_warnings(discord-rpc)
     if (MSVC)
         if(USE_STATIC_CRT)
             foreach(CompilerFlag
