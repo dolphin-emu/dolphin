@@ -1,7 +1,7 @@
 /* mz_strm.h -- Stream interface
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
      https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
@@ -39,7 +39,7 @@ typedef int64_t (*mz_stream_tell_cb)           (void *stream);
 typedef int32_t (*mz_stream_seek_cb)           (void *stream, int64_t offset, int32_t origin);
 typedef int32_t (*mz_stream_close_cb)          (void *stream);
 typedef int32_t (*mz_stream_error_cb)          (void *stream);
-typedef void*   (*mz_stream_create_cb)         (void **stream);
+typedef void*   (*mz_stream_create_cb)         (void);
 typedef void    (*mz_stream_destroy_cb)        (void **stream);
 
 typedef int32_t (*mz_stream_get_prop_int64_cb) (void *stream, int32_t prop, int64_t *value);
@@ -103,7 +103,7 @@ void*   mz_stream_get_interface(void *stream);
 int32_t mz_stream_get_prop_int64(void *stream, int32_t prop, int64_t *value);
 int32_t mz_stream_set_prop_int64(void *stream, int32_t prop, int64_t value);
 
-void*   mz_stream_create(void **stream, mz_stream_vtbl *vtbl);
+void*   mz_stream_create(mz_stream_vtbl *vtbl);
 void    mz_stream_delete(void **stream);
 
 /***************************************************************************/
@@ -120,7 +120,7 @@ int32_t mz_stream_raw_error(void *stream);
 int32_t mz_stream_raw_get_prop_int64(void *stream, int32_t prop, int64_t *value);
 int32_t mz_stream_raw_set_prop_int64(void *stream, int32_t prop, int64_t value);
 
-void*   mz_stream_raw_create(void **stream);
+void*   mz_stream_raw_create(void);
 void    mz_stream_raw_delete(void **stream);
 
 /***************************************************************************/

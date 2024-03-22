@@ -1,7 +1,7 @@
 /* mz_os.h -- System functions
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
      https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
@@ -41,8 +41,9 @@ extern "C" {
                                          (MZ_VERSION_MADEBY_ZIP_VERSION))
 
 #define MZ_PATH_SLASH_UNIX              ('/')
+#define MZ_PATH_SLASH_WINDOWS           ('\\')
 #if defined(_WIN32)
-#  define MZ_PATH_SLASH_PLATFORM        ('\\')
+#  define MZ_PATH_SLASH_PLATFORM        (MZ_PATH_SLASH_WINDOWS)
 #else
 #  define MZ_PATH_SLASH_PLATFORM        (MZ_PATH_SLASH_UNIX)
 #endif
@@ -106,10 +107,10 @@ wchar_t *mz_os_unicode_string_create(const char *string, int32_t encoding);
 void     mz_os_unicode_string_delete(wchar_t **string);
 /* Delete a unicode string that was created */
 
-uint8_t *mz_os_utf8_string_create(const char *string, int32_t encoding);
+char    *mz_os_utf8_string_create(const char *string, int32_t encoding);
 /* Create a utf8 string from a string with another encoding */
 
-void     mz_os_utf8_string_delete(uint8_t **string);
+void     mz_os_utf8_string_delete(char **string);
 /* Delete a utf8 string that was created */
 
 int32_t  mz_os_rand(uint8_t *buf, int32_t size);

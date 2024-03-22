@@ -1,13 +1,12 @@
 /* mz_strm_bzip.c -- Stream for bzip inflate/deflate
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
       https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
 
 #include "mz.h"
 #include "mz_strm.h"
@@ -122,7 +121,6 @@ int32_t mz_stream_bzip_read(void *stream, void *buf, int32_t size) {
     int32_t bytes_to_read = sizeof(bzip->buffer);
     int32_t read = 0;
     int32_t err = BZ_OK;
-
 
     if (bzip->stream_end)
         return 0;
@@ -340,28 +338,22 @@ int32_t mz_stream_bzip_set_prop_int64(void *stream, int32_t prop, int64_t value)
     return MZ_EXIST_ERROR;
 }
 
-void *mz_stream_bzip_create(void **stream) {
-    mz_stream_bzip *bzip = NULL;
-
-    bzip = (mz_stream_bzip *)MZ_ALLOC(sizeof(mz_stream_bzip));
-    if (bzip != NULL) {
-        memset(bzip, 0, sizeof(mz_stream_bzip));
+void *mz_stream_bzip_create(void) {
+    mz_stream_bzip *bzip = (mz_stream_bzip *)calloc(1, sizeof(mz_stream_bzip));
+    if (bzip) {
         bzip->stream.vtbl = &mz_stream_bzip_vtbl;
         bzip->level = 6;
     }
-    if (stream != NULL)
-        *stream = bzip;
-
     return bzip;
 }
 
 void mz_stream_bzip_delete(void **stream) {
     mz_stream_bzip *bzip = NULL;
-    if (stream == NULL)
+    if (!stream)
         return;
     bzip = (mz_stream_bzip *)*stream;
-    if (bzip != NULL)
-        MZ_FREE(bzip);
+    if (bzip)
+        free(bzip);
     *stream = NULL;
 }
 

@@ -1,7 +1,7 @@
 /* mz_strm_pkcrypt.c -- Code for traditional PKWARE encryption
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
       https://github.com/zlib-ng/minizip-ng
    Copyright (C) 1998-2005 Gilles Vollant
       Modifications for Info-ZIP crypting
@@ -20,7 +20,6 @@
    file (appnote.txt) is distributed with the PKZIP program (even in the
    version without encryption capabilities).
 */
-
 
 #include "mz.h"
 #include "mz_crypt.h"
@@ -130,9 +129,9 @@ int32_t mz_stream_pkcrypt_open(void *stream, const char *path, int32_t mode) {
     if (mz_stream_is_open(pkcrypt->stream.base) != MZ_OK)
         return MZ_OPEN_ERROR;
 
-    if (password == NULL)
+    if (!password)
         password = pkcrypt->password;
-    if (password == NULL)
+    if (!password)
         return MZ_PARAM_ERROR;
 
     mz_stream_pkcrypt_init_keys(stream, password);
@@ -176,7 +175,7 @@ int32_t mz_stream_pkcrypt_open(void *stream, const char *path, int32_t mode) {
 
 int32_t mz_stream_pkcrypt_is_open(void *stream) {
     mz_stream_pkcrypt *pkcrypt = (mz_stream_pkcrypt *)stream;
-    if (pkcrypt->initialized == 0)
+    if (!pkcrypt->initialized)
         return MZ_OPEN_ERROR;
     return MZ_OK;
 }
@@ -187,7 +186,6 @@ int32_t mz_stream_pkcrypt_read(void *stream, void *buf, int32_t size) {
     int32_t bytes_to_read = size;
     int32_t read = 0;
     int32_t i = 0;
-
 
     if ((int64_t)bytes_to_read > (pkcrypt->max_total_in - pkcrypt->total_in))
         bytes_to_read = (int32_t)(pkcrypt->max_total_in - pkcrypt->total_in);
@@ -309,27 +307,20 @@ int32_t mz_stream_pkcrypt_set_prop_int64(void *stream, int32_t prop, int64_t val
     return MZ_OK;
 }
 
-void *mz_stream_pkcrypt_create(void **stream) {
-    mz_stream_pkcrypt *pkcrypt = NULL;
-
-    pkcrypt = (mz_stream_pkcrypt *)MZ_ALLOC(sizeof(mz_stream_pkcrypt));
-    if (pkcrypt != NULL) {
-        memset(pkcrypt, 0, sizeof(mz_stream_pkcrypt));
+void *mz_stream_pkcrypt_create(void) {
+    mz_stream_pkcrypt *pkcrypt = (mz_stream_pkcrypt *)calloc(1, sizeof(mz_stream_pkcrypt));
+    if (pkcrypt)
         pkcrypt->stream.vtbl = &mz_stream_pkcrypt_vtbl;
-    }
-
-    if (stream != NULL)
-        *stream = pkcrypt;
     return pkcrypt;
 }
 
 void mz_stream_pkcrypt_delete(void **stream) {
     mz_stream_pkcrypt *pkcrypt = NULL;
-    if (stream == NULL)
+    if (!stream)
         return;
     pkcrypt = (mz_stream_pkcrypt *)*stream;
-    if (pkcrypt != NULL)
-        MZ_FREE(pkcrypt);
+    if (pkcrypt)
+        free(pkcrypt);
     *stream = NULL;
 }
 

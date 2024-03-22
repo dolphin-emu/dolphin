@@ -3,7 +3,7 @@
 
    This version of ioapi is designed to buffer IO.
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
       https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
@@ -28,7 +28,7 @@ int32_t mz_stream_buffered_seek(void *stream, int64_t offset, int32_t origin);
 int32_t mz_stream_buffered_close(void *stream);
 int32_t mz_stream_buffered_error(void *stream);
 
-void*   mz_stream_buffered_create(void **stream);
+void*   mz_stream_buffered_create(void);
 void    mz_stream_buffered_delete(void **stream);
 
 void*   mz_stream_buffered_get_interface(void);

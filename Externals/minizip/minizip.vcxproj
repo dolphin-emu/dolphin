@@ -50,8 +50,6 @@
     <ClInclude Include="mz_strm_zlib.h" />
     <ClInclude Include="mz_zip.h" />
     <ClInclude Include="mz_zip_rw.h" />
-    <ClInclude Include="unzip.h" />
-    <ClInclude Include="zip.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />
