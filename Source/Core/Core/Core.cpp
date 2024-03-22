@@ -788,14 +788,14 @@ static std::string GenerateScreenshotName()
 
 void SaveScreenShot()
 {
-  Core::RunAsCPUThread([] { g_frame_dumper->SaveScreenshot(GenerateScreenshotName()); });
+  const Core::CPUThreadGuard guard(Core::System::GetInstance());
+  g_frame_dumper->SaveScreenshot(GenerateScreenshotName());
 }
 
 void SaveScreenShot(std::string_view name)
 {
-  Core::RunAsCPUThread([&name] {
-    g_frame_dumper->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
-  });
+  const Core::CPUThreadGuard guard(Core::System::GetInstance());
+  g_frame_dumper->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
 }
 
 static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unlock)
@@ -835,20 +835,6 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
   }
 
   return was_unpaused;
-}
-
-void RunAsCPUThread(std::function<void()> function)
-{
-  auto& system = Core::System::GetInstance();
-  const bool is_cpu_thread = IsCPUThread();
-  bool was_unpaused = false;
-  if (!is_cpu_thread)
-    was_unpaused = PauseAndLock(system, true, true);
-
-  function();
-
-  if (!is_cpu_thread)
-    PauseAndLock(system, false, was_unpaused);
 }
 
 void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)

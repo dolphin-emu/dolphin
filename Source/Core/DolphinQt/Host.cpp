@@ -112,9 +112,9 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
   }
   else
   {
-    // If we reach here, we can call Core::PauseAndLock (which we do using RunAsCPUThread).
-
-    Core::RunAsCPUThread(std::move(f));
+    // If we reach here, we can call Core::PauseAndLock (which we do using a CPUThreadGuard).
+    const Core::CPUThreadGuard guard(Core::System::GetInstance());
+    f();
   }
 }
 

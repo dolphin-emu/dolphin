@@ -160,22 +160,21 @@ void JitInterface::GetProfileResults(Profiler::ProfileStats* prof_stats) const
   prof_stats->timecost_sum = 0;
   prof_stats->block_stats.clear();
 
-  Core::RunAsCPUThread([this, &prof_stats] {
-    QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
-    m_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
-      const auto& data = block.profile_data;
-      u64 cost = data.downcountCounter;
-      u64 timecost = data.ticCounter;
-      // Todo: tweak.
-      if (data.runCount >= 1)
-        prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
-                                             block.codeSize);
-      prof_stats->cost_sum += cost;
-      prof_stats->timecost_sum += timecost;
-    });
-
-    sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
+  const Core::CPUThreadGuard guard(m_system);
+  QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
+  m_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
+    const auto& data = block.profile_data;
+    u64 cost = data.downcountCounter;
+    u64 timecost = data.ticCounter;
+    // Todo: tweak.
+    if (data.runCount >= 1)
+      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
+                                           block.codeSize);
+    prof_stats->cost_sum += cost;
+    prof_stats->timecost_sum += timecost;
   });
+
+  sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
 }
 
 std::variant<JitInterface::GetHostCodeError, JitInterface::GetHostCodeResult>

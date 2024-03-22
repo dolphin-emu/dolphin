@@ -515,7 +515,6 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv*, 
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv*, jclass)
 {
-  // InitControllers ends up calling config code, and some config callbacks use RunAsCPUThread
   HostThreadLock guard;
 
   UICommon::CreateDirectories();

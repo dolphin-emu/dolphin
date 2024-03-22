@@ -52,7 +52,7 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
   std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
     // If we were called from the CPU/GPU thread, set us as the CPU/GPU thread.
     // This information is used in order to avoid deadlocks when calling e.g.
-    // Host::SetRenderFocus or Core::RunAsCPUThread. (Host::SetRenderFocus
+    // Host::SetRenderFocus or Core::CPUThreadGuard. (Host::SetRenderFocus
     // can get called automatically when a dialog steals the focus.)
 
     Common::ScopeGuard cpu_scope_guard(&Core::UndeclareAsCPUThread);
