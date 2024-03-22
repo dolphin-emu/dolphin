@@ -1006,18 +1006,17 @@ void UpdateWantDeterminism(Core::System& system, bool initial)
   {
     NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
 
-    RunAsCPUThread([&] {
-      s_wants_determinism = new_want_determinism;
-      const auto ios = system.GetIOS();
-      if (ios)
-        ios->UpdateWantDeterminism(new_want_determinism);
+    const Core::CPUThreadGuard guard(system);
+    s_wants_determinism = new_want_determinism;
+    const auto ios = system.GetIOS();
+    if (ios)
+      ios->UpdateWantDeterminism(new_want_determinism);
 
-      system.GetFifo().UpdateWantDeterminism(new_want_determinism);
+    system.GetFifo().UpdateWantDeterminism(new_want_determinism);
 
-      // We need to clear the cache because some parts of the JIT depend on want_determinism,
-      // e.g. use of FMA.
-      system.GetJitInterface().ClearCache();
-    });
+    // We need to clear the cache because some parts of the JIT depend on want_determinism,
+    // e.g. use of FMA.
+    system.GetJitInterface().ClearCache(guard);
   }
 }
 
