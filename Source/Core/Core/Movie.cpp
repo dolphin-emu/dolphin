@@ -572,7 +572,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
 
     if (Core::IsRunning())
-      Core::UpdateWantDeterminism();
+      Core::UpdateWantDeterminism(m_system);
   };
   Core::RunOnCPUThread(start_recording, true);
 
@@ -958,7 +958,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
   // Wiimotes cause desync issues if they're not reset before launching the game
   Wiimote::ResetAllWiimotes();
 
-  Core::UpdateWantDeterminism();
+  Core::UpdateWantDeterminism(m_system);
 
   m_temp_input.resize(recording_file.GetSize() - 256);
   recording_file.ReadBytes(m_temp_input.data(), m_temp_input.size());
@@ -1152,7 +1152,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
       if (m_play_mode != PlayMode::Playing)
       {
         m_play_mode = PlayMode::Playing;
-        Core::UpdateWantDeterminism();
+        Core::UpdateWantDeterminism(m_system);
         Core::DisplayMessage("Switched to playback", 2000);
       }
     }
@@ -1161,7 +1161,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
       if (m_play_mode != PlayMode::Recording)
       {
         m_play_mode = PlayMode::Recording;
-        Core::UpdateWantDeterminism();
+        Core::UpdateWantDeterminism(m_system);
         Core::DisplayMessage("Switched to recording", 2000);
       }
     }
@@ -1355,7 +1355,7 @@ void MovieManager::EndPlayInput(bool cont)
     // delete tmpInput;
     // tmpInput = nullptr;
 
-    Core::QueueHostJob([=] { Core::UpdateWantDeterminism(); });
+    Core::QueueHostJob([](Core::System& system) { Core::UpdateWantDeterminism(system); });
   }
 }
 

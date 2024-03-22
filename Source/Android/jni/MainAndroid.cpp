@@ -258,7 +258,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulati
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv*, jclass)
 {
   HostThreadLock guard;
-  Core::Stop();
+  Core::Stop(Core::System::GetInstance());
 
   // Kick the waiting event
   s_update_main_frame_event.Set();
@@ -586,11 +586,11 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
     host_identity_guard.Unlock();
     s_update_main_frame_event.Wait();
     host_identity_guard.Lock();
-    Core::HostDispatchJobs();
+    Core::HostDispatchJobs(Core::System::GetInstance());
   }
 
   s_game_metadata_is_valid = false;
-  Core::Shutdown();
+  Core::Shutdown(Core::System::GetInstance());
   host_identity_guard.Unlock();
 
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),

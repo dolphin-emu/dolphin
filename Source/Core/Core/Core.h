@@ -125,8 +125,8 @@ private:
 };
 
 bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
-void Stop();
-void Shutdown();
+void Stop(Core::System& system);
+void Shutdown(Core::System& system);
 
 void DeclareAsCPUThread();
 void UndeclareAsCPUThread();
@@ -156,7 +156,7 @@ void SaveScreenShot(std::string_view name);
 void DisplayMessage(std::string message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
-void OnFrameEnd();
+void OnFrameEnd(Core::System& system);
 
 // Run a function as the CPU thread.
 //
@@ -180,7 +180,7 @@ bool RemoveOnStateChangedCallback(int* handle);
 void CallOnStateChangedCallbacks(Core::State state);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
-void UpdateWantDeterminism(bool initial = false);
+void UpdateWantDeterminism(Core::System& system, bool initial = false);
 
 // Queue an arbitrary function to asynchronously run once on the Host thread later.
 // Threadsafe. Can be called by any thread, including the Host itself.
@@ -191,16 +191,16 @@ void UpdateWantDeterminism(bool initial = false);
 // NOTE: Make sure the jobs check the global state instead of assuming everything is
 //   still the same as when the job was queued.
 // NOTE: Jobs that are not set to run during stop will be discarded instead.
-void QueueHostJob(std::function<void()> job, bool run_during_stop = false);
+void QueueHostJob(std::function<void(Core::System&)> job, bool run_during_stop = false);
 
 // Should be called periodically by the Host to run pending jobs.
 // WMUserJobDispatch will be sent when something is added to the queue.
-void HostDispatchJobs();
+void HostDispatchJobs(Core::System& system);
 
 void DoFrameStep();
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
-void UpdateTitle();
+void UpdateTitle(Core::System& system);
 
 }  // namespace Core

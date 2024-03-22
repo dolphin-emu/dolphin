@@ -8,6 +8,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 #include <Windows.h>
 #include <climits>
@@ -123,7 +124,7 @@ void PlatformWin32::MainLoop()
   while (IsRunning())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs();
+    Core::HostDispatchJobs(Core::System::GetInstance());
     ProcessEvents();
     UpdateWindowPosition();
 

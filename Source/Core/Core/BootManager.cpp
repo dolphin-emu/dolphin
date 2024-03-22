@@ -146,7 +146,7 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
 
   system.Initialize();
 
-  Core::UpdateWantDeterminism(/*initial*/ true);
+  Core::UpdateWantDeterminism(system, /*initial*/ true);
 
   if (system.IsWii())
   {

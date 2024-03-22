@@ -316,9 +316,9 @@ int main(int argc, char* argv[])
 #endif
 
   s_platform->MainLoop();
-  Core::Stop();
+  Core::Stop(Core::System::GetInstance());
 
-  Core::Shutdown();
+  Core::Shutdown(Core::System::GetInstance());
   s_platform.reset();
 
   return 0;
