@@ -24,5 +24,5 @@ fi
 mkdir -p build
 pushd build
 cmake ${CMAKE_FLAGS} ..
-cmake --build . --target dolphin-emu -- -j$(nproc)
+cmake --build . --target dolphin-emu -- -j$(sysctl -n hw.ncpu)
 popd
