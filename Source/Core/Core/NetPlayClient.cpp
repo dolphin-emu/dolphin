@@ -162,7 +162,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
     ENetEvent netEvent;
-    int net = enet_host_service(m_client, &netEvent, 5000);
+    int net = enet_host_service(m_client, &netEvent, 1000);
     if (net > 0 && netEvent.type == ENET_EVENT_TYPE_CONNECT)
     {
       if (Connect())
@@ -1552,7 +1552,7 @@ void NetPlayClient::Disconnect()
   else
     return;
 
-  while (enet_host_service(m_client, &netEvent, 3000) > 0)
+  while (enet_host_service(m_client, &netEvent, 500) > 0)
   {
     switch (netEvent.type)
     {
