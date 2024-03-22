@@ -52,6 +52,7 @@ private:
   void SaveRomPathChanged();
   void BrowseGBASaves();
 
+  QCheckBox* m_empty_drive_is_closed;
   QCheckBox* m_skip_main_menu;
   QComboBox* m_language_combo;
 
