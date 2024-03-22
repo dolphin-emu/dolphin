@@ -55,27 +55,27 @@
 
 - (void)loadLastSaved
 {
-  State::LoadLastSaved();
+  State::LoadLastSaved(Core::System::GetInstance());
 }
 
 - (void)undoLoadState
 {
-  State::UndoLoadState();
+  State::UndoLoadState(Core::System::GetInstance());
 }
 
 - (void)undoSaveState
 {
-  State::UndoSaveState();
+  State::UndoSaveState(Core::System::GetInstance());
 }
 
 - (void)loadState:(id)sender
 {
-  State::Load([sender tag]);
+  State::Load(Core::System::GetInstance(), [sender tag]);
 }
 
 - (void)saveState:(id)sender
 {
-  State::Save([sender tag]);
+  State::Save(Core::System::GetInstance(), [sender tag]);
 }
 @end
 

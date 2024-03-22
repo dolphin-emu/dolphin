@@ -225,20 +225,20 @@ void PlatformX11::ProcessEvents()
       {
         int slot_number = key - XK_F1 + 1;
         if (event.xkey.state & ShiftMask)
-          State::Save(slot_number);
+          State::Save(Core::System::GetInstance(), slot_number);
         else
-          State::Load(slot_number);
+          State::Load(Core::System::GetInstance(), slot_number);
       }
       else if (key == XK_F9)
         Core::SaveScreenShot();
       else if (key == XK_F11)
-        State::LoadLastSaved();
+        State::LoadLastSaved(Core::System::GetInstance());
       else if (key == XK_F12)
       {
         if (event.xkey.state & ShiftMask)
-          State::UndoLoadState();
+          State::UndoLoadState(Core::System::GetInstance());
         else
-          State::UndoSaveState();
+          State::UndoSaveState(Core::System::GetInstance());
       }
       break;
     case FocusIn:

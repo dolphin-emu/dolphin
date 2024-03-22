@@ -138,10 +138,8 @@ void EnableCompression(bool compression)
   s_use_compression = compression;
 }
 
-static void DoState(PointerWrap& p)
+static void DoState(Core::System& system, PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
-
   bool is_wii = system.IsWii() || system.IsMIOS();
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
@@ -202,7 +200,7 @@ static void DoState(PointerWrap& p)
   p.DoMarker("Gecko");
 }
 
-void LoadFromBuffer(std::vector<u8>& buffer)
+void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
 {
   if (NetPlay::IsNetPlayRunning())
   {
@@ -222,25 +220,25 @@ void LoadFromBuffer(std::vector<u8>& buffer)
       [&] {
         u8* ptr = buffer.data();
         PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
-        DoState(p);
+        DoState(system, p);
       },
       true);
 }
 
-void SaveToBuffer(std::vector<u8>& buffer)
+void SaveToBuffer(Core::System& system, std::vector<u8>& buffer)
 {
   Core::RunOnCPUThread(
       [&] {
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
 
-        DoState(p_measure);
+        DoState(system, p_measure);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
         buffer.resize(buffer_size);
 
         ptr = buffer.data();
         PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
-        DoState(p);
+        DoState(system, p);
       },
       true);
 }
@@ -382,7 +380,7 @@ static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
   // If StateExtendedHeader is amended to include more than the base, add WriteBytes() calls here.
 }
 
-static void CompressAndDumpState(CompressAndDumpState_args& save_args)
+static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args& save_args)
 {
   const u8* const buffer_data = save_args.buffer_vector.data();
   const size_t buffer_size = save_args.buffer_vector.size();
@@ -442,7 +440,7 @@ static void CompressAndDumpState(CompressAndDumpState_args& save_args)
       }
     }
 
-    auto& movie = Core::System::GetInstance().GetMovie();
+    auto& movie = system.GetMovie();
     if ((movie.IsMovieActive()) && !movie.IsJustStartingRecordingInputFromSaveState())
       movie.SaveRecording(dtmname);
     else if (!movie.IsMovieActive())
@@ -468,7 +466,7 @@ static void CompressAndDumpState(CompressAndDumpState_args& save_args)
   Host_UpdateMainFrame();
 }
 
-void SaveAs(const std::string& filename, bool wait)
+void SaveAs(Core::System& system, const std::string& filename, bool wait)
 {
   std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
   if (!lk)
@@ -484,7 +482,7 @@ void SaveAs(const std::string& filename, bool wait)
         // Measure the size of the buffer.
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
-        DoState(p_measure);
+        DoState(system, p_measure);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
         // Then actually do the write.
@@ -492,7 +490,7 @@ void SaveAs(const std::string& filename, bool wait)
         current_buffer.resize(buffer_size);
         ptr = current_buffer.data();
         PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
-        DoState(p);
+        DoState(system, p);
 
         if (p.IsWriteMode())
         {
@@ -849,7 +847,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   ret_data.swap(buffer);
 }
 
-void LoadAs(const std::string& filename)
+void LoadAs(Core::System& system, const std::string& filename)
 {
   if (!Core::IsRunning())
     return;
@@ -875,11 +873,11 @@ void LoadAs(const std::string& filename)
   Core::RunOnCPUThread(
       [&] {
         // Save temp buffer for undo load state
-        auto& movie = Core::System::GetInstance().GetMovie();
+        auto& movie = system.GetMovie();
         if (!movie.IsJustStartingRecordingInputFromSaveState())
         {
           std::lock_guard lk2(s_undo_load_buffer_mutex);
-          SaveToBuffer(s_undo_load_buffer);
+          SaveToBuffer(system, s_undo_load_buffer);
           const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
           if (movie.IsMovieActive())
             movie.SaveRecording(dtmpath);
@@ -899,7 +897,7 @@ void LoadAs(const std::string& filename)
           {
             u8* ptr = buffer.data();
             PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
-            DoState(p);
+            DoState(system, p);
             loaded = true;
             loadedSuccessfully = p.IsReadMode();
           }
@@ -923,7 +921,7 @@ void LoadAs(const std::string& filename)
             Core::DisplayMessage("The savestate could not be loaded", OSD::Duration::NORMAL);
 
             // since we could be in an inconsistent state now (and might crash or whatever), undo.
-            UndoLoadState();
+            UndoLoadState(system);
           }
         }
 
@@ -938,10 +936,10 @@ void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
   s_on_after_load_callback = std::move(callback);
 }
 
-void Init()
+void Init(Core::System& system)
 {
-  s_save_thread.Reset("Savestate Worker", [](CompressAndDumpState_args args) {
-    CompressAndDumpState(args);
+  s_save_thread.Reset("Savestate Worker", [&system](CompressAndDumpState_args args) {
+    CompressAndDumpState(system, args);
 
     {
       std::lock_guard lk(s_state_writes_in_queue_mutex);
@@ -973,17 +971,17 @@ static std::string MakeStateFilename(int number)
                      SConfig::GetInstance().GetGameID(), number);
 }
 
-void Save(int slot, bool wait)
+void Save(Core::System& system, int slot, bool wait)
 {
-  SaveAs(MakeStateFilename(slot), wait);
+  SaveAs(system, MakeStateFilename(slot), wait);
 }
 
-void Load(int slot)
+void Load(Core::System& system, int slot)
 {
-  LoadAs(MakeStateFilename(slot));
+  LoadAs(system, MakeStateFilename(slot));
 }
 
-void LoadLastSaved(int i)
+void LoadLastSaved(Core::System& system, int i)
 {
   if (i <= 0)
   {
@@ -999,38 +997,38 @@ void LoadLastSaved(int i)
   }
 
   std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
-  Load((used_slots.end() - i)->slot);
+  Load(system, (used_slots.end() - i)->slot);
 }
 
 // must wait for state to be written because it must know if all slots are taken
-void SaveFirstSaved()
+void SaveFirstSaved(Core::System& system)
 {
   std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
   if (used_slots.size() < NUM_STATES)
   {
     // save to an empty slot
-    Save(GetEmptySlot(used_slots), true);
+    Save(system, GetEmptySlot(used_slots), true);
     return;
   }
 
   // overwrite the oldest state
   std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
-  Save(used_slots.front().slot, true);
+  Save(system, used_slots.front().slot, true);
 }
 
 // Load the last state before loading the state
-void UndoLoadState()
+void UndoLoadState(Core::System& system)
 {
   std::lock_guard lk(s_undo_load_buffer_mutex);
   if (!s_undo_load_buffer.empty())
   {
-    auto& movie = Core::System::GetInstance().GetMovie();
+    auto& movie = system.GetMovie();
     if (movie.IsMovieActive())
     {
       const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
       if (File::Exists(dtmpath))
       {
-        LoadFromBuffer(s_undo_load_buffer);
+        LoadFromBuffer(system, s_undo_load_buffer);
         movie.LoadInput(dtmpath);
       }
       else
@@ -1040,7 +1038,7 @@ void UndoLoadState()
     }
     else
     {
-      LoadFromBuffer(s_undo_load_buffer);
+      LoadFromBuffer(system, s_undo_load_buffer);
     }
   }
   else
@@ -1050,9 +1048,9 @@ void UndoLoadState()
 }
 
 // Load the state that the last save state overwritten on
-void UndoSaveState()
+void UndoSaveState(Core::System& system)
 {
-  LoadAs(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav");
+  LoadAs(system, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav");
 }
 
 }  // namespace State
