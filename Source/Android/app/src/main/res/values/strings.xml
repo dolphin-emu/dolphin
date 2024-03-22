@@ -133,6 +133,10 @@
     <string name="xlink_kai_guide_header">For setup instructions, <a href="https://www.teamxlink.co.uk/wiki/Dolphin">refer to this page.</a></string>
     <string name="xlink_kai_bba_ip">XLink Kai IP Address/hostname</string>
     <string name="xlink_kai_bba_ip_description">IP address or hostname of device running the XLink Kai client</string>
+    <string name="bba_tapserver_destination">Tapserver destination</string>
+    <string name="bba_tapserver_destination_description">Enter the socket path or netloc (address:port) of the tapserver instance</string>
+    <string name="modem_tapserver_destination">Tapserver destination</string>
+    <string name="modem_tapserver_destination_description">Enter the socket path or netloc (address:port) of the tapserver instance</string>
     <string name="bba_builtin_dns">DNS Server</string>
     <string name="bba_builtin_dns_description">Use 8.8.8.8 for normal DNS, else enter your custom one</string>
 

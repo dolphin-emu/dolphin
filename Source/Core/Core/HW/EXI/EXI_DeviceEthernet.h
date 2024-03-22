@@ -17,7 +17,9 @@
 
 #include "Common/Flag.h"
 #include "Common/Network.h"
+#include "Common/SocketContext.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
+#include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -205,9 +207,7 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
-#if defined(__APPLE__)
   TAPSERVER,
-#endif
   BuiltIn,
 };
 
@@ -364,21 +364,25 @@ private:
 #endif
   };
 
-#if defined(__APPLE__)
-  class TAPServerNetworkInterface : public TAPNetworkInterface
+  class TAPServerNetworkInterface : public NetworkInterface
   {
   public:
-    explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref) : TAPNetworkInterface(eth_ref) {}
+    TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination);
 
   public:
     bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
     bool SendFrame(const u8* frame, u32 size) override;
     bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
 
   private:
-    void ReadThreadHandler();
+    TAPServerConnection m_tapserver_if;
+
+    void HandleReceivedFrame(std::string&& data);
   };
-#endif
 
   class XLinkNetworkInterface : public NetworkInterface
   {
