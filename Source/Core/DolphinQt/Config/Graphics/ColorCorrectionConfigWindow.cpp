@@ -135,11 +135,12 @@ void ColorCorrectionConfigWindow::Create()
                                                  Config::GFX_CC_HDR_PAPER_WHITE_NITS_MAX,
                                                  Config::GFX_CC_HDR_PAPER_WHITE_NITS, 1.f);
   hdr_layout->addWidget(new QLabel(tr("HDR Paper White Nits:")), 0, 0);
-  hdr_layout->addWidget(m_hdr_paper_white_nits, 0, 1);
+  m_hdr_paper_white_nits_value = new QLabel();
+  hdr_layout->addWidget(m_hdr_paper_white_nits_value, 0, 1);
+  hdr_layout->setColumnStretch(2, 1);
+  hdr_layout->addWidget(m_hdr_paper_white_nits, 1, 0, 3, 0);
   m_hdr_paper_white_nits->SetTitle(tr("HDR Paper White Nits"));
   m_hdr_paper_white_nits->SetDescription(tr(TR_HDR_PAPER_WHITE_NITS_DESCRIPTION));
-  m_hdr_paper_white_nits_value = new QLabel();
-  hdr_layout->addWidget(m_hdr_paper_white_nits_value, 0, 2);
 
   m_hdr_paper_white_nits_value->setText(
       QString::asprintf("%.0f", m_hdr_paper_white_nits->GetValue()));

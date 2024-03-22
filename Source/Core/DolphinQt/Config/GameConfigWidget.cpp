@@ -124,9 +124,13 @@ void GameConfigWidget::CreateWidgets()
   stereoscopy_box->setLayout(stereoscopy_layout);
 
   m_depth_slider = new QSlider(Qt::Horizontal);
-
   m_depth_slider->setMinimum(100);
   m_depth_slider->setMaximum(200);
+  QFontMetrics fm(font());
+  const int sliderh = fm.height() * 1.5;
+  m_depth_slider->setMinimumHeight(sliderh);
+  m_depth_slider->setTickInterval(25);
+  m_depth_slider->setTickPosition(QSlider::TicksBelow);
 
   m_convergence_spin = new QSpinBox;
   m_convergence_spin->setMinimum(0);

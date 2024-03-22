@@ -68,6 +68,9 @@ void HacksWidget::CreateWidgets()
   m_accuracy->setMinimum(0);
   m_accuracy->setMaximum(2);
   m_accuracy->setPageStep(1);
+  QFontMetrics fm(font());
+  const int sliderh = fm.height() * 1.5;
+  m_accuracy->setMinimumHeight(sliderh);
   m_accuracy->setTickPosition(QSlider::TicksBelow);
   m_gpu_texture_decoding =
       new ConfigBool(tr("GPU Texture Decoding"), Config::GFX_ENABLE_GPU_TEXTURE_DECODING);

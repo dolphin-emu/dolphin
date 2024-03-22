@@ -22,6 +22,11 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
   setMaximum(steps);
   setTickInterval(interval);
   setValue(current_value);
+  QFontMetrics fm(font());
+  const int sliderh = fm.height() * 1.5;
+  setMinimumHeight(sliderh);
+  setTickInterval(static_cast<int>(steps / 4));
+  setTickPosition(QSlider::TicksBelow);
 
   connect(this, &ConfigFloatSlider::valueChanged, this, &ConfigFloatSlider::Update);
 

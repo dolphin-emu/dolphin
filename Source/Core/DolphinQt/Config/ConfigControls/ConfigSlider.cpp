@@ -15,7 +15,10 @@ ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& se
   setMinimum(minimum);
   setMaximum(maximum);
   setTickInterval(tick);
-
+  QFontMetrics fm(font());
+  const int sliderh = fm.height() * 1.5;
+  setMinimumHeight(sliderh);
+  setTickPosition(QSlider::TicksBelow);
   setValue(Config::Get(setting));
 
   connect(this, &ConfigSlider::valueChanged, this, &ConfigSlider::Update);
