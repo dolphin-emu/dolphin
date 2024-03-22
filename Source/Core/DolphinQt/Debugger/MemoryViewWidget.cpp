@@ -202,18 +202,18 @@ MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
 
   // Also calls create table.
-  UpdateFont();
+  UpdateFont(Settings::Instance().GetDebugFont());
 }
 
-void MemoryViewWidget::UpdateFont()
+void MemoryViewWidget::UpdateFont(const QFont& font)
 {
-  const QFontMetrics fm(Settings::Instance().GetDebugFont());
+  const QFontMetrics fm(font);
   m_font_vspace = fm.lineSpacing() + 4;
   // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
   // fonts have wildly different spacing between two characters and horizontalAdvance includes
   // spacing.
   m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
-  m_table->setFont(Settings::Instance().GetDebugFont());
+  m_table->setFont(font);
 
   CreateTable();
 }

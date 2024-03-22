@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 
+class QFont;
 class QPoint;
 class QScrollBar;
 
@@ -57,7 +58,7 @@ public:
 
   void CreateTable();
   void Update();
-  void UpdateFont();
+  void UpdateFont(const QFont& font);
   void ToggleBreakpoint(u32 addr, bool row);
 
   std::vector<u8> ConvertTextToBytes(Type type, QStringView input_text) const;
