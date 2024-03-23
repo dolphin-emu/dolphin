@@ -1538,6 +1538,60 @@ void JitArm64::divwux(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(d));
   }
+  else if (gpr.IsImm(b))
+  {
+    const u32 divisor = gpr.GetImm(b);
+
+    if (divisor == 0)
+    {
+      gpr.SetImmediate(d, 0);
+      if (inst.Rc)
+        ComputeRC0(0);
+    }
+    else
+    {
+      const bool allocate_reg = d == a;
+      gpr.BindToRegister(d, allocate_reg);
+
+      ARM64Reg RD = gpr.R(d);
+      ARM64Reg RA = gpr.R(a);
+
+      if (MathUtil::IsPow2(divisor))
+      {
+        int shift = MathUtil::IntLog2(divisor);
+        if (shift)
+          LSR(RD, RA, shift);
+        else if (d != a)
+          MOV(RD, RA);
+      }
+      else
+      {
+        UnsignedMagic m = UnsignedDivisionConstants(divisor);
+
+        ARM64Reg WI = allocate_reg ? gpr.GetReg() : RD;
+        ARM64Reg XD = EncodeRegTo64(RD);
+
+        MOVI2R(WI, m.multiplier);
+
+        if (m.fast)
+        {
+          UMULL(XD, RA, WI);
+        }
+        else
+        {
+          UMADDL(XD, RA, WI, EncodeRegTo64(WI));
+        }
+
+        LSR(XD, XD, 32 + m.shift);
+
+        if (allocate_reg)
+          gpr.Unlock(WI);
+      }
+
+      if (inst.Rc)
+        ComputeRC0(gpr.R(d));
+    }
+  }
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
