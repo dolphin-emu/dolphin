@@ -282,7 +282,9 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
   RegCache::Realize(Rd, Ra, Rarg2);
 
-  X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
+  X64Reg dest = X64Reg(Rd);
+  if (preserve_inputs && (a == d || arg2 == d))
+    dest = XMM1;
   if (round_rhs)
   {
     if (a == d && !preserve_inputs)
@@ -298,7 +300,33 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   }
   else
   {
-    avx_op(avxOp, sseOp, dest, Ra, Rarg2, packed, reversible);
+    if (Ra.IsSimpleReg(dest))
+    {
+      (this->*sseOp)(dest, Rarg2);
+    }
+    else if (reversible && Rarg2.IsSimpleReg(dest))
+    {
+      (this->*sseOp)(dest, Ra);
+    }
+    else if (cpu_info.bAVX && Ra.IsSimpleReg())
+    {
+      (this->*avxOp)(dest, Ra.GetSimpleReg(), Rarg2);
+    }
+    else if (cpu_info.bAVX && reversible && Rarg2.IsSimpleReg())
+    {
+      (this->*avxOp)(dest, Rarg2.GetSimpleReg(), Ra);
+    }
+    else
+    {
+      if (Rarg2.IsSimpleReg(dest))
+        dest = XMM1;
+
+      if (packed)
+        MOVAPD(dest, Ra);
+      else
+        MOVSD(dest, Ra);
+      (this->*sseOp)(dest, a == arg2 ? R(dest) : Rarg2);
+    }
   }
 
   switch (inst.SUBOP5)
