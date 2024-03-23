@@ -5,6 +5,7 @@ var outfile			= "./scmrev.h";
 var cmd_revision	= " rev-parse HEAD";
 var cmd_describe	= " describe --always --long --dirty";
 var cmd_branch		= " rev-parse --abbrev-ref HEAD";
+var cmd_commits_ahead = " rev-list --count HEAD ^master";
 
 function GetGitExe()
 {
@@ -76,7 +77,7 @@ var gitexe = GetGitExe();
 var revision	= GetFirstStdOutLine(gitexe + cmd_revision);
 var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
-var isStable = +("master" == branch || "stable" == branch);
+var commits_ahead = GetFirstStdOutLine(gitexe + cmd_commits_ahead);
 
 // Get environment information.
 var distributor = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DISTRIBUTOR%");
@@ -91,7 +92,7 @@ var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
 	"#define SCM_DESC_STR \"" + describe + "\"\n" +
 	"#define SCM_BRANCH_STR \"" + branch + "\"\n" +
-	"#define SCM_IS_MASTER " + isStable + "\n" +
+	"#define SCM_COMMITS_AHEAD_MASTER " + commits_ahead + "\n" +
 	"#define SCM_DISTRIBUTOR_STR \"" + distributor + "\"\n" +
     "#define SCM_UPDATE_TRACK_STR \"" + default_update_track + "\"\n";
 
