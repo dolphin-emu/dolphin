@@ -223,10 +223,10 @@ bool CachedInterpreter::CheckFPU(CachedInterpreter& cached_interpreter, u32 data
   return false;
 }
 
-bool CachedInterpreter::CheckDSI(CachedInterpreter& cached_interpreter, u32 data)
+bool CachedInterpreter::CheckLoadStore(CachedInterpreter& cached_interpreter, u32 data)
 {
   auto& ppc_state = cached_interpreter.m_ppc_state;
-  if (ppc_state.Exceptions & EXCEPTION_DSI)
+  if (ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION)
   {
     cached_interpreter.m_system.GetPowerPC().CheckExceptions();
     ppc_state.downcount -= data;
@@ -356,7 +356,7 @@ void CachedInterpreter::Jit(u32 address)
 
       m_code.emplace_back(Interpreter::GetInterpreterOp(op.inst), op.inst);
       if (memcheck)
-        m_code.emplace_back(CheckDSI, js.downcountAmount);
+        m_code.emplace_back(CheckLoadStore, js.downcountAmount);
       if (check_program_exception)
         m_code.emplace_back(CheckProgramException, js.downcountAmount);
       if (idle_loop)

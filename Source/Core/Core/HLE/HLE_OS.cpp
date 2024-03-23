@@ -117,7 +117,7 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
   std::string report_message = GetStringVA(system, guard, 4);
   if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[5]))
   {
-    const u32 size = system.GetMMU().Read_U32(ppc_state.gpr[5]);
+    const u32 size = system.GetMMU().HostRead_U32(guard, ppc_state.gpr[5]);
     if (size > report_message.size())
       WARN_LOG_FMT(OSREPORT_HLE, "__write_console uses an invalid size of {:#010x}", size);
     else if (size == 0)
