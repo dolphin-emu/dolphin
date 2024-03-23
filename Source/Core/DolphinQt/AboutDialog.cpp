@@ -17,6 +17,16 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   setWindowTitle(tr("About Dolphin"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
+  QString branch_str = QString::fromStdString(Common::GetScmBranchStr());
+  const int commits_ahead = Common::GetScmCommitsAheadMaster();
+  if (commits_ahead > 0)
+  {
+    branch_str = tr("%1 (%2)").arg(
+        branch_str,
+        // i18n: A positive number of version control commits made compared to some named branch
+        tr("%1 commit(s) ahead of %2").arg(commits_ahead).arg(QStringLiteral("master")));
+  }
+
   const QString text =
       QStringLiteral(R"(
 <p style='font-size:38pt; font-weight:400;'>Dolphin</p>
@@ -50,7 +60,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
                    QString::fromUtf8(Common::GetScmDescStr().c_str()))
           .replace(QStringLiteral("%BRANCH%"),
                    // i18n: "Branch" means the version control term, not a literal tree branch.
-                   tr("Branch: %1").arg(QString::fromUtf8(Common::GetScmBranchStr().c_str())))
+                   tr("Branch: %1").arg(branch_str))
           .replace(QStringLiteral("%REVISION%"),
                    tr("Revision: %1").arg(QString::fromUtf8(Common::GetScmRevGitStr().c_str())))
           .replace(QStringLiteral("%QT_VERSION%"),
