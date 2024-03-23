@@ -1675,7 +1675,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
     else
     {
       // Optimize signed 32-bit integer division by a constant
-      Magic m = SignedDivisionConstants(divisor);
+      SignedMagic m = SignedDivisionConstants(divisor);
 
       ARM64Reg WA = gpr.GetReg();
       ARM64Reg WB = gpr.GetReg();

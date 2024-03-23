@@ -1792,7 +1792,7 @@ void Jit64::divwx(UGeckoInstruction inst)
     else
     {
       // Optimize signed 32-bit integer division by a constant
-      Magic m = SignedDivisionConstants(divisor);
+      SignedMagic m = SignedDivisionConstants(divisor);
 
       MOVSX(64, 32, RSCRATCH, Ra);
 
