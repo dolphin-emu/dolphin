@@ -53,7 +53,8 @@ public:
   static constexpr u32 HASH_2020_PAD = 0xbad876ef;
   // Variant used in Desert Bus v1.04 - this is based off of the code in libogc (as it existed in
   // 2011, even though that code only became used in 2020), but the left and right channels are
-  // swapped. Padded to 0x0620 bytes.
+  // swapped (with the left channel coming before the right channel, which is the the conventional
+  // behavior). Padded to 0x0620 bytes.
   static constexpr u32 HASH_DESERT_BUS_2011 = 0xfa9c576f;
   // Variant used in Desert Bus v1.05 - this is the same as the previous version, except 4 junk
   // instructions were added to the start, which do not change behavior in any way. Padded to 0x0620
