@@ -64,7 +64,8 @@ bool ASndUCode::SwapLeftRight() const
 bool ASndUCode::UseNewFlagMasks() const
 {
   return m_crc == HASH_2011 || m_crc == HASH_2020 || m_crc == HASH_2020_PAD ||
-         m_crc == HASH_DESERT_BUS_2011 || m_crc == HASH_DESERT_BUS_2012;
+         m_crc == HASH_DESERT_BUS_2011 || m_crc == HASH_DESERT_BUS_2012 || m_crc == HASH_2024 ||
+         m_crc == HASH_2024_PAD;
 }
 
 ASndUCode::ASndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
@@ -403,7 +404,7 @@ void ASndUCode::DoMixing(u32 return_mail)
         if (SwapLeftRight())
         {
           // Most versions of the ASnd ucode have the right channel come before the left channel.
-          // The Desert Bus versions swapped the left and right input channels so that left
+          // The Desert Bus and 2024 versions swapped the left and right input channels so that left
           // comes first, and then right, matching mp3/ogg files.
           std::swap(new_r, new_l);
         }

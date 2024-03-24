@@ -60,6 +60,16 @@ public:
   // instructions were added to the start, which do not change behavior in any way. Padded to 0x0620
   // bytes.
   static constexpr u32 HASH_DESERT_BUS_2012 = 0x614dd145;
+  // March 22, 2024 version (0x0606 bytes) - libogc fixed left and right channels being reversed,
+  // which apparently has been the case from the start but was not obvious in earlier testing
+  // because of the oggplayer sample using a mono sound file.
+  // https://github.com/devkitPro/libogc/commit/a0b4b5680944ee7c2ae1b7af63a721623c1a6b69
+  static constexpr u32 HASH_2024 = 0x5dbf8bf1;
+  // March 22, 2024 version (padded to 0x0620 bytes) - same as above, but padded as it's used by
+  // libogc2 and libogc-rice.
+  // https://github.com/extremscorner/libogc2/commit/f3fd10635d4b3fbc6ee03cec335eeb2a2237fd56
+  // https://github.com/extremscorner/libogc-rice/commit/5ebbf8b96d7433bc2af9e882f730e67a5eb20f00
+  static constexpr u32 HASH_2024_PAD = 0x373a950e;
 
 private:
   void DMAInVoiceData();
