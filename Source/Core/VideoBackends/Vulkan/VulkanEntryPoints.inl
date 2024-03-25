@@ -23,6 +23,7 @@ VULKAN_MODULE_ENTRY_POINT(vkEnumerateInstanceVersion, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDestroyInstance, true)
 VULKAN_INSTANCE_ENTRY_POINT(vkEnumeratePhysicalDevices, true)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceFeatures, true)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceFeatures2, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceFormatProperties, true)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceImageFormatProperties, true)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceProperties, true)
@@ -209,5 +210,7 @@ VULKAN_DEVICE_ENTRY_POINT(vkBindImageMemory2, false)
 VULKAN_DEVICE_ENTRY_POINT(vkAcquireFullScreenExclusiveModeEXT, false)
 VULKAN_DEVICE_ENTRY_POINT(vkReleaseFullScreenExclusiveModeEXT, false)
 #endif
+
+VULKAN_DEVICE_ENTRY_POINT(vkWaitForPresentKHR, false)
 
 #endif  // VULKAN_DEVICE_ENTRY_POINT

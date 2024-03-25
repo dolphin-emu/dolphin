@@ -22,6 +22,29 @@ static constexpr const char* VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validatio
 
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
+void DolphinFeatures::PopulateNextChain(uint64_t device_api_version,
+                                        std::vector<std::string>& enabled_extentions)
+{
+  // While the vulkan spec does require implementations to ignore entries in the pNext chain that
+  // don't know about, it also requires clients to only attach structures that they have enabled.
+  // So, we have to selectively build the pNext chain.
+
+  sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+  // NOTE: This does introduce a limitation that we can't enable 1.1 features unless the device
+  //       supports 1.2. We could support the old method, but I'm not sure it's worth the effort
+  AppendIf(&features11, device_api_version >= VK_API_VERSION_1_2);
+  AppendIf(&features12, device_api_version >= VK_API_VERSION_1_2);
+
+  auto have_extension = [&enabled_extentions](const char* name) {
+    return std::find(enabled_extentions.begin(), enabled_extentions.end(), name) !=
+           enabled_extentions.end();
+  };
+
+  AppendIf(&present_id, have_extension(VK_KHR_PRESENT_ID_EXTENSION_NAME));
+  AppendIf(&present_wait, have_extension(VK_KHR_PRESENT_WAIT_EXTENSION_NAME));
+}
+
 VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
     : m_instance(instance), m_physical_device(physical_device)
 {
@@ -131,33 +154,27 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   app_info.applicationVersion = VK_MAKE_VERSION(5, 0, 0);
   app_info.pEngineName = "Dolphin Emulator";
   app_info.engineVersion = VK_MAKE_VERSION(5, 0, 0);
-  app_info.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
-  // Try for Vulkan 1.1 if the loader supports it.
+  // The semantics of app_info.apiVersion changed between Vulkan 1.0 and 1.1,
+  // Early implementations of vulkan will error if we don't report exactly 1.0
+  app_info.apiVersion = VK_API_VERSION_1_0;
+
+  u32 supported_api_version = VK_API_VERSION_1_0;
+
+  // If the loader only supports 1.0, it won't have vkEnumerateInstanceVersion.
   if (vkEnumerateInstanceVersion)
   {
-    u32 supported_api_version = 0;
     VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
-    if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
-                              VK_VERSION_MINOR(supported_api_version) >= 1))
+    if (res == VK_SUCCESS && supported_api_version >= VK_API_VERSION_1_1)
     {
-      // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
-      app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.1, supported: {}.{}",
-                   VK_VERSION_MAJOR(supported_api_version),
-                   VK_VERSION_MINOR(supported_api_version));
+      // For Vulkan 1.1 and greater instances, we are required to specify the maximum api version
+      // we support, which is currently 1.2
+      app_info.apiVersion = VK_API_VERSION_1_2;
     }
-    else
-    {
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
-    }
-  }
-  else
-  {
-    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
   }
 
-  *out_vk_api_version = app_info.apiVersion;
+  // But we should only use the minimum of what we support and what the loader supports
+  *out_vk_api_version = std::min(app_info.apiVersion, supported_api_version);
 
   VkInstanceCreateInfo instance_create_info = {};
   instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -520,6 +537,8 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
 {
   std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu);
 
+  context->m_instance_api_version = vk_api_version;
+
   // Initialize DriverDetails so that we can check for bugs to disable features if needed.
   context->InitDriverDetails();
   context->PopulateShaderSubgroupSupport();
@@ -529,8 +548,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
     context->EnableDebugUtils();
 
   // Attempt to create the device.
-  if (!context->CreateDevice(surface, enable_validation_layer) ||
-      !context->CreateAllocator(vk_api_version))
+  if (!context->CreateDevice(surface, enable_validation_layer) || !context->CreateAllocator())
   {
     // Since we are destroying the instance, we're also responsible for destroying the surface.
     if (surface != VK_NULL_HANDLE)
@@ -596,6 +614,12 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
 
+  if (enable_surface)
+  {
+    AddExtension(VK_KHR_PRESENT_ID_EXTENSION_NAME, false);
+    AddExtension(VK_KHR_PRESENT_WAIT_EXTENSION_NAME, false);
+  }
+
   return true;
 }
 
@@ -604,35 +628,53 @@ bool VulkanContext::SelectDeviceFeatures()
   VkPhysicalDeviceProperties properties;
   vkGetPhysicalDeviceProperties(m_physical_device, &properties);
 
-  VkPhysicalDeviceFeatures available_features;
-  vkGetPhysicalDeviceFeatures(m_physical_device, &available_features);
+  DolphinFeatures available = {};
+
+  // To use vkGetPhysicalDeviceFeatures2, we need to make sure the device api version is at
+  // least 1.1
+  if (!vkGetPhysicalDeviceFeatures2 || properties.apiVersion == VK_API_VERSION_1_0)
+  {
+    // But we can fallback to the old vkGetPhysicalDeviceFeatures.
+    vkGetPhysicalDeviceFeatures(m_physical_device, &available.features);
+  }
+  else
+  {
+    available.PopulateNextChain(properties.apiVersion, m_device_extensions);
+    m_device_features.PopulateNextChain(properties.apiVersion, m_device_extensions);
+
+    vkGetPhysicalDeviceFeatures2(m_physical_device, &available);
+  }
 
   // Not having geometry shaders or wide lines will cause issues with rendering.
-  if (!available_features.geometryShader && !available_features.wideLines)
+  if (!available.features.geometryShader && !available.features.wideLines)
     WARN_LOG_FMT(VIDEO, "Vulkan: Missing both geometryShader and wideLines features.");
-  if (!available_features.largePoints)
+  if (!available.features.largePoints)
     WARN_LOG_FMT(VIDEO, "Vulkan: Missing large points feature. CPU EFB writes will be slower.");
-  if (!available_features.occlusionQueryPrecise)
+  if (!available.features.occlusionQueryPrecise)
   {
     WARN_LOG_FMT(VIDEO,
                  "Vulkan: Missing precise occlusion queries. Perf queries will be inaccurate.");
   }
   // Enable the features we use.
-  m_device_features.dualSrcBlend = available_features.dualSrcBlend;
-  m_device_features.geometryShader = available_features.geometryShader;
-  m_device_features.samplerAnisotropy = available_features.samplerAnisotropy;
-  m_device_features.logicOp = available_features.logicOp;
-  m_device_features.fragmentStoresAndAtomics = available_features.fragmentStoresAndAtomics;
-  m_device_features.sampleRateShading = available_features.sampleRateShading;
-  m_device_features.largePoints = available_features.largePoints;
-  m_device_features.shaderStorageImageMultisample =
-      available_features.shaderStorageImageMultisample;
-  m_device_features.shaderTessellationAndGeometryPointSize =
-      available_features.shaderTessellationAndGeometryPointSize;
-  m_device_features.occlusionQueryPrecise = available_features.occlusionQueryPrecise;
-  m_device_features.shaderClipDistance = available_features.shaderClipDistance;
-  m_device_features.depthClamp = available_features.depthClamp;
-  m_device_features.textureCompressionBC = available_features.textureCompressionBC;
+  m_device_features.features.dualSrcBlend = available.features.dualSrcBlend;
+  m_device_features.features.geometryShader = available.features.geometryShader;
+  m_device_features.features.samplerAnisotropy = available.features.samplerAnisotropy;
+  m_device_features.features.logicOp = available.features.logicOp;
+  m_device_features.features.fragmentStoresAndAtomics = available.features.fragmentStoresAndAtomics;
+  m_device_features.features.sampleRateShading = available.features.sampleRateShading;
+  m_device_features.features.largePoints = available.features.largePoints;
+  m_device_features.features.shaderStorageImageMultisample =
+      available.features.shaderStorageImageMultisample;
+  m_device_features.features.shaderTessellationAndGeometryPointSize =
+      available.features.shaderTessellationAndGeometryPointSize;
+  m_device_features.features.occlusionQueryPrecise = available.features.occlusionQueryPrecise;
+  m_device_features.features.shaderClipDistance = available.features.shaderClipDistance;
+  m_device_features.features.depthClamp = available.features.depthClamp;
+  m_device_features.features.textureCompressionBC = available.features.textureCompressionBC;
+
+  m_device_features.present_id.presentId = available.present_id.presentId;
+  m_device_features.present_wait.presentWait = available.present_wait.presentWait;
+
   return true;
 }
 
@@ -753,7 +795,15 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   if (!SelectDeviceFeatures())
     return false;
 
-  device_info.pEnabledFeatures = &m_device_features;
+  if (m_device_properties.apiVersion < VK_API_VERSION_1_1)
+  {
+    device_info.pEnabledFeatures = &m_device_features.features;
+  }
+  else
+  {
+    device_info.pEnabledFeatures = nullptr;
+    device_info.pNext = &m_device_features;
+  }
 
   // Enable debug layer on debug builds
   if (enable_validation_layer)
@@ -782,7 +832,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   return true;
 }
 
-bool VulkanContext::CreateAllocator(u32 vk_api_version)
+bool VulkanContext::CreateAllocator()
 {
   VmaAllocatorCreateInfo allocator_info = {};
   allocator_info.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
@@ -794,7 +844,7 @@ bool VulkanContext::CreateAllocator(u32 vk_api_version)
   allocator_info.pHeapSizeLimit = nullptr;
   allocator_info.pVulkanFunctions = nullptr;
   allocator_info.instance = m_instance;
-  allocator_info.vulkanApiVersion = vk_api_version;
+  allocator_info.vulkanApiVersion = m_instance_api_version;
   allocator_info.pTypeExternalMemoryHandleTypes = nullptr;
 
   if (SupportsDeviceExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME))

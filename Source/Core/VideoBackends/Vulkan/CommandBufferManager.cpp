@@ -10,14 +10,19 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
+#include "VideoBackends/Vulkan/PresentWait.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
-CommandBufferManager::CommandBufferManager(bool use_threaded_submission)
-    : m_use_threaded_submission(use_threaded_submission)
+
+CommandBufferManager::CommandBufferManager(bool use_threaded_submission, bool vsync)
+  : m_vsync(vsync)
+  , m_use_threaded_submission(use_threaded_submission)
 {
+  std::unique_lock lk{s_pending_time_offset.Lock};
+  s_pending_time_offset.Offset__ = DT::zero();
 }
 
 CommandBufferManager::~CommandBufferManager()
@@ -222,8 +227,8 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 bool CommandBufferManager::CreateSubmitThread()
 {
   m_submit_thread.Reset("VK submission thread", [this](PendingCommandBufferSubmit submit) {
-    SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
-                        submit.present_image_index);
+    SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain, submit.vsync,
+                        submit.present_image_index, submit.frame_id);
     CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
     resources.waiting_for_submit.store(false, std::memory_order_release);
   });
@@ -317,19 +322,25 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
     }
   }
 
+  uint64_t frame_id = 0;
+  if (present_swap_chain != VK_NULL_HANDLE)
+  {
+    frame_id = g_vulkan_context->NextPresentCount();
+  }
+
   // Submitting off-thread?
   if (m_use_threaded_submission && submit_on_worker_thread && !wait_for_completion)
   {
     resources.waiting_for_submit.store(true, std::memory_order_relaxed);
     // Push to the pending submit queue.
-    m_submit_thread.Push({present_swap_chain, present_image_index, m_current_cmd_buffer});
+    m_submit_thread.Push({present_swap_chain, m_vsync, present_image_index, m_current_cmd_buffer, frame_id});
   }
   else
   {
     WaitForWorkerThreadIdle();
 
     // Pass through to normal submission path.
-    SubmitCommandBuffer(m_current_cmd_buffer, present_swap_chain, present_image_index);
+    SubmitCommandBuffer(m_current_cmd_buffer, present_swap_chain, m_vsync, present_image_index, frame_id);
     if (wait_for_completion)
       WaitForCommandBufferCompletion(m_current_cmd_buffer);
   }
@@ -382,7 +393,8 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
 
 void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                                VkSwapchainKHR present_swap_chain,
-                                               u32 present_image_index)
+                                               bool vsync,
+                                               u32 present_image_index, u64 frame_id)
 {
   CmdBufferResources& resources = m_command_buffers[command_buffer_index];
 
@@ -438,6 +450,14 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                      &present_swap_chain,
                                      &present_image_index,
                                      nullptr};
+
+    VkPresentIdKHR present_id = {VK_STRUCTURE_TYPE_PRESENT_ID_KHR, nullptr, 1, &frame_id};
+
+    if (g_vulkan_context->SupportsPresentWait())
+    {
+      present_info.pNext = &present_id;
+      PresentQueued(frame_id, present_swap_chain, vsync);
+    }
 
     m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
     m_last_present_done.Set();
