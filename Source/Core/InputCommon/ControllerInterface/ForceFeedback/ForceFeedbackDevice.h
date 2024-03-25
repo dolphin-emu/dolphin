@@ -7,16 +7,13 @@
 #include <string>
 #include <thread>
 
+#include <Windows.h>
+
 #include "Common/Event.h"
 #include "Common/Flag.h"
-#include "InputCommon/ControllerInterface/CoreDevice.h"
 
-#ifdef _WIN32
-#include <Windows.h>
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
-#elif __APPLE__
-#include "InputCommon/ControllerInterface/ForceFeedback/OSX/DirectInputAdapter.h"
-#endif
 
 namespace ciface::ForceFeedback
 {
