@@ -320,6 +320,8 @@ void CEXIIPL::TransferByte(u8& data)
       if (!m_command.is_write())
       {
         u32 dev_addr = address - ROM_BASE + m_cursor++;
+        // TODO: Is this address wrapping correct? Needs a hardware test
+        dev_addr %= ROM_SIZE;
         // Technically we should descramble here iff descrambling logic is enabled.
         // At the moment, we pre-decrypt the whole thing and
         // ignore the "enabled" bit - see CEXIIPL::CEXIIPL
@@ -346,6 +348,8 @@ void CEXIIPL::TransferByte(u8& data)
     {
       auto& sram = m_system.GetSRAM();
       u32 dev_addr = address - SRAM_BASE + m_cursor++;
+      // TODO: Is this address wrapping correct? Needs a hardware test
+      dev_addr %= SRAM_SIZE;
       if (m_command.is_write())
         sram[dev_addr] = data;
       else
