@@ -51,7 +51,7 @@ public:
   static QSettings& GetQSettings();
 
   // UI
-  void SetThemeName(const QString& theme_name);
+  void TriggerThemeChanged();
   void InitDefaultPalette();
   void UpdateSystemDark();
   void SetSystemDark(bool dark);
@@ -122,9 +122,7 @@ public:
   void SetUSBKeyboardConnected(bool connected);
 
   // Graphics
-  void SetCursorVisibility(Config::ShowCursor hideCursor);
   Config::ShowCursor GetCursorVisibility() const;
-  void SetLockCursor(bool lock_cursor);
   bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);
   bool IsKeepWindowOnTopEnabled() const;

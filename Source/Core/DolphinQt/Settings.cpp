@@ -118,9 +118,8 @@ QSettings& Settings::GetQSettings()
   return settings;
 }
 
-void Settings::SetThemeName(const QString& theme_name)
+void Settings::TriggerThemeChanged()
 {
-  Config::SetBaseOrCurrent(Config::MAIN_THEME_NAME, theme_name.toStdString());
   emit ThemeChanged();
 }
 
@@ -419,21 +418,9 @@ void Settings::SetStateSlot(int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-void Settings::SetCursorVisibility(Config::ShowCursor hideCursor)
-{
-  Config::SetBaseOrCurrent(Config::MAIN_SHOW_CURSOR, hideCursor);
-  emit CursorVisibilityChanged();
-}
-
 Config::ShowCursor Settings::GetCursorVisibility() const
 {
   return Config::Get(Config::MAIN_SHOW_CURSOR);
-}
-
-void Settings::SetLockCursor(bool lock_cursor)
-{
-  Config::SetBaseOrCurrent(Config::MAIN_LOCK_CURSOR, lock_cursor);
-  emit LockCursorChanged();
 }
 
 bool Settings::GetLockCursor() const
@@ -446,7 +433,6 @@ void Settings::SetKeepWindowOnTop(bool top)
   if (IsKeepWindowOnTopEnabled() == top)
     return;
 
-  Config::SetBaseOrCurrent(Config::MAIN_KEEP_WINDOW_ON_TOP, top);
   emit KeepWindowOnTopChanged(top);
 }
 
