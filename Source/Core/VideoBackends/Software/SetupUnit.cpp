@@ -68,7 +68,7 @@ void SetupUnit::SetupQuad()
     return;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  m_clipper.ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter++;
   m_VertexCounter &= 3;
@@ -87,7 +87,7 @@ void SetupUnit::SetupTriangle()
     return;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  m_clipper.ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter = 0;
   m_VertWritePointer = m_VertPointer[0];
@@ -102,7 +102,7 @@ void SetupUnit::SetupTriStrip()
     return;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  m_clipper.ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter++;
   m_VertPointer[2 - (m_VertexCounter & 1)] = m_VertPointer[0];
@@ -120,7 +120,7 @@ void SetupUnit::SetupTriFan()
     return;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  m_clipper.ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter++;
   m_VertPointer[1] = m_VertPointer[2];
@@ -138,7 +138,7 @@ void SetupUnit::SetupLine()
     return;
   }
 
-  Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
+  m_clipper.ProcessLine(m_VertPointer[0], m_VertPointer[1]);
 
   m_VertexCounter = 0;
   m_VertWritePointer = m_VertPointer[0];
@@ -155,7 +155,7 @@ void SetupUnit::SetupLineStrip()
 
   m_VertexCounter++;
 
-  Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
+  m_clipper.ProcessLine(m_VertPointer[0], m_VertPointer[1]);
 
   m_VertWritePointer = m_VertPointer[0];
 
@@ -165,5 +165,5 @@ void SetupUnit::SetupLineStrip()
 
 void SetupUnit::SetupPoint()
 {
-  Clipper::ProcessPoint(m_VertPointer[0]);
+  m_clipper.ProcessPoint(m_VertPointer[0]);
 }
