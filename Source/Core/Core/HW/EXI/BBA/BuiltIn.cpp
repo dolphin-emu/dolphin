@@ -6,6 +6,7 @@
 #ifdef _WIN32
 #include <ws2ipdef.h>
 #else
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif
@@ -18,8 +19,6 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
-namespace ExpansionInterface
-{
 namespace
 {
 u64 GetTickCountStd()
@@ -66,6 +65,8 @@ void SetIPIdentification(u8* ptr, std::size_t size, u16 value)
 }
 }  // namespace
 
+namespace ExpansionInterface
+{
 bool CEXIETHERNET::BuiltInBBAInterface::Activate()
 {
   if (IsActivated())
@@ -87,11 +88,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
   m_arp_table[m_router_ip] = m_router_mac;
 
-  // clear all ref
-  for (auto& ref : network_ref)
-  {
-    ref.ip = 0;
-  }
+  m_network_ref.Clear();
 
   m_upnp_httpd.listen(Common::SSDP_PORT, sf::IpAddress(ip));
   m_upnp_httpd.setBlocking(false);
@@ -109,16 +106,7 @@ void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
   m_read_thread_shutdown.Set();
   m_active = false;
 
-  // kill all active socket
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip != 0)
-    {
-      ref.type == IPPROTO_TCP ? ref.tcp_socket.disconnect() : ref.udp_socket.unbind();
-    }
-    ref.ip = 0;
-  }
-
+  m_network_ref.Clear();
   m_arp_table.clear();
   m_upnp_httpd.close();
 
@@ -138,6 +126,40 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
   const u8 next_write_index = (m_queue_write + 1) & 15;
   if (next_write_index != m_queue_read)
     m_queue_write = next_write_index;
+}
+
+void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
+{
+  for (auto& net_ref : m_network_ref)
+  {
+    if (net_ref.ip == 0)
+      continue;
+
+    // Check for sleeping TCP data
+    if (net_ref.type == IPPROTO_TCP)
+    {
+      for (auto& tcp_buf : net_ref.tcp_buffers)
+      {
+        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
+          continue;
+
+        tcp_buf.tick = GetTickCountStd();
+        // Timed out packet, resend
+        if (((m_queue_write + 1) & 15) != m_queue_read)
+          WriteToQueue(tcp_buf.data);
+      }
+    }
+
+    // Check for connection data
+    if (*datasize != 0)
+      continue;
+    const auto socket_data = TryGetDataFromSocket(&net_ref);
+    if (socket_data.has_value())
+    {
+      *datasize = socket_data->size();
+      std::memcpy(m_eth_ref->mRecvBuffer.get(), socket_data->data(), *datasize);
+    }
+  }
 }
 
 void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
@@ -199,36 +221,6 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   WriteToQueue(response.Build());
 }
 
-StackRef* CEXIETHERNET::BuiltInBBAInterface::GetAvailableSlot(u16 port)
-{
-  if (port > 0)  // existing connection?
-  {
-    for (auto& ref : network_ref)
-    {
-      if (ref.ip != 0 && ref.local == port)
-        return &ref;
-    }
-  }
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip == 0)
-      return &ref;
-  }
-  return nullptr;
-}
-
-StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
-{
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip == ip && ref.remote == dst_port && ref.local == src_port)
-    {
-      return &ref;
-    }
-  }
-  return nullptr;
-}
-
 std::optional<std::vector<u8>>
 CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 {
@@ -255,6 +247,9 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
   }
 
   case IPPROTO_TCP:
+    if (!ref->tcp_socket.Connected(ref))
+      return std::nullopt;
+
     sf::Socket::Status st = sf::Socket::Status::Done;
     TcpBuffer* tcp_buffer = nullptr;
     for (auto& tcp_buf : ref->tcp_buffers)
@@ -307,8 +302,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
   sf::IpAddress target;
-  StackRef* ref = GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
-                             Common::BitCast<u32>(ip_header.destination_addr));
+  StackRef* ref = m_network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
+                                           Common::BitCast<u32>(ip_header.destination_addr));
   const u16 flags = ntohs(tcp_header.properties) & 0xfff;
   if (flags & (TCP_FLAG_FIN | TCP_FLAG_RST))
   {
@@ -337,7 +332,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     // new connection
     if (ref != nullptr)
       return;
-    ref = GetAvailableSlot(0);
+    ref = m_network_ref.GetAvailableSlot(0);
 
     ref->delay = GetTickCountStd();
     ref->local = tcp_header.source_port;
@@ -357,26 +352,11 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->bba_mac = m_current_mac;
     ref->my_mac = ResolveAddress(destination_ip);
     ref->tcp_socket.setBlocking(false);
-
-    // reply with a sin_ack
-    Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                             ref->ack_num, TCP_FLAG_SIN | TCP_FLAG_ACK);
-
-    result.tcp_options = {
-        0x02, 0x04, 0x05, 0xb4,  // Maximum segment size: 1460 bytes
-        0x01, 0x01, 0x01, 0x01   // NOPs
-    };
-
-    ref->seq_num++;
-    target = sf::IpAddress(ntohl(destination_ip));
-    ref->tcp_socket.Connect(target, ntohs(tcp_header.destination_port), m_current_ip);
     ref->ready = false;
     ref->ip = Common::BitCast<u32>(ip_header.destination_addr);
 
-    ref->tcp_buffers[0].data = result.Build();
-    ref->tcp_buffers[0].seq_id = ref->seq_num - 1;
-    ref->tcp_buffers[0].tick = GetTickCountStd() - 900;  // delay
-    ref->tcp_buffers[0].used = true;
+    target = sf::IpAddress(ntohl(destination_ip));
+    ref->tcp_socket.Connect(target, ntohs(tcp_header.destination_port), m_current_ip);
   }
   else
   {
@@ -442,7 +422,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 // and listen to it. We open it on our side manually.
 void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
 {
-  StackRef* ref = GetAvailableSlot(htons(port));
+  StackRef* ref = m_network_ref.GetAvailableSlot(htons(port));
   if (ref == nullptr || ref->ip != 0)
     return;
   ref->ip = m_router_ip;  // change for ip
@@ -472,7 +452,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
                                    m_router_ip :  // dns request
                                    Common::BitCast<u32>(ip_header.destination_addr);
 
-  StackRef* ref = GetAvailableSlot(udp_header.source_port);
+  StackRef* ref = m_network_ref.GetAvailableSlot(udp_header.source_port);
   if (ref->ip == 0)
   {
     ref->ip = destination_addr;  // change for ip
@@ -517,7 +497,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
 
 void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
 {
-  StackRef* ref = GetAvailableSlot(0);
+  StackRef* ref = m_network_ref.GetAvailableSlot(0);
   if (ref == nullptr || m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Done)
     return;
 
@@ -709,41 +689,9 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
       self->m_queue_read++;
       self->m_queue_read &= 15;
     }
-    else
-    {
-      // test connections data
-      for (auto& net_ref : self->network_ref)
-      {
-        if (net_ref.ip == 0)
-          continue;
-        const auto socket_data = self->TryGetDataFromSocket(&net_ref);
-        if (socket_data.has_value())
-        {
-          datasize = socket_data->size();
-          std::memcpy(self->m_eth_ref->mRecvBuffer.get(), socket_data->data(), datasize);
-          break;
-        }
-      }
-    }
 
-    // test and add any sleeping tcp data
-    for (auto& net_ref : self->network_ref)
-    {
-      if (net_ref.ip == 0 || net_ref.type != IPPROTO_TCP)
-        continue;
-      for (auto& tcp_buf : net_ref.tcp_buffers)
-      {
-        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
-          continue;
-
-        tcp_buf.tick = GetTickCountStd();
-        // timmed out packet, resend
-        if (((self->m_queue_write + 1) & 15) != self->m_queue_read)
-        {
-          self->WriteToQueue(tcp_buf.data);
-        }
-      }
-    }
+    // Check network stack references
+    self->PollData(&datasize);
 
     // Check for new UPnP client
     self->HandleUPnPClient();
@@ -786,14 +734,7 @@ void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
 {
   m_read_enabled.Clear();
-  for (auto& net_ref : network_ref)
-  {
-    if (net_ref.ip != 0)
-    {
-      net_ref.type == IPPROTO_TCP ? net_ref.tcp_socket.disconnect() : net_ref.udp_socket.unbind();
-    }
-    net_ref.ip = 0;
-  }
+  m_network_ref.Clear();
   m_queue_read = 0;
   m_queue_write = 0;
 }
@@ -808,6 +749,7 @@ sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, u16 port, u3
   addr.sin_family = AF_INET;
   addr.sin_port = 0;
   ::bind(getHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+  m_connecting_state = ConnectingState::Connecting;
   return this->connect(dest, port);
 }
 
@@ -831,6 +773,90 @@ sf::Socket::Status BbaTcpSocket::GetSockName(sockaddr_in* addr) const
     return sf::Socket::Status::Error;
   }
   return sf::Socket::Status::Done;
+}
+
+bool BbaTcpSocket::Connected(StackRef* ref)
+{
+  // Called by ReadThreadHandler's TryGetDataFromSocket
+  // TODO: properly handle error state
+  switch (m_connecting_state)
+  {
+  case ConnectingState::Connected:
+    return true;
+  case ConnectingState::Connecting:
+  {
+    const int fd = getHandle();
+    const s32 nfds = fd + 1;
+    fd_set read_fds;
+    fd_set write_fds;
+    fd_set except_fds;
+    struct timeval t = {0, 0};
+    FD_ZERO(&read_fds);
+    FD_ZERO(&write_fds);
+    FD_ZERO(&except_fds);
+    FD_SET(fd, &write_fds);
+    FD_SET(fd, &except_fds);
+
+    if (select(nfds, &read_fds, &write_fds, &except_fds, &t) < 0)
+    {
+      ERROR_LOG_FMT(SP1, "Failed to get BBA socket connection state: {}",
+                    Common::StrNetworkError());
+      break;
+    }
+
+    if (FD_ISSET(fd, &write_fds) == 0 && FD_ISSET(fd, &except_fds) == 0)
+      break;
+
+    s32 error = 0;
+    socklen_t len = sizeof(error);
+    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) != 0)
+    {
+      ERROR_LOG_FMT(SP1, "Failed to get BBA socket error state: {}", Common::StrNetworkError());
+      break;
+    }
+
+    if (error != 0)
+    {
+      ERROR_LOG_FMT(SP1, "BBA connect failed (err={}): {}", error,
+                    Common::DecodeNetworkError(error));
+      m_connecting_state = ConnectingState::Error;
+      break;
+    }
+
+    // Get peername to ensure the socket is connected
+    sockaddr_in peer;
+    socklen_t peer_len = sizeof(peer);
+    if (getpeername(fd, reinterpret_cast<sockaddr*>(&peer), &peer_len) != 0)
+    {
+      ERROR_LOG_FMT(SP1, "BBA connect failed to get peername: {}", Common::StrNetworkError());
+      m_connecting_state = ConnectingState::Error;
+      break;
+    }
+
+    // Create the resulting SYN ACK packet
+    m_connecting_state = ConnectingState::Connected;
+    INFO_LOG_FMT(SP1, "BBA connect succeeded");
+
+    Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
+                             ref->ack_num, TCP_FLAG_SIN | TCP_FLAG_ACK);
+
+    result.tcp_options = {
+        0x02, 0x04, 0x05, 0xb4,  // Maximum segment size: 1460 bytes
+        0x01, 0x01, 0x01, 0x01   // NOPs
+    };
+
+    ref->seq_num++;
+    ref->tcp_buffers[0].data = result.Build();
+    ref->tcp_buffers[0].seq_id = ref->seq_num - 1;
+    ref->tcp_buffers[0].tick = GetTickCountStd() - 900;  // delay
+    ref->tcp_buffers[0].used = true;
+
+    break;
+  }
+  default:
+    break;
+  }
+  return false;
 }
 
 BbaUdpSocket::BbaUdpSocket() = default;
@@ -908,4 +934,46 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   error_guard.Dismiss();
   INFO_LOG_FMT(SP1, "SSDP multicast membership successful");
   return sf::Socket::Status::Done;
+}
+
+StackRef* NetworkRef::GetAvailableSlot(u16 port)
+{
+  if (port > 0)  // existing connection?
+  {
+    for (auto& ref : m_stacks)
+    {
+      if (ref.ip != 0 && ref.local == port)
+        return &ref;
+    }
+  }
+  for (auto& ref : m_stacks)
+  {
+    if (ref.ip == 0)
+      return &ref;
+  }
+  return nullptr;
+}
+
+StackRef* NetworkRef::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
+{
+  for (auto& ref : m_stacks)
+  {
+    if (ref.ip == ip && ref.remote == dst_port && ref.local == src_port)
+    {
+      return &ref;
+    }
+  }
+  return nullptr;
+}
+
+void NetworkRef::Clear()
+{
+  for (auto& ref : m_stacks)
+  {
+    if (ref.ip != 0)
+    {
+      ref.type == IPPROTO_TCP ? ref.tcp_socket.disconnect() : ref.udp_socket.unbind();
+    }
+    ref.ip = 0;
+  }
 }

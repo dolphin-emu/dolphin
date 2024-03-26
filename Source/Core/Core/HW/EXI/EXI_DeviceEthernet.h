@@ -456,16 +456,14 @@ private:
     sf::TcpListener m_upnp_httpd;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
-                                             // limit of 8 in the gc framework
+    NetworkRef m_network_ref;
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(BuiltInBBAInterface* self);
 #endif
     void WriteToQueue(const std::vector<u8>& data);
-    StackRef* GetAvailableSlot(u16 port);
-    StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
+    void PollData(std::size_t* datasize);
     std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
 
     void HandleARP(const Common::ARPPacket& packet);
