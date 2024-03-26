@@ -332,6 +332,9 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
     if (setting.IsSimpleValue())
       setting.SetExpressionFromValue();
 
+    // Ensure the UI has the game-controller indicator while editing the expression.
+    ConfigChanged();
+
     IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
     SetQWidgetWindowDecorations(&io);
     io.exec();
