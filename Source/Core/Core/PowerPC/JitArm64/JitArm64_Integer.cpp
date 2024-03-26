@@ -37,12 +37,10 @@ void JitArm64::ComputeRC0(ARM64Reg reg)
   SXTW(gpr.CR(0), reg);
 }
 
-void JitArm64::ComputeRC0(u64 imm)
+void JitArm64::ComputeRC0(u32 imm)
 {
   gpr.BindCRToRegister(0, false);
-  MOVI2R(gpr.CR(0), imm);
-  if (imm & 0x80000000)
-    SXTW(gpr.CR(0), EncodeRegTo32(gpr.CR(0)));
+  MOVI2R(gpr.CR(0), s64(s32(imm)));
 }
 
 void JitArm64::ComputeCarry(ARM64Reg reg)
