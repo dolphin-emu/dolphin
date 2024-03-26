@@ -92,6 +92,11 @@ public:
     u32 category = RC_ACHIEVEMENT_CATEGORY_CORE;
   };
 
+  static constexpr std::string_view DEFAULT_PLAYER_BADGE_FILENAME = "achievements_player.png";
+  static constexpr std::string_view DEFAULT_GAME_BADGE_FILENAME = "achievements_game.png";
+  static constexpr std::string_view DEFAULT_LOCKED_BADGE_FILENAME = "achievements_trophy.png";
+  static constexpr std::string_view DEFAULT_UNLOCKED_BADGE_FILENAME =
+      "achievements_trophy_color.png";
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
@@ -169,6 +174,7 @@ private:
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
 
+  void LoadDefaultBadges();
   ResponseType VerifyCredentials(const std::string& password);
   ResponseType ResolveHash(const Hash& game_hash, u32* game_id);
   void LoadGameSync(const ResponseCallback& callback);
@@ -210,6 +216,10 @@ private:
   bool m_disabled = false;
   std::string m_display_name;
   u32 m_player_score = 0;
+  Badge m_default_player_badge{};
+  Badge m_default_game_badge{};
+  Badge m_default_unlocked_badge{};
+  Badge m_default_locked_badge{};
   BadgeStatus m_player_badge;
   Hash m_game_hash{};
   u32 m_game_id = 0;
