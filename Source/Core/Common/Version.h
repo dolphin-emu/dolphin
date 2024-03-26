@@ -14,4 +14,5 @@ const std::string& GetScmRevGitStr();
 const std::string& GetScmDistributorStr();
 const std::string& GetScmUpdateTrackStr();
 const std::string& GetNetplayDolphinVer();
+int GetScmCommitsAheadMaster();
 }  // namespace Common
