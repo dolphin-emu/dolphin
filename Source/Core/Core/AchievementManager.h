@@ -47,7 +47,6 @@ public:
     UNKNOWN_FAILURE
   };
   using ResponseCallback = std::function<void(ResponseType)>;
-  using UpdateCallback = std::function<void()>;
 
   struct PointSpread
   {
@@ -111,6 +110,19 @@ public:
     std::unordered_map<u32, LeaderboardEntry> entries;
   };
 
+  struct UpdatedItems
+  {
+    bool all = false;
+    bool player_icon = false;
+    bool game_icon = false;
+    bool all_achievements = false;
+    std::set<AchievementId> achievements{};
+    bool all_leaderboards = false;
+    std::set<AchievementId> leaderboards{};
+    bool rich_presence = false;
+  };
+  using UpdateCallback = std::function<void(const UpdatedItems&)>;
+
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
@@ -140,10 +152,10 @@ public:
   PointSpread TallyScore() const;
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
-  const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
+  const UnlockStatus* GetUnlockStatus(AchievementId achievement_id) const;
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
-  const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
+  const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id) const;
   RichPresence GetRichPresence() const;
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
@@ -205,7 +217,7 @@ private:
   rc_runtime_t m_runtime{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
-  UpdateCallback m_update_callback = [] {};
+  UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   bool m_disabled = false;
   std::string m_display_name;
