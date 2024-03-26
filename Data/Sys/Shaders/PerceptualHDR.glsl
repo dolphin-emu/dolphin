@@ -17,45 +17,65 @@ DefaultValue = 2.5
 
 /***** Transfer Function *****/
 
-const float4 m_1 = float4(2610.0 / 16384.0);
-const float4 m_2 = float4(128.0 * 2523.0 / 4096.0);
-const float4 m_1_inv = float4(16384.0 / 2610.0);
-const float4 m_2_inv = float4(4096.0 / (128.0 * 2523.0));
+const float a = 0.17883277;
+const float b = 1.0 - 4.0 * a;
+const float c = 0.5 - a * log(4.0 * a);
 
-const float4 c_1 = float4(3424.0 / 4096.0);
-const float4 c_2 = float4(2413.0 / 4096.0 * 32.0);
-const float4 c_3 = float4(2392.0 / 4096.0 * 32.0);
+float HLG_f(float x)
+{
+    if (x < 0.0) {
+        return 0.0;
+    }
 
-float4 EOTF_inv(float4 lms) {
-    float4 y = pow(lms, m_1);
-    return pow((c_1 + c_2 * y) / (1.0 + c_3 * y), m_2);
+    else if (x < 1.0 / 12.0) {
+        return sqrt(3.0 * x);
+    }
+
+    return a * log(12.0 * x - b) + c;
 }
 
-float4 EOTF(float4 lms) {
-    float4 x = pow(lms, m_2_inv);
-    return pow(-(x - c_1) / (c_3 * x - c_2), m_1_inv);
+float HLG_inv_f(float x)
+{
+    if (x < 0.0) {
+        return 0.0;
+    }
+
+    else if (x < 1.0 / 2.0) {
+        return x * x / 3.0;
+    }
+
+    return (exp((x - c) / a) + b) / 12.0;
 }
 
-// This is required as scaling in EOTF space is not linear.
-float EOTF_AMPLIFICATION = EOTF_inv(float4(AMPLIFICATION)).x;
+float4 HLG(float4 lms)
+{
+    return float4(HLG_f(lms.x), HLG_f(lms.y), HLG_f(lms.z), lms.w);
+}
+
+float4 HLG_inv(float4 lms)
+{
+    return float4(HLG_inv_f(lms.x), HLG_inv_f(lms.y), HLG_inv_f(lms.z), lms.w);
+}
 
 /***** Linear <--> ICtCp *****/
 
 const mat4 RGBtoLMS = mat4(
-    1688.0, 683.0,  99.0,   0.0,
-    2146.0, 2951.0, 309.0,  0.0,
-    262.0,  462.0,  3688.0, 0.0,
-    0.0,    0.0,    0.0,    4096.0) / 4096.0;
+                          1688.0, 683.0, 99.0, 0.0,
+                          2146.0, 2951.0, 309.0, 0.0,
+                          262.0, 462.0, 3688.0, 0.0,
+                          0.0, 0.0, 0.0, 4096.0)
+    / 4096.0;
 
 const mat4 LMStoICtCp = mat4(
-    +2048.0, +6610.0,  +17933.0, 0.0,
-    +2048.0, -13613.0, -17390.0, 0.0,
-    +0.0,    +7003.0,  -543.0,   0.0,
-    +0.0,    +0.0,     +0.0,     4096.0) / 4096.0;
+                            +2048.0, +3625.0, +9500.0, 0.0,
+                            +2048.0, -7465.0, -9212.0, 0.0,
+                            +0.0, +3840.0, -288.0, 0.0,
+                            +0.0, +0.0, +0.0, 4096.0)
+    / 4096.0;
 
 float4 LinearRGBToICtCP(float4 c)
 {
-    return LMStoICtCp * EOTF_inv(RGBtoLMS * c);
+    return LMStoICtCp * HLG(RGBtoLMS * c);
 }
 
 /***** ICtCp <--> Linear *****/
@@ -65,7 +85,7 @@ mat4 LMStoRGB = inverse(RGBtoLMS);
 
 float4 ICtCpToLinearRGB(float4 c)
 {
-    return LMStoRGB * EOTF(ICtCptoLMS * c);
+    return LMStoRGB * HLG_inv(ICtCptoLMS * c);
 }
 
 void main()
@@ -88,19 +108,19 @@ void main()
 
     // Scale the color in perceptual space depending on the percieved luminance.
     //
-    // At low luminances, ~0.0, pow(EOTF_AMPLIFICATION, ~0.0) ~= 1.0, so the
+    // At low luminances, ~0.0, pow(AMPLIFICATION, ~0.0) ~= 1.0, so the
     // color will appear to be unchanged. This is important as we don't want to
     // over expose dark colors which would not have otherwise been seen.
     //
-    // At high luminances, ~1.0, pow(EOTF_AMPLIFICATION, ~1.0) ~= EOTF_AMPLIFICATION,
-    // which is equivilant to scaling the color by EOTF_AMPLIFICATION. This is
+    // At high luminances, ~1.0, pow(AMPLIFICATION, ~1.0) ~= AMPLIFICATION,
+    // which is equivilant to scaling the color by AMPLIFICATION. This is
     // important as we want to get the most out of the display, and we want to
     // get bright colors to hit their target brightness.
     //
     // For more information, see this desmos demonstrating this scaling process:
     // https://www.desmos.com/calculator/syjyrjsj5c
     const float luminance = ictcp_color.x;
-    ictcp_color *= pow(EOTF_AMPLIFICATION, luminance);
+    ictcp_color *= HLG_f(pow(AMPLIFICATION, luminance));
 
     // Convert back to Linear RGB and output the color to the display.
     // We use hdr_paper_white to renormalize the color to the comfortable
