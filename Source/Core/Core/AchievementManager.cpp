@@ -313,8 +313,8 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
     ActivateDeactivateRichPresence();
   }
   FetchBadges();
-  // Reset this to zero so that RP immediately triggers on the first frame
-  m_last_ping_time = 0;
+  // Set this to a value that will immediately trigger RP
+  m_last_ping_time = std::chrono::steady_clock::now() - std::chrono::minutes{2};
   INFO_LOG_FMT(ACHIEVEMENTS, "RetroAchievements successfully loaded for {}.", m_game_data.title);
 
   m_update_callback();
@@ -686,14 +686,7 @@ void AchievementManager::DoFrame()
   }
   if (!m_system)
     return;
-  time_t current_time = std::time(nullptr);
-  if (difftime(current_time, m_last_ping_time) > 120)
-  {
-    GenerateRichPresence();
-    m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
-    m_last_ping_time = current_time;
-    m_update_callback();
-  }
+  DoPeriodically();
 }
 
 u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
@@ -911,6 +904,7 @@ void AchievementManager::CloseGame()
       ActivateDeactivateAchievements();
       ActivateDeactivateLeaderboards();
       ActivateDeactivateRichPresence();
+      m_rich_presence.fill('\0');
       m_game_id = 0;
       m_game_badge.name.clear();
       m_unlock_map.clear();
@@ -1341,17 +1335,44 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
     rc_runtime_deactivate_achievement(&m_runtime, id);
 }
 
-void AchievementManager::GenerateRichPresence()
+void AchievementManager::DoPeriodically()
 {
-  Core::RunAsCPUThread([&] {
-    std::lock_guard lg{m_lock};
-    rc_runtime_get_richpresence(
-        &m_runtime, m_rich_presence.data(), RP_SIZE,
-        [](unsigned address, unsigned num_bytes, void* ud) {
-          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
-        },
-        this, nullptr);
-  });
+  if (!m_is_game_loaded)
+    return;
+  auto current_time = std::chrono::steady_clock::now();
+  if (current_time - m_last_rp_time > std::chrono::seconds{10})
+  {
+    if (Config::Get(Config::RA_RICH_PRESENCE_ENABLED))
+    {
+      Core::RunAsCPUThread([&] {
+        std::lock_guard lg{m_lock};
+        rc_runtime_get_richpresence(
+            &m_runtime, m_rich_presence.data(), RP_SIZE,
+            [](unsigned address, unsigned num_bytes, void* ud) {
+              return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+            },
+            this, nullptr);
+      });
+    }
+    m_last_rp_time = current_time;
+    m_update_callback();
+
+    if (current_time - m_last_ping_time > std::chrono::minutes{2})
+    {
+      if (Config::Get(Config::RA_RICH_PRESENCE_ENABLED))
+      {
+        m_queue.EmplaceItem([this] {
+          auto response = PingRichPresence(m_rich_presence);
+          if (response != ResponseType::SUCCESS)
+          {
+            WARN_LOG_FMT(ACHIEVEMENTS, "Failed to ping server with rich presence, error code {}.",
+                         (int)response);
+          }
+        });
+      }
+      m_last_ping_time = current_time;
+    }
+  }
 }
 
 AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)

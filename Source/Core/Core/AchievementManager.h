@@ -180,7 +180,7 @@ private:
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
-  void GenerateRichPresence();
+  void DoPeriodically();
 
   ResponseType AwardAchievement(AchievementId achievement_id);
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
@@ -218,7 +218,8 @@ private:
   u32 m_framecount = 0;
   BadgeStatus m_game_badge;
   RichPresence m_rich_presence;
-  time_t m_last_ping_time = 0;
+  std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point m_last_ping_time = std::chrono::steady_clock::now();
 
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
