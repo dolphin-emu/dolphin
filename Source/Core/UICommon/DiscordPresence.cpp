@@ -21,6 +21,8 @@
 #include "Common/HttpRequest.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/System.h"
 
 #endif
@@ -228,6 +230,9 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
                                         std::chrono::system_clock::now().time_since_epoch())
                                         .count();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  std::string state_string;
+#endif  // USE_RETRO_ACHIEVEMENTS
   if (party_size > 0)
   {
     if (party_size < 4)
@@ -244,6 +249,19 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
       // Note: joining still works without partyMax
     }
   }
+#ifdef USE_RETRO_ACHIEVEMENTS
+  else if (Config::Get(Config::RA_ENABLED) && Config::Get(Config::RA_RICH_PRESENCE_ENABLED) &&
+           Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+  {
+    state_string = AchievementManager::GetInstance().GetRichPresence().data();
+    if (state_string.length() >= 128)
+    {
+      // 124 characters + 3 dots + null terminator - thanks to Stenzek for format
+      state_string.replace(124, 4, "...");
+    }
+    discord_presence.state = state_string.c_str();
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   std::string party_id;
   std::string secret_final;

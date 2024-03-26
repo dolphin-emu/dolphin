@@ -35,6 +35,7 @@ private:
   void ToggleAchievements();
   void ToggleLeaderboards();
   void ToggleRichPresence();
+  void ToggleDiscordPresence();
   void ToggleHardcore();
   void ToggleProgress();
   void ToggleBadges();
@@ -54,6 +55,7 @@ private:
   ToolTipCheckBox* m_common_achievements_enabled_input;
   ToolTipCheckBox* m_common_leaderboards_enabled_input;
   ToolTipCheckBox* m_common_rich_presence_enabled_input;
+  ToolTipCheckBox* m_common_discord_presence_enabled_input;
   ToolTipCheckBox* m_common_hardcore_enabled_input;
   ToolTipCheckBox* m_common_progress_enabled_input;
   ToolTipCheckBox* m_common_badges_enabled_input;
