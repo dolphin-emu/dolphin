@@ -745,6 +745,9 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
   case RC_RUNTIME_EVENT_LBOARD_STARTED:
     HandleLeaderboardStartedEvent(runtime_event);
     break;
+  case RC_RUNTIME_EVENT_LBOARD_UPDATED:
+    HandleLeaderboardUpdatedEvent(runtime_event);
+    break;
   case RC_RUNTIME_EVENT_LBOARD_CANCELED:
     HandleLeaderboardCanceledEvent(runtime_event);
     break;
@@ -900,6 +903,16 @@ const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() 
   return m_active_challenges;
 }
 
+std::vector<AchievementManager::FormattedValue> AchievementManager::GetActiveLeaderboards() const
+{
+  std::vector<AchievementManager::FormattedValue> display_values;
+  for (u32 ix = 0; ix < MAX_DISPLAYED_LBOARDS && ix < m_active_leaderboards.size(); ix++)
+  {
+    display_values.push_back(m_active_leaderboards[ix].value);
+  }
+  return display_values;
+}
+
 void AchievementManager::CloseGame()
 {
   {
@@ -908,6 +921,7 @@ void AchievementManager::CloseGame()
     {
       m_is_game_loaded = false;
       m_active_challenges.clear();
+      m_active_leaderboards.clear();
       ActivateDeactivateAchievements();
       ActivateDeactivateLeaderboards();
       ActivateDeactivateRichPresence();
@@ -1562,14 +1576,35 @@ void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t*
     {
       OSD::AddMessage(fmt::format("Attempting leaderboard: {}", m_game_data.leaderboards[ix].title),
                       OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+      LeaderboardDisplay display{.id = runtime_event->id,
+                                 .format = m_game_data.leaderboards[ix].format};
+      rc_runtime_format_lboard_value(display.value.data(), FORMAT_SIZE, runtime_event->value,
+                                     display.format);
+      m_active_leaderboards.push_back(display);
       return;
     }
   }
   ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard started event with id {}.", runtime_event->id);
 }
 
+void AchievementManager::HandleLeaderboardUpdatedEvent(const rc_runtime_event_t* runtime_event)
+{
+  for (auto& display : m_active_leaderboards)
+  {
+    if (display.id == runtime_event->id)
+    {
+      rc_runtime_format_lboard_value(display.value.data(), FORMAT_SIZE, runtime_event->value,
+                                     display.format);
+      return;
+    }
+  }
+  ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard updated event with id {}.", runtime_event->id);
+}
+
 void AchievementManager::HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event)
 {
+  std::erase_if(m_active_leaderboards,
+                [runtime_event](const auto& entry) { return entry.id == runtime_event->id; });
   for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
   {
     if (m_game_data.leaderboards[ix].id == runtime_event->id)
@@ -1586,6 +1621,8 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
 {
   const auto event_id = runtime_event->id;
   const auto event_value = runtime_event->value;
+  std::erase_if(m_active_leaderboards,
+                [event_id](const auto& entry) { return entry.id == event_id; });
   m_queue.EmplaceItem([this, event_id, event_value] { SubmitLeaderboard(event_id, event_value); });
   for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
   {

@@ -62,7 +62,7 @@ public:
 private:
   void DrawDebugText();
 #ifdef USE_RETRO_ACHIEVEMENTS
-  void DrawChallenges();
+  void DrawChallengesAndLeaderboards();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   // ImGui resources.
