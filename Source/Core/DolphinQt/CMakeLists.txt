@@ -493,6 +493,11 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/cargo/build/x86_64-pc-windows-msvc/${CMAKE_BUILD_TYPE_LOWER}/slippi_rust_extensions.pdb" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/slippi_rust_extensions.pdb"
   )
 
+  # create portable.txt automatically for Windows since we always use portable builds for dev and release
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/portable.txt"
+  )
+
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
   get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
