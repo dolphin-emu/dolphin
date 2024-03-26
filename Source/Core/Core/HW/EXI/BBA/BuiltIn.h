@@ -32,6 +32,8 @@ struct TcpBuffer
   std::vector<u8> data;
 };
 
+struct StackRef;
+
 // Socket helper classes to ensure network interface consistency.
 //
 // If the socket isn't bound, the system will pick the interface to use automatically.
@@ -45,6 +47,19 @@ public:
   sf::Socket::Status Connect(const sf::IpAddress& dest, u16 port, u32 net_ip);
   sf::Socket::Status GetPeerName(sockaddr_in* addr) const;
   sf::Socket::Status GetSockName(sockaddr_in* addr) const;
+
+  enum class ConnectingState
+  {
+    None,
+    Connecting,
+    Connected,
+    Error
+  };
+
+  ConnectingState Connected(StackRef* ref);
+
+private:
+  ConnectingState m_connecting_state = ConnectingState::None;
 };
 
 class BbaUdpSocket : public sf::UdpSocket
@@ -57,7 +72,7 @@ public:
 
 struct StackRef
 {
-  u32 ip;
+  u32 ip = 0;
   u16 local;
   u16 remote;
   u16 type;
@@ -76,4 +91,27 @@ struct StackRef
   BbaUdpSocket udp_socket;
   BbaTcpSocket tcp_socket;
   u64 poke_time;
+};
+
+// Max 10 at same time, I think most gc game had a
+// limit of 8 in the GC framework
+using StackRefs = std::array<StackRef, 10>;
+
+class NetworkRef
+{
+public:
+  StackRefs& data() { return m_stacks; }
+  const StackRefs& data() const { return m_stacks; }
+  auto begin() { return m_stacks.begin(); }
+  auto begin() const { return m_stacks.cbegin(); }
+  auto end() { return m_stacks.end(); }
+  auto end() const { return m_stacks.cend(); }
+
+  StackRef* GetAvailableSlot(u16 port);
+  StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
+
+  void Clear();
+
+private:
+  StackRefs m_stacks;
 };
