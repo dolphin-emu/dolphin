@@ -90,6 +90,8 @@ public:
     BadgeStatus locked_badge;
     BadgeStatus unlocked_badge;
     u32 category = RC_ACHIEVEMENT_CATEGORY_CORE;
+    u32 measured_value = 0;
+    u32 measured_target = 0;
   };
 
   static constexpr std::string_view GRAY = "transparent";
