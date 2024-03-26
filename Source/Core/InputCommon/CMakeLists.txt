@@ -64,6 +64,8 @@ add_library(inputcommon
   ControllerInterface/MappingCommon.h
   ControllerInterface/Wiimote/WiimoteController.cpp
   ControllerInterface/Wiimote/WiimoteController.h
+  ControllerInterface/WiiUAdapter/WiiUAdapter.cpp
+  ControllerInterface/WiiUAdapter/WiiUAdapter.h
   ControlReference/ControlReference.cpp
   ControlReference/ControlReference.h
   ControlReference/ExpressionParser.cpp

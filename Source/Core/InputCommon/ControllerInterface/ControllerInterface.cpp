@@ -8,6 +8,7 @@
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "InputCommon/ControllerInterface/WiiUAdapter/WiiUAdapter.h"
 
 #ifdef CIFACE_USE_WIN32
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
@@ -85,6 +86,9 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 #ifdef CIFACE_USE_STEAMDECK
   m_input_backends.emplace_back(ciface::SteamDeck::CreateInputBackend(this));
 #endif
+
+  // TODO: obey Config::Get(Config::MAIN_USE_GC_ADAPTER_FOR_CONTROLLER_INTERFACE)
+  m_input_backends.emplace_back(ciface::WiiUAdapter::CreateInputBackend(this));
 
   // Don't allow backends to add devices before the first RefreshDevices() as they will be cleaned
   // there. Or they'd end up waiting on the devices mutex if populated from another thread.
