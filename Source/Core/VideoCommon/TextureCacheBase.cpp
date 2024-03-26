@@ -52,7 +52,6 @@
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/TextureUtils.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -1818,15 +1817,13 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
       const std::string basename = texture_info.CalculateTextureName().GetFullName();
       if (g_ActiveConfig.bDumpBaseTextures)
       {
-        VideoCommon::TextureUtils::DumpTexture(*entry->texture, basename, 0,
-                                               entry->has_arbitrary_mips);
+        m_texture_dumper.DumpTexture(*entry->texture, basename, 0, entry->has_arbitrary_mips);
       }
       if (g_ActiveConfig.bDumpMipmapTextures)
       {
         for (u32 level = 1; level < texLevels; ++level)
         {
-          VideoCommon::TextureUtils::DumpTexture(*entry->texture, basename, level,
-                                                 entry->has_arbitrary_mips);
+          m_texture_dumper.DumpTexture(*entry->texture, basename, level, entry->has_arbitrary_mips);
         }
       }
     }

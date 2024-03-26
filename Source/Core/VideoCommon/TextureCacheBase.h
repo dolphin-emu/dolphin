@@ -27,6 +27,7 @@
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureInfo.h"
+#include "VideoCommon/TextureUtils.h"
 #include "VideoCommon/VideoEvents.h"
 
 class AbstractFramebuffer;
@@ -460,6 +461,8 @@ private:
 
   Common::EventHook m_frame_event =
       AfterFrameEvent::Register([this](Core::System&) { OnFrameEnd(); }, "TextureCache");
+
+  VideoCommon::TextureUtils::TextureDumper m_texture_dumper;
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;
