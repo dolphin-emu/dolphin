@@ -5,7 +5,7 @@
 GUIName = Amplificiation
 OptionName = AMPLIFICATION
 MinValue = 1.0
-MaxValue = 6.0
+MaxValue = 10.0
 StepAmount = 0.25
 DefaultValue = 2.5
 
