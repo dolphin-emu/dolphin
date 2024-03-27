@@ -1,0 +1,32 @@
+{
+	"meta":
+	{
+		"title": "Performance Fixes",
+		"author": "iwubcode",
+		"description": "Automatically disables 'Store EFB Copies to Texture Only' during scenes when snow falls."
+	},
+	"groups":
+	[
+		{
+			"name": "Snow",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000387_256x256_3"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "Snow",
+			"action": "set_settings",
+			"action_data":
+			{
+				"setting_name": "skip_efb_to_ram",
+				"setting_value": false
+			}
+		}
+	]
+}

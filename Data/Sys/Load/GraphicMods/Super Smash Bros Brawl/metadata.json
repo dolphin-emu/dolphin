@@ -1,0 +1,73 @@
+{
+	"meta":
+	{
+		"title": "Performance Fixes",
+		"author": "iwubcode",
+		"description": "Automatically disables 'Store EFB Copies to Texture Only' when a character is offscreen.  Automatically disables 'Store XFB Copies to Texture Only' during the classic mode clear screen."
+	},
+	"groups":
+	[
+		{
+			"name": "OffscreenHoop",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000022_4x4_6"
+				}
+			]
+		},
+		{
+			"name": "GameFinished",
+			"targets": [
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_400x148_5449617efae6c800_2"
+				}
+			]
+		},
+		{
+			"name": "GameFinishedNextScreen",
+			"targets": [
+				{
+					"comment": "C icon in complete for classic mode",
+					"type": "draw_started",
+					"texture_filename": "tex1_64x64_8e4f1690719cedc3_5b746334fe35ceed_9"
+				},
+				{
+					"comment": "winner icon in free for all",
+					"type": "draw_started",
+					"texture_filename": "tex1_104x80_62c38626af7e71e5_ebce21f4ae57a46e_9"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "OffscreenHoop",
+			"action": "set_settings",
+			"action_data":
+			{
+				"setting_name": "skip_efb_to_ram",
+				"setting_value": false
+			}
+		},
+		{
+			"group": "GameFinished",
+			"action": "set_settings",
+			"action_data":
+			{
+				"setting_name": "skip_xfb_to_ram",
+				"setting_value": false
+			}
+		},
+		{
+			"group": "GameFinishedNextScreen",
+			"action": "set_settings",
+			"action_data":
+			{
+				"setting_name": "skip_xfb_to_ram"
+			}
+		}
+	]
+}
