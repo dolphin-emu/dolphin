@@ -22,6 +22,7 @@
 #include "Core/Host.h"
 #include "Core/System.h"
 
+#include "AbstractGfx.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -388,6 +389,9 @@ void FifoManager::RunGpuLoop()
           // Make sure VertexManager finishes drawing any primitives it has stored in it's buffer.
           g_vertex_manager->Flush();
           g_framebuffer_manager->RefreshPeekCache();
+
+          // Flush to worker thread on multithreaded backends (Vulkan)
+          g_gfx->Flush(FlushType::FlushToWorker);
         }
       },
       100);
@@ -493,6 +497,8 @@ int FifoManager::RunGpuOnCpu(int ticks)
 
   // Discard all available ticks as there is nothing to do any more.
   m_sync_ticks.store(std::min(available_ticks, 0));
+
+  g_gfx->Flush(FlushType::FlushToWorker);
 
   // If the GPU is idle, drop the handler.
   if (available_ticks >= 0)

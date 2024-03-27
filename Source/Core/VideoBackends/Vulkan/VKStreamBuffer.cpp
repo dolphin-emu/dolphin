@@ -11,7 +11,9 @@
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
+#include "VKTimelineSemaphore.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/VKScheduler.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
@@ -24,7 +26,13 @@ StreamBuffer::~StreamBuffer()
 {
   // VMA_ALLOCATION_CREATE_MAPPED_BIT automatically handles unmapping for us
   if (m_buffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferBufferDestruction(m_buffer, m_alloc);
+  {
+    g_scheduler->Record(
+        [c_buffer = m_buffer, c_alloc = m_alloc](CommandBufferManager* command_buffer_mgr) {
+          if (c_buffer != VK_NULL_HANDLE)
+            command_buffer_mgr->DeferBufferDestruction(c_buffer, c_alloc);
+        });
+  }
 }
 
 std::unique_ptr<StreamBuffer> StreamBuffer::Create(VkBufferUsageFlags usage, u32 size)
@@ -75,8 +83,11 @@ bool StreamBuffer::AllocateBuffer()
 
   // Destroy the backings for the buffer after the command buffer executes
   // VMA_ALLOCATION_CREATE_MAPPED_BIT automatically handles unmapping for us
-  if (m_buffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferBufferDestruction(m_buffer, m_alloc);
+  g_scheduler->Record(
+      [c_buffer = m_buffer, c_alloc = m_alloc](CommandBufferManager* command_buffer_mgr) {
+        if (c_buffer != VK_NULL_HANDLE)
+          command_buffer_mgr->DeferBufferDestruction(c_buffer, c_alloc);
+      });
 
   // Replace with the new buffer
   m_buffer = buffer;
@@ -175,7 +186,7 @@ void StreamBuffer::UpdateCurrentFencePosition()
     return;
 
   // Has the offset changed since the last fence?
-  const u64 counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+  const u64 counter = g_scheduler->GetCurrentFenceCounter();
   if (!m_tracked_fences.empty() && m_tracked_fences.back().first == counter)
   {
     // Still haven't executed a command buffer, so just update the offset.
@@ -193,7 +204,7 @@ void StreamBuffer::UpdateGPUPosition()
   auto start = m_tracked_fences.begin();
   auto end = start;
 
-  const u64 completed_counter = g_command_buffer_mgr->GetCompletedFenceCounter();
+  const u64 completed_counter = g_scheduler->GetCompletedFenceCounter();
   while (end != m_tracked_fences.end() && completed_counter >= end->first)
   {
     m_current_gpu_position = end->second;
@@ -266,14 +277,13 @@ bool StreamBuffer::WaitForClearSpace(u32 num_bytes)
 
   // Did any fences satisfy this condition?
   // Has the command buffer been executed yet? If not, the caller should execute it.
-  if (iter == m_tracked_fences.end() ||
-      iter->first == g_command_buffer_mgr->GetCurrentFenceCounter())
+  if (iter == m_tracked_fences.end() || iter->first == g_scheduler->GetCurrentFenceCounter())
   {
     return false;
   }
 
   // Wait until this fence is signaled. This will fire the callback, updating the GPU position.
-  g_command_buffer_mgr->WaitForFenceCounter(iter->first);
+  g_scheduler->WaitForFenceCounter(iter->first);
   m_tracked_fences.erase(m_tracked_fences.begin(),
                          m_current_offset == iter->second ? m_tracked_fences.end() : ++iter);
   m_current_offset = new_offset;

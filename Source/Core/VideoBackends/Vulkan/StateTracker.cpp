@@ -17,78 +17,100 @@
 
 namespace Vulkan
 {
-static std::unique_ptr<StateTracker> s_state_tracker;
-
-StateTracker::StateTracker() = default;
-
-StateTracker::~StateTracker() = default;
-
-StateTracker* StateTracker::GetInstance()
+StateTracker::StateTracker(CommandBufferManager* command_buffer_mgr)
+    : m_command_buffer_mgr(command_buffer_mgr)
 {
-  return s_state_tracker.get();
 }
 
-bool StateTracker::CreateInstance()
+StateTracker::~StateTracker()
 {
-  ASSERT(!s_state_tracker);
-  s_state_tracker = std::make_unique<StateTracker>();
-  if (!s_state_tracker->Initialize())
-  {
-    s_state_tracker.reset();
-    return false;
-  }
-  return true;
-}
-
-void StateTracker::DestroyInstance()
-{
-  if (!s_state_tracker)
-    return;
-
-  // When the dummy texture is destroyed, it unbinds itself, then references itself.
-  // Clear everything out so this doesn't happen.
-  for (auto& it : s_state_tracker->m_bindings.samplers)
-    it.imageView = VK_NULL_HANDLE;
-  for (auto& it : s_state_tracker->m_bindings.image_textures)
-    it.imageView = VK_NULL_HANDLE;
-  s_state_tracker->m_dummy_texture.reset();
-  s_state_tracker->m_dummy_compute_texture.reset();
-
-  s_state_tracker.reset();
+  vkDestroyImageView(g_vulkan_context->GetDevice(), m_dummy_view, nullptr);
+  vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), m_dummy_image, m_dummy_image_alloc);
 }
 
 bool StateTracker::Initialize()
 {
   // Create a dummy texture which can be used in place of a real binding.
-  m_dummy_texture = VKTexture::Create(TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
-                                                    AbstractTextureType::Texture_2DArray),
-                                      "");
-  if (!m_dummy_texture)
+  VkImageCreateInfo dummy_info;
+  dummy_info.pNext = nullptr;
+  dummy_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+  dummy_info.extent = {1, 1, 1};
+  dummy_info.arrayLayers = 1;
+  dummy_info.mipLevels = 1;
+  dummy_info.flags = 0;
+  dummy_info.imageType = VK_IMAGE_TYPE_2D;
+  dummy_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  dummy_info.samples = VK_SAMPLE_COUNT_1_BIT;
+  dummy_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  dummy_info.format = VK_FORMAT_R8G8B8A8_UNORM;
+  dummy_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+  dummy_info.queueFamilyIndexCount = 0;
+  dummy_info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+  dummy_info.pQueueFamilyIndices = nullptr;
+
+  VmaAllocationCreateInfo alloc_create_info = {};
+  alloc_create_info.flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+  alloc_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+  alloc_create_info.pool = VK_NULL_HANDLE;
+  alloc_create_info.pUserData = nullptr;
+  alloc_create_info.priority = 0.0;
+  alloc_create_info.requiredFlags = 0;
+  alloc_create_info.preferredFlags = 0;
+
+  VkResult res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &dummy_info,
+                                &alloc_create_info, &m_dummy_image, &m_dummy_image_alloc, nullptr);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vmaCreateImage failed: ");
     return false;
-  m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  // Create a dummy compute texture which can be used in place of a real binding
-  m_dummy_compute_texture = VKTexture::Create(
-      TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_ComputeImage,
-                    AbstractTextureType::Texture_2DArray),
-      "");
-  if (!m_dummy_compute_texture)
+  }
+
+  VkImageViewCreateInfo dummy_view_info;
+  dummy_view_info.pNext = nullptr;
+  dummy_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  dummy_view_info.flags = 0;
+  dummy_view_info.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+  dummy_view_info.format = VK_FORMAT_R8G8B8A8_UNORM;
+  dummy_view_info.components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+                                VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
+  dummy_view_info.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+  dummy_view_info.image = m_dummy_image;
+
+  res = vkCreateImageView(g_vulkan_context->GetDevice(), &dummy_view_info, nullptr, &m_dummy_view);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
     return false;
-  m_dummy_compute_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                              VK_IMAGE_LAYOUT_GENERAL);
+  }
+
+  VkImageMemoryBarrier img_barrier;
+  img_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  img_barrier.pNext = nullptr;
+  img_barrier.srcAccessMask = 0;
+  img_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  img_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  img_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  img_barrier.image = m_dummy_image;
+  img_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  img_barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+  img_barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+
+  vkCmdPipelineBarrier(m_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0,
+                       nullptr, 0, nullptr, 1, &img_barrier);
 
   // Initialize all samplers to point by default
   for (size_t i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
   {
-    m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    m_bindings.samplers[i].imageView = m_dummy_texture->GetView();
+    m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    m_bindings.samplers[i].imageView = m_dummy_view;
     m_bindings.samplers[i].sampler = g_object_cache->GetPointSampler();
   }
 
   for (size_t i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; i++)
   {
     m_bindings.image_textures[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    m_bindings.image_textures[i].imageView = m_dummy_compute_texture->GetView();
+    m_bindings.image_textures[i].imageView = m_dummy_view;
     m_bindings.image_textures[i].sampler = g_object_cache->GetPointSampler();
   }
 
@@ -127,11 +149,11 @@ void StateTracker::SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexT
   m_dirty_flags |= DIRTY_FLAG_INDEX_BUFFER;
 }
 
-void StateTracker::SetFramebuffer(VKFramebuffer* framebuffer)
+void StateTracker::SetFramebuffer(FramebufferState framebuffer_state)
 {
   // Should not be changed within a render pass.
   ASSERT(!InRenderPass());
-  m_framebuffer = framebuffer;
+  m_framebuffer_state = framebuffer_state;
 }
 
 void StateTracker::SetPipeline(const VKPipeline* pipeline)
@@ -252,8 +274,8 @@ void StateTracker::UnbindTexture(VkImageView view)
   {
     if (it.imageView == view)
     {
-      it.imageView = m_dummy_texture->GetView();
-      it.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      it.imageView = m_dummy_view;
+      it.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     }
   }
 
@@ -261,8 +283,8 @@ void StateTracker::UnbindTexture(VkImageView view)
   {
     if (it.imageView == view)
     {
-      it.imageView = m_dummy_compute_texture->GetView();
-      it.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      it.imageView = m_dummy_view;
+      it.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     }
   }
 }
@@ -286,18 +308,18 @@ void StateTracker::BeginRenderPass()
   if (InRenderPass())
     return;
 
-  m_current_render_pass = m_framebuffer->GetLoadRenderPass();
-  m_framebuffer_render_area = m_framebuffer->GetRect();
+  m_current_render_pass = m_framebuffer_state.load_render_pass;
+  m_render_area = m_framebuffer_state.render_area;
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
                                       m_current_render_pass,
-                                      m_framebuffer->GetFB(),
-                                      m_framebuffer_render_area,
+                                      m_framebuffer_state.framebuffer,
+                                      m_render_area,
                                       0,
                                       nullptr};
 
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
+  vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
 }
 
@@ -306,18 +328,18 @@ void StateTracker::BeginDiscardRenderPass()
   if (InRenderPass())
     return;
 
-  m_current_render_pass = m_framebuffer->GetDiscardRenderPass();
-  m_framebuffer_render_area = m_framebuffer->GetRect();
+  m_current_render_pass = m_framebuffer_state.discard_render_pass;
+  m_render_area = m_framebuffer_state.render_area;
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
                                       m_current_render_pass,
-                                      m_framebuffer->GetFB(),
-                                      m_framebuffer_render_area,
+                                      m_framebuffer_state.framebuffer,
+                                      m_render_area,
                                       0,
                                       nullptr};
 
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
+  vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
 }
 
@@ -326,7 +348,7 @@ void StateTracker::EndRenderPass()
   if (!InRenderPass())
     return;
 
-  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
+  vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
   m_current_render_pass = VK_NULL_HANDLE;
 }
 
@@ -335,18 +357,18 @@ void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue
 {
   ASSERT(!InRenderPass());
 
-  m_current_render_pass = m_framebuffer->GetClearRenderPass();
-  m_framebuffer_render_area = area;
+  m_current_render_pass = m_framebuffer_state.clear_render_pass;
+  m_render_area = area;
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
                                       m_current_render_pass,
-                                      m_framebuffer->GetFB(),
-                                      m_framebuffer_render_area,
+                                      m_framebuffer_state.framebuffer,
+                                      m_render_area,
                                       num_clear_values,
                                       clear_values};
 
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
+  vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
 }
 
@@ -375,7 +397,8 @@ bool StateTracker::Bind()
     return false;
 
   // Check the render area if we were in a clear pass.
-  if (m_current_render_pass == m_framebuffer->GetClearRenderPass() && !IsViewportWithinRenderArea())
+  if (m_current_render_pass == m_framebuffer_state.clear_render_pass &&
+      !IsViewportWithinRenderArea())
     EndRenderPass();
 
   // Get a new descriptor set if any parts have changed
@@ -386,7 +409,7 @@ bool StateTracker::Bind()
     BeginRenderPass();
 
   // Re-bind parts of the pipeline
-  const VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  const VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
   const bool needs_vertex_buffer = !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
                                    m_pipeline->GetUsage() != AbstractPipelineUsage::GXUber;
   if (needs_vertex_buffer && (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER))
@@ -421,7 +444,7 @@ bool StateTracker::BindCompute()
   if (InRenderPass())
     EndRenderPass();
 
-  const VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  const VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
   if (m_dirty_flags & DIRTY_FLAG_COMPUTE_SHADER)
   {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -437,10 +460,10 @@ bool StateTracker::IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const
 {
   // Check that the viewport does not lie outside the render area.
   // If it does, we need to switch to a normal load/store render pass.
-  s32 left = m_framebuffer_render_area.offset.x;
-  s32 top = m_framebuffer_render_area.offset.y;
-  s32 right = left + static_cast<s32>(m_framebuffer_render_area.extent.width);
-  s32 bottom = top + static_cast<s32>(m_framebuffer_render_area.extent.height);
+  s32 left = m_render_area.offset.x;
+  s32 top = m_render_area.offset.y;
+  s32 right = left + static_cast<s32>(m_render_area.extent.width);
+  s32 bottom = top + static_cast<s32>(m_render_area.extent.height);
   s32 test_left = x;
   s32 test_top = y;
   s32 test_right = test_left + static_cast<s32>(width);
@@ -457,7 +480,7 @@ bool StateTracker::IsViewportWithinRenderArea() const
 
 void StateTracker::EndClearRenderPass()
 {
-  if (m_current_render_pass != m_framebuffer->GetClearRenderPass())
+  if (m_current_render_pass != m_framebuffer_state.clear_render_pass)
     return;
 
   // End clear render pass. Bind() will call BeginRenderPass() which
@@ -486,7 +509,7 @@ void StateTracker::UpdateGXDescriptorSet()
 
   if (m_dirty_flags & DIRTY_FLAG_GX_UBOS || m_gx_descriptor_sets[0] == VK_NULL_HANDLE)
   {
-    m_gx_descriptor_sets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
+    m_gx_descriptor_sets[0] = m_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS));
 
     for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; i++)
@@ -519,7 +542,7 @@ void StateTracker::UpdateGXDescriptorSet()
 
   if (m_dirty_flags & DIRTY_FLAG_GX_SAMPLERS || m_gx_descriptor_sets[1] == VK_NULL_HANDLE)
   {
-    m_gx_descriptor_sets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
+    m_gx_descriptor_sets[1] = m_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS));
 
     writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -545,7 +568,7 @@ void StateTracker::UpdateGXDescriptorSet()
       (m_dirty_flags & DIRTY_FLAG_GX_SSBO || m_gx_descriptor_sets[2] == VK_NULL_HANDLE))
   {
     m_gx_descriptor_sets[2] =
-        g_command_buffer_mgr->AllocateDescriptorSet(g_object_cache->GetDescriptorSetLayout(
+        m_command_buffer_mgr->AllocateDescriptorSet(g_object_cache->GetDescriptorSetLayout(
             DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS));
 
     writes[num_writes++] = {
@@ -575,7 +598,7 @@ void StateTracker::UpdateGXDescriptorSet()
 
   if (m_dirty_flags & DIRTY_FLAG_DESCRIPTOR_SETS)
   {
-    vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+    vkCmdBindDescriptorSets(m_command_buffer_mgr->GetCurrentCommandBuffer(),
                             VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(), 0,
                             needs_ssbo ? NUM_GX_DESCRIPTOR_SETS : (NUM_GX_DESCRIPTOR_SETS - 1),
                             m_gx_descriptor_sets.data(),
@@ -587,7 +610,7 @@ void StateTracker::UpdateGXDescriptorSet()
   else if (m_dirty_flags & DIRTY_FLAG_GX_UBO_OFFSETS)
   {
     vkCmdBindDescriptorSets(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+        m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
         m_pipeline->GetVkPipelineLayout(), 0, 1, m_gx_descriptor_sets.data(),
         needs_gs_ubo ? NUM_UBO_DESCRIPTOR_SET_BINDINGS : (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
         m_bindings.gx_ubo_offsets.data());
@@ -604,7 +627,7 @@ void StateTracker::UpdateUtilityDescriptorSet()
   // Allocate descriptor sets.
   if (m_dirty_flags & DIRTY_FLAG_UTILITY_UBO || m_utility_descriptor_sets[0] == VK_NULL_HANDLE)
   {
-    m_utility_descriptor_sets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
+    m_utility_descriptor_sets[0] = m_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UTILITY_UNIFORM_BUFFER));
 
     dswrites[writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -623,7 +646,7 @@ void StateTracker::UpdateUtilityDescriptorSet()
 
   if (m_dirty_flags & DIRTY_FLAG_UTILITY_BINDINGS || m_utility_descriptor_sets[1] == VK_NULL_HANDLE)
   {
-    m_utility_descriptor_sets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
+    m_utility_descriptor_sets[1] = m_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UTILITY_SAMPLERS));
 
     dswrites[writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -655,7 +678,7 @@ void StateTracker::UpdateUtilityDescriptorSet()
 
   if (m_dirty_flags & DIRTY_FLAG_DESCRIPTOR_SETS)
   {
-    vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+    vkCmdBindDescriptorSets(m_command_buffer_mgr->GetCurrentCommandBuffer(),
                             VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(), 0,
                             NUM_UTILITY_DESCRIPTOR_SETS, m_utility_descriptor_sets.data(), 1,
                             &m_bindings.utility_ubo_offset);
@@ -663,7 +686,7 @@ void StateTracker::UpdateUtilityDescriptorSet()
   }
   else if (m_dirty_flags & DIRTY_FLAG_UTILITY_UBO_OFFSET)
   {
-    vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+    vkCmdBindDescriptorSets(m_command_buffer_mgr->GetCurrentCommandBuffer(),
                             VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(), 0,
                             1, m_utility_descriptor_sets.data(), 1, &m_bindings.utility_ubo_offset);
     m_dirty_flags &= ~(DIRTY_FLAG_DESCRIPTOR_SETS | DIRTY_FLAG_UTILITY_UBO_OFFSET);
@@ -678,7 +701,7 @@ void StateTracker::UpdateComputeDescriptorSet()
   // Allocate descriptor sets.
   if (m_dirty_flags & DIRTY_FLAG_COMPUTE_BINDINGS)
   {
-    m_compute_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(
+    m_compute_descriptor_set = m_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
     dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                    nullptr,
@@ -729,7 +752,7 @@ void StateTracker::UpdateComputeDescriptorSet()
 
   if (m_dirty_flags & DIRTY_FLAG_COMPUTE_DESCRIPTOR_SET)
   {
-    vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+    vkCmdBindDescriptorSets(m_command_buffer_mgr->GetCurrentCommandBuffer(),
                             VK_PIPELINE_BIND_POINT_COMPUTE,
                             g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_COMPUTE), 0, 1,
                             &m_compute_descriptor_set, 1, &m_bindings.utility_ubo_offset);

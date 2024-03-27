@@ -13,6 +13,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VKScheduler.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Present.h"
@@ -31,9 +32,11 @@ SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsy
 
 SwapChain::~SwapChain()
 {
+  g_scheduler->SyncWorker();
   DestroySwapChainImages();
   DestroySwapChain();
   DestroySurface();
+  DestroySemaphores();
 }
 
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSystemInfo& wsi)
@@ -132,8 +135,11 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurf
                                              bool vsync)
 {
   std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
-  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
+  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages() ||
+      !swap_chain->CreateSemaphores())
+  {
     return nullptr;
+  }
 
   return swap_chain;
 }
@@ -273,6 +279,23 @@ bool SwapChain::SelectPresentMode()
 
   // Fall back to whatever is available.
   m_present_mode = present_modes[0];
+  return true;
+}
+
+bool SwapChain::CreateSemaphores()
+{
+  static constexpr VkSemaphoreCreateInfo semaphore_create_info = {
+      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, nullptr, 0};
+  for (VkSemaphore& semaphore : m_semaphores)
+  {
+    VkResult res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_create_info, nullptr,
+                                     &semaphore);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
+      return false;
+    }
+  }
   return true;
 }
 
@@ -492,11 +515,22 @@ void SwapChain::DestroySwapChain()
   m_swap_chain = VK_NULL_HANDLE;
 }
 
-VkResult SwapChain::AcquireNextImage()
+void SwapChain::DestroySemaphores()
 {
-  VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
-                                       g_command_buffer_mgr->GetCurrentCommandBufferSemaphore(),
-                                       VK_NULL_HANDLE, &m_current_swap_chain_image_index);
+  for (VkSemaphore semaphore : m_semaphores)
+  {
+    if (semaphore != VK_NULL_HANDLE)
+    {
+      vkDestroySemaphore(g_vulkan_context->GetDevice(), semaphore, nullptr);
+    }
+  }
+}
+
+VkResult SwapChain::AcquireNextImage(VkSemaphore semaphore)
+{
+  VkResult res =
+      vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX, semaphore,
+                            VK_NULL_HANDLE, &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 

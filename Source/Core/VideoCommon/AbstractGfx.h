@@ -41,6 +41,21 @@ class AsyncShaderCompiler;
 
 using ClearColor = std::array<float, 4>;
 
+enum class FlushType
+{
+  /**
+   * Flushes the current batch to the GFX worker thread.
+   * Implementations that do not have a worker thread will do nothing.
+   */
+  FlushToWorker,
+
+  /*
+   * Flushes the current batch to the GFX worker thread
+   * and to the GPU after that.
+   */
+  FlushToGPU
+};
+
 // AbstractGfx is the root of Dolphin's Graphics API abstraction layer.
 //
 // Abstract knows nothing about the internals of the GameCube/Wii, that is all handled elsewhere in
@@ -140,7 +155,7 @@ public:
   ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
                               const AbstractFramebuffer* framebuffer) const;
 
-  virtual void Flush() {}
+  virtual void Flush(FlushType flushType = FlushType::FlushToGPU) {}
   virtual void WaitForGPUIdle() {}
 
   // For opengl's glDrawBuffer
