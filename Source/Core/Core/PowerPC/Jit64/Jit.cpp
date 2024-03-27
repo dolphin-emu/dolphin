@@ -10,11 +10,6 @@
 #include <disasm.h>
 #include <fmt/format.h>
 
-// for the PROFILER stuff
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/IOFile.h"

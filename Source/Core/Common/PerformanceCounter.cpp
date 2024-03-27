@@ -1,15 +1,15 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#if !defined(_WIN32)
 #include "Common/PerformanceCounter.h"
 
-#include <cstdint>
+#include "Common/CommonTypes.h"
+
+#if !defined(_WIN32)
+
 #include <ctime>
 
 #include <unistd.h>
-
-#include "Common/CommonTypes.h"
 
 #if defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0
 #if defined(_POSIX_MONOTONIC_CLOCK) && _POSIX_MONOTONIC_CLOCK > 0
@@ -45,3 +45,22 @@ bool QueryPerformanceFrequency(u64* out)
 }
 
 #endif
+
+static const LARGE_INTEGER s_cached_performance_frequency = []() -> LARGE_INTEGER {
+  LARGE_INTEGER out;
+  QueryPerformanceFrequency(&out);
+  return out;
+}();
+
+// Win32: The result of QueryPerformanceFrequency is fixed at system boot, consistent across all
+// processors, and cannot fail on systems running Windows XP or later.
+// Linux: We imitate QueryPerformanceFrequency by assuming the frequency is either nanoseconds or
+// seconds, depending on if POSIX timers are available (this is known at compile-time).
+u64 QueryCachedPerformanceFrequency()
+{
+#if defined(_WIN32)
+  return s_cached_performance_frequency.QuadPart;
+#else
+  return s_cached_performance_frequency;
+#endif
+}
