@@ -260,7 +260,7 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
 
 bool AchievementManager::IsGameLoaded() const
 {
-  return m_is_game_loaded;
+  return rc_client_get_game_info(m_client);
 }
 
 void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
@@ -732,7 +732,8 @@ const AchievementManager::BadgeStatus& AchievementManager::GetPlayerBadge() cons
 
 std::string AchievementManager::GetGameDisplayName() const
 {
-  return IsGameLoaded() ? m_game_data.title : "";
+  auto game_info = rc_client_get_game_info(m_client);
+  return game_info ? game_info->title : "";
 }
 
 AchievementManager::PointSpread AchievementManager::TallyScore() const
