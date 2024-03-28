@@ -4,7 +4,9 @@
 #include "Core/IOS/USB/USB_KBD.h"
 
 #include <array>
+#include <optional>
 #include <queue>
+#include <string>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -212,15 +214,21 @@ std::optional<IPCReply> USB_KBD::Write(const ReadWriteRequest& request)
 
 std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
-      ControlReference::GetInputGate() && !m_message_queue.empty())
-  {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
-    memory.CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
-    m_message_queue.pop();
-  }
-  return IPCReply(IPC_SUCCESS);
+  if (request.request != 0)
+    return IPCReply(IPC_EINVAL);
+
+  if (m_pending_request.has_value())
+    return IPCReply(IPC_EEXIST);
+
+  // Blocks until a new event is available
+  m_pending_request = request.address;
+  return std::nullopt;
+}
+
+void USB_KBD::DoState(PointerWrap& p)
+{
+  Device::DoState(p);
+  p.Do(m_pending_request);
 }
 
 bool USB_KBD::IsKeyPressed(int key) const
@@ -309,5 +317,16 @@ void USB_KBD::Update()
 
   if (got_event)
     m_message_queue.emplace(MessageType::Event, modifiers, pressed_keys);
+
+  if (ControlReference::GetInputGate() && !m_message_queue.empty() && m_pending_request.has_value())
+  {
+    auto& system = GetSystem();
+    auto& memory = system.GetMemory();
+    IOCtlRequest pending_request{GetSystem(), m_pending_request.value()};
+    memory.CopyToEmu(pending_request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
+    m_message_queue.pop();
+    GetEmulationKernel().EnqueueIPCReply(pending_request, IPC_SUCCESS);
+    m_pending_request.reset();
+  }
 }
 }  // namespace IOS::HLE
