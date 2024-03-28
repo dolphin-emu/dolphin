@@ -66,10 +66,10 @@ GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          [this] { LoadSettings(Core::GetState()); });
+          [this] { LoadSettings(Core::GetState(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this](Core::State state) { LoadSettings(state); });
-  LoadSettings(Core::GetState());
+  LoadSettings(Core::GetState(Core::System::GetInstance()));
 }
 
 void GamecubeControllersWidget::CreateLayout()

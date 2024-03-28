@@ -60,7 +60,7 @@ CodeWidget::CodeWidget(QWidget* parent)
           [this](bool visible) { setHidden(!visible); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (Core::GetState() == Core::State::Paused)
+    if (Core::GetState(m_system) == Core::State::Paused)
       SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
@@ -338,7 +338,7 @@ void CodeWidget::UpdateCallstack()
 {
   m_callstack_list->clear();
 
-  if (Core::GetState() != Core::State::Paused)
+  if (Core::GetState(m_system) != Core::State::Paused)
     return;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;

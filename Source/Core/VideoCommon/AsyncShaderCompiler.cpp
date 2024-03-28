@@ -10,6 +10,7 @@
 #include "Common/Thread.h"
 
 #include "Core/Core.h"
+#include "Core/System.h"
 
 namespace VideoCommon
 {
@@ -96,7 +97,7 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   // Update progress while the compiles complete.
   for (;;)
   {
-    if (Core::GetState() == Core::State::Stopping)
+    if (Core::GetState(Core::System::GetInstance()) == Core::State::Stopping)
       return false;
 
     size_t remaining_items;
