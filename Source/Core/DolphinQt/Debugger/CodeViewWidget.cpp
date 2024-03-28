@@ -172,9 +172,8 @@ CodeViewWidget::CodeViewWidget()
 
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
   connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
-          &CodeViewWidget::FontBasedSizing);
+          &CodeViewWidget::OnDebugFontChanged);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
     m_address = m_system.GetPPCState().pc;
@@ -208,7 +207,7 @@ void CodeViewWidget::FontBasedSizing()
   // just text width is too small with some fonts, so increase by a bit
   constexpr int extra_text_width = 8;
 
-  const QFontMetrics fm(Settings::Instance().GetDebugFont());
+  const QFontMetrics fm(font());
 
   const int rowh = fm.height() + 1;
   verticalHeader()->setMaximumSectionSize(rowh);
@@ -743,6 +742,12 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
     msgbox.exec();
 
   } while (msgbox.clickedButton() == (QAbstractButton*)run_button);
+}
+
+void CodeViewWidget::OnDebugFontChanged(const QFont& font)
+{
+  setFont(font);
+  FontBasedSizing();
 }
 
 void CodeViewWidget::OnCopyAddress()

@@ -51,13 +51,9 @@ FIFOAnalyzer::FIFOAnalyzer(FifoPlayer& fifo_player) : m_fifo_player(fifo_player)
   m_search_splitter->restoreState(
       settings.value(QStringLiteral("fifoanalyzer/searchsplitter")).toByteArray());
 
-  m_detail_list->setFont(Settings::Instance().GetDebugFont());
-  m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
-
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, [this] {
-    m_detail_list->setFont(Settings::Instance().GetDebugFont());
-    m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
-  });
+  OnDebugFontChanged(Settings::Instance().GetDebugFont());
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
+          &FIFOAnalyzer::OnDebugFontChanged);
 }
 
 FIFOAnalyzer::~FIFOAnalyzer()
@@ -778,4 +774,10 @@ void FIFOAnalyzer::UpdateDescription()
   OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + entry_start],
                             object_size - entry_start, callback);
   m_entry_detail_browser->setText(callback.text);
+}
+
+void FIFOAnalyzer::OnDebugFontChanged(const QFont& font)
+{
+  m_detail_list->setFont(font);
+  m_entry_detail_browser->setFont(font);
 }
