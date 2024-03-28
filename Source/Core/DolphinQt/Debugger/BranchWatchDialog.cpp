@@ -531,7 +531,7 @@ void BranchWatchDialog::hideEvent(QHideEvent* event)
 
 void BranchWatchDialog::showEvent(QShowEvent* event)
 {
-  if (TimerCondition(m_branch_watch, Core::GetState()))
+  if (TimerCondition(m_branch_watch, Core::GetState(m_system)))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   QDialog::showEvent(event);
 }
@@ -544,7 +544,7 @@ void BranchWatchDialog::OnStartPause(bool checked)
     m_btn_start_pause->setText(tr("Pause Branch Watch"));
     // Restart the timer if the situation calls for it, but always turn off single-shot.
     m_timer->setSingleShot(false);
-    if (Core::GetState() > Core::State::Paused)
+    if (Core::GetState(m_system) > Core::State::Paused)
       m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   }
   else
@@ -552,7 +552,7 @@ void BranchWatchDialog::OnStartPause(bool checked)
     m_branch_watch.Pause();
     m_btn_start_pause->setText(tr("Start Branch Watch"));
     // Schedule one last update in the future in case Branch Watch is in the middle of a hit.
-    if (Core::GetState() > Core::State::Paused)
+    if (Core::GetState(m_system) > Core::State::Paused)
       m_timer->setInterval(BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS);
     m_timer->setSingleShot(true);
   }
@@ -645,7 +645,7 @@ void BranchWatchDialog::OnCodePathNotTaken()
 
 void BranchWatchDialog::OnBranchWasOverwritten()
 {
-  if (Core::GetState() == Core::State::Uninitialized)
+  if (Core::GetState(m_system) == Core::State::Uninitialized)
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
     return;
@@ -660,7 +660,7 @@ void BranchWatchDialog::OnBranchWasOverwritten()
 
 void BranchWatchDialog::OnBranchNotOverwritten()
 {
-  if (Core::GetState() == Core::State::Uninitialized)
+  if (Core::GetState(m_system) == Core::State::Uninitialized)
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
     return;
@@ -810,7 +810,7 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   case Column::Origin:
   {
     QAction* const action = menu->addAction(tr("Insert &NOP"));
-    if (Core::GetState() != Core::State::Uninitialized)
+    if (Core::GetState(m_system) != Core::State::Uninitialized)
       connect(action, &QAction::triggered,
               [this, index_list]() { OnTableSetNOP(std::move(index_list)); });
     else
@@ -824,7 +824,7 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   {
     QAction* const action = menu->addAction(tr("Insert &BLR"));
     const bool enable_action =
-        Core::GetState() != Core::State::Uninitialized &&
+        Core::GetState(m_system) != Core::State::Uninitialized &&
         std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
           const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
           return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
@@ -844,7 +844,7 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   {
     QAction* const action = menu->addAction(tr("Insert &BLR at start"));
     const bool enable_action =
-        Core::GetState() != Core::State::Uninitialized &&
+        Core::GetState(m_system) != Core::State::Uninitialized &&
         std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
           return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
         });

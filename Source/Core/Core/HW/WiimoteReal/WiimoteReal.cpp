@@ -720,11 +720,14 @@ void WiimoteScanner::ThreadFunc()
     // If we don't want Wiimotes in ControllerInterface, we may not need them at all.
     if (!Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
     {
+      auto& system = Core::System::GetInstance();
       // We don't want any remotes in passthrough mode or running in GC mode.
-      const bool core_running = Core::GetState() != Core::State::Uninitialized;
+      const bool core_running = Core::GetState(system) != Core::State::Uninitialized;
       if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED) ||
-          (core_running && !Core::System::GetInstance().IsWii()))
+          (core_running && !system.IsWii()))
+      {
         continue;
+      }
 
       // We don't want any remotes if we already connected everything we need.
       if (0 == CalculateWantedWiimotes() && 0 == CalculateWantedBB())
