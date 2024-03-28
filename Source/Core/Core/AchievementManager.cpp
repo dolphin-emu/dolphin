@@ -398,7 +398,7 @@ void AchievementManager::FetchBadges()
 
 void AchievementManager::DoFrame()
 {
-  if (!m_is_game_loaded || !Core::IsCPUThread())
+  if (!IsGameLoaded() || !Core::IsCPUThread())
     return;
   if (m_framecount == 0x200)
   {
@@ -532,9 +532,9 @@ const AchievementManager::BadgeStatus& AchievementManager::GetPlayerBadge() cons
   return m_player_badge;
 }
 
-std::string AchievementManager::GetGameDisplayName() const
+std::string_view AchievementManager::GetGameDisplayName() const
 {
-  return IsGameLoaded() ? m_game_data.title : "";
+  return IsGameLoaded() ? std::string_view(rc_client_get_game_info(m_client)->title) : "";
 }
 
 AchievementManager::PointSpread AchievementManager::TallyScore() const
