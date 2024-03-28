@@ -103,12 +103,16 @@
         <item>@string/device_dummy</item>
         <item>@string/broadband_adapter_xlink</item>
         <item>@string/broadband_adapter_hle</item>
+        <item>@string/broadband_adapter_tapserver</item>
+        <item>@string/modem_adapter_tapserver</item>
     </string-array>
     <integer-array name="serialPort1DeviceValues">
         <item>255</item>
         <item>0</item>
         <item>10</item>
         <item>12</item>
+        <item>11</item>
+        <item>13</item>
     </integer-array>
 
     <!-- Wii System Languages -->
