@@ -197,10 +197,11 @@ void AchievementSettingsWidget::LoadSettings()
 
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
+  auto& system = Core::System::GetInstance();
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setEnabled(enabled && (hardcore_enabled ||
-                               (Core::GetState() == Core::State::Uninitialized &&
-                                !Core::System::GetInstance().GetMovie().IsPlayingInput())));
+      ->setEnabled(enabled &&
+                   (hardcore_enabled || (Core::GetState(system) == Core::State::Uninitialized &&
+                                         !system.GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
@@ -294,7 +295,7 @@ void AchievementSettingsWidget::ToggleHardcore()
     Settings::Instance().SetCheatsEnabled(false);
     Settings::Instance().SetDebugModeEnabled(false);
   }
-  emit Settings::Instance().EmulationStateChanged(Core::GetState());
+  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
 
 void AchievementSettingsWidget::ToggleProgress()

@@ -158,7 +158,7 @@ void WatchWidget::Update()
 
   m_updating = true;
 
-  if (Core::GetState() != Core::State::Paused)
+  if (Core::GetState(m_system) != Core::State::Paused)
   {
     m_table->setDisabled(true);
     m_updating = false;

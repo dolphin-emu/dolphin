@@ -56,7 +56,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 
   installEventFilter(this);
 
-  OnEmulationStateChanged(Core::GetState());
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 
   connect(m_skylander_list, &QListWidget::itemSelectionChanged, this,
           &SkylanderPortalWindow::UpdateCurrentIDs);

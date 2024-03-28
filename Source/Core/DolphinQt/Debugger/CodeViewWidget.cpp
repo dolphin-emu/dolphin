@@ -265,7 +265,7 @@ void CodeViewWidget::Update()
   if (m_updating)
     return;
 
-  if (Core::GetState() == Core::State::Paused)
+  if (Core::GetState(m_system) == Core::State::Paused)
   {
     Core::CPUThreadGuard guard(m_system);
     Update(&guard);
@@ -556,8 +556,8 @@ void CodeViewWidget::OnContextMenu()
 {
   QMenu* menu = new QMenu(this);
 
-  const bool running = Core::GetState() != Core::State::Uninitialized;
-  const bool paused = Core::GetState() == Core::State::Paused;
+  const bool running = Core::GetState(m_system) != Core::State::Uninitialized;
+  const bool paused = Core::GetState(m_system) == Core::State::Paused;
 
   const u32 addr = GetContextAddress();
 
@@ -759,7 +759,7 @@ void CodeViewWidget::OnCopyAddress()
 
 void CodeViewWidget::OnCopyTargetAddress()
 {
-  if (Core::GetState() != Core::State::Paused)
+  if (Core::GetState(m_system) != Core::State::Paused)
     return;
 
   const u32 addr = GetContextAddress();
@@ -789,7 +789,7 @@ void CodeViewWidget::OnShowInMemory()
 
 void CodeViewWidget::OnShowTargetInMemory()
 {
-  if (Core::GetState() != Core::State::Paused)
+  if (Core::GetState(m_system) != Core::State::Paused)
     return;
 
   const u32 addr = GetContextAddress();
