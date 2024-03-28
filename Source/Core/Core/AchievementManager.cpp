@@ -857,28 +857,38 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
 void AchievementManager::DisplayWelcomeMessage()
 {
   std::lock_guard lg{m_lock};
-  PointSpread spread = TallyScore();
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  const u32 color =
+      rc_client_get_hardcore_enabled(m_client) ? OSD::Color::YELLOW : OSD::Color::CYAN;
+  if (Config::Get(Config::RA_BADGES_ENABLED))
+  {
+    OSD::AddMessage("", OSD::Duration::VERY_LONG, OSD::Color::GREEN,
+                    DecodeBadgeToOSDIcon(m_game_badge.badge));
+  }
+  auto info = rc_client_get_game_info(m_client);
+  if (!info)
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Attempting to welcome player to game not running.");
+    return;
+  }
+  OSD::AddMessage(info->title, OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+  rc_client_user_game_summary_t summary;
+  rc_client_get_user_game_summary(m_client, &summary);
+  OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
+                              summary.num_unlocked_achievements, summary.num_core_achievements,
+                              summary.points_unlocked, summary.points_core),
+                  OSD::Duration::VERY_LONG, color);
+  if (summary.num_unsupported_achievements > 0)
   {
     OSD::AddMessage(
-        fmt::format("You have {}/{} achievements worth {}/{} points", spread.hard_unlocks,
-                    spread.total_count, spread.hard_points, spread.total_points),
-        OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
-        (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                   nullptr);
-    OSD::AddMessage("Hardcore mode is ON", OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+        fmt::format("{} achievements unsupported", summary.num_unsupported_achievements),
+        OSD::Duration::VERY_LONG, OSD::Color::RED);
   }
-  else
-  {
-    OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
-                                spread.hard_unlocks + spread.soft_unlocks, spread.total_count,
-                                spread.hard_points + spread.soft_points, spread.total_points),
-                    OSD::Duration::VERY_LONG, OSD::Color::CYAN,
-                    (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                        DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                        nullptr);
-    OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
-  }
+  OSD::AddMessage(
+      fmt::format("Hardcore mode is {}", rc_client_get_hardcore_enabled(m_client) ? "ON" : "OFF"),
+      OSD::Duration::VERY_LONG, color);
+  OSD::AddMessage(fmt::format("Leaderboard submissions are {}",
+                              Config::Get(Config::RA_LEADERBOARDS_ENABLED) ? "ON" : "OFF"),
+                  OSD::Duration::VERY_LONG, color);
 }
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event)
