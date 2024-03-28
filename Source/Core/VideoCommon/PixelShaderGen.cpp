@@ -485,7 +485,7 @@ void UpdateBoundingBox(float2 rawpos) {{
   int2 pos_tl = pos & ~1;  // round down to even
   int2 pos_br = pos | 1;   // round up to odd
 
-#ifdef SUPPORTS_SUBGROUP_REDUCTION
+#if defined(SUPPORTS_SUBGROUP_REDUCTION) && !defined(BROKEN_SUBGROUP_WITH_DISCARD)
   if (!IS_HELPER_INVOCATION)
   {{
     SUBGROUP_MIN(pos_tl);

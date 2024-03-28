@@ -91,6 +91,68 @@ void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
   }
 }
 
+/// For testing driver brokenness
+static bool RenderSinglePixel(id<MTLDevice> dev, id<MTLFunction> vs, id<MTLFunction> fs,  //
+                              u32 px_in, u32* px_out)
+{
+  auto pdesc = MRCTransfer([MTLRenderPipelineDescriptor new]);
+  [pdesc setVertexFunction:vs];
+  [pdesc setFragmentFunction:fs];
+  [[pdesc colorAttachments][0] setPixelFormat:MTLPixelFormatRGBA8Unorm];
+  auto pipe = MRCTransfer([dev newRenderPipelineStateWithDescriptor:pdesc error:nil]);
+  if (!pipe)
+    return false;
+  auto buf = MRCTransfer([dev newBufferWithLength:4 options:MTLResourceStorageModeShared]);
+  memcpy([buf contents], &px_in, sizeof(px_in));
+  auto tdesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                  width:1
+                                                                 height:1
+                                                              mipmapped:false];
+  [tdesc setUsage:MTLTextureUsageRenderTarget];
+  auto tex = MRCTransfer([dev newTextureWithDescriptor:tdesc]);
+  auto q = MRCTransfer([dev newCommandQueue]);
+  id<MTLCommandBuffer> cmdbuf = [q commandBuffer];
+
+  id<MTLBlitCommandEncoder> upload_encoder = [cmdbuf blitCommandEncoder];
+  [upload_encoder copyFromBuffer:buf
+                    sourceOffset:0
+               sourceBytesPerRow:4
+             sourceBytesPerImage:4
+                      sourceSize:MTLSizeMake(1, 1, 1)
+                       toTexture:tex
+                destinationSlice:0
+                destinationLevel:0
+               destinationOrigin:MTLOriginMake(0, 0, 0)];
+  [upload_encoder endEncoding];
+
+  auto rpdesc = MRCTransfer([MTLRenderPassDescriptor new]);
+  [[rpdesc colorAttachments][0] setTexture:tex];
+  [[rpdesc colorAttachments][0] setLoadAction:MTLLoadActionLoad];
+  [[rpdesc colorAttachments][0] setStoreAction:MTLStoreActionStore];
+  id<MTLRenderCommandEncoder> renc = [cmdbuf renderCommandEncoderWithDescriptor:rpdesc];
+  [renc setRenderPipelineState:pipe];
+  [renc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+  [renc endEncoding];
+
+  id<MTLBlitCommandEncoder> download_encoder = [cmdbuf blitCommandEncoder];
+  [download_encoder copyFromTexture:tex
+                        sourceSlice:0
+                        sourceLevel:0
+                       sourceOrigin:MTLOriginMake(0, 0, 0)
+                         sourceSize:MTLSizeMake(1, 1, 1)
+                           toBuffer:buf
+                  destinationOffset:0
+             destinationBytesPerRow:4
+           destinationBytesPerImage:4];
+  [download_encoder endEncoding];
+
+  [cmdbuf commit];
+  [cmdbuf waitUntilCompleted];
+
+  memcpy(px_out, [buf contents], sizeof(*px_out));
+  return [cmdbuf status] == MTLCommandBufferStatusCompleted;
+}
+
 static bool DetectIntelGPUFBFetch(id<MTLDevice> dev)
 {
   // Even though it's nowhere in the feature set tables, some Intel GPUs support fbfetch!
@@ -113,58 +175,14 @@ fragment float4 fbfetch_test(float4 in [[color(0), raster_order_group(0)]]) {
                                              error:nil]);
   if (!lib)
     return false;
-  auto pdesc = MRCTransfer([MTLRenderPipelineDescriptor new]);
-  [pdesc setVertexFunction:MRCTransfer([lib newFunctionWithName:@"fs_triangle"])];
-  [pdesc setFragmentFunction:MRCTransfer([lib newFunctionWithName:@"fbfetch_test"])];
-  [[pdesc colorAttachments][0] setPixelFormat:MTLPixelFormatRGBA8Unorm];
-  auto pipe = MRCTransfer([dev newRenderPipelineStateWithDescriptor:pdesc error:nil]);
-  if (!pipe)
-    return false;
-  auto buf = MRCTransfer([dev newBufferWithLength:4 options:MTLResourceStorageModeShared]);
-  auto tdesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                  width:1
-                                                                 height:1
-                                                              mipmapped:false];
-  [tdesc setUsage:MTLTextureUsageRenderTarget];
-  auto tex = MRCTransfer([dev newTextureWithDescriptor:tdesc]);
-  auto q = MRCTransfer([dev newCommandQueue]);
-  u32 px = 0x11223344;
-  memcpy([buf contents], &px, 4);
-  id<MTLCommandBuffer> cmdbuf = [q commandBuffer];
-  id<MTLBlitCommandEncoder> upload_encoder = [cmdbuf blitCommandEncoder];
-  [upload_encoder copyFromBuffer:buf
-                    sourceOffset:0
-               sourceBytesPerRow:4
-             sourceBytesPerImage:4
-                      sourceSize:MTLSizeMake(1, 1, 1)
-                       toTexture:tex
-                destinationSlice:0
-                destinationLevel:0
-               destinationOrigin:MTLOriginMake(0, 0, 0)];
-  [upload_encoder endEncoding];
-  auto rpdesc = MRCTransfer([MTLRenderPassDescriptor new]);
-  [[rpdesc colorAttachments][0] setTexture:tex];
-  [[rpdesc colorAttachments][0] setLoadAction:MTLLoadActionLoad];
-  [[rpdesc colorAttachments][0] setStoreAction:MTLStoreActionStore];
-  id<MTLRenderCommandEncoder> renc = [cmdbuf renderCommandEncoderWithDescriptor:rpdesc];
-  [renc setRenderPipelineState:pipe];
-  [renc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
-  [renc endEncoding];
-  id<MTLBlitCommandEncoder> download_encoder = [cmdbuf blitCommandEncoder];
-  [download_encoder copyFromTexture:tex
-                        sourceSlice:0
-                        sourceLevel:0
-                       sourceOrigin:MTLOriginMake(0, 0, 0)
-                         sourceSize:MTLSizeMake(1, 1, 1)
-                           toBuffer:buf
-                  destinationOffset:0
-             destinationBytesPerRow:4
-           destinationBytesPerImage:4];
-  [download_encoder endEncoding];
-  [cmdbuf commit];
-  [cmdbuf waitUntilCompleted];
   u32 outpx;
-  memcpy(&outpx, [buf contents], 4);
+  bool ok = RenderSinglePixel(dev,                                                     //
+                              MRCTransfer([lib newFunctionWithName:@"fs_triangle"]),   //
+                              MRCTransfer([lib newFunctionWithName:@"fbfetch_test"]),  //
+                              0x11223344, &outpx);
+  if (!ok)
+    return false;
+
   // Proper fbfetch will double contents, Haswell will return black, and Broadwell will do nothing
   if (outpx == 0x22446688)
     return true;  // Skylake+
@@ -174,22 +192,69 @@ fragment float4 fbfetch_test(float4 in [[color(0), raster_order_group(0)]]) {
     return false;  // Haswell
 }
 
+enum class DetectionResult
+{
+  Yes,
+  No,
+  Unsure
+};
+
+static DetectionResult DetectInvertedIsHelper(id<MTLDevice> dev)
+{
+  static constexpr const char* shader = R"(
+vertex float4 fs_triangle(uint vid [[vertex_id]]) {
+  return float4(vid & 1 ? 3 : -1, vid & 2 ? 3 : -1, 0, 1);
+}
+fragment float4 is_helper_test() {
+  float val = metal::simd_is_helper_thread() ? 1 : 0.5;
+  return float4(val, metal::dfdx(val) + 0.5, metal::dfdy(val) + 0.5, 0);
+}
+)";
+
+  auto lib = MRCTransfer([dev newLibraryWithSource:[NSString stringWithUTF8String:shader]
+                                           options:nil
+                                             error:nil]);
+  if (!lib)
+    return DetectionResult::Unsure;
+
+  u32 outpx;
+  bool ok = RenderSinglePixel(dev,                                                       //
+                              MRCTransfer([lib newFunctionWithName:@"fs_triangle"]),     //
+                              MRCTransfer([lib newFunctionWithName:@"is_helper_test"]),  //
+                              0, &outpx);
+
+  // The pixel itself should not be a helper thread (0.5)
+  // The pixels to its right and below should be helper threads (1.0)
+  // Correctly working would therefore be 0.5 for the pixel and (0.5 + 0.5) for the derivatives
+  // Inverted would be 1.0 for the pixel and (-0.5 + 0.5) for the derivatives
+  if (!ok)
+    return DetectionResult::Unsure;
+  if (outpx == 0xffff80)
+    return DetectionResult::No;  // Working correctly
+  if (outpx == 0x0000ff)
+    return DetectionResult::Yes;  // Inverted
+  WARN_LOG_FMT(VIDEO, "metal::simd_is_helper_thread might be broken! Test shader returned {:06x}!",
+               outpx);
+  return DetectionResult::Unsure;
+}
+
 void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice> device)
 {
   // Initialize DriverDetails first so we can use it later
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
-  if ([[device name] containsString:@"NVIDIA"])
+  std::string name = [[device name] UTF8String];
+  if (name.find("NVIDIA") != std::string::npos)
     vendor = DriverDetails::VENDOR_NVIDIA;
-  else if ([[device name] containsString:@"AMD"])
+  else if (name.find("AMD") != std::string::npos)
     vendor = DriverDetails::VENDOR_ATI;
-  else if ([[device name] containsString:@"Intel"])
+  else if (name.find("Intel") != std::string::npos)
     vendor = DriverDetails::VENDOR_INTEL;
-  else if ([[device name] containsString:@"Apple"])
+  else if (name.find("Apple") != std::string::npos)
     vendor = DriverDetails::VENDOR_APPLE;
   const NSOperatingSystemVersion cocoa_ver = [[NSProcessInfo processInfo] operatingSystemVersion];
   double version = cocoa_ver.majorVersion * 100 + cocoa_ver.minorVersion;
   DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, version,
-                      DriverDetails::Family::UNKNOWN);
+                      DriverDetails::Family::UNKNOWN, std::move(name));
 
 #if TARGET_OS_OSX
   config->backend_info.bSupportsDepthClamp = true;
@@ -247,8 +312,16 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
         [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple6];
     config->backend_info.bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
   }
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_OPS))
-    g_features.subgroup_ops = false;
+  if (g_features.subgroup_ops)
+  {
+    DetectionResult result = DetectInvertedIsHelper(device);
+    if (result != DetectionResult::Unsure)
+    {
+      bool is_helper_inverted = result == DetectionResult::Yes;
+      if (is_helper_inverted != DriverDetails::HasBug(DriverDetails::BUG_INVERTED_IS_HELPER))
+        DriverDetails::OverrideBug(DriverDetails::BUG_INVERTED_IS_HELPER, is_helper_inverted);
+    }
+  }
 #if TARGET_OS_OSX
   if (@available(macOS 11, *))
     if (vendor == DriverDetails::VENDOR_INTEL)
@@ -436,22 +509,29 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   full_source.append(header);
   if (Metal::g_features.subgroup_ops)
     full_source.append(SUBGROUP_HELPER_HEADER);
+  if (DriverDetails::HasBug(DriverDetails::BUG_INVERTED_IS_HELPER))
+  {
+    full_source.append("#define gl_HelperInvocation !gl_HelperInvocation "
+                       "// Work around broken AMD Metal driver\n");
+  }
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_OPS_WITH_DISCARD))
+    full_source.append("#define BROKEN_SUBGROUP_WITH_DISCARD 1\n");
   full_source.append(source);
 
   std::optional<SPIRV::CodeVector> code;
   switch (stage)
   {
   case ShaderStage::Vertex:
-    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_3);
+    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   case ShaderStage::Geometry:
     PanicAlertFmt("Tried to compile geometry shader for Metal, but Metal doesn't support them!");
     break;
   case ShaderStage::Pixel:
-    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_3);
+    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   case ShaderStage::Compute:
-    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_3);
+    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   }
   if (!code.has_value())
