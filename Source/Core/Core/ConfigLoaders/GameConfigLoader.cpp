@@ -208,8 +208,9 @@ private:
     if (m_id == "00000000")
       return;
 
-    const std::array<std::tuple<std::string, std::string, Config::System>, 2> profile_info = {{
+    const std::array<std::tuple<std::string, std::string, Config::System>, 3> profile_info = {{
         std::make_tuple("Pad", "GCPad", Config::System::GCPad),
+        std::make_tuple("GBA", "GBA", Config::System::GCPad),
         std::make_tuple("Wiimote", "Wiimote", Config::System::WiiPad),
     }};
 
