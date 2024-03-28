@@ -34,6 +34,7 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -941,7 +942,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
   ReadHeader();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return false;
 #endif  // USE_RETRO_ACHIEVEMENTS
 
@@ -984,7 +985,8 @@ bool MovieManager::PlayInput(const std::string& movie_path,
 
 #ifdef USE_RETRO_ACHIEVEMENTS
     // On the chance someone tries to re-enable before the TAS can start
-    Config::SetBase(Config::RA_HARDCORE_ENABLED, false);
+    if (AchievementManager::GetInstance().IsHardcoreModeActive())
+      Config::SetBase(Config::RA_HARDCORE_ENABLED, false);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
     LoadInput(movie_path);

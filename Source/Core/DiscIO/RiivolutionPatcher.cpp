@@ -14,7 +14,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
-#include "Core/Config/AchievementSettings.h"
+#include "Core/AchievementManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
@@ -525,7 +525,7 @@ static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
                              std::span<const u8> value, std::span<const u8> original)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (::Config::Get(::Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
 #endif  // USE_RETRO_ACHIEVEMENTS
 
