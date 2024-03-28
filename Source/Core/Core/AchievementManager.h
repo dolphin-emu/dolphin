@@ -15,9 +15,11 @@
 
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
+#include <rcheevos/include/rc_client.h>
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/Event.h"
+#include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
 
@@ -48,7 +50,6 @@ public:
     UNKNOWN_FAILURE
   };
   using ResponseCallback = std::function<void(ResponseType)>;
-  using UpdateCallback = std::function<void()>;
 
   struct PointSpread
   {
@@ -112,14 +113,26 @@ public:
     std::unordered_map<u32, LeaderboardEntry> entries;
   };
 
+  struct UpdatedItems
+  {
+    bool all = false;
+    bool player_icon = false;
+    bool game_icon = false;
+    bool all_achievements = false;
+    std::set<AchievementId> achievements{};
+    bool all_leaderboards = false;
+    std::set<AchievementId> leaderboards{};
+    bool rich_presence = false;
+  };
+  using UpdateCallback = std::function<void(const UpdatedItems&)>;
+
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
-  ResponseType Login(const std::string& password);
-  void LoginAsync(const std::string& password, const ResponseCallback& callback);
+  void Login(const std::string& password);
   bool IsLoggedIn() const;
-  void HashGame(const std::string& file_path, const ResponseCallback& callback);
-  void HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback);
+  void LoadGame(const std::string& file_path);
+  void LoadGame(const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
 
   void LoadUnlockData(const ResponseCallback& callback);
@@ -139,12 +152,13 @@ public:
   const BadgeStatus& GetPlayerBadge() const;
   std::string GetGameDisplayName() const;
   PointSpread TallyScore() const;
+  rc_client_t* GetClient();
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
-  const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
+  const UnlockStatus* GetUnlockStatus(AchievementId achievement_id) const;
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
-  const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
+  const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id) const;
   RichPresence GetRichPresence() const;
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
@@ -170,7 +184,8 @@ private:
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
 
-  ResponseType VerifyCredentials(const std::string& password);
+  static void LoginCallback(int result, const char* error_message, rc_client_t* client,
+                            void* userdata);
   ResponseType ResolveHash(const Hash& game_hash, u32* game_id);
   void LoadGameSync(const ResponseCallback& callback);
   ResponseType StartRASession();
@@ -187,6 +202,8 @@ private:
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
+  static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
+                               void* userdata);
   void DisplayWelcomeMessage();
 
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
@@ -203,14 +220,17 @@ private:
                        const std::function<int(RcResponse*, const char*)>& process_response);
   ResponseType RequestImage(rc_api_fetch_image_request_t rc_request, Badge* rc_response);
 
+  static void RequestV2(const rc_api_request_t* request, rc_client_server_callback_t callback,
+                        void* callback_data, rc_client_t* client);
+  static u32 MemoryPeekerV2(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
+
   rc_runtime_t m_runtime{};
+  rc_client_t* m_client{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
-  UpdateCallback m_update_callback = [] {};
+  UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   bool m_disabled = false;
-  std::string m_display_name;
-  u32 m_player_score = 0;
   BadgeStatus m_player_badge;
   Hash m_game_hash{};
   u32 m_game_id = 0;
