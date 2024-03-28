@@ -120,7 +120,7 @@ void main()
     // For more information, see this desmos demonstrating this scaling process:
     // https://www.desmos.com/calculator/syjyrjsj5c
     const float luminance = ictcp_color.x;
-    ictcp_color *= HLG_f(pow(AMPLIFICATION, luminance));
+    ictcp_color *= pow(HLG_f(AMPLIFICATION), luminance);
 
     // Convert back to Linear RGB and output the color to the display.
     // We use hdr_paper_white to renormalize the color to the comfortable
