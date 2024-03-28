@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -58,6 +59,11 @@ private:
   void OnNewSessionCreated(const Cheats::CheatSearchSessionBase& session);
   void OnTabCloseRequested(int index);
 
+  // Stops OnFrameEnd from updating the currently selected CheatSearch (which is about to be
+  // deleted). If it is already doing so, wait for it to finish first.
+  void BlockFrameEndEvents();
+  void AllowFrameEndEvents();
+
   void RefreshCodeTabs(Core::State state, bool force);
   void UpdateAllCheatSearchWidgetCurrentValues();
 
@@ -74,5 +80,10 @@ private:
   GeckoCodeWidget* m_gecko_code = nullptr;
   CheatSearchFactoryWidget* m_cheat_search_new = nullptr;
 
+  // Deleting the currently selected CheatSearch tab from the Host thread at the same time the CPU
+  // thread uses OnFrameEnd to update the table's Current Values could cause a crash.
+  std::mutex m_tab_deletion_or_frameend_update_mutex{};
+  std::unique_lock<std::mutex> m_tab_deletion_lock{m_tab_deletion_or_frameend_update_mutex,
+                                                   std::defer_lock};
   Common::EventHook m_VI_end_field_event;
 };
