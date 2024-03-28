@@ -217,6 +217,7 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   Core::RunOnCPUThread(
+      system,
       [&] {
         u8* ptr = buffer.data();
         PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
@@ -228,6 +229,7 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
 void SaveToBuffer(Core::System& system, std::vector<u8>& buffer)
 {
   Core::RunOnCPUThread(
+      system,
       [&] {
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
@@ -473,6 +475,7 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
     return;
 
   Core::RunOnCPUThread(
+      system,
       [&] {
         {
           std::lock_guard lk_(s_state_writes_in_queue_mutex);
@@ -871,6 +874,7 @@ void LoadAs(Core::System& system, const std::string& filename)
     return;
 
   Core::RunOnCPUThread(
+      system,
       [&] {
         // Save temp buffer for undo load state
         auto& movie = system.GetMovie();

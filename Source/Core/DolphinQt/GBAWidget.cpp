@@ -37,7 +37,8 @@
 static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_view rom_path = {})
 {
   Core::RunOnCPUThread(
-      [core, rom_path = std::string(rom_path)] {
+      Core::System::GetInstance(),
+      [core, rom_path = std::string(rom_path)]() {
         if (auto core_ptr = core.lock())
         {
           auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
@@ -57,7 +58,8 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
 static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::string_view card_path)
 {
   Core::RunOnCPUThread(
-      [core, card_path = std::string(card_path)] {
+      Core::System::GetInstance(),
+      [core, card_path = std::string(card_path)]() {
         if (auto core_ptr = core.lock())
           core_ptr->EReaderQueueCard(card_path);
       },
@@ -159,7 +161,8 @@ void GBAWidget::ToggleDisconnect()
   m_force_disconnect = !m_force_disconnect;
 
   Core::RunOnCPUThread(
-      [core = m_core, force_disconnect = m_force_disconnect] {
+      Core::System::GetInstance(),
+      [core = m_core, force_disconnect = m_force_disconnect]() {
         if (auto core_ptr = core.lock())
           core_ptr->SetForceDisconnect(force_disconnect);
       },
@@ -221,7 +224,8 @@ void GBAWidget::DoState(bool export_state)
     return;
 
   Core::RunOnCPUThread(
-      [export_state, core = m_core, state_path = state_path.toStdString()] {
+      Core::System::GetInstance(),
+      [export_state, core = m_core, state_path = state_path.toStdString()]() {
         if (auto core_ptr = core.lock())
         {
           if (export_state)
@@ -251,7 +255,8 @@ void GBAWidget::ImportExportSave(bool export_save)
     return;
 
   Core::RunOnCPUThread(
-      [export_save, core = m_core, save_path = save_path.toStdString()] {
+      Core::System::GetInstance(),
+      [export_save, core = m_core, save_path = save_path.toStdString()]() {
         if (auto core_ptr = core.lock())
         {
           if (export_save)
