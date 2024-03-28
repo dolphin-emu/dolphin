@@ -133,7 +133,7 @@ public:
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
   const BadgeStatus& GetPlayerBadge() const;
-  std::string GetGameDisplayName() const;
+  std::string_view GetGameDisplayName() const;
   PointSpread TallyScore() const;
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;

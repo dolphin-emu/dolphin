@@ -78,7 +78,7 @@ void AchievementHeaderWidget::UpdateData()
 
   AchievementManager::PointSpread point_spread = instance.TallyScore();
   QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
-  QString game_name = QString::fromStdString(instance.GetGameDisplayName());
+  QString game_name = QtUtils::FromStdString(instance.GetGameDisplayName());
   AchievementManager::BadgeStatus player_badge = instance.GetPlayerBadge();
   AchievementManager::BadgeStatus game_badge = instance.GetGameBadge();
 
