@@ -23,8 +23,9 @@
 
 namespace Core
 {
+class CPUThreadGuard;
 class System;
-}
+}  // namespace Core
 
 namespace OSD
 {
@@ -180,7 +181,7 @@ private:
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
-  void GenerateRichPresence();
+  void GenerateRichPresence(const Core::CPUThreadGuard& guard);
 
   ResponseType AwardAchievement(AchievementId achievement_id);
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);

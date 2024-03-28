@@ -94,13 +94,10 @@ enum class ConsoleType : u32
   ReservedTDEVSystem = 0x20000007,
 };
 
-// Run a function as the CPU thread. This is an RAII alternative to the RunAsCPUThread function.
-//
-// If constructed from the Host thread, the CPU thread is paused and the current thread temporarily
-// becomes the CPU thread.
-// If constructed from the CPU thread, nothing special happens.
-//
-// This should only be constructed from the CPU thread or the host thread.
+// This is an RAII alternative to using PauseAndLock. If constructed from the host thread, the CPU
+// thread is paused, and the current thread temporarily becomes the CPU thread. If constructed from
+// the CPU thread, nothing special happens. This should only be constructed on the CPU thread or the
+// host thread.
 //
 // Some functions use a parameter of this type to indicate that the function should only be called
 // from the CPU thread. If the parameter is a pointer, the function has a fallback for being called
@@ -157,15 +154,6 @@ void DisplayMessage(std::string message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
 void OnFrameEnd(Core::System& system);
-
-// Run a function as the CPU thread.
-//
-// If called from the Host thread, the CPU thread is paused and the current thread temporarily
-// becomes the CPU thread while running the function.
-// If called from the CPU thread, the function will be run directly.
-//
-// This should only be called from the CPU thread or the host thread.
-void RunAsCPUThread(std::function<void()> function);
 
 // Run a function on the CPU thread, asynchronously.
 // This is only valid to call from the host thread, since it uses PauseAndLock() internally.
