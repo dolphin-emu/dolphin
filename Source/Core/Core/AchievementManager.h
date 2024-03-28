@@ -18,6 +18,8 @@
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/Event.h"
+#include "Common/HttpRequest.h"
+#include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
 
@@ -155,6 +157,9 @@ public:
 
 private:
   AchievementManager() = default;
+
+  const Common::HttpRequest::Headers USER_AGENT_HEADER = {
+      {"User-Agent", Common::GetUserAgentStr()}};
 
   struct FilereaderState
   {

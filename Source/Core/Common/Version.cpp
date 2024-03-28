@@ -50,6 +50,12 @@ const std::string& GetScmBranchStr()
   return scm_branch_str;
 }
 
+const std::string& GetUserAgentStr()
+{
+  static const std::string user_agent_str = std::string("Dolphin/") + SCM_DESC_STR;
+  return user_agent_str;
+}
+
 const std::string& GetScmDistributorStr()
 {
   static const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;

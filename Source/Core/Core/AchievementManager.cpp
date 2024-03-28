@@ -12,7 +12,6 @@
 #include <rcheevos/include/rc_api_info.h>
 #include <rcheevos/include/rc_hash.h>
 
-#include "Common/HttpRequest.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/WorkQueueThread.h"
@@ -1120,7 +1119,7 @@ AchievementManager::ResponseType AchievementManager::FetchGameData()
     ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid API request for game data.");
     return ResponseType::INVALID_REQUEST;
   }
-  auto http_response = http_request.Post(api_request.url, api_request.post_data);
+  auto http_response = http_request.Post(api_request.url, api_request.post_data, USER_AGENT_HEADER);
   rc_api_destroy_request(&api_request);
   if (!http_response.has_value() || http_response->size() == 0)
   {
@@ -1639,7 +1638,7 @@ AchievementManager::ResponseType AchievementManager::Request(
     ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid API request.");
     return ResponseType::INVALID_REQUEST;
   }
-  auto http_response = http_request.Post(api_request.url, api_request.post_data);
+  auto http_response = http_request.Post(api_request.url, api_request.post_data, USER_AGENT_HEADER);
   rc_api_destroy_request(&api_request);
   if (http_response.has_value() && http_response->size() > 0)
   {
@@ -1678,7 +1677,7 @@ AchievementManager::RequestImage(rc_api_fetch_image_request_t rc_request, Badge*
     ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid request for image.");
     return ResponseType::INVALID_REQUEST;
   }
-  auto http_response = http_request.Get(api_request.url);
+  auto http_response = http_request.Get(api_request.url, USER_AGENT_HEADER);
   if (http_response.has_value() && http_response->size() > 0)
   {
     rc_api_destroy_request(&api_request);
