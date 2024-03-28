@@ -55,7 +55,7 @@ bool Host_RendererHasFullFocus();
 bool Host_RendererIsFullscreen();
 
 void Host_Message(HostMessageID id);
-void Host_NotifyMapLoaded();
+void Host_PPCSymbolsChanged();
 void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();

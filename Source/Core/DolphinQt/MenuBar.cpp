@@ -1262,7 +1262,7 @@ void MenuBar::ClearSymbols()
     return;
 
   Core::System::GetInstance().GetPPCSymbolDB().Clear();
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::GenerateSymbolsFromAddress()
@@ -1275,7 +1275,7 @@ void MenuBar::GenerateSymbolsFromAddress()
 
   PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
                             Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
@@ -1304,7 +1304,7 @@ void MenuBar::GenerateSymbolsFromSignatureDB()
         tr("'%1' not found, no symbol names generated").arg(QString::fromStdString(TOTALDB)));
   }
 
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::GenerateSymbolsFromRSO()
@@ -1334,7 +1334,7 @@ void MenuBar::GenerateSymbolsFromRSO()
   if (rso_chain.Load(guard, static_cast<u32>(address)))
   {
     rso_chain.Apply(guard, &system.GetPPCSymbolDB());
-    emit NotifySymbolsUpdated();
+    emit Host::GetInstance()->PPCSymbolsChanged();
   }
   else
   {
@@ -1391,7 +1391,7 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   if (rso_chain.Load(guard, address))
   {
     rso_chain.Apply(guard, &system.GetPPCSymbolDB());
-    emit NotifySymbolsUpdated();
+    emit Host::GetInstance()->PPCSymbolsChanged();
   }
   else
   {
@@ -1541,7 +1541,7 @@ void MenuBar::LoadSymbolMap()
   }
 
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::SaveSymbolMap()
@@ -1566,7 +1566,7 @@ void MenuBar::LoadOtherSymbolMap()
 
   auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::LoadBadSymbolMap()
@@ -1583,7 +1583,7 @@ void MenuBar::LoadBadSymbolMap()
 
   auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::SaveSymbolMapAs()
@@ -1708,7 +1708,7 @@ void MenuBar::ApplySignatureFile()
   db.Apply(Core::CPUThreadGuard{system}, &system.GetPPCSymbolDB());
   db.List();
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::CombineSignatureFiles()
