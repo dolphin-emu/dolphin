@@ -5,9 +5,17 @@
 GUIName = Amplificiation
 OptionName = AMPLIFICATION
 MinValue = 1.0
-MaxValue = 10.0
-StepAmount = 0.25
+MaxValue = 12.0
+StepAmount = 0.2
 DefaultValue = 2.5
+
+[OptionRangeFloat]
+GUIName = Saturation Amplification
+OptionName = SATURATION
+MinValue = 0.0
+MaxValue = 1.0
+StepAmount = 0.1
+DefaultValue = 1.0
 
 [/configuration]
 */
@@ -120,7 +128,11 @@ void main()
     // For more information, see this desmos demonstrating this scaling process:
     // https://www.desmos.com/calculator/syjyrjsj5c
     const float luminance = ictcp_color.x;
-    ictcp_color *= pow(HLG_f(AMPLIFICATION), luminance);
+    const float lum_boost = pow(HLG_f(AMPLIFICATION), luminance);
+    const float sat_boost = pow(HLG_f(AMPLIFICATION), luminance * SATURATION);
+
+    ictcp_color.x *= lum_boost;
+    ictcp_color.yz *= sat_boost;
 
     // Convert back to Linear RGB and output the color to the display.
     // We use hdr_paper_white to renormalize the color to the comfortable
