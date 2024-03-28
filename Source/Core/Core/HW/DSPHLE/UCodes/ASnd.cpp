@@ -57,13 +57,15 @@ constexpr u32 SAMPLE_RATE = 48000;
 
 bool ASndUCode::SwapLeftRight() const
 {
-  return m_crc == HASH_DESERT_BUS_2011 || m_crc == HASH_DESERT_BUS_2012;
+  return m_crc == HASH_2008 || m_crc == HASH_2009 || m_crc == HASH_2011 || m_crc == HASH_2020 ||
+         m_crc == HASH_2020_PAD;
 }
 
 bool ASndUCode::UseNewFlagMasks() const
 {
   return m_crc == HASH_2011 || m_crc == HASH_2020 || m_crc == HASH_2020_PAD ||
-         m_crc == HASH_DESERT_BUS_2011 || m_crc == HASH_DESERT_BUS_2012;
+         m_crc == HASH_DESERT_BUS_2011 || m_crc == HASH_DESERT_BUS_2012 || m_crc == HASH_2024 ||
+         m_crc == HASH_2024_PAD;
 }
 
 ASndUCode::ASndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
@@ -398,11 +400,12 @@ void ASndUCode::DoMixing(u32 return_mail)
         }
         // Both paths jmpr $AR3, which is an index into sample_selector
 
-        auto [new_r, new_l] = (this->*sample_function)();
+        auto [new_l, new_r] = (this->*sample_function)();
         if (SwapLeftRight())
         {
-          // The Desert Bus versions swapped the left and right input channels so that left
-          // comes first, and then right. Before, right came before left.
+          // Most versions of the ASnd ucode have the right channel come before the left channel.
+          // The Desert Bus and 2024 versions swapped the left and right input channels so that left
+          // comes first, and then right, matching mp3/ogg files.
           std::swap(new_r, new_l);
         }
         // out_samp: "multiply sample x volume" - left is put in $ax0.h, right is put in $ax1.h
