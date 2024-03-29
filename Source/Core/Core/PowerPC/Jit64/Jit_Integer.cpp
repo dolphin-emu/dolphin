@@ -1451,12 +1451,10 @@ void Jit64::divwux(UGeckoInstruction inst)
     }
     else
     {
-      u32 shift = 31;
-      while (!(divisor & (1 << shift)))
-        shift--;
-
-      if (divisor == (u32)(1 << shift))
+      if (MathUtil::IsPow2(divisor))
       {
+        u32 shift = MathUtil::IntLog2(divisor);
+
         RCOpArg Ra = gpr.Use(a, RCMode::Read);
         RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
         RegCache::Realize(Ra, Rd);
@@ -1468,24 +1466,22 @@ void Jit64::divwux(UGeckoInstruction inst)
       }
       else
       {
-        u64 magic_dividend = 0x100000000ULL << shift;
-        u32 magic = (u32)(magic_dividend / divisor);
-        u32 max_quotient = magic >> shift;
+        UnsignedMagic m = UnsignedDivisionConstants(divisor);
 
         // Test for failure in round-up method
-        if (((u64)(magic + 1) * (max_quotient * divisor - 1)) >> (shift + 32) != max_quotient - 1)
+        if (!m.fast)
         {
           // If failed, use slower round-down method
           RCOpArg Ra = gpr.Use(a, RCMode::Read);
           RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
           RegCache::Realize(Ra, Rd);
 
-          MOV(32, R(RSCRATCH), Imm32(magic));
+          MOV(32, R(RSCRATCH), Imm32(m.multiplier));
           if (d != a)
             MOV(32, Rd, Ra);
           IMUL(64, Rd, R(RSCRATCH));
           ADD(64, Rd, R(RSCRATCH));
-          SHR(64, Rd, Imm8(shift + 32));
+          SHR(64, Rd, Imm8(m.shift + 32));
         }
         else
         {
@@ -1494,32 +1490,23 @@ void Jit64::divwux(UGeckoInstruction inst)
           RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
           RegCache::Realize(Ra, Rd);
 
-          magic++;
-
-          // Use smallest magic number and shift amount possible
-          while ((magic & 1) == 0 && shift > 0)
-          {
-            magic >>= 1;
-            shift--;
-          }
-
           // Three-operand IMUL sign extends the immediate to 64 bits, so we may only
           // use it when the magic number has its most significant bit set to 0
-          if ((magic & 0x80000000) == 0)
+          if ((m.multiplier & 0x80000000) == 0)
           {
-            IMUL(64, Rd, Ra, Imm32(magic));
+            IMUL(64, Rd, Ra, Imm32(m.multiplier));
           }
           else if (d == a)
           {
-            MOV(32, R(RSCRATCH), Imm32(magic));
+            MOV(32, R(RSCRATCH), Imm32(m.multiplier));
             IMUL(64, Rd, R(RSCRATCH));
           }
           else
           {
-            MOV(32, Rd, Imm32(magic));
+            MOV(32, Rd, Imm32(m.multiplier));
             IMUL(64, Rd, Ra);
           }
-          SHR(64, Rd, Imm8(shift + 32));
+          SHR(64, Rd, Imm8(m.shift + 32));
         }
       }
       if (inst.OE)
@@ -1792,7 +1779,7 @@ void Jit64::divwx(UGeckoInstruction inst)
     else
     {
       // Optimize signed 32-bit integer division by a constant
-      Magic m = SignedDivisionConstants(divisor);
+      SignedMagic m = SignedDivisionConstants(divisor);
 
       MOVSX(64, 32, RSCRATCH, Ra);
 
