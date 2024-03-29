@@ -168,14 +168,15 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
       auto& memory = system.GetMemory();
 
       // This is the ACL datapath from CPU to Wii Remote
-      const auto* acl_header =
-          reinterpret_cast<hci_acldata_hdr_t*>(memory.GetPointer(ctrl.data_address));
+      const auto* acl_header = reinterpret_cast<hci_acldata_hdr_t*>(
+          memory.GetPointerForRange(ctrl.data_address, sizeof(hci_acldata_hdr_t)));
 
       DEBUG_ASSERT(HCI_BC_FLAG(acl_header->con_handle) == HCI_POINT2POINT);
       DEBUG_ASSERT(HCI_PB_FLAG(acl_header->con_handle) == HCI_PACKET_START);
 
       SendToDevice(HCI_CON_HANDLE(acl_header->con_handle),
-                   memory.GetPointer(ctrl.data_address + sizeof(hci_acldata_hdr_t)),
+                   memory.GetPointerForRange(ctrl.data_address + sizeof(hci_acldata_hdr_t),
+                                             acl_header->length),
                    acl_header->length);
       break;
     }
@@ -250,8 +251,8 @@ void BluetoothEmuDevice::SendACLPacket(const bdaddr_t& source, const u8* data, u
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
 
-    hci_acldata_hdr_t* header =
-        reinterpret_cast<hci_acldata_hdr_t*>(memory.GetPointer(m_acl_endpoint->data_address));
+    hci_acldata_hdr_t* header = reinterpret_cast<hci_acldata_hdr_t*>(
+        memory.GetPointerForRange(m_acl_endpoint->data_address, sizeof(hci_acldata_hdr_t)));
     header->con_handle = HCI_MK_CON_HANDLE(connection_handle, HCI_PACKET_START, HCI_POINT2POINT);
     header->length = size;
 
@@ -431,7 +432,8 @@ void BluetoothEmuDevice::ACLPool::WriteToEndpoint(const USB::V0BulkMessage& endp
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
-  hci_acldata_hdr_t* header = (hci_acldata_hdr_t*)memory.GetPointer(endpoint.data_address);
+  hci_acldata_hdr_t* header = (hci_acldata_hdr_t*)memory.GetPointerForRange(
+      endpoint.data_address, sizeof(hci_acldata_hdr_t));
   header->con_handle = HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
   header->length = size;
 
@@ -973,7 +975,7 @@ void BluetoothEmuDevice::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl
   const u8* input = memory.GetPointer(ctrl_message.data_address + 3);
 
   SCommandMessage msg;
-  std::memcpy(&msg, memory.GetPointer(ctrl_message.data_address), sizeof(msg));
+  memory.CopyFromEmu(&msg, ctrl_message.data_address, sizeof(msg));
 
   const u16 ocf = HCI_OCF(msg.Opcode);
   const u16 ogf = HCI_OGF(msg.Opcode);

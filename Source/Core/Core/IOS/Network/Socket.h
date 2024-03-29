@@ -266,9 +266,9 @@ public:
   s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
 
   void Update();
-  static void ToNativeAddrIn(const u8* from, sockaddr_in* to);
-  static void ToWiiAddrIn(const sockaddr_in& from, u8* to,
-                          socklen_t addrlen = sizeof(WiiSockAddrIn));
+  static sockaddr_in ToNativeAddrIn(WiiSockAddrIn from);
+  static WiiSockAddrIn ToWiiAddrIn(const sockaddr_in& from,
+                                   socklen_t addrlen = sizeof(WiiSockAddrIn));
   static s32 ConvertEvents(s32 events, ConvertDirection dir);
 
   void DoState(PointerWrap& p);

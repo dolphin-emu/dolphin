@@ -105,6 +105,8 @@ public:
   // Routines to access physically addressed memory, designed for use by
   // emulated hardware outside the CPU. Use "Device_" prefix.
   std::string GetString(u32 em_address, size_t size = 0);
+  // WARNING: Incrementing the pointer returned by GetPointer is unsafe without additional bounds
+  // checks. New code should use other functions instead, like GetPointerForRange or CopyFromEmu.
   u8* GetPointer(u32 address) const;
   u8* GetPointerForRange(u32 address, size_t size) const;
   void CopyFromEmu(void* data, u32 address, size_t size) const;

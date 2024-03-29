@@ -982,7 +982,8 @@ IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& r
 
   u32 handle;
   const ReturnCode ret = m_core.SetUpStreamKey(
-      context.uid, memory.GetPointer(request.in_vectors[0].address), tmd, &handle);
+      context.uid, memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView)),
+      tmd, &handle);
   memory.Write_U32(handle, request.io_vectors[0].address);
   return IPCReply(ret);
 }
