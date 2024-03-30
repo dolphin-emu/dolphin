@@ -174,10 +174,8 @@ private:
 
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
 
-  void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
   void GenerateRichPresence(const Core::CPUThreadGuard& guard);
 
-  ResponseType AwardAchievement(AchievementId achievement_id);
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
@@ -185,13 +183,14 @@ private:
                                void* userdata);
   void DisplayWelcomeMessage();
 
-  void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
+
+  static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
