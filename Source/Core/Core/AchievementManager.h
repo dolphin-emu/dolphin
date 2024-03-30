@@ -127,7 +127,6 @@ public:
   void FetchGameBadges();
 
   void DoFrame();
-  u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
   void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
   std::recursive_mutex& GetLock();
@@ -201,8 +200,9 @@ private:
 
   static void RequestV2(const rc_api_request_t* request, rc_client_server_callback_t callback,
                         void* callback_data, rc_client_t* client);
-  static u32 MemoryPeekerV2(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
+  static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function);
+  static void EventHandlerV2(const rc_client_event_t* event, rc_client_t* client);
 
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
