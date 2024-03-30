@@ -20,7 +20,6 @@ class TwoPaneOnBackPressedCallback(private val slidingPaneLayout: SlidingPaneLay
         slidingPaneLayout.close()
     }
 
-    override fun onPanelSlide(panel: View, slideOffset: Float) {}
     override fun onPanelOpened(panel: View) {
         isEnabled = true
     }
