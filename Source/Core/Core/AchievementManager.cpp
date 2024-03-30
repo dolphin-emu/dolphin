@@ -234,9 +234,6 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
 {
   switch (runtime_event->type)
   {
-  case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
-    HandleAchievementTriggeredEvent(runtime_event);
-    break;
   case RC_RUNTIME_EVENT_ACHIEVEMENT_PROGRESS_UPDATED:
     HandleAchievementProgressUpdatedEvent(runtime_event);
     break;
@@ -665,89 +662,12 @@ AchievementManager::ResponseType AchievementManager::FetchBoardInfo(AchievementI
   return ResponseType::SUCCESS;
 }
 
-void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool enabled,
-                                                       bool unofficial, bool encore)
-{
-  auto it = m_unlock_map.find(id);
-  if (it == m_unlock_map.end())
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Attempted to unlock unknown achievement id {}.", id);
-    return;
-  }
-  const UnlockStatus& status = it->second;
-  u32 index = status.game_data_index;
-  bool active = (rc_runtime_get_achievement(&m_runtime, id) != nullptr);
-  bool hardcore_mode_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
-
-  // Deactivate achievements if game is not loaded
-  bool activate = m_is_game_loaded;
-  // Activate achievements only if achievements are enabled
-  if (activate && !enabled)
-    activate = false;
-  // Deactivate if achievement is unofficial, unless unofficial achievements are enabled
-  if (activate && !unofficial &&
-      m_game_data.achievements[index].category == RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL)
-  {
-    activate = false;
-  }
-  // If encore mode is on, activate/deactivate regardless of current unlock status
-  if (activate && !encore)
-  {
-    // Encore is off, achievement has been unlocked in this session, deactivate
-    activate = (status.session_unlock_count == 0);
-    // Encore is off, achievement has been hardcore unlocked on site, deactivate
-    if (activate && status.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE)
-      activate = false;
-    // Encore is off, hardcore is off, achievement has been softcore unlocked on site, deactivate
-    if (activate && !hardcore_mode_enabled &&
-        status.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE)
-    {
-      activate = false;
-    }
-  }
-
-  if (!active && activate)
-  {
-    rc_runtime_activate_achievement(&m_runtime, id, m_game_data.achievements[index].definition,
-                                    nullptr, 0);
-  }
-  if (active && !activate)
-    rc_runtime_deactivate_achievement(&m_runtime, id);
-}
-
 void AchievementManager::GenerateRichPresence(const Core::CPUThreadGuard& guard)
 {
   std::lock_guard lg{m_lock};
   rc_runtime_get_richpresence(
       &m_runtime, m_rich_presence.data(), RP_SIZE,
       [](unsigned address, unsigned num_bytes, void* ud) { return 0u; }, this, nullptr);
-}
-
-AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)
-{
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
-  bool hardcore_mode_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
-  rc_api_award_achievement_request_t award_request = {.username = username.c_str(),
-                                                      .api_token = api_token.c_str(),
-                                                      .achievement_id = achievement_id,
-                                                      .hardcore = hardcore_mode_enabled,
-                                                      .game_hash = m_game_hash.data()};
-  rc_api_award_achievement_response_t award_response = {};
-  ResponseType r_type =
-      Request<rc_api_award_achievement_request_t, rc_api_award_achievement_response_t>(
-          award_request, &award_response, rc_api_init_award_achievement_request,
-          rc_api_process_award_achievement_response);
-  rc_api_destroy_award_achievement_response(&award_response);
-  if (r_type == ResponseType::SUCCESS)
-  {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Awarded achievement ID {}.", achievement_id);
-  }
-  else
-  {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to award achievement ID {}.", achievement_id);
-  }
-  return r_type;
 }
 
 AchievementManager::ResponseType AchievementManager::SubmitLeaderboard(AchievementId leaderboard_id,
@@ -849,55 +769,6 @@ void AchievementManager::DisplayWelcomeMessage()
   OSD::AddMessage(fmt::format("Leaderboard submissions are {}",
                               Config::Get(Config::RA_LEADERBOARDS_ENABLED) ? "ON" : "OFF"),
                   OSD::Duration::VERY_LONG, color);
-}
-
-void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event)
-{
-  bool hardcore_mode_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
-  const auto event_id = runtime_event->id;
-  auto it = m_unlock_map.find(event_id);
-  if (it == m_unlock_map.end())
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement triggered event with id {}.", event_id);
-    return;
-  }
-  it->second.session_unlock_count++;
-  AchievementId game_data_index = it->second.game_data_index;
-  OSD::AddMessage(fmt::format("Unlocked: {} ({})", m_game_data.achievements[game_data_index].title,
-                              m_game_data.achievements[game_data_index].points),
-                  OSD::Duration::VERY_LONG,
-                  (hardcore_mode_enabled) ? OSD::Color::YELLOW : OSD::Color::CYAN,
-                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                      DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
-                      nullptr);
-  if (m_game_data.achievements[game_data_index].category == RC_ACHIEVEMENT_CATEGORY_CORE)
-  {
-    auto* user = rc_client_get_user_info(m_client);
-    m_queue.EmplaceItem([this, event_id] { AwardAchievement(event_id); });
-    PointSpread spread = TallyScore();
-    if (spread.hard_points == spread.total_points &&
-        it->second.remote_unlock_status != UnlockStatus::UnlockType::HARDCORE)
-    {
-      OSD::AddMessage(
-          fmt::format("Congratulations! {} has mastered {}", user->display_name, m_game_data.title),
-          OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
-          (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                     nullptr);
-    }
-    else if (spread.hard_points + spread.soft_points == spread.total_points &&
-             it->second.remote_unlock_status == UnlockStatus::UnlockType::LOCKED)
-    {
-      OSD::AddMessage(fmt::format("Congratulations! {} has completed {}", user->display_name,
-                                  m_game_data.title),
-                      OSD::Duration::VERY_LONG, OSD::Color::CYAN,
-                      (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                          DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                          nullptr);
-    }
-  }
-  ActivateDeactivateAchievement(event_id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
-                                Config::Get(Config::RA_UNOFFICIAL_ENABLED),
-                                Config::Get(Config::RA_ENCORE_ENABLED));
 }
 
 void AchievementManager::HandleAchievementProgressUpdatedEvent(
@@ -1017,6 +888,21 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
     }
   }
   ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard triggered event with id {}.", event_id);
+}
+
+void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
+{
+  OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
+                              client_event->achievement->points),
+                  OSD::Duration::VERY_LONG,
+                  (rc_client_get_hardcore_enabled(AchievementManager::GetInstance().m_client)) ?
+                      OSD::Color::YELLOW :
+                      OSD::Color::CYAN,
+                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
+                      DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
+                                               .m_unlocked_badges[client_event->achievement->id]
+                                               .badge) :
+                      nullptr);
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
@@ -1201,6 +1087,15 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
 
 void AchievementManager::EventHandlerV2(const rc_client_event_t* event, rc_client_t* client)
 {
+  switch (event->type)
+  {
+  case RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED:
+    HandleAchievementTriggeredEvent(event);
+    break;
+  default:
+    INFO_LOG_FMT(ACHIEVEMENTS, "Event triggered of unhandled type {}", event->type);
+    break;
+  }
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS
