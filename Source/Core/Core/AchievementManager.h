@@ -51,6 +51,7 @@ public:
   };
   using ResponseCallback = std::function<void(ResponseType)>;
   using UpdateCallback = std::function<void()>;
+  using BadgeNameFunction = std::function<std::string(const AchievementManager&)>;
 
   struct PointSpread
   {
@@ -122,7 +123,8 @@ public:
   void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
 
-  void FetchBadges();
+  void FetchPlayerBadge();
+  void FetchGameBadges();
 
   void DoFrame();
   u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
@@ -196,11 +198,11 @@ private:
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
                        const std::function<int(RcResponse*, const char*)>& process_response);
-  ResponseType RequestImage(rc_api_fetch_image_request_t rc_request, Badge* rc_response);
 
   static void RequestV2(const rc_api_request_t* request, rc_client_server_callback_t callback,
                         void* callback_data, rc_client_t* client);
   static u32 MemoryPeekerV2(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
+  void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function);
 
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
@@ -216,6 +218,8 @@ private:
   bool m_is_game_loaded = false;
   u32 m_framecount = 0;
   BadgeStatus m_game_badge;
+  std::unordered_map<AchievementId, BadgeStatus> m_unlocked_badges;
+  std::unordered_map<AchievementId, BadgeStatus> m_locked_badges;
   RichPresence m_rich_presence;
   time_t m_last_ping_time = 0;
 
