@@ -302,7 +302,8 @@ void AchievementSettingsWidget::ToggleProgress()
 void AchievementSettingsWidget::ToggleBadges()
 {
   SaveSettings();
-  AchievementManager::GetInstance().FetchBadges();
+  AchievementManager::GetInstance().FetchPlayerBadge();
+  AchievementManager::GetInstance().FetchGameBadges();
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()
