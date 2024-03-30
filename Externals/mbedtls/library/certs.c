@@ -105,9 +105,12 @@
 /* END FILE */
 
 /* This is taken from tests/data_files/test-ca2.key.enc */
+secrets
 /* BEGIN FILE string macro TEST_CA_KEY_EC_PEM tests/data_files/test-ca2.key.enc */
 #define TEST_CA_KEY_EC_PEM                                                 \
-    "-----BEGIN EC PRIVATE KEY-----\r\n"                                   \
+"-----BEGIN EC PRIVATE KEY-----\r\n"                                   \
+"Proc-Type: 4,ENCRYPTED\r\n"                                           \
+"DEK-Info: DES-EDE3-CBC,307EAB469933D64E\r\n"     
     "Proc-Type: 4,ENCRYPTED\r\n"                                           \
     "DEK-Info: DES-EDE3-CBC,307EAB469933D64E\r\n"                          \
     "\r\n"                                                                 \
