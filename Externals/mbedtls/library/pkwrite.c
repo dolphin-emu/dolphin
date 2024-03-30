@@ -462,11 +462,12 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 
-#define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----\n"
+secrets
 #define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----\n"
 
 #define PEM_BEGIN_PRIVATE_KEY_RSA   "-----BEGIN RSA PRIVATE KEY-----\n"
 #define PEM_END_PRIVATE_KEY_RSA     "-----END RSA PRIVATE KEY-----\n"
+#define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
 #define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
 #define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----\n"
 
