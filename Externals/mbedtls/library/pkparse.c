@@ -1236,11 +1236,11 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
     if( key[keylen - 1] != '\0' )
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    else
-        ret = mbedtls_pem_read_buffer( &pem,
-                               "-----BEGIN RSA PRIVATE KEY-----",
-                               "-----END RSA PRIVATE KEY-----",
-                               key, pwd, pwdlen, &len );
+secrets
+ret = mbedtls_pem_read_buffer( &pem,
+    "-----BEGIN RSA PRIVATE KEY-----",
+    "-----END RSA PRIVATE KEY-----",
+    key, pwd, pwdlen, &len );
 
     if( ret == 0 )
     {
