@@ -36,10 +36,11 @@ void AchievementManager::Init()
 {
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
-    m_client = rc_client_create(MemoryPeekerV2, RequestV2);
+    m_client = rc_client_create(MemoryPeeker, RequestV2);
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
       rc_client_set_host(m_client, host_url.c_str());
+    rc_client_set_event_handler(m_client, EventHandlerV2);
     rc_client_enable_logging(m_client, RC_CLIENT_LOG_LEVEL_VERBOSE,
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
@@ -215,15 +216,7 @@ void AchievementManager::DoFrame()
   }
   {
     std::lock_guard lg{m_lock};
-    rc_runtime_do_frame(
-        &m_runtime,
-        [](const rc_runtime_event_t* runtime_event) {
-          GetInstance().AchievementEventHandler(runtime_event);
-        },
-        [](unsigned address, unsigned num_bytes, void* ud) {
-          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
-        },
-        this, nullptr);
+    rc_client_do_frame(m_client);
   }
   if (!m_system)
     return;
@@ -234,36 +227,6 @@ void AchievementManager::DoFrame()
     m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
     m_last_ping_time = current_time;
     m_update_callback();
-  }
-}
-
-u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
-{
-  if (!m_system)
-    return 0u;
-  Core::CPUThreadGuard threadguard(*m_system);
-  switch (num_bytes)
-  {
-  case 1:
-    return m_system->GetMMU()
-        .HostTryReadU8(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
-        .value_or(PowerPC::ReadResult<u8>(false, 0u))
-        .value;
-  case 2:
-    return Common::swap16(
-        m_system->GetMMU()
-            .HostTryReadU16(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
-            .value_or(PowerPC::ReadResult<u16>(false, 0u))
-            .value);
-  case 4:
-    return Common::swap32(
-        m_system->GetMMU()
-            .HostTryReadU32(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
-            .value_or(PowerPC::ReadResult<u32>(false, 0u))
-            .value);
-  default:
-    ASSERT(false);
-    return 0u;
   }
 }
 
@@ -757,10 +720,7 @@ void AchievementManager::GenerateRichPresence(const Core::CPUThreadGuard& guard)
   std::lock_guard lg{m_lock};
   rc_runtime_get_richpresence(
       &m_runtime, m_rich_presence.data(), RP_SIZE,
-      [](unsigned address, unsigned num_bytes, void* ud) {
-        return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
-      },
-      this, nullptr);
+      [](unsigned address, unsigned num_bytes, void* ud) { return 0u; }, this, nullptr);
 }
 
 AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)
@@ -1168,7 +1128,7 @@ void AchievementManager::RequestV2(const rc_api_request_t* request,
   });
 }
 
-u32 AchievementManager::MemoryPeekerV2(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
 {
   if (buffer == nullptr)
     return 0u;
@@ -1237,6 +1197,10 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
 
     m_update_callback();
   });
+}
+
+void AchievementManager::EventHandlerV2(const rc_client_event_t* event, rc_client_t* client)
+{
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS
