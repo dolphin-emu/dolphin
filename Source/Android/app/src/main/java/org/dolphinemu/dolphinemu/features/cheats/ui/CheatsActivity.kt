@@ -114,10 +114,7 @@ class CheatsActivity : AppCompatActivity(), PanelSlideListener {
         super.onStop()
         viewModel.saveIfNeeded(gameId!!, revision)
     }
-
-    override fun onPanelSlide(panel: View, slideOffset: Float) {}
-    override fun onPanelOpened(panel: View) {
-        val rtl = ViewCompat.getLayoutDirection(panel) == ViewCompat.LAYOUT_DIRECTION_RTL
+L
         cheatDetailsLastFocus!!.requestFocus(if (rtl) View.FOCUS_LEFT else View.FOCUS_RIGHT)
     }
 
