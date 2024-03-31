@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/CheatSearchFactoryWidget.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include <string>
 #include <vector>
@@ -124,7 +125,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
 
   layout->addStretch();
 
-  setLayout(layout);
+  WrapInScrollArea(this, layout);
 }
 
 void CheatSearchFactoryWidget::ConnectWidgets()
