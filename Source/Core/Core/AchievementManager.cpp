@@ -243,15 +243,6 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
   case RC_RUNTIME_EVENT_ACHIEVEMENT_UNPRIMED:
     HandleAchievementUnprimedEvent(runtime_event);
     break;
-  case RC_RUNTIME_EVENT_LBOARD_STARTED:
-    HandleLeaderboardStartedEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_CANCELED:
-    HandleLeaderboardCanceledEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
-    HandleLeaderboardTriggeredEvent(runtime_event);
-    break;
   }
 }
 
@@ -670,33 +661,6 @@ void AchievementManager::GenerateRichPresence(const Core::CPUThreadGuard& guard)
       [](unsigned address, unsigned num_bytes, void* ud) { return 0u; }, this, nullptr);
 }
 
-AchievementManager::ResponseType AchievementManager::SubmitLeaderboard(AchievementId leaderboard_id,
-                                                                       int value)
-{
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
-  rc_api_submit_lboard_entry_request_t submit_request = {.username = username.c_str(),
-                                                         .api_token = api_token.c_str(),
-                                                         .leaderboard_id = leaderboard_id,
-                                                         .score = value,
-                                                         .game_hash = m_game_hash.data()};
-  rc_api_submit_lboard_entry_response_t submit_response = {};
-  ResponseType r_type =
-      Request<rc_api_submit_lboard_entry_request_t, rc_api_submit_lboard_entry_response_t>(
-          submit_request, &submit_response, rc_api_init_submit_lboard_entry_request,
-          rc_api_process_submit_lboard_entry_response);
-  rc_api_destroy_submit_lboard_entry_response(&submit_response);
-  if (r_type == ResponseType::SUCCESS)
-  {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Submitted leaderboard ID {}.", leaderboard_id);
-  }
-  else
-  {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to submit leaderboard ID {}.", leaderboard_id);
-  }
-  return r_type;
-}
-
 AchievementManager::ResponseType
 AchievementManager::PingRichPresence(const RichPresence& rich_presence)
 {
@@ -827,69 +791,6 @@ void AchievementManager::HandleAchievementUnprimedEvent(const rc_runtime_event_t
   m_active_challenges.erase(it->second.unlocked_badge.name);
 }
 
-void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event)
-{
-  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
-  {
-    if (m_game_data.leaderboards[ix].id == runtime_event->id)
-    {
-      OSD::AddMessage(fmt::format("Attempting leaderboard: {}", m_game_data.leaderboards[ix].title),
-                      OSD::Duration::VERY_LONG, OSD::Color::GREEN);
-      return;
-    }
-  }
-  ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard started event with id {}.", runtime_event->id);
-}
-
-void AchievementManager::HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event)
-{
-  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
-  {
-    if (m_game_data.leaderboards[ix].id == runtime_event->id)
-    {
-      OSD::AddMessage(fmt::format("Failed leaderboard: {}", m_game_data.leaderboards[ix].title),
-                      OSD::Duration::VERY_LONG, OSD::Color::RED);
-      return;
-    }
-  }
-  ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard canceled event with id {}.", runtime_event->id);
-}
-
-void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event)
-{
-  const auto event_id = runtime_event->id;
-  const auto event_value = runtime_event->value;
-  m_queue.EmplaceItem([this, event_id, event_value] { SubmitLeaderboard(event_id, event_value); });
-  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
-  {
-    if (m_game_data.leaderboards[ix].id == event_id)
-    {
-      FormattedValue value{};
-      rc_runtime_format_lboard_value(value.data(), static_cast<int>(value.size()), event_value,
-                                     m_game_data.leaderboards[ix].format);
-      if (std::find(value.begin(), value.end(), '\0') == value.end())
-      {
-        OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}",
-                                    std::string_view{value.data(), value.size()},
-                                    m_game_data.leaderboards[ix].title),
-                        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
-      }
-      else
-      {
-        OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}", value.data(),
-                                    m_game_data.leaderboards[ix].title),
-                        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
-      }
-      m_queue.EmplaceItem([this, event_id] {
-        FetchBoardInfo(event_id);
-        m_update_callback();
-      });
-      break;
-    }
-  }
-  ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard triggered event with id {}.", event_id);
-}
-
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
@@ -903,6 +804,27 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
                                                .m_unlocked_badges[client_event->achievement->id]
                                                .badge) :
                       nullptr);
+}
+
+void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
+{
+  OSD::AddMessage(fmt::format("Attempting leaderboard: {} - {}", client_event->leaderboard->title,
+                              client_event->leaderboard->description),
+                  OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+}
+
+void AchievementManager::HandleLeaderboardFailedEvent(const rc_client_event_t* client_event)
+{
+  OSD::AddMessage(fmt::format("Failed leaderboard: {}", client_event->leaderboard->title),
+                  OSD::Duration::VERY_LONG, OSD::Color::RED);
+}
+
+void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event)
+{
+  OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}",
+                              client_event->leaderboard->tracker_value,
+                              client_event->leaderboard->title),
+                  OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
@@ -1091,6 +1013,15 @@ void AchievementManager::EventHandlerV2(const rc_client_event_t* event, rc_clien
   {
   case RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED:
     HandleAchievementTriggeredEvent(event);
+    break;
+  case RC_CLIENT_EVENT_LEADERBOARD_STARTED:
+    HandleLeaderboardStartedEvent(event);
+    break;
+  case RC_CLIENT_EVENT_LEADERBOARD_FAILED:
+    HandleLeaderboardFailedEvent(event);
+    break;
+  case RC_CLIENT_EVENT_LEADERBOARD_SUBMITTED:
+    HandleLeaderboardSubmittedEvent(event);
     break;
   default:
     INFO_LOG_FMT(ACHIEVEMENTS, "Event triggered of unhandled type {}", event->type);
