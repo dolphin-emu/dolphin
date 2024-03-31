@@ -1044,18 +1044,11 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
   }
 
   const u8* src = m_memory.GetL1Cache() + (cache_address & 0x3FFFF);
-  u8* dst = m_memory.GetPointer(mem_address);
-  if (dst == nullptr)
-    return;
-
-  memcpy(dst, src, 32 * num_blocks);
+  m_memory.CopyToEmu(mem_address, src, 32 * num_blocks);
 }
 
 void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks)
 {
-  const u8* src = m_memory.GetPointer(mem_address);
-  u8* dst = m_memory.GetL1Cache() + (cache_address & 0x3FFFF);
-
   // No known game uses this; here for completeness.
   // TODO: Refactor.
   if ((mem_address & 0x0F000000) == 0x08000000)
@@ -1081,10 +1074,8 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
     return;
   }
 
-  if (src == nullptr)
-    return;
-
-  memcpy(dst, src, 32 * num_blocks);
+  u8* dst = m_memory.GetL1Cache() + (cache_address & 0x3FFFF);
+  m_memory.CopyFromEmu(dst, mem_address, 32 * num_blocks);
 }
 
 static bool TranslateBatAddress(const BatTable& bat_table, u32* address, bool* wi)

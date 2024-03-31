@@ -231,7 +231,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
       transfer.address == BBA_WRTXFIFOD)
   {
     auto& memory = m_system.GetMemory();
-    DirectFIFOWrite(memory.GetPointer(addr), size);
+    DirectFIFOWrite(memory.GetPointerForRange(addr, size), size);
   }
   else
   {

@@ -90,24 +90,18 @@ void GPFifoManager::UpdateGatherPipe()
 
   size_t pipe_count = GetGatherPipeCount();
   size_t processed;
-  u8* cur_mem = memory.GetPointer(processor_interface.m_fifo_cpu_write_pointer);
   for (processed = 0; pipe_count >= GATHER_PIPE_SIZE; processed += GATHER_PIPE_SIZE)
   {
     // copy the GatherPipe
-    memcpy(cur_mem, m_gather_pipe + processed, GATHER_PIPE_SIZE);
+    memory.CopyToEmu(processor_interface.m_fifo_cpu_write_pointer, m_gather_pipe + processed,
+                     GATHER_PIPE_SIZE);
     pipe_count -= GATHER_PIPE_SIZE;
 
     // increase the CPUWritePointer
     if (processor_interface.m_fifo_cpu_write_pointer == processor_interface.m_fifo_cpu_end)
-    {
       processor_interface.m_fifo_cpu_write_pointer = processor_interface.m_fifo_cpu_base;
-      cur_mem = memory.GetPointer(processor_interface.m_fifo_cpu_write_pointer);
-    }
     else
-    {
-      cur_mem += GATHER_PIPE_SIZE;
       processor_interface.m_fifo_cpu_write_pointer += GATHER_PIPE_SIZE;
-    }
 
     system.GetCommandProcessor().GatherPipeBursted();
   }

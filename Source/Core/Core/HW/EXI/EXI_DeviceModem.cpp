@@ -127,7 +127,7 @@ void CEXIModem::DMAWrite(u32 addr, u32 size)
   else
   {
     auto& memory = m_system.GetMemory();
-    HandleWriteModemTransfer(memory.GetPointer(addr), size);
+    HandleWriteModemTransfer(memory.GetPointerForRange(addr, size), size);
   }
 }
 
@@ -195,7 +195,7 @@ void CEXIModem::DMARead(u32 addr, u32 size)
   else
   {
     auto& memory = m_system.GetMemory();
-    HandleReadModemTransfer(memory.GetPointer(addr), size);
+    HandleReadModemTransfer(memory.GetPointerForRange(addr, size), size);
   }
 }
 

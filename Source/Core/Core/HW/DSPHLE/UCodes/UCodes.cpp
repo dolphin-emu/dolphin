@@ -190,8 +190,9 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 
     if (Config::Get(Config::MAIN_DUMP_UCODE))
     {
-      DSP::DumpDSPCode(memory.GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size,
-                       ector_crc);
+      const u8* pointer =
+          memory.GetPointerForRange(m_next_ucode.iram_mram_addr, m_next_ucode.iram_size);
+      DSP::DumpDSPCode(pointer, m_next_ucode.iram_size, ector_crc);
     }
 
     DEBUG_LOG_FMT(DSPHLE, "PrepareBootUCode {:#010x}", ector_crc);
