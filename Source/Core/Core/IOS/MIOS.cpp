@@ -74,13 +74,13 @@ bool Load(Core::System& system)
   if (!ppc_symbol_db.IsEmpty())
   {
     ppc_symbol_db.Clear();
-    Host_NotifyMapLoaded();
+    Host_PPCSymbolsChanged();
   }
   if (ppc_symbol_db.LoadMap(guard, File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions(system);
-    Host_NotifyMapLoaded();
+    Host_PPCSymbolsChanged();
   }
 
   const PowerPC::CoreMode core_mode = power_pc.GetMode();

@@ -42,6 +42,7 @@
 #include "Core/System.h"
 #include "DolphinQt/Debugger/BranchWatchTableModel.h"
 #include "DolphinQt/Debugger/CodeWidget.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -219,6 +220,8 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       m_table_model->setFont(ui_settings.GetDebugFont());
       connect(&ui_settings, &Settings::DebugFontChanged, m_table_model,
               &BranchWatchTableModel::setFont);
+      connect(Host::GetInstance(), &Host::PPCSymbolsChanged, m_table_model,
+              &BranchWatchTableModel::UpdateSymbols);
 
       auto* const table_view = new QTableView;
       table_view->setModel(m_table_proxy);
@@ -936,11 +939,6 @@ void BranchWatchDialog::Update()
   if (m_branch_watch.GetRecordingPhase() == Core::BranchWatch::Phase::Blacklist)
     UpdateStatus();
   m_table_model->UpdateHits();
-}
-
-void BranchWatchDialog::UpdateSymbols()
-{
-  m_table_model->UpdateSymbols();
 }
 
 void BranchWatchDialog::UpdateStatus()

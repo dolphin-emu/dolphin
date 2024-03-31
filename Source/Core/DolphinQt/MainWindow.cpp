@@ -591,12 +591,6 @@ void MainWindow::ConnectMenuBar()
   connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
   connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
   connect(this, &MainWindow::RecordingStatusChanged, m_menu_bar, &MenuBar::RecordingStatusChanged);
-
-  // Symbols
-  connect(m_menu_bar, &MenuBar::NotifySymbolsUpdated, [this] {
-    m_code_widget->UpdateSymbols();
-    m_code_widget->Update();
-  });
 }
 
 void MainWindow::ConnectHotkeys()

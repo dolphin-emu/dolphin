@@ -210,7 +210,7 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   if (!ppc_symbol_db.IsEmpty())
   {
     ppc_symbol_db.Clear();
-    Host_NotifyMapLoaded();
+    Host_PPCSymbolsChanged();
   }
   CBoot::LoadMapFromFilename(guard, ppc_symbol_db);
   HLE::Reload(system);

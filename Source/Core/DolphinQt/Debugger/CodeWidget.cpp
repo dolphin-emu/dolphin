@@ -65,8 +65,6 @@ CodeWidget::CodeWidget(QWidget* parent)
     Update();
   });
 
-  connect(Host::GetInstance(), &Host::NotifyMapLoaded, this, &CodeWidget::UpdateSymbols);
-
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
@@ -191,15 +189,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_function_callers_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCallers);
 
-  connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, [this]() {
-    UpdateCallstack();
-    UpdateSymbols();
-    if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
-    {
-      UpdateFunctionCalls(symbol);
-      UpdateFunctionCallers(symbol);
-    }
-  });
+  connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this, &CodeWidget::OnPPCSymbolsChanged);
   connect(m_code_view, &CodeViewWidget::BreakpointsChanged, this,
           [this] { emit BreakpointsChanged(); });
   connect(m_code_view, &CodeViewWidget::UpdateCodeWidget, this, &CodeWidget::Update);
@@ -219,6 +209,17 @@ void CodeWidget::OnBranchWatchDialog()
   m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
   m_branch_watch_dialog->activateWindow();
+}
+
+void CodeWidget::OnPPCSymbolsChanged()
+{
+  UpdateSymbols();
+  UpdateCallstack();
+  if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
+  {
+    UpdateFunctionCalls(symbol);
+    UpdateFunctionCallers(symbol);
+  }
 }
 
 void CodeWidget::OnSearchAddress()
@@ -389,11 +390,6 @@ void CodeWidget::UpdateSymbols()
   }
 
   m_symbols_list->sortItems();
-
-  // TODO: There seems to be a lack of a ubiquitous signal for when symbols change.
-  // This is the best location to catch the signals from MenuBar and CodeViewWidget.
-  if (m_branch_watch_dialog != nullptr)
-    m_branch_watch_dialog->UpdateSymbols();
 }
 
 void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
