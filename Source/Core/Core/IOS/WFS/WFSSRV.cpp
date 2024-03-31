@@ -297,7 +297,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
       fd_obj->file.Seek(position, File::SeekOrigin::Begin);
     }
     size_t read_bytes;
-    fd_obj->file.ReadArray(memory.GetPointer(addr), size, &read_bytes);
+    fd_obj->file.ReadArray(memory.GetPointerForRange(addr, size), size, &read_bytes);
     // TODO(wfs): Handle read errors.
     if (absolute)
     {
@@ -337,7 +337,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     {
       fd_obj->file.Seek(position, File::SeekOrigin::Begin);
     }
-    fd_obj->file.WriteArray(memory.GetPointer(addr), size);
+    fd_obj->file.WriteArray(memory.GetPointerForRange(addr, size), size);
     // TODO(wfs): Handle write errors.
     if (absolute)
     {
