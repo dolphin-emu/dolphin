@@ -176,7 +176,6 @@ private:
 
   void GenerateRichPresence(const Core::CPUThreadGuard& guard);
 
-  ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
   static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
@@ -186,11 +185,11 @@ private:
   void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
-  void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
 
   static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardStartedEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardFailedEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
