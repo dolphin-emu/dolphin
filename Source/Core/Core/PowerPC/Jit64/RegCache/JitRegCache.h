@@ -129,6 +129,12 @@ public:
     MaintainState,
   };
 
+  enum class IgnoreDiscardedRegisters
+  {
+    No,
+    Yes,
+  };
+
   explicit RegCache(Jit64& jit);
   virtual ~RegCache() = default;
 
@@ -169,7 +175,8 @@ public:
 
   RCForkGuard Fork();
   void Discard(BitSet32 pregs);
-  void Flush(BitSet32 pregs = BitSet32::AllTrue(32));
+  void Flush(BitSet32 pregs = BitSet32::AllTrue(32),
+             IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No);
   void Reset(BitSet32 pregs);
   void Revert();
   void Commit();
