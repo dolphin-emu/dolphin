@@ -828,6 +828,25 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
                       nullptr);
 }
 
+void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
+                                                  rc_client_t* client)
+{
+  auto* user_info = rc_client_get_user_info(client);
+  auto* game_info = rc_client_get_game_info(client);
+  if (!user_info || !game_info)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Received Game Completed event when game not running.");
+    return;
+  }
+  bool hardcore = rc_client_get_hardcore_enabled(client);
+  OSD::AddMessage(fmt::format("Congratulations! {} has {} {}", user_info->display_name,
+                              hardcore ? "mastered" : "completed", game_info->title),
+                  OSD::Duration::VERY_LONG, hardcore ? OSD::Color::YELLOW : OSD::Color::CYAN,
+                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
+                      DecodeBadgeToOSDIcon(AchievementManager::GetInstance().m_game_badge.badge) :
+                      nullptr);
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values
@@ -1046,6 +1065,9 @@ void AchievementManager::EventHandler(const rc_client_event_t* event, rc_client_
   case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_HIDE:
     // OnScreenDisplay messages disappear over time, so this is unnecessary
     // unless the display algorithm changes in the future.
+    break;
+  case RC_CLIENT_EVENT_GAME_COMPLETED:
+    HandleGameCompletedEvent(event, client);
     break;
   default:
     INFO_LOG_FMT(ACHIEVEMENTS, "Event triggered of unhandled type {}", event->type);
