@@ -40,7 +40,7 @@ void AchievementManager::Init()
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
       rc_client_set_host(m_client, host_url.c_str());
-    rc_client_set_event_handler(m_client, EventHandlerV2);
+    rc_client_set_event_handler(m_client, EventHandler);
     rc_client_enable_logging(m_client, RC_CLIENT_LOG_LEVEL_VERBOSE,
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
@@ -227,16 +227,6 @@ void AchievementManager::DoFrame()
     m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
     m_last_ping_time = current_time;
     m_update_callback();
-  }
-}
-
-void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
-{
-  switch (runtime_event->type)
-  {
-  case RC_RUNTIME_EVENT_ACHIEVEMENT_PROGRESS_UPDATED:
-    HandleAchievementProgressUpdatedEvent(runtime_event);
-    break;
   }
 }
 
@@ -740,34 +730,6 @@ void AchievementManager::DisplayWelcomeMessage()
                   OSD::Duration::VERY_LONG, color);
 }
 
-void AchievementManager::HandleAchievementProgressUpdatedEvent(
-    const rc_runtime_event_t* runtime_event)
-{
-  if (!Config::Get(Config::RA_PROGRESS_ENABLED))
-    return;
-  auto it = m_unlock_map.find(runtime_event->id);
-  if (it == m_unlock_map.end())
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement progress updated event with id {}.",
-                  runtime_event->id);
-    return;
-  }
-  AchievementId game_data_index = it->second.game_data_index;
-  FormattedValue value{};
-  if (rc_runtime_format_achievement_measured(&m_runtime, runtime_event->id, value.data(),
-                                             FORMAT_SIZE) == 0)
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to format measured data {}.", value.data());
-    return;
-  }
-  OSD::AddMessage(
-      fmt::format("{} {}", m_game_data.achievements[game_data_index].title, value.data()),
-      OSD::Duration::SHORT, OSD::Color::GREEN,
-      (Config::Get(Config::RA_BADGES_ENABLED)) ?
-          DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
-          nullptr);
-}
-
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
@@ -851,6 +813,19 @@ void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
 {
   AchievementManager::GetInstance().m_active_challenges.erase(
       client_event->achievement->badge_name);
+}
+
+void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
+    const rc_client_event_t* client_event)
+{
+  OSD::AddMessage(fmt::format("{} {}", client_event->achievement->title,
+                              client_event->achievement->measured_progress),
+                  OSD::Duration::SHORT, OSD::Color::GREEN,
+                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
+                      DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
+                                               .m_unlocked_badges[client_event->achievement->id]
+                                               .badge) :
+                      nullptr);
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
@@ -1033,7 +1008,7 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
   });
 }
 
-void AchievementManager::EventHandlerV2(const rc_client_event_t* event, rc_client_t* client)
+void AchievementManager::EventHandler(const rc_client_event_t* event, rc_client_t* client)
 {
   switch (event->type)
   {
@@ -1063,6 +1038,14 @@ void AchievementManager::EventHandlerV2(const rc_client_event_t* event, rc_clien
     break;
   case RC_CLIENT_EVENT_ACHIEVEMENT_CHALLENGE_INDICATOR_HIDE:
     HandleAchievementChallengeIndicatorHideEvent(event);
+    break;
+  case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_SHOW:
+  case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_UPDATE:
+    HandleAchievementProgressIndicatorShowEvent(event);
+    break;
+  case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_HIDE:
+    // OnScreenDisplay messages disappear over time, so this is unnecessary
+    // unless the display algorithm changes in the future.
     break;
   default:
     INFO_LOG_FMT(ACHIEVEMENTS, "Event triggered of unhandled type {}", event->type);
