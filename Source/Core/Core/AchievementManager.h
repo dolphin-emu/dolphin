@@ -128,7 +128,6 @@ public:
   void FetchGameBadges();
 
   void DoFrame();
-  void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
   std::recursive_mutex& GetLock();
   bool IsHardcoreModeActive() const;
@@ -184,8 +183,6 @@ private:
                                void* userdata);
   void DisplayWelcomeMessage();
 
-  void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
-
   static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardStartedEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardFailedEvent(const rc_client_event_t* client_event);
@@ -195,6 +192,7 @@ private:
   static void HandleLeaderboardTrackerHideEvent(const rc_client_event_t* client_event);
   static void HandleAchievementChallengeIndicatorShowEvent(const rc_client_event_t* client_event);
   static void HandleAchievementChallengeIndicatorHideEvent(const rc_client_event_t* client_event);
+  static void HandleAchievementProgressIndicatorShowEvent(const rc_client_event_t* client_event);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
@@ -205,7 +203,7 @@ private:
                         void* callback_data, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function);
-  static void EventHandlerV2(const rc_client_event_t* event, rc_client_t* client);
+  static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
