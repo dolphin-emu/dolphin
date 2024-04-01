@@ -193,6 +193,7 @@ private:
   static void HandleAchievementChallengeIndicatorShowEvent(const rc_client_event_t* client_event);
   static void HandleAchievementChallengeIndicatorHideEvent(const rc_client_event_t* client_event);
   static void HandleAchievementProgressIndicatorShowEvent(const rc_client_event_t* client_event);
+  static void HandleGameCompletedEvent(const rc_client_event_t* client_event, rc_client_t* client);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
