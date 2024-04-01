@@ -237,12 +237,6 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
   case RC_RUNTIME_EVENT_ACHIEVEMENT_PROGRESS_UPDATED:
     HandleAchievementProgressUpdatedEvent(runtime_event);
     break;
-  case RC_RUNTIME_EVENT_ACHIEVEMENT_PRIMED:
-    HandleAchievementPrimedEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_ACHIEVEMENT_UNPRIMED:
-    HandleAchievementUnprimedEvent(runtime_event);
-    break;
   }
 }
 
@@ -774,34 +768,6 @@ void AchievementManager::HandleAchievementProgressUpdatedEvent(
           nullptr);
 }
 
-void AchievementManager::HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event)
-{
-  if (!Config::Get(Config::RA_BADGES_ENABLED))
-    return;
-  auto it = m_unlock_map.find(runtime_event->id);
-  if (it == m_unlock_map.end())
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement primed event with id {}.", runtime_event->id);
-    return;
-  }
-  m_active_challenges[it->second.unlocked_badge.name] =
-      DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge);
-}
-
-void AchievementManager::HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event)
-{
-  if (!Config::Get(Config::RA_BADGES_ENABLED))
-    return;
-  auto it = m_unlock_map.find(runtime_event->id);
-  if (it == m_unlock_map.end())
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement unprimed event with id {}.",
-                  runtime_event->id);
-    return;
-  }
-  m_active_challenges.erase(it->second.unlocked_badge.name);
-}
-
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
@@ -863,6 +829,28 @@ void AchievementManager::HandleLeaderboardTrackerHideEvent(const rc_client_event
   std::erase_if(active_leaderboards, [client_event](const auto& leaderboard) {
     return leaderboard.id == client_event->leaderboard_tracker->id;
   });
+}
+
+void AchievementManager::HandleAchievementChallengeIndicatorShowEvent(
+    const rc_client_event_t* client_event)
+{
+  if (Config::Get(Config::RA_BADGES_ENABLED))
+  {
+    auto& unlocked_badges = AchievementManager::GetInstance().m_unlocked_badges;
+    if (const auto unlocked_iter = unlocked_badges.find(client_event->achievement->id);
+        unlocked_iter != unlocked_badges.end())
+    {
+      AchievementManager::GetInstance().m_active_challenges[client_event->achievement->badge_name] =
+          DecodeBadgeToOSDIcon(unlocked_iter->second.badge);
+    }
+  }
+}
+
+void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
+    const rc_client_event_t* client_event)
+{
+  AchievementManager::GetInstance().m_active_challenges.erase(
+      client_event->achievement->badge_name);
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
@@ -1069,6 +1057,12 @@ void AchievementManager::EventHandlerV2(const rc_client_event_t* event, rc_clien
     break;
   case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_HIDE:
     HandleLeaderboardTrackerHideEvent(event);
+    break;
+  case RC_CLIENT_EVENT_ACHIEVEMENT_CHALLENGE_INDICATOR_SHOW:
+    HandleAchievementChallengeIndicatorShowEvent(event);
+    break;
+  case RC_CLIENT_EVENT_ACHIEVEMENT_CHALLENGE_INDICATOR_HIDE:
+    HandleAchievementChallengeIndicatorHideEvent(event);
     break;
   default:
     INFO_LOG_FMT(ACHIEVEMENTS, "Event triggered of unhandled type {}", event->type);

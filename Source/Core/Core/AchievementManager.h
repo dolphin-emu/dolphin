@@ -185,8 +185,6 @@ private:
   void DisplayWelcomeMessage();
 
   void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event);
 
   static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardStartedEvent(const rc_client_event_t* client_event);
@@ -195,6 +193,8 @@ private:
   static void HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardTrackerShowEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardTrackerHideEvent(const rc_client_event_t* client_event);
+  static void HandleAchievementChallengeIndicatorShowEvent(const rc_client_event_t* client_event);
+  static void HandleAchievementChallengeIndicatorHideEvent(const rc_client_event_t* client_event);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
