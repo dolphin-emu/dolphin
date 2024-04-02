@@ -776,6 +776,18 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
                       nullptr);
 }
 
+void AchievementManager::HandleResetEvent(const rc_client_event_t* client_event)
+{
+  INFO_LOG_FMT(ACHIEVEMENTS, "Reset requested by Achievement Mananger");
+  Core::Stop(Core::System::GetInstance());
+}
+
+void AchievementManager::HandleServerErrorEvent(const rc_client_event_t* client_event)
+{
+  ERROR_LOG_FMT(ACHIEVEMENTS, "RetroAchievements server error: {} {}",
+                client_event->server_error->api, client_event->server_error->error_message);
+}
+
 static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge)
 {
   if (badge.empty())
@@ -948,6 +960,12 @@ void AchievementManager::EventHandler(const rc_client_event_t* event, rc_client_
     break;
   case RC_CLIENT_EVENT_GAME_COMPLETED:
     HandleGameCompletedEvent(event, client);
+    break;
+  case RC_CLIENT_EVENT_RESET:
+    HandleResetEvent(event);
+    break;
+  case RC_CLIENT_EVENT_SERVER_ERROR:
+    HandleServerErrorEvent(event);
     break;
   default:
     INFO_LOG_FMT(ACHIEVEMENTS, "Event triggered of unhandled type {}", event->type);
