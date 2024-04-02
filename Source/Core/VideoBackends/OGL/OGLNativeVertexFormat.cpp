@@ -26,8 +26,9 @@ OGLGfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 
 static inline GLuint VarToGL(ComponentFormat t)
 {
-  static constexpr Common::EnumMap<GLuint, ComponentFormat::Float> lookup = {
-      GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT,
+  static constexpr Common::EnumMap<GLuint, ComponentFormat::InvalidFloat7> lookup = {
+      GL_UNSIGNED_BYTE, GL_BYTE,  GL_UNSIGNED_SHORT, GL_SHORT,
+      GL_FLOAT,         GL_FLOAT, GL_FLOAT,          GL_FLOAT,
   };
   return lookup[t];
 }
