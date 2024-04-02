@@ -32,6 +32,11 @@ namespace JIT
 class DSPEmitter;
 }
 
+namespace LLE
+{
+class DSPDebugInterface;
+}
+
 enum : u32
 {
   DSP_IRAM_BYTE_SIZE = 0x2000,
@@ -447,6 +452,8 @@ struct SDSP
   u16* coef = nullptr;
 
 private:
+  friend class LLE::DSPDebugInterface;
+
   auto& GetMailbox(Mailbox mailbox) { return m_mailbox[static_cast<u32>(mailbox)]; }
   const auto& GetMailbox(Mailbox mailbox) const { return m_mailbox[static_cast<u32>(mailbox)]; }
 
@@ -582,7 +589,6 @@ private:
   SDSP m_dsp;
   DSPBreakpoints m_dsp_breakpoints;
   State m_core_state = State::Stopped;
-  bool m_init_hax = false;
   std::unique_ptr<Interpreter::Interpreter> m_dsp_interpreter;
   std::unique_ptr<JIT::DSPEmitter> m_dsp_jit;
   std::unique_ptr<DSPCaptureLogger> m_dsp_cap;

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include <QTableWidget>
@@ -19,6 +20,7 @@ class QShowEvent;
 namespace Core
 {
 class CPUThreadGuard;
+class DebugInterface;
 class System;
 }  // namespace Core
 
@@ -37,7 +39,7 @@ public:
     WithDetailedUpdate
   };
 
-  explicit CodeViewWidget();
+  explicit CodeViewWidget(Core::DebugInterface* debug_interface);
   ~CodeViewWidget() override;
 
   u32 GetAddress() const;
@@ -52,7 +54,9 @@ public:
   void ToggleBreakpoint();
   void AddBreakpoint();
 
-  u32 AddressForRow(int row) const;
+  std::optional<u32> AddressForRow(int row) const;
+  std::optional<int> RowForAddress(u32 address) const;
+  void ChangeAddress(int num_rows);
 
 signals:
   void RequestPPCComparison(u32 addr);
@@ -103,9 +107,12 @@ private:
 
   void CalculateBranchIndentation();
 
+public:
+  Core::DebugInterface* m_debug_interface;
   Core::System& m_system;
   PPCSymbolDB& m_ppc_symbol_db;
 
+private:
   bool m_updating = false;
 
   u32 m_address = 0;

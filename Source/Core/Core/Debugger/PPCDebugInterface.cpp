@@ -382,6 +382,11 @@ void PPCDebugInterface::ToggleBreakpoint(u32 address)
     breakpoints.Add(address);
 }
 
+bool PPCDebugInterface::IsBreakpointEnabled(u32 address) const
+{
+  return m_system.GetPowerPC().GetBreakPoints().IsBreakPointEnable(address);
+}
+
 void PPCDebugInterface::ClearAllMemChecks()
 {
   m_system.GetPowerPC().GetMemChecks().Clear();
@@ -447,9 +452,79 @@ std::string PPCDebugInterface::GetDescription(u32 address) const
   return m_ppc_symbol_db.GetDescription(address);
 }
 
-std::optional<u32>
-PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instruction) const
+constexpr size_t VALID_BRANCH_LENGTH = 10;
+
+std::optional<u32> PPCDebugInterface::GetBranchTarget(const Core::CPUThreadGuard* guard,
+                                                      u32 address) const
 {
+  // TODO: this is a terrible approach, but it's what CodeViewWidget currently uses:
+
+  // look for hex strings to decode branches
+  std::string disas = Disassemble(guard, address);
+  auto split = disas.find('\t');
+
+  std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
+  std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
+  std::string desc = GetDescription(address);
+
+  std::string hex_str;
+  size_t pos = param.find("0x");
+  if (pos != std::string::npos)
+  {
+    hex_str = param.substr(pos);
+  }
+
+  if (hex_str.length() == VALID_BRANCH_LENGTH && desc != "---")
+  {
+    size_t pos2 = disas.find("->0x");
+
+    if (pos2 == std::string::npos)
+      return 0;  // TODO: this should be std::nullopt
+
+    std::string hex = disas.substr(pos2 + 2);
+    return std::stoul(hex, nullptr, 16);
+  }
+
+  return std::nullopt;
+}
+
+bool PPCDebugInterface::IsCallInstruction(const Core::CPUThreadGuard* guard, u32 address) const
+{
+  const std::string ins_full = Disassemble(guard, address);
+  const auto split = ins_full.find('\t');
+  const auto ins =
+      (split != std::string::npos) ? std::string_view(ins_full.data(), split) : ins_full;
+
+  return ins.ends_with("l") || ins.ends_with("la") || ins.ends_with("l+") || ins.ends_with("la+") ||
+         ins.ends_with("l-") || ins.ends_with("la-");
+}
+
+bool PPCDebugInterface::IsReturnInstruction(const Core::CPUThreadGuard* guard, u32 address) const
+{
+  const std::string ins_full = Disassemble(guard, address);
+  const auto split = ins_full.find('\t');
+  const auto ins =
+      (split != std::string::npos) ? std::string_view(ins_full.data(), split) : ins_full;
+
+  return ins == "blr";
+}
+
+bool PPCDebugInterface::IsLoadStoreInstruction(const Core::CPUThreadGuard* guard, u32 address) const
+{
+  // Could add check for context address being near PC, because we need gprs to be correct for the
+  // load/store.
+  std::string ins = Disassemble(guard, address);
+
+  return (ins.starts_with("l") && !ins.starts_with("li")) || ins.starts_with("st") ||
+         ins.starts_with("psq_l") || ins.starts_with("psq_s");
+}
+
+std::optional<u32>
+PPCDebugInterface::GetMemoryAddressFromInstruction(const Core::CPUThreadGuard* guard,
+                                                   u32 address) const
+{
+  std::string instruction = Disassemble(guard, address);
+
   static const std::regex re(",[^r0-]*(-?)(?:0[xX])?([0-9a-fA-F]+|r\\d+)[^r^s]*.(p|toc|\\d+)");
   std::smatch match;
 

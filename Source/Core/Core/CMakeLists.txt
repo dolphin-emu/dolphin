@@ -176,6 +176,8 @@ add_library(core
   HW/DSPHLE/UCodes/UCodes.h
   HW/DSPHLE/UCodes/Zelda.cpp
   HW/DSPHLE/UCodes/Zelda.h
+  HW/DSPLLE/DSPDebugInterface.cpp
+  HW/DSPLLE/DSPDebugInterface.h
   HW/DSPLLE/DSPHost.cpp
   HW/DSPLLE/DSPLLE.cpp
   HW/DSPLLE/DSPLLE.h

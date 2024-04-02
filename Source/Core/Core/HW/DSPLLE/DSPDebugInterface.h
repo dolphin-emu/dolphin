@@ -4,25 +4,18 @@
 #pragma once
 
 #include <cstddef>
-#include <memory>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
 #include "Core/Debugger/DebugInterface.h"
-#include "Core/NetworkCaptureLogger.h"
 
-namespace Core
+namespace DSP::LLE
 {
-class CPUThreadGuard;
-class System;
-}  // namespace Core
-class PPCSymbolDB;
+class DSPLLE;
 
-void ApplyMemoryPatch(const Core::CPUThreadGuard&, Common::Debug::MemoryPatch& patch,
-                      bool store_existing_value = true);
-
-class PPCPatches final : public Common::Debug::MemoryPatches
+class DSPPatches : public Common::Debug::MemoryPatches
 {
 public:
   void ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
@@ -32,13 +25,11 @@ private:
   void UnPatch(std::size_t index) override;
 };
 
-// wrapper between disasm control and Dolphin debugger
-
-class PPCDebugInterface final : public Core::DebugInterface
+class DSPDebugInterface final : public Core::DebugInterface
 {
 public:
-  explicit PPCDebugInterface(Core::System& system, PPCSymbolDB& ppc_symbol_db);
-  ~PPCDebugInterface() override;
+  DSPDebugInterface(DSPLLE* parent);
+  ~DSPDebugInterface() override;
 
   // Watches
   std::size_t SetWatch(u32 address, std::string name = "") override;
@@ -67,8 +58,8 @@ public:
   void UnsetPatch(const Core::CPUThreadGuard& guard, u32 address) override;
   void EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
   void DisablePatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
-  bool HasEnabledPatch(u32 address) const override;
   void RemovePatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
+  bool HasEnabledPatch(u32 address) const override;
   void ClearPatches(const Core::CPUThreadGuard& guard) override;
   void ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
 
@@ -78,56 +69,38 @@ public:
   std::string Disassemble(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
                                  u32 address) const override;
-  std::optional<u32> GetOffsetAddress(u32 address, s32 offset) const override
-  {
-    return address + offset * 4;
-  }
-  std::optional<s32> GetOffsetBetween(u32 cur_address, u32 other_address) const override
-  {
-    if ((cur_address & 3) != (other_address & 3))
-      return std::nullopt;
-    return static_cast<s32>(other_address - cur_address) / 4;
-  }
+  std::optional<u32> GetOffsetAddress(u32 address, s32 offset) const override;
+  std::optional<s32> GetOffsetBetween(u32 cur_address, u32 other_address) const override;
   bool IsAlive() const override;
   bool IsBreakpoint(u32 address) const override;
   void SetBreakpoint(u32 address) override;
   void ClearBreakpoint(u32 address) override;
   void ClearAllBreakpoints() override;
   void ToggleBreakpoint(u32 address) override;
-  bool IsBreakpointEnabled(u32 address) const override;
   void ClearAllMemChecks() override;
-  bool IsMemCheck(u32 address, size_t size = 1) const override;
+  bool IsMemCheck(u32 address, size_t size) const override;
   void ToggleMemCheck(u32 address, bool read = true, bool write = true, bool log = true) override;
   u32 ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const override;
-
-  enum
-  {
-    EXTRAMEM_ARAM = 1,
-  };
-
-  u32 ReadExtraMemory(const Core::CPUThreadGuard& guard, int memory, u32 address) const override;
   u32 ReadInstruction(const Core::CPUThreadGuard& guard, u32 address) const override;
-  std::optional<u32> GetBranchTarget(const Core::CPUThreadGuard* guard, u32 address) const override;
+  u32 GetPC() const override;
+  void SetPC(u32 address) override;
+  void Step() override;
+  void RunToBreakpoint() override;
+  u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
+  std::string GetDescription(u32 address) const override;
   bool IsCallInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
+  std::optional<u32> GetBranchTarget(const Core::CPUThreadGuard* guard, u32 address) const override;
   bool IsReturnInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
   bool IsLoadStoreInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::optional<u32> GetMemoryAddressFromInstruction(const Core::CPUThreadGuard* guard,
                                                      u32 address) const override;
-  u32 GetPC() const override;
-  void SetPC(u32 address) override;
-  void Step() override {}
-  void RunToBreakpoint() override;
-  u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
-  std::string GetDescription(u32 address) const override;
-
-  std::shared_ptr<Core::NetworkCaptureLogger> NetworkLogger();
 
   void Clear(const Core::CPUThreadGuard& guard) override;
 
 private:
   Common::Debug::Watches m_watches;
-  PPCPatches m_patches;
-  std::shared_ptr<Core::NetworkCaptureLogger> m_network_logger;
-  Core::System& m_system;
-  PPCSymbolDB& m_ppc_symbol_db;
+  DSPPatches m_patches;
+
+  DSPLLE* const m_parent;
 };
+}  // namespace DSP::LLE

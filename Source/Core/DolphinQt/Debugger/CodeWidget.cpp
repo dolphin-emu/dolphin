@@ -21,8 +21,12 @@
 
 #include "Common/Event.h"
 #include "Core/Core.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/Debugger/DebugInterface.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -61,7 +65,8 @@ CodeWidget::CodeWidget(QWidget* parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     if (Core::GetState() == Core::State::Paused)
-      SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+      SetAddress(m_code_view->m_debug_interface->GetPC(),
+                 CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
 
@@ -107,7 +112,7 @@ void CodeWidget::CreateWidgets()
 
   m_search_address = new QLineEdit;
   m_branch_watch = new QPushButton(tr("Branch Watch"));
-  m_code_view = new CodeViewWidget;
+  m_code_view = new CodeViewWidget(&Core::System::GetInstance().GetPowerPC().GetDebugInterface());
 
   m_search_address->setPlaceholderText(tr("Search Address"));
 
@@ -456,6 +461,11 @@ void CodeWidget::Step()
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
   power_pc.GetBreakPoints().ClearAllTemporary();
   cpu.StepOpcode(&sync_event);
+  DSPEmulator* dsp_emu = m_system.GetDSP().GetDSPEmulator();
+  if (dsp_emu->IsLLE())
+  {
+    static_cast<DSP::LLE::DSPLLE*>(dsp_emu)->m_debug_interface.Step();
+  }
   sync_event.WaitFor(std::chrono::milliseconds(20));
   power_pc.SetMode(old_mode);
   Core::DisplayMessage(tr("Step successful!").toStdString(), 2000);
@@ -578,7 +588,8 @@ void CodeWidget::Skip()
 
 void CodeWidget::ShowPC()
 {
-  m_code_view->SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithUpdate);
+  m_code_view->SetAddress(m_code_view->m_debug_interface->GetPC(),
+                          CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 

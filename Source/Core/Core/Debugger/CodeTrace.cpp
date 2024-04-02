@@ -16,12 +16,6 @@
 
 namespace
 {
-bool IsInstructionLoadStore(std::string_view ins)
-{
-  return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
-         ins.starts_with("psq_l") || ins.starts_with("psq_s");
-}
-
 u32 GetMemoryTargetSize(std::string_view instr)
 {
   // Word-size operations are taken as the default, check the others.
@@ -129,12 +123,11 @@ TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard)
 
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
-  const std::string instr = debug_interface.Disassemble(&guard, ppc_state.pc);
-  output.instruction = instr;
+  output.instruction = debug_interface.Disassemble(&guard, ppc_state.pc);
   output.address = ppc_state.pc;
 
-  if (IsInstructionLoadStore(output.instruction))
-    output.memory_target = debug_interface.GetMemoryAddressFromInstruction(instr);
+  if (debug_interface.IsLoadStoreInstruction(&guard, ppc_state.pc))
+    output.memory_target = debug_interface.GetMemoryAddressFromInstruction(&guard, ppc_state.pc);
 
   return output;
 }
