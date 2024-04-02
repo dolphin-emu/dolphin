@@ -110,13 +110,6 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
                   "Attempted to load game achievements without achievement client initialized.");
     return;
   }
-  if (m_disabled)
-  {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager is disabled until core is rebooted.");
-    OSD::AddMessage("Achievements are disabled until you restart emulation.",
-                    OSD::Duration::VERY_LONG, OSD::Color::RED);
-    return;
-  }
   if (volume)
   {
     std::lock_guard lg{m_lock};
@@ -135,8 +128,15 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
       .close = &AchievementManager::FilereaderClose,
   };
   rc_hash_init_custom_filereader(&volume_reader);
-  rc_client_begin_identify_and_load_game(m_client, RC_CONSOLE_GAMECUBE, file_path.c_str(), NULL, 0,
-                                         LoadGameCallback, NULL);
+  if (rc_client_get_game_info(m_client))
+  {
+    rc_client_begin_change_media(m_client, file_path.c_str(), NULL, 0, ChangeMediaCallback, NULL);
+  }
+  else
+  {
+    rc_client_begin_identify_and_load_game(m_client, RC_CONSOLE_GAMECUBE, file_path.c_str(), NULL,
+                                           0, LoadGameCallback, NULL);
+  }
 }
 
 bool AchievementManager::IsGameLoaded() const
@@ -324,32 +324,6 @@ AchievementManager::RichPresence AchievementManager::GetRichPresence() const
   return m_rich_presence;
 }
 
-void AchievementManager::SetDisabled(bool disable)
-{
-  bool previously_disabled;
-  {
-    std::lock_guard lg{m_lock};
-    previously_disabled = m_disabled;
-    m_disabled = disable;
-    if (disable && m_is_game_loaded)
-      CloseGame();
-  }
-
-  if (!previously_disabled && disable && Config::Get(Config::RA_ENABLED))
-  {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been disabled.");
-    OSD::AddMessage("Please close all games to re-enable achievements.", OSD::Duration::VERY_LONG,
-                    OSD::Color::RED);
-    m_update_callback(UpdatedItems{.all = true});
-  }
-
-  if (previously_disabled && !disable)
-  {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been re-enabled.");
-    m_update_callback(UpdatedItems{.all = true});
-  }
-};
-
 const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() const
 {
   return m_active_challenges;
@@ -435,7 +409,6 @@ void AchievementManager::Logout()
   {
     std::lock_guard lg{m_lock};
     CloseGame();
-    SetDisabled(false);
     m_player_badge.name.clear();
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
   }
@@ -449,7 +422,6 @@ void AchievementManager::Shutdown()
   if (m_client)
   {
     CloseGame();
-    SetDisabled(false);
     m_queue.Shutdown();
     // DON'T log out - keep those credentials for next run.
     rc_client_destroy(m_client);
@@ -626,6 +598,25 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   // Set this to a value that will immediately trigger RP
   AchievementManager::GetInstance().m_last_rp_time =
       std::chrono::steady_clock::now() - std::chrono::minutes{2};
+}
+
+void AchievementManager::ChangeMediaCallback(int result, const char* error_message,
+                                             rc_client_t* client, void* userdata)
+{
+  if (result == RC_OK)
+    return;
+
+  if (result == RC_HARDCORE_DISABLED)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Hardcore disabled. Unrecognized media inserted.");
+  }
+  else
+  {
+    if (!error_message)
+      error_message = rc_error_str(result);
+
+    ERROR_LOG_FMT(ACHIEVEMENTS, "RetroAchievements media change failed: {}", error_message);
+  }
 }
 
 void AchievementManager::DisplayWelcomeMessage()

@@ -114,8 +114,6 @@ public:
   const BadgeStatus& GetAchievementBadge(AchievementId id, bool locked) const;
   const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
   RichPresence GetRichPresence() const;
-  bool IsDisabled() const { return m_disabled; };
-  void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
   std::vector<std::string> GetActiveLeaderboards() const;
 
@@ -152,6 +150,8 @@ private:
 
   static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
                                void* userdata);
+  static void ChangeMediaCallback(int result, const char* error_message, rc_client_t* client,
+                                  void* userdata);
   void DisplayWelcomeMessage();
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
@@ -183,7 +183,6 @@ private:
   bool m_is_runtime_initialized = false;
   UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
-  bool m_disabled = false;
   BadgeStatus m_player_badge;
   Hash m_game_hash{};
   u32 m_game_id = 0;

@@ -26,7 +26,6 @@ private:
   QLabel* m_points;
   QProgressBar* m_game_progress;
   QLabel* m_rich_presence;
-  QLabel* m_locked_warning;
   QGroupBox* m_header_box;
 };
 
