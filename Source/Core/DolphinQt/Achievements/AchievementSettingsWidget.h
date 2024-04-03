@@ -33,10 +33,10 @@ private:
   void Login();
   void Logout();
   void ToggleHardcore();
-  void ToggleProgress();
-  void ToggleBadges();
   void ToggleUnofficial();
   void ToggleEncore();
+  void ToggleProgress();
+  void ToggleBadges();
 
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
@@ -49,10 +49,10 @@ private:
   QPushButton* m_common_login_button;
   QPushButton* m_common_logout_button;
   ToolTipCheckBox* m_common_hardcore_enabled_input;
-  ToolTipCheckBox* m_common_progress_enabled_input;
-  ToolTipCheckBox* m_common_badges_enabled_input;
   ToolTipCheckBox* m_common_unofficial_enabled_input;
   ToolTipCheckBox* m_common_encore_enabled_input;
+  ToolTipCheckBox* m_common_progress_enabled_input;
+  ToolTipCheckBox* m_common_badges_enabled_input;
 };
 
 #endif  // USE_RETRO_ACHIEVEMENTS
