@@ -61,12 +61,6 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_login_failed = new QLabel(tr("Login Failed"));
   m_common_login_failed->setStyleSheet(QStringLiteral("QLabel { color : red; }"));
   m_common_login_failed->setVisible(false);
-  m_common_unofficial_enabled_input = new ToolTipCheckBox(tr("Enable Unofficial Achievements"));
-  m_common_unofficial_enabled_input->SetDescription(
-      tr("Enable unlocking unofficial achievements as well as official "
-         "achievements.<br><br>Unofficial achievements may be optional or unfinished achievements "
-         "that have not been deemed official by RetroAchievements and may be useful for testing or "
-         "simply for fun."));
   m_common_hardcore_enabled_input = new ToolTipCheckBox(tr("Enable Hardcore Mode"));
   m_common_hardcore_enabled_input->SetDescription(
       tr("Enable Hardcore Mode on RetroAchievements.<br><br>Hardcore Mode is intended to provide "
@@ -81,6 +75,12 @@ void AchievementSettingsWidget::CreateLayout()
          "playing.</dolphin_emphasis><br>Close your current game before enabling.<br>Be aware that "
          "turning Hardcore Mode off while a game is running requires the game to be closed before "
          "re-enabling."));
+  m_common_unofficial_enabled_input = new ToolTipCheckBox(tr("Enable Unofficial Achievements"));
+  m_common_unofficial_enabled_input->SetDescription(
+      tr("Enable unlocking unofficial achievements as well as official "
+         "achievements.<br><br>Unofficial achievements may be optional or unfinished achievements "
+         "that have not been deemed official by RetroAchievements and may be useful for testing or "
+         "simply for fun."));
   m_common_progress_enabled_input = new ToolTipCheckBox(tr("Enable Progress Notifications"));
   m_common_progress_enabled_input->SetDescription(
       tr("Enable progress notifications on achievements.<br><br>Displays a brief popup message "
@@ -105,11 +105,13 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_login_button);
   m_common_layout->addWidget(m_common_logout_button);
   m_common_layout->addWidget(m_common_login_failed);
+  m_common_layout->addWidget(new QLabel(tr("Function Settings")));
   m_common_layout->addWidget(m_common_hardcore_enabled_input);
-  m_common_layout->addWidget(m_common_progress_enabled_input);
-  m_common_layout->addWidget(m_common_badges_enabled_input);
   m_common_layout->addWidget(m_common_unofficial_enabled_input);
   m_common_layout->addWidget(m_common_encore_enabled_input);
+  m_common_layout->addWidget(new QLabel(tr("Display Settings")));
+  m_common_layout->addWidget(m_common_progress_enabled_input);
+  m_common_layout->addWidget(m_common_badges_enabled_input);
 
   m_common_layout->setAlignment(Qt::AlignTop);
   setLayout(m_common_layout);
@@ -229,6 +231,7 @@ void AchievementSettingsWidget::Logout()
 void AchievementSettingsWidget::ToggleHardcore()
 {
   SaveSettings();
+  AchievementManager::GetInstance().SetHardcoreMode();
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
   {
     if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
