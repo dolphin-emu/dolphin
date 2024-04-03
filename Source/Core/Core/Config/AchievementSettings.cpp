@@ -20,6 +20,8 @@ const Info<bool> RA_HARDCORE_ENABLED{{System::Achievements, "Achievements", "Har
 const Info<bool> RA_UNOFFICIAL_ENABLED{{System::Achievements, "Achievements", "UnofficialEnabled"},
                                        false};
 const Info<bool> RA_ENCORE_ENABLED{{System::Achievements, "Achievements", "EncoreEnabled"}, false};
+const Info<bool> RA_SPECTATOR_ENABLED{{System::Achievements, "Achievements", "SpectatorEnabled"},
+                                      false};
 const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},
                                      false};
 const Info<bool> RA_BADGES_ENABLED{{System::Achievements, "Achievements", "BadgesEnabled"}, false};
