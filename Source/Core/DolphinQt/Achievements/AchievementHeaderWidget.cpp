@@ -127,8 +127,7 @@ void AchievementHeaderWidget::UpdateData()
       m_game_progress->setVisible(true);
     m_game_progress->setValue(game_summary.num_unlocked_achievements);
     m_rich_presence->setText(QString::fromUtf8(instance.GetRichPresence().data()));
-    if (!m_rich_presence->isVisible())
-      m_rich_presence->setVisible(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
+    m_rich_presence->setVisible(true);
   }
   else
   {
