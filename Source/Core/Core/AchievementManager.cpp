@@ -359,11 +359,17 @@ AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* va
 }
 
 const AchievementManager::LeaderboardStatus*
-AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderboard_id) const
+AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderboard_id)
 {
-  if (m_leaderboard_map.count(leaderboard_id) < 1)
-    return nullptr;
-  return &m_leaderboard_map.at(leaderboard_id);
+  if (const auto leaderboard_iter = m_leaderboard_map.find(leaderboard_id);
+      leaderboard_iter != m_leaderboard_map.end())
+  {
+    if (leaderboard_iter->second.entries.size() == 0)
+      FetchBoardInfo(leaderboard_id);
+    return &leaderboard_iter->second;
+  }
+
+  return nullptr;
 }
 
 AchievementManager::RichPresence AchievementManager::GetRichPresence() const
@@ -617,92 +623,39 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   AchievementManager::GetInstance().FetchPlayerBadge();
 }
 
-AchievementManager::ResponseType AchievementManager::FetchBoardInfo(AchievementId leaderboard_id)
+void AchievementManager::FetchBoardInfo(AchievementId leaderboard_id)
 {
-  std::string username = Config::Get(Config::RA_USERNAME);
-  LeaderboardStatus lboard{};
+  u32* callback_data_1 = new u32(leaderboard_id);
+  u32* callback_data_2 = new u32(leaderboard_id);
+  rc_client_begin_fetch_leaderboard_entries(m_client, leaderboard_id, 1, 4,
+                                            LeaderboardEntriesCallback, callback_data_1);
+  rc_client_begin_fetch_leaderboard_entries_around_user(
+      m_client, leaderboard_id, 4, LeaderboardEntriesCallback, callback_data_2);
+}
 
+void AchievementManager::LeaderboardEntriesCallback(int result, const char* error_message,
+                                                    rc_client_leaderboard_entry_list_t* list,
+                                                    rc_client_t* client, void* userdata)
+{
+  if (result != RC_OK)
   {
-    rc_api_fetch_leaderboard_info_response_t board_info{};
-    const rc_api_fetch_leaderboard_info_request_t fetch_board_request = {
-        .leaderboard_id = leaderboard_id, .count = 4, .first_entry = 1, .username = nullptr};
-    const ResponseType r_type =
-        Request<rc_api_fetch_leaderboard_info_request_t, rc_api_fetch_leaderboard_info_response_t>(
-            fetch_board_request, &board_info, rc_api_init_fetch_leaderboard_info_request,
-            rc_api_process_fetch_leaderboard_info_response);
-    if (r_type != ResponseType::SUCCESS)
-    {
-      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to fetch info for leaderboard ID {}.", leaderboard_id);
-      rc_api_destroy_fetch_leaderboard_info_response(&board_info);
-      return r_type;
-    }
-    lboard.name = board_info.title;
-    lboard.description = board_info.description;
-    lboard.entries.clear();
-    for (u32 i = 0; i < board_info.num_entries; ++i)
-    {
-      const auto& org_entry = board_info.entries[i];
-      auto dest_entry = LeaderboardEntry{
-          .username = org_entry.username,
-          .rank = org_entry.rank,
-      };
-      if (rc_runtime_format_lboard_value(dest_entry.score.data(), FORMAT_SIZE, org_entry.score,
-                                         board_info.format) == 0)
-      {
-        ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to format leaderboard score {}.", org_entry.score);
-        strncpy(dest_entry.score.data(), fmt::format("{}", org_entry.score).c_str(), FORMAT_SIZE);
-      }
-      lboard.entries.insert_or_assign(org_entry.index, std::move(dest_entry));
-    }
-    rc_api_destroy_fetch_leaderboard_info_response(&board_info);
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to fetch leaderboard entries.");
+    return;
   }
 
+  u32 leaderboard_id = *reinterpret_cast<u32*>(userdata);
+  delete userdata;
+  auto& leaderboard = AchievementManager::GetInstance().m_leaderboard_map[leaderboard_id];
+  for (size_t ix = 0; ix < list->num_entries; ix++)
   {
-    // Retrieve, if exists, the player's entry, the two entries above the player, and the two
-    // entries below the player, for a total of five entries. Technically I only need one entry
-    // below, but the API is ambiguous what happens if an even number and a username are provided.
-    rc_api_fetch_leaderboard_info_response_t board_info{};
-    const rc_api_fetch_leaderboard_info_request_t fetch_board_request = {
-        .leaderboard_id = leaderboard_id,
-        .count = 5,
-        .first_entry = 0,
-        .username = username.c_str()};
-    const ResponseType r_type =
-        Request<rc_api_fetch_leaderboard_info_request_t, rc_api_fetch_leaderboard_info_response_t>(
-            fetch_board_request, &board_info, rc_api_init_fetch_leaderboard_info_request,
-            rc_api_process_fetch_leaderboard_info_response);
-    if (r_type != ResponseType::SUCCESS)
-    {
-      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to fetch info for leaderboard ID {}.", leaderboard_id);
-      rc_api_destroy_fetch_leaderboard_info_response(&board_info);
-      return r_type;
-    }
-    for (u32 i = 0; i < board_info.num_entries; ++i)
-    {
-      const auto& org_entry = board_info.entries[i];
-      auto dest_entry = LeaderboardEntry{
-          .username = org_entry.username,
-          .rank = org_entry.rank,
-      };
-      if (rc_runtime_format_lboard_value(dest_entry.score.data(), FORMAT_SIZE, org_entry.score,
-                                         board_info.format) == 0)
-      {
-        ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to format leaderboard score {}.", org_entry.score);
-        strncpy(dest_entry.score.data(), fmt::format("{}", org_entry.score).c_str(), FORMAT_SIZE);
-      }
-      lboard.entries.insert_or_assign(org_entry.index, std::move(dest_entry));
-      if (org_entry.username == username)
-        lboard.player_index = org_entry.index;
-    }
-    rc_api_destroy_fetch_leaderboard_info_response(&board_info);
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+    const auto& response_entry = list->entries[ix];
+    auto& map_entry = leaderboard.entries[response_entry.index];
+    map_entry.username.assign(response_entry.user);
+    memcpy(map_entry.score.data(), response_entry.display, FORMAT_SIZE);
+    map_entry.rank = response_entry.rank;
   }
-
-  {
-    std::lock_guard lg{m_lock};
-    m_leaderboard_map.insert_or_assign(leaderboard_id, std::move(lboard));
-  }
-
-  return ResponseType::SUCCESS;
+  AchievementManager::GetInstance().m_update_callback();
 }
 
 void AchievementManager::GenerateRichPresence(const Core::CPUThreadGuard& guard)
@@ -807,12 +760,14 @@ void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* 
   OSD::AddMessage(fmt::format("Attempting leaderboard: {} - {}", client_event->leaderboard->title,
                               client_event->leaderboard->description),
                   OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardFailedEvent(const rc_client_event_t* client_event)
 {
   OSD::AddMessage(fmt::format("Failed leaderboard: {}", client_event->leaderboard->title),
                   OSD::Duration::VERY_LONG, OSD::Color::RED);
+  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event)
@@ -821,6 +776,7 @@ void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t
                               client_event->leaderboard->tracker_value,
                               client_event->leaderboard->title),
                   OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+  AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event)
