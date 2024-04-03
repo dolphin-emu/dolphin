@@ -16,7 +16,7 @@ const Info<std::string> RA_HOST_URL{{System::Achievements, "Achievements", "Host
 const Info<std::string> RA_USERNAME{{System::Achievements, "Achievements", "Username"}, ""};
 const Info<std::string> RA_API_TOKEN{{System::Achievements, "Achievements", "ApiToken"}, ""};
 const Info<bool> RA_HARDCORE_ENABLED{{System::Achievements, "Achievements", "HardcoreEnabled"},
-                                     false};
+                                     true};
 const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},
                                      false};
 const Info<bool> RA_BADGES_ENABLED{{System::Achievements, "Achievements", "BadgesEnabled"}, false};

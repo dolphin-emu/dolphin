@@ -103,6 +103,7 @@ public:
   void DoFrame();
 
   std::recursive_mutex& GetLock();
+  void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;

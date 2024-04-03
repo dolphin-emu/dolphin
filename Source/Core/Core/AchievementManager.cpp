@@ -45,7 +45,7 @@ void AchievementManager::Init()
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
                              });
-    rc_client_set_hardcore_enabled(m_client, 0);
+    rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
     rc_client_set_unofficial_enabled(m_client, 1);
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
@@ -240,16 +240,19 @@ std::recursive_mutex& AchievementManager::GetLock()
   return m_lock;
 }
 
+void AchievementManager::SetHardcoreMode()
+{
+  rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+}
+
 bool AchievementManager::IsHardcoreModeActive() const
 {
   std::lock_guard lg{m_lock};
-  if (!Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (!rc_client_get_hardcore_enabled(m_client))
     return false;
-  if (!Core::IsRunning())
+  if (!rc_client_get_game_info(m_client))
     return true;
-  if (!IsGameLoaded())
-    return false;
-  return (m_runtime.trigger_count + m_runtime.lboard_count > 0);
+  return rc_client_is_processing_required(m_client);
 }
 
 std::string_view AchievementManager::GetPlayerDisplayName() const
