@@ -61,18 +61,6 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_login_failed = new QLabel(tr("Login Failed"));
   m_common_login_failed->setStyleSheet(QStringLiteral("QLabel { color : red; }"));
   m_common_login_failed->setVisible(false);
-  m_common_achievements_enabled_input = new ToolTipCheckBox(tr("Enable Achievements"));
-  m_common_achievements_enabled_input->SetDescription(tr("Enable unlocking achievements.<br>"));
-  m_common_leaderboards_enabled_input = new ToolTipCheckBox(tr("Enable Leaderboards"));
-  m_common_leaderboards_enabled_input->SetDescription(
-      tr("Enable competing in RetroAchievements leaderboards.<br><br>Hardcore Mode must be enabled "
-         "to use."));
-  m_common_rich_presence_enabled_input = new ToolTipCheckBox(tr("Enable Rich Presence"));
-  m_common_rich_presence_enabled_input->SetDescription(
-      tr("Enable detailed rich presence on the RetroAchievements website.<br><br>This provides a "
-         "detailed description of what the player is doing in game to the website. If this is "
-         "disabled, the website will only report what game is being played.<br><br>This has no "
-         "bearing on Discord rich presence."));
   m_common_unofficial_enabled_input = new ToolTipCheckBox(tr("Enable Unofficial Achievements"));
   m_common_unofficial_enabled_input->SetDescription(
       tr("Enable unlocking unofficial achievements as well as official "
@@ -117,9 +105,6 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_login_button);
   m_common_layout->addWidget(m_common_logout_button);
   m_common_layout->addWidget(m_common_login_failed);
-  m_common_layout->addWidget(m_common_achievements_enabled_input);
-  m_common_layout->addWidget(m_common_leaderboards_enabled_input);
-  m_common_layout->addWidget(m_common_rich_presence_enabled_input);
   m_common_layout->addWidget(m_common_hardcore_enabled_input);
   m_common_layout->addWidget(m_common_progress_enabled_input);
   m_common_layout->addWidget(m_common_badges_enabled_input);
@@ -136,12 +121,6 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleRAIntegration);
   connect(m_common_login_button, &QPushButton::pressed, this, &AchievementSettingsWidget::Login);
   connect(m_common_logout_button, &QPushButton::pressed, this, &AchievementSettingsWidget::Logout);
-  connect(m_common_achievements_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleAchievements);
-  connect(m_common_leaderboards_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleLeaderboards);
-  connect(m_common_rich_presence_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleRichPresence);
   connect(m_common_hardcore_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleHardcore);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
@@ -165,7 +144,6 @@ void AchievementSettingsWidget::OnControllerInterfaceConfigure()
 void AchievementSettingsWidget::LoadSettings()
 {
   bool enabled = Config::Get(Config::RA_ENABLED);
-  bool achievements_enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
   bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
   bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
   std::string username = Config::Get(Config::RA_USERNAME);
@@ -184,17 +162,6 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
-  SignalBlocking(m_common_achievements_enabled_input)->setChecked(achievements_enabled);
-  SignalBlocking(m_common_achievements_enabled_input)->setEnabled(enabled);
-
-  SignalBlocking(m_common_leaderboards_enabled_input)
-      ->setChecked(Config::Get(Config::RA_LEADERBOARDS_ENABLED));
-  SignalBlocking(m_common_leaderboards_enabled_input)->setEnabled(enabled && hardcore_enabled);
-
-  SignalBlocking(m_common_rich_presence_enabled_input)
-      ->setChecked(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
-  SignalBlocking(m_common_rich_presence_enabled_input)->setEnabled(enabled);
-
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
   auto& system = Core::System::GetInstance();
@@ -205,17 +172,17 @@ void AchievementSettingsWidget::LoadSettings()
 
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
-  SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled && achievements_enabled);
+  SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_badges_enabled_input)->setChecked(Config::Get(Config::RA_BADGES_ENABLED));
   SignalBlocking(m_common_badges_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_unofficial_enabled_input)
       ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
-  SignalBlocking(m_common_unofficial_enabled_input)->setEnabled(enabled && achievements_enabled);
+  SignalBlocking(m_common_unofficial_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_encore_enabled_input)->setChecked(Config::Get(Config::RA_ENCORE_ENABLED));
-  SignalBlocking(m_common_encore_enabled_input)->setEnabled(enabled && achievements_enabled);
+  SignalBlocking(m_common_encore_enabled_input)->setEnabled(enabled);
 }
 
 void AchievementSettingsWidget::SaveSettings()
@@ -223,12 +190,6 @@ void AchievementSettingsWidget::SaveSettings()
   Config::ConfigChangeCallbackGuard config_guard;
 
   Config::SetBaseOrCurrent(Config::RA_ENABLED, m_common_integration_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_ACHIEVEMENTS_ENABLED,
-                           m_common_achievements_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_LEADERBOARDS_ENABLED,
-                           m_common_leaderboards_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_RICH_PRESENCE_ENABLED,
-                           m_common_rich_presence_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
                            m_common_hardcore_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
@@ -262,21 +223,6 @@ void AchievementSettingsWidget::Login()
 void AchievementSettingsWidget::Logout()
 {
   AchievementManager::GetInstance().Logout();
-  SaveSettings();
-}
-
-void AchievementSettingsWidget::ToggleAchievements()
-{
-  SaveSettings();
-}
-
-void AchievementSettingsWidget::ToggleLeaderboards()
-{
-  SaveSettings();
-}
-
-void AchievementSettingsWidget::ToggleRichPresence()
-{
   SaveSettings();
 }
 

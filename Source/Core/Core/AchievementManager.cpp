@@ -652,7 +652,7 @@ void AchievementManager::DisplayWelcomeMessage()
       fmt::format("Hardcore mode is {}", rc_client_get_hardcore_enabled(m_client) ? "ON" : "OFF"),
       OSD::Duration::VERY_LONG, color);
   OSD::AddMessage(fmt::format("Leaderboard submissions are {}",
-                              Config::Get(Config::RA_LEADERBOARDS_ENABLED) ? "ON" : "OFF"),
+                              rc_client_get_hardcore_enabled(m_client) ? "ON" : "OFF"),
                   OSD::Duration::VERY_LONG, color);
 }
 
