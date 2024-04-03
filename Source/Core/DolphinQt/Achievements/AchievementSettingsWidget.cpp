@@ -87,6 +87,13 @@ void AchievementSettingsWidget::CreateLayout()
          "the player has already unlocked on the site so that the player will be notified if they "
          "meet the unlock conditions again, useful for custom speedrun criteria or simply for fun."
          "<br><br>Setting takes effect on next game load."));
+  m_common_spectator_enabled_input = new ToolTipCheckBox(tr("Enable Spectator Mode"));
+  m_common_spectator_enabled_input->SetDescription(
+      tr("Enable unlocking achievements in Spectator Mode.<br><br>While in Spectator Mode, "
+         "achievements and leaderboards will be processed and displayed on screen, but will not be "
+         "submitted to the server.<br><br>If this is on at game launch, it will not be turned off "
+         "until game close, because a RetroAchievements session will not be created.<br><br>If "
+         "this is off at game launch, it can be toggled freely while the game is running."));
   m_common_progress_enabled_input = new ToolTipCheckBox(tr("Enable Progress Notifications"));
   m_common_progress_enabled_input->SetDescription(
       tr("Enable progress notifications on achievements.<br><br>Displays a brief popup message "
@@ -110,6 +117,7 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_hardcore_enabled_input);
   m_common_layout->addWidget(m_common_unofficial_enabled_input);
   m_common_layout->addWidget(m_common_encore_enabled_input);
+  m_common_layout->addWidget(m_common_spectator_enabled_input);
   m_common_layout->addWidget(new QLabel(tr("Display Settings")));
   m_common_layout->addWidget(m_common_progress_enabled_input);
   m_common_layout->addWidget(m_common_badges_enabled_input);
@@ -130,6 +138,8 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleUnofficial);
   connect(m_common_encore_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleEncore);
+  connect(m_common_spectator_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleSpectator);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleProgress);
   connect(m_common_badges_enabled_input, &QCheckBox::toggled, this,
@@ -180,6 +190,10 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_encore_enabled_input)->setChecked(Config::Get(Config::RA_ENCORE_ENABLED));
   SignalBlocking(m_common_encore_enabled_input)->setEnabled(enabled);
 
+  SignalBlocking(m_common_spectator_enabled_input)
+      ->setChecked(Config::Get(Config::RA_SPECTATOR_ENABLED));
+  SignalBlocking(m_common_spectator_enabled_input)->setEnabled(enabled);
+
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
@@ -198,6 +212,8 @@ void AchievementSettingsWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
                            m_common_unofficial_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
+                           m_common_spectator_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
                            m_common_progress_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_BADGES_ENABLED, m_common_badges_enabled_input->isChecked());
@@ -252,6 +268,12 @@ void AchievementSettingsWidget::ToggleUnofficial()
 void AchievementSettingsWidget::ToggleEncore()
 {
   SaveSettings();
+}
+
+void AchievementSettingsWidget::ToggleSpectator()
+{
+  SaveSettings();
+  AchievementManager::GetInstance().SetSpectatorMode();
 }
 
 void AchievementSettingsWidget::ToggleProgress()

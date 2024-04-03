@@ -105,6 +105,7 @@ public:
   std::recursive_mutex& GetLock();
   void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
+  void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
   const BadgeStatus& GetPlayerBadge() const;

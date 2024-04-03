@@ -35,6 +35,7 @@ private:
   void ToggleHardcore();
   void ToggleUnofficial();
   void ToggleEncore();
+  void ToggleSpectator();
   void ToggleProgress();
   void ToggleBadges();
 
@@ -51,6 +52,7 @@ private:
   ToolTipCheckBox* m_common_hardcore_enabled_input;
   ToolTipCheckBox* m_common_unofficial_enabled_input;
   ToolTipCheckBox* m_common_encore_enabled_input;
+  ToolTipCheckBox* m_common_spectator_enabled_input;
   ToolTipCheckBox* m_common_progress_enabled_input;
   ToolTipCheckBox* m_common_badges_enabled_input;
 };

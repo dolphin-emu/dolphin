@@ -111,6 +111,7 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   }
   rc_client_set_unofficial_enabled(m_client, Config::Get(Config::RA_UNOFFICIAL_ENABLED));
   rc_client_set_encore_mode_enabled(m_client, Config::Get(Config::RA_ENCORE_ENABLED));
+  rc_client_set_spectator_mode_enabled(m_client, Config::Get(Config::RA_SPECTATOR_ENABLED));
   if (volume)
   {
     std::lock_guard lg{m_lock};
@@ -254,6 +255,11 @@ bool AchievementManager::IsHardcoreModeActive() const
   if (!rc_client_get_game_info(m_client))
     return true;
   return rc_client_is_processing_required(m_client);
+}
+
+void AchievementManager::SetSpectatorMode()
+{
+  rc_client_set_spectator_mode_enabled(m_client, Config::Get(Config::RA_SPECTATOR_ENABLED));
 }
 
 std::string_view AchievementManager::GetPlayerDisplayName() const
