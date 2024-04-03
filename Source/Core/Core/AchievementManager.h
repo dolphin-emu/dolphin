@@ -143,7 +143,7 @@ public:
   const UnlockStatus* GetUnlockStatus(AchievementId achievement_id) const;
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
-  const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id) const;
+  const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
   RichPresence GetRichPresence() const;
   bool IsDisabled() const { return m_disabled; };
   void SetDisabled(bool disabled);
@@ -177,7 +177,7 @@ private:
   static void LoginCallback(int result, const char* error_message, rc_client_t* client,
                             void* userdata);
 
-  ResponseType FetchBoardInfo(AchievementId leaderboard_id);
+  void FetchBoardInfo(AchievementId leaderboard_id);
 
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
 
@@ -188,6 +188,10 @@ private:
   static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
                                void* userdata);
   void DisplayWelcomeMessage();
+
+  static void LeaderboardEntriesCallback(int result, const char* error_message,
+                                         rc_client_leaderboard_entry_list_t* list,
+                                         rc_client_t* client, void* userdata);
 
   static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardStartedEvent(const rc_client_event_t* client_event);
