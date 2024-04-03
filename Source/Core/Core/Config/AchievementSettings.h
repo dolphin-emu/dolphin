@@ -15,10 +15,10 @@ extern const Info<std::string> RA_USERNAME;
 extern const Info<std::string> RA_HOST_URL;
 extern const Info<std::string> RA_API_TOKEN;
 extern const Info<bool> RA_HARDCORE_ENABLED;
-extern const Info<bool> RA_PROGRESS_ENABLED;
-extern const Info<bool> RA_BADGES_ENABLED;
 extern const Info<bool> RA_UNOFFICIAL_ENABLED;
 extern const Info<bool> RA_ENCORE_ENABLED;
+extern const Info<bool> RA_PROGRESS_ENABLED;
+extern const Info<bool> RA_BADGES_ENABLED;
 }  // namespace Config
 
 #endif  // USE_RETRO_ACHIEVEMENTS

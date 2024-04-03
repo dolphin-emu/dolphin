@@ -46,7 +46,6 @@ void AchievementManager::Init()
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
                              });
     rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
-    rc_client_set_unofficial_enabled(m_client, 1);
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
@@ -110,6 +109,8 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
                   "Attempted to load game achievements without achievement client initialized.");
     return;
   }
+  rc_client_set_unofficial_enabled(m_client, Config::Get(Config::RA_UNOFFICIAL_ENABLED));
+  rc_client_set_encore_mode_enabled(m_client, Config::Get(Config::RA_ENCORE_ENABLED));
   if (volume)
   {
     std::lock_guard lg{m_lock};
