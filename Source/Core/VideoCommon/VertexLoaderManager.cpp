@@ -319,6 +319,51 @@ static void CheckCPConfiguration(int vtx_attr_group)
     DolphinAnalytics::Instance().ReportGameQuirk(
         GameQuirk::MISMATCHED_GPU_MATRIX_INDICES_BETWEEN_CP_AND_XF);
   }
+
+  if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat >= ComponentFormat::InvalidFloat5)
+  {
+    WARN_LOG_FMT(VIDEO, "Invalid position format {} for VAT {} - {:08x} {:08x} {:08x}",
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat, vtx_attr_group,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_POSITION_COMPONENT_FORMAT);
+  }
+  if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat >= ComponentFormat::InvalidFloat5)
+  {
+    WARN_LOG_FMT(VIDEO, "Invalid normal format {} for VAT {} - {:08x} {:08x} {:08x}",
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat, vtx_attr_group,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                 g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_NORMAL_COMPONENT_FORMAT);
+  }
+  for (size_t i = 0; i < 8; i++)
+  {
+    if (g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i) >= ComponentFormat::InvalidFloat5)
+    {
+      WARN_LOG_FMT(VIDEO,
+                   "Invalid texture coordinate {} format {} for VAT {} - {:08x} {:08x} {:08x}", i,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i), vtx_attr_group,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+      DolphinAnalytics::Instance().ReportGameQuirk(
+          GameQuirk::INVALID_TEXTURE_COORDINATE_COMPONENT_FORMAT);
+    }
+  }
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i) > ColorFormat::RGBA8888)
+    {
+      WARN_LOG_FMT(VIDEO, "Invalid color {} format {} for VAT {} - {:08x} {:08x} {:08x}", i,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i), vtx_attr_group,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+                   g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_COLOR_COMPONENT_FORMAT);
+    }
+  }
 }
 
 template <bool IsPreprocess>

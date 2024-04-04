@@ -60,11 +60,14 @@ void TexCoord_ReadIndex(VertexLoader* loader)
 }
 
 using ComponentCountRow = Common::EnumMap<TPipelineFunction, TexComponentCount::ST>;
-using ComponentFormatTable = Common::EnumMap<ComponentCountRow, ComponentFormat::Float>;
+using ComponentFormatTable = Common::EnumMap<ComponentCountRow, ComponentFormat::InvalidFloat7>;
 using Table = Common::EnumMap<ComponentFormatTable, VertexComponentFormat::Index16>;
 
 constexpr Table s_table_read_tex_coord = {
     ComponentFormatTable({
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
         ComponentCountRow(nullptr, nullptr),
         ComponentCountRow(nullptr, nullptr),
         ComponentCountRow(nullptr, nullptr),
@@ -77,6 +80,9 @@ constexpr Table s_table_read_tex_coord = {
         ComponentCountRow(TexCoord_ReadDirect<u16, 1>, TexCoord_ReadDirect<u16, 2>),
         ComponentCountRow(TexCoord_ReadDirect<s16, 1>, TexCoord_ReadDirect<s16, 2>),
         ComponentCountRow(TexCoord_ReadDirect<float, 1>, TexCoord_ReadDirect<float, 2>),
+        ComponentCountRow(TexCoord_ReadDirect<float, 1>, TexCoord_ReadDirect<float, 2>),
+        ComponentCountRow(TexCoord_ReadDirect<float, 1>, TexCoord_ReadDirect<float, 2>),
+        ComponentCountRow(TexCoord_ReadDirect<float, 1>, TexCoord_ReadDirect<float, 2>),
     }),
     ComponentFormatTable({
         ComponentCountRow(TexCoord_ReadIndex<u8, u8, 1>, TexCoord_ReadIndex<u8, u8, 2>),
@@ -84,12 +90,18 @@ constexpr Table s_table_read_tex_coord = {
         ComponentCountRow(TexCoord_ReadIndex<u8, u16, 1>, TexCoord_ReadIndex<u8, u16, 2>),
         ComponentCountRow(TexCoord_ReadIndex<u8, s16, 1>, TexCoord_ReadIndex<u8, s16, 2>),
         ComponentCountRow(TexCoord_ReadIndex<u8, float, 1>, TexCoord_ReadIndex<u8, float, 2>),
+        ComponentCountRow(TexCoord_ReadIndex<u8, float, 1>, TexCoord_ReadIndex<u8, float, 2>),
+        ComponentCountRow(TexCoord_ReadIndex<u8, float, 1>, TexCoord_ReadIndex<u8, float, 2>),
+        ComponentCountRow(TexCoord_ReadIndex<u8, float, 1>, TexCoord_ReadIndex<u8, float, 2>),
     }),
     ComponentFormatTable({
         ComponentCountRow(TexCoord_ReadIndex<u16, u8, 1>, TexCoord_ReadIndex<u16, u8, 2>),
         ComponentCountRow(TexCoord_ReadIndex<u16, s8, 1>, TexCoord_ReadIndex<u16, s8, 2>),
         ComponentCountRow(TexCoord_ReadIndex<u16, u16, 1>, TexCoord_ReadIndex<u16, u16, 2>),
         ComponentCountRow(TexCoord_ReadIndex<u16, s16, 1>, TexCoord_ReadIndex<u16, s16, 2>),
+        ComponentCountRow(TexCoord_ReadIndex<u16, float, 1>, TexCoord_ReadIndex<u16, float, 2>),
+        ComponentCountRow(TexCoord_ReadIndex<u16, float, 1>, TexCoord_ReadIndex<u16, float, 2>),
+        ComponentCountRow(TexCoord_ReadIndex<u16, float, 1>, TexCoord_ReadIndex<u16, float, 2>),
         ComponentCountRow(TexCoord_ReadIndex<u16, float, 1>, TexCoord_ReadIndex<u16, float, 2>),
     }),
 };
