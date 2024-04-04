@@ -409,7 +409,7 @@ u8* MemoryManager::GetPointerForRange(u32 address, size_t size) const
 
   // Check that the beginning and end of the range are valid
   u8* pointer = GetPointer(address);
-  if (!pointer || !GetPointer(address + u32(size) - 1))
+  if (pointer == nullptr || (size != 0 && GetPointer(address + u32(size) - 1) == nullptr))
   {
     // A panic alert has already been raised by GetPointer
     return nullptr;
