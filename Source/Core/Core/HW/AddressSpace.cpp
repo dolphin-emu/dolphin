@@ -150,14 +150,14 @@ struct EffectiveAddressSpaceAccessors : Accessors
         return false;
       }
 
-      u8* page_ptr = memory.GetPointer(*page_physical_address);
+      std::size_t chunk_size = std::min<std::size_t>(0x1000 - offset, needle_size);
+      u8* page_ptr = memory.GetPointerForRange(*page_physical_address + offset, chunk_size);
       if (page_ptr == nullptr)
       {
         return false;
       }
 
-      std::size_t chunk_size = std::min<std::size_t>(0x1000 - offset, needle_size);
-      if (memcmp(needle_start, page_ptr + offset, chunk_size) != 0)
+      if (memcmp(needle_start, page_ptr, chunk_size) != 0)
       {
         return false;
       }

@@ -76,7 +76,7 @@ void CodeLoaded(DSPCore& dsp, u32 addr, size_t size)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  CodeLoaded(dsp, memory.GetPointer(addr), size);
+  CodeLoaded(dsp, memory.GetPointerForRange(addr, size), size);
 }
 
 void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
