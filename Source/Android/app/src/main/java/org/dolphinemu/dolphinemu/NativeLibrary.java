@@ -21,6 +21,7 @@ import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.LinkedHashMap;
+import java.util.concurrent.Semaphore;
 
 /**
  * Class which contains methods that interact
@@ -28,7 +29,7 @@ import java.util.LinkedHashMap;
  */
 public final class NativeLibrary
 {
-  private static final Object sAlertMessageLock = new Object();
+  private static final Semaphore sAlertMessageSemaphore = new Semaphore(0);
   private static boolean sIsShowingAlertMessage = false;
 
   private static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
@@ -492,15 +493,12 @@ public final class NativeLibrary
       });
 
       // Wait for the lock to notify that it is complete.
-      synchronized (sAlertMessageLock)
+      try
       {
-        try
-        {
-          sAlertMessageLock.wait();
-        }
-        catch (Exception ignored)
-        {
-        }
+        sAlertMessageSemaphore.acquire();
+      }
+      catch (InterruptedException ignored)
+      {
       }
 
       if (yesNo)
@@ -520,10 +518,7 @@ public final class NativeLibrary
 
   public static void NotifyAlertMessageLock()
   {
-    synchronized (sAlertMessageLock)
-    {
-      sAlertMessageLock.notify();
-    }
+    sAlertMessageSemaphore.release();
   }
 
   public static void setEmulationActivity(EmulationActivity emulationActivity)
