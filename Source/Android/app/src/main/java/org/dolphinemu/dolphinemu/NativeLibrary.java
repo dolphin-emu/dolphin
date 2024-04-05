@@ -385,16 +385,9 @@ public final class NativeLibrary
   public static native boolean IsRunningAndUnpaused();
 
   /**
-   * Enables or disables CPU block profiling
-   *
-   * @param enable
+   * Writes out the JitBlock Cache log dump
    */
-  public static native void SetProfiling(boolean enable);
-
-  /**
-   * Writes out the block profile results
-   */
-  public static native void WriteProfileResults();
+  public static native void WriteJitBlockLogDump();
 
   /**
    * Native EGL functions not exposed by Java bindings

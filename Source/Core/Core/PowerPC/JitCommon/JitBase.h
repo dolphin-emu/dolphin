@@ -86,7 +86,6 @@ protected:
     bool memcheck;
     bool fp_exceptions;
     bool div_by_zero_exceptions;
-    bool profile_blocks;
   };
   struct JitState
   {
@@ -149,6 +148,7 @@ protected:
   bool bJITSystemRegistersOff = false;
   bool bJITBranchOff = false;
   bool bJITRegisterCacheOff = false;
+  bool m_enable_profiling = false;
   bool m_enable_debugging = false;
   bool m_enable_branch_following = false;
   bool m_enable_float_exceptions = false;
@@ -163,7 +163,7 @@ protected:
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JIT_SETTINGS;
 
   bool DoesConfigNeedRefresh();
   void RefreshConfig();
@@ -187,6 +187,7 @@ public:
   JitBase& operator=(JitBase&&) = delete;
   ~JitBase() override;
 
+  bool IsProfilingEnabled() const { return m_enable_profiling; }
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
 
   static const u8* Dispatch(JitBase& jit);

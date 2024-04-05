@@ -447,7 +447,6 @@
     <ClInclude Include="Core\PowerPC\PPCCache.h" />
     <ClInclude Include="Core\PowerPC\PPCSymbolDB.h" />
     <ClInclude Include="Core\PowerPC\PPCTables.h" />
-    <ClInclude Include="Core\PowerPC\Profiler.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\DSYSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\MEGASignatureDB.h" />

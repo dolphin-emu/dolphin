@@ -6,6 +6,7 @@
 #include <android/native_window_jni.h>
 #include <cstdio>
 #include <cstdlib>
+#include <fmt/format.h>
 #include <jni.h>
 #include <memory>
 #include <mutex>
@@ -22,6 +23,7 @@
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
@@ -42,7 +44,6 @@
 #include "Core/Host.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/Profiler.h"
 #include "Core/State.h"
 #include "Core/System.h"
 
@@ -404,26 +405,34 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLev
   return static_cast<jint>(Common::Log::MAX_LOGLEVEL);
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv*, jclass,
-                                                                                 jboolean enable)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteJitBlockLogDump(
+    JNIEnv* env, jclass native_library_class)
 {
   HostThreadLock guard;
   auto& system = Core::System::GetInstance();
   auto& jit_interface = system.GetJitInterface();
-  const Core::CPUThreadGuard cpu_guard(system);
-  jit_interface.ClearCache(cpu_guard);
-  jit_interface.SetProfilingState(enable ? JitInterface::ProfilingState::Enabled :
-                                           JitInterface::ProfilingState::Disabled);
-}
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv*,
-                                                                                        jclass)
-{
-  HostThreadLock guard;
-  std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
-  File::CreateFullPath(filename);
-  auto& jit_interface = Core::System::GetInstance().GetJitInterface();
-  jit_interface.WriteProfileResults(filename);
+  if (jit_interface.GetCore() == nullptr)
+  {
+    env->CallStaticVoidMethod(native_library_class, IDCache::GetDisplayToastMsg(),
+                              ToJString(env, Common::GetStringT("JIT is not active")),
+                              static_cast<jboolean>(false));
+    return;
+  }
+  const std::string filename = fmt::format("{}{}.txt", File::GetUserPath(D_DUMPDEBUG_JITBLOCKS_IDX),
+                                           SConfig::GetInstance().GetGameID());
+  File::IOFile f(filename, "w");
+  if (!f)
+  {
+    env->CallStaticVoidMethod(
+        native_library_class, IDCache::GetDisplayToastMsg(),
+        ToJString(env, Common::FmtFormatT("Failed to open \"{0}\" for writing.", filename)),
+        static_cast<jboolean>(false));
+    return;
+  }
+  jit_interface.JitBlockLogDump(Core::CPUThreadGuard{system}, f.GetHandle());
+  env->CallStaticVoidMethod(native_library_class, IDCache::GetDisplayToastMsg(),
+                            ToJString(env, Common::FmtFormatT("Wrote to \"{0}\".", filename)),
+                            static_cast<jboolean>(false));
 }
 
 // Surface Handling

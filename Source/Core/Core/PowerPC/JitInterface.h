@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdio>
+#include <functional>
 #include <memory>
 #include <string>
 #include <variant>
@@ -24,11 +27,6 @@ namespace PowerPC
 enum class CPUCore;
 }
 
-namespace Profiler
-{
-struct ProfileStats;
-}
-
 class JitInterface
 {
 public:
@@ -45,11 +43,6 @@ public:
   CPUCoreBase* GetCore() const;
 
   // Debugging
-  enum class ProfilingState
-  {
-    Enabled,
-    Disabled
-  };
   enum class GetHostCodeError
   {
     NoJitActive,
@@ -63,9 +56,7 @@ public:
   };
 
   void UpdateMembase();
-  void SetProfilingState(ProfilingState state);
-  void WriteProfileResults(const std::string& filename) const;
-  void GetProfileResults(Profiler::ProfileStats* prof_stats) const;
+  void JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE* file) const;
   std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address) const;
 
   // Memory Utilities

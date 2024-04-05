@@ -26,7 +26,6 @@
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/Profiler.h"
 #include "Core/System.h"
 
 using namespace Arm64Gen;
@@ -408,7 +407,11 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
                          ARM64Reg exit_address_after_return_reg)
 {
   Cleanup();
-  EndTimeProfile(js.curBlock);
+  if (IsProfilingEnabled())
+  {
+    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
+                     js.downcountAmount);
+  }
   DoDownCount();
 
   LK &= m_enable_blr_optimization;
@@ -509,7 +512,11 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     MOV(DISPATCHER_PC, dest);
 
   Cleanup();
-  EndTimeProfile(js.curBlock);
+  if (IsProfilingEnabled())
+  {
+    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
+                     js.downcountAmount);
+  }
   DoDownCount();
 
   LK &= m_enable_blr_optimization;
@@ -672,7 +679,11 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
     MOV(DISPATCHER_PC, dest);
 
   Cleanup();
-  EndTimeProfile(js.curBlock);
+  if (IsProfilingEnabled())
+  {
+    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
+                     js.downcountAmount);
+  }
 
   // Check if {PPC_PC, feature_flags} matches the current state, then RET to ARM_PC.
   LDP(IndexType::Post, ARM64Reg::X2, ARM64Reg::X1, ARM64Reg::SP, 16);
@@ -736,7 +747,11 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
   if (!always_exception)
     SetJumpTarget(no_exceptions);
 
-  EndTimeProfile(js.curBlock);
+  if (IsProfilingEnabled())
+  {
+    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
+                     js.downcountAmount);
+  }
   DoDownCount();
 
   B(dispatcher);
@@ -802,44 +817,6 @@ void JitArm64::DumpCode(const u8* start, const u8* end)
   for (const u8* code = start; code < end; code += sizeof(u32))
     output += fmt::format("{:08x}", Common::swap32(code));
   WARN_LOG_FMT(DYNA_REC, "Code dump from {} to {}:\n{}", fmt::ptr(start), fmt::ptr(end), output);
-}
-
-void JitArm64::BeginTimeProfile(JitBlock* b)
-{
-  MOVP2R(ARM64Reg::X0, &b->profile_data);
-  LDR(IndexType::Unsigned, ARM64Reg::X1, ARM64Reg::X0, offsetof(JitBlock::ProfileData, runCount));
-  ADD(ARM64Reg::X1, ARM64Reg::X1, 1);
-
-  // Fetch the current counter register
-  CNTVCT(ARM64Reg::X2);
-
-  // stores runCount and ticStart
-  STP(IndexType::Signed, ARM64Reg::X1, ARM64Reg::X2, ARM64Reg::X0,
-      offsetof(JitBlock::ProfileData, runCount));
-}
-
-void JitArm64::EndTimeProfile(JitBlock* b)
-{
-  if (!jo.profile_blocks)
-    return;
-
-  // Fetch the current counter register
-  CNTVCT(ARM64Reg::X1);
-
-  MOVP2R(ARM64Reg::X0, &b->profile_data);
-
-  LDR(IndexType::Unsigned, ARM64Reg::X2, ARM64Reg::X0, offsetof(JitBlock::ProfileData, ticStart));
-  SUB(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X2);
-
-  // loads ticCounter and downcountCounter
-  LDP(IndexType::Signed, ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X0,
-      offsetof(JitBlock::ProfileData, ticCounter));
-  ADD(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X1);
-  ADDI2R(ARM64Reg::X3, ARM64Reg::X3, js.downcountAmount, ARM64Reg::X1);
-
-  // stores ticCounter and downcountCounter
-  STP(IndexType::Signed, ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X0,
-      offsetof(JitBlock::ProfileData, ticCounter));
 }
 
 void JitArm64::Run()
@@ -933,7 +910,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     SetBlockLinkingEnabled(true);
     SetOptimizationEnabled(true);
 
-    if (!jo.profile_blocks)
+    if (!IsProfilingEnabled())
     {
       if (cpu.IsStepping())
       {
@@ -1052,11 +1029,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   b->normalEntry = GetWritableCodePtr();
 
   // Conditionally add profiling code.
-  if (jo.profile_blocks)
-  {
-    // get start tic
-    BeginTimeProfile(b);
-  }
+  if (IsProfilingEnabled())
+    ABI_CallFunction(&JitBlock::ProfileData::BeginProfiling, b->profile_data.get());
 
   if (code_block.m_gqr_used.Count() == 1 &&
       js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
@@ -1246,7 +1220,11 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         FixupBranch no_breakpoint = CBZ(ARM64Reg::W0);
 
         Cleanup();
-        EndTimeProfile(js.curBlock);
+        if (IsProfilingEnabled())
+        {
+          ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, b->profile_data.get(),
+                           js.downcountAmount);
+        }
         DoDownCount();
         B(dispatcher_exit);
 

@@ -335,6 +335,7 @@ extern const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_ENABLE_PROFILING;
 
 // Main.BluetoothPassthrough
 

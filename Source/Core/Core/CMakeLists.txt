@@ -523,7 +523,6 @@ add_library(core
   PowerPC/PPCSymbolDB.h
   PowerPC/PPCTables.cpp
   PowerPC/PPCTables.h
-  PowerPC/Profiler.h
   PowerPC/SignatureDB/CSVSignatureDB.cpp
   PowerPC/SignatureDB/CSVSignatureDB.h
   PowerPC/SignatureDB/DSYSignatureDB.cpp

@@ -57,7 +57,7 @@
 // After resetting the stack to the top, we call _resetstkoflw() to restore
 // the guard page at the 256kb mark.
 
-const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JitBase::JIT_SETTINGS{{
+const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JitBase::JIT_SETTINGS{{
     {&JitBase::bJITOff, &Config::MAIN_DEBUG_JIT_OFF},
     {&JitBase::bJITLoadStoreOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF},
     {&JitBase::bJITLoadStorelXzOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF},
@@ -71,6 +71,7 @@ const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JitB
     {&JitBase::bJITSystemRegistersOff, &Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF},
     {&JitBase::bJITBranchOff, &Config::MAIN_DEBUG_JIT_BRANCH_OFF},
     {&JitBase::bJITRegisterCacheOff, &Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF},
+    {&JitBase::m_enable_profiling, &Config::MAIN_DEBUG_JIT_ENABLE_PROFILING},
     {&JitBase::m_enable_debugging, &Config::MAIN_ENABLE_DEBUGGING},
     {&JitBase::m_enable_branch_following, &Config::MAIN_JIT_FOLLOW_BRANCH},
     {&JitBase::m_enable_float_exceptions, &Config::MAIN_FLOAT_EXCEPTIONS},

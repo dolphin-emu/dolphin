@@ -307,10 +307,6 @@ protected:
   void GenerateQuantizedLoads();
   void GenerateQuantizedStores();
 
-  // Profiling
-  void BeginTimeProfile(JitBlock* b);
-  void EndTimeProfile(JitBlock* b);
-
   void EmitUpdateMembase();
   void MSRUpdated(u32 msr);
   void MSRUpdated(Arm64Gen::ARM64Reg msr);

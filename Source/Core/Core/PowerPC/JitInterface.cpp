@@ -4,7 +4,6 @@
 #include "Core/PowerPC/JitInterface.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <string>
 #include <unordered_set>
 
@@ -19,7 +18,6 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Core.h"
@@ -29,7 +27,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/Profiler.h"
 #include "Core/System.h"
 
 #ifdef _M_X86_64
@@ -90,14 +87,6 @@ CPUCoreBase* JitInterface::GetCore() const
   return m_jit.get();
 }
 
-void JitInterface::SetProfilingState(ProfilingState state)
-{
-  if (!m_jit)
-    return;
-
-  m_jit->jo.profile_blocks = state == ProfilingState::Enabled;
-}
-
 void JitInterface::UpdateMembase()
 {
   if (!m_jit)
@@ -123,58 +112,80 @@ void JitInterface::UpdateMembase()
   }
 }
 
-void JitInterface::WriteProfileResults(const std::string& filename) const
+static std::string_view GetDescription(const CPUEmuFeatureFlags flags)
 {
-  Profiler::ProfileStats prof_stats;
-  GetProfileResults(&prof_stats);
-
-  File::IOFile f(filename, "w");
-  if (!f)
-  {
-    PanicAlertFmt("Failed to open {}", filename);
-    return;
-  }
-  f.WriteString("origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime("
-                "ms)\tblkCodeSize\n");
-  for (auto& stat : prof_stats.block_stats)
-  {
-    std::string name = m_system.GetPPCSymbolDB().GetDescription(stat.addr);
-    double percent = 100.0 * (double)stat.cost / (double)prof_stats.cost_sum;
-    double timePercent = 100.0 * (double)stat.tick_counter / (double)prof_stats.timecost_sum;
-    f.WriteString(fmt::format("{0:08x}\t{1}\t{2}\t{3}\t{4}\t{5:.2f}\t{6:.2f}\t{7:.2f}\t{8}\n",
-                              stat.addr, name, stat.run_count, stat.cost, stat.tick_counter,
-                              percent, timePercent,
-                              static_cast<double>(stat.tick_counter) * 1000.0 /
-                                  static_cast<double>(prof_stats.countsPerSec),
-                              stat.block_size));
-  }
+  static constexpr std::array<std::string_view, (FEATURE_FLAG_END_OF_ENUMERATION - 1) << 1>
+      descriptions = {
+          "", "DR", "IR", "DR|IR", "PERFMON", "DR|PERFMON", "IR|PERFMON", "DR|IR|PERFMON",
+      };
+  return descriptions[flags];
 }
 
-void JitInterface::GetProfileResults(Profiler::ProfileStats* prof_stats) const
+void JitInterface::JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE* file) const
 {
-  // Can't really do this with no m_jit core available
+  std::fputs(
+      "ppcFeatureFlags\tppcAddress\tppcSize\thostNearSize\thostFarSize\trunCount\tcyclesSpent"
+      "\tcyclesAverage\tcyclesPercent\ttimeSpent(ns)\ttimeAverage(ns)\ttimePercent\tsymbol\n",
+      file);
+
   if (!m_jit)
     return;
 
-  prof_stats->cost_sum = 0;
-  prof_stats->timecost_sum = 0;
-  prof_stats->block_stats.clear();
+  if (m_jit->IsProfilingEnabled())
+  {
+    u64 overall_cycles_spent = 0;
+    JitBlock::ProfileData::Clock::duration overall_time_spent = {};
+    m_jit->GetBlockCache()->RunOnBlocks(guard, [&](const JitBlock& block) {
+      overall_cycles_spent += block.profile_data->cycles_spent;
+      overall_time_spent += block.profile_data->time_spent;
+    });
+    m_jit->GetBlockCache()->RunOnBlocks(guard, [&](const JitBlock& block) {
+      const Common::Symbol* const symbol =
+          m_jit->m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress);
+      const JitBlock::ProfileData* const data = block.profile_data.get();
 
-  const Core::CPUThreadGuard guard(m_system);
-  QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
-  m_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
-    const auto& data = block.profile_data;
-    u64 cost = data.downcountCounter;
-    u64 timecost = data.ticCounter;
-    // Todo: tweak.
-    if (data.runCount >= 1)
-      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
-                                           block.codeSize);
-    prof_stats->cost_sum += cost;
-    prof_stats->timecost_sum += timecost;
-  });
+      const double cycles_percent =
+          overall_cycles_spent == 0 ? double{} : 100.0 * data->cycles_spent / overall_cycles_spent;
+      const double time_percent = overall_time_spent == JitBlock::ProfileData::Clock::duration{} ?
+                                      double{} :
+                                      100.0 * data->time_spent.count() / overall_time_spent.count();
+      const double cycles_average = data->run_count == 0 ?
+                                        double{} :
+                                        static_cast<double>(data->cycles_spent) / data->run_count;
+      const double time_average =
+          data->run_count == 0 ?
+              double{} :
+              std::chrono::duration_cast<std::chrono::duration<double, std::nano>>(data->time_spent)
+                      .count() /
+                  data->run_count;
 
-  sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
+      const std::size_t host_near_code_size = block.near_end - block.near_begin;
+      const std::size_t host_far_code_size = block.far_end - block.far_begin;
+
+      fmt::println(
+          file, "{}\t{:08x}\t{}\t{}\t{}\t{}\t{}\t{:.6f}\t{:.6f}\t{}\t{:.6f}\t{:.6f}\t\"{}\"",
+          GetDescription(block.feature_flags), block.effectiveAddress,
+          block.originalSize * sizeof(UGeckoInstruction), host_near_code_size, host_far_code_size,
+          data->run_count, data->cycles_spent, cycles_average, cycles_percent,
+          std::chrono::duration_cast<std::chrono::nanoseconds>(data->time_spent).count(),
+          time_average, time_percent, symbol ? std::string_view{symbol->name} : "");
+    });
+  }
+  else
+  {
+    m_jit->GetBlockCache()->RunOnBlocks(guard, [&](const JitBlock& block) {
+      const Common::Symbol* const symbol =
+          m_jit->m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress);
+
+      const std::size_t host_near_code_size = block.near_end - block.near_begin;
+      const std::size_t host_far_code_size = block.far_end - block.far_begin;
+
+      fmt::println(file, "{}\t{:08x}\t{}\t{}\t{}\t-\t-\t-\t-\t-\t-\t-\t\"{}\"",
+                   GetDescription(block.feature_flags), block.effectiveAddress,
+                   block.originalSize * sizeof(UGeckoInstruction), host_near_code_size,
+                   host_far_code_size, symbol ? std::string_view{symbol->name} : "");
+    });
+  }
 }
 
 std::variant<JitInterface::GetHostCodeError, JitInterface::GetHostCodeResult>
