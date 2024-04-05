@@ -6,8 +6,6 @@
 #include <algorithm>
 #include <bit>
 #include <cstring>
-#include <istream>
-#include <ostream>
 #include <type_traits>
 #include <vector>
 
@@ -59,30 +57,6 @@ static void InvalidateCacheThreadSafe(Core::System& system, u64 userdata, s64 cy
 {
   system.GetPPCState().iCache.Invalidate(system.GetMemory(), system.GetJitInterface(),
                                          static_cast<u32>(userdata));
-}
-
-std::istream& operator>>(std::istream& is, CPUCore& core)
-{
-  std::underlying_type_t<CPUCore> val{};
-
-  if (is >> val)
-  {
-    core = static_cast<CPUCore>(val);
-  }
-  else
-  {
-    // Upon failure, fall back to the cached interpreter
-    // to ensure we always initialize our core reference.
-    core = CPUCore::CachedInterpreter;
-  }
-
-  return is;
-}
-
-std::ostream& operator<<(std::ostream& os, CPUCore core)
-{
-  os << static_cast<std::underlying_type_t<CPUCore>>(core);
-  return os;
 }
 
 PowerPCManager::PowerPCManager(Core::System& system)
