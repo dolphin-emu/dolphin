@@ -32,6 +32,8 @@ struct TcpBuffer
   std::vector<u8> data;
 };
 
+struct StackRef;
+
 // Socket helper classes to ensure network interface consistency.
 //
 // If the socket isn't bound, the system will pick the interface to use automatically.
@@ -45,6 +47,19 @@ public:
   sf::Socket::Status Connect(const sf::IpAddress& dest, u16 port, u32 net_ip);
   sf::Socket::Status GetPeerName(sockaddr_in* addr) const;
   sf::Socket::Status GetSockName(sockaddr_in* addr) const;
+
+  bool Connected(StackRef* ref);
+
+private:
+  enum class ConnectingState
+  {
+    None,
+    Connecting,
+    Connected,
+    Error
+  };
+
+  ConnectingState m_connecting_state = ConnectingState::None;
 };
 
 class BbaUdpSocket : public sf::UdpSocket
