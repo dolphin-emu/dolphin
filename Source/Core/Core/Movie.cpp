@@ -1519,14 +1519,11 @@ void MovieManager::CheckMD5()
   if (m_current_file_name.empty())
     return;
 
-  for (int i = 0, n = 0; i < 16; ++i)
-  {
-    if (m_temp_header.md5[i] != 0)
-      continue;
-    n++;
-    if (n == 16)
-      return;
-  }
+  // The MD5 hash was introduced in 3.0-846-gca650d4435.
+  // Before that, these header bytes were set to zero.
+  if (m_temp_header.md5 == std::array<u8, 16>{})
+    return;
+
   Core::DisplayMessage("Verifying checksum...", 2000);
 
   std::array<u8, 16> game_md5;
