@@ -37,30 +37,7 @@ struct Icon;
 class AchievementManager
 {
 public:
-  enum class ResponseType
-  {
-    SUCCESS,
-    NOT_ENABLED,
-    MANAGER_NOT_INITIALIZED,
-    INVALID_REQUEST,
-    INVALID_CREDENTIALS,
-    CONNECTION_FAILED,
-    MALFORMED_OBJECT,
-    EXPIRED_CONTEXT,
-    UNKNOWN_FAILURE
-  };
-  using ResponseCallback = std::function<void(ResponseType)>;
   using BadgeNameFunction = std::function<std::string(const AchievementManager&)>;
-
-  struct PointSpread
-  {
-    u32 total_count;
-    u32 total_points;
-    u32 hard_unlocks;
-    u32 hard_points;
-    u32 soft_unlocks;
-    u32 soft_points;
-  };
 
   static constexpr size_t HASH_SIZE = 33;
   using Hash = std::array<char, HASH_SIZE>;
@@ -78,22 +55,6 @@ public:
   {
     std::string name = "";
     Badge badge{};
-  };
-
-  struct UnlockStatus
-  {
-    AchievementId game_data_index = 0;
-    enum class UnlockType
-    {
-      LOCKED,
-      SOFTCORE,
-      HARDCORE
-    } remote_unlock_status = UnlockType::LOCKED;
-    u32 session_unlock_count = 0;
-    u32 points = 0;
-    BadgeStatus locked_badge;
-    BadgeStatus unlocked_badge;
-    u32 category = RC_ACHIEVEMENT_CATEGORY_CORE;
   };
 
   static constexpr std::string_view GRAY = "transparent";
@@ -147,14 +108,10 @@ public:
   u32 GetPlayerScore() const;
   const BadgeStatus& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
-  PointSpread TallyScore() const;
   rc_client_t* GetClient();
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
   const BadgeStatus& GetAchievementBadge(AchievementId id, bool locked) const;
-  const UnlockStatus* GetUnlockStatus(AchievementId achievement_id) const;
-  AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
-                                                          u32* target);
   const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
   RichPresence GetRichPresence() const;
   bool IsDisabled() const { return m_disabled; };
@@ -193,10 +150,6 @@ private:
 
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
 
-  void GenerateRichPresence(const Core::CPUThreadGuard& guard);
-
-  ResponseType PingRichPresence(const RichPresence& rich_presence);
-
   static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
                                void* userdata);
   void DisplayWelcomeMessage();
@@ -217,13 +170,8 @@ private:
   static void HandleAchievementProgressIndicatorShowEvent(const rc_client_event_t* client_event);
   static void HandleGameCompletedEvent(const rc_client_event_t* client_event, rc_client_t* client);
 
-  template <typename RcRequest, typename RcResponse>
-  ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
-                       const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
-                       const std::function<int(RcResponse*, const char*)>& process_response);
-
-  static void RequestV2(const rc_api_request_t* request, rc_client_server_callback_t callback,
-                        void* callback_data, rc_client_t* client);
+  static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
+                      void* callback_data, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function,
                   const UpdatedItems callback_data);
@@ -246,9 +194,8 @@ private:
   std::unordered_map<AchievementId, BadgeStatus> m_unlocked_badges;
   std::unordered_map<AchievementId, BadgeStatus> m_locked_badges;
   RichPresence m_rich_presence;
-  time_t m_last_ping_time = 0;
+  std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
 
-  std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   NamedIconMap m_active_challenges;
   std::vector<rc_client_leaderboard_tracker_t> m_active_leaderboards;

@@ -36,7 +36,7 @@ void AchievementManager::Init()
 {
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
-    m_client = rc_client_create(MemoryPeeker, RequestV2);
+    m_client = rc_client_create(MemoryPeeker, Request);
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
       rc_client_set_host(m_client, host_url.c_str());
@@ -226,12 +226,11 @@ void AchievementManager::DoFrame()
   }
   if (!m_system)
     return;
-  time_t current_time = std::time(nullptr);
-  if (difftime(current_time, m_last_ping_time) > 120)
+  auto current_time = std::chrono::steady_clock::now();
+  if (current_time - m_last_rp_time > std::chrono::seconds{10})
   {
-    GenerateRichPresence(Core::CPUThreadGuard{*m_system});
-    m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
-    m_last_ping_time = current_time;
+    m_last_rp_time = current_time;
+    rc_client_get_rich_presence_message(m_client, m_rich_presence.data(), RP_SIZE);
     m_update_callback(UpdatedItems{.rich_presence = true});
   }
 }
@@ -283,35 +282,6 @@ std::string_view AchievementManager::GetGameDisplayName() const
   return IsGameLoaded() ? std::string_view(rc_client_get_game_info(m_client)->title) : "";
 }
 
-AchievementManager::PointSpread AchievementManager::TallyScore() const
-{
-  PointSpread spread{};
-  if (!IsGameLoaded())
-    return spread;
-  bool hardcore_mode_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
-  for (const auto& entry : m_unlock_map)
-  {
-    if (entry.second.category != RC_ACHIEVEMENT_CATEGORY_CORE)
-      continue;
-    u32 points = entry.second.points;
-    spread.total_count++;
-    spread.total_points += points;
-    if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE ||
-        (hardcore_mode_enabled && entry.second.session_unlock_count > 0))
-    {
-      spread.hard_unlocks++;
-      spread.hard_points += points;
-    }
-    else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
-             entry.second.session_unlock_count > 0)
-    {
-      spread.soft_unlocks++;
-      spread.soft_points += points;
-    }
-  }
-  return spread;
-}
-
 rc_client_t* AchievementManager::GetClient()
 {
   return m_client;
@@ -335,35 +305,6 @@ const AchievementManager::BadgeStatus& AchievementManager::GetAchievementBadge(A
   return (itr == badge_list.end()) ? m_default_badge : itr->second;
 }
 
-const AchievementManager::UnlockStatus*
-AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
-{
-  if (m_unlock_map.count(achievement_id) < 1)
-    return nullptr;
-  return &m_unlock_map.at(achievement_id);
-}
-
-AchievementManager::ResponseType
-AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* value, u32* target)
-{
-  if (!IsGameLoaded())
-  {
-    ERROR_LOG_FMT(
-        ACHIEVEMENTS,
-        "Attempted to request measured data for achievement ID {} when no game is running.",
-        achievement_id);
-    return ResponseType::INVALID_REQUEST;
-  }
-  int result = rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
-  if (result == 0)
-  {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to get measured data for achievement ID {}.",
-                 achievement_id);
-    return ResponseType::MALFORMED_OBJECT;
-  }
-  return ResponseType::SUCCESS;
-}
-
 const AchievementManager::LeaderboardStatus*
 AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderboard_id)
 {
@@ -380,7 +321,6 @@ AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderb
 
 AchievementManager::RichPresence AchievementManager::GetRichPresence() const
 {
-  std::lock_guard lg{m_lock};
   return m_rich_presence;
 }
 
@@ -476,7 +416,6 @@ void AchievementManager::CloseGame()
       m_game_badge.name.clear();
       m_unlocked_badges.clear();
       m_locked_badges.clear();
-      m_unlock_map.clear();
       m_leaderboard_map.clear();
       rc_api_destroy_fetch_game_data_response(&m_game_data);
       m_game_data = {};
@@ -664,30 +603,6 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
   AchievementManager::GetInstance().m_update_callback({.leaderboards = {leaderboard_id}});
 }
 
-void AchievementManager::GenerateRichPresence(const Core::CPUThreadGuard& guard)
-{
-  std::lock_guard lg{m_lock};
-  rc_runtime_get_richpresence(
-      &m_runtime, m_rich_presence.data(), RP_SIZE,
-      [](unsigned address, unsigned num_bytes, void* ud) { return 0u; }, this, nullptr);
-}
-
-AchievementManager::ResponseType
-AchievementManager::PingRichPresence(const RichPresence& rich_presence)
-{
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
-  rc_api_ping_request_t ping_request = {.username = username.c_str(),
-                                        .api_token = api_token.c_str(),
-                                        .game_id = m_game_id,
-                                        .rich_presence = rich_presence.data()};
-  rc_api_ping_response_t ping_response = {};
-  ResponseType r_type = Request<rc_api_ping_request_t, rc_api_ping_response_t>(
-      ping_request, &ping_response, rc_api_init_ping_request, rc_api_process_ping_response);
-  rc_api_destroy_ping_response(&ping_response);
-  return r_type;
-}
-
 void AchievementManager::LoadGameCallback(int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
@@ -708,6 +623,9 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   AchievementManager::GetInstance().FetchGameBadges();
   AchievementManager::GetInstance().m_system = &Core::System::GetInstance();
   AchievementManager::GetInstance().m_update_callback({.all = true});
+  // Set this to a value that will immediately trigger RP
+  AchievementManager::GetInstance().m_last_rp_time =
+      std::chrono::steady_clock::now() - std::chrono::minutes{2};
 }
 
 void AchievementManager::DisplayWelcomeMessage()
@@ -867,57 +785,6 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
                       nullptr);
 }
 
-// Every RetroAchievements API call, with only a partial exception for fetch_image, follows
-// the same design pattern (here, X is the name of the call):
-//   Create a specific rc_api_X_request_t struct and populate with the necessary values
-//   Call rc_api_init_X_request to convert this into a generic rc_api_request_t struct
-//   Perform the HTTP request using the url and post_data in the rc_api_request_t struct
-//   Call rc_api_process_X_response to convert the raw string HTTP response into a
-//     rc_api_X_response_t struct
-//   Use the data in the rc_api_X_response_t struct as needed
-//   Call rc_api_destroy_X_response when finished with the response struct to free memory
-template <typename RcRequest, typename RcResponse>
-AchievementManager::ResponseType AchievementManager::Request(
-    RcRequest rc_request, RcResponse* rc_response,
-    const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
-    const std::function<int(RcResponse*, const char*)>& process_response)
-{
-  rc_api_request_t api_request;
-  Common::HttpRequest http_request;
-  if (init_request(&api_request, &rc_request) != RC_OK || !api_request.post_data)
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid API request.");
-    return ResponseType::INVALID_REQUEST;
-  }
-  auto http_response = http_request.Post(api_request.url, api_request.post_data);
-  rc_api_destroy_request(&api_request);
-  if (http_response.has_value() && http_response->size() > 0)
-  {
-    const std::string response_str(http_response->begin(), http_response->end());
-    if (process_response(rc_response, response_str.c_str()) != RC_OK)
-    {
-      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to process HTTP response. \nURL: {} \nresponse: {}",
-                    api_request.url, response_str);
-      return ResponseType::MALFORMED_OBJECT;
-    }
-    if (rc_response->response.succeeded)
-    {
-      return ResponseType::SUCCESS;
-    }
-    else
-    {
-      Logout();
-      WARN_LOG_FMT(ACHIEVEMENTS, "Invalid RetroAchievements credentials; failed login.");
-      return ResponseType::INVALID_CREDENTIALS;
-    }
-  }
-  else
-  {
-    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed. \nURL: {}", api_request.url);
-    return ResponseType::CONNECTION_FAILED;
-  }
-}
-
 static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge)
 {
   if (badge.empty())
@@ -932,9 +799,9 @@ static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager:
   return icon;
 }
 
-void AchievementManager::RequestV2(const rc_api_request_t* request,
-                                   rc_client_server_callback_t callback, void* callback_data,
-                                   rc_client_t* client)
+void AchievementManager::Request(const rc_api_request_t* request,
+                                 rc_client_server_callback_t callback, void* callback_data,
+                                 rc_client_t* client)
 {
   std::string url = request->url;
   std::string post_data = request->post_data;
