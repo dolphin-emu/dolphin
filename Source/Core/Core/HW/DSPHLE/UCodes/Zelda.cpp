@@ -1735,6 +1735,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 
     if (vpb->samples_source_type == VPB::SRC_AFC_HQ_FROM_ARAM)
     {
+      // 4-bit samples
       for (size_t i = 0; i < 16; i += 2)
       {
         nibbles[i + 0] = *src >> 4;
@@ -1742,14 +1743,11 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
         src++;
       }
       for (auto& nibble : nibbles)
-      {
-        if (nibble >= 8)
-          nibble -= 16;
-        nibble <<= 11;
-      }
+        nibble = s16(nibble << 12) >> 1;
     }
     else
     {
+      // 2-bit samples
       for (size_t i = 0; i < 16; i += 4)
       {
         nibbles[i + 0] = (*src >> 6) & 3;
@@ -1759,11 +1757,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
         src++;
       }
       for (auto& nibble : nibbles)
-      {
-        if (nibble >= 2)
-          nibble -= 4;
-        nibble <<= 13;
-      }
+        nibble = s16(nibble << 14) >> 1;
     }
 
     s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();
