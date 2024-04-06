@@ -7,12 +7,6 @@
 #include <string>
 #include <unordered_set>
 
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include "Common/PerformanceCounter.h"
-#endif
-
 #include <fmt/format.h>
 
 #include "Common/Assert.h"

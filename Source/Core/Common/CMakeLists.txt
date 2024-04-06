@@ -108,8 +108,6 @@ add_library(common
   Network.h
   PcapFile.cpp
   PcapFile.h
-  PerformanceCounter.cpp
-  PerformanceCounter.h
   Profiler.cpp
   Profiler.h
   QoSSession.cpp

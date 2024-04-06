@@ -10,7 +10,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
