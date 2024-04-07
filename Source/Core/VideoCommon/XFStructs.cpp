@@ -259,19 +259,21 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 {
   // load stuff from array to address in xf mem
 
-  u32* currData = (u32*)(&xfmem) + address;
+  const u32 buf_size = size * sizeof(u32);
+  u32* currData = reinterpret_cast<u32*>(&xfmem) + address;
   u32* newData;
   auto& system = Core::System::GetInstance();
   auto& fifo = system.GetFifo();
   if (fifo.UseDeterministicGPUThread())
   {
-    newData = (u32*)fifo.PopFifoAuxBuffer(size * sizeof(u32));
+    newData = reinterpret_cast<u32*>(fifo.PopFifoAuxBuffer(buf_size));
   }
   else
   {
     auto& memory = system.GetMemory();
-    newData = (u32*)memory.GetPointer(g_main_cp_state.array_bases[array] +
-                                      g_main_cp_state.array_strides[array] * index);
+    newData = reinterpret_cast<u32*>(memory.GetPointerForRange(
+        g_main_cp_state.array_bases[array] + g_main_cp_state.array_strides[array] * index,
+        buf_size));
   }
 
   auto& xf_state_manager = system.GetXFStateManager();
@@ -294,12 +296,14 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 
 void PreprocessIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 {
+  const size_t buf_size = size * sizeof(u32);
+
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  const u8* new_data = memory.GetPointer(g_preprocess_cp_state.array_bases[array] +
-                                         g_preprocess_cp_state.array_strides[array] * index);
+  const u8* new_data = memory.GetPointerForRange(
+      g_preprocess_cp_state.array_bases[array] + g_preprocess_cp_state.array_strides[array] * index,
+      buf_size);
 
-  const size_t buf_size = size * sizeof(u32);
   system.GetFifo().PushFifoAuxBuffer(new_data, buf_size);
 }
 
