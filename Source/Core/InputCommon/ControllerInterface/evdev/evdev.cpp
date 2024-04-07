@@ -21,6 +21,7 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/WorkQueueThread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::evdev
@@ -33,6 +34,12 @@ public:
   void PopulateDevices() override;
 
   void RemoveDevnodeObject(const std::string&);
+
+  // Linux has the strange behavior that closing file descriptors of event devices can be
+  // surprisingly slow, in the range of 20-70 milliseconds. For modern systems that have maybe 30
+  // event devices this can quickly add up, leading to visibly slow startup. So we close FDs on a
+  // separate thread *shrug*
+  void CloseDescriptor(int fd) { m_cleanup_thread.Push(fd); }
 
 private:
   std::shared_ptr<evdevDevice>
@@ -55,6 +62,8 @@ private:
   // as devices can be destroyed by any thread at any time. As of now it's protected
   // by ControllerInterface::m_devices_population_mutex.
   std::map<std::string, std::weak_ptr<evdevDevice>> m_devnode_objects;
+
+  Common::WorkQueueThread<int> m_cleanup_thread;
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
@@ -273,7 +282,7 @@ void InputBackend::AddDeviceNode(const char* devnode)
   if (libevdev_new_from_fd(fd, &dev) != 0)
   {
     // This usually fails because the device node isn't an evdev device, such as /dev/input/js0
-    close(fd);
+    CloseDescriptor(fd);
     return;
   }
 
@@ -415,7 +424,7 @@ void InputBackend::StopHotplugThread()
 }
 
 InputBackend::InputBackend(ControllerInterface* controller_interface)
-    : ciface::InputBackend(controller_interface)
+    : ciface::InputBackend(controller_interface), m_cleanup_thread("evdev cleanup", close)
 {
   StartHotplugThread();
 }
@@ -665,7 +674,7 @@ evdevDevice::~evdevDevice()
   {
     m_input_backend.RemoveDevnodeObject(node.devnode);
     libevdev_free(node.device);
-    close(node.fd);
+    m_input_backend.CloseDescriptor(node.fd);
   }
 }
 
