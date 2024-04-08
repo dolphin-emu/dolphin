@@ -3,7 +3,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <atomic>
+#include <functional>
+#include <mutex>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -173,7 +176,8 @@ class SettingValue
   friend class NumericSetting<T>;
 
 public:
-  ValueType GetValue() const
+  virtual ~SettingValue() = default;
+  virtual ValueType GetValue() const
   {
     // Only update dynamic values when the input gate is enabled.
     // Otherwise settings will all change to 0 when window focus is lost.
@@ -184,9 +188,11 @@ public:
     return m_value;
   }
 
+  ValueType GetCachedValue() const { return m_value; }
+
   bool IsSimpleValue() const { return m_input.GetExpression().empty(); }
 
-  void SetValue(ValueType value)
+  virtual void SetValue(const ValueType value)
   {
     m_value = value;
 
@@ -200,6 +206,78 @@ private:
 
   // Unfortunately InputReference's state grabbing is non-const requiring mutable here.
   mutable InputReference m_input;
+};
+
+template <typename ValueType>
+class SubscribableSettingValue final : public SettingValue<ValueType>
+{
+public:
+  using Base = SettingValue<ValueType>;
+
+  ValueType GetValue() const override
+  {
+    const ValueType cached_value = this->GetCachedValue();
+    if (this->IsSimpleValue())
+      return cached_value;
+
+    const ValueType updated_value = Base::GetValue();
+    if (updated_value != cached_value)
+      TriggerCallbacks();
+
+    return updated_value;
+  }
+
+  void SetValue(const ValueType value) override
+  {
+    if (!this->IsSimpleValue() || (value != this->GetCachedValue()))
+    {
+      Base::SetValue(value);
+      TriggerCallbacks();
+    }
+  }
+
+  struct CallbackID
+  {
+    size_t id;
+
+    bool operator==(const CallbackID&) const = default;
+  };
+
+  using SettingChangedCallback = std::function<void(ValueType)>;
+
+  CallbackID AddCallback(const SettingChangedCallback& callback)
+  {
+    const CallbackID callback_id{.id = m_next_callback_id};
+    ++m_next_callback_id;
+
+    std::lock_guard lock(m_mutex);
+    m_callback_pairs.emplace_back(callback_id, callback);
+
+    return callback_id;
+  }
+
+  void RemoveCallback(const CallbackID& id)
+  {
+    std::lock_guard lock(m_mutex);
+    const auto iter = std::ranges::find(m_callback_pairs, id, &IDCallbackPair::first);
+    if (iter != m_callback_pairs.end())
+      m_callback_pairs.erase(iter);
+  }
+
+  void TriggerCallbacks() const
+  {
+    const ValueType value = Base::GetValue();
+    std::lock_guard lock(m_mutex);
+    for (const auto& pair : m_callback_pairs)
+      pair.second(value);
+  }
+
+private:
+  using IDCallbackPair = std::pair<CallbackID, SettingChangedCallback>;
+  std::vector<IDCallbackPair> m_callback_pairs;
+  size_t m_next_callback_id = 0;
+
+  mutable std::mutex m_mutex;
 };
 
 }  // namespace ControllerEmu

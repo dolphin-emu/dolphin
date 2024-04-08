@@ -3,10 +3,15 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 
+#include "Core/Host.h"
+
 namespace ControllerEmu
 {
-Attachments::Attachments(const std::string& name_) : ControlGroup(name_, GroupType::Attachments)
+Attachments::Attachments(const std::string& name_, const int index)
+    : ControlGroup(name_, GroupType::Attachments)
 {
+  m_selection_value.AddCallback(
+      [index](const int extension) { Host_UpdateWiimoteExtension(index, extension); });
 }
 
 void Attachments::AddAttachment(std::unique_ptr<EmulatedController> att)
