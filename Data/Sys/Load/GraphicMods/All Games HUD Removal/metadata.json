@@ -1,14 +1,22 @@
 {
-	"meta":
-	{
-		"title": "Remove HUD",
-		"author": "Dolphin Team",
-		"description": "Skips drawing elements designated as the HUD.  Can be used for taking screenshots or increasing immersion."
-	},
-	"features": [
-		{
-			"group": "HUD",
-			"action": "skip"
-		}
-	]
+  "actions": [
+    {
+      "data": {},
+      "factory_name": "skip"
+    }
+  ],
+  "assets": [
+  ],
+  "meta": {
+    "author": "Dolphin Team",
+    "description": "Skips drawing elements designated as the HUD.  Can be used for taking screenshots or increasing immersion.",
+    "mod_version": "1.0.0",
+    "schema_version": 1,
+    "title": "Remove HUD"
+  },
+  "tag_to_actions": {
+    "User Interface": [
+      0
+    ]
+  }
 }
