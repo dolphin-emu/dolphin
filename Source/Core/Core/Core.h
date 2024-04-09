@@ -144,7 +144,7 @@ bool WantsDeterminism();
 
 // [NOT THREADSAFE] For use by Host only
 void SetState(State state, bool report_state_change = true);
-State GetState();
+State GetState(Core::System& system);
 
 void SaveScreenShot();
 void SaveScreenShot(std::string_view name);
@@ -185,7 +185,7 @@ void QueueHostJob(std::function<void(Core::System&)> job, bool run_during_stop =
 // WMUserJobDispatch will be sent when something is added to the queue.
 void HostDispatchJobs(Core::System& system);
 
-void DoFrameStep();
+void DoFrameStep(Core::System& system);
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 

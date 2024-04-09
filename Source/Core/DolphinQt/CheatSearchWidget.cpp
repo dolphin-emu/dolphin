@@ -520,7 +520,7 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
     return;
 
   // If the game is running CheatsManager::OnFrameEnd will update values automatically.
-  if (Core::GetState() != Core::State::Running)
+  if (Core::GetState(m_system) != Core::State::Running)
     UpdateTableAllCurrentValues(UpdateSource::User);
 }
 

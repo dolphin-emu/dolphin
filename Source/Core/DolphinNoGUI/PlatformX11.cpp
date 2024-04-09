@@ -199,7 +199,7 @@ void PlatformX11::ProcessEvents()
       }
       else if (key == XK_F10)
       {
-        if (Core::GetState() == Core::State::Running)
+        if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
         {
           if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never)
             XUndefineCursor(m_display, m_window);
@@ -245,8 +245,10 @@ void PlatformX11::ProcessEvents()
     {
       m_window_focus = true;
       if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never &&
-          Core::GetState() != Core::State::Paused)
+          Core::GetState(Core::System::GetInstance()) != Core::State::Paused)
+      {
         XDefineCursor(m_display, m_window, m_blank_cursor);
+      }
     }
     break;
     case FocusOut:

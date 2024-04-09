@@ -406,8 +406,11 @@ bool RenderWidget::event(QEvent* event)
   // Note that this event in Windows is not always aligned to the window that is highlighted,
   // it's the window that has keyboard and mouse focus
   case QEvent::WindowActivate:
-    if (m_should_unpause_on_focus && Core::GetState() == Core::State::Paused)
+    if (m_should_unpause_on_focus &&
+        Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+    {
       Core::SetState(Core::State::Running);
+    }
 
     m_should_unpause_on_focus = false;
 
@@ -430,7 +433,8 @@ bool RenderWidget::event(QEvent* event)
 
     UpdateCursor();
 
-    if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) && Core::GetState() == Core::State::Running)
+    if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) &&
+        Core::GetState(Core::System::GetInstance()) == Core::State::Running)
     {
       // If we are declared as the CPU or GPU thread, it means that the real CPU or GPU thread
       // is waiting for us to finish showing a panic alert (with that panic alert likely being

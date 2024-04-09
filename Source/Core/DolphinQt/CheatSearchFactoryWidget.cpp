@@ -158,7 +158,8 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
   PowerPC::RequestedAddressSpace address_space;
   if (m_standard_address_space->isChecked())
   {
-    const Core::State core_state = Core::GetState();
+    auto& system = Core::System::GetInstance();
+    const Core::State core_state = Core::GetState(system);
     if (core_state != Core::State::Running && core_state != Core::State::Paused)
     {
       ModalMessageBox::warning(
@@ -167,7 +168,6 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
       return;
     }
 
-    auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
     memory_ranges.emplace_back(0x80000000, memory.GetRamSizeReal());
     if (system.IsWii())
