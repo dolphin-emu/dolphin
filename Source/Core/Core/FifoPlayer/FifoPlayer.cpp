@@ -212,7 +212,7 @@ void FifoPlayer::Close()
 
 bool FifoPlayer::IsPlaying() const
 {
-  return GetFile() != nullptr && Core::IsRunning();
+  return GetFile() != nullptr && Core::IsRunning(m_system);
 }
 
 class FifoPlayer::CPUCore final : public CPUCoreBase

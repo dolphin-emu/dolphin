@@ -55,10 +55,11 @@ static void WalkTheStack(const Core::CPUThreadGuard& guard,
 // instead of "pointing ahead"
 bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>& output)
 {
-  auto& power_pc = guard.GetSystem().GetPowerPC();
+  auto& system = guard.GetSystem();
+  auto& power_pc = system.GetPowerPC();
   const auto& ppc_state = power_pc.GetPPCState();
 
-  if (!Core::IsRunning() || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
+  if (!Core::IsRunning(system) || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
     return false;
 
   if (LR(ppc_state) == 0)

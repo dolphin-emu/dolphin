@@ -424,7 +424,7 @@ bool MovieManager::IsNetPlayRecording() const
 // NOTE: Host Thread
 void MovieManager::ChangePads()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(m_system))
     return;
 
   ControllerTypeArray controllers{};
@@ -571,7 +571,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     ConfigLoaders::SaveToDTM(&header);
     Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
 
-    if (Core::IsRunning())
+    if (Core::IsRunning(m_system))
       Core::UpdateWantDeterminism(m_system);
   };
   Core::RunOnCPUThread(m_system, start_recording, true);
