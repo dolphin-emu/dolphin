@@ -13,6 +13,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -119,8 +120,11 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
   });
 }
 
-void PrintDataBuffer(Common::Log::LogType type, const u8* data, size_t size, std::string_view title)
+void PrintDataBuffer(const Core::System& system, Common::Log::LogType type, u32 address, u32 size,
+                     std::string_view title)
 {
+  const u8* data = system.GetMemory().GetPointerForRange(address, size);
+
   GENERIC_LOG_FMT(type, Common::Log::LogLevel::LDEBUG, "{}", title);
   for (u32 j = 0; j < size;)
   {
