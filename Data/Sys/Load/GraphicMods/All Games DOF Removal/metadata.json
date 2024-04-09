@@ -1,15 +1,22 @@
 {
-	"meta":
-	{
-		"title": "DOF Removal",
-		"author": "Dolphin Team",
-		"description": "Skips drawing DOF effects.  May be preferable when using a DOF solution from Dolphin's post processing shaders or a third party tool."
-	},
-	"features":
-	[
-		{
-			"group": "DOF",
-			"action": "skip"
-		}
-	]
+  "actions": [
+    {
+      "data": {},
+      "factory_name": "skip"
+    }
+  ],
+  "assets": [
+  ],
+  "meta": {
+    "author": "Dolphin Team",
+    "description": "Skips drawing DOF effects.  May be preferable when using a DOF solution from Dolphin's post processing shaders or a third party tool.",
+    "mod_version": "1.0.0",
+    "schema_version": 1,
+    "title": "DOF Removal"
+  },
+  "tag_to_actions": {
+    "Depth of Field": [
+      0
+    ]
+  }
 }

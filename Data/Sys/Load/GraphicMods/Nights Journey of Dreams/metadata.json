@@ -1,19 +1,27 @@
 {
-	"meta":
-	{
-		"title": "Bloom Texture Definitions",
-		"author": "iwubcode"
-	},
-	"groups":
-	[
-		{
-			"name": "Bloom",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000019_128x128_4"
-				}
-			]
-		}
-	]
+  "actions": [],
+  "assets": [],
+  "default_hash_policy": {
+    "attributes": ""
+  },
+  "meta": {
+    "author": "",
+    "description": "",
+    "mod_version": "",
+    "schema_version": 1,
+    "title": "Nights Journey of Dreams Definitions"
+  },
+  "tag_to_actions": {},
+  "tags": [],
+  "target_to_actions": {},
+  "targets": [
+    {
+      "id": "13920250048690583912",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    }
+  ]
 }
