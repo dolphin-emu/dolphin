@@ -57,7 +57,8 @@ void PairedSingle::SetPS1(double value)
 
 static void InvalidateCacheThreadSafe(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  system.GetPPCState().iCache.Invalidate(static_cast<u32>(userdata));
+  system.GetPPCState().iCache.Invalidate(system.GetMemory(), system.GetJitInterface(),
+                                         static_cast<u32>(userdata));
 }
 
 std::istream& operator>>(std::istream& is, CPUCore& core)
@@ -125,15 +126,16 @@ void PowerPCManager::DoState(PointerWrap& p)
   p.Do(m_ppc_state.reserve);
   p.Do(m_ppc_state.reserve_address);
 
-  m_ppc_state.iCache.DoState(p);
-  m_ppc_state.dCache.DoState(p);
+  auto& memory = m_system.GetMemory();
+  m_ppc_state.iCache.DoState(memory, p);
+  m_ppc_state.dCache.DoState(memory, p);
 
   if (p.IsReadMode())
   {
     if (!m_ppc_state.m_enable_dcache)
     {
       INFO_LOG_FMT(POWERPC, "Flushing data cache");
-      m_ppc_state.dCache.FlushAll();
+      m_ppc_state.dCache.FlushAll(memory);
     }
 
     RoundingModeUpdated(m_ppc_state);
@@ -275,7 +277,7 @@ void PowerPCManager::RefreshConfig()
   if (old_enable_dcache && !m_ppc_state.m_enable_dcache)
   {
     INFO_LOG_FMT(POWERPC, "Flushing data cache");
-    m_ppc_state.dCache.FlushAll();
+    m_ppc_state.dCache.FlushAll(m_system.GetMemory());
   }
 }
 
@@ -291,8 +293,9 @@ void PowerPCManager::Init(CPUCore cpu_core)
   Reset();
 
   InitializeCPUCore(cpu_core);
-  m_ppc_state.iCache.Init();
-  m_ppc_state.dCache.Init();
+  auto& memory = m_system.GetMemory();
+  m_ppc_state.iCache.Init(memory);
+  m_ppc_state.dCache.Init(memory);
 
   if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     m_breakpoints.ClearAllTemporary();
@@ -305,7 +308,7 @@ void PowerPCManager::Reset()
   m_ppc_state.tlb = {};
 
   ResetRegisters();
-  m_ppc_state.iCache.Reset();
+  m_ppc_state.iCache.Reset(m_system.GetJitInterface());
   m_ppc_state.dCache.Reset();
 }
 
@@ -320,7 +323,8 @@ void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
   }
   else
   {
-    m_ppc_state.iCache.Invalidate(static_cast<u32>(address));
+    m_ppc_state.iCache.Invalidate(m_system.GetMemory(), m_system.GetJitInterface(),
+                                  static_cast<u32>(address));
   }
 }
 
