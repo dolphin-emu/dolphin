@@ -1,19 +1,29 @@
 {
-	"meta":
-	{
-		"title": "Bloom Texture Definitions",
-		"author": "iwubcode"
-	},
-	"groups":
-	[
-		{
-			"name": "Bloom",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n33_160x112_6"
-				}
-			]
-		}
-	]
+  "actions": [],
+  "assets": [],
+  "default_hash_policy": {
+    "attributes": ""
+  },
+  "meta": {
+    "author": "iwubcode",
+    "description": "",
+    "mod_version": "",
+    "schema_version": 1,
+    "title": "Arc Rise Fantasia Definitions"
+  },
+  "tag_to_actions": {},
+  "tags": [],
+  "target_to_actions": {
+    "0": []
+  },
+  "targets": [
+    {
+      "id": "16030373046293997871",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    }
+  ]
 }
