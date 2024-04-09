@@ -1,31 +1,47 @@
 {
-	"meta":
-	{
-		"title": "Bloom Texture Definitions",
-		"author": "iwubcode"
-	},
-	"groups":
-	[
-		{
-			"name": "Bloom",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000022_40x28_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000021_80x56_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000020_160x112_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000025_320x224_6"
-				}
-			]
-		}
-	]
+  "actions": [],
+  "assets": [],
+  "default_hash_policy": {
+    "attributes": ""
+  },
+  "meta": {
+    "author": "iwubcode",
+    "description": "",
+    "mod_version": "",
+    "schema_version": 1,
+    "title": "The Conduit Definitions"
+  },
+  "tag_to_actions": {},
+  "tags": [],
+  "target_to_actions": {
+    "0": [],
+    "1": [],
+    "2": []
+  },
+  "targets": [
+    {
+      "id": "1759966615601106229",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    },
+    {
+      "id": "2423050791446092715",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    },
+    {
+      "id": "4157223477088026000",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    }
+  ]
 }
