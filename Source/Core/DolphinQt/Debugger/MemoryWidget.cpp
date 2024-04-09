@@ -629,7 +629,7 @@ QByteArray MemoryWidget::GetInputData() const
 
 void MemoryWidget::OnSetValue()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(m_system))
     return;
 
   auto target_addr = GetTargetAddress();
@@ -675,7 +675,7 @@ void MemoryWidget::OnSetValue()
 
 void MemoryWidget::OnSetValueFromFile()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(m_system))
     return;
 
   auto target_addr = GetTargetAddress();

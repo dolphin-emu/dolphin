@@ -1265,14 +1265,17 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
 {
   m_game_selected = !!game_file;
 
-  m_recording_play->setEnabled(m_game_selected && !Core::IsRunning());
-  m_recording_start->setEnabled((m_game_selected || Core::IsRunning()) &&
-                                !Core::System::GetInstance().GetMovie().IsPlayingInput());
+  auto& system = Core::System::GetInstance();
+  const bool core_is_running = Core::IsRunning(system);
+  m_recording_play->setEnabled(m_game_selected && !core_is_running);
+  m_recording_start->setEnabled((m_game_selected || core_is_running) &&
+                                !system.GetMovie().IsPlayingInput());
 }
 
 void MenuBar::OnRecordingStatusChanged(bool recording)
 {
-  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning()));
+  auto& system = Core::System::GetInstance();
+  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning(system)));
   m_recording_stop->setEnabled(recording);
   m_recording_export->setEnabled(recording);
 }

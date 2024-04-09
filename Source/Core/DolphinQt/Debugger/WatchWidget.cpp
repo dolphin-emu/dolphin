@@ -143,7 +143,7 @@ void WatchWidget::UpdateButtonsEnabled()
   if (!isVisible())
     return;
 
-  const bool is_enabled = Core::IsRunning();
+  const bool is_enabled = Core::IsRunning(m_system);
   m_new->setEnabled(is_enabled);
   m_delete->setEnabled(is_enabled);
   m_clear->setEnabled(is_enabled);
@@ -195,10 +195,10 @@ void WatchWidget::Update()
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
-    if (!Core::IsRunning() || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
+    if (!Core::IsRunning(m_system) || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       brush.setColor(Qt::red);
 
-    if (Core::IsRunning())
+    if (Core::IsRunning(m_system))
     {
       if (PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       {
