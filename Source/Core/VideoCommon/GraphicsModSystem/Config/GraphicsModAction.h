@@ -1,20 +1,19 @@
-// Copyright 2023 Dolphin Emulator Project
+// Copyright 2024 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <picojson.h>
 
-#include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
-
 namespace GraphicsModSystem::Config
 {
-struct GraphicsModAsset
+struct GraphicsModAction
 {
-  VideoCommon::CustomAssetLibrary::AssetID m_asset_id;
-  VideoCommon::DirectFilesystemAssetLibrary::AssetMap m_map;
+  std::string m_factory_name;
+  picojson::value m_data;
 
   void Serialize(picojson::object& json_obj) const;
   bool Deserialize(const picojson::object& json_obj);
