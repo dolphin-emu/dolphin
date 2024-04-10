@@ -1774,20 +1774,19 @@ void MenuBar::SearchInstruction()
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  Core::CPUThreadGuard guard(system);
+  const std::string op_std = op.toStdString();
+  const Core::CPUThreadGuard guard(system);
 
   bool found = false;
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal();
        addr += 4)
   {
-    const auto ins_name = QString::fromStdString(
-        PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr), addr));
-    if (op == ins_name)
+    if (op_std == PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr), addr))
     {
-      NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op.toStdString(), addr);
+      NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op_std, addr);
       found = true;
     }
   }
   if (!found)
-    NOTICE_LOG_FMT(POWERPC, "Opcode {} not found", op.toStdString());
+    NOTICE_LOG_FMT(POWERPC, "Opcode {} not found", op_std);
 }
