@@ -364,8 +364,10 @@ void CachedInterpreter::Jit(u32 address)
       if (endblock)
       {
         m_code.emplace_back(EndBlock, js.downcountAmount);
-        m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
-        m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+        if (js.numLoadStoreInst != 0)
+          m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
+        if (js.numFloatingPointInst != 0)
+          m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
       }
     }
   }
@@ -373,8 +375,10 @@ void CachedInterpreter::Jit(u32 address)
   {
     m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
     m_code.emplace_back(EndBlock, js.downcountAmount);
-    m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
-    m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+    if (js.numLoadStoreInst != 0)
+      m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
+    if (js.numFloatingPointInst != 0)
+      m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
   }
   m_code.emplace_back();
 
