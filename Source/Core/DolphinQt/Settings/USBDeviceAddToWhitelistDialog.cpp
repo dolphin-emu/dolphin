@@ -91,6 +91,7 @@ void USBDeviceAddToWhitelistDialog::InitControls()
           &QPushButton::clicked);
   connect(m_refresh_devices_timer, &QTimer::timeout, this,
           &USBDeviceAddToWhitelistDialog::RefreshDeviceList);
+  RefreshDeviceList();
   m_refresh_devices_timer->start(1000);
 
   main_layout->addWidget(usb_inserted_devices_list);
