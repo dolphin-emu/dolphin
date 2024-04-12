@@ -1872,9 +1872,12 @@ static void GetDisplayRectForXFBEntry(TCacheEntry* entry, u32 width, u32 height,
 RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                                               MathUtil::Rectangle<int>* display_rect)
 {
+  // Compute total texture size. XFB textures aren't tiled, so this is simple.
+  const u32 total_size = height * stride;
+
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  const u8* src_data = memory.GetPointer(address);
+  const u8* src_data = memory.GetPointerForRange(address, total_size);
   if (!src_data)
   {
     ERROR_LOG_FMT(VIDEO, "Trying to load XFB texture from invalid address {:#010x}", address);
@@ -1900,8 +1903,6 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
                                            AbstractTextureFlag_RenderTarget,
                                            AbstractTextureType::Texture_2DArray));
 
-  // Compute total texture size. XFB textures aren't tiled, so this is simple.
-  const u32 total_size = height * stride;
   entry->SetGeneralParameters(address, total_size,
                               TextureAndTLUTFormat(TextureFormat::XFB, TLUTFormat::IA8), true);
   entry->SetDimensions(width, height, 1);
@@ -2250,15 +2251,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
       !copy_to_vram;
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  u8* dst = memory.GetPointer(dstAddr);
-  if (dst == nullptr)
-  {
-    ERROR_LOG_FMT(VIDEO, "Trying to copy from EFB to invalid address {:#010x}", dstAddr);
-    return;
-  }
-
   // tex_w and tex_h are the native size of the texture in the GC memory.
   // The size scaled_* represents the emulated texture. Those differ
   // because of upscaling and because of yscaling of XFB copies.
@@ -2301,6 +2293,15 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
   const u32 covered_range = num_blocks_y * dstStride;
+
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* dst = memory.GetPointerForRange(dstAddr, covered_range);
+  if (dst == nullptr)
+  {
+    ERROR_LOG_FMT(VIDEO, "Trying to copy from EFB to invalid address {:#010x}", dstAddr);
+    return;
+  }
 
   if (g_ActiveConfig.bGraphicMods)
   {
@@ -2576,10 +2577,12 @@ void TextureCacheBase::WriteEFBCopyToRAM(u8* dst_ptr, u32 width, u32 height, u32
 
 void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
 {
+  const u32 covered_range = entry->pending_efb_copy_height * entry->memory_stride;
+
   // Copy from texture -> guest memory.
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u8* const dst = memory.GetPointer(entry->addr);
+  u8* const dst = memory.GetPointerForRange(entry->addr, covered_range);
   WriteEFBCopyToRAM(dst, entry->pending_efb_copy_width, entry->pending_efb_copy_height,
                     entry->memory_stride, std::move(entry->pending_efb_copy));
 
@@ -2597,7 +2600,6 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
   // See the comment above regarding Rogue Squadron 2.
   if (entry->is_xfb_copy)
   {
-    const u32 covered_range = entry->pending_efb_copy_height * entry->memory_stride;
     auto range = FindOverlappingTextures(entry->addr, covered_range);
     for (auto iter = range.first; iter != range.second; ++iter)
     {
@@ -3164,7 +3166,7 @@ u64 TCacheEntry::CalculateHash() const
   // FIXME: textures from tmem won't get the correct hash.
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u8* ptr = memory.GetPointer(addr);
+  u8* ptr = memory.GetPointerForRange(addr, size_in_bytes);
   if (memory_stride == bytes_per_row)
   {
     return Common::GetHash64(ptr, size_in_bytes, hash_sample_size);

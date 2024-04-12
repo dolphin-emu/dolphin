@@ -602,7 +602,6 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       {
         auto& system = Core::System::GetInstance();
         auto& memory = system.GetMemory();
-        u8* src_ptr = memory.GetPointer(src_addr);
 
         // AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for
         // everything
@@ -612,10 +611,13 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
         {
           if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
               tmem_addr_odd + TMEM_LINE_SIZE > TMEM_SIZE)
+          {
             break;
+          }
 
-          memcpy(texMem + tmem_addr_even, src_ptr + bytes_read, TMEM_LINE_SIZE);
-          memcpy(texMem + tmem_addr_odd, src_ptr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+          memory.CopyFromEmu(texMem + tmem_addr_even, src_addr + bytes_read, TMEM_LINE_SIZE);
+          memory.CopyFromEmu(texMem + tmem_addr_odd, src_addr + bytes_read + TMEM_LINE_SIZE,
+                             TMEM_LINE_SIZE);
           tmem_addr_even += TMEM_LINE_SIZE;
           tmem_addr_odd += TMEM_LINE_SIZE;
           bytes_read += TMEM_LINE_SIZE * 2;
