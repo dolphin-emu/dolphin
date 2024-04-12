@@ -5,6 +5,7 @@
 
 #include <array>
 #include <bitset>
+#include <chrono>
 #include <cstring>
 #include <functional>
 #include <map>
@@ -64,6 +65,27 @@ static_assert(std::is_standard_layout_v<JitBlockData>, "JitBlockData must have a
 // address.
 struct JitBlock : public JitBlockData
 {
+  // Software profiling data for JIT block.
+  struct ProfileData
+  {
+    using Clock = std::chrono::steady_clock;
+
+    static void BeginProfiling(ProfileData* data);
+    static void EndProfiling(ProfileData* data, int downcount_amount);
+
+    std::size_t run_count = 0;
+    u64 cycles_spent = 0;
+    Clock::duration time_spent = {};
+
+  private:
+    Clock::time_point time_start;
+  };
+
+  explicit JitBlock(bool profiling_enabled)
+      : profile_data(profiling_enabled ? std::make_unique<ProfileData>() : nullptr)
+  {
+  }
+
   bool OverlapsPhysicalRange(u32 address, u32 length) const;
 
   // Information about exits to a known address from this block.
@@ -83,15 +105,7 @@ struct JitBlock : public JitBlockData
   // This set stores all physical addresses of all occupied instructions.
   std::set<u32> physical_addresses;
 
-  // Block profiling data, structure is inlined in Jit.cpp
-  struct ProfileData
-  {
-    u64 ticCounter;
-    u64 downcountCounter;
-    u64 runCount;
-    u64 ticStart;
-    u64 ticStop;
-  } profile_data = {};
+  std::unique_ptr<ProfileData> profile_data;
 };
 
 typedef void (*CompiledCode)();
@@ -146,7 +160,7 @@ public:
   // Code Cache
   u8** GetEntryPoints();
   JitBlock** GetFastBlockMapFallback();
-  void RunOnBlocks(std::function<void(const JitBlock&)> f);
+  void RunOnBlocks(const Core::CPUThreadGuard& guard, std::function<void(const JitBlock&)> f) const;
 
   JitBlock* AllocateBlock(u32 em_address);
   void FinalizeBlock(JitBlock& block, bool block_link, const std::set<u32>& physical_addresses);

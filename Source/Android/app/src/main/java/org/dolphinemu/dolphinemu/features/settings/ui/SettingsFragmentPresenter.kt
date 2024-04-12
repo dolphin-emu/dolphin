@@ -1978,6 +1978,26 @@ class SettingsFragmentPresenter(
             )
         )
 
+        sl.add(HeaderSetting(context, R.string.debug_jit_profiling_header, 0))
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_DEBUG_JIT_ENABLE_PROFILING,
+                R.string.debug_jit_enable_block_profiling,
+                0
+           )
+        )
+        sl.add(
+            RunRunnable(
+                context,
+                R.string.debug_jit_write_block_log_dump,
+                0,
+                0,
+                0,
+                true
+            ) { NativeLibrary.WriteJitBlockLogDump() }
+        )
+
         sl.add(HeaderSetting(context, R.string.debug_jit_header, 0))
         sl.add(
             SwitchSetting(

@@ -12,6 +12,7 @@ JNIEnv* GetEnvForThread();
 jclass GetStringClass();
 
 jclass GetNativeLibraryClass();
+jmethodID GetDisplayToastMsg();
 jmethodID GetDisplayAlertMsg();
 jmethodID GetUpdateTouchPointer();
 jmethodID GetOnTitleChanged();

@@ -76,6 +76,7 @@ static void CreateDumpPath(std::string path)
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_BRANCHWATCH_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_JITBLOCKS_IDX));
 }
 
 static void CreateLoadPath(std::string path)
@@ -257,6 +258,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_BRANCHWATCH_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_JITBLOCKS_IDX));
   File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);

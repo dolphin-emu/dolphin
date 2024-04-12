@@ -141,7 +141,6 @@
     <ClInclude Include="Common\NandPaths.h" />
     <ClInclude Include="Common\Network.h" />
     <ClInclude Include="Common\PcapFile.h" />
-    <ClInclude Include="Common\PerformanceCounter.h" />
     <ClInclude Include="Common\Profiler.h" />
     <ClInclude Include="Common\QoSSession.h" />
     <ClInclude Include="Common\Random.h" />
@@ -447,7 +446,6 @@
     <ClInclude Include="Core\PowerPC\PPCCache.h" />
     <ClInclude Include="Core\PowerPC\PPCSymbolDB.h" />
     <ClInclude Include="Core\PowerPC\PPCTables.h" />
-    <ClInclude Include="Core\PowerPC\Profiler.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\DSYSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\MEGASignatureDB.h" />
@@ -824,7 +822,6 @@
     <ClCompile Include="Common\NandPaths.cpp" />
     <ClCompile Include="Common\Network.cpp" />
     <ClCompile Include="Common\PcapFile.cpp" />
-    <ClCompile Include="Common\PerformanceCounter.cpp" />
     <ClCompile Include="Common\Profiler.cpp" />
     <ClCompile Include="Common\QoSSession.cpp" />
     <ClCompile Include="Common\Random.cpp" />

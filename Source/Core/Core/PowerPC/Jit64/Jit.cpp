@@ -19,7 +19,6 @@
 #include "Common/GekkoDisassembler.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/x64ABI.h"
@@ -43,7 +42,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/Profiler.h"
 #include "Core/System.h"
 
 using namespace Gen;
@@ -454,20 +452,11 @@ bool Jit64::Cleanup()
     did_something = true;
   }
 
-  if (jo.profile_blocks)
+  if (IsProfilingEnabled())
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    // get end tic
-    MOV(64, R(ABI_PARAM1), ImmPtr(&js.curBlock->profile_data.ticStop));
-    ABI_CallFunction(QueryPerformanceCounter);
-    // tic counter += (end tic - start tic)
-    MOV(64, R(RSCRATCH2), ImmPtr(&js.curBlock->profile_data));
-    MOV(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStop)));
-    SUB(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStart)));
-    ADD(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)));
-    ADD(64, MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, downcountCounter)),
-        Imm32(js.downcountAmount));
-    MOV(64, MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)), R(RSCRATCH));
+    ABI_CallFunctionPC(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
+                       js.downcountAmount);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }
@@ -773,7 +762,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     EnableBlockLink();
     EnableOptimization();
 
-    if (!jo.profile_blocks)
+    if (!IsProfilingEnabled())
     {
       if (m_system.GetCPU().IsStepping())
       {
@@ -899,15 +888,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   // Conditionally add profiling code.
-  if (jo.profile_blocks)
-  {
-    // get start tic
-    MOV(64, R(ABI_PARAM1), ImmPtr(&b->profile_data.ticStart));
-    int offset = static_cast<int>(offsetof(JitBlock::ProfileData, runCount)) -
-                 static_cast<int>(offsetof(JitBlock::ProfileData, ticStart));
-    ADD(64, MDisp(ABI_PARAM1, offset), Imm8(1));
-    ABI_CallFunction(QueryPerformanceCounter);
-  }
+  if (IsProfilingEnabled())
+    ABI_CallFunctionP(&JitBlock::ProfileData::BeginProfiling, b->profile_data.get());
+
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
   MOV(32, PPCSTATE(pc), Imm32(js.blockStart));

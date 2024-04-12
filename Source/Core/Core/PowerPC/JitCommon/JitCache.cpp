@@ -32,6 +32,18 @@ bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
          physical_addresses.lower_bound(address + length);
 }
 
+void JitBlock::ProfileData::BeginProfiling(ProfileData* data)
+{
+  data->run_count += 1;
+  data->time_start = Clock::now();
+}
+
+void JitBlock::ProfileData::EndProfiling(ProfileData* data, int downcount_amount)
+{
+  data->cycles_spent += downcount_amount;
+  data->time_spent += Clock::now() - data->time_start;
+}
+
 JitBaseBlockCache::JitBaseBlockCache(JitBase& jit) : m_jit{jit}
 {
 }
@@ -98,7 +110,8 @@ JitBlock** JitBaseBlockCache::GetFastBlockMapFallback()
   return m_fast_block_map_fallback.data();
 }
 
-void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
+void JitBaseBlockCache::RunOnBlocks(const Core::CPUThreadGuard&,
+                                    std::function<void(const JitBlock&)> f) const
 {
   for (const auto& e : block_map)
     f(e.second);
@@ -107,7 +120,7 @@ void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
   const u32 physical_address = m_jit.m_mmu.JitCache_TranslateAddress(em_address).address;
-  JitBlock& b = block_map.emplace(physical_address, JitBlock())->second;
+  JitBlock& b = block_map.emplace(physical_address, m_jit.IsProfilingEnabled())->second;
   b.effectiveAddress = em_address;
   b.physicalAddress = physical_address;
   b.feature_flags = m_jit.m_ppc_state.feature_flags;
