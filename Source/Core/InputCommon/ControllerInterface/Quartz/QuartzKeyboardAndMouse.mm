@@ -12,6 +12,7 @@
 #include "Core/Host.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 
 /// Helper class to get window position data from threads other than the main thread
 @interface DolWindowPositionObserver : NSObject
@@ -279,7 +280,7 @@ std::string KeyboardAndMouse::GetName() const
 
 std::string KeyboardAndMouse::GetSource() const
 {
-  return "Quartz";
+  return Quartz::GetSourceName();
 }
 
 ControlState KeyboardAndMouse::Cursor::GetState() const
