@@ -401,7 +401,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     static_assert(MAX_LOADABLE_TMEM_ADDR + MAX_TMEM_LINE_COUNT < TMEM_SIZE);
 
     auto& memory = system.GetMemory();
-    memory.CopyFromEmu(texMem + tmem_addr, addr, tmem_transfer_count);
+    memory.CopyFromEmu(s_tex_mem.data() + tmem_addr, addr, tmem_transfer_count);
 
     if (OpcodeDecoder::g_record_fifo_data)
       system.GetFifoRecorder().UseMemory(addr, tmem_transfer_count, MemoryUpdate::Type::TMEM);
@@ -596,7 +596,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 
         auto& system = Core::System::GetInstance();
         auto& memory = system.GetMemory();
-        memory.CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
+        memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr, bytes_read);
       }
       else  // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
       {
@@ -615,9 +615,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
             break;
           }
 
-          memory.CopyFromEmu(texMem + tmem_addr_even, src_addr + bytes_read, TMEM_LINE_SIZE);
-          memory.CopyFromEmu(texMem + tmem_addr_odd, src_addr + bytes_read + TMEM_LINE_SIZE,
+          memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr + bytes_read,
                              TMEM_LINE_SIZE);
+          memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_odd,
+                             src_addr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
           tmem_addr_even += TMEM_LINE_SIZE;
           tmem_addr_odd += TMEM_LINE_SIZE;
           bytes_read += TMEM_LINE_SIZE * 2;

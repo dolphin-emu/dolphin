@@ -3,16 +3,20 @@
 
 #pragma once
 
+#include <array>
+#include <span>
 #include <tuple>
+
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
+#include "Common/SpanUtils.h"
 
 enum
 {
   TMEM_SIZE = 1024 * 1024,
   TMEM_LINE_SIZE = 32,
 };
-alignas(16) extern u8 texMem[TMEM_SIZE];
+alignas(16) extern std::array<u8, TMEM_SIZE> s_tex_mem;
 
 enum class TextureFormat
 {
@@ -171,6 +175,11 @@ static inline bool CanReinterpretTextureOnGPU(TextureFormat from_format, Texture
   }
 }
 
+inline std::span<u8> TexDecoder_GetTmemSpan(size_t offset = 0)
+{
+  return Common::SafeSubspan(std::span<u8>(s_tex_mem), offset);
+}
+
 int TexDecoder_GetTexelSizeInNibbles(TextureFormat format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, TextureFormat format);
 int TexDecoder_GetBlockWidthInTexels(TextureFormat format);
@@ -184,8 +193,10 @@ void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFor
                        const u8* tlut, TLUTFormat tlutfmt);
 void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
                                     int height);
-void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth,
-                            TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt);
+void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int imageWidth,
+                            TextureFormat texformat, std::span<const u8> tlut, TLUTFormat tlutfmt);
+void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, std::span<const u8> src_ar,
+                                         std::span<const u8> src_gb, int s, int t, int imageWidth);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
                                          int imageWidth);
 void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride);

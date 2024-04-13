@@ -153,6 +153,7 @@
     <ClInclude Include="Common\SFMLHelper.h" />
     <ClInclude Include="Common\SmallVector.h" />
     <ClInclude Include="Common\SocketContext.h" />
+    <ClInclude Include="Common\SpanUtils.h" />
     <ClInclude Include="Common\SPSCQueue.h" />
     <ClInclude Include="Common\StringLiteral.h" />
     <ClInclude Include="Common\StringUtil.h" />
