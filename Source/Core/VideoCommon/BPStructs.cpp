@@ -590,13 +590,16 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 
       if (tmem_cfg.preload_tile_info.type != 3)
       {
-        bytes_read = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
-        if (tmem_addr_even + bytes_read > TMEM_SIZE)
-          bytes_read = TMEM_SIZE - tmem_addr_even;
+        if (tmem_addr_even < TMEM_SIZE)
+        {
+          bytes_read = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+          if (tmem_addr_even + bytes_read > TMEM_SIZE)
+            bytes_read = TMEM_SIZE - tmem_addr_even;
 
-        auto& system = Core::System::GetInstance();
-        auto& memory = system.GetMemory();
-        memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr, bytes_read);
+          auto& system = Core::System::GetInstance();
+          auto& memory = system.GetMemory();
+          memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr, bytes_read);
+        }
       }
       else  // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
       {
