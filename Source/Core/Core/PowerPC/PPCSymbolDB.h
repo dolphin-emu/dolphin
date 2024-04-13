@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
@@ -27,7 +28,7 @@ public:
 
   Common::Symbol* GetSymbolFromAddr(u32 addr) override;
 
-  std::string GetDescription(u32 addr);
+  std::string_view GetDescription(u32 addr);
 
   void FillInCallers();
 

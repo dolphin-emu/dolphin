@@ -108,13 +108,11 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   return nullptr;
 }
 
-std::string PPCSymbolDB::GetDescription(u32 addr)
+std::string_view PPCSymbolDB::GetDescription(u32 addr)
 {
-  Common::Symbol* symbol = GetSymbolFromAddr(addr);
-  if (symbol)
+  if (const Common::Symbol* const symbol = GetSymbolFromAddr(addr))
     return symbol->name;
-  else
-    return " --- ";
+  return " --- ";
 }
 
 void PPCSymbolDB::FillInCallers()

@@ -193,11 +193,8 @@ void BreakpointWidget::Update()
     m_table->setItem(i, 0, active);
     m_table->setItem(i, 1, create_item(QStringLiteral("BP")));
 
-    if (ppc_symbol_db.GetSymbolFromAddr(bp.address))
-    {
-      m_table->setItem(
-          i, 2, create_item(QString::fromStdString(ppc_symbol_db.GetDescription(bp.address))));
-    }
+    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(bp.address))
+      m_table->setItem(i, 2, create_item(QString::fromStdString(symbol->name)));
 
     m_table->setItem(i, 3,
                      create_item(QStringLiteral("%1").arg(bp.address, 8, 16, QLatin1Char('0'))));
@@ -234,12 +231,8 @@ void BreakpointWidget::Update()
     m_table->setItem(i, 0, active);
     m_table->setItem(i, 1, create_item(QStringLiteral("MBP")));
 
-    if (ppc_symbol_db.GetSymbolFromAddr(mbp.start_address))
-    {
-      m_table->setItem(
-          i, 2,
-          create_item(QString::fromStdString(ppc_symbol_db.GetDescription(mbp.start_address))));
-    }
+    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(mbp.start_address))
+      m_table->setItem(i, 2, create_item(QString::fromStdString(symbol->name)));
 
     if (mbp.is_ranged)
     {

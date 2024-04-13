@@ -442,7 +442,7 @@ u32 PPCDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) 
 }
 // =============
 
-std::string PPCDebugInterface::GetDescription(u32 address) const
+std::string_view PPCDebugInterface::GetDescription(u32 address) const
 {
   return m_ppc_symbol_db.GetDescription(address);
 }

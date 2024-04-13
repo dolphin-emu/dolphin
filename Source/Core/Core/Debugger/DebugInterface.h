@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -103,7 +104,7 @@ public:
   {
     return 0xFFFFFFFF;
   }
-  virtual std::string GetDescription(u32 /*address*/) const = 0;
+  virtual std::string_view GetDescription(u32 /*address*/) const = 0;
   virtual void Clear(const CPUThreadGuard& guard) = 0;
 };
 }  // namespace Core
