@@ -212,7 +212,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     switch (g_ActiveConfig.frame_dumps_resolution_type)
     {
     default:
-    case FrameDumpResolutionType::WINDOW_RESOLUTION:
+    case FrameDumpResolutionType::WindowResolution:
     {
       if (!g_gfx->IsHeadless())
       {
@@ -221,7 +221,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
       }
       [[fallthrough]];
     }
-    case FrameDumpResolutionType::XFB_ASPECT_RATIO_CORRECTED_RESOLUTION:
+    case FrameDumpResolutionType::XFBAspectRatioCorrectedResolution:
     {
       target_rect = m_xfb_rect;
       const bool allow_stretch = false;
@@ -233,7 +233,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
       target_rect = MathUtil::Rectangle<int>(0, 0, int_width, int_height);
       break;
     }
-    case FrameDumpResolutionType::XFB_RAW_RESOLUTION:
+    case FrameDumpResolutionType::XFBRawResolution:
     {
       target_rect = m_xfb_rect;
       break;

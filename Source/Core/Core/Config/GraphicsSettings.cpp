@@ -72,7 +72,7 @@ const Info<std::string> GFX_DUMP_PATH{{System::GFX, "Settings", "DumpPath"}, ""}
 const Info<int> GFX_BITRATE_KBPS{{System::GFX, "Settings", "BitrateKbps"}, 25000};
 const Info<FrameDumpResolutionType> GFX_FRAME_DUMPS_RESOLUTION_TYPE{
     {System::GFX, "Settings", "FrameDumpsResolutionType"},
-    FrameDumpResolutionType::XFB_ASPECT_RATIO_CORRECTED_RESOLUTION};
+    FrameDumpResolutionType::XFBAspectRatioCorrectedResolution};
 const Info<int> GFX_PNG_COMPRESSION_LEVEL{{System::GFX, "Settings", "PNGCompressionLevel"}, 6};
 const Info<bool> GFX_ENABLE_GPU_TEXTURE_DECODING{
     {System::GFX, "Settings", "EnableGPUTextureDecoding"}, false};
