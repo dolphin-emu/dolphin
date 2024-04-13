@@ -52,8 +52,7 @@ TEST(SettingsHandlerTest, EncryptSingleSetting)
 
 TEST(SettingsHandlerTest, DecryptSingleSetting)
 {
-  Common::SettingsHandler::Buffer buffer = BUFFER_A;
-  Common::SettingsHandler handler(std::move(buffer));
+  Common::SettingsHandler handler(BUFFER_A);
   EXPECT_EQ(handler.GetValue("key"), "val");
 }
 
@@ -70,8 +69,7 @@ TEST(SettingsHandlerTest, EncryptMultipleSettings)
 
 TEST(SettingsHandlerTest, DecryptMultipleSettings)
 {
-  Common::SettingsHandler::Buffer buffer = BUFFER_B;
-  Common::SettingsHandler handler(std::move(buffer));
+  Common::SettingsHandler handler(BUFFER_B);
   EXPECT_EQ(handler.GetValue("key1"), "val1");
   EXPECT_EQ(handler.GetValue("key2"), "val2");
   EXPECT_EQ(handler.GetValue("foo"), "bar");
@@ -79,13 +77,11 @@ TEST(SettingsHandlerTest, DecryptMultipleSettings)
 
 TEST(SettingsHandlerTest, SetBytesOverwritesExistingBuffer)
 {
-  Common::SettingsHandler::Buffer buffer = BUFFER_A;
-  Common::SettingsHandler handler(std::move(buffer));
+  Common::SettingsHandler handler(BUFFER_A);
   ASSERT_EQ(handler.GetValue("key"), "val");
   ASSERT_EQ(handler.GetValue("foo"), "");
 
-  Common::SettingsHandler::Buffer buffer2 = BUFFER_B;
-  handler.SetBytes(std::move(buffer2));
+  handler.SetBytes(BUFFER_B);
   EXPECT_EQ(handler.GetValue("foo"), "bar");
   EXPECT_EQ(handler.GetValue("key"), "");
 }
@@ -97,14 +93,13 @@ TEST(SettingsHandlerTest, GetValueOnSameInstance)
   EXPECT_EQ(handler.GetValue("key"), "");
 
   Common::SettingsHandler::Buffer buffer = handler.GetBytes();
-  handler.SetBytes(std::move(buffer));
+  handler.SetBytes(buffer);
   EXPECT_EQ(handler.GetValue("key"), "val");
 }
 
 TEST(SettingsHandlerTest, GetValueAfterReset)
 {
-  Common::SettingsHandler::Buffer buffer = BUFFER_A;
-  Common::SettingsHandler handler(std::move(buffer));
+  Common::SettingsHandler handler(BUFFER_A);
   ASSERT_EQ(handler.GetValue("key"), "val");
 
   handler.Reset();
@@ -131,14 +126,12 @@ TEST(SettingsHandlerTest, EncryptAddsLFOnNullCharTwice)
 
 TEST(SettingsHandlerTest, DecryptSingleAddedLF)
 {
-  Common::SettingsHandler::Buffer buffer = BUFFER_C;
-  Common::SettingsHandler handler(std::move(buffer));
+  Common::SettingsHandler handler(BUFFER_C);
   EXPECT_EQ(handler.GetValue("\xFA"), "a");
 }
 
 TEST(SettingsHandlerTest, DecryptTwoAddedLFs)
 {
-  Common::SettingsHandler::Buffer buffer = BUFFER_D;
-  Common::SettingsHandler handler(std::move(buffer));
+  Common::SettingsHandler handler(BUFFER_D);
   EXPECT_EQ(handler.GetValue("\xFA\xE9"), "a");
 }

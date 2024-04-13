@@ -22,9 +22,9 @@ SettingsHandler::SettingsHandler()
   Reset();
 }
 
-SettingsHandler::SettingsHandler(Buffer&& buffer)
+SettingsHandler::SettingsHandler(const Buffer& buffer)
 {
-  SetBytes(std::move(buffer));
+  SetBytes(buffer);
 }
 
 const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
@@ -32,10 +32,10 @@ const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
   return m_buffer;
 }
 
-void SettingsHandler::SetBytes(Buffer&& buffer)
+void SettingsHandler::SetBytes(const Buffer& buffer)
 {
   Reset();
-  m_buffer = std::move(buffer);
+  m_buffer = buffer;
   Decrypt();
 }
 

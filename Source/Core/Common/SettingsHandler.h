@@ -25,12 +25,12 @@ public:
 
   using Buffer = std::array<u8, SETTINGS_SIZE>;
   SettingsHandler();
-  explicit SettingsHandler(Buffer&& buffer);
+  explicit SettingsHandler(const Buffer& buffer);
 
   void AddSetting(std::string_view key, std::string_view value);
 
   const Buffer& GetBytes() const;
-  void SetBytes(Buffer&& buffer);
+  void SetBytes(const Buffer& buffer);
   std::string GetValue(std::string_view key) const;
 
   void Decrypt();

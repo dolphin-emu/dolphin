@@ -139,7 +139,7 @@ IPCReply GetRealProductCode(Core::System& system, const IOCtlVRequest& request)
     return IPCReply(IPC_ENOENT);
 
   Common::SettingsHandler gen;
-  gen.SetBytes(std::move(data));
+  gen.SetBytes(data);
   const std::string code = gen.GetValue("CODE");
 
   const size_t length = std::min<size_t>(request.io_vectors[0].size, code.length());
