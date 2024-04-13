@@ -377,7 +377,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
                                    IOS::HLE::FS::Mode::Read);
     if (file && file->Read(data.data(), data.size()))
     {
-      gen.SetBytes(std::move(data));
+      gen.SetBytes(data);
       serno = gen.GetValue("SERNO");
       model = gen.GetValue("MODEL");
 
