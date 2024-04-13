@@ -448,7 +448,7 @@ namespace ciface::Android
 class InputBackend final : public ciface::InputBackend
 {
 public:
-  using ciface::InputBackend::InputBackend;
+  InputBackend(ControllerInterface* controller_interface);
   ~InputBackend();
   void PopulateDevices() override;
 
@@ -797,7 +797,8 @@ static jintArray CreateKeyCodesArray(JNIEnv* env)
   return keycodes_array;
 }
 
-void Init()
+InputBackend::InputBackend(ControllerInterface* controller_interface)
+    : ciface::InputBackend(controller_interface)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
