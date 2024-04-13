@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <span>
 
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -137,7 +138,9 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     auto& memory = system.GetMemory();
 
     const u32 imageBase = texUnit.texImage3.image_base << 5;
-    imageSrc = memory.GetPointer(imageBase);
+    // TODO: For memory safety, we need to check the size of this span
+    std::span<const u8> span = memory.GetSpanForAddress(imageBase);
+    imageSrc = span.data();
   }
 
   int image_width_minus_1 = ti0.width;

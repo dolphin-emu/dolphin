@@ -3,6 +3,8 @@
 
 #include "VideoCommon/TextureInfo.h"
 
+#include <span>
+
 #include <fmt/format.h>
 #include <xxhash.h>
 
@@ -47,8 +49,10 @@ TextureInfo TextureInfo::FromStage(u32 stage)
 
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  return TextureInfo(stage, memory.GetPointer(address), tlut_ptr, address, texture_format,
-                     tlut_format, width, height, false, nullptr, nullptr, mip_count);
+  // TODO: For memory safety, we need to check the size of this span
+  std::span<const u8> span = memory.GetSpanForAddress(address);
+  return TextureInfo(stage, span.data(), tlut_ptr, address, texture_format, tlut_format, width,
+                     height, false, nullptr, nullptr, mip_count);
 }
 
 TextureInfo::TextureInfo(u32 stage, const u8* ptr, const u8* tlut_ptr, u32 address,
