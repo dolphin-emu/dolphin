@@ -60,7 +60,7 @@ private:
 
   // Frame dumping
   ConfigBool* m_dump_use_ffv1;
-  ConfigBool* m_use_fullres_framedumps;
+  ConfigChoice* m_frame_dumps_resolution_type;
   ConfigInteger* m_dump_bitrate;
   ConfigInteger* m_png_compression_level;
 

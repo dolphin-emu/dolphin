@@ -25,9 +25,6 @@
 
 std::unique_ptr<VideoCommon::Presenter> g_presenter;
 
-// The video encoder needs the image to be a multiple of x samples.
-static constexpr int VIDEO_ENCODER_LCM = 4;
-
 namespace VideoCommon
 {
 // Stretches the native/internal analog resolution aspect ratio from ~4:3 to ~16:9
@@ -212,18 +209,61 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
   if (g_frame_dumper->IsFrameDumping() && m_xfb_entry)
   {
     MathUtil::Rectangle<int> target_rect;
-    if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_gfx->IsHeadless())
+    switch (g_ActiveConfig.frame_dumps_resolution_type)
     {
-      target_rect = GetTargetRectangle();
+    default:
+    case FrameDumpResolutionType::WindowResolution:
+    {
+      if (!g_gfx->IsHeadless())
+      {
+        target_rect = GetTargetRectangle();
+        break;
+      }
+      [[fallthrough]];
     }
-    else
+    case FrameDumpResolutionType::XFBAspectRatioCorrectedResolution:
     {
-      int width, height;
-      std::tie(width, height) =
-          CalculateOutputDimensions(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
-      target_rect = MathUtil::Rectangle<int>(0, 0, width, height);
+      target_rect = m_xfb_rect;
+      const bool allow_stretch = false;
+      auto [float_width, float_height] =
+          ScaleToDisplayAspectRatio(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight(), allow_stretch);
+      const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch);
+      auto [int_width, int_height] =
+          FindClosestIntegerResolution(float_width, float_height, draw_aspect_ratio);
+      target_rect = MathUtil::Rectangle<int>(0, 0, int_width, int_height);
+      break;
+    }
+    case FrameDumpResolutionType::XFBRawResolution:
+    {
+      target_rect = m_xfb_rect;
+      break;
+    }
     }
 
+    int width = target_rect.GetWidth();
+    int height = target_rect.GetHeight();
+
+    const int resolution_lcm = g_frame_dumper->GetRequiredResolutionLeastCommonMultiple();
+
+    // Ensure divisibility by the dumper LCM and a min of 1 to make it compatible with all the
+    // video encoders. Note that this is theoretically only necessary when recording videos and not
+    // screenshots.
+    // We always scale positively to make sure the least amount of information is lost.
+    //
+    // TODO: this should be added as black padding on the edges by the frame dumper.
+    if ((width % resolution_lcm) != 0 || width == 0)
+      width += resolution_lcm - (width % resolution_lcm);
+    if ((height % resolution_lcm) != 0 || height == 0)
+      height += resolution_lcm - (height % resolution_lcm);
+
+    // Remove any black borders, there would be no point in including them in the recording
+    target_rect.left = 0;
+    target_rect.top = 0;
+    target_rect.right = width;
+    target_rect.bottom = height;
+
+    // TODO: any scaling done by this won't be gamma corrected,
+    // we should either apply post processing as well, or port its gamma correction code
     g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
                                      m_frame_count);
   }
@@ -347,7 +387,8 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
   if (aspect_mode == AspectMode::Stretch)
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
 
-  auto& vi = Core::System::GetInstance().GetVideoInterface();
+  // The actual aspect ratio of the XFB texture is irrelevant, the VI one is the one that matters
+  const auto& vi = Core::System::GetInstance().GetVideoInterface();
   const float source_aspect_ratio = vi.GetAspectRatio();
 
   // This will scale up the source ~4:3 resolution to its equivalent ~16:9 resolution
@@ -538,7 +579,7 @@ void Presenter::UpdateDrawRectangle()
   // Don't know if there is a better place for this code so there isn't a 1 frame delay
   if (g_ActiveConfig.bWidescreenHack)
   {
-    auto& vi = Core::System::GetInstance().GetVideoInterface();
+    const auto& vi = Core::System::GetInstance().GetVideoInterface();
     float source_aspect_ratio = vi.GetAspectRatio();
     // If the game is meant to be in widescreen (or forced to),
     // scale the source aspect ratio to it.
@@ -582,9 +623,10 @@ void Presenter::UpdateDrawRectangle()
 
   // Crop the picture to a standard aspect ratio. (if enabled)
   auto [crop_width, crop_height] = ApplyStandardAspectCrop(draw_width, draw_height);
+  const float crop_aspect_ratio = crop_width / crop_height;
 
   // scale the picture to fit the rendering window
-  if (win_aspect_ratio >= crop_width / crop_height)
+  if (win_aspect_ratio >= crop_aspect_ratio)
   {
     // the window is flatter than the picture
     draw_width *= win_height / crop_height;
@@ -604,18 +646,7 @@ void Presenter::UpdateDrawRectangle()
   int int_draw_width;
   int int_draw_height;
 
-  if (g_frame_dumper->IsFrameDumping())
-  {
-    // ensure divisibility by "VIDEO_ENCODER_LCM" to make it compatible with all the video encoders.
-    // Note that this is theoretically only necessary when recording videos and not screenshots.
-    draw_width =
-        std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % VIDEO_ENCODER_LCM;
-    draw_height =
-        std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % VIDEO_ENCODER_LCM;
-    int_draw_width = static_cast<int>(draw_width);
-    int_draw_height = static_cast<int>(draw_height);
-  }
-  else if (g_ActiveConfig.aspect_mode != AspectMode::Raw || !m_xfb_entry)
+  if (g_ActiveConfig.aspect_mode != AspectMode::Raw || !m_xfb_entry)
   {
     // Find the best integer resolution: the closest aspect ratio with the least black bars.
     // This should have no influence if "AspectMode::Stretch" is active.
@@ -666,6 +697,7 @@ std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, c
 std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
                                                           bool allow_stretch) const
 {
+  // Protect against zero width and height, a minimum of 1 will do
   width = std::max(width, 1);
   height = std::max(height, 1);
 
@@ -698,14 +730,6 @@ std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
   {
     width = static_cast<int>(std::ceil(scaled_width));
     height = static_cast<int>(std::ceil(scaled_height));
-  }
-
-  if (g_frame_dumper->IsFrameDumping())
-  {
-    // UpdateDrawRectangle() makes sure that the rendered image is divisible by "VIDEO_ENCODER_LCM"
-    // for video encoders, so do that here too to match it
-    width -= width % VIDEO_ENCODER_LCM;
-    height -= height % VIDEO_ENCODER_LCM;
   }
 
   return std::make_tuple(width, height);
