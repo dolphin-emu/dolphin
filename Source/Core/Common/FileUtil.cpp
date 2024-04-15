@@ -918,6 +918,8 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
     s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
+    s_user_paths[F_RETROACHIEVEMENTSCONFIG_IDX] =
+        s_user_paths[D_CONFIG_IDX] + RETROACHIEVEMENTS_CONFIG;
     break;
 
   case D_CACHE_IDX:
