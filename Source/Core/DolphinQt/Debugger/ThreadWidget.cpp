@@ -17,6 +17,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/FromStdString.h"
 #include "DolphinQt/Settings.h"
 
 ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
@@ -461,7 +462,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(format_hex(lr_save)));
       m_callstack_table->setItem(
           i, 3,
-          new QTableWidgetItem(QString::fromStdString(
+          new QTableWidgetItem(QtUtils::FromStdString(
               guard.GetSystem().GetPowerPC().GetDebugInterface().GetDescription(lr_save))));
     }
     else

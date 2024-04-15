@@ -303,6 +303,7 @@ add_executable(dolphin-emu
   QtUtils/ElidedButton.h
   QtUtils/FileOpenEventFilter.cpp
   QtUtils/FileOpenEventFilter.h
+  QtUtils/FromStdString.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
   QtUtils/ModalMessageBox.cpp

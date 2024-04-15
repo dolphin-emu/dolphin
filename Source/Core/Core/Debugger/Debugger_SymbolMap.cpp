@@ -79,7 +79,7 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
   });
 
   WalkTheStack(guard, [&output, &ppc_symbol_db](u32 func_addr) {
-    std::string func_desc = ppc_symbol_db.GetDescription(func_addr);
+    std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
 
@@ -106,14 +106,14 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
     GENERIC_LOG_FMT(type, level, " LR = 0 - this is bad");
   }
 
-  if (ppc_symbol_db.GetDescription(ppc_state.pc) != ppc_symbol_db.GetDescription(LR(ppc_state)))
+  if (const std::string_view lr_desc = ppc_symbol_db.GetDescription(LR(ppc_state));
+      lr_desc != ppc_symbol_db.GetDescription(ppc_state.pc))
   {
-    GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]",
-                    ppc_symbol_db.GetDescription(LR(ppc_state)), LR(ppc_state));
+    GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", lr_desc, LR(ppc_state));
   }
 
   WalkTheStack(guard, [type, level, &ppc_symbol_db](u32 func_addr) {
-    std::string func_desc = ppc_symbol_db.GetDescription(func_addr);
+    std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
     GENERIC_LOG_FMT(type, level, " * {} [ addr = {:08x} ]", func_desc, func_addr);

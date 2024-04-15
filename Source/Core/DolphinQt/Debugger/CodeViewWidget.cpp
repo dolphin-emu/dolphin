@@ -38,6 +38,7 @@
 #include "DolphinQt/Debugger/AssembleInstructionDialog.h"
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/FromStdString.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -326,7 +327,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
     std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
     std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
-    std::string desc = debug_interface.GetDescription(addr);
+    const std::string_view desc = debug_interface.GetDescription(addr);
 
     // Adds whitespace and a minimum size to ins and param. Helps to prevent frequent resizing while
     // scrolling.
@@ -334,7 +335,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
         QStringLiteral("%1").arg(QString::fromStdString(ins), -7, QLatin1Char(' '));
     const QString param_formatted =
         QStringLiteral("%1").arg(QString::fromStdString(param), -19, QLatin1Char(' '));
-    const QString desc_formatted = QStringLiteral("%1   ").arg(QString::fromStdString(desc));
+    const QString desc_formatted = QStringLiteral("%1   ").arg(QtUtils::FromStdString(desc));
 
     auto* ins_item = new QTableWidgetItem(ins_formatted);
     auto* param_item = new QTableWidgetItem(param_formatted);
@@ -374,7 +375,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
       branch.is_link = IsBranchInstructionWithLink(ins);
 
       description_item->setText(
-          tr("--> %1").arg(QString::fromStdString(debug_interface.GetDescription(branch_addr))));
+          tr("--> %1").arg(QtUtils::FromStdString(debug_interface.GetDescription(branch_addr))));
       param_item->setForeground(dark_theme ? QColor(255, 135, 255) : Qt::magenta);
     }
 

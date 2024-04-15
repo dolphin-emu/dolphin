@@ -396,6 +396,7 @@
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
     <QtMoc Include="QtUtils\FileOpenEventFilter.h" />
+    <ClInclude Include="QtUtils\FromStdString.h" />
     <QtMoc Include="QtUtils\ParallelProgressDialog.h" />
     <QtMoc Include="QtUtils\PartiallyClosableTabWidget.h" />
     <ClInclude Include="QtUtils\SetWindowDecorations.h" />
