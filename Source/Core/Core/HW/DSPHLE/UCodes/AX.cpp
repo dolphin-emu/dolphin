@@ -119,13 +119,6 @@ void AXUCode::HandleCommandList()
 
   u32 pb_addr = 0;
 
-#if 0
-	INFO_LOG_FMT(DSPHLE, "Command list:");
-	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
-		INFO_LOG_FMT(DSPHLE, "{:04x}", m_cmdlist[i]);
-	INFO_LOG_FMT(DSPHLE, "-------------");
-#endif
-
   u32 curr_idx = 0;
   bool end = false;
   while (!end)

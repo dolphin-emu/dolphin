@@ -115,30 +115,14 @@ static inline void DecodeBytes_IA4(u32* dst, const u8* src)
 
 static inline void DecodeBytes_RGB5A3(u32* dst, const u16* src)
 {
-#if 0
   for (int x = 0; x < 4; x++)
     dst[x] = DecodePixel_RGB5A3(Common::swap16(src[x]));
-#else
-  dst[0] = DecodePixel_RGB5A3(Common::swap16(src[0]));
-  dst[1] = DecodePixel_RGB5A3(Common::swap16(src[1]));
-  dst[2] = DecodePixel_RGB5A3(Common::swap16(src[2]));
-  dst[3] = DecodePixel_RGB5A3(Common::swap16(src[3]));
-#endif
 }
 
 static inline void DecodeBytes_RGBA8(u32* dst, const u16* src, const u16* src2)
 {
-#if 0
   for (int x = 0; x < 4; x++)
-  {
-    dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);
-  }
-#else
-  dst[0] = ((src[0] & 0xFF) << 24) | ((src[0] & 0xFF00) >> 8) | (src2[0] << 8);
-  dst[1] = ((src[1] & 0xFF) << 24) | ((src[1] & 0xFF00) >> 8) | (src2[1] << 8);
-  dst[2] = ((src[2] & 0xFF) << 24) | ((src[2] & 0xFF00) >> 8) | (src2[2] << 8);
-  dst[3] = ((src[3] & 0xFF) << 24) | ((src[3] & 0xFF00) >> 8) | (src2[3] << 8);
-#endif
+    dst[x] = ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00) >> 8) | (src2[x] << 8);
 }
 
 static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
