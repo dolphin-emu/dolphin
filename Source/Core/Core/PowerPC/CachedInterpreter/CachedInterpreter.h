@@ -51,6 +51,9 @@ public:
 
   static std::size_t Disassemble(const JitBlock& block, std::ostream& stream);
 
+  std::size_t DisassembleNearCode(const JitBlock& block, std::ostream& stream) const override;
+  std::size_t DisassembleFarCode(const JitBlock& block, std::ostream& stream) const override;
+
   JitBaseBlockCache* GetBlockCache() override { return &m_block_cache; }
   const char* GetName() const override { return "Cached Interpreter"; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }

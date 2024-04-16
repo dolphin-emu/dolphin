@@ -13,6 +13,7 @@
 #include <QFontDialog>
 #include <QInputDialog>
 #include <QMap>
+#include <QSignalBlocker>
 #include <QUrl>
 
 #include <fmt/format.h>
@@ -95,6 +96,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=, this](Core::State state) { OnEmulationStateChanged(state); });
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &MenuBar::OnConfigChanged);
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
           [this] { OnEmulationStateChanged(Core::GetState(Core::System::GetInstance())); });
 
@@ -165,6 +167,12 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   UpdateToolsMenu(state);
 
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+}
+
+void MenuBar::OnConfigChanged()
+{
+  const QSignalBlocker blocker(m_jit_profile_blocks);
+  m_jit_profile_blocks->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
 }
 
 void MenuBar::OnDebugModeToggled(bool enabled)

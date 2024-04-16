@@ -42,6 +42,8 @@ public:
   void Jit(u32 em_address) override {}
   void EraseSingleBlock(const JitBlock&) override {}
   std::vector<MemoryStats> GetMemoryStats() const override { return {}; }
+  std::size_t DisassembleNearCode(const JitBlock&, std::ostream&) const override { return 0; }
+  std::size_t DisassembleFarCode(const JitBlock&, std::ostream&) const override { return 0; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {

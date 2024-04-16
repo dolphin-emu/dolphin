@@ -3,52 +3,43 @@
 
 #include "Common/HostDisassembler.h"
 
-#include <sstream>
+#include <span>
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+#include <fmt/ranges.h>
 
 #if defined(HAVE_LLVM)
-#include <fmt/format.h>
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
 #elif defined(_M_X86_64)
 #include <disasm.h>  // Bochs
 #endif
 
-#include "Common/Assert.h"
-#include "Common/VariantUtil.h"
-#include "Core/PowerPC/JitInterface.h"
-#include "Core/System.h"
-
 #if defined(HAVE_LLVM)
-class HostDisassemblerLLVM : public HostDisassembler
+class HostDisassemblerLLVM final : public HostDisassembler
 {
 public:
-  HostDisassemblerLLVM(const std::string& host_disasm, int inst_size = -1,
-                       const std::string& cpu = "");
-  ~HostDisassemblerLLVM()
-  {
-    if (m_can_disasm)
-      LLVMDisasmDispose(m_llvm_context);
-  }
+  explicit HostDisassemblerLLVM(const char* host_disasm, const char* cpu = "",
+                                std::size_t inst_size = 0);
+  ~HostDisassemblerLLVM();
 
 private:
-  bool m_can_disasm;
   LLVMDisasmContextRef m_llvm_context;
-  int m_instruction_size;
+  std::size_t m_instruction_size;
 
-  std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
-                                   u32* host_instructions_count, u64 starting_pc) override;
+  std::size_t Disassemble(const u8* begin, const u8* end, std::ostream& stream) override;
 };
 
-HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int inst_size,
-                                           const std::string& cpu)
-    : m_can_disasm(false), m_instruction_size(inst_size)
+HostDisassemblerLLVM::HostDisassemblerLLVM(const char* host_disasm, const char* cpu,
+                                           std::size_t inst_size)
+    : m_instruction_size(inst_size)
 {
   LLVMInitializeAllTargetInfos();
   LLVMInitializeAllTargetMCs();
   LLVMInitializeAllDisassemblers();
 
-  m_llvm_context =
-      LLVMCreateDisasmCPU(host_disasm.c_str(), cpu.c_str(), nullptr, 0, nullptr, nullptr);
+  m_llvm_context = LLVMCreateDisasmCPU(host_disasm, cpu, nullptr, 0, nullptr, nullptr);
 
   // Couldn't create llvm context
   if (!m_llvm_context)
@@ -56,153 +47,112 @@ HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int i
 
   LLVMSetDisasmOptions(m_llvm_context, LLVMDisassembler_Option_AsmPrinterVariant |
                                            LLVMDisassembler_Option_PrintLatency);
-
-  m_can_disasm = true;
 }
 
-std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, const u32 code_size,
-                                                       u32* host_instructions_count,
-                                                       u64 starting_pc)
+HostDisassemblerLLVM::~HostDisassemblerLLVM()
 {
-  if (!m_can_disasm)
-    return "(No LLVM context)";
+  if (m_llvm_context)
+    LLVMDisasmDispose(m_llvm_context);
+}
 
-  u8* disasmPtr = (u8*)code_start;
-  const u8* end = code_start + code_size;
+std::size_t HostDisassemblerLLVM::Disassemble(const u8* begin, const u8* end, std::ostream& stream)
+{
+  std::size_t instruction_count = 0;
+  if (!m_llvm_context)
+    return instruction_count;
 
-  std::ostringstream x86_disasm;
-  while ((u8*)disasmPtr < end)
+  while (begin < end)
   {
     char inst_disasm[256];
-    size_t inst_size = LLVMDisasmInstruction(m_llvm_context, disasmPtr, (u64)(end - disasmPtr),
-                                             starting_pc, inst_disasm, 256);
 
-    x86_disasm << "0x" << std::hex << starting_pc << "\t";
-    if (!inst_size)
+    const auto inst_size =
+        LLVMDisasmInstruction(m_llvm_context, const_cast<u8*>(begin), static_cast<u64>(end - begin),
+                              reinterpret_cast<u64>(begin), inst_disasm, sizeof(inst_disasm));
+    if (inst_size == 0)
     {
-      x86_disasm << "Invalid inst:";
-
-      if (m_instruction_size != -1)
+      if (m_instruction_size != 0)
       {
-        // If we are on an architecture that has a fixed instruction size
-        // We can continue onward past this bad instruction.
-        std::string inst_str;
-        for (int i = 0; i < m_instruction_size; ++i)
-          inst_str += fmt::format("{:02x}", disasmPtr[i]);
-
-        x86_disasm << inst_str << std::endl;
-        disasmPtr += m_instruction_size;
+        // If we are on an architecture that has a fixed instruction
+        // size, we can continue onward past this bad instruction.
+        fmt::println(stream, "{}\tInvalid inst: {:02x}", fmt::ptr(begin),
+                     fmt::join(std::span{begin, m_instruction_size}, ""));
+        begin += m_instruction_size;
       }
       else
       {
-        // We can't continue if we are on an architecture that has flexible instruction sizes
-        // Dump the rest of the block instead
-        std::string code_block;
-        for (int i = 0; (disasmPtr + i) < end; ++i)
-          code_block += fmt::format("{:02x}", disasmPtr[i]);
-
-        x86_disasm << code_block << std::endl;
+        // We can't continue if we are on an architecture that has flexible
+        // instruction sizes. Dump the rest of the block instead.
+        fmt::println(stream, "{}\tInvalid inst: {:02x}", fmt::ptr(begin),
+                     fmt::join(std::span{begin, end}, ""));
         break;
       }
     }
     else
     {
-      x86_disasm << inst_disasm << std::endl;
-      disasmPtr += inst_size;
-      starting_pc += inst_size;
+      fmt::println(stream, "{}{}", fmt::ptr(begin), inst_disasm);
+      begin += inst_size;
     }
-
-    (*host_instructions_count)++;
+    ++instruction_count;
   }
-
-  return x86_disasm.str();
+  return instruction_count;
 }
 #elif defined(_M_X86_64)
-class HostDisassemblerX86 : public HostDisassembler
+class HostDisassemblerBochs final : public HostDisassembler
 {
 public:
-  HostDisassemblerX86();
+  explicit HostDisassemblerBochs();
+  ~HostDisassemblerBochs() = default;
 
 private:
   disassembler m_disasm;
 
-  std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
-                                   u32* host_instructions_count, u64 starting_pc) override;
+  std::size_t Disassemble(const u8* begin, const u8* end, std::ostream& stream) override;
 };
 
-HostDisassemblerX86::HostDisassemblerX86()
+HostDisassemblerBochs::HostDisassemblerBochs()
 {
   m_disasm.set_syntax_intel();
 }
 
-std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, const u32 code_size,
-                                                      u32* host_instructions_count, u64 starting_pc)
+std::size_t HostDisassemblerBochs::Disassemble(const u8* begin, const u8* end, std::ostream& stream)
 {
-  u64 disasmPtr = (u64)code_start;
-  const u8* end = code_start + code_size;
-
-  std::ostringstream x86_disasm;
-  while ((u8*)disasmPtr < end)
+  std::size_t instruction_count = 0;
+  while (begin < end)
   {
     char inst_disasm[256];
-    disasmPtr += m_disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, inst_disasm);
-    x86_disasm << inst_disasm << std::endl;
-    (*host_instructions_count)++;
+
+    const auto inst_size =
+        m_disasm.disasm64(0, reinterpret_cast<bx_address>(begin), begin, inst_disasm);
+    fmt::println(stream, "{}\t{}", fmt::ptr(begin), inst_disasm);
+    begin += inst_size;
+    ++instruction_count;
   }
-
-  return x86_disasm.str();
+  return instruction_count;
 }
 #endif
 
-std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch)
+std::unique_ptr<HostDisassembler> HostDisassembler::Factory(Platform arch)
 {
+  switch (arch)
+  {
 #if defined(HAVE_LLVM)
-  if (arch == "x86")
+  case Platform::x86_64:
     return std::make_unique<HostDisassemblerLLVM>("x86_64-none-unknown");
-  if (arch == "aarch64")
-    return std::make_unique<HostDisassemblerLLVM>("aarch64-none-unknown", 4, "cortex-a57");
-  if (arch == "armv7")
-    return std::make_unique<HostDisassemblerLLVM>("armv7-none-unknown", 4, "cortex-a15");
+  case Platform::aarch64:
+    return std::make_unique<HostDisassemblerLLVM>("aarch64-none-unknown", "cortex-a57", 4);
 #elif defined(_M_X86_64)
-  if (arch == "x86")
-    return std::make_unique<HostDisassemblerX86>();
+  case Platform::x86_64:
+    return std::make_unique<HostDisassemblerBochs>();
+#else
+  case Platform{}:  // warning C4065: "switch statement contains 'default' but no 'case' labels"
 #endif
-  return std::make_unique<HostDisassembler>();
+  default:
+    return std::make_unique<HostDisassembler>();
+  }
 }
 
-DisassembleResult DisassembleBlock(HostDisassembler* disasm, u32 address)
+std::size_t HostDisassembler::Disassemble(const u8* begin, const u8* end, std::ostream& stream)
 {
-  auto res = Core::System::GetInstance().GetJitInterface().GetHostCode(address);
-
-  return std::visit(overloaded{[&](JitInterface::GetHostCodeError error) {
-                                 DisassembleResult result;
-                                 switch (error)
-                                 {
-                                 case JitInterface::GetHostCodeError::NoJitActive:
-                                   result.text = "(No JIT active)";
-                                   break;
-                                 case JitInterface::GetHostCodeError::NoTranslation:
-                                   result.text = "(No translation)";
-                                   break;
-                                 default:
-                                   ASSERT(false);
-                                   break;
-                                 }
-                                 result.entry_address = address;
-                                 result.instruction_count = 0;
-                                 result.code_size = 0;
-                                 return result;
-                               },
-                               [&](JitInterface::GetHostCodeResult host_result) {
-                                 DisassembleResult new_result;
-                                 u32 instruction_count = 0;
-                                 new_result.text = disasm->DisassembleHostBlock(
-                                     host_result.code, host_result.code_size, &instruction_count,
-                                     (u64)host_result.code);
-                                 new_result.entry_address = host_result.entry_address;
-                                 new_result.code_size = host_result.code_size;
-                                 new_result.instruction_count = instruction_count;
-                                 return new_result;
-                               }},
-                    res);
+  fmt::println(stream, "{}\t{:02x}", fmt::ptr(begin), fmt::join(std::span{begin, end}, ""));
+  return 0;
 }

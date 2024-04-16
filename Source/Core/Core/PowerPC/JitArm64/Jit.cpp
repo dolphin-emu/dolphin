@@ -9,6 +9,7 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumUtils.h"
+#include "Common/HostDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -22,6 +23,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/Host.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
@@ -39,7 +41,9 @@ constexpr size_t NEAR_CODE_SIZE = 1024 * 1024 * 64;
 constexpr size_t FAR_CODE_SIZE = 1024 * 1024 * 64;
 constexpr size_t TOTAL_CODE_SIZE = NEAR_CODE_SIZE * 2 + FAR_CODE_SIZE * 2;
 
-JitArm64::JitArm64(Core::System& system) : JitBase(system), m_float_emit(this)
+JitArm64::JitArm64(Core::System& system)
+    : JitBase(system), m_float_emit(this),
+      m_disassembler(HostDisassembler::Factory(HostDisassembler::Platform::aarch64))
 {
 }
 
@@ -186,6 +190,8 @@ void JitArm64::GenerateAsmAndResetFreeMemoryRanges()
 
   ResetFreeMemoryRanges(routines_near_end - routines_near_start,
                         routines_far_end - routines_far_start);
+
+  Host_JitCacheCleared();
 }
 
 void JitArm64::FreeRanges()
@@ -1014,7 +1020,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       b->far_begin = far_start;
       b->far_end = far_end;
 
-      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
       return;
     }
   }
@@ -1046,6 +1052,16 @@ std::vector<JitBase::MemoryStats> JitArm64::GetMemoryStats() const
           {"near_1", m_free_ranges_near_1.get_stats()},
           {"far_0", m_free_ranges_far_0.get_stats()},
           {"far_1", m_free_ranges_far_1.get_stats()}};
+}
+
+std::size_t JitArm64::DisassembleNearCode(const JitBlock& block, std::ostream& stream) const
+{
+  return m_disassembler->Disassemble(block.normalEntry, block.near_end, stream);
+}
+
+std::size_t JitArm64::DisassembleFarCode(const JitBlock& block, std::ostream& stream) const
+{
+  return m_disassembler->Disassemble(block.far_begin, block.far_end, stream);
 }
 
 std::optional<size_t> JitArm64::SetEmitterStateToFreeCodeRegion()
@@ -1366,7 +1382,6 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
-  b->originalSize = code_block.m_num_instructions;
 
   FlushIcache();
   m_far_code.FlushIcache();

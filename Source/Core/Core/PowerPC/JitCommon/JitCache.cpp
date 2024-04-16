@@ -8,13 +8,16 @@
 #include <cstring>
 #include <functional>
 #include <map>
+#include <ranges>
 #include <set>
+#include <span>
 #include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -124,6 +127,7 @@ void JitBaseBlockCache::WipeBlockProfilingData(const Core::CPUThreadGuard&)
     if (JitBlock::ProfileData* const profile_data = kv.second.profile_data.get())
       *profile_data = {};
   }
+  Host_JitProfileDataWiped();
 }
 
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
@@ -139,7 +143,8 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 }
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
-                                      const std::set<u32>& physical_addresses)
+                                      const PPCAnalyst::CodeBlock& code_block,
+                                      const PPCAnalyst::CodeBuffer& code_buffer)
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
   if (m_entry_points_ptr)
@@ -153,7 +158,18 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   }
   block.fast_block_map_index = index;
 
-  block.physical_addresses = physical_addresses;
+  block.physical_addresses = code_block.m_physical_addresses;
+
+  block.originalSize = code_block.m_num_instructions;
+  if (m_jit.IsDebuggingEnabled())
+  {
+    // TODO C++23: Can do this all in one statement with `std::vector::assign_range`.
+    const std::ranges::transform_view original_buffer_transform_view{
+        std::span{code_buffer.data(), block.originalSize},
+        [](const PPCAnalyst::CodeOp& op) { return std::make_pair(op.address, op.inst); }};
+    block.original_buffer.assign(original_buffer_transform_view.begin(),
+                                 original_buffer_transform_view.end());
+  }
 
   for (u32 addr : block.physical_addresses)
   {
@@ -175,13 +191,14 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   if (Common::JitRegister::IsEnabled() &&
       (symbol = m_jit.m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
-    Common::JitRegister::Register(block.normalEntry, block.codeSize, "JIT_PPC_{}_{:08x}",
-                                  symbol->function_name.c_str(), block.physicalAddress);
+    Common::JitRegister::Register(block.normalEntry, block.near_end - block.normalEntry,
+                                  "JIT_PPC_{}_{:08x}", symbol->function_name,
+                                  block.physicalAddress);
   }
   else
   {
-    Common::JitRegister::Register(block.normalEntry, block.codeSize, "JIT_PPC_{:08x}",
-                                  block.physicalAddress);
+    Common::JitRegister::Register(block.normalEntry, block.near_end - block.normalEntry,
+                                  "JIT_PPC_{:08x}", block.physicalAddress);
   }
 }
 

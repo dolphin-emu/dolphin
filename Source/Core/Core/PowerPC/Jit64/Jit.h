@@ -34,6 +34,7 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
+class HostDisassembler;
 namespace PPCAnalyst
 {
 struct CodeBlock;
@@ -67,6 +68,9 @@ public:
 
   void EraseSingleBlock(const JitBlock& block) override;
   std::vector<MemoryStats> GetMemoryStats() const override;
+
+  std::size_t DisassembleNearCode(const JitBlock& block, std::ostream& stream) const override;
+  std::size_t DisassembleFarCode(const JitBlock& block, std::ostream& stream) const override;
 
   // Finds a free memory region and sets the near and far code emitters to point at that region.
   // Returns false if no free memory region can be found for either of the two.
@@ -288,6 +292,7 @@ private:
   const bool m_im_here_debug = false;
   const bool m_im_here_log = false;
   std::map<u32, int> m_been_here;
+  std::unique_ptr<HostDisassembler> m_disassembler;
 };
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,

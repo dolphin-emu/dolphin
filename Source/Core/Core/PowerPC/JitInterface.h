@@ -6,11 +6,10 @@
 #include <cstddef>
 #include <cstdio>
 #include <functional>
+#include <iosfwd>
 #include <memory>
-#include <string>
 #include <string_view>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -46,23 +45,11 @@ public:
   CPUCoreBase* InitJitCore(PowerPC::CPUCore core);
   CPUCoreBase* GetCore() const;
 
-  // Debugging
-  enum class GetHostCodeError
-  {
-    NoJitActive,
-    NoTranslation,
-  };
-  struct GetHostCodeResult
-  {
-    const u8* code;
-    u32 code_size;
-    u32 entry_address;
-  };
-
   void UpdateMembase();
   void JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE* file) const;
   void WipeBlockProfilingData(const Core::CPUThreadGuard& guard);
-  std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address) const;
+  void RunOnBlocks(const Core::CPUThreadGuard& guard, std::function<void(const JitBlock&)> f) const;
+  std::size_t GetBlockCount() const;
 
   // Memory Utilities
   bool HandleFault(uintptr_t access_address, SContext* ctx);
@@ -84,6 +71,10 @@ public:
   // Memory region name, free size, and fragmentation ratio
   using MemoryStats = std::pair<std::string_view, std::pair<std::size_t, double>>;
   std::vector<MemoryStats> GetMemoryStats() const;
+
+  // Disassemble the recompiled code from a JIT block. Returns the disassembled instruction count.
+  std::size_t DisassembleNearCode(const JitBlock& block, std::ostream& stream) const;
+  std::size_t DisassembleFarCode(const JitBlock& block, std::ostream& stream) const;
 
   // If "forced" is true, a recompile is being requested on code that hasn't been modified.
   void InvalidateICache(u32 address, u32 size, bool forced);

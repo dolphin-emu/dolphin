@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <iosfwd>
 #include <map>
 #include <string_view>
 #include <unordered_set>
@@ -201,6 +202,9 @@ public:
   // Memory region name, free size, and fragmentation ratio
   using MemoryStats = std::pair<std::string_view, std::pair<std::size_t, double>>;
   virtual std::vector<MemoryStats> GetMemoryStats() const = 0;
+
+  virtual std::size_t DisassembleNearCode(const JitBlock& block, std::ostream& stream) const = 0;
+  virtual std::size_t DisassembleFarCode(const JitBlock& block, std::ostream& stream) const = 0;
 
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
 

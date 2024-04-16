@@ -20,6 +20,8 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
+class HostDisassembler;
+
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
@@ -50,6 +52,9 @@ public:
 
   void EraseSingleBlock(const JitBlock& block) override;
   std::vector<MemoryStats> GetMemoryStats() const override;
+
+  std::size_t DisassembleNearCode(const JitBlock& block, std::ostream& stream) const override;
+  std::size_t DisassembleFarCode(const JitBlock& block, std::ostream& stream) const override;
 
   const char* GetName() const override { return "JITARM64"; }
 
@@ -413,4 +418,6 @@ protected:
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near_1;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far_0;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far_1;
+
+  std::unique_ptr<HostDisassembler> m_disassembler;
 };

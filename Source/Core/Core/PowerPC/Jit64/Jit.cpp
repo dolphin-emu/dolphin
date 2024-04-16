@@ -9,6 +9,7 @@
 
 #include <disasm.h>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 // for the PROFILER stuff
 #ifdef _WIN32
@@ -18,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumUtils.h"
 #include "Common/GekkoDisassembler.h"
+#include "Common/HostDisassembler.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -30,6 +32,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/Host.h"
 #include "Core/MachineContext.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
@@ -116,7 +119,9 @@ using namespace PowerPC;
     and such, but it's currently limited to integer ops only. This can definitely be made better.
 */
 
-Jit64::Jit64(Core::System& system) : JitBase(system), QuantizedMemoryRoutines(*this)
+Jit64::Jit64(Core::System& system)
+    : JitBase(system), QuantizedMemoryRoutines(*this),
+      m_disassembler(HostDisassembler::Factory(HostDisassembler::Platform::x86_64))
 {
 }
 
@@ -308,6 +313,7 @@ void Jit64::ClearCache()
   RefreshConfig();
   asm_routines.Regenerate();
   ResetFreeMemoryRanges();
+  Host_JitCacheCleared();
 }
 
 void Jit64::FreeRanges()
@@ -826,7 +832,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       b->far_begin = far_start;
       b->far_end = far_end;
 
-      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
       return;
     }
   }
@@ -1193,7 +1199,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
-  b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_GENERATED_CODE
   LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
@@ -1211,6 +1216,39 @@ void Jit64::EraseSingleBlock(const JitBlock& block)
 std::vector<JitBase::MemoryStats> Jit64::GetMemoryStats() const
 {
   return {{"near", m_free_ranges_near.get_stats()}, {"far", m_free_ranges_far.get_stats()}};
+}
+
+std::size_t Jit64::DisassembleNearCode(const JitBlock& block, std::ostream& stream) const
+{
+  // The last element of the JitBlock::linkData vector is not necessarily the furthest exit.
+  // See: Jit64::JustWriteExit
+  const auto iter = std::ranges::max_element(block.linkData, {}, &JitBlock::LinkData::exitPtrs);
+
+  // Link data is not guaranteed, e.g. Jit64::WriteRfiExitDestInRSCRATCH
+  if (iter == block.linkData.end())
+    return m_disassembler->Disassemble(block.normalEntry, block.near_end, stream);
+
+  // A JitBlock's near_end only records where the XEmitter was after DoJit concludes. However, a
+  // JitBlock's exits will be modified by block linking. If Block A wants to link its final exit
+  // to the entry_point of Block B, and Block B follows Block A in memory, then the final exit's
+  // JMP will not have its destination modified but will instead be overwritten by a multibyte NOP.
+  // Trickily, Block A's near_end does not necessarily equal Block B's entry_point because Block B's
+  // entry_point is aligned to the next multiple of 4! This means the multibyte NOP may need to
+  // extend past Block A's near_end, complicating host code disassembly. If the opcode of a JMP
+  // instruction is found at the final exit, the block will be disassembled like normal. If one
+  // is not, the exit is assumed to be overwritten, and special action is taken.
+  const u8* const furthest_exit = iter->exitPtrs;
+  if (*furthest_exit == 0xE9)
+    return m_disassembler->Disassemble(block.normalEntry, block.near_end, stream);
+
+  const auto inst_count = m_disassembler->Disassemble(block.normalEntry, furthest_exit, stream);
+  fmt::println(stream, "{}\tmultibyte nop", fmt::ptr(furthest_exit));
+  return inst_count + 1;
+}
+
+std::size_t Jit64::DisassembleFarCode(const JitBlock& block, std::ostream& stream) const
+{
+  return m_disassembler->Disassemble(block.far_begin, block.far_end, stream);
 }
 
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
