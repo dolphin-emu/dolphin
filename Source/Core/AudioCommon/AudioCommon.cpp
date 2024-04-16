@@ -100,6 +100,8 @@ std::string GetDefaultSoundBackend()
 #elif defined __linux__
   if (AlsaSound::IsValid())
     backend = BACKEND_ALSA;
+  else
+    backend = BACKEND_CUBEB;
 #elif defined(__APPLE__) || defined(_WIN32) || defined(__OpenBSD__)
   backend = BACKEND_CUBEB;
 #endif
