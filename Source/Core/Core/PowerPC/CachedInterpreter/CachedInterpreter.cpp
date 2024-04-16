@@ -290,13 +290,12 @@ void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failur
       b->far_begin = b->far_end = nullptr;
 
       b->codeSize = static_cast<u32>(b->near_end - b->normalEntry);
-      b->originalSize = code_block.m_num_instructions;
 
       // Mark the memory region that this code block uses in the RangeSizeSet.
       if (b->near_begin != b->near_end)
         m_free_ranges.erase(b->near_begin, b->near_end);
 
-      m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+      m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
 
       return;
     }
@@ -413,6 +412,17 @@ std::vector<JitBase::MemoryStats> CachedInterpreter::GetMemoryStats() const
   return {{"free", m_free_ranges.get_stats()}};
 }
 
+std::size_t CachedInterpreter::DisasmNearCode(const JitBlock& block, std::ostream& stream) const
+{
+  return Disassemble(block, stream);
+}
+
+std::size_t CachedInterpreter::DisasmFarCode(const JitBlock& block, std::ostream& stream) const
+{
+  stream << "N/A\n";
+  return 0;
+}
+
 void CachedInterpreter::ClearCache()
 {
   m_block_cache.Clear();
@@ -420,4 +430,5 @@ void CachedInterpreter::ClearCache()
   ClearCodeSpace();
   ResetFreeMemoryRanges();
   RefreshConfig();
+  JitBase::ClearCache();
 }

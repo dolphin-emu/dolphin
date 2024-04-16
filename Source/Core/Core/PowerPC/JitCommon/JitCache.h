@@ -19,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 class JitBase;
 
@@ -105,6 +106,10 @@ struct JitBlock : public JitBlockData
   // This set stores all physical addresses of all occupied instructions.
   std::set<u32> physical_addresses;
 
+  // This is only available when debugging is enabled. It is a trimmed-down copy of the
+  // PPCAnalyst::CodeBuffer used to recompile this block, including repeat instructions.
+  std::vector<std::pair<u32, UGeckoInstruction>> original_buffer;
+
   std::unique_ptr<ProfileData> profile_data;
 };
 
@@ -162,9 +167,11 @@ public:
   JitBlock** GetFastBlockMapFallback();
   void RunOnBlocks(const Core::CPUThreadGuard& guard, std::function<void(const JitBlock&)> f) const;
   void WipeBlockProfilingData(const Core::CPUThreadGuard& guard);
+  std::size_t GetBlockCount() const { return block_map.size(); }
 
   JitBlock* AllocateBlock(u32 em_address);
-  void FinalizeBlock(JitBlock& block, bool block_link, const std::set<u32>& physical_addresses);
+  void FinalizeBlock(JitBlock& block, bool block_link, const PPCAnalyst::CodeBlock& code_block,
+                     const PPCAnalyst::CodeBuffer& code_buffer);
 
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupIndexForAddress() failed.
