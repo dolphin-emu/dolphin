@@ -127,6 +127,7 @@ signals:
 
 private:
   void OnEmulationStateChanged(Core::State state);
+  void OnConfigChanged();
 
   void AddFileMenu();
 
