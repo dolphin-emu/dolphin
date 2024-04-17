@@ -117,6 +117,15 @@ void JitBaseBlockCache::RunOnBlocks(const Core::CPUThreadGuard&,
     f(e.second);
 }
 
+void JitBaseBlockCache::WipeBlockProfilingData(const Core::CPUThreadGuard&)
+{
+  for (const auto& kv : block_map)
+  {
+    if (JitBlock::ProfileData* const profile_data = kv.second.profile_data.get())
+      *profile_data = {};
+  }
+}
+
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
   const u32 physical_address = m_jit.m_mmu.JitCache_TranslateAddress(em_address).address;
