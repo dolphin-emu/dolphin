@@ -408,6 +408,8 @@
     <string name="debug_large_entry_points_map">Disable Large Entry Points Map</string>
     <string name="debug_jit_profiling_header">Jit Profiling</string>
     <string name="debug_jit_enable_block_profiling">Enable Jit Block Profiling</string>
+    <string name="debug_jit_wipe_block_profiling_data">Wipe Jit Block Profiling Data</string>
+    <string name="debug_jit_wipe_block_profiling_data_alert">Re-initialize JIT block profiling data?</string>
     <string name="debug_jit_write_block_log_dump">Write Jit Block Log Dump</string>
     <string name="debug_jit_header">Jit</string>
     <string name="debug_jitoff">Jit Disabled</string>
