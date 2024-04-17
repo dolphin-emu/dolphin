@@ -182,6 +182,12 @@ void JitInterface::JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE*
   }
 }
 
+void JitInterface::WipeBlockProfilingData(const Core::CPUThreadGuard& guard)
+{
+  if (m_jit)
+    m_jit->GetBlockCache()->WipeBlockProfilingData(guard);
+}
+
 std::variant<JitInterface::GetHostCodeError, JitInterface::GetHostCodeResult>
 JitInterface::GetHostCode(u32 address) const
 {

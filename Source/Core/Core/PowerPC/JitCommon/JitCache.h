@@ -161,6 +161,7 @@ public:
   u8** GetEntryPoints();
   JitBlock** GetFastBlockMapFallback();
   void RunOnBlocks(const Core::CPUThreadGuard& guard, std::function<void(const JitBlock&)> f) const;
+  void WipeBlockProfilingData(const Core::CPUThreadGuard& guard);
 
   JitBlock* AllocateBlock(u32 em_address);
   void FinalizeBlock(JitBlock& block, bool block_link, const std::set<u32>& physical_addresses);
