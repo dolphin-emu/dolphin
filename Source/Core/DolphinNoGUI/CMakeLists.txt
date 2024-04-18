@@ -5,8 +5,9 @@ add_executable(dolphin-nogui
   MainNoGUI.cpp
 )
 
-if(ENABLE_X11 AND X11_FOUND)
+if(X11_FOUND)
   target_sources(dolphin-nogui PRIVATE PlatformX11.cpp)
+  target_link_libraries(dolphin-nogui PRIVATE PkgConfig::XRANDR PkgConfig::X11)
 endif()
 
 if(WIN32)

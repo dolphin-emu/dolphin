@@ -5,7 +5,8 @@ add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND} "-
 string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY "/Tests")
 
 add_library(unittests_main OBJECT UnitTestsMain.cpp)
-target_link_libraries(unittests_main PUBLIC fmt::fmt gtest)
+
+target_link_libraries(unittests_main PUBLIC fmt::fmt gtest::gtest)
 # Since this is a Core dependency, it can't be linked as a normal library.
 # Otherwise CMake inserts the library after core, but before other core
 # dependencies like videocommon which also use Host_ functions, which makes the
