@@ -38,7 +38,7 @@ void JitBlock::ProfileData::BeginProfiling(ProfileData* data)
   data->time_start = Clock::now();
 }
 
-void JitBlock::ProfileData::EndProfiling(ProfileData* data, int downcount_amount)
+void JitBlock::ProfileData::EndProfiling(ProfileData* data, u32 downcount_amount)
 {
   data->cycles_spent += downcount_amount;
   data->time_spent += Clock::now() - data->time_start;

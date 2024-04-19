@@ -71,7 +71,7 @@ struct JitBlock : public JitBlockData
     using Clock = std::chrono::steady_clock;
 
     static void BeginProfiling(ProfileData* data);
-    static void EndProfiling(ProfileData* data, int downcount_amount);
+    static void EndProfiling(ProfileData* data, u32 downcount_amount);
 
     std::size_t run_count = 0;
     u64 cycles_spent = 0;
