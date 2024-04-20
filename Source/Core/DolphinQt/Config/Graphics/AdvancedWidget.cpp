@@ -86,6 +86,8 @@ void AdvancedWidget::CreateWidgets()
 
   m_enable_wireframe = new ConfigBool(tr("Enable Wireframe"), Config::GFX_ENABLE_WIREFRAME);
   m_show_statistics = new ConfigBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS);
+  m_show_proj_statistics =
+      new ConfigBool(tr("Show Projection Statistics"), Config::GFX_OVERLAY_PROJ_STATS);
   m_enable_format_overlay =
       new ConfigBool(tr("Texture Format Overlay"), Config::GFX_TEXFMT_OVERLAY_ENABLE);
   m_enable_api_validation =
@@ -94,7 +96,8 @@ void AdvancedWidget::CreateWidgets()
   debugging_layout->addWidget(m_enable_wireframe, 0, 0);
   debugging_layout->addWidget(m_show_statistics, 0, 1);
   debugging_layout->addWidget(m_enable_format_overlay, 1, 0);
-  debugging_layout->addWidget(m_enable_api_validation, 1, 1);
+  debugging_layout->addWidget(m_show_proj_statistics, 1, 1);
+  debugging_layout->addWidget(m_enable_api_validation, 2, 0);
 
   // Utility
   auto* utility_box = new QGroupBox(tr("Utility"));
@@ -299,6 +302,9 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_SHOW_STATS_DESCRIPTION[] =
       QT_TR_NOOP("Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
                  "leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_PROJ_STATS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows various projection statistics.<br><br><dolphin_emphasis>If unsure, "
+                 "leave this unchecked.</dolphin_emphasis>");
   static const char TR_TEXTURE_FORMAT_DESCRIPTION[] =
       QT_TR_NOOP("Modifies textures to show the format they're encoded in.<br><br>May require "
                  "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -436,6 +442,7 @@ void AdvancedWidget::AddDescriptions()
 
   m_enable_wireframe->SetDescription(tr(TR_WIREFRAME_DESCRIPTION));
   m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));
+  m_show_proj_statistics->SetDescription(tr(TR_SHOW_PROJ_STATS_DESCRIPTION));
   m_enable_format_overlay->SetDescription(tr(TR_TEXTURE_FORMAT_DESCRIPTION));
   m_enable_api_validation->SetDescription(tr(TR_VALIDATION_LAYER_DESCRIPTION));
   m_perf_samp_window->SetDescription(tr(TR_PERF_SAMP_WINDOW_DESCRIPTION));

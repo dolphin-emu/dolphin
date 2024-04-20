@@ -25,6 +25,10 @@ struct Statistics
   std::array<float, 16> gproj{};
   std::array<float, 16> g2proj{};
 
+  // For widescreen heuristic.
+  float avg_persp_proj_viewport_ratio = 0;
+  float avg_ortho_proj_viewport_ratio = 0;
+
   std::vector<BPFunctions::ScissorResult> scissors{};
   size_t current_scissor = 0;  // 0 => all, otherwise index + 1
   int scissor_scale = 10;
