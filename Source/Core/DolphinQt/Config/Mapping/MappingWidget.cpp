@@ -172,7 +172,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   {
     QPushButton* mouse_button = new QPushButton(tr("Use Mouse Controlled Pointing"));
     form_layout->insertRow(2, mouse_button);
-    connect(mouse_button, &QCheckBox::clicked, [this, group] {
+
+    using ControllerEmu::Cursor;
+    connect(mouse_button, &QCheckBox::clicked, [this, group = static_cast<Cursor*>(group)] {
       std::string default_device = g_controller_interface.GetDefaultDeviceString() + ":";
       const std::string controller_device = GetController()->GetDefaultDevice().ToString() + ":";
       if (default_device == controller_device)
@@ -183,6 +185,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       group->SetControlExpression(1, fmt::format("`{}Cursor Y+`", default_device));
       group->SetControlExpression(2, fmt::format("`{}Cursor X-`", default_device));
       group->SetControlExpression(3, fmt::format("`{}Cursor X+`", default_device));
+
+      group->SetRelativeInput(false);
+
       emit ConfigChanged();
       GetController()->UpdateReferences(g_controller_interface);
     });
