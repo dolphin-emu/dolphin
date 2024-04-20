@@ -48,7 +48,7 @@ constexpr std::array<const char*, 3> s_patch_type_strings{{
 static std::vector<Patch> s_on_frame;
 static std::vector<std::size_t> s_on_frame_memory;
 static std::mutex s_on_frame_memory_mutex;
-static std::map<u32, int> s_speed_hacks;
+static std::map<u32, u32> s_speed_hacks;
 
 const char* PatchTypeAsString(PatchType type)
 {
@@ -192,13 +192,13 @@ static void LoadSpeedhacks(const std::string& section, Common::IniFile& ini)
       success &= TryParse(value, &cycles);
       if (success)
       {
-        s_speed_hacks[address] = static_cast<int>(cycles);
+        s_speed_hacks[address] = cycles;
       }
     }
   }
 }
 
-int GetSpeedhackCycles(const u32 addr)
+u32 GetSpeedhackCycles(const u32 addr)
 {
   const auto iter = s_speed_hacks.find(addr);
   if (iter == s_speed_hacks.end())
