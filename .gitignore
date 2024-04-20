@@ -6,6 +6,8 @@ Thumbs.db
 Externals/mGBA/version.c
 Source/Core/Common/scmrev.h
 # Ignore files output by build
+/cmake-build-debug
+/cmake-build-release
 /[Bb]uild*/
 /[Bb]inary*/
 /obj/
