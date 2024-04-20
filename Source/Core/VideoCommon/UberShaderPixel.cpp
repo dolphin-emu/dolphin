@@ -1506,6 +1506,24 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  }}\n"
             "\n");
 
+  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
+  {
+    const auto& shader_details = custom_details.shaders[i];
+
+    if (!shader_details.custom_shader.empty())
+    {
+      out.Write("\t{{\n");
+      out.Write("\t\tcustom_data.final_color = float4(TevResult.r / 255.0, TevResult.g / 255.0, "
+                "TevResult.b / 255.0, TevResult.a / 255.0);\n");
+      out.Write("\t\tCustomShaderOutput custom_output = {}_{}(custom_data);\n",
+                CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+      out.Write(
+          "\t\tTevResult = int4(custom_output.main_rt.r * 255, custom_output.main_rt.g * 255, "
+          "custom_output.main_rt.b * 255, custom_output.main_rt.a * 255);\n");
+      out.Write("\t}}\n\n");
+    }
+  }
+
   if (use_framebuffer_fetch)
   {
     static constexpr std::array<const char*, 16> logic_op_mode{
@@ -1591,31 +1609,6 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
                 "  // Colors will be blended against the alpha from ocol1 and\n"
                 "  // the alpha from ocol0 will be written to the framebuffer.\n"
                 "  ocol1 = float4(0.0, 0.0, 0.0, float(TevResult.a) / 255.0);\n");
-    }
-  }
-
-  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
-  {
-    const auto& shader_details = custom_details.shaders[i];
-
-    if (!shader_details.custom_shader.empty())
-    {
-      out.Write("\t{{\n");
-      if (uid_data->uint_output)
-      {
-        out.Write("\t\tcustom_data.final_color = float4(ocol0.x / 255.0, ocol0.y / 255.0, ocol0.z "
-                  "/ 255.0, ocol0.w / 255.0);\n");
-        out.Write("\t\tfloat3 custom_output = {}_{}(custom_data).xyz;\n",
-                  CUSTOM_PIXELSHADER_COLOR_FUNC, i);
-        out.Write("\t\tocol0.xyz = uint3(custom_output.x * 255, custom_output.y * 255, "
-                  "custom_output.z * 255);\n");
-      }
-      else
-      {
-        out.Write("\t\tcustom_data.final_color = ocol0;\n");
-        out.Write("\t\tocol0.xyz = {}_{}(custom_data).xyz;\n", CUSTOM_PIXELSHADER_COLOR_FUNC, i);
-      }
-      out.Write("\t}}\n\n");
     }
   }
 

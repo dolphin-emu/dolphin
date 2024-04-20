@@ -1315,6 +1315,23 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   WriteFog(out, uid_data);
 
+  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
+  {
+    const auto& shader_details = custom_details.shaders[i];
+
+    if (!shader_details.custom_shader.empty())
+    {
+      out.Write("\t{{\n");
+      out.Write("\t\tcustom_data.final_color = float4(prev.r / 255.0, prev.g / 255.0, prev.b "
+                "/ 255.0, prev.a / 255.0);\n");
+      out.Write("\t\tCustomShaderOutput custom_output = {}_{}(custom_data);\n",
+                CUSTOM_PIXELSHADER_COLOR_FUNC, i);
+      out.Write("\t\tprev = int4(custom_output.main_rt.r * 255, custom_output.main_rt.g * 255, "
+                "custom_output.main_rt.b * 255, custom_output.main_rt.a * 255);\n");
+      out.Write("\t}}\n\n");
+    }
+  }
+
   if (uid_data->logic_op_enable)
     WriteLogicOp(out, uid_data);
   else if (uid_data->emulate_logic_op_with_blend)
@@ -1324,31 +1341,6 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // If using shader blend, we still use the separate alpha
   const bool use_dual_source = !uid_data->no_dual_src || uid_data->blend_enable;
   WriteColor(out, api_type, uid_data, use_dual_source);
-
-  for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
-  {
-    const auto& shader_details = custom_details.shaders[i];
-
-    if (!shader_details.custom_shader.empty())
-    {
-      out.Write("\t{{\n");
-      if (uid_data->uint_output)
-      {
-        out.Write("\t\tcustom_data.final_color = float4(ocol0.x / 255.0, ocol0.y / 255.0, ocol0.z "
-                  "/ 255.0, ocol0.w / 255.0);\n");
-        out.Write("\t\tfloat3 custom_output = {}_{}(custom_data).xyz;\n",
-                  CUSTOM_PIXELSHADER_COLOR_FUNC, i);
-        out.Write("\t\tocol0.xyz = uint3(custom_output.x * 255, custom_output.y * 255, "
-                  "custom_output.z * 255);\n");
-      }
-      else
-      {
-        out.Write("\t\tcustom_data.final_color = ocol0;\n");
-        out.Write("\t\tocol0.xyz = {}_{}(custom_data).xyz;\n", CUSTOM_PIXELSHADER_COLOR_FUNC, i);
-      }
-      out.Write("\t}}\n\n");
-    }
-  }
 
   if (uid_data->blend_enable)
     WriteBlend(out, uid_data);
