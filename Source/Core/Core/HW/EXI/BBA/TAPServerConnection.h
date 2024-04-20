@@ -31,14 +31,6 @@ public:
   bool SendFrame(const u8* frame, u32 size);
 
 private:
-  enum class ReadState
-  {
-    Size,
-    SizeHigh,
-    Data,
-    Skip,
-  };
-
   const std::string m_destination;
   const RecvCallback m_recv_cb;
   const std::size_t m_max_frame_size;
