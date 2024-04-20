@@ -1017,11 +1017,11 @@ bool ESCore::IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& iss
   switch (type)
   {
   case VerifyContainerType::TMD:
-    return issuer_cert.GetName().compare(0, 2, "CP") == 0;
+    return issuer_cert.GetName().starts_with("CP");
   case VerifyContainerType::Ticket:
-    return issuer_cert.GetName().compare(0, 2, "XS") == 0;
+    return issuer_cert.GetName().starts_with("XS");
   case VerifyContainerType::Device:
-    return issuer_cert.GetName().compare(0, 2, "MS") == 0;
+    return issuer_cert.GetName().starts_with("MS");
   default:
     return false;
   }

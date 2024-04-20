@@ -673,16 +673,16 @@ std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
   request.fd = new_fd;
 
   std::shared_ptr<Device> device;
-  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path) &&
+  if (request.path.starts_with("/dev/usb/oh0/") && !GetDeviceByName(request.path) &&
       !HasFeature(GetVersion(), Feature::NewUSB))
   {
     device = std::make_shared<OH0Device>(*this, request.path);
   }
-  else if (request.path.find("/dev/") == 0)
+  else if (request.path.starts_with("/dev/"))
   {
     device = GetDeviceByName(request.path);
   }
-  else if (request.path.find('/') == 0)
+  else if (request.path.starts_with('/'))
   {
     device = GetDeviceByName("/dev/fs");
   }
