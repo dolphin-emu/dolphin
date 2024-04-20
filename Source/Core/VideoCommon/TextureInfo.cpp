@@ -3,10 +3,15 @@
 
 #include "VideoCommon/TextureInfo.h"
 
+#include <span>
+
 #include <fmt/format.h>
 #include <xxhash.h>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
+#include "Common/SpanUtils.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
@@ -25,7 +30,7 @@ TextureInfo TextureInfo::FromStage(u32 stage)
   const u32 address = (tex.texImage3.image_base /* & 0x1FFFFF*/) << 5;
 
   const u32 tlutaddr = tex.texTlut.tmem_offset << 9;
-  const u8* tlut_ptr = &texMem[tlutaddr];
+  std::span<const u8> tlut_data = TexDecoder_GetTmemSpan(tlutaddr);
 
   std::optional<u32> mip_count;
   const bool has_mipmaps = tex.texMode0.mipmap_filter != MipMode::None;
@@ -40,23 +45,24 @@ TextureInfo TextureInfo::FromStage(u32 stage)
 
   if (from_tmem)
   {
-    return TextureInfo(stage, &texMem[tmem_address_even], tlut_ptr, address, texture_format,
-                       tlut_format, width, height, true, &texMem[tmem_address_odd],
-                       &texMem[tmem_address_even], mip_count);
+    return TextureInfo(stage, TexDecoder_GetTmemSpan(tmem_address_even), tlut_data, address,
+                       texture_format, tlut_format, width, height, true,
+                       TexDecoder_GetTmemSpan(tmem_address_odd),
+                       TexDecoder_GetTmemSpan(tmem_address_even), mip_count);
   }
 
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  return TextureInfo(stage, memory.GetPointer(address), tlut_ptr, address, texture_format,
-                     tlut_format, width, height, false, nullptr, nullptr, mip_count);
+  return TextureInfo(stage, memory.GetSpanForAddress(address), tlut_data, address, texture_format,
+                     tlut_format, width, height, false, {}, {}, mip_count);
 }
 
-TextureInfo::TextureInfo(u32 stage, const u8* ptr, const u8* tlut_ptr, u32 address,
-                         TextureFormat texture_format, TLUTFormat tlut_format, u32 width,
-                         u32 height, bool from_tmem, const u8* tmem_odd, const u8* tmem_even,
-                         std::optional<u32> mip_count)
-    : m_ptr(ptr), m_tlut_ptr(tlut_ptr), m_address(address), m_from_tmem(from_tmem),
-      m_tmem_odd(tmem_odd), m_texture_format(texture_format), m_tlut_format(tlut_format),
+TextureInfo::TextureInfo(u32 stage, std::span<const u8> data, std::span<const u8> tlut_data,
+                         u32 address, TextureFormat texture_format, TLUTFormat tlut_format,
+                         u32 width, u32 height, bool from_tmem, std::span<const u8> tmem_odd,
+                         std::span<const u8> tmem_even, std::optional<u32> mip_count)
+    : m_ptr(data.data()), m_tlut_ptr(tlut_data.data()), m_address(address), m_from_tmem(from_tmem),
+      m_tmem_odd(tmem_odd.data()), m_texture_format(texture_format), m_tlut_format(tlut_format),
       m_raw_width(width), m_raw_height(height), m_stage(stage)
 {
   const bool is_palette_texture = IsColorIndexed(m_texture_format);
@@ -73,6 +79,21 @@ TextureInfo::TextureInfo(u32 stage, const u8* ptr, const u8* tlut_ptr, u32 addre
   m_texture_size =
       TexDecoder_GetTextureSizeInBytes(m_expanded_width, m_expanded_height, m_texture_format);
 
+  if (data.size() < m_texture_size)
+  {
+    ERROR_LOG_FMT(VIDEO, "Trying to use an invalid texture address {:#010x}", GetRawAddress());
+    m_data_valid = false;
+  }
+  else if (m_palette_size && tlut_data.size() < *m_palette_size)
+  {
+    ERROR_LOG_FMT(VIDEO, "Trying to use an invalid TLUT address {:#010x}", GetRawAddress());
+    m_data_valid = false;
+  }
+  else
+  {
+    m_data_valid = true;
+  }
+
   if (mip_count)
   {
     m_mipmaps_enabled = true;
@@ -86,13 +107,17 @@ TextureInfo::TextureInfo(u32 stage, const u8* ptr, const u8* tlut_ptr, u32 addre
         std::min<u32>(MathUtil::IntLog2(std::max(width, height)) + 1, raw_mip_count + 1) - 1;
 
     // load mips
-    const u8* src_data = m_ptr + GetTextureSize();
-    if (tmem_even)
-      tmem_even += GetTextureSize();
+    std::span<const u8> src_data = Common::SafeSubspan(data, GetTextureSize());
+    tmem_even = Common::SafeSubspan(tmem_even, GetTextureSize());
 
     for (u32 i = 0; i < limited_mip_count; i++)
     {
-      MipLevel mip_level(i + 1, *this, m_from_tmem, src_data, tmem_even, tmem_odd);
+      MipLevel mip_level(i + 1, *this, m_from_tmem, &src_data, &tmem_even, &tmem_odd);
+      if (!mip_level.IsDataValid())
+      {
+        ERROR_LOG_FMT(VIDEO, "Trying to use an invalid mipmap address {:#010x}", GetRawAddress());
+        break;
+      }
       m_mip_levels.push_back(std::move(mip_level));
     }
   }
@@ -105,7 +130,7 @@ std::string TextureInfo::NameDetails::GetFullName() const
 
 TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
 {
-  if (!m_ptr)
+  if (!IsDataValid())
     return NameDetails{};
 
   const u8* tlut = m_tlut_ptr;
@@ -129,7 +154,6 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
     }
     break;
   case 256 * 2:
-  {
     for (size_t i = 0; i < m_texture_size; i++)
     {
       const u32 texture_byte = m_ptr[i];
@@ -138,7 +162,6 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
       max = std::max(max, texture_byte);
     }
     break;
-  }
   case 16384 * 2:
     for (size_t i = 0; i < m_texture_size; i += sizeof(u16))
     {
@@ -155,6 +178,8 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
     tlut += 2 * min;
   }
 
+  DEBUG_ASSERT(tlut_size <= m_palette_size.value_or(0));
+
   const u64 tex_hash = XXH64(m_ptr, m_texture_size, 0);
   const u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
@@ -166,6 +191,11 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
   result.format_name = fmt::to_string(static_cast<int>(m_texture_format));
 
   return result;
+}
+
+bool TextureInfo::IsDataValid() const
+{
+  return m_data_valid;
 }
 
 const u8* TextureInfo::GetData() const
@@ -267,7 +297,8 @@ const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(u32 level) const
 }
 
 TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_tmem,
-                                const u8*& src_data, const u8*& ptr_even, const u8*& ptr_odd)
+                                std::span<const u8>* src_data, std::span<const u8>* tmem_even,
+                                std::span<const u8>* tmem_odd)
 {
   m_raw_width = std::max(parent.GetRawWidth() >> level, 1u);
   m_raw_height = std::max(parent.GetRawHeight() >> level, 1u);
@@ -277,9 +308,11 @@ TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_
   m_texture_size = TexDecoder_GetTextureSizeInBytes(m_expanded_width, m_expanded_height,
                                                     parent.GetTextureFormat());
 
-  const u8*& ptr = from_tmem ? ((level % 2) ? ptr_odd : ptr_even) : src_data;
-  m_ptr = ptr;
-  ptr += m_texture_size;
+  std::span<const u8>* data = from_tmem ? ((level % 2) ? tmem_odd : tmem_even) : src_data;
+  m_ptr = data->data();
+  m_data_valid = data->size() >= m_texture_size;
+
+  *data = Common::SafeSubspan(*data, m_texture_size);
 }
 
 u32 TextureInfo::GetFullLevelSize() const
@@ -290,6 +323,11 @@ u32 TextureInfo::GetFullLevelSize() const
     all_mips_size += mip_map.GetTextureSize();
   }
   return m_texture_size + all_mips_size;
+}
+
+bool TextureInfo::MipLevel::IsDataValid() const
+{
+  return m_data_valid;
 }
 
 const u8* TextureInfo::MipLevel::GetData() const

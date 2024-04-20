@@ -12,6 +12,7 @@
 #include <array>
 #include <cstring>
 #include <memory>
+#include <span>
 #include <tuple>
 
 #include "Common/ChunkFile.h"
@@ -400,22 +401,23 @@ void MemoryManager::Clear()
 
 u8* MemoryManager::GetPointerForRange(u32 address, size_t size) const
 {
-  // Make sure we don't have a range spanning 2 separate banks
-  if (size >= GetExRamSizeReal())
+  std::span<u8> span = GetSpanForAddress(address);
+
+  if (span.data() == nullptr)
   {
+    // The address isn't in a valid memory region.
+    // A panic alert has already been raised by GetPointer, so let's not raise another one.
+    return nullptr;
+  }
+
+  if (span.size() < size)
+  {
+    // The start address is in a valid region, but the end address is beyond the end of that region.
     PanicAlertFmt("Oversized range in GetPointerForRange. {:x} bytes at {:#010x}", size, address);
     return nullptr;
   }
 
-  // Check that the beginning and end of the range are valid
-  u8* pointer = GetPointer(address);
-  if (pointer == nullptr || (size != 0 && GetPointer(address + u32(size) - 1) == nullptr))
-  {
-    // A panic alert has already been raised by GetPointer
-    return nullptr;
-  }
-
-  return pointer;
+  return span.data();
 }
 
 void MemoryManager::CopyFromEmu(void* data, u32 address, size_t size) const
@@ -487,24 +489,27 @@ std::string MemoryManager::GetString(u32 em_address, size_t size)
   }
 }
 
-u8* MemoryManager::GetPointer(u32 address) const
+std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
 {
   // TODO: Should we be masking off more bits here?  Can all devices access
   // EXRAM?
   address &= 0x3FFFFFFF;
   if (address < GetRamSizeReal())
-    return m_ram + address;
+    return std::span(m_ram + address, GetRamSizeReal() - address);
 
   if (m_exram)
   {
     if ((address >> 28) == 0x1 && (address & 0x0fffffff) < GetExRamSizeReal())
-      return m_exram + (address & GetExRamMask());
+    {
+      return std::span(m_exram + (address & GetExRamMask()),
+                       GetExRamSizeReal() - (address & GetExRamMask()));
+    }
   }
 
   auto& ppc_state = m_system.GetPPCState();
   PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
                 LR(ppc_state));
-  return nullptr;
+  return {};
 }
 
 u8 MemoryManager::Read_U8(u32 address) const
