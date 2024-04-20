@@ -249,8 +249,7 @@ bool CachedInterpreter::CheckProgramException(CachedInterpreter& cached_interpre
 
 bool CachedInterpreter::CheckBreakpoint(CachedInterpreter& cached_interpreter, u32 data)
 {
-  cached_interpreter.m_system.GetPowerPC().CheckBreakPoints();
-  if (cached_interpreter.m_system.GetCPU().GetState() != CPU::State::Running)
+  if (cached_interpreter.m_system.GetPowerPC().CheckBreakPoints())
   {
     cached_interpreter.m_ppc_state.downcount -= data;
     return true;

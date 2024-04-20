@@ -1075,8 +1075,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         ABI_PushRegistersAndAdjustStack({}, 0);
         ABI_CallFunctionP(PowerPC::CheckBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
-        MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
-        TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
+        TEST(8, R(ABI_RETURN), R(ABI_RETURN));
         FixupBranch noBreakpoint = J_CC(CC_Z);
 
         Cleanup();

@@ -655,12 +655,12 @@ void PowerPCManager::CheckExternalExceptions()
   m_system.GetJitInterface().UpdateMembase();
 }
 
-void PowerPCManager::CheckBreakPoints()
+bool PowerPCManager::CheckBreakPoints()
 {
   const TBreakPoint* bp = m_breakpoints.GetBreakpoint(m_ppc_state.pc);
 
   if (!bp || !bp->is_enabled || !EvaluateCondition(m_system, bp->condition))
-    return;
+    return false;
 
   if (bp->break_on_hit)
   {
@@ -680,6 +680,7 @@ void PowerPCManager::CheckBreakPoints()
   }
   if (m_breakpoints.IsTempBreakPoint(m_ppc_state.pc))
     m_breakpoints.Remove(m_ppc_state.pc);
+  return true;
 }
 
 void PowerPCState::SetSR(u32 index, u32 value)
@@ -748,8 +749,8 @@ void CheckExternalExceptionsFromJIT(PowerPCManager& power_pc)
   power_pc.CheckExternalExceptions();
 }
 
-void CheckBreakPointsFromJIT(PowerPCManager& power_pc)
+bool CheckBreakPointsFromJIT(PowerPCManager& power_pc)
 {
-  power_pc.CheckBreakPoints();
+  return power_pc.CheckBreakPoints();
 }
 }  // namespace PowerPC
