@@ -1832,7 +1832,7 @@ void ARM64XEmitter::ParallelMoves(RegisterMove* begin, RegisterMove* end,
       while ((*source_gpr_usages)[temp_reg] != 0)
       {
         ++temp_reg;
-        ASSERT_MSG(COMMON, temp_reg != temp_reg_end, "Out of registers");
+        ASSERT_MSG(DYNA_REC, temp_reg != temp_reg_end, "Out of registers");
       }
 
       const ARM64Reg src = begin->src;
