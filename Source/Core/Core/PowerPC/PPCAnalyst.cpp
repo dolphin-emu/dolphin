@@ -1003,7 +1003,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     const auto ppc_mode = power_pc.GetMode();
     const bool hle = !!HLE::TryReplaceFunction(ppc_symbol_db, op.address, ppc_mode);
-    const bool may_exit_block = hle || op.canEndBlock || op.canCauseException;
+    const bool breakpoint = power_pc.GetBreakPoints().IsAddressBreakPoint(op.address);
+    const bool may_exit_block = hle || breakpoint || op.canEndBlock || op.canCauseException;
 
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
@@ -1029,7 +1030,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
 
-    if (hle)
+    if (hle || breakpoint)
     {
       gprInUse = BitSet32{};
       fprInUse = BitSet32{};
