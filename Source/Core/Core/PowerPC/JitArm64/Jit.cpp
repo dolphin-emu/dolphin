@@ -973,15 +973,14 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   {
     // Code generation failed due to not enough free space in either the near or far code regions.
     // Clear the entire JIT cache and retry.
-    WARN_LOG_FMT(POWERPC, "flushing code caches, please report if this happens a lot");
+    WARN_LOG_FMT(DYNA_REC, "flushing code caches, please report if this happens a lot");
     ClearCache();
     Jit(em_address, false);
     return;
   }
 
-  PanicAlertFmtT(
-      "JIT failed to find code space after a cache clear. This should never happen. Please "
-      "report this incident on the bug tracker. Dolphin will now exit.");
+  PanicAlertFmtT("JIT failed to find code space after a cache clear. This should never happen. "
+                 "Please report this incident on the bug tracker. Dolphin will now exit.");
   exit(-1);
 }
 
@@ -992,7 +991,7 @@ bool JitArm64::SetEmitterStateToFreeCodeRegion()
   auto free_near = m_free_ranges_near.by_size_begin();
   if (free_near == m_free_ranges_near.by_size_end())
   {
-    WARN_LOG_FMT(POWERPC, "Failed to find free memory region in near code region.");
+    WARN_LOG_FMT(DYNA_REC, "Failed to find free memory region in near code region.");
     return false;
   }
   SetCodePtr(free_near.from(), free_near.to());
@@ -1000,7 +999,7 @@ bool JitArm64::SetEmitterStateToFreeCodeRegion()
   auto free_far = m_free_ranges_far.by_size_begin();
   if (free_far == m_free_ranges_far.by_size_end())
   {
-    WARN_LOG_FMT(POWERPC, "Failed to find free memory region in far code region.");
+    WARN_LOG_FMT(DYNA_REC, "Failed to find free memory region in far code region.");
     return false;
   }
   m_far_code.SetCodePtr(free_far.from(), free_far.to());
@@ -1276,9 +1275,9 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (HasWriteFailed() || m_far_code.HasWriteFailed())
   {
     if (HasWriteFailed())
-      WARN_LOG_FMT(POWERPC, "JIT ran out of space in near code region during code generation.");
+      WARN_LOG_FMT(DYNA_REC, "JIT ran out of space in near code region during code generation.");
     if (m_far_code.HasWriteFailed())
-      WARN_LOG_FMT(POWERPC, "JIT ran out of space in far code region during code generation.");
+      WARN_LOG_FMT(DYNA_REC, "JIT ran out of space in far code region during code generation.");
 
     return false;
   }
