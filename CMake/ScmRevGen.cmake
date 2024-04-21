@@ -42,11 +42,15 @@ if(NOT DOLPHIN_WC_REVISION)
   set(DOLPHIN_WC_COMMITS_AHEAD_MASTER 0)
 endif()
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/Source/Core/Common/scmrev.h.in"
-  "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp"
-)
+function(configure_source_file path)
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${path}.in"
+    "${PROJECT_BINARY_DIR}/${path}.tmp"
+  )
 
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp" "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h")
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/${path}.tmp" "${PROJECT_BINARY_DIR}/${path}")
 
-file(REMOVE "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h.tmp")
+  file(REMOVE "${PROJECT_BINARY_DIR}/${path}.tmp")
+endfunction()
+
+configure_source_file("Source/Core/Common/scmrev.h")
