@@ -75,21 +75,8 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   {
     skylanders_folder = QDir(QString::fromStdString(Config::Get(Config::MAIN_SKYLANDERS_PATH)));
   }
-  // prompt folder creation if path invalid
   if (!skylanders_folder.exists())
-  {
-    QMessageBox::StandardButton create_folder_response;
-    create_folder_response =
-        QMessageBox::question(this, tr("Create Skylander Folder"),
-                              tr("Skylanders folder not found for this user. Create new folder?"),
-                              QMessageBox::Yes | QMessageBox::No);
-    if (create_folder_response == QMessageBox::Yes)
-    {
-      skylanders_folder = QDir(user_path);
-      Config::SetBase(Config::MAIN_SKYLANDERS_PATH, user_path.toStdString());
-      skylanders_folder.mkdir(skylanders_folder.path());
-    }
-  }
+    skylanders_folder.mkdir(skylanders_folder.path());
 
   m_collection_path = QDir::toNativeSeparators(skylanders_folder.path()) + QDir::separator();
   m_last_skylander_path = m_collection_path;
