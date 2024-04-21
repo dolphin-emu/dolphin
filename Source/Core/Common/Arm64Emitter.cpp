@@ -1809,16 +1809,16 @@ void ARM64XEmitter::ParallelMoves(RegisterMove* begin, RegisterMove* end,
   {
     bool removed_moves_during_this_loop_iteration = false;
 
-    RegisterMove* move = end;
-    while (move != begin)
+    RegisterMove* current_move = end;
+    while (current_move != begin)
     {
-      RegisterMove* prev_move = move;
-      --move;
-      if ((*source_gpr_usages)[DecodeReg(move->dst)] == 0)
+      RegisterMove* prev_move = current_move;
+      --current_move;
+      if ((*source_gpr_usages)[DecodeReg(current_move->dst)] == 0)
       {
-        MOV(move->dst, move->src);
-        (*source_gpr_usages)[DecodeReg(move->src)]--;
-        std::move(prev_move, end, move);
+        MOV(current_move->dst, current_move->src);
+        (*source_gpr_usages)[DecodeReg(current_move->src)]--;
+        std::move(prev_move, end, current_move);
         --end;
         removed_moves_during_this_loop_iteration = true;
       }
