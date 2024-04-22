@@ -674,8 +674,6 @@ dolphin_find_optional_system_library_pkgconfig(ZSTD libzstd>=1.4.0 zstd::zstd Ex
 
 dolphin_find_optional_system_library_pkgconfig(ZLIB zlib-ng ZLIB::ZLIB Externals/zlib-ng)
 
-# https://github.com/zlib-ng/minizip-ng/commit/6c5f265a55f1a12a7a016cd2962feff91cff5d2e
-add_definitions(-DMZ_COMPAT_VERSION=110)  # This macro is for forwards compatibility with 4.0.4+
 dolphin_find_optional_system_library_pkgconfig(MINIZIP minizip>=3.0.0 minizip::minizip Externals/minizip)
 
 dolphin_find_optional_system_library(LZO Externals/LZO)
