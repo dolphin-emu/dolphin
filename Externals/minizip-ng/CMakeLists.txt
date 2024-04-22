@@ -53,9 +53,12 @@ if (WIN32)
 endif()
 
 # Unused files
+#  minizip-ng/minigzip.c
+#  minizip-ng/minizip.c
 #  minizip-ng/mz_crypt_apple.c
 #  minizip-ng/mz_crypt_openssl.c
-#  minizip-ng/mz_crypt_win32.c
+#  minizip-ng/mz_crypt_winvista.c
+#  minizip-ng/mz_crypt_winxp.c
 
 target_include_directories(minizip PUBLIC minizip-ng)
 
