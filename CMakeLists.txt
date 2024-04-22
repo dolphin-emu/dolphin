@@ -674,7 +674,8 @@ dolphin_find_optional_system_library_pkgconfig(ZSTD libzstd>=1.4.0 zstd::zstd Ex
 
 dolphin_find_optional_system_library_pkgconfig(ZLIB zlib-ng ZLIB::ZLIB Externals/zlib-ng)
 
-dolphin_find_optional_system_library_pkgconfig(MINIZIP minizip>=3.0.0 minizip::minizip Externals/minizip)
+# TODO: Some distributions might call this package "minizip" without the "-ng" suffix.
+dolphin_find_optional_system_library_pkgconfig(MINIZIP minizip-ng>=3.0.0 minizip::minizip Externals/minizip-ng)
 
 dolphin_find_optional_system_library(LZO Externals/LZO)
 
