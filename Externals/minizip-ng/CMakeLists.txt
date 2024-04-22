@@ -1,48 +1,46 @@
 project(minizip C)
 
 add_library(minizip STATIC
-  mz.h
-  mz_compat.c
-  mz_compat.h
-  mz_crypt.c
-  mz_crypt.h
-  mz_os.c
-  mz_os.h
-  mz_strm.c
-  mz_strm.h
-  mz_strm_buf.c
-  mz_strm_buf.h
-  mz_strm_mem.c
-  mz_strm_mem.h
-  mz_strm_os.h
-  mz_strm_split.c
-  mz_strm_split.h
-  mz_strm_zlib.c
-  mz_strm_zlib.h
-  mz_zip.c
-  mz_zip.h
-  mz_zip_rw.c
-  mz_zip_rw.h
-  unzip.h
-  zip.h
+  minizip-ng/mz.h
+  minizip-ng/mz_compat.c
+  minizip-ng/mz_compat.h
+  minizip-ng/mz_crypt.c
+  minizip-ng/mz_crypt.h
+  minizip-ng/mz_os.c
+  minizip-ng/mz_os.h
+  minizip-ng/mz_strm.c
+  minizip-ng/mz_strm.h
+  minizip-ng/mz_strm_buf.c
+  minizip-ng/mz_strm_buf.h
+  minizip-ng/mz_strm_mem.c
+  minizip-ng/mz_strm_mem.h
+  minizip-ng/mz_strm_os.h
+  minizip-ng/mz_strm_split.c
+  minizip-ng/mz_strm_split.h
+  minizip-ng/mz_strm_zlib.c
+  minizip-ng/mz_strm_zlib.h
+  minizip-ng/mz_zip.c
+  minizip-ng/mz_zip.h
+  minizip-ng/mz_zip_rw.c
+  minizip-ng/mz_zip_rw.h
 )
 dolphin_disable_warnings(minizip)
 
 if (UNIX)
   target_sources(minizip PRIVATE
-    mz_os_posix.c
-    mz_strm_os_posix.c
+    minizip-ng/mz_os_posix.c
+    minizip-ng/mz_strm_os_posix.c
   )
 endif()
 
 if (WIN32)
   target_sources(minizip PRIVATE
-    mz_os_win32.c
-    mz_strm_os_win32.c
+    minizip-ng/mz_os_win32.c
+    minizip-ng/mz_strm_os_win32.c
   )
 endif()
 
-target_include_directories(minizip PUBLIC .)
+target_include_directories(minizip PUBLIC minizip-ng)
 
 target_compile_definitions(minizip PRIVATE HAVE_ZLIB ZLIB_COMPAT MZ_ZIP_NO_CRYPTO MZ_ZIP_NO_ENCRYPTION)
 if (UNIX)
