@@ -4,6 +4,7 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 
 #include <cstdio>
+#include <optional>
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
@@ -29,13 +30,13 @@
 
 using namespace Arm64Gen;
 
-constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
+constexpr size_t NEAR_CODE_SIZE = 1024 * 1024 * 64;
 // We use a bigger farcode size for JitArm64 than Jit64, because JitArm64 always emits farcode
 // for the slow path of each loadstore instruction. Jit64 postpones emitting farcode until the
 // farcode actually is needed, saving it from having to emit farcode for most instructions.
 // TODO: Perhaps implement something similar to Jit64. But using more RAM isn't much of a problem.
-constexpr size_t FARCODE_SIZE = 1024 * 1024 * 64;
-constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 64;
+constexpr size_t FAR_CODE_SIZE = 1024 * 1024 * 64;
+constexpr size_t TOTAL_CODE_SIZE = NEAR_CODE_SIZE * 2 + FAR_CODE_SIZE * 2;
 
 JitArm64::JitArm64(Core::System& system) : JitBase(system), m_float_emit(this)
 {
@@ -49,9 +50,18 @@ void JitArm64::Init()
 
   RefreshConfig();
 
-  const size_t child_code_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
-  AllocCodeSpace(CODE_SIZE + child_code_size);
-  AddChildCodeSpace(&m_far_code, child_code_size);
+  // We want the regions to be laid out in this order in memory:
+  // m_far_code_0, m_near_code_0, m_near_code_1, m_far_code_1.
+  // AddChildCodeSpace grabs space from the end of the parent region,
+  // so we have to call AddChildCodeSpace in reverse order.
+  AllocCodeSpace(TOTAL_CODE_SIZE);
+  AddChildCodeSpace(&m_far_code_1, FAR_CODE_SIZE);
+  AddChildCodeSpace(&m_near_code_1, NEAR_CODE_SIZE);
+  AddChildCodeSpace(&m_near_code_0, NEAR_CODE_SIZE);
+  AddChildCodeSpace(&m_far_code_0, FAR_CODE_SIZE);
+  ASSERT(m_far_code_0.GetCodeEnd() == m_near_code_0.GetCodePtr());
+  ASSERT(m_near_code_0.GetCodeEnd() == m_near_code_1.GetCodePtr());
+  ASSERT(m_near_code_1.GetCodeEnd() == m_far_code_1.GetCodePtr());
 
   jo.optimizeGatherPipe = true;
   SetBlockLinkingEnabled(true);
@@ -66,9 +76,7 @@ void JitArm64::Init()
 
   InitBLROptimization();
 
-  GenerateAsm();
-
-  ResetFreeMemoryRanges();
+  GenerateAsmAndResetFreeMemoryRanges();
 }
 
 void JitArm64::SetBlockLinkingEnabled(bool enabled)
@@ -113,7 +121,7 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
     success = HandleStackFault();
 
   // If the fault is in JIT code space, look for fastmem areas.
-  if (!success && IsInSpace(reinterpret_cast<u8*>(ctx->CTX_PC)))
+  if (!success && IsInSpaceOrChildSpace(reinterpret_cast<u8*>(ctx->CTX_PC)))
   {
     auto& memory = m_system.GetMemory();
     if (memory.IsAddressInFastmemArea(reinterpret_cast<u8*>(access_address)))
@@ -153,22 +161,47 @@ void JitArm64::ClearCache()
   blocks.Clear();
   blocks.ClearRangesToFree();
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
-  ClearCodeSpace();
-  m_far_code.ClearCodeSpace();
+  m_far_code_0.ClearCodeSpace();
+  m_near_code_0.ClearCodeSpace();
+  m_near_code_1.ClearCodeSpace();
+  m_far_code_1.ClearCodeSpace();
   RefreshConfig();
+
+  GenerateAsmAndResetFreeMemoryRanges();
+}
+
+void JitArm64::GenerateAsmAndResetFreeMemoryRanges()
+{
+  SetCodePtr(m_near_code_1.GetWritableCodePtr(), m_near_code_1.GetWritableCodeEnd());
+  m_far_code.SetCodePtr(m_far_code_1.GetWritableCodePtr(), m_far_code_1.GetWritableCodeEnd());
+
+  const u8* routines_near_start = GetCodePtr();
+  const u8* routines_far_start = m_far_code.GetCodePtr();
 
   GenerateAsm();
 
-  ResetFreeMemoryRanges();
+  const u8* routines_near_end = GetCodePtr();
+  const u8* routines_far_end = m_far_code.GetCodePtr();
+
+  ResetFreeMemoryRanges(routines_near_end - routines_near_start,
+                        routines_far_end - routines_far_start);
 }
 
-void JitArm64::ResetFreeMemoryRanges()
+void JitArm64::ResetFreeMemoryRanges(size_t routines_near_size, size_t routines_far_size)
 {
   // Set the near and far code regions as unused.
-  m_free_ranges_near.clear();
-  m_free_ranges_near.insert(GetWritableCodePtr(), GetWritableCodeEnd());
-  m_free_ranges_far.clear();
-  m_free_ranges_far.insert(m_far_code.GetWritableCodePtr(), m_far_code.GetWritableCodeEnd());
+  m_free_ranges_far_0.clear();
+  m_free_ranges_far_0.insert(m_far_code_0.GetWritableCodePtr() + routines_near_size,
+                             m_far_code_0.GetWritableCodeEnd());
+  m_free_ranges_near_0.clear();
+  m_free_ranges_near_0.insert(m_near_code_0.GetWritableCodePtr(),
+                              m_near_code_0.GetWritableCodeEnd());
+  m_free_ranges_near_1.clear();
+  m_free_ranges_near_1.insert(m_near_code_1.GetWritableCodePtr() + routines_near_size,
+                              m_near_code_1.GetWritableCodeEnd());
+  m_free_ranges_far_1.clear();
+  m_free_ranges_far_1.insert(m_far_code_1.GetWritableCodePtr() + routines_far_size,
+                             m_far_code_1.GetWritableCodeEnd());
 }
 
 void JitArm64::Shutdown()
@@ -889,11 +922,17 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       ++last_fastmem_area;
     m_fault_to_handler.erase(first_fastmem_area, last_fastmem_area);
 
-    m_free_ranges_near.insert(range.first, range.second);
+    if (range.first < m_near_code_0.GetCodeEnd())
+      m_free_ranges_near_0.insert(range.first, range.second);
+    else
+      m_free_ranges_near_1.insert(range.first, range.second);
   }
   for (auto range : blocks.GetRangesToFreeFar())
   {
-    m_free_ranges_far.insert(range.first, range.second);
+    if (range.first < m_far_code_0.GetCodeEnd())
+      m_free_ranges_far_0.insert(range.first, range.second);
+    else
+      m_free_ranges_far_1.insert(range.first, range.second);
   }
   blocks.ClearRangesToFree();
 
@@ -939,7 +978,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     return;
   }
 
-  if (SetEmitterStateToFreeCodeRegion())
+  if (std::optional<size_t> code_region_index = SetEmitterStateToFreeCodeRegion())
   {
     u8* near_start = GetWritableCodePtr();
     u8* far_start = m_far_code.GetWritableCodePtr();
@@ -952,10 +991,16 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       // Mark the memory regions that this code block uses as used in the local rangesets.
       u8* near_end = GetWritableCodePtr();
       if (near_start != near_end)
-        m_free_ranges_near.erase(near_start, near_end);
+      {
+        (code_region_index == 0 ? m_free_ranges_near_0 : m_free_ranges_near_1)
+            .erase(near_start, near_end);
+      }
       u8* far_end = m_far_code.GetWritableCodePtr();
       if (far_start != far_end)
-        m_free_ranges_far.erase(far_start, far_end);
+      {
+        (code_region_index == 0 ? m_free_ranges_far_0 : m_free_ranges_far_1)
+            .erase(far_start, far_end);
+      }
 
       // Store the used memory regions in the block so we know what to mark as unused when the
       // block gets invalidated.
@@ -984,27 +1029,52 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   exit(-1);
 }
 
-bool JitArm64::SetEmitterStateToFreeCodeRegion()
+std::optional<size_t> JitArm64::SetEmitterStateToFreeCodeRegion()
 {
-  // Find the largest free memory blocks and set code emitters to point at them.
-  // If we can't find a free block return false instead, which will trigger a JIT cache clear.
-  auto free_near = m_free_ranges_near.by_size_begin();
-  if (free_near == m_free_ranges_near.by_size_end())
-  {
-    WARN_LOG_FMT(DYNA_REC, "Failed to find free memory region in near code region.");
-    return false;
-  }
-  SetCodePtr(free_near.from(), free_near.to());
+  // Find some large free memory blocks and set code emitters to point at them. If we can't find
+  // free blocks, return std::nullopt instead, which will trigger a JIT cache clear.
+  const auto free_near_0 = m_free_ranges_near_0.by_size_begin();
+  const auto free_near_1 = m_free_ranges_near_1.by_size_begin();
+  const auto free_far_0 = m_free_ranges_far_0.by_size_begin();
+  const auto free_far_1 = m_free_ranges_far_1.by_size_begin();
 
-  auto free_far = m_free_ranges_far.by_size_begin();
-  if (free_far == m_free_ranges_far.by_size_end())
-  {
-    WARN_LOG_FMT(DYNA_REC, "Failed to find free memory region in far code region.");
-    return false;
-  }
-  m_far_code.SetCodePtr(free_far.from(), free_far.to());
+  const size_t free_near_1_size = free_near_1.to() - free_near_1.from();
+  const size_t free_far_1_size = free_far_1.to() - free_far_1.from();
+  const size_t free_1_smallest_size = std::min(free_near_1_size, free_far_1_size);
 
-  return true;
+  if (free_1_smallest_size >= 1024 * 1024)
+  {
+    // Don't use region 0 unless region 1 is getting full. This improves cache friendliness.
+    SetCodePtr(free_near_1.from(), free_near_1.to());
+    m_far_code.SetCodePtr(free_far_1.from(), free_far_1.to());
+    return std::make_optional(1);
+  }
+
+  const size_t free_near_0_size = free_near_0.to() - free_near_0.from();
+  const size_t free_far_0_size = free_far_0.to() - free_far_0.from();
+  const size_t free_0_smallest_size = std::min(free_near_0_size, free_far_0_size);
+
+  if (free_0_smallest_size == 0 && free_1_smallest_size == 0)
+  {
+    if (free_near_0_size == 0 && free_near_1_size == 0)
+      WARN_LOG_FMT(DYNA_REC, "Failed to find free memory region in near code regions.");
+    else if (free_far_0_size == 0 && free_far_1_size == 0)
+      WARN_LOG_FMT(DYNA_REC, "Failed to find free memory region in far code regions.");
+    return std::nullopt;
+  }
+
+  if (free_0_smallest_size > free_1_smallest_size)
+  {
+    SetCodePtr(free_near_0.from(), free_near_0.to());
+    m_far_code.SetCodePtr(free_far_0.from(), free_far_0.to());
+    return std::make_optional(0);
+  }
+  else
+  {
+    SetCodePtr(free_near_1.from(), free_near_1.to());
+    m_far_code.SetCodePtr(free_far_1.from(), free_far_1.to());
+    return std::make_optional(1);
+  }
 }
 
 bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
