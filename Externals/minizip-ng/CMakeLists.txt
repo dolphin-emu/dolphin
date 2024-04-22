@@ -12,13 +12,25 @@ add_library(minizip STATIC
   minizip-ng/mz_strm.h
   minizip-ng/mz_strm_buf.c
   minizip-ng/mz_strm_buf.h
+# minizip-ng/mz_strm_bzip.c
+# minizip-ng/mz_strm_bzip.h
+# minizip-ng/mz_strm_libcomp.c
+# minizip-ng/mz_strm_libcomp.h
+# minizip-ng/mz_strm_lzma.c
+# minizip-ng/mz_strm_lzma.h
   minizip-ng/mz_strm_mem.c
   minizip-ng/mz_strm_mem.h
   minizip-ng/mz_strm_os.h
+# minizip-ng/mz_strm_pkcrypt.c
+# minizip-ng/mz_strm_pkcrypt.h
   minizip-ng/mz_strm_split.c
   minizip-ng/mz_strm_split.h
+# minizip-ng/mz_strm_wzaes.c
+# minizip-ng/mz_strm_wzaes.h
   minizip-ng/mz_strm_zlib.c
   minizip-ng/mz_strm_zlib.h
+# minizip-ng/mz_strm_zstd.c
+# minizip-ng/mz_strm_zstd.h
   minizip-ng/mz_zip.c
   minizip-ng/mz_zip.h
   minizip-ng/mz_zip_rw.c
@@ -39,6 +51,11 @@ if (WIN32)
     minizip-ng/mz_strm_os_win32.c
   )
 endif()
+
+# Unused files
+#  minizip-ng/mz_crypt_apple.c
+#  minizip-ng/mz_crypt_openssl.c
+#  minizip-ng/mz_crypt_win32.c
 
 target_include_directories(minizip PUBLIC minizip-ng)
 
