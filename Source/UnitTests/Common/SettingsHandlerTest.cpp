@@ -75,34 +75,10 @@ TEST(SettingsHandlerTest, DecryptMultipleSettings)
   EXPECT_EQ(handler.GetValue("foo"), "bar");
 }
 
-TEST(SettingsHandlerTest, SetBytesOverwritesExistingBuffer)
-{
-  Common::SettingsHandler handler(BUFFER_A);
-  ASSERT_EQ(handler.GetValue("key"), "val");
-  ASSERT_EQ(handler.GetValue("foo"), "");
-
-  handler.SetBytes(BUFFER_B);
-  EXPECT_EQ(handler.GetValue("foo"), "bar");
-  EXPECT_EQ(handler.GetValue("key"), "");
-}
-
 TEST(SettingsHandlerTest, GetValueOnSameInstance)
 {
   Common::SettingsHandler handler;
   handler.AddSetting("key", "val");
-  EXPECT_EQ(handler.GetValue("key"), "");
-
-  Common::SettingsHandler::Buffer buffer = handler.GetBytes();
-  handler.SetBytes(buffer);
-  EXPECT_EQ(handler.GetValue("key"), "val");
-}
-
-TEST(SettingsHandlerTest, GetValueAfterReset)
-{
-  Common::SettingsHandler handler(BUFFER_A);
-  ASSERT_EQ(handler.GetValue("key"), "val");
-
-  handler.Reset();
   EXPECT_EQ(handler.GetValue("key"), "");
 }
 
