@@ -14,6 +14,7 @@ class QRadioButton;
 class QSlider;
 class QVBoxLayout;
 class ToolTipCheckBox;
+class ToolTipComboBox;
 
 namespace Core
 {
@@ -40,7 +41,7 @@ private:
 
   // Widgets
   QVBoxLayout* m_main_layout;
-  QComboBox* m_combobox_speedlimit;
+  ToolTipComboBox* m_combobox_speedlimit;
   QComboBox* m_combobox_update_track;
   QComboBox* m_combobox_fallback_region;
   ConfigBool* m_checkbox_dualcore;
@@ -50,7 +51,6 @@ private:
 #ifdef USE_DISCORD_PRESENCE
   ToolTipCheckBox* m_checkbox_discord_presence;
 #endif
-  QLabel* m_label_speedlimit;
 
 // Analytics related
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
