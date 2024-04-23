@@ -17,7 +17,7 @@ namespace Common
 // having to prefix them with gen-> or something similar.
 // Example implementation:
 // class JIT : public CodeBlock<ARMXEmitter> {}
-template <class T>
+template <class T, bool executable = true>
 class CodeBlock : public T
 {
 private:
@@ -53,7 +53,10 @@ public:
   {
     region_size = size;
     total_region_size = size;
-    region = static_cast<u8*>(Common::AllocateExecutableMemory(total_region_size));
+    if constexpr (executable)
+      region = static_cast<u8*>(Common::AllocateExecutableMemory(total_region_size));
+    else
+      region = static_cast<u8*>(Common::AllocateMemoryPages(total_region_size));
     T::SetCodePtr(region, region + size);
   }
 
