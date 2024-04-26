@@ -192,7 +192,7 @@ void GeneralPane::CreateAutoUpdate()
   auto_update_group_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
   auto_update_group_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  m_combobox_update_track = new QComboBox(this);
+  m_combobox_update_track = new ToolTipComboBox();
 
   auto_update_group_layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
 
@@ -410,6 +410,25 @@ void GeneralPane::AddDescriptions()
       "<br><br>Higher speeds are proportionally more costly to emulate. Depending on the title, "
       "your settings, and your host hardware, some of these values may not be sustainable."
       "<br><br><dolphin_emphasis>If unsure, select 100%.</dolphin_emphasis>");
+  static constexpr char TR_UPDATE_TRACK_DESCRIPTION[] = QT_TR_NOOP(
+      "Selects which update track Dolphin uses when checking for updates at startup. If a new "
+      "update is available, Dolphin will show a list of changes made since your current version "
+      "and ask you if you want to update."
+      "<br><br>The Dev track has the latest version of Dolphin which often updates multiple times "
+      "per day. Select this track if you want the newest features and fixes."
+      "<br><br>The Releases track has an update every few months. Some reasons you might prefer to "
+      "use this track:"
+      "<br>- You prefer using versions that have had additional testing."
+      "<br>- NetPlay requires players to have the same Dolphin version, and the latest Release "
+      "version will have the most players to match with."
+      "<br>- You frequently use Dolphin's savestate system, which doesn't guarantee backward "
+      "compatibility of savestates between Dolphin versions. If this applies to you, make sure you "
+      "make an in-game save before updating (i.e. save your game in the same way you would on a "
+      "physical GameCube or Wii), then load the in-game save after updating Dolphin and before "
+      "making any new savestates."
+      "<br><br>Selecting \"Don't Update\" will prevent Dolphin from automatically checking for "
+      "updates."
+      "<br><br><dolphin_emphasis>If unsure, select Releases.</dolphin_emphasis>");
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
 
@@ -425,4 +444,10 @@ void GeneralPane::AddDescriptions()
 
   m_combobox_speedlimit->SetTitle(tr("Speed Limit"));
   m_combobox_speedlimit->SetDescription(tr(TR_SPEEDLIMIT_DESCRIPTION));
+
+  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  {
+    m_combobox_update_track->SetTitle(tr("Auto Update"));
+    m_combobox_update_track->SetDescription(tr(TR_UPDATE_TRACK_DESCRIPTION));
+  }
 }
