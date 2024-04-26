@@ -15,6 +15,7 @@ class QSlider;
 class QVBoxLayout;
 class ToolTipCheckBox;
 class ToolTipComboBox;
+class ToolTipPushButton;
 
 namespace Core
 {
@@ -57,7 +58,7 @@ private:
   void CreateAnalytics();
   void GenerateNewIdentity();
 
-  QPushButton* m_button_generate_new_identity;
+  ToolTipPushButton* m_button_generate_new_identity;
   ToolTipCheckBox* m_checkbox_enable_analytics;
 #endif
 };

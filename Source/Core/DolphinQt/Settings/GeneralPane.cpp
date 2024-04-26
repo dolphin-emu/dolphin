@@ -27,8 +27,8 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -229,8 +229,7 @@ void GeneralPane::CreateAnalytics()
   m_main_layout->addWidget(analytics_group);
 
   m_checkbox_enable_analytics = new ToolTipCheckBox(tr("Enable Usage Statistics Reporting"));
-  m_button_generate_new_identity =
-      new NonDefaultQPushButton(tr("Generate a New Statistics Identity"));
+  m_button_generate_new_identity = new ToolTipPushButton(tr("Generate a New Statistics Identity"));
   analytics_group_layout->addWidget(m_checkbox_enable_analytics);
   analytics_group_layout->addWidget(m_button_generate_new_identity);
 }
@@ -432,6 +431,9 @@ void GeneralPane::AddDescriptions()
       "<br><br>No private data is ever collected. This data helps us understand how people and "
       "emulated games use Dolphin and prioritize our efforts. It also helps us identify rare "
       "configurations that are causing bugs, performance and stability issues.");
+  static constexpr char TR_GENERATE_NEW_IDENTITY_DESCRIPTION[] =
+      QT_TR_NOOP("Generate a new anonymous ID for your usage statistics. This will cause any "
+                 "future statistics to be unassociated with your previous statistics.");
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
 
@@ -458,4 +460,7 @@ void GeneralPane::AddDescriptions()
   m_combobox_fallback_region->SetDescription(tr(TR_FALLBACK_REGION_DESCRIPTION));
 
   m_checkbox_enable_analytics->SetDescription(tr(TR_ENABLE_ANALYTICS_DESCRIPTION));
+
+  m_button_generate_new_identity->SetTitle(tr("Generate a New Statistics Identity"));
+  m_button_generate_new_identity->SetDescription(tr(TR_GENERATE_NEW_IDENTITY_DESCRIPTION));
 }
