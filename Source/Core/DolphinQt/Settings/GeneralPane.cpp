@@ -228,7 +228,7 @@ void GeneralPane::CreateAnalytics()
   analytics_group->setLayout(analytics_group_layout);
   m_main_layout->addWidget(analytics_group);
 
-  m_checkbox_enable_analytics = new QCheckBox(tr("Enable Usage Statistics Reporting"));
+  m_checkbox_enable_analytics = new ToolTipCheckBox(tr("Enable Usage Statistics Reporting"));
   m_button_generate_new_identity =
       new NonDefaultQPushButton(tr("Generate a New Statistics Identity"));
   analytics_group_layout->addWidget(m_checkbox_enable_analytics);
@@ -426,6 +426,12 @@ void GeneralPane::AddDescriptions()
   static constexpr char TR_FALLBACK_REGION_DESCRIPTION[] =
       QT_TR_NOOP("Sets the region used for titles whose region cannot be determined automatically."
                  "<br><br>This setting cannot be changed while emulation is active.");
+  static constexpr char TR_ENABLE_ANALYTICS_DESCRIPTION[] = QT_TR_NOOP(
+      "If selected, Dolphin can collect data on its performance, feature usage, emulated games, "
+      "and configuration, as well as data on your system's hardware and operating system."
+      "<br><br>No private data is ever collected. This data helps us understand how people and "
+      "emulated games use Dolphin and prioritize our efforts. It also helps us identify rare "
+      "configurations that are causing bugs, performance and stability issues.");
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
 
@@ -450,4 +456,6 @@ void GeneralPane::AddDescriptions()
 
   m_combobox_fallback_region->SetTitle(tr("Fallback Region"));
   m_combobox_fallback_region->SetDescription(tr(TR_FALLBACK_REGION_DESCRIPTION));
+
+  m_checkbox_enable_analytics->SetDescription(tr(TR_ENABLE_ANALYTICS_DESCRIPTION));
 }

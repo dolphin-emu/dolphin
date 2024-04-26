@@ -58,6 +58,6 @@ private:
   void GenerateNewIdentity();
 
   QPushButton* m_button_generate_new_identity;
-  QCheckBox* m_checkbox_enable_analytics;
+  ToolTipCheckBox* m_checkbox_enable_analytics;
 #endif
 };
