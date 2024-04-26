@@ -1169,35 +1169,6 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
     else
     {
-      if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
-      {
-        // This instruction uses FPU - needs to add FP exception bailout
-        ARM64Reg WA = gpr.GetReg();
-        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
-        FixupBranch b1 = TBNZ(WA, 13);  // Test FP enabled bit
-
-        FixupBranch far_addr = B();
-        SwitchToFarCode();
-        SetJumpTarget(far_addr);
-
-        gpr.Flush(FlushMode::MaintainState, WA);
-        fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
-
-        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-        ORR(WA, WA, LogicalImm(EXCEPTION_FPU_UNAVAILABLE, GPRSize::B32));
-        STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-
-        gpr.Unlock(WA);
-
-        WriteExceptionExit(js.compilerPC, false, true);
-
-        SwitchToNearCode();
-
-        SetJumpTarget(b1);
-
-        js.firstFPInstructionFound = true;
-      }
-
       if (m_enable_debugging && !cpu.IsStepping() &&
           m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
       {
@@ -1226,6 +1197,35 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         B(dispatcher_exit);
 
         SetJumpTarget(no_breakpoint);
+      }
+
+      if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+      {
+        // This instruction uses FPU - needs to add FP exception bailout
+        ARM64Reg WA = gpr.GetReg();
+        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
+        FixupBranch b1 = TBNZ(WA, 13);  // Test FP enabled bit
+
+        FixupBranch far_addr = B();
+        SwitchToFarCode();
+        SetJumpTarget(far_addr);
+
+        gpr.Flush(FlushMode::MaintainState, WA);
+        fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
+
+        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+        ORR(WA, WA, LogicalImm(EXCEPTION_FPU_UNAVAILABLE, GPRSize::B32));
+        STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+
+        gpr.Unlock(WA);
+
+        WriteExceptionExit(js.compilerPC, false, true);
+
+        SwitchToNearCode();
+
+        SetJumpTarget(b1);
+
+        js.firstFPInstructionFound = true;
       }
 
       if (bJITRegisterCacheOff)
