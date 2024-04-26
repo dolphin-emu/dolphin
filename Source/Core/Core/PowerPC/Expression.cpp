@@ -4,6 +4,7 @@
 #include "Core/PowerPC/Expression.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <fmt/format.h>
 #include <optional>
@@ -229,40 +230,174 @@ void ExprVarListDeleter::operator()(expr_var_list* vars) const
 Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer vars)
     : m_text(text), m_expr(std::move(ex)), m_vars(std::move(vars))
 {
+  using LookupKV = std::pair<std::string_view, Expression::VarBinding>;
+  static constexpr auto sorted_lookup = []() consteval
+  {
+    using enum Expression::VarBindingType;
+    auto unsorted_lookup = std::to_array<LookupKV>({
+        {"r0", {GPR, 0}},
+        {"r1", {GPR, 1}},
+        {"r2", {GPR, 2}},
+        {"r3", {GPR, 3}},
+        {"r4", {GPR, 4}},
+        {"r5", {GPR, 5}},
+        {"r6", {GPR, 6}},
+        {"r7", {GPR, 7}},
+        {"r8", {GPR, 8}},
+        {"r9", {GPR, 9}},
+        {"r10", {GPR, 10}},
+        {"r11", {GPR, 11}},
+        {"r12", {GPR, 12}},
+        {"r13", {GPR, 13}},
+        {"r14", {GPR, 14}},
+        {"r15", {GPR, 15}},
+        {"r16", {GPR, 16}},
+        {"r17", {GPR, 17}},
+        {"r18", {GPR, 18}},
+        {"r19", {GPR, 19}},
+        {"r20", {GPR, 20}},
+        {"r21", {GPR, 21}},
+        {"r22", {GPR, 22}},
+        {"r23", {GPR, 23}},
+        {"r24", {GPR, 24}},
+        {"r25", {GPR, 25}},
+        {"r26", {GPR, 26}},
+        {"r27", {GPR, 27}},
+        {"r28", {GPR, 28}},
+        {"r29", {GPR, 29}},
+        {"r30", {GPR, 30}},
+        {"r31", {GPR, 31}},
+        {"f0", {FPR, 0}},
+        {"f1", {FPR, 1}},
+        {"f2", {FPR, 2}},
+        {"f3", {FPR, 3}},
+        {"f4", {FPR, 4}},
+        {"f5", {FPR, 5}},
+        {"f6", {FPR, 6}},
+        {"f7", {FPR, 7}},
+        {"f8", {FPR, 8}},
+        {"f9", {FPR, 9}},
+        {"f10", {FPR, 10}},
+        {"f11", {FPR, 11}},
+        {"f12", {FPR, 12}},
+        {"f13", {FPR, 13}},
+        {"f14", {FPR, 14}},
+        {"f15", {FPR, 15}},
+        {"f16", {FPR, 16}},
+        {"f17", {FPR, 17}},
+        {"f18", {FPR, 18}},
+        {"f19", {FPR, 19}},
+        {"f20", {FPR, 20}},
+        {"f21", {FPR, 21}},
+        {"f22", {FPR, 22}},
+        {"f23", {FPR, 23}},
+        {"f24", {FPR, 24}},
+        {"f25", {FPR, 25}},
+        {"f26", {FPR, 26}},
+        {"f27", {FPR, 27}},
+        {"f28", {FPR, 28}},
+        {"f29", {FPR, 29}},
+        {"f30", {FPR, 30}},
+        {"f31", {FPR, 31}},
+        {"pc", {PCtr}},
+        {"msr", {MSR}},
+        {"xer", {SPR, SPR_XER}},
+        {"lr", {SPR, SPR_LR}},
+        {"ctr", {SPR, SPR_CTR}},
+        {"dsisr", {SPR, SPR_DSISR}},
+        {"dar", {SPR, SPR_DAR}},
+        {"dec", {SPR, SPR_DEC}},
+        {"sdr1", {SPR, SPR_SDR}},
+        {"srr0", {SPR, SPR_SRR0}},
+        {"srr1", {SPR, SPR_SRR1}},
+        {"tbl", {SPR, SPR_TL}},
+        {"tbu", {SPR, SPR_TU}},
+        {"pvr", {SPR, SPR_PVR}},
+        {"sprg0", {SPR, SPR_SPRG0}},
+        {"sprg1", {SPR, SPR_SPRG1}},
+        {"sprg2", {SPR, SPR_SPRG2}},
+        {"sprg3", {SPR, SPR_SPRG3}},
+        {"ear", {SPR, SPR_EAR}},
+        {"ibat0u", {SPR, SPR_IBAT0U}},
+        {"ibat0l", {SPR, SPR_IBAT0L}},
+        {"ibat1u", {SPR, SPR_IBAT1U}},
+        {"ibat1l", {SPR, SPR_IBAT1L}},
+        {"ibat2u", {SPR, SPR_IBAT2U}},
+        {"ibat2l", {SPR, SPR_IBAT2L}},
+        {"ibat3u", {SPR, SPR_IBAT3U}},
+        {"ibat3l", {SPR, SPR_IBAT3L}},
+        {"ibat4u", {SPR, SPR_IBAT4U}},
+        {"ibat4l", {SPR, SPR_IBAT4L}},
+        {"ibat5u", {SPR, SPR_IBAT5U}},
+        {"ibat5l", {SPR, SPR_IBAT5L}},
+        {"ibat6u", {SPR, SPR_IBAT6U}},
+        {"ibat6l", {SPR, SPR_IBAT6L}},
+        {"ibat7u", {SPR, SPR_IBAT7U}},
+        {"ibat7l", {SPR, SPR_IBAT7L}},
+        {"dbat0u", {SPR, SPR_DBAT0U}},
+        {"dbat0l", {SPR, SPR_DBAT0L}},
+        {"dbat1u", {SPR, SPR_DBAT1U}},
+        {"dbat1l", {SPR, SPR_DBAT1L}},
+        {"dbat2u", {SPR, SPR_DBAT2U}},
+        {"dbat2l", {SPR, SPR_DBAT2L}},
+        {"dbat3u", {SPR, SPR_DBAT3U}},
+        {"dbat3l", {SPR, SPR_DBAT3L}},
+        {"dbat4u", {SPR, SPR_DBAT4U}},
+        {"dbat4l", {SPR, SPR_DBAT4L}},
+        {"dbat5u", {SPR, SPR_DBAT5U}},
+        {"dbat5l", {SPR, SPR_DBAT5L}},
+        {"dbat6u", {SPR, SPR_DBAT6U}},
+        {"dbat6l", {SPR, SPR_DBAT6L}},
+        {"dbat7u", {SPR, SPR_DBAT7U}},
+        {"dbat7l", {SPR, SPR_DBAT7L}},
+        {"gqr0", {SPR, SPR_GQR0 + 0}},
+        {"gqr1", {SPR, SPR_GQR0 + 1}},
+        {"gqr2", {SPR, SPR_GQR0 + 2}},
+        {"gqr3", {SPR, SPR_GQR0 + 3}},
+        {"gqr4", {SPR, SPR_GQR0 + 4}},
+        {"gqr5", {SPR, SPR_GQR0 + 5}},
+        {"gqr6", {SPR, SPR_GQR0 + 6}},
+        {"gqr7", {SPR, SPR_GQR0 + 7}},
+        {"hid0", {SPR, SPR_HID0}},
+        {"hid1", {SPR, SPR_HID1}},
+        {"hid2", {SPR, SPR_HID2}},
+        {"hid4", {SPR, SPR_HID4}},
+        {"iabr", {SPR, SPR_IABR}},
+        {"dabr", {SPR, SPR_DABR}},
+        {"wpar", {SPR, SPR_WPAR}},
+        {"dmau", {SPR, SPR_DMAU}},
+        {"dmal", {SPR, SPR_DMAL}},
+        {"ecid_u", {SPR, SPR_ECID_U}},
+        {"ecid_m", {SPR, SPR_ECID_M}},
+        {"ecid_l", {SPR, SPR_ECID_L}},
+        {"usia", {SPR, SPR_USIA}},
+        {"sia", {SPR, SPR_SIA}},
+        {"l2cr", {SPR, SPR_L2CR}},
+        {"ictc", {SPR, SPR_ICTC}},
+        {"mmcr0", {SPR, SPR_MMCR0}},
+        {"mmcr1", {SPR, SPR_MMCR1}},
+        {"pmc1", {SPR, SPR_PMC1}},
+        {"pmc2", {SPR, SPR_PMC2}},
+        {"pmc3", {SPR, SPR_PMC3}},
+        {"pmc4", {SPR, SPR_PMC4}},
+        {"thrm1", {SPR, SPR_THRM1}},
+        {"thrm2", {SPR, SPR_THRM2}},
+        {"thrm3", {SPR, SPR_THRM3}},
+    });
+    std::ranges::sort(unsorted_lookup, {}, &LookupKV::first);
+    return unsorted_lookup;
+  }
+  ();
+  static_assert(std::ranges::adjacent_find(sorted_lookup, {}, &LookupKV::first) ==
+                    sorted_lookup.end(),
+                "Expression: Sorted lookup should not contain duplicate keys.");
   for (auto* v = m_vars->head; v != nullptr; v = v->next)
   {
-    const std::string_view name = v->name;
-    VarBinding bind;
-
-    if (name.length() >= 2 && name.length() <= 3)
-    {
-      if (name[0] == 'r' || name[0] == 'f')
-      {
-        char* end = nullptr;
-        const int index = std::strtol(name.data() + 1, &end, 10);
-        if (index >= 0 && index <= 31 && end == name.data() + name.length())
-        {
-          bind.type = name[0] == 'r' ? VarBindingType::GPR : VarBindingType::FPR;
-          bind.index = index;
-        }
-      }
-      else if (name == "lr")
-      {
-        bind.type = VarBindingType::SPR;
-        bind.index = SPR_LR;
-      }
-      else if (name == "ctr")
-      {
-        bind.type = VarBindingType::SPR;
-        bind.index = SPR_CTR;
-      }
-      else if (name == "pc")
-      {
-        bind.type = VarBindingType::PCtr;
-      }
-    }
-
-    m_binds.emplace_back(bind);
+    const auto iter = std::ranges::lower_bound(sorted_lookup, v->name, {}, &LookupKV::first);
+    if (iter != sorted_lookup.end() && iter->first == v->name)
+      m_binds.emplace_back(iter->second);
+    else
+      m_binds.emplace_back();
   }
 }
 
@@ -322,6 +457,12 @@ void Expression::SynchronizeBindings(Core::System& system, SynchronizeDirection 
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)
         v->value = static_cast<double>(ppc_state.pc);
+      break;
+    case VarBindingType::MSR:
+      if (dir == SynchronizeDirection::From)
+        v->value = static_cast<double>(ppc_state.msr.Hex);
+      else
+        ppc_state.msr.Hex = static_cast<u32>(static_cast<s64>(v->value));
       break;
     }
   }
