@@ -1035,6 +1035,30 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
     else
     {
+      auto& cpu = m_system.GetCPU();
+      auto& power_pc = m_system.GetPowerPC();
+      if (m_enable_debugging && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
+          !cpu.IsStepping())
+      {
+        gpr.Flush();
+        fpr.Flush();
+
+        MOV(32, PPCSTATE(pc), Imm32(op.address));
+        ABI_PushRegistersAndAdjustStack({}, 0);
+        ABI_CallFunctionP(PowerPC::CheckBreakPointsFromJIT, &power_pc);
+        ABI_PopRegistersAndAdjustStack({}, 0);
+        MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
+        TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
+        FixupBranch noBreakpoint = J_CC(CC_Z);
+
+        Cleanup();
+        MOV(32, PPCSTATE(npc), Imm32(op.address));
+        SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
+        JMP(asm_routines.dispatcher_exit, Jump::Near);
+
+        SetJumpTarget(noBreakpoint);
+      }
+
       if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
         // This instruction uses FPU - needs to add FP exception bailout
@@ -1059,30 +1083,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SwitchToNearCode();
 
         js.firstFPInstructionFound = true;
-      }
-
-      auto& cpu = m_system.GetCPU();
-      auto& power_pc = m_system.GetPowerPC();
-      if (m_enable_debugging && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
-          !cpu.IsStepping())
-      {
-        gpr.Flush();
-        fpr.Flush();
-
-        MOV(32, PPCSTATE(pc), Imm32(op.address));
-        ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionP(PowerPC::CheckBreakPointsFromJIT, &power_pc);
-        ABI_PopRegistersAndAdjustStack({}, 0);
-        MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
-        TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
-        FixupBranch noBreakpoint = J_CC(CC_Z);
-
-        Cleanup();
-        MOV(32, PPCSTATE(npc), Imm32(op.address));
-        SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-        JMP(asm_routines.dispatcher_exit, Jump::Near);
-
-        SetJumpTarget(noBreakpoint);
       }
 
       if (bJITRegisterCacheOff)
