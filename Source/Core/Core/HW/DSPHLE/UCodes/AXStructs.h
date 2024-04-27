@@ -10,7 +10,7 @@ namespace DSP::HLE
 struct VolumeData
 {
   u16 volume;
-  u16 volume_delta;
+  s16 volume_delta;
 };
 
 struct PBMixer
