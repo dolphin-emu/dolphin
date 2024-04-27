@@ -372,7 +372,8 @@ void EnhancementsWidget::LoadSettings()
   // Resampling
   const OutputResamplingMode output_resampling_mode =
       Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
-  m_output_resampling_combo->setCurrentIndex(static_cast<int>(output_resampling_mode));
+  m_output_resampling_combo->setCurrentIndex(
+      m_output_resampling_combo->findData(static_cast<int>(output_resampling_mode)));
 
   m_output_resampling_combo->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
