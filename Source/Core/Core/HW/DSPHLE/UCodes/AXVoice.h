@@ -355,10 +355,11 @@ s16 ClampS16(s64 sample)
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
+template <u32 count>
+static void MixAdd(int* out, const s16* input, VolumeData* vd, s16* dpop, bool ramp)
 {
-  u16& volume = vd->volume;
-  u16 volume_delta = vd->volume_delta;
+  u16 volume = vd->volume;
+  s16 volume_delta = vd->volume_delta;
 
   // If volume ramping is disabled, set volume_delta to 0. That way, the
   // mixing loop can avoid testing if volume ramping is enabled at each step,
@@ -366,18 +367,61 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
   if (!ramp)
     volume_delta = 0;
 
-  for (u32 i = 0; i < count; ++i)
+#ifdef __AVX2__
+  if constexpr ((count & 15) == 0)
   {
-    s64 sample = input[i];
-    sample *= volume;
-    sample >>= 15;
-    s16 sample16 = ClampS16((s32)sample);
+    out = std::assume_aligned<32>(out);
+    input = std::assume_aligned<32>(input);
 
-    out[i] += sample16;
-    volume += volume_delta;
+    auto vol = _mm256_set1_epi16(volume);
+    const auto delta = _mm256_set1_epi16(volume_delta);
 
-    *dpop = sample16;
+    // Vectorize the volume.
+    const auto iota = _mm256_set_epi16(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    vol = _mm256_add_epi16(vol, _mm256_mullo_epi16(delta, iota));
+
+    // Each loop iteration processes 16 samples.
+    const auto delta16 = _mm256_slli_epi16(delta, 4);
+
+    for (u32 i = 0; i < count; i += 16)
+    {
+      const auto val = *(__m256i*)&input[i];
+      const auto dst = (__m256i*)&out[i];
+
+      // mulhrs is signed * signed but we need signed * unsigned,
+      // so drop the top bit and adjust the product if it was set.
+      const auto mul = _mm256_mulhrs_epi16(val, _mm256_and_si256(vol, _mm256_set1_epi16(0x7FFF)));
+      const auto add = _mm256_adds_epi16(mul, _mm256_and_si256(val, _mm256_srai_epi16(vol, 15)));
+
+      // Sign-extend to 32-bit.
+      const auto lo = _mm256_cvtepi16_epi32(_mm256_extracti128_si256(add, 0));
+      const auto hi = _mm256_cvtepi16_epi32(_mm256_extracti128_si256(add, 1));
+
+      // Add to the output.
+      dst[0] = _mm256_add_epi32(dst[0], lo);
+      dst[1] = _mm256_add_epi32(dst[1], hi);
+
+      // Update the volume for the next iteration.
+      vol = _mm256_add_epi16(vol, delta16);
+    }
   }
+  else
+#endif
+  {
+    for (u32 i = 0; i < count; ++i)
+    {
+      s32 sample = input[i];
+      sample *= volume;
+      sample >>= 15;
+      s16 sample16 = ClampS16(sample);
+
+      out[i] += (s16)sample16;
+      volume += volume_delta;
+    }
+  }
+
+  vd->volume += volume_delta * count;
+  *dpop = out[count - 1];
 }
 
 // Execute a low pass filter on the samples using one history value.
@@ -418,7 +462,8 @@ static void BiquadFilter(s16* samples, u32 count, PBBiquadFilter& f)
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
-void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, u16 count,
+template <size_t count>
+void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers,
                   AXMixControl mctrl, const s16* coeffs, bool new_filter)
 {
   // If the voice is not running, nothing to do.
@@ -426,7 +471,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     return;
 
   // Read input samples, performing sample rate conversion if needed.
-  s16 samples[MAX_SAMPLES_PER_FRAME];
+  alignas(32) s16 samples[MAX_SAMPLES_PER_FRAME];
   GetInputSamples(accelerator, pb, samples, count, coeffs);
 
   // Apply a global volume ramp using the volume envelope parameters.
@@ -465,67 +510,67 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
 
   if (MIX_ON(MAIN_L))
   {
-    MixAdd(buffers.main_left, samples, count, &pb.mixer.main_left, &pb.dpop.main_left,
-           RAMP_ON(MAIN_L));
+    MixAdd<count>(buffers.main_left, samples, &pb.mixer.main_left, &pb.dpop.main_left,
+                  RAMP_ON(MAIN_L));
   }
   if (MIX_ON(MAIN_R))
   {
-    MixAdd(buffers.main_right, samples, count, &pb.mixer.main_right, &pb.dpop.main_right,
-           RAMP_ON(MAIN_R));
+    MixAdd<count>(buffers.main_right, samples, &pb.mixer.main_right, &pb.dpop.main_right,
+                  RAMP_ON(MAIN_R));
   }
   if (MIX_ON(MAIN_S))
   {
-    MixAdd(buffers.main_surround, samples, count, &pb.mixer.main_surround, &pb.dpop.main_surround,
-           RAMP_ON(MAIN_S));
+    MixAdd<count>(buffers.main_surround, samples, &pb.mixer.main_surround, &pb.dpop.main_surround,
+                  RAMP_ON(MAIN_S));
   }
 
   if (MIX_ON(AUXA_L))
   {
-    MixAdd(buffers.auxA_left, samples, count, &pb.mixer.auxA_left, &pb.dpop.auxA_left,
-           RAMP_ON(AUXA_L));
+    MixAdd<count>(buffers.auxA_left, samples, &pb.mixer.auxA_left, &pb.dpop.auxA_left,
+                  RAMP_ON(AUXA_L));
   }
   if (MIX_ON(AUXA_R))
   {
-    MixAdd(buffers.auxA_right, samples, count, &pb.mixer.auxA_right, &pb.dpop.auxA_right,
-           RAMP_ON(AUXA_R));
+    MixAdd<count>(buffers.auxA_right, samples, &pb.mixer.auxA_right, &pb.dpop.auxA_right,
+                  RAMP_ON(AUXA_R));
   }
   if (MIX_ON(AUXA_S))
   {
-    MixAdd(buffers.auxA_surround, samples, count, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround,
-           RAMP_ON(AUXA_S));
+    MixAdd<count>(buffers.auxA_surround, samples, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround,
+                  RAMP_ON(AUXA_S));
   }
 
   if (MIX_ON(AUXB_L))
   {
-    MixAdd(buffers.auxB_left, samples, count, &pb.mixer.auxB_left, &pb.dpop.auxB_left,
-           RAMP_ON(AUXB_L));
+    MixAdd<count>(buffers.auxB_left, samples, &pb.mixer.auxB_left, &pb.dpop.auxB_left,
+                  RAMP_ON(AUXB_L));
   }
   if (MIX_ON(AUXB_R))
   {
-    MixAdd(buffers.auxB_right, samples, count, &pb.mixer.auxB_right, &pb.dpop.auxB_right,
-           RAMP_ON(AUXB_R));
+    MixAdd<count>(buffers.auxB_right, samples, &pb.mixer.auxB_right, &pb.dpop.auxB_right,
+                  RAMP_ON(AUXB_R));
   }
   if (MIX_ON(AUXB_S))
   {
-    MixAdd(buffers.auxB_surround, samples, count, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround,
-           RAMP_ON(AUXB_S));
+    MixAdd<count>(buffers.auxB_surround, samples, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround,
+                  RAMP_ON(AUXB_S));
   }
 
 #ifdef AX_WII
   if (MIX_ON(AUXC_L))
   {
-    MixAdd(buffers.auxC_left, samples, count, &pb.mixer.auxC_left, &pb.dpop.auxC_left,
-           RAMP_ON(AUXC_L));
+    MixAdd<count>(buffers.auxC_left, samples, &pb.mixer.auxC_left, &pb.dpop.auxC_left,
+                  RAMP_ON(AUXC_L));
   }
   if (MIX_ON(AUXC_R))
   {
-    MixAdd(buffers.auxC_right, samples, count, &pb.mixer.auxC_right, &pb.dpop.auxC_right,
-           RAMP_ON(AUXC_R));
+    MixAdd<count>(buffers.auxC_right, samples, &pb.mixer.auxC_right, &pb.dpop.auxC_right,
+                  RAMP_ON(AUXC_R));
   }
   if (MIX_ON(AUXC_S))
   {
-    MixAdd(buffers.auxC_surround, samples, count, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround,
-           RAMP_ON(AUXC_S));
+    MixAdd<count>(buffers.auxC_surround, samples, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround,
+                  RAMP_ON(AUXC_S));
   }
 #endif
 
@@ -559,10 +604,10 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     }
 
     // Old AXWii versions process ms per ms.
-    u16 wm_count = count == 96 ? 18 : 6;
+    constexpr u16 wm_count = count == 96 ? 18 : 6;
 
     // Interpolate at most 18 samples from the 96 samples we read before.
-    s16 wm_samples[18];
+    alignas(32) s16 wm_samples[18];
 
     // We use ratio 0x55555 == (5 * 65536 + 21845) / 65536 == 5.3333 which
     // is the nearest we can get to 96/18
@@ -576,29 +621,29 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
 #define WMCHAN_MIX_RAMP(n) (0 != ((pb.remote_mixer_control >> (2 * n)) & 2))
 
     if (WMCHAN_MIX_ON(0))
-      MixAdd(buffers.wm_main0, wm_samples, wm_count, &pb.remote_mixer.main0, &pb.remote_dpop.main0,
-             WMCHAN_MIX_RAMP(0));
+      MixAdd<wm_count>(buffers.wm_main0, wm_samples, &pb.remote_mixer.main0, &pb.remote_dpop.main0,
+                       WMCHAN_MIX_RAMP(0));
     if (WMCHAN_MIX_ON(1))
-      MixAdd(buffers.wm_aux0, wm_samples, wm_count, &pb.remote_mixer.aux0, &pb.remote_dpop.aux0,
-             WMCHAN_MIX_RAMP(1));
+      MixAdd<wm_count>(buffers.wm_aux0, wm_samples, &pb.remote_mixer.aux0, &pb.remote_dpop.aux0,
+                       WMCHAN_MIX_RAMP(1));
     if (WMCHAN_MIX_ON(2))
-      MixAdd(buffers.wm_main1, wm_samples, wm_count, &pb.remote_mixer.main1, &pb.remote_dpop.main1,
-             WMCHAN_MIX_RAMP(2));
+      MixAdd<wm_count>(buffers.wm_main1, wm_samples, &pb.remote_mixer.main1, &pb.remote_dpop.main1,
+                       WMCHAN_MIX_RAMP(2));
     if (WMCHAN_MIX_ON(3))
-      MixAdd(buffers.wm_aux1, wm_samples, wm_count, &pb.remote_mixer.aux1, &pb.remote_dpop.aux1,
-             WMCHAN_MIX_RAMP(3));
+      MixAdd<wm_count>(buffers.wm_aux1, wm_samples, &pb.remote_mixer.aux1, &pb.remote_dpop.aux1,
+                       WMCHAN_MIX_RAMP(3));
     if (WMCHAN_MIX_ON(4))
-      MixAdd(buffers.wm_main2, wm_samples, wm_count, &pb.remote_mixer.main2, &pb.remote_dpop.main2,
-             WMCHAN_MIX_RAMP(4));
+      MixAdd<wm_count>(buffers.wm_main2, wm_samples, &pb.remote_mixer.main2, &pb.remote_dpop.main2,
+                       WMCHAN_MIX_RAMP(4));
     if (WMCHAN_MIX_ON(5))
-      MixAdd(buffers.wm_aux2, wm_samples, wm_count, &pb.remote_mixer.aux2, &pb.remote_dpop.aux2,
-             WMCHAN_MIX_RAMP(5));
+      MixAdd<wm_count>(buffers.wm_aux2, wm_samples, &pb.remote_mixer.aux2, &pb.remote_dpop.aux2,
+                       WMCHAN_MIX_RAMP(5));
     if (WMCHAN_MIX_ON(6))
-      MixAdd(buffers.wm_main3, wm_samples, wm_count, &pb.remote_mixer.main3, &pb.remote_dpop.main3,
-             WMCHAN_MIX_RAMP(6));
+      MixAdd<wm_count>(buffers.wm_main3, wm_samples, &pb.remote_mixer.main3, &pb.remote_dpop.main3,
+                       WMCHAN_MIX_RAMP(6));
     if (WMCHAN_MIX_ON(7))
-      MixAdd(buffers.wm_aux3, wm_samples, wm_count, &pb.remote_mixer.aux3, &pb.remote_dpop.aux3,
-             WMCHAN_MIX_RAMP(7));
+      MixAdd<wm_count>(buffers.wm_aux3, wm_samples, &pb.remote_mixer.aux3, &pb.remote_dpop.aux3,
+                       WMCHAN_MIX_RAMP(7));
   }
 #undef WMCHAN_MIX_RAMP
 #undef WMCHAN_MIX_ON
