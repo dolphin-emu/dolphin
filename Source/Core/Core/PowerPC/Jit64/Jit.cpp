@@ -16,6 +16,7 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -1048,8 +1049,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         ABI_CallFunctionP(PowerPC::CheckBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
         MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
-        TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
-        FixupBranch noBreakpoint = J_CC(CC_Z);
+        CMP(32, MatR(RSCRATCH), Imm32(Common::ToUnderlying(CPU::State::Running)));
+        FixupBranch noBreakpoint = J_CC(CC_E);
 
         Cleanup();
         MOV(32, PPCSTATE(npc), Imm32(op.address));
