@@ -130,29 +130,18 @@ public:
   void Write_U32_Swap(u32 var, u32 address);
   void Write_U64_Swap(u64 var, u32 address);
 
-  // Templated functions for byteswapped copies.
   template <typename T>
-  void CopyFromEmuSwapped(T* data, u32 address, size_t size) const
+  void CopyFromEmuSwapped(T* dst, u32 address, size_t size)
   {
-    const T* src = reinterpret_cast<T*>(GetPointerForRange(address, size));
-
-    if (src == nullptr)
-      return;
-
-    for (size_t i = 0; i < size / sizeof(T); i++)
-      data[i] = Common::FromBigEndian(src[i]);
+    if (const T* src = reinterpret_cast<T*>(GetPointerForRange(address, size)))
+      Common::CopySwapped(dst, src, size);
   }
 
   template <typename T>
-  void CopyToEmuSwapped(u32 address, const T* data, size_t size)
+  void CopyToEmuSwapped(u32 address, const T* src, size_t size)
   {
-    T* dest = reinterpret_cast<T*>(GetPointerForRange(address, size));
-
-    if (dest == nullptr)
-      return;
-
-    for (size_t i = 0; i < size / sizeof(T); i++)
-      dest[i] = Common::FromBigEndian(data[i]);
+    if (T* dst = reinterpret_cast<T*>(GetPointerForRange(address, size)))
+      Common::CopySwapped(dst, src, size);
   }
 
 private:

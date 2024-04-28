@@ -19,6 +19,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Intrinsics.h"
 
 namespace Common
 {
@@ -166,6 +167,64 @@ inline T FromBigEndian(T data)
 
   swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
   return data;
+}
+
+#ifdef __AVX__
+// Byte-swap patterns for PSHUFB.
+template <size_t ByteSize>
+inline __m128i GetSwapShuffle128()
+{
+  if constexpr (ByteSize == 2)
+    return _mm_set_epi64x(0x0e0f0c0d0a0b0809, 0x0607040502030001);
+  else if constexpr (ByteSize == 4)
+    return _mm_set_epi64x(0x0c0d0e0f08090a0b, 0x0405060700010203);
+  else if constexpr (ByteSize == 8)
+    return _mm_set_epi64x(0x08090a0b0c0d0e0f, 0x0001020304050607);
+  else
+    static_assert(false);
+}
+#endif
+
+#ifdef __AVX2__
+// Byte-swap patterns for VPSHUFB.
+template <size_t ByteSize>
+inline __m256i GetSwapShuffle256()
+{
+  __m128i pattern = GetSwapShuffle128<ByteSize>();
+  return _mm256_set_m128i(pattern, pattern);
+}
+#endif
+
+// Templated functions for byteswapped copies.
+template <typename T>
+inline void CopySwapped(T* dst, const T* src, size_t byte_size)
+{
+  constexpr size_t S = sizeof(T);
+  const size_t count = byte_size / S;
+  size_t i = 0;
+
+#ifdef __AVX2__
+  for (; i + 32 / S <= count; i += 32 / S)
+  {
+    const auto vdst = reinterpret_cast<__m256i*>(dst + i);
+    const auto vsrc = reinterpret_cast<const __m256i*>(src + i);
+    const auto swap = GetSwapShuffle256<S>();
+    _mm256_storeu_si256(vdst, _mm256_shuffle_epi8(_mm256_loadu_si256(vsrc), swap));
+  }
+#endif
+
+#ifdef __AVX__
+  for (; i + 16 / S <= count; i += 16 / S)
+  {
+    const auto vdst = reinterpret_cast<__m128i*>(dst + i);
+    const auto vsrc = reinterpret_cast<const __m128i*>(src + i);
+    const auto swap = GetSwapShuffle128<S>();
+    _mm_storeu_si128(vdst, _mm_shuffle_epi8(_mm_loadu_si128(vsrc), swap));
+  }
+#endif
+
+  for (; i < count; ++i)
+    dst[i] = Common::FromBigEndian(src[i]);
 }
 
 template <typename value_type>
