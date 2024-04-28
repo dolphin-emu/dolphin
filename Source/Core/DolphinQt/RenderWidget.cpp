@@ -37,6 +37,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <dwmapi.h>
 #endif
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
@@ -69,7 +70,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   // (which results in them not getting called)
   connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen,
           Qt::DirectConnection);
-  connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle,
+  connect(this, &RenderWidget::HandleChanged, this, &RenderWidget::OnHandleChanged,
           Qt::DirectConnection);
   connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
           Qt::DirectConnection);
@@ -131,6 +132,20 @@ void RenderWidget::dropEvent(QDropEvent* event)
   }
 
   State::LoadAs(Core::System::GetInstance(), path.toStdString());
+}
+
+void RenderWidget::OnHandleChanged(void* handle)
+{
+  if (handle)
+  {
+#ifdef _WIN32
+    // Remove rounded corners from the render window on Windows 11
+    const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+    DwmSetWindowAttribute(reinterpret_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
+                          &corner_preference, sizeof(corner_preference));
+#endif
+  }
+  Host::GetInstance()->SetRenderHandle(handle);
 }
 
 void RenderWidget::OnHideCursorChanged()
