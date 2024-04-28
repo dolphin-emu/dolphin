@@ -296,7 +296,8 @@ void OnScreenUI::DrawDebugText()
       else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
         ImGui::Text("Frame: %" PRIu64, movie.GetCurrentFrame());
-        ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
+        if (movie.IsRecordingInput())
+          ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
       }
       if (Config::Get(Config::MAIN_SHOW_LAG))
         ImGui::Text("Lag: %" PRIu64 "\n", movie.GetCurrentLagCount());
