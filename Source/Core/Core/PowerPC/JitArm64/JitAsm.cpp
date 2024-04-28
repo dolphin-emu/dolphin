@@ -9,6 +9,7 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/EnumUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
@@ -88,6 +89,7 @@ void JitArm64::GenerateAsm()
   {
     LDR(IndexType::Unsigned, ARM64Reg::W8, ARM64Reg::X8,
         MOVPage2R(ARM64Reg::X8, cpu.GetStatePtr()));
+    static_assert(Common::ToUnderlying(CPU::State::Running) == 0);
     debug_exit = CBNZ(ARM64Reg::W8);
   }
 
@@ -195,6 +197,7 @@ void JitArm64::GenerateAsm()
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
   LDR(IndexType::Unsigned, ARM64Reg::W8, ARM64Reg::X8, MOVPage2R(ARM64Reg::X8, cpu.GetStatePtr()));
+  static_assert(Common::ToUnderlying(CPU::State::Running) == 0);
   FixupBranch exit = CBNZ(ARM64Reg::W8);
 
   SetJumpTarget(to_start_of_timing_slice);
