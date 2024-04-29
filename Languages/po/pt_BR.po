@@ -46,9 +46,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 08:41+0200\n"
+"POT-Creation-Date: 2024-04-29 20:55+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Runo <i.am.runo@gmail.com>, 2013\n"
+"Last-Translator: Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2024\n"
 "Language-Team: Portuguese (Brazil) (http://app.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -207,7 +207,7 @@ msgstr "%1 MB (MEM2)"
 #. i18n: A positive number of version control commits made compared to some named branch
 #: Source/Core/DolphinQt/AboutDialog.cpp:27
 msgid "%1 commit(s) ahead of %2"
-msgstr ""
+msgstr "%1 revisão(ões) à frente de %2"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:141
 msgid "%1 doesn't support this feature on your system."
@@ -465,7 +465,7 @@ msgstr "Configurações de &Controles"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:820
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:839
 msgid "&Copy Address"
-msgstr ""
+msgstr "&Copiar Endereço"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:574
 msgid "&Copy address"
@@ -602,7 +602,7 @@ msgstr "&Idioma:"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:285
 msgid "&Load Branch Watch"
-msgstr ""
+msgstr "&Carregar Branch Watch"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:378
 msgid "&Load State"
@@ -707,7 +707,7 @@ msgstr "Gerenciador de Pacotes de &Recursos"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:283
 msgid "&Save Branch Watch"
-msgstr ""
+msgstr "&Salvar Branch Watch"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1040
 msgid "&Save Symbol Map"
@@ -739,7 +739,7 @@ msgstr "&Threads"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:292
 msgid "&Tool"
-msgstr ""
+msgstr "&Ferramenta"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:257
 msgid "&Tools"
@@ -1149,7 +1149,7 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "Um disco já está prestes a ser inserido."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:547
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:548
 msgid ""
 "A group of features to make the colors more accurate, matching the color "
 "space Wii and GC games were meant for."
@@ -1188,7 +1188,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:287
 msgid "A&uto Save"
-msgstr ""
+msgstr "Salvar A&utomaticamente"
 
 #. i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
 #: Source/Core/Core/HW/EXI/EXI_Device.h:98
@@ -1275,7 +1275,7 @@ msgid ""
 "enable achievements."
 msgstr ""
 "As conquistas foram desativadas.<br>Por favor feche todos os jogos em "
-"execução pra reativar as conquistas."
+"execução para reativar as conquistas."
 
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:172
 msgid "Action"
@@ -1483,7 +1483,7 @@ msgstr "Espaço do endereço pelo state da CPU"
 msgid "Address:"
 msgstr "Endereço:"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:509
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:510
 msgid ""
 "Adjust the texture filtering. Anisotropic filtering enhances the visual "
 "quality of textures that are at oblique viewing angles. Force Nearest and "
@@ -1493,14 +1493,14 @@ msgid ""
 "option is incompatible with Manual Texture Sampling."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
-"Ajustar a filtragem da textura. A filtragem anisotrópica melhora a qualidade "
-"visual das texturas que estão em ângulos de visão oblíquos. Forçar o Mais "
-"Próximo e Forçar o Linear substituem o filtro de dimensionamento da textura "
-"selecionado pelo jogo.<br><br>Qualquer opção exceto a 'Padrão' alterará a "
-"aparência das texturas do jogo e poderia causar problemas em um pequeno "
-"número de jogos.<br>Esta opção é imcompatível com a Amostragem Manual das "
-"Texturas.<br><dolphin_emphasis>Se não tiver certeza selecione 'Padrão'.</"
-"dolphin_emphasis>"
+"Ajusta a filtragem das texturas. A filtragem anisotrópica melhora a "
+"qualidade visual de texturas que estão em ângulos de visualização oblíquos. "
+"\"Forçar Pelo Mais Próximo\" e \"Forçar Linear\" substituirão o filtro de "
+"escala de textura especificado pelo jogo.<br><br>Qualquer opção diferente de "
+"\"Padrão\" alterará a aparência das texturas e poderá causar problemas em um "
+"pequeno número de jogos.<br><br>Essa opção é incompatível com a \"Amostragem "
+"Manual de Texturas\".<br><br><dolphin_emphasis>Na dúvida, selecione \"Padrão"
+"\".</dolphin_emphasis>"
 
 #. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:107
@@ -1571,7 +1571,7 @@ msgstr "Avançado"
 msgid "Advanced Settings"
 msgstr "Configurações Avançadas"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:516
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:517
 msgid ""
 "Affects how the game output is scaled to the window resolution.<br>The "
 "performance mostly depends on the number of samples each method uses."
@@ -1593,6 +1593,26 @@ msgid ""
 "corrected.<br>Best for downscaling by more than 2x."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
+"Afeta como a saída do jogo é dimensionada para a resolução da janela. O "
+"desempenho depende principalmente do número de amostras que cada método "
+"utiliza. Comparado com o SSAA, a reamostragem é útil nos casos em que a "
+"resolução da janela de saída não é um múltiplo da resolução nativa de "
+"emulação.<br><br><b>Padrão</b> (mais rápido)<br>Amostragem bilinear interna "
+"da GPU, sem correção de gama. Essa opção pode ser ignorada se a correção de "
+"gama for forçada.<br><br><b>Bilinear</b> (4 amostras)<br>Interpolação linear "
+"entre os pixels, com correção de gama.<br><br><b>Bicúbica</b> (16 "
+"amostras)<br>Interpolação cúbica entre os pixels, com correção de gama. Boa "
+"para redimensionar entre resoluções próximas, 1080p e 1440p, por exemplo. "
+"Disponível em diversas variações:<br><br><b>B-Spline:</b> Borrada, mas evita "
+"todos os artefatos de lobing.<br><b>Mitchell-Netravali:</b> Um meio termo "
+"entre borrada e com artefatos de lobing.<br><b>Catmull-Rom:</b> Mais nítida, "
+"mas pode causar artefatos de lobing.<br><br><b>Bilinear Nítido</b> (1-4 "
+"amostras)<br>Semelhante ao \"Pelo Mais Próximo\", mantém uma imagem nítida, "
+"mas também realiza um pouco de blending para evitar tremulações. Funciona "
+"melhor com jogos 2D em resoluções baixas.<br><br><b>Amostragem de Área</b> "
+"(até 324 amostras)<br>Avalia pixels com base na porcentagem de área que "
+"ocupam, com correção de gama. Funciona melhor para downscaling acima de 2x."
+"<br><br><dolphin_emphasis>Na dúvida, selecione \"Padrão\".</dolphin_emphasis>"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "Africa"
@@ -1742,7 +1762,7 @@ msgstr "Ângulo"
 msgid "Angular velocity to ignore and remap."
 msgstr "Velocidade angular a ignorar e remapear."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:621
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:622
 msgid "Anti-Aliasing"
 msgstr "Anti-Aliasing"
 
@@ -1766,7 +1786,7 @@ msgstr "Anexar ao &Arquivo de Assinatura Existente..."
 msgid "Appl&y Signature File..."
 msgstr "Apl&icar Arquivo de Assinatura..."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:550
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:551
 msgid ""
 "Applies a post-processing effect after rendering a frame.<br><br /"
 "><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>"
@@ -1820,7 +1840,7 @@ msgstr "Proporção de Tela"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:144
 msgid "Aspect Ratio Corrected Internal Resolution"
-msgstr ""
+msgstr "Resolução Interna com Proporção de Tela Corrigida"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:92
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:163
@@ -1967,7 +1987,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:73
 msgid "BBA destination address"
-msgstr ""
+msgstr "Endereço de destino do BBA"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:209
 msgid "BIOS:"
@@ -2129,6 +2149,10 @@ msgid ""
 "\n"
 "Try again with a different character."
 msgstr ""
+"Falha ao criar figura em branco em:\n"
+"%1\n"
+"\n"
+"Tente novamente com um personagem diferente."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1010
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:232
@@ -2193,71 +2217,71 @@ msgstr "Embaixo"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:376
 msgid "Branch"
-msgstr ""
+msgstr "Branch"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:377
 msgid "Branch (LR saved)"
-msgstr ""
+msgstr "Branch (LR salvo)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:378
 msgid "Branch Conditional"
-msgstr ""
+msgstr "Branch Condicional"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:379
 msgid "Branch Conditional (LR saved)"
-msgstr ""
+msgstr "Branch Condicional (LR salvo)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:386
 msgid "Branch Conditional to Count Register"
-msgstr ""
+msgstr "Branch Condicional para Registrador Contador"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:387
 msgid "Branch Conditional to Count Register (LR saved)"
-msgstr ""
+msgstr "Branch Condicional para Registrador Contador (LR salvo)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:382
 msgid "Branch Conditional to Link Register"
-msgstr ""
+msgstr "Branch Condicional para Registrador de Link"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:383
 msgid "Branch Conditional to Link Register (LR saved)"
-msgstr ""
+msgstr "Branch Condicional para Registrador de Link (LR salvo)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:471
 msgid "Branch Not Overwritten"
-msgstr ""
+msgstr "Branch Não Foi Sobrescrita"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:390
 msgid "Branch Type"
-msgstr ""
+msgstr "Tipo de Branch"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:466
 msgid "Branch Was Overwritten"
-msgstr ""
+msgstr "Branch Foi Sobrescrita"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:109
 msgid "Branch Watch"
-msgstr ""
+msgstr "Branch Watch"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:202
 msgid "Branch Watch Tool"
-msgstr ""
+msgstr "Ferramenta Branch Watch"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:706
 msgid "Branch Watch Tool Help (1/4)"
-msgstr ""
+msgstr "Ajuda da Ferramenta Branch Watch (1/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:718
 msgid "Branch Watch Tool Help (2/4)"
-msgstr ""
+msgstr "Ajuda da Ferramenta Branch Watch (2/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:726
 msgid "Branch Watch Tool Help (3/4)"
-msgstr ""
+msgstr "Ajuda da Ferramenta Branch Watch (3/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:737
 msgid "Branch Watch Tool Help (4/4)"
-msgstr ""
+msgstr "Ajuda da Ferramenta Branch Watch (4/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:707
 msgid ""
@@ -2275,6 +2299,20 @@ msgid ""
 "Branch Watch\" button to clear all candidates and return to the blacklist "
 "phase."
 msgstr ""
+"Branch Watch é uma ferramenta de busca de código que pode isolar branches "
+"monitoradas pela CPU emulada através de testes de candidatos que atendam "
+"critérios simples. Caso tenha familiaridade com a ferramenta Ultimap do "
+"Cheat Engine, o Branch Watch funciona de maneira semelhante.\n"
+"\n"
+"Pressione o botão \"Iniciar Branch Watch\" para ativar a ferramenta. O "
+"Branch Watch continua ativo entre sessões de emulação, e uma captura do seu "
+"progresso pode ser salva e carregada na Pasta do Usuário, para continuar de "
+"onde parou após fechar o Dolphin. Ações \"Salvar Como...\" e \"Carregar De..."
+"\" também estão disponíveis, e uma função de salvamento automático pode ser "
+"ativada para salvar o estado da ferramenta depois de cada etapa de uma "
+"busca. O botão \"Pausar Branch Watch\" irá suspender a ferramenta até que "
+"seja instruída a resumir o monitoramento. Pressione o botão \"Limpar Branch "
+"Watch\" para remover todos os candidatos e retornar à etapa de exclusão."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:719
 msgid ""
@@ -2285,22 +2323,29 @@ msgid ""
 "is pressed for the first time, Branch Watch will switch to the reduction "
 "phase, and the table will populate with all eligible candidates."
 msgstr ""
+"Branch Watch inicia na fase de exclusão, então nenhum candidato foi "
+"escolhido ainda, mas candidatos encontrados até o momento podem ser "
+"removidos da candidatura ao pressionar os botões \"Caminho de Código Não "
+"Executado\", \"Branch Foi Sobrescrita\" e \"Branch Não Sobrescrita\". Ao "
+"pressionar o botão \"Caminho de Código Executado\" pela primeira vez, a "
+"ferramenta avançará para a próxima fase e preencherá a tabela com todos os "
+"candidatos elegíveis."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:384
 msgid "Branch to Count Register"
-msgstr ""
+msgstr "Branch para Registrador Contador"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:385
 msgid "Branch to Count Register (LR saved)"
-msgstr ""
+msgstr "Branch para Registrador Contador (LR salvo)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:380
 msgid "Branch to Link Register"
-msgstr ""
+msgstr "Branch para Registrador de Link"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:381
 msgid "Branch to Link Register (LR saved)"
-msgstr ""
+msgstr "Branch para Registrador de Link (LR salvo)"
 
 #. i18n: "Branch" means the version control term, not a literal tree branch.
 #: Source/Core/DolphinQt/AboutDialog.cpp:63
@@ -2416,7 +2461,7 @@ msgstr "Botões"
 
 #: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:214
 msgid "By: %1"
-msgstr "Por: %1"
+msgstr "Autor(a): %1"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:57
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:31
@@ -2463,7 +2508,7 @@ msgstr ""
 msgid "Calculate"
 msgstr "Calcular"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:558
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:559
 msgid ""
 "Calculates lighting of 3D objects per-pixel rather than per-vertex, "
 "smoothing out the appearance of lit polygons and making individual triangles "
@@ -2555,15 +2600,15 @@ msgstr "Cancelar Calibração"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:956
 msgid "Candidates: %1"
-msgstr ""
+msgstr "Candidatos: %1"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:959
 msgid "Candidates: %1 | Excluded: %2 | Remaining: %3"
-msgstr ""
+msgstr "Candidatos: %1 | Excluídos: %2 | Restantes: %3"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:974
 msgid "Candidates: %1 | Filtered: %2 | Remaining: %3"
-msgstr ""
+msgstr "Candidatos: %1 | Filtrados: %2 | Restantes: %3"
 
 #: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:247
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
@@ -2787,7 +2832,7 @@ msgstr "Limpar"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:330
 msgid "Clear Branch Watch"
-msgstr ""
+msgstr "Limpar Branch Watch"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:913
 msgid "Clear Cache"
@@ -2820,11 +2865,11 @@ msgstr "Código"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:340
 msgid "Code Path Not Taken"
-msgstr ""
+msgstr "Caminho de Código Não Executado"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:335
 msgid "Code Path Was Taken"
-msgstr ""
+msgstr "Caminho de Código Executado"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:93
 msgid "Code:"
@@ -2834,7 +2879,7 @@ msgstr "Código:"
 msgid "Codes received!"
 msgstr "Códigos recebidos!"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:630
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:631
 msgid "Color Correction"
 msgstr "Correção de Cores"
 
@@ -2852,7 +2897,7 @@ msgstr "Espaço de Cores"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:305
 msgid "Column &Visibility"
-msgstr ""
+msgstr "Colunas &Visíveis"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1054
 msgid "Combine &Two Signature Files..."
@@ -2913,7 +2958,7 @@ msgstr "Compressão:"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:46
 msgid "Cond."
-msgstr ""
+msgstr "Condição"
 
 #. i18n: If a condition is set for a breakpoint, the condition becoming true is a prerequisite for
 #. triggering the breakpoint.
@@ -3203,13 +3248,13 @@ msgid ""
 "display.<br><br>HDR output is required for this setting to take effect."
 "<br><br><dolphin_emphasis>If unsure, leave this at 203.</dolphin_emphasis>"
 msgstr ""
-"Controla a luminosidade base de uma superfície branca de papel em unidades. "
-"Útil pra ajustar a diferentes condições ambientais de iluminação quando usar "
-"uma tela HDR.<br><br>A saída do HDR é requerida pra esta configuração ter "
-"efeito.<br><br><dolphin_emphasis>Se não tiver certeza deixe isto em 203.</"
-"dolphin_emphasis>"
+"Controla a luminância de base de uma superfície branca de papel em nits. "
+"Útil para se adaptar à diferentes condições de iluminação ambiente ao "
+"utilizar uma tela HDR.<br><br>'Pós-Processamento HDR' precisa estar ativado "
+"para que essa opção tenha efeito.<br><br><dolphin_emphasis>Na dúvida, "
+"mantenha essa opção em 203.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:585
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:586
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.<br><br>A "
@@ -3221,7 +3266,7 @@ msgstr ""
 "alto cria efeitos fora da tela mais fortes enquanto um valor mais baixo é "
 "mais confortável."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:496
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:497
 msgid ""
 "Controls the rendering resolution.<br><br>A high resolution greatly improves "
 "visual quality, but also greatly increases GPU load and can cause issues in "
@@ -3235,7 +3280,7 @@ msgstr ""
 "resolução interna, melhor será o desempenho.<br><br><dolphin_emphasis>Na "
 "dúvida, selecione \"Nativa (640x528)\".</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:582
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:583
 msgid ""
 "Controls the separation distance between the virtual cameras.<br><br>A "
 "higher value creates a stronger feeling of depth while a lower value is more "
@@ -3269,7 +3314,7 @@ msgstr ""
 "Controla se deve usar emulação do DSP de alto ou baixo nível. O padrão é "
 "<b>True</b>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:658
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:659
 msgid "Convergence"
 msgstr "Convergência"
 
@@ -3425,7 +3470,7 @@ msgstr "Core"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:650
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:665
 msgid "Core is uninitialized."
-msgstr ""
+msgstr "Core não inicializado."
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
 msgid "Correct Color Space"
@@ -3536,7 +3581,7 @@ msgstr "Não foi possível reconhecer o arquivo {0}"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:278
 msgid "Could not save your changes!"
-msgstr "Não pôde salvar suas mudanças!"
+msgstr "Não foi possível salvar as alterações!"
 
 #: Source/Core/UICommon/AutoUpdate.cpp:303
 #: Source/Core/UICommon/AutoUpdate.cpp:309
@@ -3626,10 +3671,10 @@ msgid ""
 "4:3 or 16:9), to the specific user target aspect ratio (e.g. 4:3 or 16:9)."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Corta a imagem da sua proporção de aspecto nativa (a qual raramente combina "
-"com 4:3 ou 16:9) para a proporção do aspecto específica alvo do usuário (ex: "
-"4:3 ou 16:9)<br><br><dolphin_emphasis>Se não tiver certeza deixe isto "
-"desmarcado.</dolphin_emphasis>"
+"Corta a imagem da sua proporção de tela nativa (que raramente corresponde à "
+"exatos 4:3 ou 16:9) para a proporção de tela especificada pelo usuário (por "
+"exemplo, 4:3 ou 16:9).<br><br><dolphin_emphasis>Na dúvida, mantenha essa "
+"opção desativada.</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:82
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:175
@@ -3673,11 +3718,11 @@ msgstr "Thread atual"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:61
 msgid "Custom"
-msgstr "Personalizar"
+msgstr "Personalizada"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:61
 msgid "Custom (Stretch)"
-msgstr ""
+msgstr "Personalizada (Esticada)"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:51
 msgid "Custom Address Space"
@@ -3685,15 +3730,15 @@ msgstr "Espaço do Endereço Personalizado"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:323
 msgid "Custom Aspect Ratio Height"
-msgstr "Altura da Proporção do Aspecto Personalizada"
+msgstr "Altura da proporção de tela personalizada"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:322
 msgid "Custom Aspect Ratio Width"
-msgstr "Largura da Proporção do Aspecto Personalizada"
+msgstr "Largura da proporção de tela personalizada"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:63
 msgid "Custom Aspect Ratio:"
-msgstr "Proporção do Aspecto Personalizada:"
+msgstr "Proporção de Tela Personalizada:"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:158
 msgid "Custom RTC Options"
@@ -3940,7 +3985,7 @@ msgstr "Excluir Arquivos Selecionados..."
 msgid "Delete the existing file '{0}'?"
 msgstr "Excluir o arquivo existente '{0}'?"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:655
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:656
 msgid "Depth"
 msgstr "Profundidade"
 
@@ -3974,29 +4019,29 @@ msgstr "Descrição: %1"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:262
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:47
 msgid "Destination"
-msgstr ""
+msgstr "Destino"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:64
 msgid "Destination (UNIX socket path or address:port):"
-msgstr ""
+msgstr "Destino (caminho p/ soquete UNIX ou endereço:porta):"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:59
 msgid "Destination (address:port):"
-msgstr ""
+msgstr "Destino (endereço:porta):"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:420
 msgid "Destination Max"
-msgstr ""
+msgstr "Destino Máx."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:419
 msgid "Destination Min"
-msgstr ""
+msgstr "Destino Mín."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:263
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:418
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:49
 msgid "Destination Symbol"
-msgstr ""
+msgstr "Símbolo de Destino"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:184
 msgid "Detached"
@@ -4129,7 +4174,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção desativada.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:597
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:598
 msgid ""
 "Disables the blending of adjacent rows when copying the EFB. This is known "
 "in some games as \"deflickering\" or \"smoothing\".<br><br>Disabling the "
@@ -4743,25 +4788,25 @@ msgid ""
 "the game to be closed before re-enabling."
 msgstr ""
 "Ativa o Modo Hardcore no RetroAchievements.<br><br>O Modo Hardcore tem a "
-"inteção de fornecer uma experiência tão próxima do jogo no hardware original "
-"quanto possível. Os rankings do RetroAchievements são orientados "
-"principalmente em relação aos pontos Hardcore (os pontos Softcore são "
-"rastreados mas não tão fortemente enfatizados) e as tabelas de classificação "
-"requerem que o Modo Hardcore esteja ligado.<br><br>Pra garantir esta "
-"experiência as seguintes funções serão desativadas conforme eles dão aos "
-"jogadores do emulador uma vantagem sobre os jogadores de console:<br>- "
-"Carregando os states<br>-- O salvamento de states é permitido<br>- "
-"Velocidades do emulador abaixo de 100%<br>-- O avanço dos frames está "
-"desativado<br>-- Turbo é permitido<br>-Trapaças<br>- Patches de "
-"memória<br>-- Patches de arquivos são permitidos<br>- Interface do Debug do "
-"Usuário<br>- Olhar livre<br><br><dolphin_emphasis>Isto não pode ser ligado "
-"enquanto um jogo está sendo jogado.</dolphin_emphasis><br>Feche seu jogo "
-"atual antes de ativar.<br>Fique ciente que desligar o Modo Hardcore enquanto "
-"um jogo está em execução requer que o jogo seja fechado antes de reativá-lo."
+"intenção de fornecer a experiência mais próxima possível de executar o jogo "
+"no hardware original. Os rankings do RetroAchievements são baseados "
+"principalmente em relação aos pontos Hardcore (pontos Softcore também são "
+"contabilizados, mas tem uma prioridade menor) e os placares de líderes "
+"exigem que o Modo Hardcore esteja ligado.<br><br>Pra garantir essa "
+"experiência, as seguintes funções serão desativadas, visto que elas garantem "
+"vantagens não disponíveis para jogadores no console:<br>- Carregar estados "
+"salvos<br>-- Criar estados salvos é permitido<br>- Velocidade  de emulação "
+"abaixo de 100%<br>-- A função de avanço de quadros será desativada<br>-- "
+"Turbo é permitido<br>-Cheats<br>- Patches de memória<br>-- Patches de "
+"arquivo são permitidos<br>- Interface de depuração<br>- Olhar "
+"livre<br><br><dolphin_emphasis>Isso não pode ser ativado enquanto um jogo "
+"estiver em execução</dolphin_emphasis><br>Feche seu jogo atual antes de "
+"ativar.<br>Desativar o Modo Hardcore enquanto um jogo está em execução "
+"requer que o jogo seja fechado antes de ser possível reativá-lo."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:924
 msgid "Enable JIT Block Profiling"
-msgstr ""
+msgstr "Ativar Perfilamento de Bloco JIT"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:66
 msgid "Enable Leaderboards"
@@ -4857,8 +4902,8 @@ msgid ""
 "Enable emulated disc speed. Disabling this can cause crashes and other "
 "problems in some games. (ON = Compatible, OFF = Unlocked)"
 msgstr ""
-"Ativar a velocidade emulada do disco. Desativar isto pode causar crashes e "
-"outros problemas em alguns jogos. (ON = Compatível, OFF = Desbloqueado)"
+"Ativa a emulação de velocidade do disco. Pode causar travamentos e outros "
+"problemas em alguns jogos (ON = Compatível, OFF = Desbloqueada)"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:51
 msgid ""
@@ -4927,7 +4972,7 @@ msgstr ""
 "Ativa o cálculo da Flag de Resultado com Ponto Flutuante, necessária em "
 "alguns jogos. (ON = Compatível, OFF = Rápido)"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:603
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:604
 msgid ""
 "Enables detection of arbitrary mipmaps, which some games use for special "
 "distance-based effects.<br><br>May have false positives that result in "
@@ -4937,14 +4982,14 @@ msgid ""
 "Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
-"Ativa a detecção dos mipmaps arbitrários os quais alguns jogos usam pra "
-"efeitos especiais baseados na distância.<br><br>Pode ter falsos positivos "
-"que resultam em texturas desfocadas numa resolução interna aumentada tais "
-"como em jogos que usam mipmaps de resolução muito baixa. Desativar isto "
-"também pode reduzir a lentidão em jogos que frequentemente carregam novas "
-"texturas. Esta função não é compatível com a Decodificação de Texturas da "
-"GPU<br><br><dolphin_emphasis>Se não tiver certeza deixe isto selecionado.</"
-"dolphin_emphasis>"
+"Ativa a detecção de mipmaps arbitrários, que alguns jogos utilizam para "
+"renderizar efeitos gráficos especiais baseados na distância da câmera."
+"<br><br>Pode causar falsos positivos, resultando em texturas borradas em "
+"resoluções internas maiores, como em jogos que utilizam mipmaps de resolução "
+"muito baixa. Desativar essa opção também pode reduzir engasgos em jogos que "
+"frequentemente carregam novas texturas.<br><br>Esse recurso não é compatível "
+"com a 'Decodificação de Texturas na GPU'.<br><br><dolphin_emphasis>Na "
+"dúvida, mantenha essa opção desativada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:85
 msgid ""
@@ -4982,7 +5027,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção desativada.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:611
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:612
 msgid ""
 "Enables scRGB HDR output (if supported by your graphics backend and "
 "monitor). Fullscreen might be required.<br><br>This gives post process "
@@ -5013,11 +5058,11 @@ msgid ""
 "Detection.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
-"Ativa a decodificação das texturas usando a GPU ao invés da CPU.<br><br>Isto "
-"pode resultar em ganhos de performance em alguns cenários ou em sistemas "
-"aonde a CPU é o obstáculo.<br>Esta opção é imcompatível com a Detecção "
-"Arbitrária do Mipmap.<br><br><dolphin_emphasis>Se não tiver certeza deixe "
-"isto desmarcado.</dolphin_emphasis>"
+"Ativa a decodificação de texturas usando a GPU ao invés da CPU.<br><br>Isso "
+"pode melhorar o desempenho em algumas situações, ou em sistemas com gargalos "
+"de CPU.<br><br>Essa opção é incompatível com a \"Detecção de Mipmaps "
+"Arbitrários\".<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção "
+"desativada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:100
 msgid ""
@@ -5133,6 +5178,8 @@ msgid ""
 "Enter the IP address and port of the tapserver instance you want to connect "
 "to."
 msgstr ""
+"Informe o endereço IP e a porta da instância tapserver que você gostaria de "
+"se conectar."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1359
 msgid "Enter the RSO module address:"
@@ -5543,7 +5590,7 @@ msgstr "Falha ao remover Skylander!"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:665
 msgid "Failed to clear the Skylander from slot %1!"
-msgstr ""
+msgstr "Falha ao remover o Skylander do slot %1!"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
@@ -5585,6 +5632,10 @@ msgid ""
 "\n"
 "The Skylander may already be on the portal."
 msgstr ""
+"Falha ao criar arquivo do Skylander:\n"
+"%1\n"
+"\n"
+"O Skylander pode já estar inserido no portal."
 
 #: Source/Core/Core/NetPlayClient.cpp:1292
 msgid ""
@@ -5747,6 +5798,8 @@ msgid ""
 "Failed to load the Skylander file:\n"
 "%1"
 msgstr ""
+"Falha ao carregar arquivo do Skylander:\n"
+"%1"
 
 #: Source/Core/Core/Boot/Boot.cpp:585
 msgid "Failed to load the executable to memory."
@@ -5766,11 +5819,11 @@ msgstr "Falha ao modificar o Skylander!"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:215
 msgid "Failed to open \"%1\" for writing."
-msgstr ""
+msgstr "Falha ao abrir \"%1\" para escrita."
 
 #: Source/Android/jni/MainAndroid.cpp:428
 msgid "Failed to open \"{0}\" for writing."
-msgstr ""
+msgstr "Falha ao abrir \"{0}\" para escrita."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
 #: Source/Core/DolphinQt/MainWindow.cpp:1722
@@ -5784,7 +5837,7 @@ msgstr "Falha ao acessar o dispositivo Bluetooth: {0}"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1004
 msgid "Failed to open Branch Watch snapshot \"%1\""
-msgstr ""
+msgstr "Falha ao abrir o estado do Branch Watch \"%1\""
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 msgid "Failed to open config file!"
@@ -5792,7 +5845,7 @@ msgstr "Falha ao abrir o arquivo de configuração!"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:731
 msgid "Failed to open file"
-msgstr "Falhou em abrir o arquivo"
+msgstr "Falha ao abrir o arquivo"
 
 #: Source/Core/Core/NetPlayCommon.cpp:26
 msgid "Failed to open file \"{0}\"."
@@ -5830,6 +5883,10 @@ msgid ""
 "\n"
 "The file may already be in use on the base."
 msgstr ""
+"Falha ao carregar arquivo do Infinity:\n"
+"%1\n"
+"\n"
+"O arquivo pode já estar sendo utilizado na base."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:805
 msgid "Failed to open the Skylander file!"
@@ -5842,6 +5899,10 @@ msgid ""
 "\n"
 "The file may already be in use on the portal."
 msgstr ""
+"Falha ao carregar arquivo do Skylander:\n"
+"%1\n"
+"\n"
+"O arquivo pode já estar sendo utilizado no portal."
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:474
 msgid "Failed to open the input file \"%1\"."
@@ -5898,6 +5959,10 @@ msgid ""
 "\n"
 "The file was too small."
 msgstr ""
+"Falha ao ler arquivo do Infinity:\n"
+"%1\n"
+"\n"
+"O arquivo é muito pequeno."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:816
 msgid "Failed to read the Skylander file!"
@@ -5910,12 +5975,18 @@ msgid ""
 "\n"
 "The file was too small."
 msgstr ""
+"Falha ao ler arquivo do Skylander:\n"
+"%1\n"
+"\n"
+"O arquivo é muito pequeno."
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:732
 msgid ""
 "Failed to read the contents of file:\n"
 "%1"
 msgstr ""
+"Falha ao ler conteúdo do arquivo:\n"
+"%1"
 
 #: Source/Core/Core/Movie.cpp:1015
 msgid "Failed to read {0}"
@@ -5959,7 +6030,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:990
 msgid "Failed to save Branch Watch snapshot \"%1\""
-msgstr ""
+msgstr "Falha ao salvar o estado do Branch Watch \"%1\""
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:239
 msgid "Failed to save FIFO log."
@@ -6300,7 +6371,7 @@ msgstr ""
 "<dolphin_emphasis>Opção ativada pois o backend %1 não suporta shaders de "
 "geometria.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:564
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:565
 msgid ""
 "Forces the game to output graphics at any aspect ratio by expanding the view "
 "frustum without stretching the image.<br>This is a hack, and its results "
@@ -6309,15 +6380,15 @@ msgid ""
 "available.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
-"Força o jogo a produzir gráficos em qualquer proporção de aspecto expandindo "
-"o frustum de visualização sem esticar a imagem.<br>Isto é um hack e seus "
-"resultados variarão muito de jogo pra jogo (frequentemente faz a Interface "
-"do Usuário esticar).<br>Os patches de proporção do AR/código-do-Gecko "
-"específicos do jogo são preferíveis a este se disponíveis."
-"<br><br><dolphin_emphasis>Se não tiver certeza, deixe isto desmarcado.</"
+"Força o jogo a renderizar em qualquer proporção de tela, expandindo o "
+"frustum de visualização sem esticar a imagem.<br>Isso é um hack e os "
+"resultados variam bastante, dependendo do jogo (frequentemente esticando "
+"elementos de IU).<br>Recomenda-se utilizar códigos AR/Gecko de proporção de "
+"tela específicos para o jogo ao invés dessa opção, caso estejam disponíveis."
+"<br><br><dolphin_emphasis>Na dúvida, mantenha essa opção desativada.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:592
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:593
 msgid ""
 "Forces the game to render the RGB color channels in 24-bit, thereby "
 "increasing quality by reducing color banding.<br><br>Has no impact on "
@@ -6838,7 +6909,7 @@ msgstr "Geral e Opções"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:504
 msgid "Generate Action Replay Code(s)"
-msgstr ""
+msgstr "Gerar Código(s) do Action Replay"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:240
 msgid "Generate a New Statistics Identity"
@@ -6846,7 +6917,7 @@ msgstr "Gerar uma Nova ID de Estatísticas "
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:586
 msgid "Generated AR code(s)."
-msgstr ""
+msgstr "Código(s) AR gerado(s)."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1337
 msgid "Generated symbol names from '%1'"
@@ -6908,7 +6979,7 @@ msgstr "Configurações"
 msgid "Graphics mods are currently disabled."
 msgstr "Os mods gráficos estão desativados no momento."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:553
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:554
 msgid ""
 "Greatly increases the quality of textures generated using render-to-texture "
 "effects.<br><br>Slightly increases GPU load and causes relatively few "
@@ -7015,7 +7086,7 @@ msgstr "Ocultar"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:294
 msgid "Hide &Controls"
-msgstr ""
+msgstr "Ocultar &Controles"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:758
 msgid "Hide All"
@@ -7308,7 +7379,7 @@ msgstr "Ignorar"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:297
 msgid "Ignore &Apploader Branch Hits"
-msgstr ""
+msgstr "Ignorar Acertos de Branch do &Apploader"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:50
 msgid "Ignore Format Changes"
@@ -7541,15 +7612,15 @@ msgstr "Força da entrada pra ignorar e remapear."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:827
 msgid "Insert &BLR"
-msgstr ""
+msgstr "Inserir &BLR"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:847
 msgid "Insert &BLR at start"
-msgstr ""
+msgstr "Inserir &BLR no início"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:814
 msgid "Insert &NOP"
-msgstr ""
+msgstr "Inserir &NOP"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
 msgid "Insert &nop"
@@ -7583,7 +7654,7 @@ msgstr "Instalar na NAND"
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:46
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:159
 msgid "Instr."
-msgstr "Instruções."
+msgstr "Instrução"
 
 #: Source/Core/DolphinQt/Debugger/AssembleInstructionDialog.cpp:46
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:261
@@ -7673,7 +7744,7 @@ msgstr ""
 "Erro Interno do LZO - falha ao processar texto de versão extraído ({0} / {1})"
 
 #: Source/Core/Core/HotkeyManager.cpp:347
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:618
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:619
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:27
 msgid "Internal Resolution"
 msgstr "Resolução Interna"
@@ -7803,11 +7874,11 @@ msgstr "JIT"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:877
 msgid "JIT Block Linking Off"
-msgstr "Ligação dos Blocos do JIT Desligado"
+msgstr "Link de Blocos JIT Desativado"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:25
 msgid "JIT Blocks"
-msgstr "Blocos do JIT"
+msgstr "Blocos JIT"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1012
 msgid "JIT Branch Off"
@@ -7870,7 +7941,7 @@ msgid "JIT SystemRegisters Off"
 msgstr "Registros do Sistema do JIT Desligado"
 
 #: Source/Core/Core/PowerPC/Jit64/Jit.cpp:839
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:982
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1027
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -7881,7 +7952,7 @@ msgstr ""
 
 #: Source/Android/jni/MainAndroid.cpp:417
 msgid "JIT is not active"
-msgstr ""
+msgstr "JIT não está ativo"
 
 #: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "Japan"
@@ -7991,7 +8062,7 @@ msgstr "Último Valor"
 #. i18n: A timestamp for when the Skylander was most recently used
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:158
 msgid "Last placed:"
-msgstr "Última colocação:"
+msgstr "Último uso:"
 
 #. i18n: A timestamp for when the Skylander was most recently reset
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:148
@@ -8148,11 +8219,11 @@ msgstr "Carregar o &Outro Arquivo do Mapa..."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:286
 msgid "Load Branch Watch &From..."
-msgstr ""
+msgstr "Carregar Branch Watch &De..."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:616
 msgid "Load Branch Watch snapshot"
-msgstr ""
+msgstr "Carregar estado do Branch Watch"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:107
 msgid "Load Custom Textures"
@@ -8480,7 +8551,7 @@ msgstr "Fabricante"
 msgid "Maker:"
 msgstr "Fabricante:"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:570
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:571
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.<br><br>Disabling fog will break some games which rely on "
@@ -8613,7 +8684,7 @@ msgstr "Configurações Diversas"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:482
 msgid "Misc. Controls"
-msgstr ""
+msgstr "Outros Controles"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:844
 msgid "Mismatch between free block count in header and actually unused blocks."
@@ -8645,7 +8716,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:108
 msgid "Modem Adapter (tapserver)"
-msgstr ""
+msgstr "Adaptador de Modem (tapserver)"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:32
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:25
@@ -8747,7 +8818,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:581
 msgid "Multiple errors while generating AR codes."
-msgstr ""
+msgstr "Múltiplos erros ao gerar os códigos AR."
 
 #. i18n: Controller input values are multiplied by this percentage value.
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:342
@@ -8918,7 +8989,7 @@ msgstr "Novo Ponto de Interrupção"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:706
 msgid "New File"
-msgstr "Arquivo Novo"
+msgstr "Novo Arquivo"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:708
 msgid "New File (%1)"
@@ -9200,51 +9271,51 @@ msgstr "Objeto %1"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:24
 msgid "Object 1 Size"
-msgstr ""
+msgstr "Tamanho do Objeto 1"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:22
 msgid "Object 1 X"
-msgstr ""
+msgstr "Posição X do Objeto 1"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:23
 msgid "Object 1 Y"
-msgstr ""
+msgstr "Posição Y do Objeto 1"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:27
 msgid "Object 2 Size"
-msgstr ""
+msgstr "Tamanho do Objeto 2"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:25
 msgid "Object 2 X"
-msgstr ""
+msgstr "Posição X do Objeto 2"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:26
 msgid "Object 2 Y"
-msgstr ""
+msgstr "Posição Y do Objeto 2"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:30
 msgid "Object 3 Size"
-msgstr ""
+msgstr "Tamanho do Objeto 3"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:28
 msgid "Object 3 X"
-msgstr ""
+msgstr "Posição X do Objeto 3"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:29
 msgid "Object 3 Y"
-msgstr ""
+msgstr "Posição Y do Objeto 3"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:33
 msgid "Object 4 Size"
-msgstr ""
+msgstr "Tamanho do Objeto 4"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:31
 msgid "Object 4 X"
-msgstr ""
+msgstr "Posição X do Objeto 4"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:32
 msgid "Object 4 Y"
-msgstr ""
+msgstr "Posição Y do Objeto 4"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:92
 msgid "Object Range"
@@ -9295,6 +9366,18 @@ msgid ""
 "calls and conditional code paths that are only taken when an action is "
 "performed in the emulated software."
 msgstr ""
+"Estando na fase de redução, é hora de reduzir o número de candidatos "
+"exibidos na tabela. Isso pode ser feito ao verificar se um caminho de código "
+"foi executado ou não desde a última checagem. Também é possível reduzir os "
+"candidatos ao determinar se uma instrução de branch foi sobrescrita ou não "
+"desde que foi atingida pela primeira vez. Filtre os candidatos pelo tipo de "
+"branch, condição, endereço de origem ou destino, e nome do símbolo de origem "
+"ou destino.\n"
+"\n"
+"Após etapas suficientes de redução e experimento, você provavelmente será "
+"capaz de encontrar chamadas de função e caminhos de código condicional que "
+"são executados apenas quando uma ação específica é executada no software "
+"emulado."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "Online &Documentation"
@@ -9409,25 +9492,25 @@ msgstr "Orbital"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:261
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:47
 msgid "Origin"
-msgstr ""
+msgstr "Origem"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:417
 msgid "Origin Max"
-msgstr ""
+msgstr "Origem Máx."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:416
 msgid "Origin Min"
-msgstr ""
+msgstr "Origem Mín."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:263
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:415
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:49
 msgid "Origin Symbol"
-msgstr ""
+msgstr "Símbolo de Origem"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:423
 msgid "Origin and Destination"
-msgstr ""
+msgstr "Origem e Destino"
 
 #: Source/Core/Core/FreeLookManager.cpp:101
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:103
@@ -9460,7 +9543,7 @@ msgstr "Outro jogo..."
 msgid "Output"
 msgstr "Saída dos Dados"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:627
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:628
 msgid "Output Resampling"
 msgstr "Saída da Reamostragem"
 
@@ -9580,7 +9663,7 @@ msgstr "Pausar"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:544
 msgid "Pause Branch Watch"
-msgstr ""
+msgstr "Pausar Branch Watch"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:809
 msgid "Pause at End of Movie"
@@ -9764,7 +9847,7 @@ msgstr "Apontar"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:255
 msgid "Point (Passthrough)"
-msgstr ""
+msgstr "Apontar (Redirecionamento)"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:84
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:67
@@ -9789,7 +9872,7 @@ msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr ""
 "Possível dessincronia detectada: %1 pode ter dessincronizado no quadro %2"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:633
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:634
 msgid "Post-Processing Effect"
 msgstr "Efeito de Pós-Processamento"
 
@@ -10032,7 +10115,7 @@ msgstr "Bruto"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:145
 msgid "Raw Internal Resolution"
-msgstr ""
+msgstr "Resolução Interna Bruta"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
 msgid "Re&place instruction"
@@ -10081,7 +10164,7 @@ msgstr "Dados do Wii Remote inválidos recebidos do NetPlay."
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:262
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:48
 msgid "Recent Hits"
-msgstr ""
+msgstr "Acertos Recentes"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:31
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:29
@@ -10121,7 +10204,7 @@ msgstr "Vermelho Esquerdo"
 msgid "Red Right"
 msgstr "Vermelho Direito"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:502
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:503
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
 "in smoother edges on objects. Increases GPU load and sometimes causes "
@@ -10312,7 +10395,7 @@ msgstr "Redefinir pareamento de todos os Wii Remotes salvos"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:151
 msgid "Resolution Type:"
-msgstr ""
+msgstr "Resolução de Captura:"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:26
 msgid "Resource Pack Manager"
@@ -10454,6 +10537,25 @@ msgid ""
 "All context menus have the action to delete the selected row(s) from the "
 "candidates."
 msgstr ""
+"Linhas da tabela podem ser clicadas com o botão esquerdo nas colunas de "
+"origem, destino e símbolo para mostrar o endereço correspondente no painel "
+"de Código. Clicar com o botão direito na(s) linha(s) selecionada(s) mostrará "
+"um menu de contexto.\n"
+"\n"
+"Se a coluna de destino em uma linha da tabela for clicada com o botão "
+"direito, uma ação para substituir a instrução no(s) destino(s) com uma "
+"instrução BLR (Branch para Registrador de Link) estará disponível, mas "
+"somente se a instrução de branch em cada origem salva o registrador de link, "
+"e uma ação para copiar o(s) endereço(s) para a área de transferência estará "
+"disponível.\n"
+"\n"
+"Se a coluna do símbolo de origem / destino em uma linha da tabela for "
+"clicada com o botão direito, uma ação para substituir a(s) instrução(ões) no "
+"início do símbolo com uma instrução BLR estará disponível, mas somente se "
+"cada símbolo de origem / destino for encontrado.\n"
+"\n"
+"Todos os menus de contexto tem uma ação para excluir a(s) linha(s) "
+"selecionada(s) da lista de candidatos."
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
@@ -10573,11 +10675,11 @@ msgstr "Salvar Todos"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:284
 msgid "Save Branch Watch &As..."
-msgstr ""
+msgstr "S&alvar Branch Watch Como..."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:599
 msgid "Save Branch Watch snapshot"
-msgstr ""
+msgstr "Salvar estado do Branch Watch"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:588
 #: Source/Core/DolphinQt/GameList/GameList.cpp:593
@@ -10849,6 +10951,8 @@ msgid ""
 "Select Branch Watch snapshot auto-save file (for user folder location, "
 "cancel)"
 msgstr ""
+"Selecione o arquivo de salve automático do estado do Branch Watch (para usar "
+"o local de pasta do usuário, cancele)"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:71
 msgid "Select Dump Path"
@@ -11089,8 +11193,24 @@ msgid ""
 "software.<br><br><dolphin_emphasis>If unsure, leave this at \"Aspect Ratio "
 "Corrected Internal Resolution\".</dolphin_emphasis>"
 msgstr ""
+"Define como capturas de quadros (vídeos) e capturas de tela serão obtidas."
+"<br><br>Se a resolução do jogo ou da janela sofrer alterações durante a "
+"gravação, diversos arquivos de vídeo poderão ser criados. Note que a "
+"correção de cores e o corte de imagem serão sempre ignorados nas capturas."
+"<br><br><b>Resolução da Janela:</b> Usa a resolução da janela de saída "
+"(ignorando barras pretas). Uma opção de captura simples, produzindo "
+"resultados semelhantes ao que você vê na tela.<br><b>Resolução Interna com "
+"Proporção de Tela Corrigida:</b> Usa a Resolução Interna (tamanho do XFB) e "
+"aplica correções para a proporção de tela de destino. Essa opção irá "
+"capturar consistentemente na Resolução Interna especificada, independente de "
+"como a imagem é exibida durante a captura.<br><b>Resolução Interna Bruta:</"
+"b> Usa a Resolução Interna (tamanho do XFB) sem aplicar nenhuma correção "
+"para a proporção de tela, disponibilizando a captura mais bruta possível, "
+"para uso com softwares de edição de terceiros.<br><br><dolphin_emphasis>Na "
+"dúvida, selecione \"Resolução Interna com Proporção de Tela Corrigida\".</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:575
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:576
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling of "
 "depth if the necessary hardware is present. Heavily decreases emulation "
@@ -11132,6 +11252,25 @@ msgid ""
 "normal circumstances.<br><br><dolphin_emphasis>If unsure, select Auto.</"
 "dolphin_emphasis>"
 msgstr ""
+"Seleciona qual proporção de tela utilizar ao renderizar.<br><br>A proporção "
+"de tela da imagem renderizada pelos consoles originas variava de acordo com "
+"o jogo e raramente correspondia à exatos 4:3 ou 16:9. Parte da imagem era "
+"recortada pelas bordas da TV, ou a imagem não preenchia a TV totalmente. Por "
+"padrão, o Dolphin exibe a imagem inteira, sem distorcer suas proporções, "
+"então é normal que a imagem não caiba totalmente na sua tela."
+"<br><br><b>Automática:</b> Imita uma TV com proporção de tela 4:3 ou 16:9, "
+"dependendo de qual tipo de TV o jogo aparente ter como alvo."
+"<br><br><b>Forçar 16:9:</b> Imita uma TV com proporção de tela 16:9 "
+"(widescreen).<br><br><b>Forçar 4:3:</b> Imita uma TV com proporção de tela "
+"4:3.<br><br><b>Esticar para a Janela:</b> Estica a imagem para o tamanho da "
+"janela, distorcendo as proporções da imagem.<br><br><b>Personalizada: </b> "
+"Imita uma TV com a proporção de tela especificada. Destinada principalmente "
+"para utilização com cheats/modificações de proporção de tela."
+"<br><br><b>Personalizada (Esticada):</b> Semelhante à \"Personalizada\", mas "
+"estica a imagem para a proporção de tela especificada. Isso distorce as "
+"proporções da imagem, e não deve ser utilizada em condições normais."
+"<br><br><dolphin_emphasis>Na dúvida, selecione \"Automática\".</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:238
 msgid ""
@@ -11422,7 +11561,7 @@ msgstr "Mostrar Plataformas"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
 msgid "Show Projection Statistics"
-msgstr ""
+msgstr "Exibir Estatísticas de Projeção"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:756
 msgid "Show Regions"
@@ -11600,6 +11739,8 @@ msgid ""
 "Shows various projection statistics.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Mostra várias estatísticas de projeção.<br><br><dolphin_emphasis>Na dúvida, "
+"mantenha essa opção desativada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:303
 msgid ""
@@ -11899,7 +12040,7 @@ msgstr "Iniciar &NetPlay..."
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:325
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:553
 msgid "Start Branch Watch"
-msgstr ""
+msgstr "Iniciar Branch Watch"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:161
 msgid "Start New Cheat Search"
@@ -11989,7 +12130,7 @@ msgstr "Passando"
 msgid "Stereo"
 msgstr "Estéreo"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:652
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:653
 msgid "Stereoscopic 3D Mode"
 msgstr "Modo de Estereoscopia 3D"
 
@@ -12196,7 +12337,7 @@ msgstr "Swap Force"
 msgid "Swapper"
 msgstr "Swapper"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:589
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:590
 msgid ""
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -12348,7 +12489,7 @@ msgstr "Testar"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:618
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:764
 msgid "Text file (*.txt);;All Files (*)"
-msgstr ""
+msgstr "Arquivo de texto (*.txt);;Todos os arquivos (*)"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:223
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:63
@@ -12363,7 +12504,7 @@ msgstr "Precisão do Cache de Texturas"
 msgid "Texture Dumping"
 msgstr "Exportação de Texturas"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:624
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:625
 msgid "Texture Filtering"
 msgstr "Filtragem de Textura"
 
@@ -12442,7 +12583,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:175
 msgid "The amount of money this Skylander has. Between 0 and 65000"
-msgstr ""
+msgstr "A quantidade de dinheiro que esse Skylander possui. Entre 0 e 65000"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:290
 msgid ""
@@ -12495,6 +12636,9 @@ msgid ""
 "can also enter a network location (address:port) to connect to a remote "
 "tapserver."
 msgstr ""
+"O valor padrão \"%1\" funcionará com um servidor tapserver local e com o "
+"newserv. Você também pode especificar um local de rede (endereço:porta) para "
+"conectar-se com um tapserver remoto."
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:427
 msgid ""
@@ -12690,6 +12834,8 @@ msgid ""
 "The hero level of this Skylander. Only seen in Skylanders: Spyro's "
 "Adventures. Between 0 and 100"
 msgstr ""
+"O nível de herói desse Skylander, visível apenas em Skylanders: Spyro's "
+"Adventure. Entre 0 e 100"
 
 #: Source/Core/Core/NetPlayClient.cpp:184
 msgid ""
@@ -12729,7 +12875,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
 msgid "The nickname for this Skylander. Limited to 15 characters"
-msgstr ""
+msgstr "O apelido para esse Skylander. Limitado a 15 caracteres"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:159
 msgid "The patches in %1 are not for the selected game or game revision."
@@ -12911,7 +13057,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:583
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:594
 msgid "There is nothing to save!"
-msgstr ""
+msgstr "Não há nada para salvar!"
 
 #: Source/Core/Core/State.cpp:1050
 msgid "There is nothing to undo!"
@@ -13123,7 +13269,7 @@ msgstr "Essa cópia é válida."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:299
 msgid "This only applies to the initial boot of the emulated software."
-msgstr ""
+msgstr "Aplicável apenas ao boot inicial do software emulado."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:302
 msgid "This session requires a password:"
@@ -13205,6 +13351,9 @@ msgid ""
 "To filter for or against unconditional branches,\n"
 "use the Branch Type filter options."
 msgstr ""
+"Isso filtrará também os branches incondicionais. Para filtrar todos (ou "
+"nenhum) branch incondicional, utilize as opções de filtro nos Tipos de "
+"Branch."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:161
 msgid ""
@@ -13359,7 +13508,7 @@ msgstr "Falha na tokenização."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:345
 msgid "Tool Controls"
-msgstr ""
+msgstr "Controles da Ferramenta"
 
 #: Source/Core/DolphinQt/ToolBar.cpp:29
 msgid "Toolbar"
@@ -13572,7 +13721,7 @@ msgstr "Não foi possível criar cópia do atualizador."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:98
 msgid "Unable to modify Skylander!"
-msgstr "Incapaz de modificar o Skylander!"
+msgstr "Não foi possível modificar o Skylander!"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
 msgid "Unable to open file."
@@ -14021,7 +14170,7 @@ msgstr "Usando o Qt %1"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1044
 msgid "Using TTL %1 for probe packet"
-msgstr "Usando o TTL %1 pro pacote de sondagem"
+msgstr "Usando TTL %1 para o pacote de teste"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:597
 msgid "Usually used for light objects"
@@ -14554,7 +14703,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:144
 msgid "Window Resolution"
-msgstr ""
+msgstr "Resolução da Janela"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
 #: Source/Core/DolphinQt/GBAWidget.cpp:437
@@ -14563,11 +14712,11 @@ msgstr "Tamanho da Janela"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:306
 msgid "Wipe &Inspection Data"
-msgstr ""
+msgstr "Limpar Dados de &Inspeção"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:476
 msgid "Wipe Recent Hits"
-msgstr ""
+msgstr "Limpar Acertos Recentes"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:134
 msgid "Word Wrap"
@@ -14584,7 +14733,7 @@ msgstr "Gravação"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:931
 msgid "Write JIT Block Log Dump"
-msgstr ""
+msgstr "Salvar Despejo de Log do Bloco JIT"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
@@ -14633,11 +14782,11 @@ msgstr "Revisão incorreta"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:223
 msgid "Wrote to \"%1\"."
-msgstr ""
+msgstr "Escrito em \"%1\"."
 
 #: Source/Android/jni/MainAndroid.cpp:434
 msgid "Wrote to \"{0}\"."
-msgstr ""
+msgstr "Escrito em \"{0}\"."
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:122
@@ -14867,7 +15016,7 @@ msgstr "Código Zero 3 não é suportado"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:970
 msgid "Zero candidates remaining."
-msgstr ""
+msgstr "Zero candidatos restantes."
 
 #: Source/Core/Core/ActionReplay.cpp:961
 msgid "Zero code unknown to Dolphin: {0:08x}"
@@ -14932,7 +15081,7 @@ msgstr "Falsa conclusão"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:325
 msgid "false"
-msgstr ""
+msgstr "false"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:190
 msgid "is equal to"
@@ -15009,7 +15158,7 @@ msgstr "este valor:"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:328
 msgid "true"
-msgstr ""
+msgstr "true"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:185

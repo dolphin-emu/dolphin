@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 08:41+0200\n"
+"POT-Creation-Date: 2024-04-29 20:55+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2024\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/delroth/dolphin-emu/"
@@ -180,7 +180,7 @@ msgstr "%1 MB (内存2)"
 #. i18n: A positive number of version control commits made compared to some named branch
 #: Source/Core/DolphinQt/AboutDialog.cpp:27
 msgid "%1 commit(s) ahead of %2"
-msgstr ""
+msgstr "在 %2 前 %1 次提交"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:141
 msgid "%1 doesn't support this feature on your system."
@@ -438,7 +438,7 @@ msgstr "控制器设置(&C)"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:820
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:839
 msgid "&Copy Address"
-msgstr ""
+msgstr "复制地址(&C)"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:574
 msgid "&Copy address"
@@ -575,7 +575,7 @@ msgstr "语言(&L):"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:285
 msgid "&Load Branch Watch"
-msgstr ""
+msgstr "载入分支监视(&L)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:378
 msgid "&Load State"
@@ -680,7 +680,7 @@ msgstr "资源包管理器(&R)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:283
 msgid "&Save Branch Watch"
-msgstr ""
+msgstr "保存分支监视(&S)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1040
 msgid "&Save Symbol Map"
@@ -712,7 +712,7 @@ msgstr "线程(&T)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:292
 msgid "&Tool"
-msgstr ""
+msgstr "工具(&T)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:257
 msgid "&Tools"
@@ -1115,7 +1115,7 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "光盘已可插入。"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:547
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:548
 msgid ""
 "A group of features to make the colors more accurate, matching the color "
 "space Wii and GC games were meant for."
@@ -1147,7 +1147,7 @@ msgstr "只有在 Wii 游戏运行时同步才能触发。"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:287
 msgid "A&uto Save"
-msgstr ""
+msgstr "自动保存(&U)"
 
 #. i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
 #: Source/Core/Core/HW/EXI/EXI_Device.h:98
@@ -1431,7 +1431,7 @@ msgstr "按 CPU 状态划分的地址空间"
 msgid "Address:"
 msgstr "地址："
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:509
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:510
 msgid ""
 "Adjust the texture filtering. Anisotropic filtering enhances the visual "
 "quality of textures that are at oblique viewing angles. Force Nearest and "
@@ -1509,7 +1509,7 @@ msgstr "高级"
 msgid "Advanced Settings"
 msgstr "高级设置"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:516
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:517
 msgid ""
 "Affects how the game output is scaled to the window resolution.<br>The "
 "performance mostly depends on the number of samples each method uses."
@@ -1531,6 +1531,20 @@ msgid ""
 "corrected.<br>Best for downscaling by more than 2x."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
+"影响游戏画面缩放到窗口分辨率的方式。<br>性能主要取决于每个方式使用的样本数。"
+"<br>与 SSAA 相比，如果输出窗口<br>分辨率不是模拟分辨率的倍数，重采样将非常有"
+"用。<br><br><b>默认</b> - [最快]<br>使用未进行伽玛校正的 GPU 内部双线性采样"
+"器。<br>如果强制启用伽玛校正，则可能忽略此设置。<br><br><b>双线性</b> - [4 样"
+"本数]<br>经过伽玛校正后像素间的线性插值。<br><br><b>双三次插值</b> - [16 样本"
+"数]<br>经过伽玛校正后像素间的三次插值。<br>在接近目的分辨率时缩放效果良好。"
+"如 1080p 和 1440p。<br>其他方式：<br><b>B样条曲线</b>：模糊，但能避免伪影"
+"<br><b>Mitchell-Netravali 过滤</b>：在模糊与伪影间取得良好平衡<br><b>Catmull-"
+"Rom 插值</b>：画面更锐利，但可能导致伪影<br><br><b>锐利双线性</b> - [1-4 样本"
+"数]<br>与近邻取样类似，保持清晰锐利的画面，<br>但进行了一些混合以避免闪烁。"
+"<br>适用于低分辨率下的 2D 游戏。<br><br><b>区域取样</b> - [最高 324 样本"
+"数]<br>按像素所占面积的百分比对像素进行加权。经伽玛校正。<br>适用于缩放倍数"
+"在 2 倍以上的场合。<br><br><dolphin_emphasis>如无法确定，请选择“默认”。</"
+"dolphin_emphasis>"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "Africa"
@@ -1680,7 +1694,7 @@ msgstr "角度"
 msgid "Angular velocity to ignore and remap."
 msgstr "要忽略并重新映射的角速度。"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:621
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:622
 msgid "Anti-Aliasing"
 msgstr "抗锯齿"
 
@@ -1704,7 +1718,7 @@ msgstr "附加到现有签名文件...(&E)"
 msgid "Appl&y Signature File..."
 msgstr "应用签名文件...(&Y)"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:550
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:551
 msgid ""
 "Applies a post-processing effect after rendering a frame.<br><br /"
 "><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>"
@@ -1754,16 +1768,16 @@ msgstr "区域取样"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:319
 msgid "Aspect Ratio"
-msgstr "长宽比"
+msgstr "宽高比"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:144
 msgid "Aspect Ratio Corrected Internal Resolution"
-msgstr ""
+msgstr "宽高比已校正的内部分辨率"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:92
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:163
 msgid "Aspect Ratio:"
-msgstr "长宽比："
+msgstr "宽高比："
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:366
 msgid "Assemble"
@@ -1900,7 +1914,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:73
 msgid "BBA destination address"
-msgstr ""
+msgstr "BBA 目标地址"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:209
 msgid "BIOS:"
@@ -2060,6 +2074,10 @@ msgid ""
 "\n"
 "Try again with a different character."
 msgstr ""
+"创建空白角色失败于：\n"
+"%1 \n"
+"\n"
+"请使用其他字符重试。"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1010
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:232
@@ -2122,71 +2140,71 @@ msgstr "底部"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:376
 msgid "Branch"
-msgstr ""
+msgstr "分支"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:377
 msgid "Branch (LR saved)"
-msgstr ""
+msgstr "分支（LR 已保存）"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:378
 msgid "Branch Conditional"
-msgstr ""
+msgstr "条件分支"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:379
 msgid "Branch Conditional (LR saved)"
-msgstr ""
+msgstr "条件分支（LR 已保存）"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:386
 msgid "Branch Conditional to Count Register"
-msgstr ""
+msgstr "条件分支到计数寄存器"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:387
 msgid "Branch Conditional to Count Register (LR saved)"
-msgstr ""
+msgstr "条件分支到计数寄存器（LR 已保存）"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:382
 msgid "Branch Conditional to Link Register"
-msgstr ""
+msgstr "条件分支到链接寄存器"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:383
 msgid "Branch Conditional to Link Register (LR saved)"
-msgstr ""
+msgstr "条件分支到链接寄存器（LR 已保存）"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:471
 msgid "Branch Not Overwritten"
-msgstr ""
+msgstr "分支未被覆盖"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:390
 msgid "Branch Type"
-msgstr ""
+msgstr "分支类型"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:466
 msgid "Branch Was Overwritten"
-msgstr ""
+msgstr "分支已被覆盖"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:109
 msgid "Branch Watch"
-msgstr ""
+msgstr "分支监视"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:202
 msgid "Branch Watch Tool"
-msgstr ""
+msgstr "分支监视工具"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:706
 msgid "Branch Watch Tool Help (1/4)"
-msgstr ""
+msgstr "分支监视工具帮助 (1/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:718
 msgid "Branch Watch Tool Help (2/4)"
-msgstr ""
+msgstr "分支监视工具帮助 (2/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:726
 msgid "Branch Watch Tool Help (3/4)"
-msgstr ""
+msgstr "分支监视工具帮助 (3/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:737
 msgid "Branch Watch Tool Help (4/4)"
-msgstr ""
+msgstr "分支监视工具帮助 (4/4)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:707
 msgid ""
@@ -2204,6 +2222,14 @@ msgid ""
 "Branch Watch\" button to clear all candidates and return to the blacklist "
 "phase."
 msgstr ""
+"分支监视是一种代码搜索工具，可以通过测试简单标准的候选分支来隔离模拟 CPU 所跟"
+"踪的分支。如果您熟悉 Cheat Engine 的 Ultimap，那么分支监视与此类似。\n"
+"\n"
+"按下“开始分支监视”按钮以激活分支监视。分支监视在模拟会话中持续存在，并且可以"
+"将进度快照保存到用户目录或从用户目录加载，以便在 Dolphin 模拟器关闭后保留进"
+"度。“另存为...”和“加载自...”操作也可使用，并且可以启用自动保存使得在搜索的每"
+"一步都能保存快照。“暂停分支监视”按钮将中止分支监视跟踪进一步的分支命中，直到"
+"被告知恢复。按下“清除分支监视”按钮可清除所有候选数据并返回黑名单阶段。"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:719
 msgid ""
@@ -2214,22 +2240,26 @@ msgid ""
 "is pressed for the first time, Branch Watch will switch to the reduction "
 "phase, and the table will populate with all eligible candidates."
 msgstr ""
+"分支监视从黑名单阶段开始，这意味着尚未选择任何候选数据，但可以通过按“代码路径"
+"未采用”、“分支已被覆盖”和“分支未被覆盖”按钮将迄今为止发现的候选记录排除在候选"
+"资格之外 。一旦按下“代码路径已采用”按钮后，分支监视将切换到缩减阶段，并且表格"
+"将填充所有符合条件的候选数据。"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:384
 msgid "Branch to Count Register"
-msgstr ""
+msgstr "分支到计数寄存器"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:385
 msgid "Branch to Count Register (LR saved)"
-msgstr ""
+msgstr "分支到计数寄存器（LR 已保存）"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:380
 msgid "Branch to Link Register"
-msgstr ""
+msgstr "分支到链接寄存器"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:381
 msgid "Branch to Link Register (LR saved)"
-msgstr ""
+msgstr "分支到链接寄存器（LR 已保存）"
 
 #. i18n: "Branch" means the version control term, not a literal tree branch.
 #: Source/Core/DolphinQt/AboutDialog.cpp:63
@@ -2264,7 +2294,7 @@ msgstr "宽带适配器 (HLE)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:100
 msgid "Broadband Adapter (TAP)"
-msgstr "宽带适配器 (TAP)"
+msgstr "宽带适配器 (分接)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:105
 msgid "Broadband Adapter (XLink Kai)"
@@ -2272,7 +2302,7 @@ msgstr "宽带适配器 (XLink Kai)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:106
 msgid "Broadband Adapter (tapserver)"
-msgstr "宽带适配器（tap 服务器）"
+msgstr "宽带适配器 (分接服务器)"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:83
 msgid "Broadband Adapter DNS setting"
@@ -2390,7 +2420,7 @@ msgstr ""
 msgid "Calculate"
 msgstr "计算"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:558
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:559
 msgid ""
 "Calculates lighting of 3D objects per-pixel rather than per-vertex, "
 "smoothing out the appearance of lit polygons and making individual triangles "
@@ -2477,15 +2507,15 @@ msgstr "取消校准"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:956
 msgid "Candidates: %1"
-msgstr ""
+msgstr "候选： %1"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:959
 msgid "Candidates: %1 | Excluded: %2 | Remaining: %3"
-msgstr ""
+msgstr "候选： %1 | 排除： %2 | 剩余： %3"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:974
 msgid "Candidates: %1 | Filtered: %2 | Remaining: %3"
-msgstr ""
+msgstr "候选： %1 | 过滤： %2 | 剩余： %3"
 
 #: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:247
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
@@ -2699,7 +2729,7 @@ msgstr "清除"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:330
 msgid "Clear Branch Watch"
-msgstr ""
+msgstr "清除分支监视"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:913
 msgid "Clear Cache"
@@ -2732,11 +2762,11 @@ msgstr "代码"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:340
 msgid "Code Path Not Taken"
-msgstr ""
+msgstr "代码路径未采用"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:335
 msgid "Code Path Was Taken"
-msgstr ""
+msgstr "代码路径已采用"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:93
 msgid "Code:"
@@ -2746,7 +2776,7 @@ msgstr "代码："
 msgid "Codes received!"
 msgstr "代码已接收！"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:630
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:631
 msgid "Color Correction"
 msgstr "色彩校正"
 
@@ -2764,7 +2794,7 @@ msgstr "色彩空间"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:305
 msgid "Column &Visibility"
-msgstr ""
+msgstr "表列可见性(&V)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1054
 msgid "Combine &Two Signature Files..."
@@ -2822,7 +2852,7 @@ msgstr "压缩："
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:46
 msgid "Cond."
-msgstr ""
+msgstr "条件。"
 
 #. i18n: If a condition is set for a breakpoint, the condition becoming true is a prerequisite for
 #. triggering the breakpoint.
@@ -3108,7 +3138,7 @@ msgstr ""
 "明条件进行亮度调整。<br><br>此设置需要 HDR 输出才能生效。"
 "<br><br><dolphin_emphasis>如无法确定，请将其保持为 203。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:585
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:586
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.<br><br>A "
@@ -3118,7 +3148,7 @@ msgstr ""
 "控制会聚平面的距离。即虚拟物体看起来出现在屏幕前方的距离。<br><br>数值越高凸"
 "出屏幕效果越强，而数值越低观感会越舒适。"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:496
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:497
 msgid ""
 "Controls the rendering resolution.<br><br>A high resolution greatly improves "
 "visual quality, but also greatly increases GPU load and can cause issues in "
@@ -3130,7 +3160,7 @@ msgstr ""
 "GPU 负荷且可能在一些游戏中引起故障。一般而言，内部分辨率越低，性能将越高。"
 "<br><br><dolphin_emphasis>如无法确定，请选择“原生”。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:582
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:583
 msgid ""
 "Controls the separation distance between the virtual cameras.<br><br>A "
 "higher value creates a stronger feeling of depth while a lower value is more "
@@ -3158,7 +3188,7 @@ msgid ""
 "<b>True</b>"
 msgstr "控制使用高级还是低级 DSP 模拟。默认值为 <b>True</b>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:658
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:659
 msgid "Convergence"
 msgstr "会聚"
 
@@ -3306,7 +3336,7 @@ msgstr "核心"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:650
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:665
 msgid "Core is uninitialized."
-msgstr ""
+msgstr "核心未初始化。"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
 msgid "Correct Color Space"
@@ -3494,8 +3524,8 @@ msgid ""
 "4:3 or 16:9), to the specific user target aspect ratio (e.g. 4:3 or 16:9)."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"将图像由原生长宽比（很少情况下与 4:3 或 16:9 完全匹配）裁切为用户特定的目标长"
-"宽比（例如 4:3 或 16:9）。<br><br><dolphin_emphasis>如无法确定，请不要选中此"
+"将图像由原生宽高比（很少情况下与 4:3 或 16:9 完全匹配）裁切为用户特定的目标宽"
+"高比（例如 4:3 或 16:9）。<br><br><dolphin_emphasis>如无法确定，请不要选中此"
 "项。</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:82
@@ -3542,7 +3572,7 @@ msgstr "自定义"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:61
 msgid "Custom (Stretch)"
-msgstr ""
+msgstr "自定义（拉伸）"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:51
 msgid "Custom Address Space"
@@ -3550,15 +3580,15 @@ msgstr "自定义地址空间"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:323
 msgid "Custom Aspect Ratio Height"
-msgstr "自定义长宽比宽度"
+msgstr "自定义宽高比高度"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:322
 msgid "Custom Aspect Ratio Width"
-msgstr "自定义长宽比长度"
+msgstr "自定义宽高比宽度"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:63
 msgid "Custom Aspect Ratio:"
-msgstr "自定义长宽比："
+msgstr "自定义宽高比："
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:158
 msgid "Custom RTC Options"
@@ -3801,7 +3831,7 @@ msgstr "删除所选文件..."
 msgid "Delete the existing file '{0}'?"
 msgstr "删除已经存在的文件 ‘{0}’ 吗?"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:655
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:656
 msgid "Depth"
 msgstr "深度"
 
@@ -3835,29 +3865,29 @@ msgstr "说明：%1"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:262
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:47
 msgid "Destination"
-msgstr ""
+msgstr "目标"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:64
 msgid "Destination (UNIX socket path or address:port):"
-msgstr ""
+msgstr "目标（UNIX 套接字路径或地址：端口）："
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:59
 msgid "Destination (address:port):"
-msgstr ""
+msgstr "目标（地址：端口）："
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:420
 msgid "Destination Max"
-msgstr ""
+msgstr "目标最大"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:419
 msgid "Destination Min"
-msgstr ""
+msgstr "目标最小"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:263
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:418
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:49
 msgid "Destination Symbol"
-msgstr ""
+msgstr "目标符号"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:184
 msgid "Detached"
@@ -3984,7 +4014,7 @@ msgstr ""
 "禁用 VRAM 中的 EFB 副本，而强制从 RAM 中读取。所有放大将不可用。"
 "<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:597
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:598
 msgid ""
 "Disables the blending of adjacent rows when copying the EFB. This is known "
 "in some games as \"deflickering\" or \"smoothing\".<br><br>Disabling the "
@@ -4588,7 +4618,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:924
 msgid "Enable JIT Block Profiling"
-msgstr ""
+msgstr "启用 JIT 区块分析"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:66
 msgid "Enable Leaderboards"
@@ -4740,7 +4770,7 @@ msgid ""
 "= Compatible, OFF = Fast)"
 msgstr "启用浮点结果标记运算，一些游戏需要。（开 = 兼容，关 = 快速）"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:603
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:604
 msgid ""
 "Enables detection of arbitrary mipmaps, which some games use for special "
 "distance-based effects.<br><br>May have false positives that result in "
@@ -4787,7 +4817,7 @@ msgstr ""
 "启用逐行扫描模拟支持该特性的软件。对多数游戏无任何影响。"
 "<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:611
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:612
 msgid ""
 "Enables scRGB HDR output (if supported by your graphics backend and "
 "monitor). Fullscreen might be required.<br><br>This gives post process "
@@ -4925,7 +4955,7 @@ msgstr "输入要使用的 DNS 服务器："
 msgid ""
 "Enter the IP address and port of the tapserver instance you want to connect "
 "to."
-msgstr ""
+msgstr "输入要连接的分接服务器实例 IP 地址和端口。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1359
 msgid "Enter the RSO module address:"
@@ -5335,7 +5365,7 @@ msgstr "清除 Skylander 失败！"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:665
 msgid "Failed to clear the Skylander from slot %1!"
-msgstr ""
+msgstr "清除插槽 %1 的 Skylander 失败！"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
@@ -5377,6 +5407,10 @@ msgid ""
 "\n"
 "The Skylander may already be on the portal."
 msgstr ""
+"创建 Skylander 文件失败：\n"
+"%1\n"
+"\n"
+"此 Skylander 可能已在传送门上。"
 
 #: Source/Core/Core/NetPlayClient.cpp:1292
 msgid ""
@@ -5444,7 +5478,7 @@ msgstr "无法找到一个或多个 D3D 符号"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:566
 msgid "Failed to import \"%1\"."
-msgstr "导入 \"%1\" 失败。"
+msgstr "导入 “%1” 失败。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1161
 msgid ""
@@ -5525,6 +5559,8 @@ msgid ""
 "Failed to load the Skylander file:\n"
 "%1"
 msgstr ""
+"载入 Skylander 文件失败：\n"
+"%1"
 
 #: Source/Core/Core/Boot/Boot.cpp:585
 msgid "Failed to load the executable to memory."
@@ -5542,11 +5578,11 @@ msgstr "修改 Skylander 失败！"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:215
 msgid "Failed to open \"%1\" for writing."
-msgstr ""
+msgstr "打开 “%1” 进行写入失败。"
 
 #: Source/Android/jni/MainAndroid.cpp:428
 msgid "Failed to open \"{0}\" for writing."
-msgstr ""
+msgstr "打开 “{0}” 进行写入失败。"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:583
 #: Source/Core/DolphinQt/MainWindow.cpp:1722
@@ -5560,7 +5596,7 @@ msgstr "打开蓝牙设备失败: {0} "
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1004
 msgid "Failed to open Branch Watch snapshot \"%1\""
-msgstr ""
+msgstr "打开分支监视快照 “%1” 失败"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 msgid "Failed to open config file!"
@@ -5605,6 +5641,10 @@ msgid ""
 "\n"
 "The file may already be in use on the base."
 msgstr ""
+"打开 Infinity 文件失败：\n"
+"%1\n"
+"\n"
+"此文件可能已在底座上。"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:805
 msgid "Failed to open the Skylander file!"
@@ -5617,10 +5657,14 @@ msgid ""
 "\n"
 "The file may already be in use on the portal."
 msgstr ""
+"打开 Skylander 文件失败：\n"
+"%1\n"
+"\n"
+"此文件可能已在传送门上。"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:474
 msgid "Failed to open the input file \"%1\"."
-msgstr "打开输入文件 \"%1\" 失败。"
+msgstr "打开输入文件 “%1” 失败。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:287 Source/Core/DiscIO/FileBlob.cpp:58
 #: Source/Core/DiscIO/WIABlob.cpp:2043
@@ -5670,6 +5714,10 @@ msgid ""
 "\n"
 "The file was too small."
 msgstr ""
+"读取 Infinity 文件 (%1) 失败：\n"
+"%1\n"
+"\n"
+"文件过小。"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:816
 msgid "Failed to read the Skylander file!"
@@ -5682,12 +5730,18 @@ msgid ""
 "\n"
 "The file was too small."
 msgstr ""
+"读取 Skylander 文件失败：\n"
+"%1\n"
+"\n"
+"文件过小。"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:732
 msgid ""
 "Failed to read the contents of file:\n"
 "%1"
 msgstr ""
+"读取文件内容失败：\n"
+"%1"
 
 #: Source/Core/Core/Movie.cpp:1015
 msgid "Failed to read {0}"
@@ -5703,7 +5757,7 @@ msgid ""
 "\n"
 "Would you like to convert it without removing junk data?"
 msgstr ""
-"从文件 \"%1\" 中移除垃圾数据失败。\n"
+"从文件 “%1” 中移除垃圾数据失败。\n"
 "\n"
 "是否要在不移除垃圾数据的情况下进行转换？"
 
@@ -5725,7 +5779,7 @@ msgstr "重置联机重定向文件夹失败。请验证你的写入权限。"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:990
 msgid "Failed to save Branch Watch snapshot \"%1\""
-msgstr ""
+msgstr "保存分支监视快照 “%1” 失败"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:239
 msgid "Failed to save FIFO log."
@@ -6053,7 +6107,7 @@ msgstr "已强制关闭，因为 %1 不支持顶点着色器扩展。"
 msgid "Forced on because %1 doesn't support geometry shaders."
 msgstr "已强制打开，因为 %1 不支持几何着色器。"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:564
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:565
 msgid ""
 "Forces the game to output graphics at any aspect ratio by expanding the view "
 "frustum without stretching the image.<br>This is a hack, and its results "
@@ -6062,12 +6116,12 @@ msgid ""
 "available.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
-"通过不拉伸图像扩展视锥体，强制游戏以任意长宽比输出图形。<br>这是一种破坏性修"
-"改，其结果会因游戏而异（通常会导致 UI 拉伸）。<br>游戏特定的 AR/Gecko 码长宽"
-"比补丁如有效则推荐用长宽比补丁。<br><br><dolphin_emphasis>如无法确定，请不要"
+"通过不拉伸图像扩展视锥体，强制游戏以任意宽高比输出图形。<br>这是一种破坏性修"
+"改，其结果会因游戏而异（通常会导致 UI 拉伸）。<br>游戏特定的 AR/Gecko 码宽高"
+"比补丁如有效则推荐用宽高比补丁。<br><br><dolphin_emphasis>如无法确定，请不要"
 "选中此选项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:592
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:593
 msgid ""
 "Forces the game to render the RGB color channels in 24-bit, thereby "
 "increasing quality by reducing color banding.<br><br>Has no impact on "
@@ -6095,7 +6149,7 @@ msgstr "转发端口(UPnP)"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:466
 msgid "Found %1 results for \"%2\""
-msgstr "已找到 \"%2\" 的 %1 个结果 "
+msgstr "已找到 “%2” 的 %1 个结果 "
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:337
 #, c-format
@@ -6264,7 +6318,7 @@ msgstr "GBA 窗口大小"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:835
 msgid "GBA%1 ROM changed to \"%2\""
-msgstr "GBA%1 ROM 更改为 \"%2\""
+msgstr "GBA%1 ROM 更改为 “%2”"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:840
 msgid "GBA%1 ROM disabled"
@@ -6449,7 +6503,7 @@ msgstr "游戏状态"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:827
 msgid "Game changed to \"%1\""
-msgstr "游戏更改为 \"%1\""
+msgstr "游戏更改为 “%1”"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:643
 msgid ""
@@ -6579,7 +6633,7 @@ msgstr "常规和选项"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:504
 msgid "Generate Action Replay Code(s)"
-msgstr ""
+msgstr "生成 Action Replay 代码"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:240
 msgid "Generate a New Statistics Identity"
@@ -6587,7 +6641,7 @@ msgstr "生成一个新的统计标识"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:586
 msgid "Generated AR code(s)."
-msgstr ""
+msgstr "已生成 AR 代码。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1337
 msgid "Generated symbol names from '%1'"
@@ -6649,7 +6703,7 @@ msgstr "图形切换"
 msgid "Graphics mods are currently disabled."
 msgstr "图形模组当前已禁用。"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:553
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:554
 msgid ""
 "Greatly increases the quality of textures generated using render-to-texture "
 "effects.<br><br>Slightly increases GPU load and causes relatively few "
@@ -6754,7 +6808,7 @@ msgstr "隐藏"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:294
 msgid "Hide &Controls"
-msgstr ""
+msgstr "隐藏控件(&C)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:758
 msgid "Hide All"
@@ -7027,7 +7081,7 @@ msgstr "忽略"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:297
 msgid "Ignore &Apploader Branch Hits"
-msgstr ""
+msgstr "忽略应用加载器分支命中(&A)"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:50
 msgid "Ignore Format Changes"
@@ -7253,15 +7307,15 @@ msgstr "要忽略并重新映射的输入力度。"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:827
 msgid "Insert &BLR"
-msgstr ""
+msgstr "插入 BLR (&B)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:847
 msgid "Insert &BLR at start"
-msgstr ""
+msgstr "在开头插入 BLR (&B)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:814
 msgid "Insert &NOP"
-msgstr ""
+msgstr "插入 NOP (&N)"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
 msgid "Insert &nop"
@@ -7382,7 +7436,7 @@ msgid ""
 msgstr "内部 LZO 错误 - 无法解析解压缩的版本字符串 ({0} / {1})"
 
 #: Source/Core/Core/HotkeyManager.cpp:347
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:618
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:619
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:27
 msgid "Internal Resolution"
 msgstr "内部分辨率"
@@ -7446,7 +7500,7 @@ msgstr "无效主机"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:256
 msgid "Invalid input for the field \"%1\""
-msgstr "字段 \"%1\" 的输入无效"
+msgstr "字段 “%1” 的输入无效"
 
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:431
@@ -7577,7 +7631,7 @@ msgid "JIT SystemRegisters Off"
 msgstr "关闭 JIT 系统寄存器"
 
 #: Source/Core/Core/PowerPC/Jit64/Jit.cpp:839
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:982
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1027
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -7587,7 +7641,7 @@ msgstr ""
 
 #: Source/Android/jni/MainAndroid.cpp:417
 msgid "JIT is not active"
-msgstr ""
+msgstr "JIT 未激活"
 
 #: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "Japan"
@@ -7852,11 +7906,11 @@ msgstr "载入其他映射文件(&O)..."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:286
 msgid "Load Branch Watch &From..."
-msgstr ""
+msgstr "载入分支监视...(&F)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:616
 msgid "Load Branch Watch snapshot"
-msgstr ""
+msgstr "载入分支监视快照"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:107
 msgid "Load Custom Textures"
@@ -8181,7 +8235,7 @@ msgstr "制作者"
 msgid "Maker:"
 msgstr "制作者："
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:570
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:571
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.<br><br>Disabling fog will break some games which rely on "
@@ -8310,7 +8364,7 @@ msgstr "其它设置"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:482
 msgid "Misc. Controls"
-msgstr ""
+msgstr "其他控件"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:844
 msgid "Mismatch between free block count in header and actually unused blocks."
@@ -8340,7 +8394,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:108
 msgid "Modem Adapter (tapserver)"
-msgstr ""
+msgstr "调制解调器适配器 (分接服务器)"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:32
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:25
@@ -8434,7 +8488,7 @@ msgstr "影片 {0} 表示从一个保存状态开始播放，但 {1} 不存在�
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:581
 msgid "Multiple errors while generating AR codes."
-msgstr ""
+msgstr "生成 AR 代码时出现多个错误。"
 
 #. i18n: Controller input values are multiplied by this percentage value.
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:342
@@ -8875,51 +8929,51 @@ msgstr "对象 %1"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:24
 msgid "Object 1 Size"
-msgstr ""
+msgstr "对象 1 大小"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:22
 msgid "Object 1 X"
-msgstr ""
+msgstr "对象 1 X"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:23
 msgid "Object 1 Y"
-msgstr ""
+msgstr "对象 1 Y"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:27
 msgid "Object 2 Size"
-msgstr ""
+msgstr "对象 2 大小"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:25
 msgid "Object 2 X"
-msgstr ""
+msgstr "对象 2 X"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:26
 msgid "Object 2 Y"
-msgstr ""
+msgstr "对象 2 Y"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:30
 msgid "Object 3 Size"
-msgstr ""
+msgstr "对象 3 大小"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:28
 msgid "Object 3 X"
-msgstr ""
+msgstr "对象 3 X"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:29
 msgid "Object 3 Y"
-msgstr ""
+msgstr "对象 3 Y"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:33
 msgid "Object 4 Size"
-msgstr ""
+msgstr "对象 4 大小"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:31
 msgid "Object 4 X"
-msgstr ""
+msgstr "对象 4 X"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IRPassthrough.cpp:32
 msgid "Object 4 Y"
-msgstr ""
+msgstr "对象 4 Y"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:92
 msgid "Object Range"
@@ -8969,6 +9023,13 @@ msgid ""
 "calls and conditional code paths that are only taken when an action is "
 "performed in the emulated software."
 msgstr ""
+"一旦进入缩减阶段，就会开始缩小表中显示的候选范围。通过检测自上次检查以来代码"
+"路径是否已被采用，进一步减少候选项。还可以通过确定分支指令自第一次命中以来是"
+"否已经被覆盖来减少候选。按分支类型、分支条件、起始或目标地址以及起始或目标符"
+"号名来过滤候选数据。\n"
+"\n"
+"经过足够的过程和实验后，您也许能够找到仅在模拟软件中执行操作时才会采用的函数"
+"调用和条件代码路径。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "Online &Documentation"
@@ -9083,25 +9144,25 @@ msgstr "轨道式"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:261
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:47
 msgid "Origin"
-msgstr ""
+msgstr "起始"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:417
 msgid "Origin Max"
-msgstr ""
+msgstr "起始最大"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:416
 msgid "Origin Min"
-msgstr ""
+msgstr "起始最小"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:263
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:415
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:49
 msgid "Origin Symbol"
-msgstr ""
+msgstr "起始符号"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:423
 msgid "Origin and Destination"
-msgstr ""
+msgstr "起始和目标"
 
 #: Source/Core/Core/FreeLookManager.cpp:101
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:103
@@ -9134,7 +9195,7 @@ msgstr "其他游戏..."
 msgid "Output"
 msgstr "输出"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:627
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:628
 msgid "Output Resampling"
 msgstr "输出重采样"
 
@@ -9254,7 +9315,7 @@ msgstr "暂停"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:544
 msgid "Pause Branch Watch"
-msgstr ""
+msgstr "暂停分支监视"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:809
 msgid "Pause at End of Movie"
@@ -9433,7 +9494,7 @@ msgstr "指向"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:255
 msgid "Point (Passthrough)"
-msgstr ""
+msgstr "指向（直通）"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:84
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:67
@@ -9457,7 +9518,7 @@ msgstr "传送门插槽"
 msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr "检测到可能的非同步异常: %1  或许已在帧 %2 处不同步 "
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:633
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:634
 msgid "Post-Processing Effect"
 msgstr "后处理效果"
 
@@ -9690,7 +9751,7 @@ msgstr "Raw"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:145
 msgid "Raw Internal Resolution"
-msgstr ""
+msgstr "原始内部分辨率"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
 msgid "Re&place instruction"
@@ -9739,7 +9800,7 @@ msgstr "从联机中接收到无效的 Wii 遥控器数据。"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:262
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:48
 msgid "Recent Hits"
-msgstr ""
+msgstr "最近命中"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:31
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:29
@@ -9779,7 +9840,7 @@ msgstr "红 左"
 msgid "Red Right"
 msgstr "红 右"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:502
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:503
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
 "in smoother edges on objects. Increases GPU load and sometimes causes "
@@ -9965,7 +10026,7 @@ msgstr "重置所有保存的 Wii 遥控器配对"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:151
 msgid "Resolution Type:"
-msgstr ""
+msgstr "分辨率类型："
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:26
 msgid "Resource Pack Manager"
@@ -10105,6 +10166,20 @@ msgid ""
 "All context menus have the action to delete the selected row(s) from the "
 "candidates."
 msgstr ""
+"可以在表中的行里左键单击起始、目标和符号列，以在代码视图中查看关联的地址。右"
+"键单击选定的行将弹出上下文菜单。\n"
+"\n"
+"如果右键单击选择行的起始列，将执行用 NOP 指令（无操作）替换起始处的分支指令操"
+"作，并且将地址复制到剪贴板的操作也可使用。\n"
+"\n"
+"如果右键单击选择行的目标列，则可以使用 BLR 指令（分支到链接寄存器）替换目标处"
+"的指令，但前提是每个起始处的分支指令都保存了链接寄存器，并且可以执行将地址复"
+"制到剪贴板的操作。\n"
+"\n"
+"如果右键单击选择行的起始/目标符号列，则可以使用 BLR 指令替换符号最开头的指"
+"令，但前提是找到每个起始/目标符号。\n"
+"\n"
+"所有上下文菜单都具有从候选中删除所选行的操作。"
 
 #: Source/Core/Core/HW/GCPadEmu.h:61
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
@@ -10224,11 +10299,11 @@ msgstr "保存全部"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:284
 msgid "Save Branch Watch &As..."
-msgstr ""
+msgstr "另存分支监视为...(&A)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:599
 msgid "Save Branch Watch snapshot"
-msgstr ""
+msgstr "保存分支监视快照"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:588
 #: Source/Core/DolphinQt/GameList/GameList.cpp:593
@@ -10492,7 +10567,7 @@ msgstr "选择"
 msgid ""
 "Select Branch Watch snapshot auto-save file (for user folder location, "
 "cancel)"
-msgstr ""
+msgstr "选择分支监视快照自动保存文件（在用户文件夹位置，可取消）"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:71
 msgid "Select Dump Path"
@@ -10733,8 +10808,18 @@ msgid ""
 "software.<br><br><dolphin_emphasis>If unsure, leave this at \"Aspect Ratio "
 "Corrected Internal Resolution\".</dolphin_emphasis>"
 msgstr ""
+"选择如何捕获帧转储（视频）和屏幕截图。<br>如果游戏或窗口分辨率在录制过程中发"
+"生变化，可能会创建多个视频文件。<br>请注意，捕获始终会忽略色彩校正和裁剪。"
+"<br><br><b>窗口分辨率</b>：使用输出窗口分辨率（无黑边）。<br>这是一个简单的转"
+"储选项，将大致捕获您所看到的图像。<br><b>宽高比校正内部分辨率</b>：使用内部分"
+"辨率（XFB 大小），并通过目标宽高比对其进行校正。<br>无论图像在录制过程中如何"
+"显示，此选项都将始终以指定的内部分辨率进行转储。<br><b>原始内部分辨率</b>：使"
+"用内部分辨率（XFB 大小），而不进行目标宽高比校正。<br>这将提供干净的转储没有"
+"任何宽高比校正，因此用户可以为外部编辑软件提供尽可能原始的输入源。"
+"<br><br><dolphin_emphasis>如无法确定，请将其保留为“宽高比校正内部分辨率”。</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:575
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:576
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling of "
 "depth if the necessary hardware is present. Heavily decreases emulation "
@@ -10771,6 +10856,17 @@ msgid ""
 "normal circumstances.<br><br><dolphin_emphasis>If unsure, select Auto.</"
 "dolphin_emphasis>"
 msgstr ""
+"选择用于显示游戏的宽高比。<br>原始主机发送的图像宽高比因游戏而异，很少精确匹"
+"配 4:3 或 16:9。某些图像会被电视边缘切断，或者图像不能完全填满电视。默认情况"
+"下，Dolphin 会显示整个图像而不使其比例失真，这意味着图像不完全填满显示屏是正"
+"常的。<br><br><b>自动</b>：模仿 4:3 或 16:9 宽高比的电视，具体取决于游戏采用"
+"的电视类型。<br><br><b>强制 16:9</b>：模仿 16:9（宽屏）宽高比的电视。"
+"<br><br><b>强制 4:3</b>：模仿 4:3 宽高比的电视。<br><br><b>拉伸到窗口</b>：拉"
+"伸图像到窗口大小。这通常会使图像比例失真。<br><br><b>自定义</b>：模仿具有指定"
+"宽高比的电视。这主要与宽高比金手指/模组 一起使用。<br><br><b>自定义（拉伸）</"
+"b>：与“自定义”类似，但将图像拉伸到指定的宽高比。这通常会使图像比例失真，在正"
+"常情况下不应使用。<br><br><dolphin_emphasis>如无法确定，请选择“自动”。</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:238
 msgid ""
@@ -11055,7 +11151,7 @@ msgstr "显示平台"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
 msgid "Show Projection Statistics"
-msgstr ""
+msgstr "显示投影统计数据"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:756
 msgid "Show Regions"
@@ -11225,6 +11321,8 @@ msgid ""
 "Shows various projection statistics.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"显示各种投影统计数据。<br><br><dolphin_emphasis>如无法确定，请不要选中此项。"
+"</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:303
 msgid ""
@@ -11514,7 +11612,7 @@ msgstr "开始联机...(&N)"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:325
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:553
 msgid "Start Branch Watch"
-msgstr ""
+msgstr "开始分支监视"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:161
 msgid "Start New Cheat Search"
@@ -11604,7 +11702,7 @@ msgstr "步进"
 msgid "Stereo"
 msgstr "立体声"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:652
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:653
 msgid "Stereoscopic 3D Mode"
 msgstr "立体 3D 模式"
 
@@ -11807,7 +11905,7 @@ msgstr "交换力量"
 msgid "Swapper"
 msgstr "交换者"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:589
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:590
 msgid ""
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -11955,7 +12053,7 @@ msgstr "测试"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:618
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:764
 msgid "Text file (*.txt);;All Files (*)"
-msgstr ""
+msgstr "文本文件 (*.txt);;所有文件 (*)"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:223
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:63
@@ -11970,7 +12068,7 @@ msgstr "纹理缓存精度"
 msgid "Texture Dumping"
 msgstr "转储纹理"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:624
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:625
 msgid "Texture Filtering"
 msgstr "纹理过滤"
 
@@ -12040,7 +12138,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:175
 msgid "The amount of money this Skylander has. Between 0 and 65000"
-msgstr ""
+msgstr "此 Skylander 拥有的金钱数量。介于 0 至 65000 之间"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:290
 msgid ""
@@ -12086,6 +12184,8 @@ msgid ""
 "can also enter a network location (address:port) to connect to a remote "
 "tapserver."
 msgstr ""
+"默认值 “%1” 将与本地分接服务器 和 newserv 服务一起使用。 您还可以输入网络位置"
+"（地址：端口）以连接到远程分接服务器。"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:427
 msgid ""
@@ -12095,7 +12195,7 @@ msgid ""
 msgstr ""
 "目标文件不能与源文件相同\n"
 "\n"
-"请为“ %1 ”选择另一个目标路径"
+"请为 “%1” 选择另一个目标路径"
 
 #: Source/Core/Core/Movie.cpp:362
 msgid ""
@@ -12267,6 +12367,7 @@ msgid ""
 "The hero level of this Skylander. Only seen in Skylanders: Spyro's "
 "Adventures. Between 0 and 100"
 msgstr ""
+"此 Skylander 的英雄等级。仅在《小龙斯派罗大冒险》中出场。介于 0 至 100 之间"
 
 #: Source/Core/Core/NetPlayClient.cpp:184
 msgid ""
@@ -12304,7 +12405,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
 msgid "The nickname for this Skylander. Limited to 15 characters"
-msgstr ""
+msgstr "Skylander 的昵称。不能超过 15 个字符"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:159
 msgid "The patches in %1 are not for the selected game or game revision."
@@ -12468,14 +12569,14 @@ msgid ""
 "\n"
 "Do you want to save before closing?"
 msgstr ""
-"\"%1\" 中有未保存的更改。\n"
+"“%1” 中有未保存的更改。\n"
 "\n"
 "您要在关闭前保存吗？"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:583
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:594
 msgid "There is nothing to save!"
-msgstr ""
+msgstr "没有需要保存的内容！"
 
 #: Source/Core/Core/State.cpp:1050
 msgid "There is nothing to undo!"
@@ -12666,7 +12767,7 @@ msgstr "这是一个正确的转储。"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:299
 msgid "This only applies to the initial boot of the emulated software."
-msgstr ""
+msgstr "这仅适用于模拟软件的初始启动。"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:302
 msgid "This session requires a password:"
@@ -12739,6 +12840,9 @@ msgid ""
 "To filter for or against unconditional branches,\n"
 "use the Branch Type filter options."
 msgstr ""
+"这也将过滤无条件分支。\n"
+"要过滤或阻止无条件分支，\n"
+"请使用分支类型过滤选项。"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:161
 msgid ""
@@ -12827,7 +12931,7 @@ msgstr "全选/反选所有日志类型"
 
 #: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Toggle Aspect Ratio"
-msgstr "切换长宽比"
+msgstr "切换宽高比"
 
 #: Source/Core/Core/HotkeyManager.cpp:76
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:898
@@ -12888,7 +12992,7 @@ msgstr "标记化失败。"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:345
 msgid "Tool Controls"
-msgstr ""
+msgstr "工具控件"
 
 #: Source/Core/DolphinQt/ToolBar.cpp:29
 msgid "Toolbar"
@@ -14018,7 +14122,7 @@ msgstr "只要有活动窗口就把鼠标光标锁定到渲染部件。你可以
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:144
 msgid "Window Resolution"
-msgstr ""
+msgstr "窗口分辨率"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
 #: Source/Core/DolphinQt/GBAWidget.cpp:437
@@ -14027,11 +14131,11 @@ msgstr "窗口大小"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:306
 msgid "Wipe &Inspection Data"
-msgstr ""
+msgstr "擦除检验数据(&I)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:476
 msgid "Wipe Recent Hits"
-msgstr ""
+msgstr "擦除最近命中"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:134
 msgid "Word Wrap"
@@ -14048,7 +14152,7 @@ msgstr "写入"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:931
 msgid "Write JIT Block Log Dump"
-msgstr ""
+msgstr "写入 JIT 区块日志转储"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
@@ -14097,11 +14201,11 @@ msgstr "错误修订版"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:223
 msgid "Wrote to \"%1\"."
-msgstr ""
+msgstr "已写入 “%1”。"
 
 #: Source/Android/jni/MainAndroid.cpp:434
 msgid "Wrote to \"{0}\"."
-msgstr ""
+msgstr "已写入 “{0}”。"
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:122
@@ -14313,7 +14417,7 @@ msgstr "Zero 3 代码不支持"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:970
 msgid "Zero candidates remaining."
-msgstr ""
+msgstr "剩余候选项为零。"
 
 #: Source/Core/Core/ActionReplay.cpp:961
 msgid "Zero code unknown to Dolphin: {0:08x}"
@@ -14378,7 +14482,7 @@ msgstr "伪完成"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:325
 msgid "false"
-msgstr ""
+msgstr "假"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:190
 msgid "is equal to"
@@ -14455,7 +14559,7 @@ msgstr "这个值："
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:328
 msgid "true"
-msgstr ""
+msgstr "真"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:185

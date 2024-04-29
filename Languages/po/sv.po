@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 08:41+0200\n"
+"POT-Creation-Date: 2024-04-29 20:55+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: JosJuice, 2015-2024\n"
 "Language-Team: Swedish (http://app.transifex.com/delroth/dolphin-emu/"
@@ -1116,7 +1116,7 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "En skiva håller redan på att sättas in."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:547
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:548
 msgid ""
 "A group of features to make the colors more accurate, matching the color "
 "space Wii and GC games were meant for."
@@ -1442,7 +1442,7 @@ msgstr "Adressutrymme enligt CPU:ns tillstånd"
 msgid "Address:"
 msgstr "Adress:"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:509
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:510
 msgid ""
 "Adjust the texture filtering. Anisotropic filtering enhances the visual "
 "quality of textures that are at oblique viewing angles. Force Nearest and "
@@ -1521,7 +1521,7 @@ msgstr "Avancerat"
 msgid "Advanced Settings"
 msgstr "Avancerade inställningar"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:516
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:517
 msgid ""
 "Affects how the game output is scaled to the window resolution.<br>The "
 "performance mostly depends on the number of samples each method uses."
@@ -1692,7 +1692,7 @@ msgstr "Vinkel"
 msgid "Angular velocity to ignore and remap."
 msgstr "Vinkelhastighet att ignorera samt skala med."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:621
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:622
 msgid "Anti-Aliasing"
 msgstr "Kantutjämning"
 
@@ -1716,7 +1716,7 @@ msgstr "Lägg till i &existerande signaturfil..."
 msgid "Appl&y Signature File..."
 msgstr "Appli&cera signaturfil..."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:550
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:551
 msgid ""
 "Applies a post-processing effect after rendering a frame.<br><br /"
 "><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>"
@@ -2409,7 +2409,7 @@ msgstr ""
 msgid "Calculate"
 msgstr "Beräkna"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:558
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:559
 msgid ""
 "Calculates lighting of 3D objects per-pixel rather than per-vertex, "
 "smoothing out the appearance of lit polygons and making individual triangles "
@@ -2779,7 +2779,7 @@ msgstr "Kod:"
 msgid "Codes received!"
 msgstr "Koder mottagna!"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:630
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:631
 msgid "Color Correction"
 msgstr "Färgkorrigering"
 
@@ -3094,7 +3094,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this at 203.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:585
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:586
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.<br><br>A "
@@ -3106,7 +3106,7 @@ msgstr ""
 "skapar starkare utanför-skärmen-effekter medan ett lägre värde är mer "
 "bekvämt."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:496
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:497
 msgid ""
 "Controls the rendering resolution.<br><br>A high resolution greatly improves "
 "visual quality, but also greatly increases GPU load and can cause issues in "
@@ -3121,7 +3121,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Om du är osäker kan du välja Ursprunglig.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:582
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:583
 msgid ""
 "Controls the separation distance between the virtual cameras.<br><br>A "
 "higher value creates a stronger feeling of depth while a lower value is more "
@@ -3154,7 +3154,7 @@ msgstr ""
 "Styr vilken DSP-emulering som ska användas; hög eller låg nivå. Förval är "
 "<b>Sant</b>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:658
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:659
 msgid "Convergence"
 msgstr "Konvergens"
 
@@ -3808,7 +3808,7 @@ msgstr "Radera valda filer..."
 msgid "Delete the existing file '{0}'?"
 msgstr "Radera den existerande filen '{0}'?"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:655
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:656
 msgid "Depth"
 msgstr "Djup"
 
@@ -3994,7 +3994,7 @@ msgstr ""
 "istället. Förhindrar all uppskalning.<br><br><dolphin_emphasis>Om du är "
 "osäker kan du lämna detta omarkerat.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:597
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:598
 msgid ""
 "Disables the blending of adjacent rows when copying the EFB. This is known "
 "in some games as \"deflickering\" or \"smoothing\".<br><br>Disabling the "
@@ -4749,7 +4749,7 @@ msgstr ""
 "Aktiverar beräkning av Floating Point Result Flag. Behövs för vissa spel. "
 "(PÅ = kompatibel, AV = snabb)"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:603
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:604
 msgid ""
 "Enables detection of arbitrary mipmaps, which some games use for special "
 "distance-based effects.<br><br>May have false positives that result in "
@@ -4791,7 +4791,7 @@ msgstr ""
 "flesta spel har inga problem med detta.<br><br><dolphin_emphasis>Om du är "
 "osäker kan du lämna detta omarkerat.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:611
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:612
 msgid ""
 "Enables scRGB HDR output (if supported by your graphics backend and "
 "monitor). Fullscreen might be required.<br><br>This gives post process "
@@ -6079,7 +6079,7 @@ msgstr "Kan inte sättas på eftersom %1 inte stöder VS-expansion."
 msgid "Forced on because %1 doesn't support geometry shaders."
 msgstr "Kan inte stängas av eftersom %1 inte stöder geometrishaders."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:564
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:565
 msgid ""
 "Forces the game to output graphics at any aspect ratio by expanding the view "
 "frustum without stretching the image.<br>This is a hack, and its results "
@@ -6089,7 +6089,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:592
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:593
 msgid ""
 "Forces the game to render the RGB color channels in 24-bit, thereby "
 "increasing quality by reducing color banding.<br><br>Has no impact on "
@@ -6676,7 +6676,7 @@ msgstr "Växla grafikalternativ"
 msgid "Graphics mods are currently disabled."
 msgstr "Grafikmoddar är avstängda."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:553
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:554
 msgid ""
 "Greatly increases the quality of textures generated using render-to-texture "
 "effects.<br><br>Slightly increases GPU load and causes relatively few "
@@ -7436,7 +7436,7 @@ msgstr ""
 "{1})"
 
 #: Source/Core/Core/HotkeyManager.cpp:347
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:618
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:619
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:27
 msgid "Internal Resolution"
 msgstr "Intern upplösning"
@@ -7631,7 +7631,7 @@ msgid "JIT SystemRegisters Off"
 msgstr "JIT SystemRegisters av"
 
 #: Source/Core/Core/PowerPC/Jit64/Jit.cpp:839
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:982
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1027
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -8240,7 +8240,7 @@ msgstr "Skapare"
 msgid "Maker:"
 msgstr "Skapare:"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:570
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:571
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.<br><br>Disabling fog will break some games which rely on "
@@ -9204,7 +9204,7 @@ msgstr "Annat spel..."
 msgid "Output"
 msgstr "Utdata"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:627
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:628
 msgid "Output Resampling"
 msgstr ""
 
@@ -9530,7 +9530,7 @@ msgstr ""
 "Möjlig desynkronisation upptäcktes: %1 kan ha desynkroniserat under bildruta "
 "%2"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:633
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:634
 msgid "Post-Processing Effect"
 msgstr "Efterbehandlingseffekt"
 
@@ -9861,7 +9861,7 @@ msgstr "Röd vänster"
 msgid "Red Right"
 msgstr "Röd höger"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:502
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:503
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
 "in smoother edges on objects. Increases GPU load and sometimes causes "
@@ -10826,7 +10826,7 @@ msgid ""
 "Corrected Internal Resolution\".</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:575
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:576
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling of "
 "depth if the necessary hardware is present. Heavily decreases emulation "
@@ -11708,7 +11708,7 @@ msgstr "Stega"
 msgid "Stereo"
 msgstr "Stereo"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:652
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:653
 msgid "Stereoscopic 3D Mode"
 msgstr "Läge för stereoskopisk 3D"
 
@@ -11915,7 +11915,7 @@ msgstr "Swap Force"
 msgid "Swapper"
 msgstr "Swapper"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:589
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:590
 msgid ""
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -12081,7 +12081,7 @@ msgstr "Texturcachenoggrannhet"
 msgid "Texture Dumping"
 msgstr "Texturdumpning"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:624
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:625
 msgid "Texture Filtering"
 msgstr "Texturfiltrering"
 
@@ -14615,7 +14615,7 @@ msgstr "fake-completion"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:325
 msgid "false"
-msgstr ""
+msgstr "false"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:190
 msgid "is equal to"
@@ -14692,7 +14692,7 @@ msgstr "följande värde:"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:328
 msgid "true"
-msgstr ""
+msgstr "true"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:185
