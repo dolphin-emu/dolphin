@@ -119,6 +119,8 @@ void ThreadWidget::ShowContextMenu(QTableWidget* table)
     return;
 
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
+
   const QString watch_name = QStringLiteral("thread_context_%1").arg(addr, 8, 16, QLatin1Char('0'));
   menu->addAction(tr("Add &breakpoint"), this, [this, addr] { emit RequestBreakpoint(addr); });
   menu->addAction(tr("Add memory breakpoint"), this,

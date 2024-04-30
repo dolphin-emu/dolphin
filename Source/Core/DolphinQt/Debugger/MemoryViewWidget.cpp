@@ -873,6 +873,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
           ->IsValidAddress(Core::CPUThreadGuard{m_system}, addr);
 
   auto* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   menu->addAction(tr("Copy Address"), this, [this, addr] { OnCopyAddress(addr); });
 

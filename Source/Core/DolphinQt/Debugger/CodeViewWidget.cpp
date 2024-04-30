@@ -558,6 +558,7 @@ void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 void CodeViewWidget::OnContextMenu()
 {
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   const bool running = Core::GetState(m_system) != Core::State::Uninitialized;
   const bool paused = Core::GetState(m_system) == Core::State::Paused;

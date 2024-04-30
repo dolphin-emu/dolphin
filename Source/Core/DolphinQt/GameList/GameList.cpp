@@ -372,6 +372,7 @@ void GameList::ShowContextMenu(const QPoint&)
     return;
 
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   if (HasMultipleSelected())
   {
