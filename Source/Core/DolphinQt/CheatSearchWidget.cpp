@@ -495,6 +495,7 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
 
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });
   menu->addAction(tr("Add to watch"), this, [this, address] {

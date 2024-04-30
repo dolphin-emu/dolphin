@@ -309,6 +309,7 @@ void BreakpointWidget::OnClear()
 void BreakpointWidget::OnNewBreakpoint()
 {
   BreakpointDialog* dialog = new BreakpointDialog(this);
+  dialog->setAttribute(Qt::WA_DeleteOnClose, true);
   SetQWidgetWindowDecorations(dialog);
   dialog->exec();
 }
@@ -319,6 +320,7 @@ void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
   {
     auto* dialog =
         new BreakpointDialog(this, m_system.GetPowerPC().GetBreakPoints().GetBreakpoint(address));
+    dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     SetQWidgetWindowDecorations(dialog);
     dialog->exec();
   }
@@ -326,6 +328,7 @@ void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
   {
     auto* dialog =
         new BreakpointDialog(this, m_system.GetPowerPC().GetMemChecks().GetMemCheck(address));
+    dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     SetQWidgetWindowDecorations(dialog);
     dialog->exec();
   }
@@ -387,6 +390,7 @@ void BreakpointWidget::OnContextMenu()
   const auto is_memory_breakpoint = selected_item->data(IS_MEMCHECK_ROLE).toBool();
 
   auto* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   if (!is_memory_breakpoint)
   {

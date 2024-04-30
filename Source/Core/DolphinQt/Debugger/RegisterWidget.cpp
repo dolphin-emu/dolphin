@@ -118,6 +118,7 @@ void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
 void RegisterWidget::ShowContextMenu()
 {
   QMenu* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   auto* raw_item = m_table->currentItem();
 
