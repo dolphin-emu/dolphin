@@ -18,60 +18,86 @@
 
 struct CachedInterpreter::Instruction
 {
+public:
+  using RunnerCallback = bool (Instruction::*)(Interpreter&, CachedInterpreter&) const;
   using CommonCallback = void (*)(UGeckoInstruction);
   using ConditionalCallback = bool (*)(u32);
   using InterpreterCallback = void (*)(Interpreter&, UGeckoInstruction);
   using CachedInterpreterCallback = void (*)(CachedInterpreter&, UGeckoInstruction);
   using ConditionalCachedInterpreterCallback = bool (*)(CachedInterpreter&, u32);
 
-  Instruction() {}
-  Instruction(const CommonCallback c, UGeckoInstruction i)
-      : common_callback(c), data(i.hex), type(Type::Common)
-  {
+  bool abort_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
+    return true;
   }
 
-  Instruction(const ConditionalCallback c, u32 d)
-      : conditional_callback(c), data(d), type(Type::Conditional)
-  {
+  bool common_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
+    callback(instruction);
+    return false;
   }
 
-  Instruction(const InterpreterCallback c, UGeckoInstruction i)
-      : interpreter_callback(c), data(i.hex), type(Type::Interpreter)
-  {
+  bool conditional_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
+    return conditional_callback(data);
   }
 
-  Instruction(const CachedInterpreterCallback c, UGeckoInstruction i)
-      : cached_interpreter_callback(c), data(i.hex), type(Type::CachedInterpreter)
-  {
+  bool interpreter_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
+    interpreter_callback(interpreter, instruction);
+    return false;
   }
 
-  Instruction(const ConditionalCachedInterpreterCallback c, u32 d)
-      : conditional_cached_interpreter_callback(c), data(d),
-        type(Type::ConditionalCachedInterpreter)
-  {
+  bool cached_interpreter_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
+    cached_interpreter_callback(cached_interpreter, instruction);
+    return false;
   }
 
-  enum class Type
-  {
-    Abort,
-    Common,
-    Conditional,
-    Interpreter,
-    CachedInterpreter,
-    ConditionalCachedInterpreter,
-  };
+  bool conditional_cached_interpreter_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
+    return conditional_cached_interpreter_callback(cached_interpreter, data);
+  }
 
-  union
-  {
-    const CommonCallback common_callback = nullptr;
+  const RunnerCallback runner;
+
+  union {
+    const CommonCallback callback;
     const ConditionalCallback conditional_callback;
     const InterpreterCallback interpreter_callback;
     const CachedInterpreterCallback cached_interpreter_callback;
     const ConditionalCachedInterpreterCallback conditional_cached_interpreter_callback;
   };
 
-  u32 data = 0;
-  Type type = Type::Abort;
+  union {
+    const UGeckoInstruction instruction;
+    const u32 data;
+  };
+
+  Instruction() : runner{&Instruction::abort_runner}, callback{nullptr}, data{0} {}
+
+  Instruction(const CommonCallback c, UGeckoInstruction i)
+      : runner{&Instruction::common_runner}, callback{c}, instruction{i}
+  {
+  }
+
+  Instruction(const ConditionalCallback c, u32 d)
+      : runner{&Instruction::conditional_runner}, conditional_callback{c}, instruction{0}
+  {
+  }
+
+  Instruction(const InterpreterCallback c, UGeckoInstruction i)
+      : runner{&Instruction::interpreter_runner}, interpreter_callback{c}, instruction{i}
+  {
+  }
+
+  Instruction(const CachedInterpreterCallback c, UGeckoInstruction i)
+      : runner{&Instruction::cached_interpreter_runner}, cached_interpreter_callback{c}, instruction{i}
+  {
+  }
+
+  Instruction(const ConditionalCachedInterpreterCallback c, u32 d)
+      : runner{&Instruction::conditional_cached_interpreter_runner}, conditional_cached_interpreter_callback{c}, data{d}
+  {
+  }
+
+  bool run(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
+    return (this->*runner)(interpreter, cached_interpreter);
+  }
 };
 
 CachedInterpreter::CachedInterpreter(Core::System& system) : JitBase(system)
@@ -116,39 +142,9 @@ void CachedInterpreter::ExecuteOneBlock()
 
   const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
   auto& interpreter = m_system.GetInterpreter();
+  auto& cached_interpreter = *this;
 
-  for (; code->type != Instruction::Type::Abort; ++code)
-  {
-    switch (code->type)
-    {
-    case Instruction::Type::Common:
-      code->common_callback(UGeckoInstruction(code->data));
-      break;
-
-    case Instruction::Type::Conditional:
-      if (code->conditional_callback(code->data))
-        return;
-      break;
-
-    case Instruction::Type::Interpreter:
-      code->interpreter_callback(interpreter, UGeckoInstruction(code->data));
-      break;
-
-    case Instruction::Type::CachedInterpreter:
-      code->cached_interpreter_callback(*this, UGeckoInstruction(code->data));
-      break;
-
-    case Instruction::Type::ConditionalCachedInterpreter:
-      if (code->conditional_cached_interpreter_callback(*this, code->data))
-        return;
-      break;
-
-    default:
-      ERROR_LOG_FMT(POWERPC, "Unknown CachedInterpreter Instruction: {}",
-                    static_cast<int>(code->type));
-      break;
-    }
-  }
+  for (; !code->run(interpreter, cached_interpreter); ++code){}
 }
 
 void CachedInterpreter::Run()
