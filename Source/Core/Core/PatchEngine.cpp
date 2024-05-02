@@ -24,9 +24,9 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -234,7 +234,7 @@ void LoadPatches()
 static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
 #endif  // USE_RETRO_ACHIEVEMENTS
   for (const Patch& patch : patches)
@@ -279,7 +279,7 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
                                std::span<const std::size_t> memory_patch_indices)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
 #endif  // USE_RETRO_ACHIEVEMENTS
   std::lock_guard lock(s_on_frame_memory_mutex);
