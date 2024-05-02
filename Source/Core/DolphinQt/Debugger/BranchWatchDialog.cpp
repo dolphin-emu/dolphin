@@ -806,6 +806,8 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   QModelIndexList index_list = m_table_view->selectionModel()->selectedRows(index.column());
 
   QMenu* const menu = new QMenu;
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
+
   menu->addAction(tr("&Delete"), [this, index_list]() { OnTableDelete(std::move(index_list)); });
   switch (index.column())
   {
