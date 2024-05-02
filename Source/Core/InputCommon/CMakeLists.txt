@@ -125,14 +125,12 @@ elseif(APPLE)
     -fobjc-arc
   )
 elseif(X11_FOUND)
+  target_include_directories(inputcommon PUBLIC ${X11_INPUT_INCLUDE_DIRS})
   target_sources(inputcommon PRIVATE
     ControllerInterface/Xlib/XInput2.cpp
     ControllerInterface/Xlib/XInput2.h
   )
-  target_link_libraries(inputcommon PUBLIC
-    ${X11_LIBRARIES}
-    ${X11_INPUT_LIBRARIES}
-  )
+  target_link_libraries(inputcommon PRIVATE PkgConfig::X11_INPUT)
 elseif(ANDROID)
   target_compile_definitions(inputcommon PRIVATE -DCIFACE_USE_ANDROID)
   target_sources(inputcommon PRIVATE
