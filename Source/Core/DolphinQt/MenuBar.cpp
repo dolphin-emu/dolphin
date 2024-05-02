@@ -276,12 +276,9 @@ void MenuBar::AddToolsMenu()
   tools_menu->addSeparator();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_ENABLED))
-  {
-    tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
+  tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
 
-    tools_menu->addSeparator();
-  }
+  tools_menu->addSeparator();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
