@@ -16,90 +16,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-struct CachedInterpreter::Instruction
-{
-public:
-  using RunnerCallback = bool (Instruction::*)(Interpreter&, CachedInterpreter&) const;
-  using CommonCallback = void (*)(UGeckoInstruction);
-  using ConditionalCallback = bool (*)(u32);
-  using InterpreterCallback = void (*)(Interpreter&, UGeckoInstruction);
-  using CachedInterpreterCallback = void (*)(CachedInterpreter&, UGeckoInstruction);
-  using ConditionalCachedInterpreterCallback = bool (*)(CachedInterpreter&, u32);
-
-  bool abort_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
-    return true;
-  }
-
-  bool common_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
-    callback(instruction);
-    return false;
-  }
-
-  bool conditional_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
-    return conditional_callback(data);
-  }
-
-  bool interpreter_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
-    interpreter_callback(interpreter, instruction);
-    return false;
-  }
-
-  bool cached_interpreter_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
-    cached_interpreter_callback(cached_interpreter, instruction);
-    return false;
-  }
-
-  bool conditional_cached_interpreter_runner(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
-    return conditional_cached_interpreter_callback(cached_interpreter, data);
-  }
-
-  const RunnerCallback runner;
-
-  union {
-    const CommonCallback callback;
-    const ConditionalCallback conditional_callback;
-    const InterpreterCallback interpreter_callback;
-    const CachedInterpreterCallback cached_interpreter_callback;
-    const ConditionalCachedInterpreterCallback conditional_cached_interpreter_callback;
-  };
-
-  union {
-    const UGeckoInstruction instruction;
-    const u32 data;
-  };
-
-  Instruction() : runner{&Instruction::abort_runner}, callback{nullptr}, data{0} {}
-
-  Instruction(const CommonCallback c, UGeckoInstruction i)
-      : runner{&Instruction::common_runner}, callback{c}, instruction{i}
-  {
-  }
-
-  Instruction(const ConditionalCallback c, u32 d)
-      : runner{&Instruction::conditional_runner}, conditional_callback{c}, instruction{0}
-  {
-  }
-
-  Instruction(const InterpreterCallback c, UGeckoInstruction i)
-      : runner{&Instruction::interpreter_runner}, interpreter_callback{c}, instruction{i}
-  {
-  }
-
-  Instruction(const CachedInterpreterCallback c, UGeckoInstruction i)
-      : runner{&Instruction::cached_interpreter_runner}, cached_interpreter_callback{c}, instruction{i}
-  {
-  }
-
-  Instruction(const ConditionalCachedInterpreterCallback c, u32 d)
-      : runner{&Instruction::conditional_cached_interpreter_runner}, conditional_cached_interpreter_callback{c}, data{d}
-  {
-  }
-
-  bool run(Interpreter& interpreter, CachedInterpreter& cached_interpreter) const {
-    return (this->*runner)(interpreter, cached_interpreter);
-  }
-};
-
 CachedInterpreter::CachedInterpreter(Core::System& system) : JitBase(system)
 {
 }
@@ -144,7 +60,7 @@ void CachedInterpreter::ExecuteOneBlock()
   auto& interpreter = m_system.GetInterpreter();
   auto& cached_interpreter = *this;
 
-  for (; !code->run(interpreter, cached_interpreter); ++code){}
+  for (; !code->operator()(cached_interpreter, interpreter); ++code){}
 }
 
 void CachedInterpreter::Run()
@@ -271,14 +187,29 @@ bool CachedInterpreter::HandleFunctionHooking(u32 address)
   if (!result)
     return false;
 
-  m_code.emplace_back(WritePC, address);
-  m_code.emplace_back(Interpreter::HLEFunction, result.hook_index);
+  // m_code.emplace_back(WritePC, address);
+  m_code.emplace_back([address = UGeckoInstruction(address)](auto& cached_inter, auto& inter) {
+    WritePC(cached_inter, address);
+    return false;
+  });
+
+  // m_code.emplace_back(Interpreter::HLEFunction, result.hook_index);
+  m_code.emplace_back([hook_index = result.hook_index](auto& cached_inter, auto& inter) {
+    Interpreter::HLEFunction(inter, hook_index);
+    return false;
+  });
 
   if (result.type != HLE::HookType::Replace)
     return false;
 
-  m_code.emplace_back(EndBlock, js.downcountAmount);
-  m_code.emplace_back();
+  // m_code.emplace_back(EndBlock, js.downcountAmount);
+  m_code.emplace_back([downcountAmount = UGeckoInstruction(js.downcountAmount)](auto& cached_inter, auto& inter) {
+    EndBlock(cached_inter, downcountAmount);
+    return false;
+  });
+
+  // m_code.emplace_back();
+  m_code.emplace_back([](auto& cached_inter, auto& inter) { return true; });
   return true;
 }
 
@@ -338,45 +269,114 @@ void CachedInterpreter::Jit(u32 address)
       const bool check_program_exception = !endblock && ShouldHandleFPExceptionForInstruction(&op);
       const bool idle_loop = op.branchIsIdleLoop;
 
-      if (breakpoint || check_fpu || endblock || memcheck || check_program_exception)
-        m_code.emplace_back(WritePC, op.address);
+      if (breakpoint || check_fpu || endblock || memcheck || check_program_exception){
+        // m_code.emplace_back(WritePC, op.address);
+        m_code.emplace_back([address = UGeckoInstruction(op.address)](auto& cached_inter, auto& inter) {
+          WritePC(cached_inter, address);
+          return false;
+        });
+      }
 
-      if (breakpoint)
-        m_code.emplace_back(CheckBreakpoint, js.downcountAmount);
+      if (breakpoint) {
+        // m_code.emplace_back(CheckBreakpoint, js.downcountAmount);
+        m_code.emplace_back([downcountAmount = js.downcountAmount](auto& cached_inter, auto& inter) {
+          return CheckBreakpoint(cached_inter, downcountAmount);
+        });
+      }
 
       if (check_fpu)
       {
-        m_code.emplace_back(CheckFPU, js.downcountAmount);
+        // m_code.emplace_back(CheckFPU, js.downcountAmount);
+        m_code.emplace_back([downcountAmount = js.downcountAmount](auto& cached_inter, auto& inter) {
+          return CheckFPU(cached_inter, downcountAmount);
+        });
+
         js.firstFPInstructionFound = true;
       }
 
-      m_code.emplace_back(Interpreter::GetInterpreterOp(op.inst), op.inst);
-      if (memcheck)
-        m_code.emplace_back(CheckDSI, js.downcountAmount);
-      if (check_program_exception)
-        m_code.emplace_back(CheckProgramException, js.downcountAmount);
-      if (idle_loop)
-        m_code.emplace_back(CheckIdle, js.blockStart);
+      // m_code.emplace_back(Interpreter::GetInterpreterOp(op.inst), op.inst);
+      m_code.emplace_back([inst = op.inst, func = Interpreter::GetInterpreterOp(op.inst)](
+                              auto& cached_inter, auto& inter) {
+        func(inter, inst);
+        return false;
+      });
+
+      if (memcheck){
+        // m_code.emplace_back(CheckDSI, js.downcountAmount);
+        m_code.emplace_back([downcountAmount = js.downcountAmount](auto& cached_inter, auto& inter) {
+          return CheckDSI(cached_inter, downcountAmount);
+        });
+      }
+
+      if (check_program_exception){
+        // m_code.emplace_back(CheckProgramException, js.downcountAmount);
+        m_code.emplace_back([downcountAmount = js.downcountAmount](auto& cached_inter, auto& inter) {
+          return CheckProgramException(cached_inter, downcountAmount);
+        });
+      }
+      if (idle_loop){
+        // m_code.emplace_back(CheckIdle, js.blockStart);
+        m_code.emplace_back([idle_pc = js.blockStart](auto& cached_inter, auto& inter) {
+          return CheckIdle(cached_inter, idle_pc);
+        });
+      }
       if (endblock)
       {
-        m_code.emplace_back(EndBlock, js.downcountAmount);
-        if (js.numLoadStoreInst != 0)
-          m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
-        if (js.numFloatingPointInst != 0)
-          m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+        // m_code.emplace_back(EndBlock, js.downcountAmount);
+        m_code.emplace_back([downcountAmount = UGeckoInstruction(js.downcountAmount)](auto& cached_inter, auto& inter) {
+          EndBlock(cached_inter, downcountAmount);
+          return false;
+        });
+
+        if (js.numLoadStoreInst != 0) {
+          // m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
+          m_code.emplace_back([numLoadStoreInst = js.numLoadStoreInst](auto& cached_inter, auto& inter) {
+            UpdateNumLoadStoreInstructions(cached_inter, UGeckoInstruction(numLoadStoreInst));
+            return false;
+          });
+        }
+
+        if (js.numFloatingPointInst != 0) {
+          // m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+          m_code.emplace_back([numFloatingPointInst = js.numFloatingPointInst](auto& cached_inter, auto& inter) {
+            UpdateNumFloatingPointInstructions(cached_inter, UGeckoInstruction(numFloatingPointInst));
+            return false;
+          });
+        }
       }
     }
   }
   if (code_block.m_broken)
   {
-    m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
-    m_code.emplace_back(EndBlock, js.downcountAmount);
-    if (js.numLoadStoreInst != 0)
-      m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
-    if (js.numFloatingPointInst != 0)
-      m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+    // m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
+    m_code.emplace_back([nextPC = UGeckoInstruction(nextPC)](auto& cached_inter, auto& inter) {
+      WriteBrokenBlockNPC(cached_inter, nextPC);
+      return false;
+    });
+
+    // m_code.emplace_back(EndBlock, js.downcountAmount);
+    m_code.emplace_back([downcountAmount = UGeckoInstruction(js.downcountAmount)](auto& cached_inter, auto& inter) {
+      EndBlock(cached_inter, downcountAmount);
+      return false;
+    });
+
+    if (js.numLoadStoreInst != 0) {
+      // m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
+      m_code.emplace_back([numLoadStoreInst = js.numLoadStoreInst](auto& cached_inter, auto& inter) {
+        UpdateNumLoadStoreInstructions(cached_inter, UGeckoInstruction(numLoadStoreInst));
+        return false;
+      });
+    }
+    if (js.numFloatingPointInst != 0) {
+      // m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+      m_code.emplace_back([numFloatingPointInst = js.numFloatingPointInst](auto& cached_inter, auto& inter) {
+        UpdateNumFloatingPointInstructions(cached_inter, UGeckoInstruction(numFloatingPointInst));
+        return false;
+      });
+    }
   }
-  m_code.emplace_back();
+  // m_code.emplace_back();
+  m_code.emplace_back([](auto& cached_inter, auto& inter) { return true; });
 
   b->near_end = GetCodePtr();
   b->far_begin = nullptr;

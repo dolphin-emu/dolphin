@@ -4,9 +4,11 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/CachedInterpreter/InterpreterBlockCache.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
@@ -36,7 +38,7 @@ public:
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
 
 private:
-  struct Instruction;
+  using Instruction = std::function<bool(CachedInterpreter&, Interpreter&)>;
 
   u8* GetCodePtr();
   void ExecuteOneBlock();
