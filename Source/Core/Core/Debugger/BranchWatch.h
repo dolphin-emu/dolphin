@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include <bit>
 #include <cstddef>
 #include <cstdio>
 #include <functional>
 #include <unordered_map>
 #include <vector>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumUtils.h"
 #include "Core/PowerPC/Gekko.h"
@@ -26,8 +26,7 @@ struct FakeBranchWatchCollectionKey
   u32 origin_addr;
   u32 destin_addr;
 
-  // TODO C++20: constexpr w/ std::bit_cast
-  inline operator u64() const { return Common::BitCast<u64>(*this); }
+  constexpr operator u64() const { return std::bit_cast<u64>(*this); }
 };
 struct BranchWatchCollectionKey : FakeBranchWatchCollectionKey
 {
@@ -155,37 +154,37 @@ public:
   // but also increment the total_hits by N (see dcbx JIT code).
   static void HitVirtualTrue_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
   {
-    branch_watch->m_collection_vt[{Common::BitCast<FakeBranchWatchCollectionKey>(fake_key), inst}]
+    branch_watch->m_collection_vt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
   static void HitPhysicalTrue_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
   {
-    branch_watch->m_collection_pt[{Common::BitCast<FakeBranchWatchCollectionKey>(fake_key), inst}]
+    branch_watch->m_collection_pt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
   static void HitVirtualFalse_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
   {
-    branch_watch->m_collection_vf[{Common::BitCast<FakeBranchWatchCollectionKey>(fake_key), inst}]
+    branch_watch->m_collection_vf[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
   static void HitPhysicalFalse_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
   {
-    branch_watch->m_collection_pf[{Common::BitCast<FakeBranchWatchCollectionKey>(fake_key), inst}]
+    branch_watch->m_collection_pf[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
   static void HitVirtualTrue_fk_n(BranchWatch* branch_watch, u64 fake_key, u32 inst, u32 n)
   {
-    branch_watch->m_collection_vt[{Common::BitCast<FakeBranchWatchCollectionKey>(fake_key), inst}]
+    branch_watch->m_collection_vt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += n;
   }
 
   static void HitPhysicalTrue_fk_n(BranchWatch* branch_watch, u64 fake_key, u32 inst, u32 n)
   {
-    branch_watch->m_collection_pt[{Common::BitCast<FakeBranchWatchCollectionKey>(fake_key), inst}]
+    branch_watch->m_collection_pt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += n;
   }
 
