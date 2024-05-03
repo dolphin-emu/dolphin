@@ -222,7 +222,8 @@ void CachedInterpreter::Jit(u32 address)
         js.firstFPInstructionFound = true;
       }
 
-      m_code.emplace_back([inst = op.inst, function = Interpreter::GetInterpreterOp(op.inst)](auto& cached_interpreter, auto& interpreter) {
+      m_code.emplace_back([inst = op.inst, function = Interpreter::GetInterpreterOp(op.inst)](
+                              auto& cached_interpreter, auto& interpreter) {
         function(interpreter, inst);
         return false;
       });
@@ -291,13 +292,17 @@ void CachedInterpreter::Jit(u32 address)
 
   if (code_block.m_broken)
   {
-    m_code.emplace_back([nextPC = nextPC, downcountAmount = js.downcountAmount, numLoadStoreInst = js.numLoadStoreInst, numFloatingPointInst = js.numFloatingPointInst](auto& cached_interpreter, auto& interpreter) {
+    m_code.emplace_back([nextPC = nextPC, downcountAmount = js.downcountAmount,
+                         numLoadStoreInst = js.numLoadStoreInst,
+                         numFloatingPointInst = js.numFloatingPointInst](auto& cached_interpreter,
+                                                                         auto& interpreter) {
       cached_interpreter.m_ppc_state.npc = nextPC;
 
       auto& ppc_state = cached_interpreter.m_ppc_state;
       ppc_state.pc = ppc_state.npc;
       ppc_state.downcount -= downcountAmount;
-      PowerPC::UpdatePerformanceMonitor(downcountAmount, numLoadStoreInst, numFloatingPointInst, ppc_state);
+      PowerPC::UpdatePerformanceMonitor(downcountAmount, numLoadStoreInst, numFloatingPointInst,
+                                        ppc_state);
 
       return false;
     });
