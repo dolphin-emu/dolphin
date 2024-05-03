@@ -56,9 +56,8 @@ void CachedInterpreter::ExecuteOneBlock()
     return;
   }
 
-  const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
-
-  for (; !code->operator()(this); ++code)
+  for (const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
+       !code->operator()(this); ++code)
     ;
 }
 
