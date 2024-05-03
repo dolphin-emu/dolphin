@@ -45,19 +45,6 @@ private:
 
   bool HandleFunctionHooking(u32 address);
 
-  static void EndBlock(CachedInterpreter& cached_interpreter, UGeckoInstruction data);
-  static void UpdateNumLoadStoreInstructions(CachedInterpreter& cached_interpreter,
-                                             UGeckoInstruction data);
-  static void UpdateNumFloatingPointInstructions(CachedInterpreter& cached_interpreter,
-                                                 UGeckoInstruction data);
-  static void WritePC(CachedInterpreter& cached_interpreter, UGeckoInstruction data);
-  static void WriteBrokenBlockNPC(CachedInterpreter& cached_interpreter, UGeckoInstruction data);
-  static bool CheckFPU(CachedInterpreter& cached_interpreter, u32 data);
-  static bool CheckDSI(CachedInterpreter& cached_interpreter, u32 data);
-  static bool CheckProgramException(CachedInterpreter& cached_interpreter, u32 data);
-  static bool CheckBreakpoint(CachedInterpreter& cached_interpreter, u32 data);
-  static bool CheckIdle(CachedInterpreter& cached_interpreter, u32 idle_pc);
-
   BlockCache m_block_cache{*this};
   std::vector<Instruction> m_code;
 };
