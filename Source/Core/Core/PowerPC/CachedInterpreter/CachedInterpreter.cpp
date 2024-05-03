@@ -110,8 +110,11 @@ bool CachedInterpreter::HandleFunctionHooking(u32 address)
   }
   else
   {
-    m_code.emplace_back([hook_index = result.hook_index,
+    m_code.emplace_back([address, hook_index = result.hook_index,
                          downcountAmount = js.downcountAmount](CachedInterpreter* interpreter) {
+      interpreter->m_ppc_state.pc = address;
+      interpreter->m_ppc_state.npc = address + 4;
+
       Interpreter::HLEFunction(interpreter->m_system.GetInterpreter(), hook_index);
 
       interpreter->m_ppc_state.pc = interpreter->m_ppc_state.npc;
