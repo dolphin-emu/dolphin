@@ -38,7 +38,7 @@ public:
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
 
 private:
-  using Instruction = std::function<bool(CachedInterpreter&, Interpreter&)>;
+  using Instruction = std::function<bool(CachedInterpreter*)>;
 
   u8* GetCodePtr();
   void ExecuteOneBlock();

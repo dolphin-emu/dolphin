@@ -57,12 +57,9 @@ void CachedInterpreter::ExecuteOneBlock()
   }
 
   const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
-  auto& interpreter = m_system.GetInterpreter();
-  auto& cached_interpreter = *this;
 
-  for (; !code->operator()(cached_interpreter, interpreter); ++code)
-  {
-  }
+  for (; !code->operator()(this); ++code)
+    ;
 }
 
 void CachedInterpreter::Run()
@@ -99,29 +96,35 @@ bool CachedInterpreter::HandleFunctionHooking(u32 address)
   if (!result)
     return false;
 
-  m_code.emplace_back(
-      [address, hook_index = result.hook_index](auto& cached_interpreter, auto& interpreter) {
-        auto& ppc_state = cached_interpreter.m_ppc_state;
-        ppc_state.pc = address;
-        ppc_state.npc = address + 4;
-
-        Interpreter::HLEFunction(interpreter, hook_index);
-        return false;
-      });
-
   if (result.type != HLE::HookType::Replace)
+  {
+    m_code.emplace_back([address, hook_index = result.hook_index](CachedInterpreter* interpreter) {
+      interpreter->m_ppc_state.pc = address;
+      interpreter->m_ppc_state.npc = address + 4;
+
+      Interpreter::HLEFunction(interpreter->m_system.GetInterpreter(), hook_index);
+
+      return false;
+    });
+
     return false;
+  }
+  else
+  {
+    m_code.emplace_back([hook_index = result.hook_index,
+                         downcountAmount = js.downcountAmount](CachedInterpreter* interpreter) {
+      Interpreter::HLEFunction(interpreter->m_system.GetInterpreter(), hook_index);
 
-  m_code.emplace_back(
-      [downcountAmount = js.downcountAmount](auto& cached_interpreter, auto& interpreter) {
-        auto& ppc_state = cached_interpreter.m_ppc_state;
-        ppc_state.pc = ppc_state.npc;
-        ppc_state.downcount -= downcountAmount;
-        PowerPC::UpdatePerformanceMonitor(downcountAmount, 0, 0, ppc_state);
-        return true;
-      });
+      interpreter->m_ppc_state.pc = interpreter->m_ppc_state.npc;
+      interpreter->m_ppc_state.downcount -= downcountAmount;
 
-  return true;
+      PowerPC::UpdatePerformanceMonitor(downcountAmount, 0, 0, interpreter->m_ppc_state);
+
+      return true;
+    });
+
+    return true;
+  }
 }
 
 void CachedInterpreter::Jit(u32 address)
@@ -182,108 +185,99 @@ void CachedInterpreter::Jit(u32 address)
 
       if (breakpoint || check_fpu || endblock || memcheck || check_program_exception)
       {
-        m_code.emplace_back([address = op.address](auto& cached_interpreter, auto& interpreter) {
-          auto& ppc_state = cached_interpreter.m_ppc_state;
-          ppc_state.pc = address;
-          ppc_state.npc = address + 4;
+        m_code.emplace_back([address = op.address](CachedInterpreter* interpreter) {
+          interpreter->m_ppc_state.pc = address;
+          interpreter->m_ppc_state.npc = address + 4;
           return false;
         });
       }
 
       if (breakpoint)
       {
-        m_code.emplace_back(
-            [downcountAmount = js.downcountAmount](auto& cached_interpreter, auto& interpreter) {
-              cached_interpreter.m_system.GetPowerPC().CheckBreakPoints();
-              if (cached_interpreter.m_system.GetCPU().GetState() != CPU::State::Running)
-              {
-                cached_interpreter.m_ppc_state.downcount -= downcountAmount;
-                return true;
-              }
-              return false;
-            });
+        m_code.emplace_back([downcountAmount = js.downcountAmount](CachedInterpreter* interpreter) {
+          interpreter->m_system.GetPowerPC().CheckBreakPoints();
+          if (interpreter->m_system.GetCPU().GetState() != CPU::State::Running)
+          {
+            interpreter->m_ppc_state.downcount -= downcountAmount;
+            return true;
+          }
+
+          return false;
+        });
       }
 
       if (check_fpu)
       {
-        m_code.emplace_back(
-            [downcountAmount = js.downcountAmount](auto& cached_interpreter, auto& interpreter) {
-              auto& ppc_state = cached_interpreter.m_ppc_state;
-              if (!ppc_state.msr.FP)
-              {
-                ppc_state.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-                cached_interpreter.m_system.GetPowerPC().CheckExceptions();
-                ppc_state.downcount -= downcountAmount;
-                return true;
-              }
-              return false;
-            });
+        m_code.emplace_back([downcountAmount = js.downcountAmount](CachedInterpreter* interpreter) {
+          if (!interpreter->m_ppc_state.msr.FP)
+          {
+            interpreter->m_ppc_state.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+            interpreter->m_system.GetPowerPC().CheckExceptions();
+            interpreter->m_ppc_state.downcount -= downcountAmount;
+            return true;
+          }
+
+          return false;
+        });
 
         js.firstFPInstructionFound = true;
       }
 
       m_code.emplace_back([inst = op.inst, function = Interpreter::GetInterpreterOp(op.inst)](
-                              auto& cached_interpreter, auto& interpreter) {
-        function(interpreter, inst);
+                              CachedInterpreter* interpreter) {
+        function(interpreter->m_system.GetInterpreter(), inst);
         return false;
       });
 
       if (memcheck)
       {
-        m_code.emplace_back(
-            [downcountAmount = js.downcountAmount](auto& cached_interpreter, auto& interpreter) {
-              auto& ppc_state = cached_interpreter.m_ppc_state;
-              if (ppc_state.Exceptions & EXCEPTION_DSI)
-              {
-                cached_interpreter.m_system.GetPowerPC().CheckExceptions();
-                ppc_state.downcount -= downcountAmount;
-                return true;
-              }
+        m_code.emplace_back([downcountAmount = js.downcountAmount](CachedInterpreter* interpreter) {
+          if (interpreter->m_ppc_state.Exceptions & EXCEPTION_DSI)
+          {
+            interpreter->m_system.GetPowerPC().CheckExceptions();
+            interpreter->m_ppc_state.downcount -= downcountAmount;
+            return true;
+          }
 
-              return false;
-            });
+          return false;
+        });
       }
 
       if (check_program_exception)
       {
-        m_code.emplace_back(
-            [downcountAmount = js.downcountAmount](auto& cached_interpreter, auto& interpreter) {
-              auto& ppc_state = cached_interpreter.m_ppc_state;
-              if (ppc_state.Exceptions & EXCEPTION_PROGRAM)
-              {
-                cached_interpreter.m_system.GetPowerPC().CheckExceptions();
-                ppc_state.downcount -= downcountAmount;
-                return true;
-              }
-              return false;
-            });
+        m_code.emplace_back([downcountAmount = js.downcountAmount](CachedInterpreter* interpreter) {
+          if (interpreter->m_ppc_state.Exceptions & EXCEPTION_PROGRAM)
+          {
+            interpreter->m_system.GetPowerPC().CheckExceptions();
+            interpreter->m_ppc_state.downcount -= downcountAmount;
+            return true;
+          }
+
+          return false;
+        });
       }
 
       if (idle_loop)
       {
-        m_code.emplace_back(
-            [blockStart = js.blockStart](auto& cached_interpreter, auto& interpreter) {
-              if (cached_interpreter.m_ppc_state.npc == blockStart)
-              {
-                cached_interpreter.m_system.GetCoreTiming().Idle();
-              }
+        m_code.emplace_back([blockStart = js.blockStart](CachedInterpreter* interpreter) {
+          if (interpreter->m_ppc_state.npc == blockStart)
+          {
+            interpreter->m_system.GetCoreTiming().Idle();
+          }
 
-              return false;
-            });
+          return false;
+        });
       }
 
       if (endblock)
       {
         m_code.emplace_back(
             [downcountAmount = js.downcountAmount, numLoadStoreInst = js.numLoadStoreInst,
-             numFloatingPointInst = js.numFloatingPointInst](auto& cached_interpreter,
-                                                             auto& interpreter) {
-              auto& ppc_state = cached_interpreter.m_ppc_state;
-              ppc_state.pc = ppc_state.npc;
-              ppc_state.downcount -= downcountAmount;
-
+             numFloatingPointInst = js.numFloatingPointInst](CachedInterpreter* interpreter) {
+              interpreter->m_ppc_state.pc = interpreter->m_ppc_state.npc;
+              interpreter->m_ppc_state.downcount -= downcountAmount;
               PowerPC::UpdatePerformanceMonitor(downcountAmount, numLoadStoreInst,
-                                                numFloatingPointInst, ppc_state);
+                                                numFloatingPointInst, interpreter->m_ppc_state);
               return false;
             });
       }
@@ -292,23 +286,23 @@ void CachedInterpreter::Jit(u32 address)
 
   if (code_block.m_broken)
   {
-    m_code.emplace_back([nextPC = nextPC, downcountAmount = js.downcountAmount,
-                         numLoadStoreInst = js.numLoadStoreInst,
-                         numFloatingPointInst = js.numFloatingPointInst](auto& cached_interpreter,
-                                                                         auto& interpreter) {
-      cached_interpreter.m_ppc_state.npc = nextPC;
+    m_code.emplace_back(
+        [nextPC = nextPC, downcountAmount = js.downcountAmount,
+         numLoadStoreInst = js.numLoadStoreInst,
+         numFloatingPointInst = js.numFloatingPointInst](CachedInterpreter* interpreter) {
+          interpreter->m_ppc_state.pc = nextPC;
+          interpreter->m_ppc_state.npc = nextPC;
+          interpreter->m_ppc_state.downcount -= downcountAmount;
+          PowerPC::UpdatePerformanceMonitor(downcountAmount, numLoadStoreInst, numFloatingPointInst,
+                                            interpreter->m_ppc_state);
 
-      auto& ppc_state = cached_interpreter.m_ppc_state;
-      ppc_state.pc = ppc_state.npc;
-      ppc_state.downcount -= downcountAmount;
-      PowerPC::UpdatePerformanceMonitor(downcountAmount, numLoadStoreInst, numFloatingPointInst,
-                                        ppc_state);
-
-      return false;
-    });
+          return true;
+        });
   }
-
-  m_code.emplace_back([](auto& cached_interpreter, auto& interpreter) { return true; });
+  else
+  {
+    m_code.emplace_back([](CachedInterpreter* interpreter) { return true; });
+  }
 
   b->near_end = GetCodePtr();
   b->far_begin = nullptr;
