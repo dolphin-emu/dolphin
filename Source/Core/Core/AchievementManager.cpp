@@ -15,6 +15,7 @@
 
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
@@ -564,15 +565,16 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
                                                     rc_client_leaderboard_entry_list_t* list,
                                                     rc_client_t* client, void* userdata)
 {
+  u32* leaderboard_id = reinterpret_cast<u32*>(userdata);
+  Common::ScopeGuard on_end_scope([&]() { delete leaderboard_id; });
+
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to fetch leaderboard entries.");
     return;
   }
 
-  u32 leaderboard_id = *reinterpret_cast<u32*>(userdata);
-  delete userdata;
-  auto& leaderboard = AchievementManager::GetInstance().m_leaderboard_map[leaderboard_id];
+  auto& leaderboard = AchievementManager::GetInstance().m_leaderboard_map[*leaderboard_id];
   for (size_t ix = 0; ix < list->num_entries; ix++)
   {
     std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
@@ -582,7 +584,7 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
     memcpy(map_entry.score.data(), response_entry.display, FORMAT_SIZE);
     map_entry.rank = response_entry.rank;
   }
-  AchievementManager::GetInstance().m_update_callback({.leaderboards = {leaderboard_id}});
+  AchievementManager::GetInstance().m_update_callback({.leaderboards = {*leaderboard_id}});
 }
 
 void AchievementManager::LoadGameCallback(int result, const char* error_message,
