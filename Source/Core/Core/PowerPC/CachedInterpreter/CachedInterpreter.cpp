@@ -222,8 +222,8 @@ void CachedInterpreter::Jit(u32 address)
         js.firstFPInstructionFound = true;
       }
 
-      m_code.emplace_back([inst = op.inst](auto& cached_interpreter, auto& interpreter) {
-        Interpreter::RunInterpreterOp(interpreter, inst);
+      m_code.emplace_back([inst = op.inst, function = Interpreter::GetInterpreterOp(op.inst)](auto& cached_interpreter, auto& interpreter) {
+        function(interpreter, inst);
         return false;
       });
 
@@ -280,7 +280,7 @@ void CachedInterpreter::Jit(u32 address)
               auto& ppc_state = cached_interpreter.m_ppc_state;
               ppc_state.pc = ppc_state.npc;
               ppc_state.downcount -= downcountAmount;
-              
+
               PowerPC::UpdatePerformanceMonitor(downcountAmount, numLoadStoreInst,
                                                 numFloatingPointInst, ppc_state);
               return false;
