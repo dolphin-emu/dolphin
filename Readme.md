@@ -16,7 +16,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
     * Windows (10 or higher).
     * Linux.
     * macOS (10.15 Catalina or higher).
-    * Unix-like systems other than Linux are not officially supported but might work.
+    * Unix-like systems other than Linux are not officially supported, but might work.
 * Processor
     * A CPU with SSE2 support.
     * A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
@@ -36,118 +36,135 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
-## Building for Windows
+## Building
+Compilation is split into several steps, with minor differences between
+operating systems.
 
+### Fetch
+Download Dolphin's source code, enter the newly downloaded source tree, and
+download the embedded dependencies as git submodules:
+```sh
+git clone --depth 1 https://github.com/dolphin-emu/dolphin &&
+  cd dolphin &&
+  git submodule update --depth 1 --init --recursive
+```
+In the example, only the latest commit is downloaded to speed up the process. If
+the complete git history is needed, remove `--depth 1` from the commands. To
+download the complete history after a shallow download, run the following
+command from the project's directory:
+```sh
+git fetch --unshallow
+```
+
+### Compile
+#### Microsoft Windows
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
 Dolphin targets the latest MSVC shipped with Visual Studio or Build Tools.
 Other compilers might be able to build Dolphin on Windows but have not been
-tested and are not recommended to be used. Git and latest Windows SDK must be
-installed when building.
+tested and are not recommended to be used. Git and the latest Windows SDK must
+be installed when building.
 
-Make sure to pull submodules before building:
+The "Release" solution configuration includes performance optimizations for the
+best user experience, but complicates debugging Dolphin. The "Debug" solution
+configuration is significantly slower, more verbose and less permissive, but
+makes debugging Dolphin easier.
+
+#### Linux, macOS, FreeBSD, and other Unix or Unix-like operating systems.
+Dolphin requires [CMake](https://cmake.org/) for systems other than Windows.
+You need a recent version of GCC or Clang with decent C++20 support. CMake will
+inform you if your compiler is too old. Many libraries are bundled with Dolphin
+and used if they're not installed on your system. CMake will inform you if a
+bundled library is used or if you need to install any missing packages yourself.
+You may refer to the
+[wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more
+information.
+
+Additionally, [Ninja](https://ninja-build.org/) is recommended for faster
+compilation times.
+
+From inside the checked-out source tree, run:
 ```sh
-git submodule update --init --recursive
+cmake -G Ninja -B build &&
+  cmake --build build
 ```
 
-The "Release" solution configuration includes performance optimizations for the best user experience but complicates debugging Dolphin.
-The "Debug" solution configuration is significantly slower, more verbose and less permissive but makes debugging Dolphin easier.
+Binaries will be available in `build/Binaries`. On macOS, an application bundle
+will be created in the same directory.
 
-## Building for Linux and macOS
+#### Android
+These instructions assume familiarity with Android development. If you do not
+have an Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
 
-Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. 
-You need a recent version of GCC or Clang with decent c++20 support. CMake will
-inform you if your compiler is too old.
-Many libraries are bundled with Dolphin and used if they're not installed on 
-your system. CMake will inform you if a bundled library is used or if you need
-to install any missing packages yourself. You may refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more information.
+If using Android Studio, import the Gradle project located at
+`./Source/Android`.
 
-Make sure to pull submodules before building:
+Android apps are compiled using a build system called Gradle. Dolphin's native
+component, however, is compiled using CMake. The Gradle script will attempt to
+run a CMake build automatically while building the Java code.
+
+### Extra steps
+#### Installation via CMake
+To install Dolphin to your system:
 ```sh
-git submodule update --init --recursive
+cmake --install build
 ```
 
-### macOS Build Steps:
-
-A binary supporting a single architecture can be built using the following steps: 
-
-1. `mkdir build`
-2. `cd build`
-3. `cmake ..`
-4. `make -j $(sysctl -n hw.logicalcpu)`
-
-An application bundle will be created in `./Binaries`.
-
-A script is also provided to build universal binaries supporting both x64 and ARM in the same
-application bundle using the following steps:
-
-1. `mkdir build`
-2. `cd build`
-3. `python ../BuildMacOSUniversalBinary.py`
-4. Universal binaries will be available in the `universal` folder
-
-Doing this is more complex as it requires installation of library dependencies for both x64 and ARM (or universal library
-equivalents) and may require specifying additional arguments to point to relevant library locations. 
-Execute BuildMacOSUniversalBinary.py --help for more details.  
-
-### Linux Global Build Steps:
-
-To install to your system.
-
-1. `mkdir build`
-2. `cd build`
-3. `cmake ..`
-4. `make -j $(nproc)`
-5. `sudo make install`
-
-### Linux Local Build Steps:
-
-Useful for development as root access is not required.
-
-1. `mkdir Build`
-2. `cd Build`
-3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make -j $(nproc)`
-5. `ln -s ../../Data/Sys Binaries/`
-
-### Linux Portable Build Steps:
-
-Can be stored on external storage and used on different Linux systems.
-Or useful for having multiple distinct Dolphin setups for testing/development/TAS.
-
-1. `mkdir Build`
-2. `cd Build`
-3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make -j $(nproc)`
-5. `cp -r ../Data/Sys/ Binaries/`
-6. `touch Binaries/portable.txt`
-
-## Building for Android
-
-These instructions assume familiarity with Android development. If you do not have an
-Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
-
-Make sure to pull submodules before building:
+#### CMake local build
+Pass `-DLINUX_LOCAL_DEV=true` to CMake when creating the build directory, and
+put a symlink to Dolphin's assets in the same directory as the binaries:
 ```sh
-git submodule update --init --recursive
+cmake -DLINUX_LOCAL_DEV=true -G Ninja -B build &&
+  cmake --build build &&
+  ln -s Data/Sys build/Binaries/
 ```
+Useful for development, as root access is not required.
 
-If using Android Studio, import the Gradle project located in `./Source/Android`.
+#### CMake portable build
+Pass `-DLINUX_LOCAL_DEV=true` to CMake when creating the build directory,
+copypaste Dolphin's assets into the same directory as the binaries, and create a
+`portable.txt` file in the same directory as the binaries:
+```sh
+cmake -DLINUX_LOCAL_DEV=true -G Ninja -B build &&
+  cmake --build build &&
+  cp -r Data/Sys build/Binaries/ &&
+  touch build/Binaries/portable.txt
+```
+`build/Binaries` can be stored on external storage and used on different
+systems. Also useful for having multiple distinct Dolphin setups for testing,
+development, or TAS.
 
-Android apps are compiled using a build system called Gradle. Dolphin's native component,
-however, is compiled using CMake. The Gradle script will attempt to run a CMake build
-automatically while building the Java code.
+#### macOS universal binaries
+Doing this is more complex as it requires installation of library dependencies
+for both x64 and ARM (or universal library equivalents) and may require
+specifying additional arguments to point to relevant library locations.
+Run the following command for more details:
+```sh
+BuildMacOSUniversalBinary.py --help
+```
+To build universal binaries supporting both x64 and ARM in the same application
+bundle, run the following command:
+```sh
+mkdir build &&
+  (cd build && python ../BuildMacOSUniversalBinary.py)
+```
+Universal binaries will be available in the `build/universal` folder.
 
-## Uninstalling
+### Uninstalling
+#### Microsoft Windows uninstall
+On Windows, simply remove the extracted directory, unless it was installed with
+the NSIS installer, in which case you can uninstall Dolphin like any other
+Windows application.
 
-On Windows, simply remove the extracted directory, unless it was installed with the NSIS installer,
-in which case you can uninstall Dolphin like any other Windows application.
+#### macOS
+macOS users can delete Dolphin.app to uninstall it.
 
-Linux users can run `cat install_manifest.txt | xargs -d '\n' rm` as root from the build directory
-to uninstall Dolphin from their system.
-
-macOS users can simply delete Dolphin.app to uninstall it.
-
-Additionally, you'll want to remove the global user directory if you don't plan on reinstalling Dolphin.
+#### Linux, FreeBSD, and other Unix or Unix-like operating systems
+To uninstall Dolphin on other systems, run the following command as root:
+```sh
+cat install_manifest.txt | tr -d '\n' | xargs rm
+```
+Additionally, you'll want to remove the global user directory if you don't plan
+on reinstalling Dolphin.
 
 ## Command Line Usage
 
