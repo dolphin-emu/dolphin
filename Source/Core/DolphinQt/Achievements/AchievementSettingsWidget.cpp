@@ -171,7 +171,8 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_password_input)->setVisible(logged_out);
   SignalBlocking(m_common_password_input)->setEnabled(enabled);
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
-  SignalBlocking(m_common_login_button)->setEnabled(enabled && !Core::IsRunning());
+  SignalBlocking(m_common_login_button)
+      ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 

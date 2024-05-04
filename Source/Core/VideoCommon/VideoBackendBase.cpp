@@ -299,7 +299,7 @@ void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
 {
   // If the core is running, the backend info will have been populated already.
   // If we did it here, the UI thread can race with the with the GPU thread.
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(Core::System::GetInstance()))
     PopulateBackendInfo(wsi);
 }
 

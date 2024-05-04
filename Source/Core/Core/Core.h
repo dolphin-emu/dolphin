@@ -134,7 +134,7 @@ void UndeclareAsHostThread();
 
 std::string StopMessage(bool main_thread, std::string_view message);
 
-bool IsRunning();
+bool IsRunning(Core::System& system);
 bool IsRunningAndStarted();  // is running and the CPU loop has been entered
 bool IsCPUThread();          // this tells us whether we are the CPU thread.
 bool IsGPUThread();
