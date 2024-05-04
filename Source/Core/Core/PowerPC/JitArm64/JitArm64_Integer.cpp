@@ -1435,10 +1435,9 @@ void JitArm64::addex(UGeckoInstruction inst)
     }
     case CarryFlag::InHostCarry:
     {
-      ARM64Reg WA = gpr.GetReg();
-      MOVI2R(WA, i + j);
-      ADC(gpr.R(d), WA, ARM64Reg::WZR);
-      gpr.Unlock(WA);
+      ARM64Reg RD = gpr.R(d);
+      MOVI2R(RD, i + j);
+      ADC(RD, RD, ARM64Reg::WZR);
       break;
     }
     case CarryFlag::ConstantTrue:
