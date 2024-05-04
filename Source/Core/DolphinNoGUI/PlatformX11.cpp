@@ -203,13 +203,13 @@ void PlatformX11::ProcessEvents()
         {
           if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never)
             XUndefineCursor(m_display, m_window);
-          Core::SetState(Core::State::Paused);
+          Core::SetState(Core::System::GetInstance(), Core::State::Paused);
         }
         else
         {
           if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never)
             XDefineCursor(m_display, m_window, m_blank_cursor);
-          Core::SetState(Core::State::Running);
+          Core::SetState(Core::System::GetInstance(), Core::State::Running);
         }
       }
       else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
