@@ -424,7 +424,7 @@ bool RenderWidget::event(QEvent* event)
     if (m_should_unpause_on_focus &&
         Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
     {
-      Core::SetState(Core::State::Running);
+      Core::SetState(Core::System::GetInstance(), Core::State::Running);
     }
 
     m_should_unpause_on_focus = false;
@@ -457,7 +457,7 @@ bool RenderWidget::event(QEvent* event)
       if (!Core::IsCPUThread() && !Core::IsGPUThread())
       {
         m_should_unpause_on_focus = true;
-        Core::SetState(Core::State::Paused);
+        Core::SetState(Core::System::GetInstance(), Core::State::Paused);
       }
     }
 
