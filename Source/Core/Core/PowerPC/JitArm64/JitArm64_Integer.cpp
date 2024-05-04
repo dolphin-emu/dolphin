@@ -2009,9 +2009,11 @@ void JitArm64::srawx(UGeckoInstruction inst)
   }
   else
   {
-    gpr.BindToRegister(a, a == b || a == s);
+    const bool will_read = a == b || a == s;
+    gpr.BindToRegister(a, will_read);
 
-    ARM64Reg WA = gpr.GetReg();
+    const bool allocate_reg = will_read || js.op->wantsCA;
+    ARM64Reg WA = allocate_reg ? gpr.GetReg() : gpr.R(a);
 
     LSL(EncodeRegTo64(WA), EncodeRegTo64(gpr.R(s)), 32);
     ASRV(EncodeRegTo64(WA), EncodeRegTo64(WA), EncodeRegTo64(gpr.R(b)));
@@ -2024,7 +2026,8 @@ void JitArm64::srawx(UGeckoInstruction inst)
       ComputeCarry(WA);
     }
 
-    gpr.Unlock(WA);
+    if (allocate_reg)
+      gpr.Unlock(WA);
   }
 
   if (inst.Rc)
