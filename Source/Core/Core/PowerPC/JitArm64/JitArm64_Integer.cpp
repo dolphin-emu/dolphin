@@ -2106,15 +2106,19 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
     else
     {
       gpr.BindToRegister(a, true);
+      const bool allocate_reg = a == s;
+      ARM64Reg RA = gpr.R(a);
       ARM64Reg WA = gpr.GetReg();
-      ARM64Reg WB = gpr.GetReg();
+      ARM64Reg WB = allocate_reg ? gpr.GetReg() : RA;
 
       MOVI2R(WA, mask);
-      BIC(WB, gpr.R(a), WA);
+      BIC(WB, RA, WA);
       AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, rot_dist));
-      ORR(gpr.R(a), WB, WA);
+      ORR(RA, WB, WA);
 
-      gpr.Unlock(WA, WB);
+      gpr.Unlock(WA);
+      if (allocate_reg)
+        gpr.Unlock(WB);
     }
 
     if (inst.Rc)
