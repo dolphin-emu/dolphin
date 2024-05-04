@@ -215,14 +215,6 @@ void AchievementManager::DoFrame()
 {
   if (!IsGameLoaded() || !Core::IsCPUThread())
     return;
-  if (m_framecount == 0x200)
-  {
-    DisplayWelcomeMessage();
-  }
-  if (m_framecount <= 0x200)
-  {
-    m_framecount++;
-  }
   {
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
@@ -593,6 +585,8 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
+    OSD::AddMessage("Achievements are not supported for this title.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
     return;
   }
 
@@ -600,10 +594,13 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   if (!game)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve game information from client.");
+    OSD::AddMessage("Failed to load achievements for this title.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
     return;
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
 
+  AchievementManager::GetInstance().m_display_welcome_message = true;
   AchievementManager::GetInstance().FetchGameBadges();
   AchievementManager::GetInstance().m_system = &Core::System::GetInstance();
   AchievementManager::GetInstance().m_update_callback({.all = true});
@@ -634,9 +631,10 @@ void AchievementManager::ChangeMediaCallback(int result, const char* error_messa
 void AchievementManager::DisplayWelcomeMessage()
 {
   std::lock_guard lg{m_lock};
+  m_display_welcome_message = false;
   const u32 color =
       rc_client_get_hardcore_enabled(m_client) ? OSD::Color::YELLOW : OSD::Color::CYAN;
-  if (Config::Get(Config::RA_BADGES_ENABLED))
+  if (Config::Get(Config::RA_BADGES_ENABLED) && !m_game_badge.name.empty())
   {
     OSD::AddMessage("", OSD::Duration::VERY_LONG, OSD::Color::GREEN,
                     DecodeBadgeToOSDIcon(m_game_badge.badge));
@@ -882,11 +880,18 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
   if (!m_client || !HasAPIToken() || !Config::Get(Config::RA_BADGES_ENABLED))
   {
     m_update_callback(callback_data);
+    if (m_display_welcome_message && badge_type == RC_IMAGE_TYPE_GAME)
+      DisplayWelcomeMessage();
     return;
   }
 
   m_image_queue.EmplaceItem([this, badge, badge_type, function = std::move(function),
                              callback_data = std::move(callback_data)] {
+    Common::ScopeGuard on_end_scope([&]() {
+      if (m_display_welcome_message && badge_type == RC_IMAGE_TYPE_GAME)
+        DisplayWelcomeMessage();
+    });
+
     std::string name_to_fetch;
     {
       std::lock_guard lg{m_lock};

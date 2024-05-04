@@ -192,8 +192,8 @@ private:
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
-  u32 m_framecount = 0;
   BadgeStatus m_game_badge;
+  bool m_display_welcome_message = false;
   std::unordered_map<AchievementId, BadgeStatus> m_unlocked_badges;
   std::unordered_map<AchievementId, BadgeStatus> m_locked_badges;
   RichPresence m_rich_presence;
