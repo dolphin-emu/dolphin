@@ -1392,13 +1392,17 @@ void JitArm64::subfic(UGeckoInstruction inst)
   }
   else
   {
-    gpr.BindToRegister(d, d == a);
+    const bool allocate_reg = d == a;
+    gpr.BindToRegister(d, allocate_reg);
 
     // d = imm - a
-    ARM64Reg WA = gpr.GetReg();
+    ARM64Reg RD = gpr.R(d);
+    ARM64Reg WA = allocate_reg ? gpr.GetReg() : RD;
     MOVI2R(WA, imm);
-    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), WA, gpr.R(a));
-    gpr.Unlock(WA);
+    CARRY_IF_NEEDED(SUB, SUBS, RD, WA, gpr.R(a));
+
+    if (allocate_reg)
+      gpr.Unlock(WA);
 
     ComputeCarry();
   }
