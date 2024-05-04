@@ -5,7 +5,6 @@
 
 #include <array>
 #include <cstddef>
-#include <iosfwd>
 #include <span>
 #include <tuple>
 #include <type_traits>
@@ -40,10 +39,6 @@ enum class CPUCore
   JITARM64 = 4,
   CachedInterpreter = 5,
 };
-
-// For reading from and writing to our config.
-std::istream& operator>>(std::istream& is, CPUCore& core);
-std::ostream& operator<<(std::ostream& os, CPUCore core);
 
 enum class CoreMode
 {
