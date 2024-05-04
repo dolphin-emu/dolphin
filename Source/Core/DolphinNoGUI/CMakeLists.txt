@@ -41,6 +41,11 @@ if(APPLE)
   )
 endif()
 
+if(WIN32)
+  # needed for adjusting window decorations with DwmSetWindowAttribute
+  target_link_libraries(dolphin-nogui PRIVATE dwmapi.lib)
+endif()
+
 if(MSVC)
   # Add precompiled header
   target_link_libraries(dolphin-nogui PRIVATE use_pch)
