@@ -128,6 +128,13 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
   const u8 next_write_index = (m_queue_write + 1) & 15;
   if (next_write_index != m_queue_read)
     m_queue_write = next_write_index;
+  else
+    WARN_LOG_FMT(SP1, "BBA queue overrun, data might be lost");
+}
+
+bool CEXIETHERNET::BuiltInBBAInterface::WillQueueOverrun() const
+{
+  return ((m_queue_write + 1) & 15) == m_queue_read;
 }
 
 void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
@@ -142,24 +149,39 @@ void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
     {
       for (auto& tcp_buf : net_ref.tcp_buffers)
       {
+        if (WillQueueOverrun())
+          break;
         if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
           continue;
 
-        tcp_buf.tick = GetTickCountStd();
         // Timed out packet, resend
-        if (((m_queue_write + 1) & 15) != m_queue_read)
-          WriteToQueue(tcp_buf.data);
+        tcp_buf.tick = GetTickCountStd();
+        WriteToQueue(tcp_buf.data);
       }
     }
 
     // Check for connection data
-    if (*datasize != 0)
-      continue;
-    const auto socket_data = TryGetDataFromSocket(&net_ref);
-    if (socket_data.has_value())
+    if (*datasize == 0)
     {
-      *datasize = socket_data->size();
-      std::memcpy(m_eth_ref->mRecvBuffer.get(), socket_data->data(), *datasize);
+      // Send it to the network buffer if empty
+      const auto socket_data = TryGetDataFromSocket(&net_ref);
+      if (socket_data.has_value())
+      {
+        *datasize = socket_data->size();
+        std::memcpy(m_eth_ref->mRecvBuffer.get(), socket_data->data(), *datasize);
+      }
+    }
+    else if (!WillQueueOverrun())
+    {
+      // Otherwise, enqueue it
+      const auto socket_data = TryGetDataFromSocket(&net_ref);
+      if (socket_data.has_value())
+        WriteToQueue(*socket_data);
+    }
+    else
+    {
+      WARN_LOG_FMT(SP1, "BBA queue might overrun, can't poll more data");
+      return;
     }
   }
 }
@@ -226,7 +248,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
 std::optional<std::vector<u8>>
 CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 {
-  size_t datasize = 0;  // Set by socket.receive using a non-const reference
+  std::size_t datasize = 0;  // Set by socket.receive using a non-const reference
   unsigned short remote_port;
 
   switch (ref->type)
@@ -249,8 +271,24 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
   }
 
   case IPPROTO_TCP:
-    if (!ref->tcp_socket.Connected(ref))
+    switch (ref->tcp_socket.Connected(ref))
+    {
+    case BbaTcpSocket::ConnectingState::Error:
+    {
+      // Create the resulting RST ACK packet
+      const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
+                                     ref->ack_num, TCP_FLAG_RST | TCP_FLAG_ACK);
+      WriteToQueue(result.Build());
+      ref->ip = 0;
+      ref->tcp_socket.disconnect();
+      [[fallthrough]];
+    }
+    case BbaTcpSocket::ConnectingState::None:
+    case BbaTcpSocket::ConnectingState::Connecting:
       return std::nullopt;
+    case BbaTcpSocket::ConnectingState::Connected:
+      break;
+    }
 
     sf::Socket::Status st = sf::Socket::Status::Done;
     TcpBuffer* tcp_buffer = nullptr;
@@ -374,7 +412,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     {
       // only if contain data
       if (static_cast<int>(this_seq - ref->ack_num) >= 0 &&
-          data.size() >= static_cast<size_t>(size))
+          data.size() >= static_cast<std::size_t>(size))
       {
         ref->tcp_socket.send(data.data(), size);
         ref->ack_num += size;
@@ -658,14 +696,17 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 
 void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInBBAInterface* self)
 {
+  std::size_t datasize = 0;
   while (!self->m_read_thread_shutdown.IsSet())
   {
-    // make thread less cpu hungry
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (datasize == 0)
+    {
+      // Make thread less CPU hungry
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
     if (!self->m_read_enabled.IsSet())
       continue;
-    size_t datasize = 0;
 
     u8 wp = self->m_eth_ref->page_ptr(BBA_RWP);
     const u8 rp = self->m_eth_ref->page_ptr(BBA_RRP);
@@ -690,6 +731,10 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                   datasize);
       self->m_queue_read++;
       self->m_queue_read &= 15;
+    }
+    else
+    {
+      datasize = 0;
     }
 
     // Check network stack references
@@ -777,14 +822,11 @@ sf::Socket::Status BbaTcpSocket::GetSockName(sockaddr_in* addr) const
   return sf::Socket::Status::Done;
 }
 
-bool BbaTcpSocket::Connected(StackRef* ref)
+BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
 {
   // Called by ReadThreadHandler's TryGetDataFromSocket
-  // TODO: properly handle error state
   switch (m_connecting_state)
   {
-  case ConnectingState::Connected:
-    return true;
   case ConnectingState::Connecting:
   {
     const int fd = getHandle();
@@ -814,6 +856,7 @@ bool BbaTcpSocket::Connected(StackRef* ref)
     if (getsockopt(fd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) != 0)
     {
       ERROR_LOG_FMT(SP1, "Failed to get BBA socket error state: {}", Common::StrNetworkError());
+      m_connecting_state = ConnectingState::Error;
       break;
     }
 
@@ -858,7 +901,7 @@ bool BbaTcpSocket::Connected(StackRef* ref)
   default:
     break;
   }
-  return false;
+  return m_connecting_state;
 }
 
 BbaUdpSocket::BbaUdpSocket() = default;
