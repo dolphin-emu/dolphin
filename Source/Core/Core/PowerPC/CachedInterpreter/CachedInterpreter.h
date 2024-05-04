@@ -4,7 +4,6 @@
 #pragma once
 
 #include <vector>
-#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/CachedInterpreter/InterpreterBlockCache.h"
