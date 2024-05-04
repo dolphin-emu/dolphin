@@ -59,11 +59,12 @@ void AchievementHeaderWidget::UpdateData()
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   auto& instance = AchievementManager::GetInstance();
-  if (!instance.HasAPIToken())
+  if (!Config::Get(Config::RA_ENABLED) || !instance.HasAPIToken())
   {
     m_header_box->setVisible(false);
     return;
   }
+  m_header_box->setVisible(true);
 
   QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
   QString game_name = QtUtils::FromStdString(instance.GetGameDisplayName());
