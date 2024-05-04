@@ -24,7 +24,6 @@ using std::isinf;
 using std::isnan;
 #include <expr.h>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -95,7 +94,7 @@ static double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 0)));
 
   Core::CPUThreadGuard guard(Core::System::GetInstance());
-  return Common::BitCast<T>(HostRead<U>(guard, address));
+  return std::bit_cast<T>(HostRead<U>(guard, address));
 }
 
 template <typename T, typename U = T>
@@ -107,7 +106,7 @@ static double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
 
   Core::CPUThreadGuard guard(Core::System::GetInstance());
-  HostWrite<U>(guard, Common::BitCast<U>(var), address);
+  HostWrite<U>(guard, std::bit_cast<U>(var), address);
   return var;
 }
 
@@ -116,7 +115,7 @@ static double CastFunc(expr_func* f, vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 1)
     return 0;
-  return Common::BitCast<T>(static_cast<U>(expr_eval(&vec_nth(args, 0))));
+  return std::bit_cast<T>(static_cast<U>(expr_eval(&vec_nth(args, 0))));
 }
 
 static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)

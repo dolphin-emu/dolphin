@@ -120,7 +120,7 @@ static std::optional<u32> inet_pton(const char* src)
   }
   if (octets < 4)
     return std::nullopt;
-  return Common::BitCast<u32>(tmp);
+  return std::bit_cast<u32>(tmp);
 }
 
 // Maps SOCKOPT level from Wii to native
