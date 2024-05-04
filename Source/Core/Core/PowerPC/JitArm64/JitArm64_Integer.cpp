@@ -1675,7 +1675,8 @@ void JitArm64::divwx(UGeckoInstruction inst)
   {
     const s32 divisor = s32(gpr.GetImm(b));
 
-    gpr.BindToRegister(d, d == a);
+    const bool allocate_reg = a == d;
+    gpr.BindToRegister(d, allocate_reg);
 
     // Handle 0, 1, and -1 explicitly
     if (divisor == 0)
@@ -1712,7 +1713,6 @@ void JitArm64::divwx(UGeckoInstruction inst)
       ARM64Reg RA = gpr.R(a);
       ARM64Reg RD = gpr.R(d);
 
-      const bool allocate_reg = a == d;
       ARM64Reg WA = allocate_reg ? gpr.GetReg() : RD;
 
       TST(RA, RA);
@@ -1732,13 +1732,13 @@ void JitArm64::divwx(UGeckoInstruction inst)
       // Optimize signed 32-bit integer division by a constant
       SignedMagic m = SignedDivisionConstants(divisor);
 
-      ARM64Reg WA = gpr.GetReg();
-      ARM64Reg WB = gpr.GetReg();
       ARM64Reg RD = gpr.R(d);
+      ARM64Reg WA = gpr.GetReg();
+      ARM64Reg WB = allocate_reg ? gpr.GetReg() : RD;
 
+      ARM64Reg XD = EncodeRegTo64(RD);
       ARM64Reg XA = EncodeRegTo64(WA);
       ARM64Reg XB = EncodeRegTo64(WB);
-      ARM64Reg XD = EncodeRegTo64(RD);
 
       SXTW(XA, gpr.R(a));
       MOVI2R(XB, s64(m.multiplier));
@@ -1771,7 +1771,9 @@ void JitArm64::divwx(UGeckoInstruction inst)
         ADD(RD, WA, RD);
       }
 
-      gpr.Unlock(WA, WB);
+      gpr.Unlock(WA);
+      if (allocate_reg)
+        gpr.Unlock(WB);
     }
 
     if (inst.Rc)
