@@ -55,6 +55,7 @@ add_library(rcheevos
 	rcheevos/src/rc_version.c
 	rcheevos/src/rc_version.h
 )
+dolphin_disable_warnings(rcheevos)
 
 target_include_directories(rcheevos PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include")
 target_include_directories(rcheevos INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
