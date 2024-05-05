@@ -117,6 +117,7 @@ struct CachedInterpreter::WritePCOperands
 struct CachedInterpreter::CheckHaltOperands
 {
   PowerPC::PowerPCManager& power_pc;
+  u32 current_pc;
   u32 downcount;
 };
 

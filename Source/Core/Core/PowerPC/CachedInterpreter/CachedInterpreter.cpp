@@ -110,6 +110,7 @@ s32 CachedInterpreter::HLEFunction(PowerPC::PowerPCState& ppc_state,
                                    const HLEFunctionOperands& operands)
 {
   const auto& [system, current_pc, hook_index] = operands;
+  ppc_state.pc = current_pc;
   HLE::Execute(Core::CPUThreadGuard{system}, current_pc, hook_index);
   return sizeof(AnyCallback) + sizeof(operands);
 }
@@ -132,9 +133,10 @@ s32 CachedInterpreter::WriteBrokenBlockNPC(PowerPC::PowerPCState& ppc_state,
 
 s32 CachedInterpreter::CheckFPU(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands)
 {
-  const auto& [power_pc, downcount] = operands;
+  const auto& [power_pc, current_pc, downcount] = operands;
   if (!ppc_state.msr.FP)
   {
+    ppc_state.pc = current_pc;
     ppc_state.downcount -= downcount;
     ppc_state.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     power_pc.CheckExceptions();
@@ -145,9 +147,10 @@ s32 CachedInterpreter::CheckFPU(PowerPC::PowerPCState& ppc_state, const CheckHal
 
 s32 CachedInterpreter::CheckDSI(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands)
 {
-  const auto& [power_pc, downcount] = operands;
+  const auto& [power_pc, current_pc, downcount] = operands;
   if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
   {
+    ppc_state.pc = current_pc;
     ppc_state.downcount -= downcount;
     power_pc.CheckExceptions();
     return 0;
@@ -158,9 +161,10 @@ s32 CachedInterpreter::CheckDSI(PowerPC::PowerPCState& ppc_state, const CheckHal
 s32 CachedInterpreter::CheckProgramException(PowerPC::PowerPCState& ppc_state,
                                              const CheckHaltOperands& operands)
 {
-  const auto& [power_pc, downcount] = operands;
+  const auto& [power_pc, current_pc, downcount] = operands;
   if ((ppc_state.Exceptions & EXCEPTION_PROGRAM) != 0)
   {
+    ppc_state.pc = current_pc;
     ppc_state.downcount -= downcount;
     power_pc.CheckExceptions();
     return 0;
@@ -171,7 +175,8 @@ s32 CachedInterpreter::CheckProgramException(PowerPC::PowerPCState& ppc_state,
 s32 CachedInterpreter::CheckBreakpoint(PowerPC::PowerPCState& ppc_state,
                                        const CheckHaltOperands& operands)
 {
-  const auto& [power_pc, downcount] = operands;
+  const auto& [power_pc, current_pc, downcount] = operands;
+  ppc_state.pc = current_pc;
   if (power_pc.CheckAndHandleBreakPoints())
   {
     // Accessing PowerPCState through power_pc instead of ppc_state produces better assembly.
@@ -198,7 +203,6 @@ bool CachedInterpreter::HandleFunctionHooking(u32 address)
   if (!result)
     return false;
 
-  Write(WritePC, {address});
   Write(HLEFunction, {m_system, address, result.hook_index});
 
   if (result.type != HLE::HookType::Replace)
@@ -329,33 +333,27 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
     if (!op.skip)
     {
-      const bool breakpoint = IsDebuggingEnabled() && !cpu.IsStepping() &&
-                              breakpoints.IsAddressBreakPoint(js.compilerPC);
-      const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) != 0 && !js.firstFPInstructionFound;
-      const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
-      const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) != 0 && jo.memcheck;
-      const bool check_program_exception = !endblock && ShouldHandleFPExceptionForInstruction(&op);
-      const bool idle_loop = op.branchIsIdleLoop;
-
-      if (breakpoint || check_fpu || endblock || memcheck || check_program_exception)
-        Write(WritePC, {js.compilerPC});
-
-      if (breakpoint)
-        Write(CheckBreakpoint, {power_pc, js.downcountAmount});
-
-      if (check_fpu)
+      if (IsDebuggingEnabled() && !cpu.IsStepping() &&
+          breakpoints.IsAddressBreakPoint(js.compilerPC))
       {
-        Write(CheckFPU, {power_pc, js.downcountAmount});
+        Write(CheckBreakpoint, {power_pc, js.compilerPC, js.downcountAmount});
+      }
+      if (!js.firstFPInstructionFound && (op.opinfo->flags & FL_USE_FPU) != 0)
+      {
+        Write(CheckFPU, {power_pc, js.compilerPC, js.downcountAmount});
         js.firstFPInstructionFound = true;
       }
 
+      const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
+      if (endblock)
+        Write(WritePC, {js.compilerPC});
       Write(Interpret,
             {interpreter, Interpreter::GetInterpreterOp(op.inst), js.compilerPC, op.inst});
-      if (memcheck)
-        Write(CheckDSI, {power_pc, js.downcountAmount});
-      if (check_program_exception)
-        Write(CheckProgramException, {power_pc, js.downcountAmount});
-      if (idle_loop)
+      if (jo.memcheck && (op.opinfo->flags & FL_LOADSTORE) != 0)
+        Write(CheckDSI, {power_pc, js.compilerPC, js.downcountAmount});
+      if (!endblock && ShouldHandleFPExceptionForInstruction(&op))
+        Write(CheckProgramException, {power_pc, js.compilerPC, js.downcountAmount});
+      if (op.branchIsIdleLoop)
         Write(CheckIdle, {m_system.GetCoreTiming(), js.blockStart});
       if (endblock)
         Write(EndBlock, {js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst});
