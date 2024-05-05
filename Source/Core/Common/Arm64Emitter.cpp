@@ -3893,6 +3893,8 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
 
   if (bundled_loadstore && tmp != ARM64Reg::INVALID_REG)
   {
+    DEBUG_ASSERT_MSG(DYNA_REC, Is64Bit(tmp), "Expected a 64-bit temporary register!");
+
     int num_regs = registers.Count();
     m_emit->SUB(ARM64Reg::SP, ARM64Reg::SP, num_regs * 16);
     m_emit->ADD(tmp, ARM64Reg::SP, 0);
