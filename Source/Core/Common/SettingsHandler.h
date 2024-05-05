@@ -30,14 +30,12 @@ public:
   void AddSetting(std::string_view key, std::string_view value);
 
   const Buffer& GetBytes() const;
-  void SetBytes(const Buffer& buffer);
   std::string GetValue(std::string_view key) const;
 
-  void Decrypt();
-  void Reset();
   static std::string GenerateSerialNumber();
 
 private:
+  void Decrypt();
   void WriteLine(std::string_view str);
   void WriteByte(u8 b);
 
