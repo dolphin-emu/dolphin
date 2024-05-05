@@ -91,30 +91,28 @@ static const std::map<u32, u32> UCODE_FLAGS = {
     {0x56D36052, SYNC_PER_FRAME | NO_CMD_0D},
     // The Legend of Zelda: The Wind Waker.
     {0x86840740, 0},
+    // The Legend of Zelda: Collector's Edition (except Wind Waker).
     // The Legend of Zelda: Four Swords Adventures.
     // Mario Kart: Double Dash.
     // Pikmin 2 GC NTSC.
     {0x2FCDF1EC, MAKE_DOLBY_LOUDER},
     // The Legend of Zelda: Twilight Princess / GC.
-    // Donkey Kong Jungle Beat.
+    // Donkey Kong Jungle Beat GC.
     //
     // TODO: These do additional filtering at frame rendering time. We don't
     // implement this yet.
-    {0x6CA33A6D, MAKE_DOLBY_LOUDER},
+    {0x6CA33A6D, MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // The Legend of Zelda: Twilight Princess / Wii.
-    {0x6C3F6F94, NO_ARAM | MAKE_DOLBY_LOUDER},
+    // Link's Crossbow Training.
+    {0x6C3F6F94, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // Super Mario Galaxy.
     // Super Mario Galaxy 2.
-    {0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER},
+    // Donkey Kong Jungle Beat Wii.
+    {0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // Pikmin 1 New Play Control.
     {0xB7EB9A9C, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
     // Pikmin 2 New Play Control.
-    {0xEAEB38CC, NO_ARAM | MAKE_DOLBY_LOUDER},
-
-    // TODO: Other games that use this UCode (exhaustive list):
-    // * Link's Crossbow Training
-    // * The Legend of Zelda: Collector's Edition
-    // * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
+    {0xEAEB38CC, NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D},
 };
 
 ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc)
@@ -518,6 +516,7 @@ void ZeldaUCode::RunPendingCommands()
       {
         // Ignore the two values which are equivalent to arguments passed to
         // command 0D.
+        // Used by Pikmin 1 Wii.
         Read32();
         Read32();
       }
@@ -559,6 +558,7 @@ void ZeldaUCode::RunPendingCommands()
       break;
 
     // Command 0D: TODO: find a name and implement.
+    // Used by Wind Waker.
     case 0x0D:
       if (m_flags & NO_CMD_0D)
       {
