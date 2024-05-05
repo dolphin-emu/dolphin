@@ -344,18 +344,17 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
-      if (endblock)
+      if (op.canEndBlock)
         Write(WritePC, {js.compilerPC});
       Write(Interpret,
             {interpreter, Interpreter::GetInterpreterOp(op.inst), js.compilerPC, op.inst});
       if (jo.memcheck && (op.opinfo->flags & FL_LOADSTORE) != 0)
         Write(CheckDSI, {power_pc, js.compilerPC, js.downcountAmount});
-      if (!endblock && ShouldHandleFPExceptionForInstruction(&op))
+      if (!op.canEndBlock && ShouldHandleFPExceptionForInstruction(&op))
         Write(CheckProgramException, {power_pc, js.compilerPC, js.downcountAmount});
       if (op.branchIsIdleLoop)
         Write(CheckIdle, {m_system.GetCoreTiming(), js.blockStart});
-      if (endblock)
+      if (op.canEndBlock)
         Write(EndBlock, {js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst});
     }
   }
