@@ -98,11 +98,37 @@ s32 CachedInterpreter::EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlock
   return 0;
 }
 
+template <bool write_pc>
 s32 CachedInterpreter::Interpret(PowerPC::PowerPCState& ppc_state,
                                  const InterpretOperands& operands)
 {
-  const auto& [interpreter, func, current_pc, inst] = operands;
-  func(interpreter, inst);
+  if constexpr (write_pc)
+  {
+    ppc_state.pc = operands.current_pc;
+    ppc_state.npc = operands.current_pc + 4;
+  }
+  operands.func(operands.interpreter, operands.inst);
+  return sizeof(AnyCallback) + sizeof(operands);
+}
+
+template <bool write_pc>
+s32 CachedInterpreter::InterpretAndCheckExceptions(
+    PowerPC::PowerPCState& ppc_state, const InterpretAndCheckExceptionsOperands& operands)
+{
+  if constexpr (write_pc)
+  {
+    ppc_state.pc = operands.current_pc;
+    ppc_state.npc = operands.current_pc + 4;
+  }
+  operands.func(operands.interpreter, operands.inst);
+
+  if ((ppc_state.Exceptions & (EXCEPTION_DSI | EXCEPTION_PROGRAM)) != 0)
+  {
+    ppc_state.pc = operands.current_pc;
+    ppc_state.downcount -= operands.downcount;
+    operands.power_pc.CheckExceptions();
+    return 0;
+  }
   return sizeof(AnyCallback) + sizeof(operands);
 }
 
@@ -115,16 +141,8 @@ s32 CachedInterpreter::HLEFunction(PowerPC::PowerPCState& ppc_state,
   return sizeof(AnyCallback) + sizeof(operands);
 }
 
-s32 CachedInterpreter::WritePC(PowerPC::PowerPCState& ppc_state, const WritePCOperands& operands)
-{
-  const auto& [current_pc] = operands;
-  ppc_state.pc = current_pc;
-  ppc_state.npc = current_pc + 4;
-  return sizeof(AnyCallback) + sizeof(operands);
-}
-
 s32 CachedInterpreter::WriteBrokenBlockNPC(PowerPC::PowerPCState& ppc_state,
-                                           const WritePCOperands& operands)
+                                           const WriteBrokenBlockNPCOperands& operands)
 {
   const auto& [current_pc] = operands;
   ppc_state.npc = current_pc;
@@ -139,33 +157,6 @@ s32 CachedInterpreter::CheckFPU(PowerPC::PowerPCState& ppc_state, const CheckHal
     ppc_state.pc = current_pc;
     ppc_state.downcount -= downcount;
     ppc_state.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-    power_pc.CheckExceptions();
-    return 0;
-  }
-  return sizeof(AnyCallback) + sizeof(operands);
-}
-
-s32 CachedInterpreter::CheckDSI(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands)
-{
-  const auto& [power_pc, current_pc, downcount] = operands;
-  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
-  {
-    ppc_state.pc = current_pc;
-    ppc_state.downcount -= downcount;
-    power_pc.CheckExceptions();
-    return 0;
-  }
-  return sizeof(AnyCallback) + sizeof(operands);
-}
-
-s32 CachedInterpreter::CheckProgramException(PowerPC::PowerPCState& ppc_state,
-                                             const CheckHaltOperands& operands)
-{
-  const auto& [power_pc, current_pc, downcount] = operands;
-  if ((ppc_state.Exceptions & EXCEPTION_PROGRAM) != 0)
-  {
-    ppc_state.pc = current_pc;
-    ppc_state.downcount -= downcount;
     power_pc.CheckExceptions();
     return 0;
   }
@@ -344,14 +335,25 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (op.canEndBlock)
-        Write(WritePC, {js.compilerPC});
-      Write(Interpret,
-            {interpreter, Interpreter::GetInterpreterOp(op.inst), js.compilerPC, op.inst});
-      if (jo.memcheck && (op.opinfo->flags & FL_LOADSTORE) != 0)
-        Write(CheckDSI, {power_pc, js.compilerPC, js.downcountAmount});
-      if (!op.canEndBlock && ShouldHandleFPExceptionForInstruction(&op))
-        Write(CheckProgramException, {power_pc, js.compilerPC, js.downcountAmount});
+      // Instruction may cause a DSI Exception or Program Exception.
+      if ((jo.memcheck && (op.opinfo->flags & FL_LOADSTORE) != 0) ||
+          (!op.canEndBlock && ShouldHandleFPExceptionForInstruction(&op)))
+      {
+        const InterpretAndCheckExceptionsOperands operands = {
+            {interpreter, Interpreter::GetInterpreterOp(op.inst), js.compilerPC, op.inst},
+            power_pc,
+            js.downcountAmount};
+        Write(op.canEndBlock ? InterpretAndCheckExceptions<true> :
+                               InterpretAndCheckExceptions<false>,
+              operands);
+      }
+      else
+      {
+        const InterpretOperands operands = {interpreter, Interpreter::GetInterpreterOp(op.inst),
+                                            js.compilerPC, op.inst};
+        Write(op.canEndBlock ? Interpret<true> : Interpret<false>, operands);
+      }
+
       if (op.branchIsIdleLoop)
         Write(CheckIdle, {m_system.GetCoreTiming(), js.blockStart});
       if (op.canEndBlock)
