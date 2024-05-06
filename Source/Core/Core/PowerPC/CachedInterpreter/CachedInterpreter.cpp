@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
+#include "Core/PowerPC/CachedInterpreter/CachedOpCodeFunction.h"
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -15,64 +16,6 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-
-struct CachedInterpreter::Instruction
-{
-  using CommonCallback = void (*)(UGeckoInstruction);
-  using ConditionalCallback = bool (*)(u32);
-  using InterpreterCallback = void (*)(Interpreter&, UGeckoInstruction);
-  using CachedInterpreterCallback = void (*)(CachedInterpreter&, UGeckoInstruction);
-  using ConditionalCachedInterpreterCallback = bool (*)(CachedInterpreter&, u32);
-
-  Instruction() {}
-  Instruction(const CommonCallback c, UGeckoInstruction i)
-      : common_callback(c), data(i.hex), type(Type::Common)
-  {
-  }
-
-  Instruction(const ConditionalCallback c, u32 d)
-      : conditional_callback(c), data(d), type(Type::Conditional)
-  {
-  }
-
-  Instruction(const InterpreterCallback c, UGeckoInstruction i)
-      : interpreter_callback(c), data(i.hex), type(Type::Interpreter)
-  {
-  }
-
-  Instruction(const CachedInterpreterCallback c, UGeckoInstruction i)
-      : cached_interpreter_callback(c), data(i.hex), type(Type::CachedInterpreter)
-  {
-  }
-
-  Instruction(const ConditionalCachedInterpreterCallback c, u32 d)
-      : conditional_cached_interpreter_callback(c), data(d),
-        type(Type::ConditionalCachedInterpreter)
-  {
-  }
-
-  enum class Type
-  {
-    Abort,
-    Common,
-    Conditional,
-    Interpreter,
-    CachedInterpreter,
-    ConditionalCachedInterpreter,
-  };
-
-  union
-  {
-    const CommonCallback common_callback = nullptr;
-    const ConditionalCallback conditional_callback;
-    const InterpreterCallback interpreter_callback;
-    const CachedInterpreterCallback cached_interpreter_callback;
-    const ConditionalCachedInterpreterCallback conditional_cached_interpreter_callback;
-  };
-
-  u32 data = 0;
-  Type type = Type::Abort;
-};
 
 CachedInterpreter::CachedInterpreter(Core::System& system) : JitBase(system)
 {
@@ -107,47 +50,16 @@ u8* CachedInterpreter::GetCodePtr()
 
 void CachedInterpreter::ExecuteOneBlock()
 {
-  const u8* normal_entry = m_block_cache.Dispatch();
-  if (!normal_entry)
+  if (const u8* normal_entry = m_block_cache.Dispatch())
+  {
+    Interpreter& interpreter = m_system.GetInterpreter();
+    for (const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
+         !code->operator()(interpreter); ++code)
+      ;
+  }
+  else
   {
     Jit(m_ppc_state.pc);
-    return;
-  }
-
-  const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
-  auto& interpreter = m_system.GetInterpreter();
-
-  for (; code->type != Instruction::Type::Abort; ++code)
-  {
-    switch (code->type)
-    {
-    case Instruction::Type::Common:
-      code->common_callback(UGeckoInstruction(code->data));
-      break;
-
-    case Instruction::Type::Conditional:
-      if (code->conditional_callback(code->data))
-        return;
-      break;
-
-    case Instruction::Type::Interpreter:
-      code->interpreter_callback(interpreter, UGeckoInstruction(code->data));
-      break;
-
-    case Instruction::Type::CachedInterpreter:
-      code->cached_interpreter_callback(*this, UGeckoInstruction(code->data));
-      break;
-
-    case Instruction::Type::ConditionalCachedInterpreter:
-      if (code->conditional_cached_interpreter_callback(*this, code->data))
-        return;
-      break;
-
-    default:
-      ERROR_LOG_FMT(POWERPC, "Unknown CachedInterpreter Instruction: {}",
-                    static_cast<int>(code->type));
-      break;
-    }
   }
 }
 
@@ -177,96 +89,6 @@ void CachedInterpreter::SingleStep()
   ExecuteOneBlock();
 }
 
-void CachedInterpreter::EndBlock(CachedInterpreter& cached_interpreter, UGeckoInstruction data)
-{
-  auto& ppc_state = cached_interpreter.m_ppc_state;
-  ppc_state.pc = ppc_state.npc;
-  ppc_state.downcount -= data.hex;
-  PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0, ppc_state);
-}
-
-void CachedInterpreter::UpdateNumLoadStoreInstructions(CachedInterpreter& cached_interpreter,
-                                                       UGeckoInstruction data)
-{
-  PowerPC::UpdatePerformanceMonitor(0, data.hex, 0, cached_interpreter.m_ppc_state);
-}
-
-void CachedInterpreter::UpdateNumFloatingPointInstructions(CachedInterpreter& cached_interpreter,
-                                                           UGeckoInstruction data)
-{
-  PowerPC::UpdatePerformanceMonitor(0, 0, data.hex, cached_interpreter.m_ppc_state);
-}
-
-void CachedInterpreter::WritePC(CachedInterpreter& cached_interpreter, UGeckoInstruction data)
-{
-  auto& ppc_state = cached_interpreter.m_ppc_state;
-  ppc_state.pc = data.hex;
-  ppc_state.npc = data.hex + 4;
-}
-
-void CachedInterpreter::WriteBrokenBlockNPC(CachedInterpreter& cached_interpreter,
-                                            UGeckoInstruction data)
-{
-  cached_interpreter.m_ppc_state.npc = data.hex;
-}
-
-bool CachedInterpreter::CheckFPU(CachedInterpreter& cached_interpreter, u32 data)
-{
-  auto& ppc_state = cached_interpreter.m_ppc_state;
-  if (!ppc_state.msr.FP)
-  {
-    ppc_state.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-    cached_interpreter.m_system.GetPowerPC().CheckExceptions();
-    ppc_state.downcount -= data;
-    return true;
-  }
-  return false;
-}
-
-bool CachedInterpreter::CheckDSI(CachedInterpreter& cached_interpreter, u32 data)
-{
-  auto& ppc_state = cached_interpreter.m_ppc_state;
-  if (ppc_state.Exceptions & EXCEPTION_DSI)
-  {
-    cached_interpreter.m_system.GetPowerPC().CheckExceptions();
-    ppc_state.downcount -= data;
-    return true;
-  }
-  return false;
-}
-
-bool CachedInterpreter::CheckProgramException(CachedInterpreter& cached_interpreter, u32 data)
-{
-  auto& ppc_state = cached_interpreter.m_ppc_state;
-  if (ppc_state.Exceptions & EXCEPTION_PROGRAM)
-  {
-    cached_interpreter.m_system.GetPowerPC().CheckExceptions();
-    ppc_state.downcount -= data;
-    return true;
-  }
-  return false;
-}
-
-bool CachedInterpreter::CheckBreakpoint(CachedInterpreter& cached_interpreter, u32 data)
-{
-  cached_interpreter.m_system.GetPowerPC().CheckBreakPoints();
-  if (cached_interpreter.m_system.GetCPU().GetState() != CPU::State::Running)
-  {
-    cached_interpreter.m_ppc_state.downcount -= data;
-    return true;
-  }
-  return false;
-}
-
-bool CachedInterpreter::CheckIdle(CachedInterpreter& cached_interpreter, u32 idle_pc)
-{
-  if (cached_interpreter.m_ppc_state.npc == idle_pc)
-  {
-    cached_interpreter.m_system.GetCoreTiming().Idle();
-  }
-  return false;
-}
-
 bool CachedInterpreter::HandleFunctionHooking(u32 address)
 {
   // CachedInterpreter inherits from JitBase and is considered a JIT by relevant code.
@@ -275,15 +97,38 @@ bool CachedInterpreter::HandleFunctionHooking(u32 address)
   if (!result)
     return false;
 
-  m_code.emplace_back(WritePC, address);
-  m_code.emplace_back(Interpreter::HLEFunction, result.hook_index);
-
   if (result.type != HLE::HookType::Replace)
-    return false;
+  {
+    m_code.emplace_back([address, hook_index = result.hook_index](Interpreter& interpreter) {
+      interpreter.m_ppc_state.pc = address;
+      interpreter.m_ppc_state.npc = address + 4;
 
-  m_code.emplace_back(EndBlock, js.downcountAmount);
-  m_code.emplace_back();
-  return true;
+      Interpreter::HLEFunction(interpreter, hook_index);
+
+      return false;
+    });
+
+    return false;
+  }
+  else
+  {
+    m_code.emplace_back([address, hook_index = result.hook_index,
+                         downcountAmount = js.downcountAmount](Interpreter& interpreter) {
+      interpreter.m_ppc_state.pc = address;
+      interpreter.m_ppc_state.npc = address + 4;
+
+      Interpreter::HLEFunction(interpreter, hook_index);
+
+      interpreter.m_ppc_state.pc = interpreter.m_ppc_state.npc;
+      interpreter.m_ppc_state.downcount -= downcountAmount;
+
+      PowerPC::UpdatePerformanceMonitor(downcountAmount, 0, 0, interpreter.m_ppc_state);
+
+      return true;
+    });
+
+    return true;
+  }
 }
 
 void CachedInterpreter::Jit(u32 address)
@@ -342,45 +187,38 @@ void CachedInterpreter::Jit(u32 address)
       const bool check_program_exception = !endblock && ShouldHandleFPExceptionForInstruction(&op);
       const bool idle_loop = op.branchIsIdleLoop;
 
-      if (breakpoint || check_fpu || endblock || memcheck || check_program_exception)
-        m_code.emplace_back(WritePC, op.address);
-
-      if (breakpoint)
-        m_code.emplace_back(CheckBreakpoint, js.downcountAmount);
+      m_code.emplace_back(CachedOpCode::CreateFunction(
+          /** Exception Booleans **/
+          breakpoint, check_fpu, memcheck, check_program_exception, idle_loop, endblock,
+          /** Required Information for Execution **/
+          op.inst, op.address, js.downcountAmount, js.blockStart, js.numLoadStoreInst,
+          js.numFloatingPointInst));
 
       if (check_fpu)
       {
-        m_code.emplace_back(CheckFPU, js.downcountAmount);
         js.firstFPInstructionFound = true;
-      }
-
-      m_code.emplace_back(Interpreter::GetInterpreterOp(op.inst), op.inst);
-      if (memcheck)
-        m_code.emplace_back(CheckDSI, js.downcountAmount);
-      if (check_program_exception)
-        m_code.emplace_back(CheckProgramException, js.downcountAmount);
-      if (idle_loop)
-        m_code.emplace_back(CheckIdle, js.blockStart);
-      if (endblock)
-      {
-        m_code.emplace_back(EndBlock, js.downcountAmount);
-        if (js.numLoadStoreInst != 0)
-          m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
-        if (js.numFloatingPointInst != 0)
-          m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
       }
     }
   }
+
   if (code_block.m_broken)
   {
-    m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
-    m_code.emplace_back(EndBlock, js.downcountAmount);
-    if (js.numLoadStoreInst != 0)
-      m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
-    if (js.numFloatingPointInst != 0)
-      m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+    m_code.emplace_back([nextPC = nextPC, downcountAmount = js.downcountAmount,
+                         numLoadStoreInst = js.numLoadStoreInst,
+                         numFloatingPointInst = js.numFloatingPointInst](Interpreter& interpreter) {
+      interpreter.m_ppc_state.pc = nextPC;
+      interpreter.m_ppc_state.npc = nextPC;
+      interpreter.m_ppc_state.downcount -= downcountAmount;
+      PowerPC::UpdatePerformanceMonitor(downcountAmount, numLoadStoreInst, numFloatingPointInst,
+                                        interpreter.m_ppc_state);
+
+      return true;
+    });
   }
-  m_code.emplace_back();
+  else
+  {
+    m_code.emplace_back([](Interpreter& interpreter) { return true; });
+  }
 
   b->near_end = GetCodePtr();
   b->far_begin = nullptr;
