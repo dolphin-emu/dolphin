@@ -15,7 +15,7 @@ else()
     target_link_libraries(hidapi PRIVATE udev)
   else()
     target_sources(hidapi PRIVATE hidapi-src/libusb/hid.c)
-    target_link_libraries(hidapi PRIVATE ${LIBUSB_LIBRARIES})
+    target_link_libraries(hidapi PRIVATE LibUSB::LibUSB)
   endif()
 endif()
 
