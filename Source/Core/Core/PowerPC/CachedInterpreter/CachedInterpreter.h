@@ -64,20 +64,22 @@ private:
 
   struct EndBlockOperands;
   struct InterpretOperands;
+  struct InterpretAndCheckExceptionsOperands;
   struct HLEFunctionOperands;
-  struct WritePCOperands;
+  struct WriteBrokenBlockNPCOperands;
   struct CheckHaltOperands;
   struct CheckIdleOperands;
 
   static s32 EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlockOperands& operands);
+  template <bool write_pc>
   static s32 Interpret(PowerPC::PowerPCState& ppc_state, const InterpretOperands& operands);
+  template <bool write_pc>
+  static s32 InterpretAndCheckExceptions(PowerPC::PowerPCState& ppc_state,
+                                         const InterpretAndCheckExceptionsOperands& operands);
   static s32 HLEFunction(PowerPC::PowerPCState& ppc_state, const HLEFunctionOperands& operands);
-  static s32 WritePC(PowerPC::PowerPCState& ppc_state, const WritePCOperands& operands);
-  static s32 WriteBrokenBlockNPC(PowerPC::PowerPCState& ppc_state, const WritePCOperands& operands);
+  static s32 WriteBrokenBlockNPC(PowerPC::PowerPCState& ppc_state,
+                                 const WriteBrokenBlockNPCOperands& operands);
   static s32 CheckFPU(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands);
-  static s32 CheckDSI(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands);
-  static s32 CheckProgramException(PowerPC::PowerPCState& ppc_state,
-                                   const CheckHaltOperands& operands);
   static s32 CheckBreakpoint(PowerPC::PowerPCState& ppc_state, const CheckHaltOperands& operands);
   static s32 CheckIdle(PowerPC::PowerPCState& ppc_state, const CheckIdleOperands& operands);
 
@@ -101,6 +103,12 @@ struct CachedInterpreter::InterpretOperands
   UGeckoInstruction inst;
 };
 
+struct CachedInterpreter::InterpretAndCheckExceptionsOperands : InterpretOperands
+{
+  PowerPC::PowerPCManager& power_pc;
+  u32 downcount;
+};
+
 struct CachedInterpreter::HLEFunctionOperands
 {
   Core::System& system;
@@ -108,7 +116,7 @@ struct CachedInterpreter::HLEFunctionOperands
   u32 hook_index;
 };
 
-struct CachedInterpreter::WritePCOperands
+struct CachedInterpreter::WriteBrokenBlockNPCOperands
 {
   u32 current_pc;
   u32 : 32;
