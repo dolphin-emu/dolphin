@@ -79,7 +79,7 @@ function(dolphin_find_optional_system_library_pkgconfig library search alias bun
   dolphin_optional_system_library(${library})
   string(TOUPPER ${library} upperlib)
   if(RESOLVED_USE_SYSTEM_${upperlib})
-    pkg_check_modules(${library} ${search} ${ARGN} IMPORTED_TARGET)
+    pkg_search_module(${library} ${search} ${ARGN} IMPORTED_TARGET)
     if((NOT ${library}_FOUND) AND (NOT ${RESOLVED_USE_SYSTEM_${upperlib}} STREQUAL "AUTO"))
       message(FATAL_ERROR "No system ${library} was found.  Please install it or set USE_SYSTEM_${upperlib} to AUTO or OFF.")
     endif()
