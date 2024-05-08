@@ -637,7 +637,7 @@ void AchievementManager::DisplayWelcomeMessage()
   m_display_welcome_message = false;
   const u32 color =
       rc_client_get_hardcore_enabled(m_client) ? OSD::Color::YELLOW : OSD::Color::CYAN;
-  if (Config::Get(Config::RA_BADGES_ENABLED) && !m_game_badge.name.empty())
+  if (!m_game_badge.name.empty())
   {
     OSD::AddMessage("", OSD::Duration::VERY_LONG, OSD::Color::GREEN,
                     DecodeBadgeToOSDIcon(m_game_badge.badge));
@@ -677,11 +677,9 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
                   (rc_client_get_hardcore_enabled(AchievementManager::GetInstance().m_client)) ?
                       OSD::Color::YELLOW :
                       OSD::Color::CYAN,
-                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                      DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
-                                               .m_unlocked_badges[client_event->achievement->id]
-                                               .badge) :
-                      nullptr);
+                  DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
+                                           .m_unlocked_badges[client_event->achievement->id]
+                                           .badge));
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
@@ -738,15 +736,12 @@ void AchievementManager::HandleLeaderboardTrackerHideEvent(const rc_client_event
 void AchievementManager::HandleAchievementChallengeIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
-  if (Config::Get(Config::RA_BADGES_ENABLED))
+  auto& unlocked_badges = AchievementManager::GetInstance().m_unlocked_badges;
+  if (const auto unlocked_iter = unlocked_badges.find(client_event->achievement->id);
+      unlocked_iter != unlocked_badges.end())
   {
-    auto& unlocked_badges = AchievementManager::GetInstance().m_unlocked_badges;
-    if (const auto unlocked_iter = unlocked_badges.find(client_event->achievement->id);
-        unlocked_iter != unlocked_badges.end())
-    {
-      AchievementManager::GetInstance().m_active_challenges[client_event->achievement->badge_name] =
-          DecodeBadgeToOSDIcon(unlocked_iter->second.badge);
-    }
+    AchievementManager::GetInstance().m_active_challenges[client_event->achievement->badge_name] =
+        DecodeBadgeToOSDIcon(unlocked_iter->second.badge);
   }
 }
 
@@ -763,11 +758,9 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
   OSD::AddMessage(fmt::format("{} {}", client_event->achievement->title,
                               client_event->achievement->measured_progress),
                   OSD::Duration::SHORT, OSD::Color::GREEN,
-                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                      DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
-                                               .m_unlocked_badges[client_event->achievement->id]
-                                               .badge) :
-                      nullptr);
+                  DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
+                                           .m_unlocked_badges[client_event->achievement->id]
+                                           .badge));
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
@@ -784,9 +777,7 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
   OSD::AddMessage(fmt::format("Congratulations! {} has {} {}", user_info->display_name,
                               hardcore ? "mastered" : "completed", game_info->title),
                   OSD::Duration::VERY_LONG, hardcore ? OSD::Color::YELLOW : OSD::Color::CYAN,
-                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                      DecodeBadgeToOSDIcon(AchievementManager::GetInstance().m_game_badge.badge) :
-                      nullptr);
+                  DecodeBadgeToOSDIcon(AchievementManager::GetInstance().m_game_badge.badge));
 }
 
 void AchievementManager::HandleResetEvent(const rc_client_event_t* client_event)
@@ -880,7 +871,7 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
                                     const AchievementManager::BadgeNameFunction function,
                                     const UpdatedItems callback_data)
 {
-  if (!m_client || !HasAPIToken() || !Config::Get(Config::RA_BADGES_ENABLED))
+  if (!m_client || !HasAPIToken())
   {
     m_update_callback(callback_data);
     if (m_display_welcome_message && badge_type == RC_IMAGE_TYPE_GAME)

@@ -61,7 +61,7 @@ void AchievementBox::UpdateData()
     color = AchievementManager::GOLD;
   else if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_SOFTCORE)
     color = AchievementManager::BLUE;
-  if (Config::Get(Config::RA_BADGES_ENABLED) && badge.name != "")
+  if (badge.name != "")
   {
     QImage i_badge{};
     if (i_badge.loadFromData(&badge.badge.front(), static_cast<int>(badge.badge.size())))

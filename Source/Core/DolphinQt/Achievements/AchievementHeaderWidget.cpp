@@ -74,7 +74,7 @@ void AchievementHeaderWidget::UpdateData()
   m_user_icon->setVisible(false);
   m_user_icon->clear();
   m_user_icon->setText({});
-  if (Config::Get(Config::RA_BADGES_ENABLED) && !player_badge.name.empty())
+  if (!player_badge.name.empty())
   {
     QImage i_user_icon{};
     if (i_user_icon.loadFromData(&player_badge.badge.front(), (int)player_badge.badge.size()))
@@ -95,7 +95,7 @@ void AchievementHeaderWidget::UpdateData()
     rc_client_user_game_summary_t game_summary;
     rc_client_get_user_game_summary(instance.GetClient(), &game_summary);
 
-    if (Config::Get(Config::RA_BADGES_ENABLED) && !game_badge.name.empty())
+    if (!game_badge.name.empty())
     {
       QImage i_game_icon{};
       if (i_game_icon.loadFromData(&game_badge.badge.front(), (int)game_badge.badge.size()))

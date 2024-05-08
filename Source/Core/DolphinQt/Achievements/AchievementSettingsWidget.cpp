@@ -105,11 +105,6 @@ void AchievementSettingsWidget::CreateLayout()
       tr("Enable progress notifications on achievements.<br><br>Displays a brief popup message "
          "whenever the player makes progress on an achievement that tracks an accumulated value, "
          "such as 60 out of 120 stars."));
-  m_common_badges_enabled_input = new ToolTipCheckBox(tr("Enable Achievement Badges"));
-  m_common_badges_enabled_input->SetDescription(
-      tr("Enable achievement badges.<br><br>Displays icons for the player, game, and achievements. "
-         "Simple visual option, but will require a small amount of extra memory and time to "
-         "download the images."));
 
   m_common_layout->addWidget(m_common_integration_enabled_input);
   m_common_layout->addWidget(m_common_username_label);
@@ -129,7 +124,6 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_discord_presence_enabled_input);
 #endif  // USE_DISCORD_PRESENCE
   m_common_layout->addWidget(m_common_progress_enabled_input);
-  m_common_layout->addWidget(m_common_badges_enabled_input);
 
   m_common_layout->setAlignment(Qt::AlignTop);
   setLayout(m_common_layout);
@@ -153,8 +147,6 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleDiscordPresence);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleProgress);
-  connect(m_common_badges_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleBadges);
 }
 
 void AchievementSettingsWidget::OnControllerInterfaceConfigure()
@@ -214,9 +206,6 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
-
-  SignalBlocking(m_common_badges_enabled_input)->setChecked(Config::Get(Config::RA_BADGES_ENABLED));
-  SignalBlocking(m_common_badges_enabled_input)->setEnabled(enabled);
 }
 
 void AchievementSettingsWidget::SaveSettings()
@@ -235,7 +224,6 @@ void AchievementSettingsWidget::SaveSettings()
                            m_common_discord_presence_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
                            m_common_progress_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_BADGES_ENABLED, m_common_badges_enabled_input->isChecked());
   Config::Save();
 }
 
@@ -306,13 +294,6 @@ void AchievementSettingsWidget::ToggleDiscordPresence()
 void AchievementSettingsWidget::ToggleProgress()
 {
   SaveSettings();
-}
-
-void AchievementSettingsWidget::ToggleBadges()
-{
-  SaveSettings();
-  AchievementManager::GetInstance().FetchPlayerBadge();
-  AchievementManager::GetInstance().FetchGameBadges();
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS
