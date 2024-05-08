@@ -396,8 +396,9 @@ void TextureCacheBase::BlurCopy(RcTcacheEntry& existing_entry)
   uniforms.pass = 0;
   uniforms.width = new_config.width;
   uniforms.height = new_config.height;
-  uniforms.blur_radius = new_config.width / existing_entry->native_width;
-  uniforms.blur_strength = 1.0;
+  uniforms.blur_radius = g_ActiveConfig.iEFBExcludeBlurRadius;
+  // Scaled by factor of 5. (20 = 100).
+  uniforms.blur_strength = static_cast<float>(g_ActiveConfig.iEFBExcludeBloomStrength) * 5 / 100;
 
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 

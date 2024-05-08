@@ -187,11 +187,12 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_borderless_fullscreen, 2, 1);
 #endif
 
-  // Scaled EFB bloom Fixes
+  // Scaled EFB Bloom Fixes
   auto* efb_box = new QGroupBox(tr("Bloom Fixes"));
   auto* efb_layout = new QVBoxLayout();
   auto* efb_layout_width_integer = new QHBoxLayout();
   auto* efb_layout_top = new QHBoxLayout();
+  auto* efb_layout_bottom = new QHBoxLayout();
   efb_box->setLayout(efb_layout);
 
   m_bloom_fix_check = new ConfigBool(tr("Enabled"), Config::GFX_BLOOM_FIX_ENABLED);
@@ -199,8 +200,20 @@ void AdvancedWidget::CreateWidgets()
   m_bloom_blur_check = new ConfigBool(tr("Use Shader"), Config::GFX_BLOOM_FIX_BLUR);
   m_bloom_width_slider = new ConfigSlider(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
   m_bloom_width_integer = new ConfigInteger(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
+  // Change stepping by a factor of 5. (20 = 100).
+  m_bloom_strength_slider = new ConfigSlider(0, 25, Config::GFX_BLOOM_FIX_STRENGTH, 20);
+  m_bloom_blur_radius_slider = new ConfigSlider(0, 10, Config::GFX_BLOOM_FIX_BLUR_RADIUS, 4);
+  auto* bloom_strength_label = new QLabel(tr("Stremgth"));
+  auto* blur_radius_label = new QLabel(tr("Radius"));
+  m_bloom_strength_val_label = new QLabel();
+  m_bloom_strength_val_label->setFixedWidth(32);
+  m_bloom_blur_radius_val_label = new QLabel();
+  m_bloom_blur_radius_val_label->setFixedWidth(24);
 
   UpdateBloomControls();
+
+  m_bloom_blur_radius_slider->setTickPosition(QSlider::TicksBelow);
+  m_bloom_strength_slider->setTickPosition(QSlider::TicksBelow);
 
   QFontMetrics fm(font());
   m_bloom_width_integer->setFixedWidth(fm.lineSpacing() * 4);
@@ -212,8 +225,15 @@ void AdvancedWidget::CreateWidgets()
   efb_layout_width_integer->addWidget(new QLabel(tr("Width < ")));
   efb_layout_width_integer->addWidget(m_bloom_width_integer);
   efb_layout_width_integer->addWidget(m_bloom_width_slider);
+  efb_layout_bottom->addWidget(blur_radius_label);
+  efb_layout_bottom->addWidget(m_bloom_blur_radius_val_label);
+  efb_layout_bottom->addWidget(m_bloom_blur_radius_slider);
+  efb_layout_bottom->addWidget(bloom_strength_label);
+  efb_layout_bottom->addWidget(m_bloom_strength_val_label);
+  efb_layout_bottom->addWidget(m_bloom_strength_slider);
   efb_layout->addLayout(efb_layout_top);
   efb_layout->addLayout(efb_layout_width_integer);
+  efb_layout->addLayout(efb_layout_bottom);
 
   // Experimental.
   auto* experimental_box = new QGroupBox(tr("Experimental"));
@@ -247,6 +267,14 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_bloom_fix_check, &QCheckBox::toggled, this, &AdvancedWidget::UpdateBloomControls);
+  connect(m_bloom_blur_check, &QCheckBox::toggled, [=](bool checked) {
+    m_bloom_strength_slider->setEnabled(checked);
+    m_bloom_blur_radius_slider->setEnabled(checked);
+  });
+  connect(m_bloom_strength_slider, &ConfigSlider::valueChanged, this,
+          &AdvancedWidget::UpdateSliderLabels);
+  connect(m_bloom_blur_radius_slider, &ConfigSlider::valueChanged, this,
+          &AdvancedWidget::UpdateSliderLabels);
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
@@ -291,15 +319,31 @@ void AdvancedWidget::OnEmulationStateChanged(bool running)
   // is correctly set elsewhere, but signals are blocked at that time, and don't trigger the
   // connected slot.
   UpdateBloomControls();
+  UpdateSliderLabels();
 }
 
 void AdvancedWidget::UpdateBloomControls()
 {
   const bool checked = m_bloom_fix_check->isChecked();
+  const bool blur_checked = m_bloom_blur_check->isChecked();
   m_bloom_alt_check->setEnabled(checked);
-  m_bloom_blur_check->setEnabled(checked);
   m_bloom_width_integer->setEnabled(checked);
   m_bloom_width_slider->setEnabled(checked);
+  m_bloom_blur_radius_slider->setEnabled(checked && blur_checked);
+  m_bloom_strength_slider->setEnabled(checked && blur_checked);
+}
+
+void AdvancedWidget::UpdateSliderLabels()
+{
+  int strength = m_bloom_strength_slider->value();
+  int radius = m_bloom_blur_radius_slider->value();
+
+  m_bloom_strength_val_label->setText(QStringLiteral("%1%").arg(strength * 5));
+
+  if (radius == 0)
+    m_bloom_blur_radius_val_label->setText(tr("off"));
+  else
+    m_bloom_blur_radius_val_label->setText(QStringLiteral("%1").arg(radius));
 }
 
 void AdvancedWidget::AddDescriptions()
@@ -483,9 +527,9 @@ void AdvancedWidget::AddDescriptions()
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_SCALED_EFB_EXCLUDE_BLUR_DESCRIPTION[] =
-      QT_TR_NOOP("Fixes bloom by blurring the texture rather than downscaling it. Provides higher "
-                 "quality results in most games.");
-
+      QT_TR_NOOP("Uses a shader to fix bloom by blurring the texture rather than downscaling it. "
+                 "Provides higher quality results in most games. Enables sliders for editing the "
+                 "shader's radius and overall bloom strength. Typically not used with Downscale.");
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
       "Implements fullscreen mode with a borderless window spanning the whole screen instead of "

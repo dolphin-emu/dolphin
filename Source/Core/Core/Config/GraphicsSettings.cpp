@@ -109,6 +109,10 @@ const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
 const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION{
     {System::GFX, "Settings", "PreferVSForLinePointExpansion"}, false};
 const Info<bool> GFX_CPU_CULL{{System::GFX, "Settings", "CPUCull"}, false};
+const Info<int> GFX_BLOOM_FIX_STRENGTH{{System::GFX, "Settings", "EFBScaledExcludeBloomStrength"},
+                                       20};
+const Info<int> GFX_BLOOM_FIX_BLUR_RADIUS{{System::GFX, "Settings", "EFBScaledExcludeBlurRadius"},
+                                          4};
 const Info<int> GFX_BLOOM_FIX_WIDTH{{System::GFX, "Settings", "EFBScaledExclude"}, 0};
 const Info<bool> GFX_BLOOM_FIX_ALT{{System::GFX, "Settings", "EFBScaledExcludeAlt"}, false};
 const Info<bool> GFX_BLOOM_FIX_BLUR{{System::GFX, "Settings", "EFBScaledExcludeBlur"}, false};

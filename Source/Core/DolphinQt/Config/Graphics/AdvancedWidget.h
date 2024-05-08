@@ -12,6 +12,7 @@ class ConfigSlider;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
+class QLabel;
 class QSpinBox;
 class ToolTipCheckBox;
 
@@ -31,6 +32,7 @@ private:
   void OnBackendChanged();
   void OnEmulationStateChanged(bool running);
   void UpdateBloomControls();
+  void UpdateSliderLabels();
 
   // Debugging
   ConfigBool* m_enable_wireframe;
@@ -79,10 +81,14 @@ private:
   ConfigBool* m_defer_efb_access_invalidation;
   ConfigBool* m_manual_texture_sampling;
 
-  // Scaled EFB bloom fixes
+  // EFB Bloom Fixes
+  QLabel* m_bloom_strength_val_label;
+  QLabel* m_bloom_blur_radius_val_label;
   ConfigBool* m_bloom_fix_check;
   ConfigBool* m_bloom_alt_check;
   ConfigBool* m_bloom_blur_check;
-  ConfigSlider* m_bloom_width_slider;
   ConfigInteger* m_bloom_width_integer;
+  ConfigSlider* m_bloom_width_slider;
+  ConfigSlider* m_bloom_strength_slider;
+  ConfigSlider* m_bloom_blur_radius_slider;
 };
