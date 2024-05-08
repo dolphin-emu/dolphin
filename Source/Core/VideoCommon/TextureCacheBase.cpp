@@ -2265,13 +2265,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     scaled_tex_h /= 2;
   }
 
-  if (!is_xfb_copy && !g_ActiveConfig.bCopyEFBScaled)
-  {
-    // No upscaling
-    scaled_tex_w = tex_w;
-    scaled_tex_h = tex_h;
-  }
-
   // Get the base (in memory) format of this efb copy.
   TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);
 
@@ -2299,6 +2292,25 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     ERROR_LOG_FMT(VIDEO, "Trying to copy from EFB to invalid address {:#010x}", dstAddr);
     return;
   }
+
+  bool scale_efb = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
+
+  // Bloom correction detection
+  if (scale_efb && !is_xfb_copy && g_ActiveConfig.bEFBExcludeEnabled &&
+      width <= g_ActiveConfig.iEFBExcludeWidth)
+  {
+    if (!g_ActiveConfig.bEFBExcludeAlt || m_bloom_dst_check == dst)
+      scale_efb = false;
+  }
+
+  if (!scale_efb)
+  {
+    // No upscaling
+    scaled_tex_w = tex_w;
+    scaled_tex_h = tex_h;
+  }
+
+  m_bloom_dst_check = dst;
 
   if (g_ActiveConfig.bGraphicMods)
   {

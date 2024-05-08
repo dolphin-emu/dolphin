@@ -8,6 +8,7 @@
 class ConfigBool;
 class ConfigChoice;
 class ConfigInteger;
+class ConfigSlider;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
@@ -29,6 +30,7 @@ private:
   void AddDescriptions();
   void OnBackendChanged();
   void OnEmulationStateChanged(bool running);
+  void UpdateBloomControls();
 
   // Debugging
   ConfigBool* m_enable_wireframe;
@@ -76,4 +78,10 @@ private:
   // Experimental
   ConfigBool* m_defer_efb_access_invalidation;
   ConfigBool* m_manual_texture_sampling;
+
+  // EFB exclusions
+  ConfigBool* m_bloom_fix_check;
+  ConfigBool* m_bloom_alt_check;
+  ConfigSlider* m_bloom_width_slider;
+  ConfigInteger* m_bloom_width_integer;
 };
