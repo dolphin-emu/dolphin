@@ -2368,21 +2368,17 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   }
 
   bool scale_efb = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
-  bool EFBBlur = false;
+  bool use_blur_shader = false;
 
-  // Bloom correction detection
-  if (scale_efb && !is_xfb_copy && g_ActiveConfig.bEFBExcludeEnabled &&
-      width <= g_ActiveConfig.iEFBExcludeWidth)
+  // Bloom correction detection.
+  if (!is_xfb_copy && g_ActiveConfig.bEFBExcludeEnabled &&
+      width <= g_ActiveConfig.iEFBExcludeWidth &&
+      (!g_ActiveConfig.bEFBExcludeAlt || m_bloom_dst_check == dst))
   {
-    if (!g_ActiveConfig.bEFBExcludeAlt || m_bloom_dst_check == dst)
-      scale_efb = false;
-
-    if (g_ActiveConfig.bEFBBlur && scale_efb == false)
-    {
-      // Scale it but blur it to fix.
-      scale_efb = true;
-      EFBBlur = g_ActiveConfig.bEFBBlur;
-    }
+    // Poorly upscaled EFB detected.
+    // Will accept the blur shader being used on unscaled EFBs as well.
+    use_blur_shader = g_ActiveConfig.bEFBBlur;
+    scale_efb = !g_ActiveConfig.bEFBExcludeDownscale && g_ActiveConfig.bCopyEFBScaled;
   }
 
   if (!scale_efb)
@@ -2476,7 +2472,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
       // Bloom fix
-      if (EFBBlur == true &&
+      if (use_blur_shader == true &&
           (baseFormat == TextureFormat::RGB565 || baseFormat == TextureFormat::RGBA8))
       {
         BlurCopy(entry);

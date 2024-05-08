@@ -243,6 +243,7 @@ struct VideoConfig final
 	u32 iEFBExcludeBlurRadius = 4;
 	bool bEFBExcludeAlt = false;
 	bool bEFBBlur = false;
+	bool bEFBExcludeDownscale = false;
 	bool bEFBExcludeEnabled = false;
 
 	// Stereoscopy

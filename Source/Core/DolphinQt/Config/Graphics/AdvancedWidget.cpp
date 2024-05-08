@@ -198,6 +198,7 @@ void AdvancedWidget::CreateWidgets()
   m_bloom_fix_check = new ConfigBool(tr("Enabled"), Config::GFX_BLOOM_FIX_ENABLED);
   m_bloom_alt_check = new ConfigBool(tr("Filter Less"), Config::GFX_BLOOM_FIX_ALT);
   m_bloom_blur_check = new ConfigBool(tr("Use Shader"), Config::GFX_BLOOM_FIX_BLUR);
+  m_bloom_downscale_check = new ConfigBool(tr("Downscale Bloom"), Config::GFX_BLOOM_FIX_DOWNSCALE);
   m_bloom_width_slider = new ConfigSlider(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
   m_bloom_width_integer = new ConfigInteger(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
   // Change stepping by a factor of 5. (20 = 100).
@@ -222,6 +223,7 @@ void AdvancedWidget::CreateWidgets()
   efb_layout_top->addStretch();
   efb_layout_top->addWidget(m_bloom_alt_check);
   efb_layout_top->addWidget(m_bloom_blur_check);
+  efb_layout_top->addWidget(m_bloom_downscale_check);
   efb_layout_width_integer->addWidget(new QLabel(tr("Width < ")));
   efb_layout_width_integer->addWidget(m_bloom_width_integer);
   efb_layout_width_integer->addWidget(m_bloom_width_slider);
@@ -327,6 +329,8 @@ void AdvancedWidget::UpdateBloomControls()
   const bool checked = m_bloom_fix_check->isChecked();
   const bool blur_checked = m_bloom_blur_check->isChecked();
   m_bloom_alt_check->setEnabled(checked);
+  m_bloom_blur_check->setEnabled(checked);
+  m_bloom_downscale_check->setEnabled(checked);
   m_bloom_width_integer->setEnabled(checked);
   m_bloom_width_slider->setEnabled(checked);
   m_bloom_blur_radius_slider->setEnabled(checked && blur_checked);
@@ -530,6 +534,7 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Uses a shader to fix bloom by blurring the texture rather than downscaling it. "
                  "Provides higher quality results in most games. Enables sliders for editing the "
                  "shader's radius and overall bloom strength. Typically not used with Downscale.");
+
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
       "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
