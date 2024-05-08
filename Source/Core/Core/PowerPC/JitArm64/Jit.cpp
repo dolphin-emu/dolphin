@@ -8,6 +8,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -1239,6 +1240,37 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
     else
     {
+      if (m_enable_debugging && !cpu.IsStepping() &&
+          m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
+      {
+        FlushCarry();
+        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+
+        static_assert(PPCSTATE_OFF(pc) <= 252);
+        static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+
+        MOVI2R(DISPATCHER_PC, op.address);
+        STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+        ABI_CallFunction(&PowerPC::CheckBreakPointsFromJIT, &m_system.GetPowerPC());
+
+        LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
+            MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
+        static_assert(Common::ToUnderlying(CPU::State::Running) == 0);
+        FixupBranch no_breakpoint = CBZ(ARM64Reg::W0);
+
+        Cleanup();
+        if (IsProfilingEnabled())
+        {
+          ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, b->profile_data.get(),
+                           js.downcountAmount);
+        }
+        DoDownCount();
+        B(dispatcher_exit);
+
+        SetJumpTarget(no_breakpoint);
+      }
+
       if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
         // This instruction uses FPU - needs to add FP exception bailout
@@ -1266,36 +1298,6 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SetJumpTarget(b1);
 
         js.firstFPInstructionFound = true;
-      }
-
-      if (m_enable_debugging && !cpu.IsStepping() &&
-          m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
-      {
-        FlushCarry();
-        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-
-        static_assert(PPCSTATE_OFF(pc) <= 252);
-        static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
-
-        MOVI2R(DISPATCHER_PC, op.address);
-        STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-        ABI_CallFunction(&PowerPC::CheckBreakPointsFromJIT, &m_system.GetPowerPC());
-
-        LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
-            MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
-        FixupBranch no_breakpoint = CBZ(ARM64Reg::W0);
-
-        Cleanup();
-        if (IsProfilingEnabled())
-        {
-          ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, b->profile_data.get(),
-                           js.downcountAmount);
-        }
-        DoDownCount();
-        B(dispatcher_exit);
-
-        SetJumpTarget(no_breakpoint);
       }
 
       if (bJITRegisterCacheOff)
