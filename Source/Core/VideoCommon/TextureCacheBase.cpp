@@ -353,6 +353,79 @@ RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const 
   return decoded_entry;
 }
 
+void TextureCacheBase::BlurCopy(RcTcacheEntry& existing_entry)
+{
+  // Complete novice coding, errors likely.
+  const AbstractPipeline* pipeline = g_shader_cache->GetTextureBlurPipeline();
+
+  if (!pipeline)
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to obtain texture blur pipeline");
+    return;
+  }
+
+  TextureConfig new_config = existing_entry->texture->GetConfig();
+  // new_config.levels = 1;
+  // new_config.flags |= AbstractTextureFlag_RenderTarget;
+
+  // Is there something better to use, since it is only temporary and is discarded?
+  RcTcacheEntry blur_entry = AllocateCacheEntry(new_config);
+  if (!blur_entry)
+    return;
+
+  blur_entry->SetGeneralParameters(existing_entry->addr, existing_entry->size_in_bytes,
+                                   existing_entry->format.texfmt,
+                                   existing_entry->should_force_safe_hashing);
+  blur_entry->SetDimensions(existing_entry->native_width, existing_entry->native_height, 1);
+  blur_entry->is_efb_copy = true;
+  blur_entry->may_have_overlapping_textures = false;
+  blur_entry->texture->FinishedRendering();
+
+  g_gfx->BeginUtilityDrawing();
+
+  struct Uniforms
+  {
+    u32 pass;
+    u32 width;
+    u32 height;
+    u32 blur_radius;
+    float blur_strength;
+  };
+
+  Uniforms uniforms;
+  uniforms.pass = 0;
+  uniforms.width = new_config.width;
+  uniforms.height = new_config.height;
+  uniforms.blur_radius = new_config.width / existing_entry->native_width;
+  uniforms.blur_strength = 1.0;
+
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+  g_gfx->SetAndDiscardFramebuffer(blur_entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(blur_entry->texture->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, existing_entry->texture.get());
+  g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
+
+  blur_entry->texture->FinishedRendering();
+
+  // Second pass
+  uniforms.pass = 1;
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+  g_gfx->SetAndDiscardFramebuffer(existing_entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(existing_entry->texture->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, blur_entry->texture.get());
+  g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
+
+  existing_entry->texture->FinishedRendering();
+}
+
 RcTcacheEntry TextureCacheBase::ReinterpretEntry(const RcTcacheEntry& existing_entry,
                                                  TextureFormat new_format)
 {
@@ -2294,6 +2367,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   }
 
   bool scale_efb = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
+  bool EFBBlur = false;
 
   // Bloom correction detection
   if (scale_efb && !is_xfb_copy && g_ActiveConfig.bEFBExcludeEnabled &&
@@ -2301,6 +2375,13 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   {
     if (!g_ActiveConfig.bEFBExcludeAlt || m_bloom_dst_check == dst)
       scale_efb = false;
+
+    if (g_ActiveConfig.bEFBBlur && scale_efb == false)
+    {
+      // Scale it but blur it to fix.
+      scale_efb = true;
+      EFBBlur = g_ActiveConfig.bEFBBlur;
+    }
   }
 
   if (!scale_efb)
@@ -2392,6 +2473,13 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter, dstFormat,
                           isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
+
+      // Bloom fix
+      if (EFBBlur == true &&
+          (baseFormat == TextureFormat::RGB565 || baseFormat == TextureFormat::RGBA8))
+      {
+        BlurCopy(entry);
+      }
 
       if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
       {

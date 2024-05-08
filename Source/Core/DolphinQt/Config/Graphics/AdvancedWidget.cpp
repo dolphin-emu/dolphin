@@ -187,7 +187,7 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_borderless_fullscreen, 2, 1);
 #endif
 
-  // Scaled EFB Bloom Fixes
+  // Scaled EFB bloom Fixes
   auto* efb_box = new QGroupBox(tr("Bloom Fixes"));
   auto* efb_layout = new QVBoxLayout();
   auto* efb_layout_width_integer = new QHBoxLayout();
@@ -196,6 +196,7 @@ void AdvancedWidget::CreateWidgets()
 
   m_bloom_fix_check = new ConfigBool(tr("Enabled"), Config::GFX_BLOOM_FIX_ENABLED);
   m_bloom_alt_check = new ConfigBool(tr("Filter Less"), Config::GFX_BLOOM_FIX_ALT);
+  m_bloom_blur_check = new ConfigBool(tr("Use Shader"), Config::GFX_BLOOM_FIX_BLUR);
   m_bloom_width_slider = new ConfigSlider(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
   m_bloom_width_integer = new ConfigInteger(0, EFB_WIDTH, Config::GFX_BLOOM_FIX_WIDTH, 1);
 
@@ -207,6 +208,7 @@ void AdvancedWidget::CreateWidgets()
   efb_layout_top->addWidget(m_bloom_fix_check);
   efb_layout_top->addStretch();
   efb_layout_top->addWidget(m_bloom_alt_check);
+  efb_layout_top->addWidget(m_bloom_blur_check);
   efb_layout_width_integer->addWidget(new QLabel(tr("Width < ")));
   efb_layout_width_integer->addWidget(m_bloom_width_integer);
   efb_layout_width_integer->addWidget(m_bloom_width_slider);
@@ -295,6 +297,7 @@ void AdvancedWidget::UpdateBloomControls()
 {
   const bool checked = m_bloom_fix_check->isChecked();
   m_bloom_alt_check->setEnabled(checked);
+  m_bloom_blur_check->setEnabled(checked);
   m_bloom_width_integer->setEnabled(checked);
   m_bloom_width_slider->setEnabled(checked);
 }
@@ -479,6 +482,9 @@ void AdvancedWidget::AddDescriptions()
                  "issues in some games."
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_BLUR_DESCRIPTION[] =
+      QT_TR_NOOP("Fixes bloom by blurring the texture rather than downscaling it. Provides higher "
+                 "quality results in most games.");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
@@ -526,6 +532,8 @@ void AdvancedWidget::AddDescriptions()
   m_bloom_width_slider->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
   m_bloom_alt_check->SetTitle(tr("Reduce amount of exclusions"));
   m_bloom_alt_check->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_ALT_DESCRIPTION));
+  m_bloom_blur_check->SetTitle(tr("Use Shader"));
+  m_bloom_blur_check->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_BLUR_DESCRIPTION));
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif

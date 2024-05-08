@@ -79,9 +79,10 @@ private:
   ConfigBool* m_defer_efb_access_invalidation;
   ConfigBool* m_manual_texture_sampling;
 
-  // EFB exclusions
+  // Scaled EFB bloom fixes
   ConfigBool* m_bloom_fix_check;
   ConfigBool* m_bloom_alt_check;
+  ConfigBool* m_bloom_blur_check;
   ConfigSlider* m_bloom_width_slider;
   ConfigInteger* m_bloom_width_integer;
 };

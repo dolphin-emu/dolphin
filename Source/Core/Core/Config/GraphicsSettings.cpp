@@ -111,6 +111,7 @@ const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION{
 const Info<bool> GFX_CPU_CULL{{System::GFX, "Settings", "CPUCull"}, false};
 const Info<int> GFX_BLOOM_FIX_WIDTH{{System::GFX, "Settings", "EFBScaledExclude"}, 0};
 const Info<bool> GFX_BLOOM_FIX_ALT{{System::GFX, "Settings", "EFBScaledExcludeAlt"}, false};
+const Info<bool> GFX_BLOOM_FIX_BLUR{{System::GFX, "Settings", "EFBScaledExcludeBlur"}, false};
 const Info<bool> GFX_BLOOM_FIX_ENABLED{{System::GFX, "Settings", "EFBScaledExcludeEnabled"}, false};
 
 const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS{
