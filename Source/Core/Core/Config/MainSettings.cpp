@@ -575,8 +575,11 @@ const Info<bool> MAIN_EMULATE_INFINITY_BASE{
 const Info<bool> MAIN_EMULATE_WII_SPEAK{{System::Main, "EmulatedUSBDevices", "EmulateWiiSpeak"},
                                         false};
 
-const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{{System::Main, "General", "WiiSpeakMicrophone"},
-                                             ""};
+const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{
+    {System::Main, "EmulatedUSBDevices", "WiiSpeakMicrophone"}, ""};
+
+const Info<bool> MAIN_WII_SPEAK_CONNECTED{{System::Main, "EmulatedUSBDevices", "WiiSpeakConnected"},
+                                          false};
 
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.

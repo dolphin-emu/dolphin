@@ -5,10 +5,15 @@
 
 #include <functional>
 #include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 struct cubeb;
 
 namespace CubebUtils
 {
 std::shared_ptr<cubeb> GetContext();
+std::vector<std::pair<std::string, std::string>> ListInputDevices();
+const void* GetInputDeviceById(const std::string& id);
 }  // namespace CubebUtils
