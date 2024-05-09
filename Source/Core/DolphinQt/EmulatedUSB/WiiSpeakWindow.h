@@ -10,6 +10,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QGroupBox;
 
 class WiiSpeakWindow : public QWidget
 {
@@ -22,7 +23,10 @@ private:
   void CreateMainWindow();
   void OnEmulationStateChanged(Core::State state);
   void EmulateWiiSpeak(bool emulate);
+  void SetWiiSpeakConnectionState(bool connected);
+  void OnInputDeviceChange();
 
-  QCheckBox* m_checkbox;
+  QCheckBox* m_checkbox_enabled;
   QComboBox* m_combobox_microphones;
+  QGroupBox* m_config_group;
 };

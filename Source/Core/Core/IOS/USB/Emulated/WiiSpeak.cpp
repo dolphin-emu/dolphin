@@ -3,74 +3,17 @@
 
 #include "Core/IOS/USB/Emulated/WiiSpeak.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
-
 
 namespace IOS::HLE::USB
 {
-WiiSpeak::WiiSpeak(IOS::HLE::EmulationKernel& ios, const std::string& device_name) : m_ios(ios)
+WiiSpeak::WiiSpeak(IOS::HLE::EmulationKernel& ios) : m_ios(ios)
 {
-  m_vid = 0x57E;
-  m_pid = 0x0308;
-  m_id = (u64(m_vid) << 32 | u64(m_pid) << 16 | u64(9) << 8 | u64(1));
-  m_device_descriptor =
-      DeviceDescriptor{0x12, 0x1, 0x200, 0, 0, 0, 0x10, 0x57E, 0x0308, 0x0214, 0x1, 0x2, 0x0, 0x1};
-  m_config_descriptor.emplace_back(ConfigDescriptor{0x9, 0x2, 0x0030, 0x1, 0x1, 0x0, 0x80, 0x32});
-  m_interface_descriptor.emplace_back(
-      InterfaceDescriptor{0x9, 0x4, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0x0});
-  m_interface_descriptor.emplace_back(
-      InterfaceDescriptor{0x9, 0x4, 0x0, 0x01, 0x03, 0xFF, 0xFF, 0xFF, 0x0});
-  m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x81, 0x1, 0x0020, 0x1});
-  m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x2, 0x2, 0x0020, 0});
-  m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x3, 0x1, 0x0040, 1});
-
-  m_microphone = Microphone();
-  if (m_microphone.OpenMicrophone() != 0)
-  {
-    ERROR_LOG_FMT(IOS_USB, "Error opening the microphone.");
-    b_is_mic_connected = false;
-    return;
-  }
-
-  if (m_microphone.StartCapture() != 0)
-  {
-    ERROR_LOG_FMT(IOS_USB, "Error starting captures.");
-    b_is_mic_connected = false;
-    return;
-  }
-
-  m_microphone_thread = std::thread([this] {
-    u64 timeout{};
-    constexpr u64 TIMESTEP = 256ull * 1'000'000ull / 48000ull;
-    while (true)
-    {
-      if (m_shutdown_event.WaitFor(std::chrono::microseconds{timeout}))
-        return;
-
-      std::lock_guard lg(m_mutex);
-      timeout = TIMESTEP - (std::chrono::duration_cast<std::chrono::microseconds>(
-                                std::chrono::steady_clock::now().time_since_epoch())
-                                .count() %
-                            TIMESTEP);
-      m_microphone.PerformAudioCapture();
-      m_microphone.GetSoundData();
-    }
-  });
+  m_id = u64(m_vid) << 32 | u64(m_pid) << 16 | u64(9) << 8 | u64(1);
 }
 
-WiiSpeak::~WiiSpeak()
-{
-  {
-    std::lock_guard lg(m_mutex);
-    if (!m_microphone_thread.joinable())
-      return;
-
-    m_shutdown_event.Set();
-  }
-
-  m_microphone_thread.join();
-  m_microphone.StopCapture();
-}
+WiiSpeak::~WiiSpeak() = default;
 
 DeviceDescriptor WiiSpeak::GetDeviceDescriptor() const
 {
@@ -98,6 +41,8 @@ bool WiiSpeak::Attach()
     return true;
 
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x}] Opening device", m_vid, m_pid);
+  if (!m_microphone)
+    m_microphone = std::make_unique<Microphone>();
   m_device_attached = true;
   return true;
 }
@@ -147,15 +92,18 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                 m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
                 cmd->index, cmd->length);
 
-  if (!b_is_mic_connected)
-    return IPC_ENOENT;
+  // Without a proper way to reconnect the emulated Wii Speak,
+  // this error after being raised prevents some games to use the microphone later.
+  //
+  // if (!IsMicrophoneConnected())
+  //  return IPC_ENOENT;
 
   switch (cmd->request_type << 8 | cmd->request)
   {
   case USBHDR(DIR_DEVICE2HOST, TYPE_STANDARD, REC_INTERFACE, REQUEST_GET_INTERFACE):
   {
-    std::array<u8, 1> data{1};
-    cmd->FillBuffer(data.data(), 1);
+    const u8 data{1};
+    cmd->FillBuffer(&data, sizeof(data));
     cmd->ScheduleTransferCompletion(1, 100);
     break;
   }
@@ -169,15 +117,15 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   {
     if (!init)
     {
-      std::array<u8, 1> data{0};
-      cmd->FillBuffer(data.data(), 1);
+      const u8 data{0};
+      cmd->FillBuffer(&data, sizeof(data));
       m_ios.EnqueueIPCReply(cmd->ios_request, IPC_SUCCESS);
       init = true;
     }
     else
     {
-      std::array<u8, 1> data{1};
-      cmd->FillBuffer(data.data(), 1);
+      const u8 data{1};
+      cmd->FillBuffer(&data, sizeof(data));
       m_ios.EnqueueIPCReply(cmd->ios_request, IPC_SUCCESS);
     }
     break;
@@ -196,22 +144,24 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   }
 
   return IPC_SUCCESS;
-};
+}
+
 int WiiSpeak::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
 {
   m_ios.EnqueueIPCReply(cmd->ios_request, IPC_SUCCESS);
   return IPC_SUCCESS;
-};
+}
+
 int WiiSpeak::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 {
   m_ios.EnqueueIPCReply(cmd->ios_request, IPC_SUCCESS);
   return IPC_SUCCESS;
-};
+}
 
 int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
-  if (!b_is_mic_connected)
-    return IPC_ENOENT;
+  // if (!IsMicrophoneConnected())
+  //   return IPC_ENOENT;
 
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
@@ -222,17 +172,16 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
     ERROR_LOG_FMT(IOS_USB, "Wii Speak command invalid");
     return IPC_EINVAL;
   }
-
-  if (cmd->endpoint == 0x81 && m_microphone.HasData())
-    m_microphone.ReadIntoBuffer(packets, cmd->length);
+  if (cmd->endpoint == 0x81 && m_microphone && m_microphone->HasData())
+    m_microphone->ReadIntoBuffer(packets, cmd->length);
 
   // Anything more causes the visual cue to not appear.
   // Anything less is more choppy audio.
-  cmd->ScheduleTransferCompletion(IPC_SUCCESS, 20000);
+  cmd->ScheduleTransferCompletion(IPC_SUCCESS, 2500);
   return IPC_SUCCESS;
-};
+}
 
-void WiiSpeak::SetRegister(std::unique_ptr<CtrlMessage>& cmd)
+void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
 {
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
@@ -243,21 +192,21 @@ void WiiSpeak::SetRegister(std::unique_ptr<CtrlMessage>& cmd)
   switch (reg)
   {
   case SAMPLER_STATE:
-    sampler.sample_on = !!arg1;
+    m_sampler.sample_on = !!arg1;
     break;
   case SAMPLER_FREQ:
     switch (arg1)
     {
     case FREQ_8KHZ:
-      sampler.freq = 8000;
+      m_sampler.freq = 8000;
       break;
     case FREQ_11KHZ:
-      sampler.freq = 11025;
+      m_sampler.freq = 11025;
       break;
     case FREQ_RESERVED:
     case FREQ_16KHZ:
     default:
-      sampler.freq = 16000;
+      m_sampler.freq = 16000;
       break;
     }
     break;
@@ -265,28 +214,28 @@ void WiiSpeak::SetRegister(std::unique_ptr<CtrlMessage>& cmd)
     switch (arg1 & ~0x300)
     {
     case GAIN_00dB:
-      sampler.gain = 0;
+      m_sampler.gain = 0;
       break;
     case GAIN_15dB:
-      sampler.gain = 15;
+      m_sampler.gain = 15;
       break;
     case GAIN_30dB:
-      sampler.gain = 30;
+      m_sampler.gain = 30;
       break;
     case GAIN_36dB:
     default:
-      sampler.gain = 36;
+      m_sampler.gain = 36;
       break;
     }
     break;
   case EC_STATE:
-    sampler.ec_reset = !!arg1;
+    m_sampler.ec_reset = !!arg1;
     break;
   case SP_STATE:
     switch (arg1)
     {
     case SP_ENABLE:
-      sampler.sp_on = arg2 == 0;
+      m_sampler.sp_on = arg2 == 0;
       break;
     case SP_SIN:
     case SP_SOUT:
@@ -295,12 +244,12 @@ void WiiSpeak::SetRegister(std::unique_ptr<CtrlMessage>& cmd)
     }
     break;
   case SAMPLER_MUTE:
-    sampler.mute = !!arg1;
+    m_sampler.mute = !!arg1;
     break;
   }
 }
 
-void WiiSpeak::GetRegister(std::unique_ptr<CtrlMessage>& cmd)
+void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
 {
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
@@ -311,10 +260,10 @@ void WiiSpeak::GetRegister(std::unique_ptr<CtrlMessage>& cmd)
   switch (reg)
   {
   case SAMPLER_STATE:
-    memory.Write_U16(sampler.sample_on ? 1 : 0, arg1);
+    memory.Write_U16(m_sampler.sample_on ? 1 : 0, arg1);
     break;
   case SAMPLER_FREQ:
-    switch (sampler.freq)
+    switch (m_sampler.freq)
     {
     case 8000:
       memory.Write_U16(FREQ_8KHZ, arg1);
@@ -329,7 +278,7 @@ void WiiSpeak::GetRegister(std::unique_ptr<CtrlMessage>& cmd)
     }
     break;
   case SAMPLER_GAIN:
-    switch (sampler.gain)
+    switch (m_sampler.gain)
     {
     case 0:
       memory.Write_U16(0x300 | GAIN_00dB, arg1);
@@ -347,7 +296,7 @@ void WiiSpeak::GetRegister(std::unique_ptr<CtrlMessage>& cmd)
     }
     break;
   case EC_STATE:
-    memory.Write_U16(sampler.ec_reset ? 1 : 0, arg1);
+    memory.Write_U16(m_sampler.ec_reset ? 1 : 0, arg1);
     break;
   case SP_STATE:
     switch (memory.Read_U16(arg1))
@@ -365,8 +314,13 @@ void WiiSpeak::GetRegister(std::unique_ptr<CtrlMessage>& cmd)
     }
     break;
   case SAMPLER_MUTE:
-    memory.Write_U16(sampler.mute ? 1 : 0, arg1);
+    memory.Write_U16(m_sampler.mute ? 1 : 0, arg1);
     break;
   }
+}
+
+bool WiiSpeak::IsMicrophoneConnected() const
+{
+  return Config::Get(Config::MAIN_WII_SPEAK_CONNECTED);
 }
 }  // namespace IOS::HLE::USB

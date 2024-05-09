@@ -4,12 +4,9 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
-#include <thread>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/Emulated/Microphone.h"
 #include "Core/System.h"
@@ -19,8 +16,9 @@ namespace IOS::HLE::USB
 class WiiSpeak final : public Device
 {
 public:
-  WiiSpeak(EmulationKernel& ios, const std::string& device_name);
+  WiiSpeak(EmulationKernel& ios);
   ~WiiSpeak();
+
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;
@@ -47,7 +45,7 @@ private:
     bool sp_on;
   };
 
-  WSState sampler{};
+  WSState m_sampler{};
 
   enum Registers
   {
@@ -75,23 +73,26 @@ private:
     SP_RIN = 0x200d
   };
 
-  void GetRegister(std::unique_ptr<CtrlMessage>& cmd);
-  void SetRegister(std::unique_ptr<CtrlMessage>& cmd);
+  void GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const;
+  void SetRegister(const std::unique_ptr<CtrlMessage>& cmd);
+  bool IsMicrophoneConnected() const;
 
   EmulationKernel& m_ios;
-  u16 m_vid = 0;
-  u16 m_pid = 0;
+  const u16 m_vid = 0x057E;
+  const u16 m_pid = 0x0308;
   u8 m_active_interface = 0;
   bool m_device_attached = false;
   bool init = false;
-  bool b_is_mic_connected = true;
-  Microphone m_microphone;
-  DeviceDescriptor m_device_descriptor{};
-  std::vector<ConfigDescriptor> m_config_descriptor;
-  std::vector<InterfaceDescriptor> m_interface_descriptor;
-  std::vector<EndpointDescriptor> m_endpoint_descriptor;
-  std::thread m_microphone_thread;
-  std::mutex m_mutex;
-  Common::Event m_shutdown_event;
+  std::unique_ptr<Microphone> m_microphone{};
+  const DeviceDescriptor m_device_descriptor{0x12,  0x1,    0x200,  0,   0,   0,   0x10,
+                                             0x57E, 0x0308, 0x0214, 0x1, 0x2, 0x0, 0x1};
+  const std::vector<ConfigDescriptor> m_config_descriptor{
+      {0x9, 0x2, 0x0030, 0x1, 0x1, 0x0, 0x80, 0x32}};
+  const std::vector<InterfaceDescriptor> m_interface_descriptor{
+      {0x9, 0x4, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0x0},
+      {0x9, 0x4, 0x0, 0x01, 0x03, 0xFF, 0xFF, 0xFF, 0x0}};
+  const std::vector<EndpointDescriptor> m_endpoint_descriptor{{0x7, 0x5, 0x81, 0x1, 0x0020, 0x1},
+                                                              {0x7, 0x5, 0x2, 0x2, 0x0020, 0},
+                                                              {0x7, 0x5, 0x3, 0x1, 0x0040, 1}};
 };
 }  // namespace IOS::HLE::USB
