@@ -3,6 +3,7 @@
   <!--This file is included by Dolphin code only-->
   <PropertyGroup>
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
+    <EnableCubeb>true</EnableCubeb>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -47,7 +48,7 @@
       <PreprocessorDefinitions>USE_RETRO_ACHIEVEMENTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>RC_CLIENT_SUPPORTS_HASH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>RC_CLIENT_SUPPORTS_RAINTEGRATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions>HAVE_CUBEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(EnableCubeb)'!='false'">HAVE_CUBEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 
       <!-- Warnings one may want to ignore when using Level4.
       4201  nonstandard extension used : nameless struct/union
