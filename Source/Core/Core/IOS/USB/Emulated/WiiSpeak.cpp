@@ -214,22 +214,6 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
   DEBUG_LOG_FMT(IOS_USB, "Wii Speak register set (reg={:02x}, arg1={:04x}, arg2={:04x})", reg, arg1,
                 arg2);
 
-  // TODO
-  //
-  // - On Wii Speak Channel start
-  // W[IOS_USB]: Wii Speak unsupported register set (reg=0c, arg1=0000, arg2=0000)
-  // W[IOS_USB]: Wii Speak unsupported register get (reg=0c, arg1=109091e2, arg2=109091e4)
-  //
-  // - On Wii Speak Channel close
-  // W[IOS_USB]: Wii Speak unsupported register set (reg=0c, arg1=0001, arg2=0000)
-  // W[IOS_USB]: Wii Speak unsupported register get (reg=0c, arg1=109091e2, arg2=109091e4)
-  //
-  // - On Monster Hunter 3 (RMHE08) online start
-  // N[OSREPORT_HLE]: 80450a20->80418adc| ok to call PMICStartAsync() -> 0
-  // W[IOS_USB]: Wii Speak unsupported register set (reg=0c, arg1=0000, arg2=0000)
-  // W[IOS_USB]: Wii Speak unsupported register get (reg=0c, arg1=10037f62, arg2=10037f64)
-  // N[OSREPORT_HLE]: 80450a94->80418adc| ok to start P-Mic -> 0.
-
   switch (reg)
   {
   case SAMPLER_STATE:

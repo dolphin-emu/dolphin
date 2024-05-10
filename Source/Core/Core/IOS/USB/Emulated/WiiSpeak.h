@@ -50,7 +50,7 @@ private:
   enum Registers
   {
     SAMPLER_STATE = 0,
-    SAMPLER_MUTE = 0xc0,
+    SAMPLER_MUTE = 0x0c,
 
     SAMPLER_FREQ = 2,
     FREQ_8KHZ = 0,
