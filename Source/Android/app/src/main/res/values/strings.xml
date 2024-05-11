@@ -914,6 +914,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="infinity_number">Figure Number</string>
     <string name="invalid_infinity_figure">Invalid Figure Selection</string>
     <string name="infinity_hexagon_label">Power Disc/Play Set</string>
+    <string name="infinity_power_hex_two_label">Power Disc Two</string>
+    <string name="infinity_power_hex_three_label">Power Disc Three</string>
     <string name="infinity_p1_label">Player One</string>
     <string name="infinity_p2_label">Player Two</string>
     <string name="infinity_p1a1_label">P1 Ability One</string>
