@@ -80,7 +80,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private var infinityFigureData = Figure(-1, "Position")
     private var skylanderSlot = -1
     private var infinityPosition = -1
-    private var infinityListPosition = -1
     private lateinit var skylandersBinding: DialogNfcFiguresManagerBinding
     private lateinit var infinityBinding: DialogNfcFiguresManagerBinding
 
@@ -140,12 +139,14 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         if (infinityFigures.isEmpty()) {
             infinityFigures.apply {
                 add(FigureSlot(getString(R.string.infinity_hexagon_label), 0))
-                add(FigureSlot(getString(R.string.infinity_p1_label), 1))
-                add(FigureSlot(getString(R.string.infinity_p1a1_label), 3))
+                add(FigureSlot(getString(R.string.infinity_power_hex_two_label), 1))
+                add(FigureSlot(getString(R.string.infinity_power_hex_three_label), 2))
+                add(FigureSlot(getString(R.string.infinity_p1_label), 3))
+                add(FigureSlot(getString(R.string.infinity_p1a1_label), 4))
                 add(FigureSlot(getString(R.string.infinity_p1a2_label), 5))
-                add(FigureSlot(getString(R.string.infinity_p2_label), 2))
-                add(FigureSlot(getString(R.string.infinity_p2a1_label), 4))
-                add(FigureSlot(getString(R.string.infinity_p2a2_label), 6))
+                add(FigureSlot(getString(R.string.infinity_p2_label), 6))
+                add(FigureSlot(getString(R.string.infinity_p2a1_label), 7))
+                add(FigureSlot(getString(R.string.infinity_p2a2_label), 8))
             }
         }
     }
@@ -164,7 +165,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             putInt(EXTRA_SKYLANDER_VAR, skylanderData.variant)
             putString(EXTRA_SKYLANDER_NAME, skylanderData.name)
             putInt(EXTRA_INFINITY_POSITION, infinityPosition)
-            putInt(EXTRA_INFINITY_LIST_POSITION, infinityListPosition)
             putLong(EXTRA_INFINITY_NUM, infinityFigureData.number)
             putString(EXTRA_INFINITY_NAME, infinityFigureData.name)
         }
@@ -183,7 +183,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 savedInstanceState.getString(EXTRA_SKYLANDER_NAME)!!
             )
             infinityPosition = savedInstanceState.getInt(EXTRA_INFINITY_POSITION)
-            infinityListPosition = savedInstanceState.getInt(EXTRA_INFINITY_LIST_POSITION)
             infinityFigureData = Figure(
                 savedInstanceState.getLong(EXTRA_INFINITY_NUM),
                 savedInstanceState.getString(EXTRA_INFINITY_NAME)!!
@@ -297,11 +296,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             } else if (requestCode == REQUEST_INFINITY_FIGURE_FILE) {
                 val label = InfinityConfig.loadFigure(infinityPosition, result!!.data.toString())
                 if (label != null && label != "Unknown Figure") {
-                    clearInfinityFigure(infinityListPosition)
-                    infinityFigures[infinityListPosition].label = label
-                    infinityBinding.figureManager.adapter?.notifyItemChanged(infinityListPosition)
+                    clearInfinityFigure(infinityPosition)
+                    infinityFigures[infinityPosition].label = label
+                    infinityBinding.figureManager.adapter?.notifyItemChanged(infinityPosition)
                     infinityPosition = -1
-                    infinityListPosition = -1
                     infinityFigureData = Figure.BLANK_FIGURE
                 } else {
                     MaterialAlertDialogBuilder(this)
@@ -317,11 +315,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                         result!!.data.toString(),
                         infinityPosition
                     )
-                    clearInfinityFigure(infinityListPosition)
-                    infinityFigures[infinityListPosition].label = label!!
-                    infinityBinding.figureManager.adapter?.notifyItemChanged(infinityListPosition)
+                    clearInfinityFigure(infinityPosition)
+                    infinityFigures[infinityPosition].label = label!!
+                    infinityBinding.figureManager.adapter?.notifyItemChanged(infinityPosition)
                     infinityPosition = -1
-                    infinityListPosition = -1
                     infinityFigureData = Figure.BLANK_FIGURE
                 }
             }
@@ -906,18 +903,19 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     fun setInfinityFigureData(num: Long, name: String, position: Int, listPosition: Int) {
         infinityFigureData = Figure(num, name)
         infinityPosition = position
-        infinityListPosition = listPosition
     }
 
     fun clearInfinityFigure(position: Int) {
         when (position) {
             0 -> infinityFigures[position].label = getString(R.string.infinity_hexagon_label)
-            1 -> infinityFigures[position].label = getString(R.string.infinity_p1_label)
-            2 -> infinityFigures[position].label = getString(R.string.infinity_p1a1_label)
-            3 -> infinityFigures[position].label = getString(R.string.infinity_p1a2_label)
-            4 -> infinityFigures[position].label = getString(R.string.infinity_p2_label)
-            5 -> infinityFigures[position].label = getString(R.string.infinity_p2a1_label)
-            6 -> infinityFigures[position].label = getString(R.string.infinity_p2a2_label)
+            1 -> infinityFigures[position].label = getString(R.string.infinity_power_hex_two_label)
+            2 -> infinityFigures[position].label = getString(R.string.infinity_power_hex_three_label)
+            3 -> infinityFigures[position].label = getString(R.string.infinity_p1_label)
+            4 -> infinityFigures[position].label = getString(R.string.infinity_p1a1_label)
+            5 -> infinityFigures[position].label = getString(R.string.infinity_p1a2_label)
+            6 -> infinityFigures[position].label = getString(R.string.infinity_p2_label)
+            7 -> infinityFigures[position].label = getString(R.string.infinity_p2a1_label)
+            8 -> infinityFigures[position].label = getString(R.string.infinity_p2a2_label)
         }
         infinityBinding.figureManager.adapter?.notifyItemChanged(position)
     }

@@ -89,7 +89,7 @@ public:
 
 protected:
   std::mutex m_infinity_mutex;
-  std::array<InfinityFigure, 7> m_figures;
+  std::array<InfinityFigure, 9> m_figures;
 
 private:
   InfinityFigure& GetFigureByOrder(u8 order_added);

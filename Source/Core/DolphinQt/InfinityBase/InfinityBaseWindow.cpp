@@ -79,17 +79,21 @@ void InfinityBaseWindow::CreateMainWindow()
 
   AddFigureSlot(vbox_group, tr("Play Set/Power Disc"), 0);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player One"), 1);
+  AddFigureSlot(vbox_group, tr("Power Disc Two"), 1);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player One Ability One"), 3);
+  AddFigureSlot(vbox_group, tr("Power Disc Three"), 2);
+  add_line(vbox_group);
+  AddFigureSlot(vbox_group, tr("Player One"), 3);
+  add_line(vbox_group);
+  AddFigureSlot(vbox_group, tr("Player One Ability One"), 4);
   add_line(vbox_group);
   AddFigureSlot(vbox_group, tr("Player One Ability Two"), 5);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player Two"), 2);
+  AddFigureSlot(vbox_group, tr("Player Two"), 6);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player Two Ability One"), 4);
+  AddFigureSlot(vbox_group, tr("Player Two Ability One"), 7);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, tr("Player Two Ability Two"), 6);
+  AddFigureSlot(vbox_group, tr("Player Two Ability Two"), 8);
 
   m_group_figures->setLayout(vbox_group);
   scroll_area->setWidget(m_group_figures);
@@ -203,8 +207,9 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
     // Only display entry if it is a piece appropriate for the slot
     if ((slot == 0 &&
          ((figure > 0x1E8480 && figure < 0x2DC6BF) || (figure > 0x3D0900 && figure < 0x4C4B3F))) ||
-        ((slot == 1 || slot == 2) && figure < 0x1E847F) ||
-        ((slot == 3 || slot == 4 || slot == 5 || slot == 6) &&
+        ((slot == 1 || slot == 2) && (figure > 0x3D0900 && figure < 0x4C4B3F)) ||
+        ((slot == 3 || slot == 6) && figure < 0x1E847F) ||
+        ((slot == 4 || slot == 5 || slot == 7 || slot == 8) &&
          (figure > 0x2DC6C0 && figure < 0x3D08FF)))
     {
       const auto figure_name = QString::fromStdString(entry.first);

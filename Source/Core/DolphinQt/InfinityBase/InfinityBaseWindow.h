@@ -28,7 +28,7 @@ public:
   ~InfinityBaseWindow() override;
 
 protected:
-  std::array<QLineEdit*, 7> m_edit_figures;
+  std::array<QLineEdit*, 9> m_edit_figures;
 
 private:
   void CreateMainWindow();

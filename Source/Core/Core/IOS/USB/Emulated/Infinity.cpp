@@ -628,6 +628,11 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
   order_added = figure.order_added;
 
   position = DeriveFigurePosition(position);
+  if (position == 0)
+  {
+    ERROR_LOG_FMT(IOS_USB, "Invalid Position for Infinity Figure");
+    return "Unknown Figure";
+  }
 
   std::array<u8, 32> figure_change_response = {0xab, 0x04, position, 0x09, order_added, 0x00};
   figure_change_response[6] = GenerateChecksum(figure_change_response, 6);
@@ -649,9 +654,14 @@ void InfinityBase::RemoveFigure(u8 position)
 
   if (figure.present)
   {
-    figure.present = false;
-
     position = DeriveFigurePosition(position);
+    if (position == 0)
+    {
+      ERROR_LOG_FMT(IOS_USB, "Invalid Position for Infinity Figure");
+      return;
+    }
+
+    figure.present = false;
 
     std::array<u8, 32> figure_change_response = {0xab, 0x04, position, 0x09, figure.order_added,
                                                  0x01};
@@ -744,14 +754,28 @@ std::string InfinityBase::FindFigure(u32 number) const
 u8 InfinityBase::DeriveFigurePosition(u8 position)
 {
   // In the added/removed response, position needs to be 1 for the hexagon, 2 for Player 1 and
-  // Player 1's abilities, and 3 for Player 2 and Player 2's abilities. Abilities are in positions
-  // > 2 in the UI (3/5 for player 1, 4/6 for player 2) so decrement the position until < 2.
+  // Player 1's abilities, and 3 for Player 2 and Player 2's abilities. In the UI, positions 0, 1
+  // and 2 represent the hexagon slot, 3, 4 and 5 represent Player 1's slot and 6, 7 and 8 represent
+  // Player 2's slot.
 
-  while (position > 2)
-    position -= 2;
+  switch (position)
+  {
+  case 0:
+  case 1:
+  case 2:
+    return 1;
+  case 3:
+  case 4:
+  case 5:
+    return 2;
+  case 6:
+  case 7:
+  case 8:
+    return 3;
 
-  position++;
-  return position;
+  default:
+    return 0;
+  }
 }
 
 InfinityFigure& InfinityBase::GetFigureByOrder(u8 order_added)
