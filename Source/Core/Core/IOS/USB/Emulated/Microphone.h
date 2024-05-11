@@ -34,11 +34,11 @@ private:
   void StopStream();
 
   static constexpr u32 SAMPLING_RATE = 8000;
-  static constexpr u32 BUFFER_SIZE = SAMPLING_RATE / 2;
+  using SampleType = s16;
   static constexpr u32 BUFF_SIZE_SAMPLES = 16;
   static constexpr u32 STREAM_SIZE = BUFF_SIZE_SAMPLES * 500;
 
-  std::array<s16, STREAM_SIZE> m_stream_buffer{};
+  std::array<SampleType, STREAM_SIZE> m_stream_buffer{};
   u32 m_stream_wpos = 0;
   u32 m_stream_rpos = 0;
   u32 m_samples_avail = 0;
