@@ -188,6 +188,7 @@ long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void*
   mic->m_samples_avail += nframes;
   if (mic->m_samples_avail > mic->STREAM_SIZE)
   {
+    WARN_LOG_FMT(IOS_USB, "Wii Speak ring buffer is full, data will be lost!");
     mic->m_samples_avail = 0;
   }
 
@@ -196,17 +197,29 @@ long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void*
 
 void Microphone::ReadIntoBuffer(u8* dst, u32 size)
 {
+  static constexpr u32 SINGLE_READ_SIZE = BUFF_SIZE_SAMPLES * sizeof(SampleType);
+
+  // Avoid buffer overflow during memcpy
+  static_assert((STREAM_SIZE % BUFF_SIZE_SAMPLES) == 0,
+                "The STREAM_SIZE isn't a multiple of BUFF_SIZE_SAMPLES");
+
   std::lock_guard lk(m_ring_lock);
 
-  if (m_samples_avail >= BUFF_SIZE_SAMPLES)
+  for (u8* end = dst + size; dst < end; dst += SINGLE_READ_SIZE, size -= SINGLE_READ_SIZE)
   {
-    u8* last_buffer = reinterpret_cast<u8*>(&m_stream_buffer[m_stream_rpos]);
-    std::memcpy(dst, static_cast<u8*>(last_buffer), size);
+    if (size < SINGLE_READ_SIZE || m_samples_avail < BUFF_SIZE_SAMPLES)
+      break;
+
+    SampleType* last_buffer = &m_stream_buffer[m_stream_rpos];
+    std::memcpy(dst, last_buffer, SINGLE_READ_SIZE);
 
     m_samples_avail -= BUFF_SIZE_SAMPLES;
-
     m_stream_rpos += BUFF_SIZE_SAMPLES;
     m_stream_rpos %= STREAM_SIZE;
+  }
+  if (size != 0)
+  {
+    std::memset(dst, 0, size);
   }
 }
 
