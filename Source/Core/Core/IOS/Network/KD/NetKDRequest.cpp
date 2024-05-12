@@ -931,7 +931,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
     return IPCReply{IPC_SUCCESS};
   }
 
-  const Common::SettingsHandler gen{std::move(data)};
+  const Common::SettingsHandler gen{data};
   const std::string serno = gen.GetValue("SERNO");
   const std::string form_data =
       fmt::format("mlid=w{}&hdid={}&rgncd={}", m_config.Id(), m_ios.GetIOSC().GetDeviceId(), serno);
@@ -1079,7 +1079,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
         Common::SettingsHandler::Buffer data;
         if (file->Read(data.data(), data.size()))
         {
-          const Common::SettingsHandler gen{std::move(data)};
+          const Common::SettingsHandler gen{data};
           area = gen.GetValue("AREA");
           model = gen.GetValue("MODEL");
         }

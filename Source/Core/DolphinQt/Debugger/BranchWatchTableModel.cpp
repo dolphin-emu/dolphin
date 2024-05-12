@@ -285,8 +285,8 @@ void BranchWatchTableModel::PrefetchSymbols()
   for (const Core::BranchWatch::Selection::value_type& value : selection)
   {
     const Core::BranchWatch::Collection::value_type* const kv = value.collection_ptr;
-    m_symbol_list.emplace_back(g_symbolDB.GetSymbolFromAddr(kv->first.origin_addr),
-                               g_symbolDB.GetSymbolFromAddr(kv->first.destin_addr));
+    m_symbol_list.emplace_back(m_ppc_symbol_db.GetSymbolFromAddr(kv->first.origin_addr),
+                               m_ppc_symbol_db.GetSymbolFromAddr(kv->first.destin_addr));
   }
 }
 

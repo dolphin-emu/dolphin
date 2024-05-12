@@ -39,6 +39,7 @@ public:
   virtual const u8* GetIRDataPtr() const = 0;
   virtual u32 GetIRDataSize() const = 0;
   virtual u32 GetIRDataFormatOffset() const = 0;
+  virtual IRReportFormat GetIRReportFormat() const = 0;
 
   virtual u8* GetExtDataPtr() = 0;
   virtual const u8* GetExtDataPtr() const = 0;
@@ -76,6 +77,7 @@ public:
   u32 GetExtDataSize() const;
 
   u32 GetIRDataFormatOffset() const;
+  IRReportFormat GetIRReportFormat() const;
 
   void GetCoreData(CoreData*) const;
   void GetAccelData(AccelData*) const;

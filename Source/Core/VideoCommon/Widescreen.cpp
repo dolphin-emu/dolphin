@@ -8,6 +8,7 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/System.h"
 
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 
 std::unique_ptr<WidescreenManager> g_widescreen;
@@ -116,6 +117,9 @@ void WidescreenManager::UpdateWidescreenHeuristic()
 
     const auto& persp = flush_statistics.perspective;
     const auto& ortho = flush_statistics.orthographic;
+
+    g_stats.avg_persp_proj_viewport_ratio = persp.average_ratio.Mean();
+    g_stats.avg_ortho_proj_viewport_ratio = ortho.average_ratio.Mean();
 
     const auto ortho_looks_anamorphic = looks_anamorphic(ortho);
     const auto persp_looks_normal = looks_normal(persp);

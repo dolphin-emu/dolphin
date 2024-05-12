@@ -32,14 +32,12 @@ private:
   void ToggleRAIntegration();
   void Login();
   void Logout();
-  void ToggleAchievements();
-  void ToggleLeaderboards();
-  void ToggleRichPresence();
   void ToggleHardcore();
-  void ToggleProgress();
-  void ToggleBadges();
   void ToggleUnofficial();
   void ToggleEncore();
+  void ToggleSpectator();
+  void ToggleProgress();
+  void ToggleBadges();
 
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
@@ -51,14 +49,12 @@ private:
   QLineEdit* m_common_password_input;
   QPushButton* m_common_login_button;
   QPushButton* m_common_logout_button;
-  ToolTipCheckBox* m_common_achievements_enabled_input;
-  ToolTipCheckBox* m_common_leaderboards_enabled_input;
-  ToolTipCheckBox* m_common_rich_presence_enabled_input;
   ToolTipCheckBox* m_common_hardcore_enabled_input;
-  ToolTipCheckBox* m_common_progress_enabled_input;
-  ToolTipCheckBox* m_common_badges_enabled_input;
   ToolTipCheckBox* m_common_unofficial_enabled_input;
   ToolTipCheckBox* m_common_encore_enabled_input;
+  ToolTipCheckBox* m_common_spectator_enabled_input;
+  ToolTipCheckBox* m_common_progress_enabled_input;
+  ToolTipCheckBox* m_common_badges_enabled_input;
 };
 
 #endif  // USE_RETRO_ACHIEVEMENTS

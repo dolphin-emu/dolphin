@@ -831,7 +831,7 @@ static void ReadMemory(const Core::CPUThreadGuard& guard)
 
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u8* data = memory.GetPointer(addr);
+  u8* data = memory.GetPointerForRange(addr, len);
   Mem2hex(reply, data, len);
   reply[len * 2] = '\0';
   SendReply((char*)reply);
@@ -858,7 +858,7 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
 
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u8* dst = memory.GetPointer(addr);
+  u8* dst = memory.GetPointerForRange(addr, len);
   Hex2mem(dst, s_cmd_bfr + i + 1, len);
   SendReply("OK");
 }
@@ -1016,7 +1016,8 @@ void ProcessCommands(bool loop_until_continue)
 
       WriteMemory(guard);
       auto& ppc_state = system.GetPPCState();
-      ppc_state.iCache.Reset();
+      auto& jit_interface = system.GetJitInterface();
+      ppc_state.iCache.Reset(jit_interface);
       Host_UpdateDisasmDialog();
       break;
     }

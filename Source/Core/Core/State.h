@@ -13,6 +13,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace State
 {
 // number of states
@@ -75,7 +80,7 @@ struct StateExtendedHeader
   // and WriteHeadersToFile()
 };
 
-void Init();
+void Init(Core::System& system);
 
 void Shutdown();
 
@@ -95,19 +100,19 @@ u64 GetUnixTimeOfSlot(int slot);
 //    If we're in the main CPU thread then they run immediately instead
 //    because some things (like Lua) need them to run immediately.
 // Slots from 0-99.
-void Save(int slot, bool wait = false);
-void Load(int slot);
+void Save(Core::System& system, int slot, bool wait = false);
+void Load(Core::System& system, int slot);
 
-void SaveAs(const std::string& filename, bool wait = false);
-void LoadAs(const std::string& filename);
+void SaveAs(Core::System& system, const std::string& filename, bool wait = false);
+void LoadAs(Core::System& system, const std::string& filename);
 
-void SaveToBuffer(std::vector<u8>& buffer);
-void LoadFromBuffer(std::vector<u8>& buffer);
+void SaveToBuffer(Core::System& system, std::vector<u8>& buffer);
+void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer);
 
-void LoadLastSaved(int i = 1);
-void SaveFirstSaved();
-void UndoSaveState();
-void UndoLoadState();
+void LoadLastSaved(Core::System& system, int i = 1);
+void SaveFirstSaved(Core::System& system);
+void UndoSaveState(Core::System& system);
+void UndoLoadState(Core::System& system);
 
 // for calling back into UI code without introducing a dependency on it in core
 using AfterLoadCallbackFunc = std::function<void()>;

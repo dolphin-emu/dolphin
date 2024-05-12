@@ -23,9 +23,6 @@ jobs:
     # Setup Packages
     - name: Setup Packages
       run: brew install qt6 molten-vk p7zip pkgconfig cmake ninja
-    # Use Static ZSTD
-    - name: Remove ZSTD
-      run: brew uninstall zstd curl php --force --ignore-dependencies
     # Run MSBuild
     - name: Build Solution
       run: mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay"

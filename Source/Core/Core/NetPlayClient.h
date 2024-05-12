@@ -103,6 +103,8 @@ public:
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
   virtual void OnTtlDetermined(u8 ttl) = 0;
+  virtual void OnActiveGeckoCodes(std::string codeStr) = 0;
+  virtual void OnActiveARCodes(std::string codeStr) = 0;
 
   virtual bool IsRecording() = 0;
   virtual std::shared_ptr<const UICommon::GameFile>
@@ -169,6 +171,7 @@ public:
   void RequestGolfControl();
   std::string GetCurrentGolfer();
   std::vector<std::string> v_ActiveGeckoCodes;
+  std::vector<std::string> v_ActiveARCodes;
 
   // Send and receive pads values
   struct WiimoteDataBatchEntry
@@ -354,6 +357,8 @@ private:
   void OnGameDigestResult(sf::Packet& packet);
   void OnGameDigestError(sf::Packet& packet);
   void OnGameDigestAbort();
+  void OnSendCodesMsg(sf::Packet& packet);
+
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;

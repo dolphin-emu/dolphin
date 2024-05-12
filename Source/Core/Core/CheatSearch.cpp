@@ -3,6 +3,7 @@
 
 #include "Core/CheatSearch.h"
 
+#include <bit>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -13,10 +14,9 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Config/AchievementSettings.h"
+#include "Core/AchievementManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
@@ -83,17 +83,17 @@ std::vector<u8> Cheats::GetValueAsByteVector(const Cheats::SearchValue& value)
   case Cheats::DataType::U64:
     return ToByteVector(Common::swap64(std::get<u64>(value.m_value)));
   case Cheats::DataType::S8:
-    return {Common::BitCast<u8>(std::get<s8>(value.m_value))};
+    return {std::bit_cast<u8>(std::get<s8>(value.m_value))};
   case Cheats::DataType::S16:
-    return ToByteVector(Common::swap16(Common::BitCast<u16>(std::get<s16>(value.m_value))));
+    return ToByteVector(Common::swap16(std::bit_cast<u16>(std::get<s16>(value.m_value))));
   case Cheats::DataType::S32:
-    return ToByteVector(Common::swap32(Common::BitCast<u32>(std::get<s32>(value.m_value))));
+    return ToByteVector(Common::swap32(std::bit_cast<u32>(std::get<s32>(value.m_value))));
   case Cheats::DataType::S64:
-    return ToByteVector(Common::swap64(Common::BitCast<u64>(std::get<s64>(value.m_value))));
+    return ToByteVector(Common::swap64(std::bit_cast<u64>(std::get<s64>(value.m_value))));
   case Cheats::DataType::F32:
-    return ToByteVector(Common::swap32(Common::BitCast<u32>(std::get<float>(value.m_value))));
+    return ToByteVector(Common::swap32(std::bit_cast<u32>(std::get<float>(value.m_value))));
   case Cheats::DataType::F64:
-    return ToByteVector(Common::swap64(Common::BitCast<u64>(std::get<double>(value.m_value))));
+    return ToByteVector(Common::swap64(std::bit_cast<u64>(std::get<double>(value.m_value))));
   default:
     DEBUG_ASSERT(false);
     return {};
@@ -147,7 +147,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
   auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s8>(tmp->translated, Common::BitCast<s8>(tmp->value));
+  return PowerPC::ReadResult<s8>(tmp->translated, std::bit_cast<s8>(tmp->value));
 }
 
 template <>
@@ -158,7 +158,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
   auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s16>(tmp->translated, Common::BitCast<s16>(tmp->value));
+  return PowerPC::ReadResult<s16>(tmp->translated, std::bit_cast<s16>(tmp->value));
 }
 
 template <>
@@ -169,7 +169,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
   auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s32>(tmp->translated, Common::BitCast<s32>(tmp->value));
+  return PowerPC::ReadResult<s32>(tmp->translated, std::bit_cast<s32>(tmp->value));
 }
 
 template <>
@@ -180,7 +180,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
   auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s64>(tmp->translated, Common::BitCast<s64>(tmp->value));
+  return PowerPC::ReadResult<s64>(tmp->translated, std::bit_cast<s64>(tmp->value));
 }
 
 template <>
@@ -208,15 +208,16 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
                   const std::function<bool(const T& value)>& validator)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
+  auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
-  const Core::State core_state = Core::GetState();
+  const Core::State core_state = Core::GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
     return Cheats::SearchErrorCode::NoEmulationActive;
 
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
@@ -262,15 +263,16 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
                    const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
+  auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
-  const Core::State core_state = Core::GetState();
+  const Core::State core_state = Core::GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
     return Cheats::SearchErrorCode::NoEmulationActive;
 
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
@@ -428,7 +430,7 @@ template <typename T>
 Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPUThreadGuard& guard)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
 #endif  // USE_RETRO_ACHIEVEMENTS
   Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
@@ -570,11 +572,19 @@ std::string Cheats::CheatSearchSession<T>::GetResultValueAsString(size_t index, 
   if (hex)
   {
     if constexpr (std::is_same_v<T, float>)
-      return fmt::format("0x{0:08x}", Common::BitCast<u32>(m_search_results[index].m_value));
+    {
+      return fmt::format("0x{0:08x}", std::bit_cast<s32>(m_search_results[index].m_value));
+    }
     else if constexpr (std::is_same_v<T, double>)
-      return fmt::format("0x{0:016x}", Common::BitCast<u64>(m_search_results[index].m_value));
+    {
+      return fmt::format("0x{0:016x}", std::bit_cast<s64>(m_search_results[index].m_value));
+    }
     else
-      return fmt::format("0x{0:0{1}x}", m_search_results[index].m_value, sizeof(T) * 2);
+    {
+      return fmt::format("0x{0:0{1}x}",
+                         std::bit_cast<std::make_unsigned_t<T>>(m_search_results[index].m_value),
+                         sizeof(T) * 2);
+    }
   }
 
   return fmt::format("{}", m_search_results[index].m_value);

@@ -21,11 +21,12 @@ struct DesiredWiimoteState
       {Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ONE_G << 2});
 
   // No light detected by the IR camera.
-  static constexpr std::array<CameraPoint, 2> DEFAULT_CAMERA = {CameraPoint(), CameraPoint()};
+  static constexpr std::array<CameraPoint, 4> DEFAULT_CAMERA = {CameraPoint(), CameraPoint(),
+                                                                CameraPoint(), CameraPoint()};
 
   WiimoteCommon::ButtonData buttons{};  // non-button state in this is ignored
   WiimoteCommon::AccelData acceleration = DEFAULT_ACCELERATION;
-  std::array<CameraPoint, 2> camera_points = DEFAULT_CAMERA;
+  std::array<CameraPoint, 4> camera_points = DEFAULT_CAMERA;
   std::optional<MotionPlus::DataFormat::Data> motion_plus = std::nullopt;
   DesiredExtensionState extension;
 };
@@ -34,7 +35,7 @@ struct DesiredWiimoteState
 struct SerializedWiimoteState
 {
   u8 length;
-  std::array<u8, 24> data;  // 12 bytes Wiimote, 6 bytes MotionPlus, 6 bytes Extension
+  std::array<u8, 30> data;  // 18 bytes Wiimote, 6 bytes MotionPlus, 6 bytes Extension
 };
 
 SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state);

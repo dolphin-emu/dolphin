@@ -430,7 +430,7 @@ void DSPManager::UpdateAudioDMA()
     // external audio fifo in the emulator, to be mixed with the disc
     // streaming output.
     auto& memory = m_system.GetMemory();
-    void* address = memory.GetPointer(m_audio_dma.current_source_address);
+    void* address = memory.GetPointerForRange(m_audio_dma.current_source_address, 32);
     AudioCommon::SendAIBuffer(m_system, reinterpret_cast<short*>(address), 8);
 
     if (m_audio_dma.remaining_blocks_count != 0)

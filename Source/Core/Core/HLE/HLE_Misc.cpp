@@ -36,6 +36,7 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
+  auto& jit_interface = system.GetJitInterface();
 
   // Work around the codehandler not properly invalidating the icache, but
   // only the first few frames.
@@ -54,7 +55,7 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
   }
   PowerPC::MMU::HostWrite_U32(guard, gch_gameid + 1, Gecko::INSTALLER_BASE_ADDRESS);
 
-  ppc_state.iCache.Reset();
+  ppc_state.iCache.Reset(jit_interface);
 }
 
 // Because Dolphin messes around with the CPU state instead of patching the game binary, we

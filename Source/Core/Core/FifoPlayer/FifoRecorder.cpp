@@ -291,7 +291,7 @@ void FifoRecorder::RecordInitialVideoMemory()
 
   g_main_cp_state.FillCPMemoryArray(cpmem);
 
-  SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size, texMem);
+  SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size, s_tex_mem.data());
 }
 
 void FifoRecorder::StopRecording()

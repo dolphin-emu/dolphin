@@ -23,6 +23,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "InputCommon/ControllerInterface/InputBackend.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Input/CoreDevice.h"
@@ -444,6 +445,23 @@ std::shared_ptr<ciface::Core::Device> FindDevice(jint device_id)
 
 namespace ciface::Android
 {
+class InputBackend final : public ciface::InputBackend
+{
+public:
+  InputBackend(ControllerInterface* controller_interface);
+  ~InputBackend();
+  void PopulateDevices() override;
+
+private:
+  void AddDevice(JNIEnv* env, int device_id);
+  void AddSensorDevice(JNIEnv* env);
+};
+
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
+{
+  return std::make_unique<InputBackend>(controller_interface);
+}
+
 class AndroidInput : public Core::Device::Input
 {
 public:
@@ -779,7 +797,8 @@ static jintArray CreateKeyCodesArray(JNIEnv* env)
   return keycodes_array;
 }
 
-void Init()
+InputBackend::InputBackend(ControllerInterface* controller_interface)
+    : ciface::InputBackend(controller_interface)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -885,7 +904,7 @@ void Init()
                             s_controller_interface_register_input_device_listener);
 }
 
-void Shutdown()
+InputBackend::~InputBackend()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -903,7 +922,7 @@ void Shutdown()
   env->DeleteGlobalRef(s_keycodes_array);
 }
 
-static void AddDevice(JNIEnv* env, int device_id)
+void InputBackend::AddDevice(JNIEnv* env, int device_id)
 {
   jobject input_device =
       env->CallStaticObjectMethod(s_input_device_class, s_input_device_get_device, device_id);
@@ -921,7 +940,7 @@ static void AddDevice(JNIEnv* env, int device_id)
   if (device->Inputs().empty() && device->Outputs().empty())
     return;
 
-  g_controller_interface.AddDevice(device);
+  GetControllerInterface().AddDevice(device);
 
   Core::DeviceQualifier qualifier;
   qualifier.FromDevice(device.get());
@@ -936,7 +955,7 @@ static void AddDevice(JNIEnv* env, int device_id)
   env->DeleteLocalRef(j_qualifier);
 }
 
-static void AddSensorDevice(JNIEnv* env)
+void InputBackend::AddSensorDevice(JNIEnv* env)
 {
   // Device sensors (accelerometer, etc.) aren't associated with any Android InputDevice.
   // Create an otherwise empty Dolphin input device so that they have somewhere to live.
@@ -946,7 +965,7 @@ static void AddSensorDevice(JNIEnv* env)
   if (device->Inputs().empty() && device->Outputs().empty())
     return;
 
-  g_controller_interface.AddDevice(device);
+  GetControllerInterface().AddDevice(device);
 
   Core::DeviceQualifier qualifier;
   qualifier.FromDevice(device.get());
@@ -959,7 +978,7 @@ static void AddSensorDevice(JNIEnv* env)
   env->DeleteLocalRef(j_qualifier);
 }
 
-void PopulateDevices()
+void InputBackend::PopulateDevices()
 {
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Android populating devices");
 

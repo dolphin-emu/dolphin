@@ -55,12 +55,12 @@
 namespace BootManager
 {
 // Boot the ISO or file
-bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
+bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
+              const WindowSystemInfo& wsi)
 {
   if (!boot)
     return false;
 
-  auto& system = Core::System::GetInstance();
   SConfig& StartUp = SConfig::GetInstance();
 
   if (!StartUp.SetPathsAndGameMetadata(system, *boot))
@@ -146,7 +146,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   system.Initialize();
 
-  Core::UpdateWantDeterminism(/*initial*/ true);
+  Core::UpdateWantDeterminism(system, /*initial*/ true);
 
   if (system.IsWii())
   {
@@ -167,7 +167,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   }
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance().SetDisabled(false);
+  AchievementManager::GetInstance().CloseGame();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   const bool load_ipl = !system.IsWii() && !Config::Get(Config::MAIN_SKIP_IPL) &&

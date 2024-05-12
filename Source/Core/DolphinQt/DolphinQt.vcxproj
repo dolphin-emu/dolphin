@@ -55,6 +55,7 @@
     <ClCompile Include="CheatSearchFactoryWidget.cpp" />
     <ClCompile Include="CheatSearchWidget.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
+    <ClCompile Include="Achievements\AchievementBox.cpp" />
     <ClCompile Include="Achievements\AchievementHeaderWidget.cpp" />
     <ClCompile Include="Achievements\AchievementLeaderboardWidget.cpp" />
     <ClCompile Include="Achievements\AchievementProgressWidget.cpp" />
@@ -274,6 +275,7 @@
     <QtMoc Include="CheatSearchFactoryWidget.h" />
     <QtMoc Include="CheatSearchWidget.h" />
     <QtMoc Include="CheatsManager.h" />
+    <QtMoc Include="Achievements\AchievementBox.h" />
     <QtMoc Include="Achievements\AchievementHeaderWidget.h" />
     <QtMoc Include="Achievements\AchievementLeaderboardWidget.h" />
     <QtMoc Include="Achievements\AchievementProgressWidget.h" />
@@ -403,6 +405,7 @@
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
     <QtMoc Include="QtUtils\FileOpenEventFilter.h" />
+    <ClInclude Include="QtUtils\FromStdString.h" />
     <QtMoc Include="QtUtils\ParallelProgressDialog.h" />
     <QtMoc Include="QtUtils\PartiallyClosableTabWidget.h" />
     <ClInclude Include="QtUtils\SetWindowDecorations.h" />

@@ -85,6 +85,7 @@
 #endif
 #include <arpa/inet.h>
 #endif
+#include "Core.h"
 
 namespace NetPlay
 {
@@ -525,15 +526,11 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
       {
         std::lock_guard lkg(m_crit.game);
         m_is_running = false;
-
-        sf::Packet spac;
-        spac << MessageID::DisableGame;
-        // this thread doesn't need players lock
-        SendToClients(spac);
         break;
       }
     }
   }
+
 
   if (m_start_pending)
   {
@@ -794,6 +791,20 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       m_chunked_data_complete_count[cid]++;
       m_chunked_data_complete_event.Set();
     }
+  }
+  break;
+
+  case MessageID::SendCodes:
+  {
+    std::string codes;
+    packet >> codes;
+
+    // send codes to other clients
+    sf::Packet spac;
+    spac << MessageID::SendCodes;
+    spac << codes;
+
+    SendToClients(spac);
   }
   break;
 
@@ -2142,6 +2153,7 @@ bool NetPlayServer::SyncCodes()
       sf::Packet pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::GeckoData;
+      std::vector<std::string> v_ActiveGeckoCodes = {};
       // Iterate through the active code vector and send each codeline
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {
@@ -2151,9 +2163,17 @@ bool NetPlayServer::SyncCodes()
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", code.address, code.data);
           pac << code.address;
           pac << code.data;
+          v_ActiveGeckoCodes.push_back(active_code.name);
         }
       }
+      sf::Packet packet;
+      packet << MessageID::SendCodes;
+      std::string codeStr = "";
+      for (const std::string code : v_ActiveGeckoCodes)
+        codeStr += "• " + code + "\n";
+      packet << codeStr;
       SendAsyncToClients(std::move(pac));
+      
     }
   }
 
@@ -2193,6 +2213,7 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
+      std::vector<std::string> v_ActiveARCodes = {};
       for (const ActionReplay::ARCode& active_code : s_active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
@@ -2201,8 +2222,15 @@ bool NetPlayServer::SyncCodes()
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
           pac << op.cmd_addr;
           pac << op.value;
+          v_ActiveARCodes.push_back(active_code.name);
         }
       }
+      sf::Packet packet;
+      packet << MessageID::SendCodes;
+      std::string codeStr = "";
+      for (const std::string code : v_ActiveARCodes)
+        codeStr += "• " + code + "\n";
+      packet << codeStr;
       SendAsyncToClients(std::move(pac));
     }
   }

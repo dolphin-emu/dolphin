@@ -520,15 +520,21 @@ void VertexManagerBase::Flush()
     auto& counts =
         is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;
 
+    const auto& projection = xfmem.projection.rawProjection;
     // TODO: Potentially the viewport size could be used as weight for the flush count average.
     // This way a small minimap would have less effect than a fullscreen projection.
+    const auto& viewport = xfmem.viewport;
 
-    if (IsAnamorphicProjection(xfmem.projection.rawProjection, xfmem.viewport, g_ActiveConfig))
+    // FYI: This average is based on flushes.
+    // It doesn't look at vertex counts like the heuristic does.
+    counts.average_ratio.Push(CalculateProjectionViewportRatio(projection, viewport));
+
+    if (IsAnamorphicProjection(projection, viewport, g_ActiveConfig))
     {
       ++counts.anamorphic_flush_count;
       counts.anamorphic_vertex_count += m_index_generator.GetIndexLen();
     }
-    else if (IsNormalProjection(xfmem.projection.rawProjection, xfmem.viewport, g_ActiveConfig))
+    else if (IsNormalProjection(projection, viewport, g_ActiveConfig))
     {
       ++counts.normal_flush_count;
       counts.normal_vertex_count += m_index_generator.GetIndexLen();

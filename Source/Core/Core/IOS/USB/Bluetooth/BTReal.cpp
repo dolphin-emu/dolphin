@@ -177,7 +177,7 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
           "The emulated console will now stop.",
           m_last_open_error);
     }
-    Core::QueueHostJob(Core::Stop);
+    Core::QueueHostJob(&Core::Stop);
     return IPCReply(IPC_ENOENT);
   }
 

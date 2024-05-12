@@ -18,6 +18,8 @@ namespace PowerPC
 enum class CoreMode;
 }
 
+class PPCSymbolDB;
+
 namespace HLE
 {
 using HookFunction = void (*)(const Core::CPUThreadGuard&);
@@ -66,7 +68,7 @@ void ExecuteFromJIT(u32 current_pc, u32 hook_index, Core::System& system);
 // Returns the HLE hook index of the address
 u32 GetHookByAddress(u32 address);
 // Returns the HLE hook index if the address matches the function start
-u32 GetHookByFunctionAddress(u32 address);
+u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, u32 address);
 HookType GetHookTypeByIndex(u32 index);
 HookFlag GetHookFlagsByIndex(u32 index);
 
@@ -74,6 +76,7 @@ bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode);
 
 // Performs the backend-independent preliminary checking for whether a function
 // can be HLEd. If it can be, the information needed for HLEing it is returned.
-TryReplaceFunctionResult TryReplaceFunction(u32 address, PowerPC::CoreMode mode);
+TryReplaceFunctionResult TryReplaceFunction(PPCSymbolDB& ppc_symbol_db, u32 address,
+                                            PowerPC::CoreMode mode);
 
 }  // namespace HLE

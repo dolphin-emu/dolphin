@@ -32,10 +32,8 @@ class UserDataImportWarningDialog : DialogFragment() {
                 taskArguments.putBoolean(TaskDialog.KEY_CANCELLABLE, false)
 
                 taskViewModel.task = {
-                    taskViewModel.setResult(
-                        (requireActivity() as UserDataActivity).importUserData(
-                            requireArguments().getString(KEY_URI_RESULT)!!.toUri()
-                        )
+                    (requireActivity() as UserDataActivity).importUserData(
+                        requireArguments().getString(KEY_URI_RESULT)!!.toUri()
                     )
                 }
 

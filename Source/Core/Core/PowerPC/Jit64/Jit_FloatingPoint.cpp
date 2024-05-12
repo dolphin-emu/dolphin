@@ -107,8 +107,6 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
   if (!m_accurate_nans)
     return;
 
-  ASSERT(xmm != clobber);
-
   if (inst.OPCD != 4)
   {
     // not paired-single
@@ -147,6 +145,8 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
   else
   {
     // paired-single
+
+    ASSERT(xmm != clobber);
 
     if (cpu_info.bSSE4_1)
     {
@@ -282,7 +282,9 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
   RegCache::Realize(Rd, Ra, Rarg2);
 
-  X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
+  X64Reg dest = X64Reg(Rd);
+  if (preserve_inputs && (a == d || arg2 == d))
+    dest = XMM1;
   if (round_rhs)
   {
     if (a == d && !preserve_inputs)
@@ -298,7 +300,33 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   }
   else
   {
-    avx_op(avxOp, sseOp, dest, Ra, Rarg2, packed, reversible);
+    if (Ra.IsSimpleReg(dest))
+    {
+      (this->*sseOp)(dest, Rarg2);
+    }
+    else if (reversible && Rarg2.IsSimpleReg(dest))
+    {
+      (this->*sseOp)(dest, Ra);
+    }
+    else if (cpu_info.bAVX && Ra.IsSimpleReg())
+    {
+      (this->*avxOp)(dest, Ra.GetSimpleReg(), Rarg2);
+    }
+    else if (cpu_info.bAVX && reversible && Rarg2.IsSimpleReg())
+    {
+      (this->*avxOp)(dest, Rarg2.GetSimpleReg(), Ra);
+    }
+    else
+    {
+      if (Rarg2.IsSimpleReg(dest))
+        dest = XMM1;
+
+      if (packed)
+        MOVAPD(dest, Ra);
+      else
+        MOVSD(dest, Ra);
+      (this->*sseOp)(dest, a == arg2 ? R(dest) : Rarg2);
+    }
   }
 
   switch (inst.SUBOP5)
@@ -325,7 +353,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   FALLBACK_IF(jo.fp_exceptions);
 
   // We would like to emulate FMA instructions accurately without rounding error if possible, but
-  // unfortunately emulating FMA in software is just too slow on CPUs that are too old to have FMA
+  // unfortunately, emulating FMA in software is just too slow on CPUs that are too old to have FMA
   // instructions, so we have the Config::SESSION_USE_FMA setting to determine whether we should
   // emulate FMA instructions accurately or by a performing a multiply followed by a separate add.
   //
@@ -346,6 +374,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   int d = inst.FD;
   bool single = inst.OPCD == 4 || inst.OPCD == 59;
   bool round_input = single && !js.op->fprIsSingle[c];
+  bool preserve_inputs = m_accurate_nans;
+  bool preserve_d = preserve_inputs && (a == d || b == d || c == d);
   bool packed =
       inst.OPCD == 4 || (!cpu_info.bAtom && !software_fma && single && js.op->fprIsDuplicated[a] &&
                          js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
@@ -356,21 +386,35 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   const bool madds1 = inst.SUBOP5 == 15;
   const bool madds_accurate_nans = m_accurate_nans && (madds0 || madds1);
 
+  X64Reg scratch_xmm = XMM0;
+  X64Reg result_xmm = XMM1;
+  X64Reg Rc_duplicated = XMM2;
+
   RCOpArg Ra;
   RCOpArg Rb;
   RCOpArg Rc;
   RCX64Reg Rd;
-  RCX64Reg scratch_guard;
+  RCX64Reg xmm2_guard;
+  RCX64Reg result_xmm_guard;
   RCX64Reg Rc_duplicated_guard;
-  X64Reg Rc_duplicated = XMM2;
   if (software_fma)
   {
-    scratch_guard = fpr.Scratch(XMM2);
+    xmm2_guard = fpr.Scratch(XMM2);
     Ra = packed ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
     Rb = packed ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
     Rc = packed ? fpr.Bind(c, RCMode::Read) : fpr.Use(c, RCMode::Read);
     Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
-    RegCache::Realize(Ra, Rb, Rc, Rd, scratch_guard);
+    if (preserve_d && packed)
+    {
+      result_xmm_guard = fpr.Scratch();
+      RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard, result_xmm_guard);
+      result_xmm = Gen::X64Reg(result_xmm_guard);
+    }
+    else
+    {
+      RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard);
+      result_xmm = packed ? Gen::X64Reg(Rd) : XMM0;
+    }
   }
   else
   {
@@ -391,8 +435,6 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     }
   }
 
-  X64Reg scratch_xmm = XMM0;
-  X64Reg result_xmm = XMM1;
   if (software_fma)
   {
     for (size_t i = (packed ? 1 : 0); i != std::numeric_limits<size_t>::max(); --i)
@@ -411,10 +453,11 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
           Force25BitPrecision(XMM1, R(XMM1), XMM2);
       }
 
-      // Write the result from the previous loop iteration into Rd so we don't lose it.
-      // It's important that this is done after reading Rc above, in case we have madds1 and c == d.
+      // Write the result from the previous loop iteration into result_xmm so we don't lose it.
+      // It's important that this is done after reading Rc above, in case we have madds1 and
+      // result_xmm == Rd == Rc.
       if (packed && i == 0)
-        MOVLHPS(Rd, XMM0);
+        MOVLHPS(result_xmm, XMM0);
 
       if (i == 0)
       {
@@ -437,14 +480,9 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     }
 
     if (packed)
-    {
-      MOVSD(Rd, XMM0);
-      result_xmm = Rd;
-    }
+      MOVSD(R(result_xmm), XMM0);
     else
-    {
-      result_xmm = XMM0;
-    }
+      DEBUG_ASSERT(result_xmm == XMM0);
 
     if (madds_accurate_nans)
     {
@@ -530,6 +568,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     // HandleNaNs needs to clobber XMM0
     MOVAPD(Rd, R(result_xmm));
     result_xmm = Rd;
+    DEBUG_ASSERT(!preserve_d);
   }
 
   // If packed, the clobber register must be XMM0. If not packed, the clobber register is unused.

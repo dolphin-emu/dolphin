@@ -19,4 +19,4 @@ set(SRCS
 	)
 
 add_library(SoundTouch STATIC ${SRCS})
-dolphin_disable_warnings_msvc(SoundTouch)
+dolphin_disable_warnings(SoundTouch)

@@ -135,6 +135,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_maker_id = volume->GetMakerID();
       m_revision = volume->GetRevision().value_or(0);
       m_disc_number = volume->GetDiscNumber().value_or(0);
+      m_is_two_disc_game = CheckIfTwoDiscGame(m_game_id);
       m_apploader_date = volume->GetApploaderDate();
 
       m_volume_banner.buffer = volume->GetBanner(&m_volume_banner.width, &m_volume_banner.height);
@@ -321,6 +322,7 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_compression_method);
   p.Do(m_revision);
   p.Do(m_disc_number);
+  p.Do(m_is_two_disc_game);
   p.Do(m_apploader_date);
 
   p.Do(m_custom_name);
@@ -545,6 +547,77 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
   for (const auto& name : m_long_names)
     languages.push_back(name.first);
   return languages;
+}
+
+bool GameFile::CheckIfTwoDiscGame(const std::string& game_id) const
+{
+  constexpr size_t GAME_ID_PREFIX_SIZE = 3;
+  if (game_id.size() < GAME_ID_PREFIX_SIZE)
+    return false;
+
+  static constexpr std::array<std::string_view, 30> two_disc_game_id_prefixes = {
+      // Resident Evil
+      "DBJ",
+      // The Lord of the Rings: The Third Age
+      "G3A",
+      // Teenage Mutant Ninja Turtles 3: Mutant Nightmare
+      "G3Q",
+      // Resident Evil 4
+      "G4B",
+      // Tiger Woods PGA Tour 2005
+      "G5T",
+      // Resident Evil
+      "GBI",
+      // Resident Evil Zero
+      "GBZ",
+      // Conan
+      "GC9",
+      // Resident Evil Code: Veronica X
+      "GCD",
+      // Tom Clancy's Splinter Cell: Chaos Theory
+      "GCJ",
+      // Freaky Flyers
+      "GFF",
+      // GoldenEye: Rogue Agent
+      "GGI",
+      // Metal Gear Solid: The Twin Snakes
+      "GGS",
+      // Baten Kaitos Origins
+      "GK4",
+      // Killer7
+      "GK7",
+      // Baten Kaitos: Eternal Wings and the Lost Ocean
+      "GKB",
+      // Lupin the 3rd: Lost Treasure by the Sea
+      "GL3",
+      // Enter the Matrix
+      "GMX",
+      // Teenage Mutant Ninja Turtles 2: Battle Nexus
+      "GNI",
+      // GoldenEye: Rogue Agent
+      "GOY",
+      // Tales of Symphonia
+      "GQS",
+      // Medal of Honor: Rising Sun
+      "GR8",
+      "GRZ",
+      // Tales of Symphonia
+      "GTO",
+      // Tiger Woods PGA Tour 2004
+      "GW4",
+      // Tom Clancy's Splinter Cell: Double Agent (GC)
+      "GWY",
+      // Dragon Quest X: Mezameshi Itsutsu no Shuzoku Online
+      "S4M",
+      "S4S",
+      "S6T",
+      "SDQ",
+  };
+  static_assert(std::is_sorted(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end()));
+
+  std::string_view game_id_prefix(game_id.data(), GAME_ID_PREFIX_SIZE);
+  return std::binary_search(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end(),
+                            game_id_prefix);
 }
 
 std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) const

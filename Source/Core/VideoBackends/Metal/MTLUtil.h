@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <AppKit/NSScreen.h>
 #include <Metal/Metal.h>
+
 #include <vector>
 
 #include "VideoCommon/AbstractShader.h"

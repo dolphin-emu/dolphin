@@ -19,7 +19,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Config/AchievementSettings.h"
+#include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
@@ -256,7 +256,7 @@ void InterfacePane::LoadConfig()
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  bool hardcore = Config::Get(Config::RA_HARDCORE_ENABLED);
+  bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
   if (hardcore)
   {

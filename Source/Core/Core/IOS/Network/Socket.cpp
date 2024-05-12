@@ -275,9 +275,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
       case IOCTL_SO_BIND:
       {
-        sockaddr_in local_name;
-        const u8* addr = memory.GetPointer(ioctl.buffer_in + 8);
-        WiiSockMan::ToNativeAddrIn(addr, &local_name);
+        WiiSockAddrIn addr;
+        memory.CopyFromEmu(&addr, ioctl.buffer_in + 8, sizeof(WiiSockAddrIn));
+        sockaddr_in local_name = WiiSockMan::ToNativeAddrIn(addr);
 
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_BIND", false);
@@ -288,9 +288,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
       case IOCTL_SO_CONNECT:
       {
-        sockaddr_in local_name;
-        const u8* addr = memory.GetPointer(ioctl.buffer_in + 8);
-        WiiSockMan::ToNativeAddrIn(addr, &local_name);
+        WiiSockAddrIn addr;
+        memory.CopyFromEmu(&addr, ioctl.buffer_in + 8, sizeof(WiiSockAddrIn));
+        sockaddr_in local_name = WiiSockMan::ToNativeAddrIn(addr);
 
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_CONNECT", false);
@@ -305,14 +305,15 @@ void WiiSocket::Update(bool read, bool write, bool except)
         s32 ret;
         if (ioctl.buffer_out_size > 0)
         {
-          sockaddr_in local_name;
-          u8* addr = memory.GetPointer(ioctl.buffer_out);
-          WiiSockMan::ToNativeAddrIn(addr, &local_name);
+          WiiSockAddrIn addr;
+          memory.CopyFromEmu(&addr, ioctl.buffer_out, sizeof(WiiSockAddrIn));
+          sockaddr_in local_name = WiiSockMan::ToNativeAddrIn(addr);
 
           socklen_t addrlen = sizeof(sockaddr_in);
           ret = static_cast<s32>(accept(fd, (sockaddr*)&local_name, &addrlen));
 
-          WiiSockMan::ToWiiAddrIn(local_name, addr, addrlen);
+          WiiSockAddrIn new_addr = WiiSockMan::ToWiiAddrIn(local_name, addrlen);
+          memory.CopyToEmu(ioctl.buffer_out, &new_addr, sizeof(WiiSockAddrIn));
         }
         else
         {
@@ -489,13 +490,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
           case IOCTLV_NET_SSL_WRITE:
           {
             WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
-            const int ret =
-                mbedtls_ssl_write(&ssl->ctx, memory.GetPointer(BufferOut2), BufferOutSize2);
+            const int ret = mbedtls_ssl_write(
+                &ssl->ctx, memory.GetPointerForRange(BufferOut2, BufferOutSize2), BufferOutSize2);
 
             if (ret >= 0)
             {
               system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLWrite(
-                  memory.GetPointer(BufferOut2), ret, ssl->hostfd);
+                  memory.GetPointerForRange(BufferOut2, ret), ret, ssl->hostfd);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue(memory, (ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -523,13 +524,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
           case IOCTLV_NET_SSL_READ:
           {
             WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
-            const int ret =
-                mbedtls_ssl_read(&ssl->ctx, memory.GetPointer(BufferIn2), BufferInSize2);
+            const int ret = mbedtls_ssl_read(
+                &ssl->ctx, memory.GetPointerForRange(BufferIn2, BufferInSize2), BufferInSize2);
 
             if (ret >= 0)
             {
               system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLRead(
-                  memory.GetPointer(BufferIn2), ret, ssl->hostfd);
+                  memory.GetPointerForRange(BufferIn2, ret), ret, ssl->hostfd);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue(memory, (ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -600,8 +601,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
           sockaddr_in local_name = {0};
           if (has_destaddr)
           {
-            const u8* addr = memory.GetPointer(BufferIn2 + 0x0C);
-            WiiSockMan::ToNativeAddrIn(addr, &local_name);
+            WiiSockAddrIn addr;
+            memory.CopyFromEmu(&addr, BufferIn2 + 0x0C, sizeof(WiiSockAddrIn));
+            local_name = WiiSockMan::ToNativeAddrIn(addr);
           }
 
           auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
@@ -634,17 +636,18 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
 
           u32 flags = memory.Read_U32(BufferIn + 0x04);
-          // Not a string, Windows requires a char* for recvfrom
-          char* data = (char*)memory.GetPointer(BufferOut);
           int data_len = BufferOutSize;
+          // Not a string, Windows requires a char* for recvfrom
+          char* data = reinterpret_cast<char*>(memory.GetPointerForRange(BufferOut, BufferOutSize));
 
           sockaddr_in local_name;
           memset(&local_name, 0, sizeof(sockaddr_in));
 
           if (BufferOutSize2 != 0)
           {
-            const u8* addr = memory.GetPointer(BufferOut2);
-            WiiSockMan::ToNativeAddrIn(addr, &local_name);
+            WiiSockAddrIn addr;
+            memory.CopyFromEmu(&addr, BufferOut2, sizeof(WiiSockAddrIn));
+            local_name = WiiSockMan::ToNativeAddrIn(addr);
           }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
@@ -680,8 +683,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
           if (BufferOutSize2 != 0)
           {
-            u8* addr = memory.GetPointer(BufferOut2);
-            WiiSockMan::ToWiiAddrIn(local_name, addr, addrlen);
+            WiiSockAddrIn new_addr = WiiSockMan::ToWiiAddrIn(local_name, addrlen);
+            memory.CopyToEmu(BufferOut2, &new_addr, sizeof(WiiSockAddrIn));
           }
           break;
         }
@@ -1110,12 +1113,15 @@ void WiiSockMan::UpdatePollCommands()
   });
 }
 
-void WiiSockMan::ToNativeAddrIn(const u8* addr, sockaddr_in* to)
+sockaddr_in WiiSockMan::ToNativeAddrIn(WiiSockAddrIn from)
 {
-  const WiiSockAddrIn from = Common::BitCastPtr<WiiSockAddrIn>(addr);
-  to->sin_addr.s_addr = from.addr.addr;
-  to->sin_family = from.family;
-  to->sin_port = from.port;
+  sockaddr_in result;
+
+  result.sin_addr.s_addr = from.addr.addr;
+  result.sin_family = from.family;
+  result.sin_port = from.port;
+
+  return result;
 }
 
 s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
@@ -1155,15 +1161,16 @@ s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
   return converted_events;
 }
 
-void WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, u8* to, socklen_t addrlen)
+WiiSockAddrIn WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, socklen_t addrlen)
 {
-  to[offsetof(WiiSockAddrIn, len)] =
-      u8(addrlen > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
-  to[offsetof(WiiSockAddrIn, family)] = u8(from.sin_family & 0xFF);
-  const u16& from_port = from.sin_port;
-  memcpy(to + offsetof(WiiSockAddrIn, port), &from_port, sizeof(from_port));
-  const u32& from_addr = from.sin_addr.s_addr;
-  memcpy(to + offsetof(WiiSockAddrIn, addr.addr), &from_addr, sizeof(from_addr));
+  WiiSockAddrIn result;
+
+  result.len = u8(addrlen > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
+  result.family = u8(from.sin_family & 0xFF);
+  result.port = from.sin_port;
+  result.addr.addr = from.sin_addr.s_addr;
+
+  return result;
 }
 
 void WiiSockMan::DoState(PointerWrap& p)

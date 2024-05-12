@@ -24,9 +24,9 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -49,7 +49,7 @@ constexpr std::array<const char*, 3> s_patch_type_strings{{
 static std::vector<Patch> s_on_frame;
 static std::vector<std::size_t> s_on_frame_memory;
 static std::mutex s_on_frame_memory_mutex;
-static std::map<u32, int> s_speed_hacks;
+static std::map<u32, u32> s_speed_hacks;
 
 const char* PatchTypeAsString(PatchType type)
 {
@@ -193,13 +193,13 @@ static void LoadSpeedhacks(const std::string& section, Common::IniFile& ini)
       success &= TryParse(value, &cycles);
       if (success)
       {
-        s_speed_hacks[address] = static_cast<int>(cycles);
+        s_speed_hacks[address] = cycles;
       }
     }
   }
 }
 
-int GetSpeedhackCycles(const u32 addr)
+u32 GetSpeedhackCycles(const u32 addr)
 {
   const auto iter = s_speed_hacks.find(addr);
   if (iter == s_speed_hacks.end())
@@ -235,7 +235,7 @@ void LoadPatches()
 static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
 #endif  // USE_RETRO_ACHIEVEMENTS
   for (const Patch& patch : patches)
@@ -280,7 +280,7 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
                                std::span<const std::size_t> memory_patch_indices)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
 #endif  // USE_RETRO_ACHIEVEMENTS
   std::lock_guard lock(s_on_frame_memory_mutex);

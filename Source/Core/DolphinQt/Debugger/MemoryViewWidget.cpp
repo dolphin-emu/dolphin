@@ -3,6 +3,9 @@
 
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 
+#include <bit>
+#include <cmath>
+
 #include <QApplication>
 #include <QClipboard>
 #include <QHBoxLayout>
@@ -14,10 +17,10 @@
 #include <QTableWidget>
 #include <QtGlobal>
 
-#include <cmath>
 #include <fmt/printf.h>
 
 #include "Common/Align.h"
+#include "Common/BitUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -154,7 +157,7 @@ public:
     u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
     AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(m_view->m_system);
 
     if (!bytes.empty() && accessors->IsValidAddress(guard, address) &&
         accessors->IsValidAddress(guard, end_address))
@@ -170,8 +173,8 @@ private:
   MemoryViewWidget* m_view;
 };
 
-MemoryViewWidget::MemoryViewWidget(QWidget* parent)
-    : QWidget(parent), m_system(Core::System::GetInstance())
+MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
+    : QWidget(parent), m_system(system)
 {
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -202,18 +205,18 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent)
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
 
   // Also calls create table.
-  UpdateFont();
+  UpdateFont(Settings::Instance().GetDebugFont());
 }
 
-void MemoryViewWidget::UpdateFont()
+void MemoryViewWidget::UpdateFont(const QFont& font)
 {
-  const QFontMetrics fm(Settings::Instance().GetDebugFont());
+  const QFontMetrics fm(font);
   m_font_vspace = fm.lineSpacing() + 4;
   // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
   // fonts have wildly different spacing between two characters and horizontalAdvance includes
   // spacing.
   m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
-  m_table->setFont(Settings::Instance().GetDebugFont());
+  m_table->setFont(font);
 
   CreateTable();
 }
@@ -441,9 +444,9 @@ void MemoryViewWidget::UpdateColumns()
   if (m_table->item(1, 1) == nullptr)
     return;
 
-  if (Core::GetState() == Core::State::Paused)
+  if (Core::GetState(m_system) == Core::State::Paused)
   {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(m_system);
     UpdateColumns(&guard);
   }
   else
@@ -520,11 +523,11 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   case Type::Unsigned32:
     return QString::number(accessors->ReadU32(guard, address));
   case Type::Signed8:
-    return QString::number(Common::BitCast<s8>(accessors->ReadU8(guard, address)));
+    return QString::number(std::bit_cast<s8>(accessors->ReadU8(guard, address)));
   case Type::Signed16:
-    return QString::number(Common::BitCast<s16>(accessors->ReadU16(guard, address)));
+    return QString::number(std::bit_cast<s16>(accessors->ReadU16(guard, address)));
   case Type::Signed32:
-    return QString::number(Common::BitCast<s32>(accessors->ReadU32(guard, address)));
+    return QString::number(std::bit_cast<s32>(accessors->ReadU32(guard, address)));
   case Type::Float32:
   {
     QString string = QString::number(accessors->ReadF32(guard, address), 'g', 4);
@@ -537,7 +540,7 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   case Type::Double:
   {
     QString string =
-        QString::number(Common::BitCast<double>(accessors->ReadU64(guard, address)), 'g', 4);
+        QString::number(std::bit_cast<double>(accessors->ReadU64(guard, address)), 'g', 4);
     // Align to first digit.
     if (!string.startsWith(QLatin1Char('-')))
       string.prepend(QLatin1Char(' '));
@@ -635,7 +638,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
 
     if (good)
     {
-      const u32 value = Common::BitCast<u32>(float_value);
+      const u32 value = std::bit_cast<u32>(float_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
       return std::vector<u8>(std_array.begin(), std_array.end());
     }
@@ -647,7 +650,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
 
     if (good)
     {
-      const u64 value = Common::BitCast<u64>(double_value);
+      const u64 value = std::bit_cast<u64>(double_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
       return std::vector<u8>(std_array.begin(), std_array.end());
     }
@@ -850,12 +853,8 @@ void MemoryViewWidget::OnCopyHex(u32 addr)
 {
   const auto length = GetTypeSize(m_type);
 
-  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
-
-  const u64 value = [addr, accessors] {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    return accessors->ReadU64(guard, addr);
-  }();
+  const u64 value =
+      AddressSpace::GetAccessors(m_address_space)->ReadU64(Core::CPUThreadGuard{m_system}, addr);
 
   QApplication::clipboard()->setText(
       QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
@@ -873,14 +872,11 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   const u32 addr = item_selected->data(USER_ROLE_CELL_ADDRESS).toUInt();
   const bool item_has_value =
       item_selected->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null) &&
-      [this, addr] {
-        const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
-
-        Core::CPUThreadGuard guard(Core::System::GetInstance());
-        return accessors->IsValidAddress(guard, addr);
-      }();
+      AddressSpace::GetAccessors(m_address_space)
+          ->IsValidAddress(Core::CPUThreadGuard{m_system}, addr);
 
   auto* menu = new QMenu(this);
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   menu->addAction(tr("Copy Address"), this, [this, addr] { OnCopyAddress(addr); });
 

@@ -35,7 +35,7 @@ if(BUILD_SHARED_LIBS)
 else()
 	add_library(pugixml STATIC ${SOURCES})
 endif()
-dolphin_disable_warnings_msvc(pugixml)
+dolphin_disable_warnings(pugixml)
 
 set_target_properties(pugixml PROPERTIES VERSION 1.8 SOVERSION 1)
 get_target_property(PUGIXML_VERSION_STRING pugixml VERSION)

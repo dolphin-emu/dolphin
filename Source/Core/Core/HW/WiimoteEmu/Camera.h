@@ -126,7 +126,7 @@ public:
 
   // FYI: A real wiimote normally only returns 1 point for each LED cluster (2 total).
   // Sending all 4 points can actually cause some stuttering issues.
-  static constexpr int NUM_POINTS = 2;
+  static constexpr int NUM_POINTS = 4;
 
   // Range from 0-15. Small values (2-4) seem to be very typical.
   // This is reduced based on distance from sensor bar.

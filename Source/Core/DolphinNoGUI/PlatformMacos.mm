@@ -7,6 +7,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/System.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 
@@ -41,10 +42,11 @@
 
 - (void)togglePause
 {
-  if (Core::GetState() == Core::State::Running)
-    Core::SetState(Core::State::Paused);
+  auto& system = Core::System::GetInstance();
+  if (Core::GetState(system) == Core::State::Running)
+    Core::SetState(system, Core::State::Paused);
   else
-    Core::SetState(Core::State::Running);
+    Core::SetState(system, Core::State::Running);
 }
 
 - (void)saveScreenShot
@@ -54,27 +56,27 @@
 
 - (void)loadLastSaved
 {
-  State::LoadLastSaved();
+  State::LoadLastSaved(Core::System::GetInstance());
 }
 
 - (void)undoLoadState
 {
-  State::UndoLoadState();
+  State::UndoLoadState(Core::System::GetInstance());
 }
 
 - (void)undoSaveState
 {
-  State::UndoSaveState();
+  State::UndoSaveState(Core::System::GetInstance());
 }
 
 - (void)loadState:(id)sender
 {
-  State::Load([sender tag]);
+  State::Load(Core::System::GetInstance(), [sender tag]);
 }
 
 - (void)saveState:(id)sender
 {
-  State::Save([sender tag]);
+  State::Save(Core::System::GetInstance(), [sender tag]);
 }
 @end
 
@@ -225,7 +227,7 @@ void PlatformMacOS::MainLoop()
   while (IsRunning())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs();
+    Core::HostDispatchJobs(Core::System::GetInstance());
     ProcessEvents();
     UpdateWindowPosition();
   }
@@ -262,8 +264,10 @@ void PlatformMacOS::ProcessEvents()
     {
       m_window_focus = true;
       if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never &&
-          Core::GetState() != Core::State::Paused)
+          Core::GetState(Core::System::GetInstance()) != Core::State::Paused)
+      {
         [NSCursor unhide];
+      }
     }
     else
     {

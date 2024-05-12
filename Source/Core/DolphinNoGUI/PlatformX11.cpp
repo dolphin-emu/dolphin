@@ -15,6 +15,7 @@ static constexpr auto X_None = None;
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 #include <climits>
 #include <cstdio>
@@ -151,7 +152,7 @@ void PlatformX11::MainLoop()
   while (IsRunning())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs();
+    Core::HostDispatchJobs(Core::System::GetInstance());
     ProcessEvents();
     UpdateWindowPosition();
 
@@ -198,17 +199,17 @@ void PlatformX11::ProcessEvents()
       }
       else if (key == XK_F10)
       {
-        if (Core::GetState() == Core::State::Running)
+        if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
         {
           if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never)
             XUndefineCursor(m_display, m_window);
-          Core::SetState(Core::State::Paused);
+          Core::SetState(Core::System::GetInstance(), Core::State::Paused);
         }
         else
         {
           if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never)
             XDefineCursor(m_display, m_window, m_blank_cursor);
-          Core::SetState(Core::State::Running);
+          Core::SetState(Core::System::GetInstance(), Core::State::Running);
         }
       }
       else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
@@ -224,28 +225,30 @@ void PlatformX11::ProcessEvents()
       {
         int slot_number = key - XK_F1 + 1;
         if (event.xkey.state & ShiftMask)
-          State::Save(slot_number);
+          State::Save(Core::System::GetInstance(), slot_number);
         else
-          State::Load(slot_number);
+          State::Load(Core::System::GetInstance(), slot_number);
       }
       else if (key == XK_F9)
         Core::SaveScreenShot();
       else if (key == XK_F11)
-        State::LoadLastSaved();
+        State::LoadLastSaved(Core::System::GetInstance());
       else if (key == XK_F12)
       {
         if (event.xkey.state & ShiftMask)
-          State::UndoLoadState();
+          State::UndoLoadState(Core::System::GetInstance());
         else
-          State::UndoSaveState();
+          State::UndoSaveState(Core::System::GetInstance());
       }
       break;
     case FocusIn:
     {
       m_window_focus = true;
       if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never &&
-          Core::GetState() != Core::State::Paused)
+          Core::GetState(Core::System::GetInstance()) != Core::State::Paused)
+      {
         XDefineCursor(m_display, m_window, m_blank_cursor);
+      }
     }
     break;
     case FocusOut:

@@ -65,8 +65,9 @@ void Interpreter::UpdatePC()
 }
 
 Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu,
-                         Core::BranchWatch& branch_watch)
-    : m_system(system), m_ppc_state(ppc_state), m_mmu(mmu), m_branch_watch(branch_watch)
+                         Core::BranchWatch& branch_watch, PPCSymbolDB& ppc_symbol_db)
+    : m_system(system), m_ppc_state(ppc_state), m_mmu(mmu), m_branch_watch(branch_watch),
+      m_ppc_symbol_db(ppc_symbol_db)
 {
 }
 
@@ -107,7 +108,8 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
 
 bool Interpreter::HandleFunctionHooking(u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(address, PowerPC::CoreMode::Interpreter);
+  const auto result =
+      HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::Interpreter);
   if (!result)
     return false;
 

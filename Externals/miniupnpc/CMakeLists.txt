@@ -33,7 +33,7 @@ set(SRCS	src/igd_desc_parse.c
 			src/receivedata.c)
 
 add_library(miniupnpc STATIC ${SRCS})
-dolphin_disable_warnings_msvc(miniupnpc)
+dolphin_disable_warnings(miniupnpc)
 target_include_directories(miniupnpc PUBLIC src)
 
 add_library(Miniupnpc::miniupnpc ALIAS miniupnpc)

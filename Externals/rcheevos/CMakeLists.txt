@@ -18,7 +18,6 @@ add_library(rcheevos
 	rcheevos/src/rapi/rc_api_runtime.c
 	rcheevos/src/rapi/rc_api_user.c
 	rcheevos/src/rcheevos/alloc.c
-	rcheevos/src/rcheevos/compat.c
 	rcheevos/src/rcheevos/condition.c
 	rcheevos/src/rcheevos/condset.c
 	rcheevos/src/rcheevos/consoleinfo.c
@@ -26,7 +25,6 @@ add_library(rcheevos
 	rcheevos/src/rcheevos/lboard.c
 	rcheevos/src/rcheevos/memref.c
 	rcheevos/src/rcheevos/operand.c
-	rcheevos/src/rcheevos/rc_compat.h
 	rcheevos/src/rcheevos/rc_internal.h
 	rcheevos/src/rcheevos/rc_validate.c
 	rcheevos/src/rcheevos/rc_validate.h
@@ -35,15 +33,30 @@ add_library(rcheevos
 	rcheevos/src/rcheevos/runtime_progress.c
 	rcheevos/src/rcheevos/trigger.c
 	rcheevos/src/rcheevos/value.c
+	rcheevos/src/rhash/aes.c
+	rcheevos/src/rhash/aes.h
+	rcheevos/src/rhash/cdreader.c
 	rcheevos/src/rhash/hash.c
 	rcheevos/src/rhash/md5.c
 	rcheevos/src/rhash/md5.h
 	rcheevos/src/rurl/url.c
+	rcheevos/src/rc_client.c
+	rcheevos/src/rc_client_external.h
+	rcheevos/src/rc_client_internal.h
+	rcheevos/src/rc_client_raintegration.c
+	rcheevos/src/rc_client_raintegration_internal.h
+	rcheevos/src/rc_compat.c
+	rcheevos/src/rc_compat.h
+	rcheevos/src/rc_util.c
+	rcheevos/src/rc_version.c
+	rcheevos/src/rc_version.h
 )
+dolphin_disable_warnings(rcheevos)
 
 target_include_directories(rcheevos PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/rcheevos/include")
 target_include_directories(rcheevos INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(rcheevos PRIVATE "RC_DISABLE_LUA=1" "RCHEEVOS_URL_SSL")
+target_compile_definitions(rcheevos PRIVATE "RC_CLIENT_SUPPORTS_HASH")
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	target_compile_definitions(rcheevos PRIVATE "_CRT_SECURE_NO_WARNINGS")
 endif()

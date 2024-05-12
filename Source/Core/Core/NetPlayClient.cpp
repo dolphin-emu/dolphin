@@ -977,6 +977,7 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
   m_dialog->OnMsgStopGame();
 }
 
+
 void NetPlayClient::OnPowerButton()
 {
   InvokeStop();
@@ -1064,6 +1065,36 @@ void NetPlayClient::OnPlayerPingData(sf::Packet& packet)
   DisplayPlayersPing();
   m_dialog->Update();
 }
+
+void NetPlayClient::OnSendCodesMsg(sf::Packet& packet)
+{
+  std::string codeStr;
+  packet >> codeStr;
+  auto ss = std::stringstream{codeStr};
+
+  v_ActiveGeckoCodes = {};
+  v_ActiveARCodes = {};
+
+  for (std::string line; std::getline(ss, line, '\n');)
+    v_ActiveGeckoCodes.push_back(line);
+
+  // add to chat
+  std::string firstLine = "Active Gecko Codes:";
+  m_dialog->OnActiveGeckoCodes(firstLine);
+  for (const std::string code : v_ActiveGeckoCodes)
+    m_dialog->OnActiveGeckoCodes(code);
+
+  for (std::string line; std::getline(ss, line, '\n');)
+    v_ActiveARCodes.push_back(line);
+
+  // add to chat
+  std::string firstLineAR = "Active AR Codes:";
+  m_dialog->OnActiveARCodes(firstLineAR);
+  for (const std::string code : v_ActiveARCodes)
+    m_dialog->OnActiveARCodes(code);
+
+}
+
 
 void NetPlayClient::OnDesyncDetected(sf::Packet& packet)
 {

@@ -94,11 +94,12 @@ std::optional<IPCReply> USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
     return IPCReply(IPC_EINVAL);
 
   m_devicechange_hook_request = std::make_unique<IOCtlRequest>(GetSystem(), request.address);
-  // On the first call, the reply is sent immediately (instead of on device insertion/removal)
-  if (m_devicechange_first_call)
+  // If there are pending changes, the reply is sent immediately (instead of on device
+  // insertion/removal).
+  if (m_has_pending_changes)
   {
     TriggerDeviceChangeReply();
-    m_devicechange_first_call = false;
+    m_has_pending_changes = false;
   }
   return std::nullopt;
 }
@@ -138,7 +139,7 @@ s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request)
 
 void USB_HIDv4::DoState(PointerWrap& p)
 {
-  p.Do(m_devicechange_first_call);
+  p.Do(m_has_pending_changes);
   u32 hook_address = m_devicechange_hook_request ? m_devicechange_hook_request->address : 0;
   p.Do(hook_address);
   if (hook_address != 0)
@@ -199,7 +200,10 @@ bool USB_HIDv4::ShouldAddDevice(const USB::Device& device) const
 void USB_HIDv4::TriggerDeviceChangeReply()
 {
   if (!m_devicechange_hook_request)
+  {
+    m_has_pending_changes = true;
     return;
+  }
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
