@@ -103,8 +103,8 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     // (Note that this case cannot be reached in single core mode, because in single core mode,
     // the CPU and GPU threads are the same thread, and we already checked for the GPU thread.)
 
-    const bool was_running = Core::GetState() == Core::State::Running;
     auto& system = Core::System::GetInstance();
+    const bool was_running = Core::GetState(system) == Core::State::Running;
     auto& fifo = system.GetFifo();
     fifo.PauseAndLock(true, was_running);
     f();
@@ -112,9 +112,9 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
   }
   else
   {
-    // If we reach here, we can call Core::PauseAndLock (which we do using RunAsCPUThread).
-
-    Core::RunAsCPUThread(std::move(f));
+    // If we reach here, we can call Core::PauseAndLock (which we do using a CPUThreadGuard).
+    const Core::CPUThreadGuard guard(Core::System::GetInstance());
+    f();
   }
 }
 
@@ -238,14 +238,9 @@ void Host_UpdateDisasmDialog()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
-void Host::RequestNotifyMapLoaded()
+void Host_PPCSymbolsChanged()
 {
-  QueueOnObject(QApplication::instance(), [this] { emit NotifyMapLoaded(); });
-}
-
-void Host_NotifyMapLoaded()
-{
-  Host::GetInstance()->RequestNotifyMapLoaded();
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->PPCSymbolsChanged(); });
 }
 
 // We ignore these, and their purpose should be questioned individually.

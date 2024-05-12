@@ -3,16 +3,18 @@
 
 #include "Core/PowerPC/JitCommon/DivUtils.h"
 
+#include <algorithm>
+#include <bit>
 #include <cstdlib>
 
 namespace JitCommon
 {
-Magic SignedDivisionConstants(s32 d)
+SignedMagic SignedDivisionConstants(s32 divisor)
 {
   const u32 two31 = 2147483648;
 
-  const u32 ad = std::abs(d);
-  const u32 t = two31 - (d < 0);
+  const u32 ad = std::abs(divisor);
+  const u32 t = two31 - (divisor < 0);
   const u32 anc = t - 1 - t % ad;
   u32 q1 = two31 / anc;
   u32 r1 = two31 - q1 * anc;
@@ -44,11 +46,41 @@ Magic SignedDivisionConstants(s32 d)
     delta = ad - r2;
   } while (q1 < delta || (q1 == delta && r1 == 0));
 
-  Magic mag;
+  SignedMagic mag;
   mag.multiplier = q2 + 1;
-  if (d < 0)
+  if (divisor < 0)
     mag.multiplier = -mag.multiplier;
   mag.shift = p - 32;
+
+  return mag;
+}
+
+UnsignedMagic UnsignedDivisionConstants(u32 divisor)
+{
+  u32 shift = 31 - std::countl_zero(divisor);
+
+  u64 magic_dividend = 0x100000000ULL << shift;
+  u32 multiplier = magic_dividend / divisor;
+  u32 max_quotient = multiplier >> shift;
+
+  // Test for failure in round-up method
+  u32 round_up = (u64(multiplier + 1) * (max_quotient * divisor - 1)) >> (shift + 32);
+  bool fast = round_up == max_quotient - 1;
+
+  if (fast)
+  {
+    multiplier++;
+
+    // Use smallest magic number and shift amount possible
+    u32 trailing_zeroes = std::min(shift, u32(std::countr_zero(multiplier)));
+    multiplier >>= trailing_zeroes;
+    shift -= trailing_zeroes;
+  }
+
+  UnsignedMagic mag;
+  mag.multiplier = multiplier;
+  mag.shift = shift;
+  mag.fast = fast;
 
   return mag;
 }

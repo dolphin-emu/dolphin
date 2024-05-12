@@ -729,9 +729,7 @@ void AssemblerWidget::NewEditor(const QString& path)
   if (!path.isEmpty() && !new_editor->LoadFromPath())
   {
     ModalMessageBox::warning(this, tr("Failed to open file"),
-                             tr("Failed to read the contents of file\n\n"
-                                "\"%1\"")
-                                 .arg(path));
+                             tr("Failed to read the contents of file:\n%1").arg(path));
     delete new_editor;
     return;
   }

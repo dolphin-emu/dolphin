@@ -125,13 +125,14 @@ struct NoExt : virtual DataReportManipulator
   u8* GetExtDataPtr() override { return nullptr; }
 };
 
-template <u32 Offset, u32 Length, u32 DataOffset = 0>
+template <IRReportFormat Format, u32 Offset, u32 Length, u32 DataOffset = 0>
 struct IncludeIR : virtual DataReportManipulator
 {
   u32 GetIRDataSize() const override { return Length; }
   const u8* GetIRDataPtr() const override { return data_ptr + Offset; }
   u8* GetIRDataPtr() override { return data_ptr + Offset; }
   u32 GetIRDataFormatOffset() const override { return DataOffset; }
+  IRReportFormat GetIRReportFormat() const override { return Format; }
 };
 
 struct NoIR : virtual DataReportManipulator
@@ -140,6 +141,7 @@ struct NoIR : virtual DataReportManipulator
   const u8* GetIRDataPtr() const override { return nullptr; }
   u8* GetIRDataPtr() override { return nullptr; }
   u32 GetIRDataFormatOffset() const override { return 0; }
+  IRReportFormat GetIRReportFormat() const override { return IRReportFormat::None; }
 };
 
 #ifdef _MSC_VER
@@ -162,7 +164,10 @@ struct ReportCoreExt8 : IncludeCore, NoAccel, NoIR, IncludeExt<2, 8>
 {
 };
 
-struct ReportCoreAccelIR12 : IncludeCore, IncludeAccel, IncludeIR<5, 12>, NoExt
+struct ReportCoreAccelIR12 : IncludeCore,
+                             IncludeAccel,
+                             IncludeIR<IRReportFormat::Extended, 5, 12>,
+                             NoExt
 {
   u32 GetDataSize() const override { return 17; }
 };
@@ -175,11 +180,17 @@ struct ReportCoreAccelExt16 : IncludeCore, IncludeAccel, NoIR, IncludeExt<5, 16>
 {
 };
 
-struct ReportCoreIR10Ext9 : IncludeCore, NoAccel, IncludeIR<2, 10>, IncludeExt<12, 9>
+struct ReportCoreIR10Ext9 : IncludeCore,
+                            NoAccel,
+                            IncludeIR<IRReportFormat::Basic, 2, 10>,
+                            IncludeExt<12, 9>
 {
 };
 
-struct ReportCoreAccelIR10Ext6 : IncludeCore, IncludeAccel, IncludeIR<5, 10>, IncludeExt<15, 6>
+struct ReportCoreAccelIR10Ext6 : IncludeCore,
+                                 IncludeAccel,
+                                 IncludeIR<IRReportFormat::Basic, 5, 10>,
+                                 IncludeExt<15, 6>
 {
 };
 
@@ -187,7 +198,7 @@ struct ReportExt21 : NoCore, NoAccel, NoIR, IncludeExt<0, 21>
 {
 };
 
-struct ReportInterleave1 : IncludeCore, IncludeIR<3, 18, 0>, NoExt
+struct ReportInterleave1 : IncludeCore, IncludeIR<IRReportFormat::Full1, 3, 18, 0>, NoExt
 {
   // FYI: Only 8-bits of precision in this report, and no Y axis.
   void GetAccelData(AccelData* accel) const override
@@ -220,7 +231,7 @@ struct ReportInterleave1 : IncludeCore, IncludeIR<3, 18, 0>, NoExt
   u32 GetDataSize() const override { return 21; }
 };
 
-struct ReportInterleave2 : IncludeCore, IncludeIR<3, 18, 18>, NoExt
+struct ReportInterleave2 : IncludeCore, IncludeIR<IRReportFormat::Full2, 3, 18, 18>, NoExt
 {
   // FYI: Only 8-bits of precision in this report, and no X axis.
   void GetAccelData(AccelData* accel) const override
@@ -370,6 +381,11 @@ u32 DataReportBuilder::GetExtDataSize() const
 u32 DataReportBuilder::GetIRDataFormatOffset() const
 {
   return m_manip->GetIRDataFormatOffset();
+}
+
+IRReportFormat DataReportBuilder::GetIRReportFormat() const
+{
+  return m_manip->GetIRReportFormat();
 }
 
 void DataReportBuilder::GetCoreData(CoreData* core) const

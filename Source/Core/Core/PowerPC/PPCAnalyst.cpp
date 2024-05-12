@@ -187,12 +187,12 @@ bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-static void AnalyzeFunction2(Common::Symbol* func)
+static void AnalyzeFunction2(PPCSymbolDB* func_db, Common::Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [](const auto& call) {
-    const Common::Symbol* called_func = g_symbolDB.GetSymbolFromAddr(call.function);
+  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [&](const auto& call) {
+    const Common::Symbol* const called_func = func_db->GetSymbolFromAddr(call.function);
     return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
   });
 
@@ -408,7 +408,7 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
       WARN_LOG_FMT(SYMBOLS, "Weird function");
       continue;
     }
-    AnalyzeFunction2(&(func.second));
+    AnalyzeFunction2(func_db, &(func.second));
     Common::Symbol& f = func.second;
     if (f.name.substr(0, 3) == "zzz")
     {
@@ -824,7 +824,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
   const bool enable_follow = m_enable_branch_following;
 
-  auto& mmu = Core::System::GetInstance().GetMMU();
+  auto& system = Core::System::GetInstance();
+  auto& mmu = system.GetMMU();
   for (std::size_t i = 0; i < block_size; ++i)
   {
     auto result = mmu.TryReadInstruction(address);
@@ -979,6 +980,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     block->m_broken = true;
   }
 
+  auto& power_pc = system.GetPowerPC();
+  auto& ppc_symbol_db = power_pc.GetSymbolDB();
   // Scan for flag dependencies; assume the next block (or any branch that can leave the block)
   // wants flags, to be safe.
   bool wantsFPRF = true;
@@ -998,9 +1001,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       crDiscardable = BitSet8{};
     }
 
-    const auto ppc_mode = Core::System::GetInstance().GetPowerPC().GetMode();
-    const bool hle = !!HLE::TryReplaceFunction(op.address, ppc_mode);
-    const bool may_exit_block = hle || op.canEndBlock || op.canCauseException;
+    const auto ppc_mode = power_pc.GetMode();
+    const bool hle = !!HLE::TryReplaceFunction(ppc_symbol_db, op.address, ppc_mode);
+    const bool breakpoint = power_pc.GetBreakPoints().IsAddressBreakPoint(op.address);
+    const bool may_exit_block = hle || breakpoint || op.canEndBlock || op.canCauseException;
 
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
@@ -1026,7 +1030,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
 
-    if (hle)
+    if (hle || breakpoint)
     {
       gprInUse = BitSet32{};
       fprInUse = BitSet32{};

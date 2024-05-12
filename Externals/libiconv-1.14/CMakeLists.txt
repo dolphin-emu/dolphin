@@ -9,5 +9,5 @@ target_include_directories(iconv
 	PRIVATE
 		libcharset/include
 )
-dolphin_disable_warnings_msvc(iconv)
+dolphin_disable_warnings(iconv)
 add_library(Iconv::Iconv ALIAS iconv)

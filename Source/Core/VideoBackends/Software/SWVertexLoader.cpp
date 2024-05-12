@@ -149,11 +149,14 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
         dst[i_dst] = ReadNormalized<T, s16>(src.Read<s16, swap>());
         break;
       case ComponentFormat::Float:
+      case ComponentFormat::InvalidFloat5:
+      case ComponentFormat::InvalidFloat6:
+      case ComponentFormat::InvalidFloat7:
         dst[i_dst] = ReadNormalized<T, float>(src.Read<float, swap>());
         break;
       }
 
-      ASSERT_MSG(VIDEO, !format.integer || format.type != ComponentFormat::Float,
+      ASSERT_MSG(VIDEO, !format.integer || (format.type < ComponentFormat::Float),
                  "only non-float values are allowed to be streamed as integer");
     }
     for (; i < components; i++)

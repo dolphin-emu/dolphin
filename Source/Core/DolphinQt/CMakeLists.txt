@@ -28,6 +28,8 @@ add_executable(dolphin-mpn
   CheatSearchWidget.h
   CheatsManager.cpp
   CheatsManager.h
+  Achievements/AchievementBox.cpp
+  Achievements/AchievementBox.h
   Achievements/AchievementHeaderWidget.cpp
   Achievements/AchievementHeaderWidget.h
   Achievements/AchievementLeaderboardWidget.cpp
@@ -303,6 +305,7 @@ add_executable(dolphin-mpn
   QtUtils/ElidedButton.h
   QtUtils/FileOpenEventFilter.cpp
   QtUtils/FileOpenEventFilter.h
+  QtUtils/FromStdString.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
   QtUtils/ModalMessageBox.cpp

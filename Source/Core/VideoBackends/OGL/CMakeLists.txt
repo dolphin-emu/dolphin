@@ -27,14 +27,10 @@ add_library(videoogl
   VideoBackend.h
 )
 
-target_link_libraries(videoogl
-PUBLIC
-  common
-  videocommon
-
-PRIVATE
-  ${X11_LIBRARIES}
-)
+target_link_libraries(videoogl PUBLIC common videocommon)
+if(X11_FOUND)
+  target_link_libraries(videoogl PRIVATE PkgConfig::X11)
+endif()
 
 if(MSVC)
   # Add precompiled header

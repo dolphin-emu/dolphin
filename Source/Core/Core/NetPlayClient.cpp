@@ -971,8 +971,11 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 
 void NetPlayClient::OnStopGame(sf::Packet& packet)
 {
-  const Player& player = m_players[pid];
+  PlayerId pid;
+  packet >> pid;
   
+  const Player& player = m_players[pid];
+
   INFO_LOG_FMT(NETPLAY, "Game stopped");
   StopGame();
   m_dialog->OnMsgStopGame(player.name);

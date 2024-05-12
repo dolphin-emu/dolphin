@@ -9,6 +9,7 @@
 #include <deque>
 
 #include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IRPassthrough.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ControllerEmu
@@ -180,6 +181,19 @@ private:
   u32 m_stable_steps = 0;
 };
 
+class IRPassthroughMappingIndicator : public SquareIndicator
+{
+public:
+  explicit IRPassthroughMappingIndicator(ControllerEmu::IRPassthrough& ir_group)
+      : m_ir_group(ir_group)
+  {
+  }
+
+private:
+  void Draw() override;
+
+  ControllerEmu::IRPassthrough& m_ir_group;
+};
 class CalibrationWidget : public QToolButton
 {
 public:

@@ -8,10 +8,12 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 #include <Windows.h>
 #include <climits>
 #include <cstdio>
+#include <dwmapi.h>
 
 #include "VideoCommon/Present.h"
 #include "resource.h"
@@ -123,7 +125,7 @@ void PlatformWin32::MainLoop()
   while (IsRunning())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs();
+    Core::HostDispatchJobs(Core::System::GetInstance());
     ProcessEvents();
     UpdateWindowPosition();
 
@@ -178,6 +180,18 @@ LRESULT PlatformWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(platform));
     return DefWindowProc(hwnd, msg, wParam, lParam);
   }
+
+  case WM_CREATE:
+  {
+    if (hwnd)
+    {
+      // Remove rounded corners from the render window on Windows 11
+      const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+      DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner_preference,
+                            sizeof(corner_preference));
+    }
+  }
+  break;
 
   case WM_SIZE:
   {

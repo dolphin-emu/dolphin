@@ -143,14 +143,7 @@ public:
   }
 
   bool IsSimpleValue() const override { return m_value.IsSimpleValue(); }
-
-  void SimplifyIfPossible() override
-  {
-    ValueType value;
-    if (TryParse(m_value.m_input.GetExpression(), &value))
-      m_value.SetValue(value);
-  }
-
+  void SimplifyIfPossible() override;
   void SetExpressionFromValue() override;
   InputReference& GetInputReference() override { return m_value.m_input; }
   const InputReference& GetInputReference() const override { return m_value.m_input; }
@@ -193,7 +186,6 @@ public:
 
   bool IsSimpleValue() const { return m_input.GetExpression().empty(); }
 
-private:
   void SetValue(ValueType value)
   {
     m_value = value;
@@ -202,6 +194,7 @@ private:
     m_input.SetExpression("");
   }
 
+private:
   // Values are R/W by both UI and CPU threads.
   mutable std::atomic<ValueType> m_value = {};
 

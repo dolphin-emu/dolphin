@@ -19,31 +19,45 @@ static VkFormat VarToVkFormat(ComponentFormat t, uint32_t components, bool integ
   using ComponentArray = std::array<VkFormat, 4>;
   static constexpr auto f = [](ComponentArray a) { return a; };  // Deduction helper
 
-  static constexpr Common::EnumMap<ComponentArray, ComponentFormat::Float> float_type_lookup = {
-      f({VK_FORMAT_R8_UNORM, VK_FORMAT_R8G8_UNORM, VK_FORMAT_R8G8B8_UNORM,
-         VK_FORMAT_R8G8B8A8_UNORM}),  // UByte
-      f({VK_FORMAT_R8_SNORM, VK_FORMAT_R8G8_SNORM, VK_FORMAT_R8G8B8_SNORM,
-         VK_FORMAT_R8G8B8A8_SNORM}),  // Byte
-      f({VK_FORMAT_R16_UNORM, VK_FORMAT_R16G16_UNORM, VK_FORMAT_R16G16B16_UNORM,
-         VK_FORMAT_R16G16B16A16_UNORM}),  // UShort
-      f({VK_FORMAT_R16_SNORM, VK_FORMAT_R16G16_SNORM, VK_FORMAT_R16G16B16_SNORM,
-         VK_FORMAT_R16G16B16A16_SNORM}),  // Short
-      f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
-         VK_FORMAT_R32G32B32A32_SFLOAT}),  // Float
-  };
+  static constexpr Common::EnumMap<ComponentArray, ComponentFormat::InvalidFloat7>
+      float_type_lookup = {
+          f({VK_FORMAT_R8_UNORM, VK_FORMAT_R8G8_UNORM, VK_FORMAT_R8G8B8_UNORM,
+             VK_FORMAT_R8G8B8A8_UNORM}),  // UByte
+          f({VK_FORMAT_R8_SNORM, VK_FORMAT_R8G8_SNORM, VK_FORMAT_R8G8B8_SNORM,
+             VK_FORMAT_R8G8B8A8_SNORM}),  // Byte
+          f({VK_FORMAT_R16_UNORM, VK_FORMAT_R16G16_UNORM, VK_FORMAT_R16G16B16_UNORM,
+             VK_FORMAT_R16G16B16A16_UNORM}),  // UShort
+          f({VK_FORMAT_R16_SNORM, VK_FORMAT_R16G16_SNORM, VK_FORMAT_R16G16B16_SNORM,
+             VK_FORMAT_R16G16B16A16_SNORM}),  // Short
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Float
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Invalid
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Invalid
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Invalid
+      };
 
-  static constexpr Common::EnumMap<ComponentArray, ComponentFormat::Float> integer_type_lookup = {
-      f({VK_FORMAT_R8_UINT, VK_FORMAT_R8G8_UINT, VK_FORMAT_R8G8B8_UINT,
-         VK_FORMAT_R8G8B8A8_UINT}),  // UByte
-      f({VK_FORMAT_R8_SINT, VK_FORMAT_R8G8_SINT, VK_FORMAT_R8G8B8_SINT,
-         VK_FORMAT_R8G8B8A8_SINT}),  // Byte
-      f({VK_FORMAT_R16_UINT, VK_FORMAT_R16G16_UINT, VK_FORMAT_R16G16B16_UINT,
-         VK_FORMAT_R16G16B16A16_UINT}),  // UShort
-      f({VK_FORMAT_R16_SINT, VK_FORMAT_R16G16_SINT, VK_FORMAT_R16G16B16_SINT,
-         VK_FORMAT_R16G16B16A16_SINT}),  // Short
-      f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
-         VK_FORMAT_R32G32B32A32_SFLOAT}),  // Float
-  };
+  static constexpr Common::EnumMap<ComponentArray, ComponentFormat::InvalidFloat7>
+      integer_type_lookup = {
+          f({VK_FORMAT_R8_UINT, VK_FORMAT_R8G8_UINT, VK_FORMAT_R8G8B8_UINT,
+             VK_FORMAT_R8G8B8A8_UINT}),  // UByte
+          f({VK_FORMAT_R8_SINT, VK_FORMAT_R8G8_SINT, VK_FORMAT_R8G8B8_SINT,
+             VK_FORMAT_R8G8B8A8_SINT}),  // Byte
+          f({VK_FORMAT_R16_UINT, VK_FORMAT_R16G16_UINT, VK_FORMAT_R16G16B16_UINT,
+             VK_FORMAT_R16G16B16A16_UINT}),  // UShort
+          f({VK_FORMAT_R16_SINT, VK_FORMAT_R16G16_SINT, VK_FORMAT_R16G16B16_SINT,
+             VK_FORMAT_R16G16B16A16_SINT}),  // Short
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Float
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Invalid
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Invalid
+          f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+             VK_FORMAT_R32G32B32A32_SFLOAT}),  // Invalid
+      };
 
   ASSERT(components > 0 && components <= 4);
   return integer ? integer_type_lookup[t][components - 1] : float_type_lookup[t][components - 1];

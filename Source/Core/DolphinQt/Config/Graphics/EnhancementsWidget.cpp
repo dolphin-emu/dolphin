@@ -372,7 +372,8 @@ void EnhancementsWidget::LoadSettings()
   // Resampling
   const OutputResamplingMode output_resampling_mode =
       Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
-  m_output_resampling_combo->setCurrentIndex(static_cast<int>(output_resampling_mode));
+  m_output_resampling_combo->setCurrentIndex(
+      m_output_resampling_combo->findData(static_cast<int>(output_resampling_mode)));
 
   m_output_resampling_combo->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
@@ -527,20 +528,20 @@ void EnhancementsWidget::AddDescriptions()
 
                  "<br><br><b>Bicubic</b> - [16 samples]"
                  "<br>Gamma corrected cubic interpolation between pixels."
-                 "<br>Good when rescaling between close resolutions. i.e 1080p and 1440p."
+                 "<br>Good when rescaling between close resolutions, e.g. 1080p and 1440p."
                  "<br>Comes in various flavors:"
                  "<br><b>B-Spline</b>: Blurry, but avoids all lobing artifacts"
                  "<br><b>Mitchell-Netravali</b>: Good middle ground between blurry and lobing"
                  "<br><b>Catmull-Rom</b>: Sharper, but can cause lobing artifacts"
 
                  "<br><br><b>Sharp Bilinear</b> - [1-4 samples]"
-                 "<br>Similarly to \"Nearest Neighbor\", it maintains a sharp look,"
+                 "<br>Similar to \"Nearest Neighbor\", it maintains a sharp look,"
                  "<br>but also does some blending to avoid shimmering."
                  "<br>Works best with 2D games at low resolutions."
 
                  "<br><br><b>Area Sampling</b> - [up to 324 samples]"
-                 "<br>Weights pixels by the percentage of area they occupy. Gamma corrected."
-                 "<br>Best for down scaling by more than 2x."
+                 "<br>Weighs pixels by the percentage of area they occupy. Gamma corrected."
+                 "<br>Best for downscaling by more than 2x."
 
                  "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_COLOR_CORRECTION_DESCRIPTION[] =

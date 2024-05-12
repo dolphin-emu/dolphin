@@ -4,6 +4,7 @@
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
 
 #include <algorithm>
+#include <bit>
 
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -51,13 +52,9 @@ FIFOAnalyzer::FIFOAnalyzer(FifoPlayer& fifo_player) : m_fifo_player(fifo_player)
   m_search_splitter->restoreState(
       settings.value(QStringLiteral("fifoanalyzer/searchsplitter")).toByteArray());
 
-  m_detail_list->setFont(Settings::Instance().GetDebugFont());
-  m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
-
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, [this] {
-    m_detail_list->setFont(Settings::Instance().GetDebugFont());
-    m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
-  });
+  OnDebugFontChanged(Settings::Instance().GetDebugFont());
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
+          &FIFOAnalyzer::OnDebugFontChanged);
 }
 
 FIFOAnalyzer::~FIFOAnalyzer()
@@ -650,7 +647,7 @@ public:
         }
         if (format == ComponentFormat::Float)
         {
-          const float value = Common::BitCast<float>(Common::swap32(&vertex_data[i]));
+          const float value = std::bit_cast<float>(Common::swap32(&vertex_data[i]));
           text += QStringLiteral(" (%1)").arg(value);
         }
         i += component_size;
@@ -778,4 +775,10 @@ void FIFOAnalyzer::UpdateDescription()
   OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + entry_start],
                             object_size - entry_start, callback);
   m_entry_detail_browser->setText(callback.text);
+}
+
+void FIFOAnalyzer::OnDebugFontChanged(const QFont& font)
+{
+  m_detail_list->setFont(font);
+  m_entry_detail_browser->setFont(font);
 }

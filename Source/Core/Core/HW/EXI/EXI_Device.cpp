@@ -14,6 +14,7 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI/EXI_DeviceMic.h"
+#include "Core/HW/EXI/EXI_DeviceModem.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -137,11 +138,9 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::TAP);
     break;
 
-#if defined(__APPLE__)
   case EXIDeviceType::EthernetTapServer:
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::TAPSERVER);
     break;
-#endif
 
   case EXIDeviceType::EthernetXLink:
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::XLINK);
@@ -149,6 +148,10 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
 
   case EXIDeviceType::EthernetBuiltIn:
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::BuiltIn);
+    break;
+
+  case EXIDeviceType::ModemTapServer:
+    result = std::make_unique<CEXIModem>(system, ModemDeviceType::TAPSERVER);
     break;
 
   case EXIDeviceType::Gecko:

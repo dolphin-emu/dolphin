@@ -27,7 +27,8 @@ private:
   using EnumMap = typename Common::EnumMap<T, last_member>;
 
   using SizeTable = EnumMap<
-      std::array<EnumMap<EnumMap<u32, ComponentFormat::Float>, NormalComponentCount::NTB>, 2>,
+      std::array<EnumMap<EnumMap<u32, ComponentFormat::InvalidFloat7>, NormalComponentCount::NTB>,
+                 2>,
       VertexComponentFormat::Index16>;
 
   static constexpr SizeTable s_table_size = []() consteval
@@ -43,11 +44,17 @@ private:
     table[VCF::Direct][false][NCC::N][FMT::UShort] = 6;
     table[VCF::Direct][false][NCC::N][FMT::Short] = 6;
     table[VCF::Direct][false][NCC::N][FMT::Float] = 12;
+    table[VCF::Direct][false][NCC::N][FMT::InvalidFloat5] = 12;
+    table[VCF::Direct][false][NCC::N][FMT::InvalidFloat6] = 12;
+    table[VCF::Direct][false][NCC::N][FMT::InvalidFloat7] = 12;
     table[VCF::Direct][false][NCC::NTB][FMT::UByte] = 9;
     table[VCF::Direct][false][NCC::NTB][FMT::Byte] = 9;
     table[VCF::Direct][false][NCC::NTB][FMT::UShort] = 18;
     table[VCF::Direct][false][NCC::NTB][FMT::Short] = 18;
     table[VCF::Direct][false][NCC::NTB][FMT::Float] = 36;
+    table[VCF::Direct][false][NCC::NTB][FMT::InvalidFloat5] = 36;
+    table[VCF::Direct][false][NCC::NTB][FMT::InvalidFloat6] = 36;
+    table[VCF::Direct][false][NCC::NTB][FMT::InvalidFloat7] = 36;
 
     // Same as above, since there are no indices
     table[VCF::Direct][true][NCC::N][FMT::UByte] = 3;
@@ -55,22 +62,34 @@ private:
     table[VCF::Direct][true][NCC::N][FMT::UShort] = 6;
     table[VCF::Direct][true][NCC::N][FMT::Short] = 6;
     table[VCF::Direct][true][NCC::N][FMT::Float] = 12;
+    table[VCF::Direct][true][NCC::N][FMT::InvalidFloat5] = 12;
+    table[VCF::Direct][true][NCC::N][FMT::InvalidFloat6] = 12;
+    table[VCF::Direct][true][NCC::N][FMT::InvalidFloat7] = 12;
     table[VCF::Direct][true][NCC::NTB][FMT::UByte] = 9;
     table[VCF::Direct][true][NCC::NTB][FMT::Byte] = 9;
     table[VCF::Direct][true][NCC::NTB][FMT::UShort] = 18;
     table[VCF::Direct][true][NCC::NTB][FMT::Short] = 18;
     table[VCF::Direct][true][NCC::NTB][FMT::Float] = 36;
+    table[VCF::Direct][true][NCC::NTB][FMT::InvalidFloat5] = 36;
+    table[VCF::Direct][true][NCC::NTB][FMT::InvalidFloat6] = 36;
+    table[VCF::Direct][true][NCC::NTB][FMT::InvalidFloat7] = 36;
 
     table[VCF::Index8][false][NCC::N][FMT::UByte] = 1;
     table[VCF::Index8][false][NCC::N][FMT::Byte] = 1;
     table[VCF::Index8][false][NCC::N][FMT::UShort] = 1;
     table[VCF::Index8][false][NCC::N][FMT::Short] = 1;
     table[VCF::Index8][false][NCC::N][FMT::Float] = 1;
+    table[VCF::Index8][false][NCC::N][FMT::InvalidFloat5] = 1;
+    table[VCF::Index8][false][NCC::N][FMT::InvalidFloat6] = 1;
+    table[VCF::Index8][false][NCC::N][FMT::InvalidFloat7] = 1;
     table[VCF::Index8][false][NCC::NTB][FMT::UByte] = 1;
     table[VCF::Index8][false][NCC::NTB][FMT::Byte] = 1;
     table[VCF::Index8][false][NCC::NTB][FMT::UShort] = 1;
     table[VCF::Index8][false][NCC::NTB][FMT::Short] = 1;
     table[VCF::Index8][false][NCC::NTB][FMT::Float] = 1;
+    table[VCF::Index8][false][NCC::NTB][FMT::InvalidFloat5] = 1;
+    table[VCF::Index8][false][NCC::NTB][FMT::InvalidFloat6] = 1;
+    table[VCF::Index8][false][NCC::NTB][FMT::InvalidFloat7] = 1;
 
     // Same for NormalComponentCount::N; differs for NTB
     table[VCF::Index8][true][NCC::N][FMT::UByte] = 1;
@@ -78,22 +97,34 @@ private:
     table[VCF::Index8][true][NCC::N][FMT::UShort] = 1;
     table[VCF::Index8][true][NCC::N][FMT::Short] = 1;
     table[VCF::Index8][true][NCC::N][FMT::Float] = 1;
+    table[VCF::Index8][true][NCC::N][FMT::InvalidFloat5] = 1;
+    table[VCF::Index8][true][NCC::N][FMT::InvalidFloat6] = 1;
+    table[VCF::Index8][true][NCC::N][FMT::InvalidFloat7] = 1;
     table[VCF::Index8][true][NCC::NTB][FMT::UByte] = 3;
     table[VCF::Index8][true][NCC::NTB][FMT::Byte] = 3;
     table[VCF::Index8][true][NCC::NTB][FMT::UShort] = 3;
     table[VCF::Index8][true][NCC::NTB][FMT::Short] = 3;
     table[VCF::Index8][true][NCC::NTB][FMT::Float] = 3;
+    table[VCF::Index8][true][NCC::NTB][FMT::InvalidFloat5] = 3;
+    table[VCF::Index8][true][NCC::NTB][FMT::InvalidFloat6] = 3;
+    table[VCF::Index8][true][NCC::NTB][FMT::InvalidFloat7] = 3;
 
     table[VCF::Index16][false][NCC::N][FMT::UByte] = 2;
     table[VCF::Index16][false][NCC::N][FMT::Byte] = 2;
     table[VCF::Index16][false][NCC::N][FMT::UShort] = 2;
     table[VCF::Index16][false][NCC::N][FMT::Short] = 2;
     table[VCF::Index16][false][NCC::N][FMT::Float] = 2;
+    table[VCF::Index16][false][NCC::N][FMT::InvalidFloat5] = 2;
+    table[VCF::Index16][false][NCC::N][FMT::InvalidFloat6] = 2;
+    table[VCF::Index16][false][NCC::N][FMT::InvalidFloat7] = 2;
     table[VCF::Index16][false][NCC::NTB][FMT::UByte] = 2;
     table[VCF::Index16][false][NCC::NTB][FMT::Byte] = 2;
     table[VCF::Index16][false][NCC::NTB][FMT::UShort] = 2;
     table[VCF::Index16][false][NCC::NTB][FMT::Short] = 2;
     table[VCF::Index16][false][NCC::NTB][FMT::Float] = 2;
+    table[VCF::Index16][false][NCC::NTB][FMT::InvalidFloat5] = 2;
+    table[VCF::Index16][false][NCC::NTB][FMT::InvalidFloat6] = 2;
+    table[VCF::Index16][false][NCC::NTB][FMT::InvalidFloat7] = 2;
 
     // Same for NormalComponentCount::N; differs for NTB
     table[VCF::Index16][true][NCC::N][FMT::UByte] = 2;
@@ -101,11 +132,17 @@ private:
     table[VCF::Index16][true][NCC::N][FMT::UShort] = 2;
     table[VCF::Index16][true][NCC::N][FMT::Short] = 2;
     table[VCF::Index16][true][NCC::N][FMT::Float] = 2;
+    table[VCF::Index16][true][NCC::N][FMT::InvalidFloat5] = 2;
+    table[VCF::Index16][true][NCC::N][FMT::InvalidFloat6] = 2;
+    table[VCF::Index16][true][NCC::N][FMT::InvalidFloat7] = 2;
     table[VCF::Index16][true][NCC::NTB][FMT::UByte] = 6;
     table[VCF::Index16][true][NCC::NTB][FMT::Byte] = 6;
     table[VCF::Index16][true][NCC::NTB][FMT::UShort] = 6;
     table[VCF::Index16][true][NCC::NTB][FMT::Short] = 6;
     table[VCF::Index16][true][NCC::NTB][FMT::Float] = 6;
+    table[VCF::Index16][true][NCC::NTB][FMT::InvalidFloat5] = 6;
+    table[VCF::Index16][true][NCC::NTB][FMT::InvalidFloat6] = 6;
+    table[VCF::Index16][true][NCC::NTB][FMT::InvalidFloat7] = 6;
 
     return table;
   }

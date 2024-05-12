@@ -23,6 +23,7 @@
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
@@ -316,7 +317,7 @@ void FIFOPlayerWindow::UpdateInfo()
     return;
   }
 
-  if (Core::IsRunning() && m_fifo_recorder.IsRecording())
+  if (Core::IsRunning(Core::System::GetInstance()) && m_fifo_recorder.IsRecording())
   {
     m_info_label->setText(tr("Recording..."));
     return;
@@ -375,7 +376,7 @@ void FIFOPlayerWindow::UpdateLimits()
 
 void FIFOPlayerWindow::UpdateControls()
 {
-  bool running = Core::IsRunning();
+  bool running = Core::IsRunning(Core::System::GetInstance());
   bool is_recording = m_fifo_recorder.IsRecording();
   bool is_playing = m_fifo_player.IsPlaying();
 

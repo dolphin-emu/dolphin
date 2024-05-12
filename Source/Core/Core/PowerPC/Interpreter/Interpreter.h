@@ -19,12 +19,13 @@ namespace PowerPC
 class MMU;
 struct PowerPCState;
 }  // namespace PowerPC
+class PPCSymbolDB;
 
 class Interpreter : public CPUCoreBase
 {
 public:
   Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu,
-              Core::BranchWatch& branch_watch);
+              Core::BranchWatch& branch_watch, PPCSymbolDB& ppc_symbol_db);
   Interpreter(const Interpreter&) = delete;
   Interpreter(Interpreter&&) = delete;
   Interpreter& operator=(const Interpreter&) = delete;
@@ -317,6 +318,7 @@ private:
   PowerPC::PowerPCState& m_ppc_state;
   PowerPC::MMU& m_mmu;
   Core::BranchWatch& m_branch_watch;
+  PPCSymbolDB& m_ppc_symbol_db;
 
   UGeckoInstruction m_prev_inst{};
   u32 m_last_pc = 0;

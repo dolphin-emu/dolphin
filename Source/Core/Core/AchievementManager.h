@@ -15,16 +15,19 @@
 
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
+#include <rcheevos/include/rc_client.h>
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/Event.h"
+#include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
 
 namespace Core
 {
+class CPUThreadGuard;
 class System;
-}
+}  // namespace Core
 
 namespace OSD
 {
@@ -34,30 +37,7 @@ struct Icon;
 class AchievementManager
 {
 public:
-  enum class ResponseType
-  {
-    SUCCESS,
-    NOT_ENABLED,
-    MANAGER_NOT_INITIALIZED,
-    INVALID_REQUEST,
-    INVALID_CREDENTIALS,
-    CONNECTION_FAILED,
-    MALFORMED_OBJECT,
-    EXPIRED_CONTEXT,
-    UNKNOWN_FAILURE
-  };
-  using ResponseCallback = std::function<void(ResponseType)>;
-  using UpdateCallback = std::function<void()>;
-
-  struct PointSpread
-  {
-    u32 total_count;
-    u32 total_points;
-    u32 hard_unlocks;
-    u32 hard_points;
-    u32 soft_unlocks;
-    u32 soft_points;
-  };
+  using BadgeNameFunction = std::function<std::string(const AchievementManager&)>;
 
   static constexpr size_t HASH_SIZE = 33;
   using Hash = std::array<char, HASH_SIZE>;
@@ -69,27 +49,12 @@ public:
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = std::vector<u8>;
   using NamedIconMap = std::map<std::string, std::unique_ptr<OSD::Icon>, std::less<>>;
+  static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
 
   struct BadgeStatus
   {
     std::string name = "";
     Badge badge{};
-  };
-
-  struct UnlockStatus
-  {
-    AchievementId game_data_index = 0;
-    enum class UnlockType
-    {
-      LOCKED,
-      SOFTCORE,
-      HARDCORE
-    } remote_unlock_status = UnlockType::LOCKED;
-    u32 session_unlock_count = 0;
-    u32 points = 0;
-    BadgeStatus locked_badge;
-    BadgeStatus unlocked_badge;
-    u32 category = RC_ACHIEVEMENT_CATEGORY_CORE;
   };
 
   static constexpr std::string_view GRAY = "transparent";
@@ -111,43 +76,50 @@ public:
     std::unordered_map<u32, LeaderboardEntry> entries;
   };
 
+  struct UpdatedItems
+  {
+    bool all = false;
+    bool player_icon = false;
+    bool game_icon = false;
+    bool all_achievements = false;
+    std::set<AchievementId> achievements{};
+    bool all_leaderboards = false;
+    std::set<AchievementId> leaderboards{};
+    bool rich_presence = false;
+  };
+  using UpdateCallback = std::function<void(const UpdatedItems&)>;
+
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
-  ResponseType Login(const std::string& password);
-  void LoginAsync(const std::string& password, const ResponseCallback& callback);
-  bool IsLoggedIn() const;
-  void HashGame(const std::string& file_path, const ResponseCallback& callback);
-  void HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback);
+  void Login(const std::string& password);
+  bool HasAPIToken() const;
+  void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
 
-  void LoadUnlockData(const ResponseCallback& callback);
-  void ActivateDeactivateAchievements();
-  void ActivateDeactivateLeaderboards();
-  void ActivateDeactivateRichPresence();
-  void FetchBadges();
+  void FetchPlayerBadge();
+  void FetchGameBadges();
 
   void DoFrame();
-  u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
-  void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
   std::recursive_mutex& GetLock();
+  void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
-  std::string GetPlayerDisplayName() const;
+  void SetSpectatorMode();
+  std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
   const BadgeStatus& GetPlayerBadge() const;
-  std::string GetGameDisplayName() const;
-  PointSpread TallyScore() const;
+  std::string_view GetGameDisplayName() const;
+  rc_client_t* GetClient();
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
-  const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
-  AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
-                                                          u32* target);
-  const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
+  const BadgeStatus& GetAchievementBadge(AchievementId id, bool locked) const;
+  const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
   RichPresence GetRichPresence() const;
-  bool IsDisabled() const { return m_disabled; };
-  void SetDisabled(bool disabled);
   const NamedIconMap& GetChallengeIcons() const;
+  std::vector<std::string> GetActiveLeaderboards() const;
+
+  void DoState(PointerWrap& p);
 
   void CloseGame();
   void Logout();
@@ -162,6 +134,8 @@ private:
     std::unique_ptr<DiscIO::Volume> volume;
   };
 
+  const BadgeStatus m_default_badge;
+
   static void* FilereaderOpenByFilepath(const char* path_utf8);
   static void* FilereaderOpenByVolume(const char* path_utf8);
   static void FilereaderSeek(void* file_handle, int64_t offset, int origin);
@@ -169,60 +143,65 @@ private:
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
 
-  ResponseType VerifyCredentials(const std::string& password);
-  ResponseType ResolveHash(const Hash& game_hash, u32* game_id);
-  void LoadGameSync(const ResponseCallback& callback);
-  ResponseType StartRASession();
-  ResponseType FetchGameData();
-  ResponseType FetchUnlockData(bool hardcore);
-  ResponseType FetchBoardInfo(AchievementId leaderboard_id);
+  static void LoginCallback(int result, const char* error_message, rc_client_t* client,
+                            void* userdata);
+
+  void FetchBoardInfo(AchievementId leaderboard_id);
 
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
 
-  void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
-  void GenerateRichPresence();
-
-  ResponseType AwardAchievement(AchievementId achievement_id);
-  ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
-  ResponseType PingRichPresence(const RichPresence& rich_presence);
-
+  static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
+                               void* userdata);
+  static void ChangeMediaCallback(int result, const char* error_message, rc_client_t* client,
+                                  void* userdata);
   void DisplayWelcomeMessage();
 
-  void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
-  void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
-  void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
-  void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
+  static void LeaderboardEntriesCallback(int result, const char* error_message,
+                                         rc_client_leaderboard_entry_list_t* list,
+                                         rc_client_t* client, void* userdata);
 
-  template <typename RcRequest, typename RcResponse>
-  ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
-                       const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
-                       const std::function<int(RcResponse*, const char*)>& process_response);
-  ResponseType RequestImage(rc_api_fetch_image_request_t rc_request, Badge* rc_response);
+  static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardStartedEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardFailedEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardTrackerShowEvent(const rc_client_event_t* client_event);
+  static void HandleLeaderboardTrackerHideEvent(const rc_client_event_t* client_event);
+  static void HandleAchievementChallengeIndicatorShowEvent(const rc_client_event_t* client_event);
+  static void HandleAchievementChallengeIndicatorHideEvent(const rc_client_event_t* client_event);
+  static void HandleAchievementProgressIndicatorShowEvent(const rc_client_event_t* client_event);
+  static void HandleGameCompletedEvent(const rc_client_event_t* client_event, rc_client_t* client);
+  static void HandleResetEvent(const rc_client_event_t* client_event);
+  static void HandleServerErrorEvent(const rc_client_event_t* client_event);
+
+  static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
+                      void* callback_data, rc_client_t* client);
+  static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
+  void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function,
+                  const UpdatedItems callback_data);
+  static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
   rc_runtime_t m_runtime{};
+  rc_client_t* m_client{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
-  UpdateCallback m_update_callback = [] {};
+  UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
-  bool m_disabled = false;
-  std::string m_display_name;
-  u32 m_player_score = 0;
   BadgeStatus m_player_badge;
   Hash m_game_hash{};
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
-  u32 m_framecount = 0;
   BadgeStatus m_game_badge;
+  bool m_display_welcome_message = false;
+  std::unordered_map<AchievementId, BadgeStatus> m_unlocked_badges;
+  std::unordered_map<AchievementId, BadgeStatus> m_locked_badges;
   RichPresence m_rich_presence;
-  time_t m_last_ping_time = 0;
+  std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
 
-  std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   NamedIconMap m_active_challenges;
+  std::vector<rc_client_leaderboard_tracker_t> m_active_leaderboards;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;

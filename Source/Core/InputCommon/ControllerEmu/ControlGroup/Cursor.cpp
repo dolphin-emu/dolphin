@@ -181,6 +181,11 @@ ControlState Cursor::GetVerticalOffset() const
   return m_vertical_offset_setting.GetValue() / 100;
 }
 
+void Cursor::SetRelativeInput(bool value)
+{
+  m_relative_setting.SetValue(value);
+}
+
 bool Cursor::StateData::IsVisible() const
 {
   return !std::isnan(x);

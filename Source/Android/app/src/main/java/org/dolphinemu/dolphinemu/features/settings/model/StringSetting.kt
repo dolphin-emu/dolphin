@@ -23,6 +23,18 @@ enum class StringSetting(
         "BBA_BUILTIN_DNS",
         "3.18.217.27"
     ),
+    MAIN_BBA_TAPSERVER_DESTINATION(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "BBA_TAPSERVER_DESTINATION",
+        "/tmp/dolphin-tap"
+    ),
+    MAIN_MODEM_TAPSERVER_DESTINATION(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "MODEM_TAPSERVER_DESTINATION",
+        "/tmp/dolphin-modem-tap"
+    ),
     MAIN_CUSTOM_RTC_VALUE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,

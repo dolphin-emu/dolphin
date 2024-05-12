@@ -95,6 +95,11 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     indicator = new AnalogStickIndicator(*static_cast<ControllerEmu::ReshapableInput*>(group));
     break;
 
+  case ControllerEmu::GroupType::IRPassthrough:
+    indicator =
+        new IRPassthroughMappingIndicator(*static_cast<ControllerEmu::IRPassthrough*>(group));
+    break;
+
   default:
     break;
   }
@@ -167,7 +172,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   {
     QPushButton* mouse_button = new QPushButton(tr("Use Mouse Controlled Pointing"));
     form_layout->insertRow(2, mouse_button);
-    connect(mouse_button, &QCheckBox::clicked, [this, group] {
+
+    using ControllerEmu::Cursor;
+    connect(mouse_button, &QCheckBox::clicked, [this, group = static_cast<Cursor*>(group)] {
       std::string default_device = g_controller_interface.GetDefaultDeviceString() + ":";
       const std::string controller_device = GetController()->GetDefaultDevice().ToString() + ":";
       if (default_device == controller_device)
@@ -178,6 +185,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       group->SetControlExpression(1, fmt::format("`{}Cursor Y+`", default_device));
       group->SetControlExpression(2, fmt::format("`{}Cursor X-`", default_device));
       group->SetControlExpression(3, fmt::format("`{}Cursor X+`", default_device));
+
+      group->SetRelativeInput(false);
+
       emit ConfigChanged();
       GetController()->UpdateReferences(g_controller_interface);
     });
@@ -326,6 +336,9 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
   button->connect(button, &QPushButton::clicked, [this, &setting]() {
     if (setting.IsSimpleValue())
       setting.SetExpressionFromValue();
+
+    // Ensure the UI has the game-controller indicator while editing the expression.
+    ConfigChanged();
 
     IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
     SetQWidgetWindowDecorations(&io);

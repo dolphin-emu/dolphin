@@ -271,30 +271,30 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 void MemChecks::Add(TMemCheck memory_check)
 {
   bool had_any = HasAny();
-  Core::RunAsCPUThread([&] {
-    // Check for existing breakpoint, and overwrite with new info.
-    // This is assuming we usually want the new breakpoint over an old one.
-    const u32 address = memory_check.start_address;
-    auto old_mem_check =
-        std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
-                     [address](const auto& check) { return check.start_address == address; });
-    if (old_mem_check != m_mem_checks.end())
-    {
-      const bool is_enabled = old_mem_check->is_enabled;  // Preserve enabled status
-      *old_mem_check = std::move(memory_check);
-      old_mem_check->is_enabled = is_enabled;
-      old_mem_check->num_hits = 0;
-    }
-    else
-    {
-      m_mem_checks.emplace_back(std::move(memory_check));
-    }
-    // If this is the first one, clear the JIT cache so it can switch to
-    // watchpoint-compatible code.
-    if (!had_any)
-      m_system.GetJitInterface().ClearCache();
-    m_system.GetMMU().DBATUpdated();
-  });
+
+  const Core::CPUThreadGuard guard(m_system);
+  // Check for existing breakpoint, and overwrite with new info.
+  // This is assuming we usually want the new breakpoint over an old one.
+  const u32 address = memory_check.start_address;
+  auto old_mem_check =
+      std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
+                   [address](const auto& check) { return check.start_address == address; });
+  if (old_mem_check != m_mem_checks.end())
+  {
+    const bool is_enabled = old_mem_check->is_enabled;  // Preserve enabled status
+    *old_mem_check = std::move(memory_check);
+    old_mem_check->is_enabled = is_enabled;
+    old_mem_check->num_hits = 0;
+  }
+  else
+  {
+    m_mem_checks.emplace_back(std::move(memory_check));
+  }
+  // If this is the first one, clear the JIT cache so it can switch to
+  // watchpoint-compatible code.
+  if (!had_any)
+    m_system.GetJitInterface().ClearCache(guard);
+  m_system.GetMMU().DBATUpdated();
 }
 
 bool MemChecks::ToggleBreakPoint(u32 address)
@@ -318,21 +318,19 @@ void MemChecks::Remove(u32 address)
   if (iter == m_mem_checks.cend())
     return;
 
-  Core::RunAsCPUThread([&] {
-    m_mem_checks.erase(iter);
-    if (!HasAny())
-      m_system.GetJitInterface().ClearCache();
-    m_system.GetMMU().DBATUpdated();
-  });
+  const Core::CPUThreadGuard guard(m_system);
+  m_mem_checks.erase(iter);
+  if (!HasAny())
+    m_system.GetJitInterface().ClearCache(guard);
+  m_system.GetMMU().DBATUpdated();
 }
 
 void MemChecks::Clear()
 {
-  Core::RunAsCPUThread([&] {
-    m_mem_checks.clear();
-    m_system.GetJitInterface().ClearCache();
-    m_system.GetMMU().DBATUpdated();
-  });
+  const Core::CPUThreadGuard guard(m_system);
+  m_mem_checks.clear();
+  m_system.GetJitInterface().ClearCache(guard);
+  m_system.GetMMU().DBATUpdated();
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
@@ -365,8 +363,7 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(Core::System& system, Core::DebugInterface* debug_interface, u64 value,
-                       u32 addr, bool write, size_t size, u32 pc)
+bool TMemCheck::Action(Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc)
 {
   if (!is_enabled)
     return false;
@@ -376,9 +373,10 @@ bool TMemCheck::Action(Core::System& system, Core::DebugInterface* debug_interfa
   {
     if (log_on_hit)
     {
+      auto& ppc_symbol_db = system.GetPPCSymbolDB();
       NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
-                     debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8, value,
-                     addr, debug_interface->GetDescription(addr));
+                     ppc_symbol_db.GetDescription(pc), write ? "Write" : "Read", size * 8, value,
+                     addr, ppc_symbol_db.GetDescription(addr));
     }
     if (break_on_hit)
       return true;

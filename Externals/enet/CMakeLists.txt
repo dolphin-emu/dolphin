@@ -92,7 +92,7 @@ add_library(enet STATIC
 )
 target_include_directories(enet PUBLIC enet/include)
 
-dolphin_disable_warnings_msvc(enet)
+dolphin_disable_warnings(enet)
 add_library(enet::enet ALIAS enet)
 
 if (MINGW)

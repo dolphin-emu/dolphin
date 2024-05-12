@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
@@ -11,7 +12,6 @@
 namespace Core
 {
 class CPUThreadGuard;
-class DebugInterface;
 }  // namespace Core
 
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
@@ -28,7 +28,7 @@ public:
 
   Common::Symbol* GetSymbolFromAddr(u32 addr) override;
 
-  std::string GetDescription(u32 addr);
+  std::string_view GetDescription(u32 addr);
 
   void FillInCallers();
 
@@ -39,9 +39,4 @@ public:
   void PrintCalls(u32 funcAddr) const;
   void PrintCallers(u32 funcAddr) const;
   void LogFunctionCall(u32 addr);
-
-private:
-  Core::DebugInterface* debugger;
 };
-
-extern PPCSymbolDB g_symbolDB;

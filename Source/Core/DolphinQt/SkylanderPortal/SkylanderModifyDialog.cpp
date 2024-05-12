@@ -53,10 +53,12 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
     {
       // Should never be able to happen. Still good to have
       name =
+          // i18n: "Var" is short for "variant"
           tr("Unknown (Id:%1 Var:%2)").arg(m_figure_data.figure_id).arg(m_figure_data.variant_id);
     }
   }
 
+  // i18n: %1 is a name
   auto* label_name = new QLabel(tr("Modifying Skylander: %1").arg(name));
 
   hbox_name->addWidget(label_name);
@@ -136,11 +138,13 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
       reinterpret_cast<char16_t*>(m_figure_data.skylander_data.nickname.data())));
 
   auto* hbox_playtime = new QHBoxLayout();
+  // i18n: The total amount of time the Skylander has been used for
   auto* label_playtime = new QLabel(tr("Playtime:"));
   auto* edit_playtime =
       new QLineEdit(QStringLiteral("%1").arg(m_figure_data.skylander_data.playtime));
 
   auto* hbox_last_reset = new QHBoxLayout();
+  // i18n: A timestamp for when the Skylander was most recently reset
   auto* label_last_reset = new QLabel(tr("Last reset:"));
   auto* edit_last_reset =
       new QDateTimeEdit(QDateTime(QDate(m_figure_data.skylander_data.last_reset.year,
@@ -150,6 +154,7 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
                                         m_figure_data.skylander_data.last_reset.minute)));
 
   auto* hbox_last_placed = new QHBoxLayout();
+  // i18n: A timestamp for when the Skylander was most recently used
   auto* label_last_placed = new QLabel(tr("Last placed:"));
   auto* edit_last_placed =
       new QDateTimeEdit(QDateTime(QDate(m_figure_data.skylander_data.last_placed.year,
@@ -167,10 +172,10 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   edit_last_placed->setDisplayFormat(QStringLiteral("dd/MM/yyyy hh:mm"));
 
   edit_toy_code->setToolTip(tr("The toy code for this figure. Only available for real figures."));
-  edit_money->setToolTip(tr("The amount of money this skylander should have. Between 0 and 65000"));
-  edit_hero->setToolTip(tr("The hero level of this skylander. Only seen in Skylanders: Spyro's "
+  edit_money->setToolTip(tr("The amount of money this Skylander has. Between 0 and 65000"));
+  edit_hero->setToolTip(tr("The hero level of this Skylander. Only seen in Skylanders: Spyro's "
                            "Adventures. Between 0 and 100"));
-  edit_nick->setToolTip(tr("The nickname for this skylander. Limited to 15 characters"));
+  edit_nick->setToolTip(tr("The nickname for this Skylander. Limited to 15 characters"));
   edit_playtime->setToolTip(
       tr("The total time this figure has been used inside a game in seconds"));
   edit_last_reset->setToolTip(tr("The last time the figure has been reset. If the figure has never "
@@ -309,6 +314,8 @@ bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
     edit_villains[i] = new QCheckBox();
     edit_villains[i]->setChecked(static_cast<bool>(m_figure_data.trophy_data.unlocked_villains &
                                                    (0b1 << shift_distances[i])));
+    // i18n: "Captured" is a participle here. This string is used when listing villains, not when a
+    // villain was just captured
     auto* const label = new QLabel(tr("Captured villain %1:").arg(i + 1));
     auto* const hbox = new QHBoxLayout();
     hbox->addWidget(label);

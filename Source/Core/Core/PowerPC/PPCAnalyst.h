@@ -88,7 +88,7 @@ struct CodeOp  // 16B
 
 struct BlockStats
 {
-  int numCycles;
+  u32 numCycles;
 };
 
 struct BlockRegStats

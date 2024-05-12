@@ -88,7 +88,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     unzGetCurrentFileInfo64(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
                             nullptr, 0, nullptr, 0);
 
-    if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
+    if (!filename.starts_with("textures/") || texture_info.uncompressed_size == 0)
       continue;
 
     // If a texture is compressed and the manifest doesn't state that, abort.

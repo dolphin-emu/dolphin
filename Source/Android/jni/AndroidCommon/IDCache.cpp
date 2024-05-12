@@ -12,6 +12,7 @@ static JavaVM* s_java_vm;
 static jclass s_string_class;
 
 static jclass s_native_library_class;
+static jmethodID s_display_toast_msg;
 static jmethodID s_display_alert_msg;
 static jmethodID s_update_touch_pointer;
 static jmethodID s_on_title_changed;
@@ -144,6 +145,11 @@ jclass GetStringClass()
 jclass GetNativeLibraryClass()
 {
   return s_native_library_class;
+}
+
+jmethodID GetDisplayToastMsg()
+{
+  return s_display_toast_msg;
 }
 
 jmethodID GetDisplayAlertMsg()
@@ -528,6 +534,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
   const jclass native_library_class = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
+  s_display_toast_msg =
+      env->GetStaticMethodID(s_native_library_class, "displayToastMsg", "(Ljava/lang/String;Z)V");
   s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
                                                "(Ljava/lang/String;Ljava/lang/String;ZZZ)Z");
   s_update_touch_pointer =

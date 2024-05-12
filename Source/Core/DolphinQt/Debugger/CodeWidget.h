@@ -26,6 +26,7 @@ namespace Core
 {
 class System;
 }
+class PPCSymbolDB;
 
 class CodeWidget : public QDockWidget
 {
@@ -60,6 +61,7 @@ private:
   void UpdateFunctionCalls(const Common::Symbol* symbol);
   void UpdateFunctionCallers(const Common::Symbol* symbol);
 
+  void OnPPCSymbolsChanged();
   void OnSearchAddress();
   void OnSearchSymbols();
   void OnSelectSymbol();
@@ -71,8 +73,9 @@ private:
   void showEvent(QShowEvent* event) override;
 
   Core::System& m_system;
+  PPCSymbolDB& m_ppc_symbol_db;
 
-  BranchWatchDialog* m_branch_watch_dialog;
+  BranchWatchDialog* m_branch_watch_dialog = nullptr;
   QLineEdit* m_search_address;
   QPushButton* m_branch_watch;
 

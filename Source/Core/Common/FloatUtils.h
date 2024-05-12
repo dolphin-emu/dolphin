@@ -4,9 +4,9 @@
 #pragma once
 
 #include <array>
+#include <bit>
 #include <limits>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -35,37 +35,37 @@ static constexpr int FLOAT_FRAC_WIDTH = 23;
 
 inline bool IsQNAN(double d)
 {
-  const u64 i = BitCast<u64>(d);
+  const u64 i = std::bit_cast<u64>(d);
   return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_QBIT) == DOUBLE_QBIT);
 }
 
 inline bool IsSNAN(double d)
 {
-  const u64 i = BitCast<u64>(d);
+  const u64 i = std::bit_cast<u64>(d);
   return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
          ((i & DOUBLE_QBIT) == DOUBLE_ZERO);
 }
 
 inline float FlushToZero(float f)
 {
-  u32 i = BitCast<u32>(f);
+  u32 i = std::bit_cast<u32>(f);
   if ((i & FLOAT_EXP) == 0)
   {
     // Turn into signed zero
     i &= FLOAT_SIGN;
   }
-  return BitCast<float>(i);
+  return std::bit_cast<float>(i);
 }
 
 inline double FlushToZero(double d)
 {
-  u64 i = BitCast<u64>(d);
+  u64 i = std::bit_cast<u64>(d);
   if ((i & DOUBLE_EXP) == 0)
   {
     // Turn into signed zero
     i &= DOUBLE_SIGN;
   }
-  return BitCast<double>(i);
+  return std::bit_cast<double>(i);
 }
 
 enum PPCFpClass

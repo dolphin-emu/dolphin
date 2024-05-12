@@ -149,10 +149,9 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::Dummy,
            EXIDeviceType::Ethernet,
            EXIDeviceType::EthernetXLink,
-#ifdef __APPLE__
            EXIDeviceType::EthernetTapServer,
-#endif
            EXIDeviceType::EthernetBuiltIn,
+           EXIDeviceType::ModemTapServer,
        })
   {
     m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(tr(fmt::format("{:n}", device).c_str()),
@@ -355,7 +354,9 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
                   device == ExpansionInterface::EXIDeviceType::EthernetXLink ||
-                  device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn);
+                  device == ExpansionInterface::EXIDeviceType::EthernetTapServer ||
+                  device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn ||
+                  device == ExpansionInterface::EXIDeviceType::ModemTapServer);
     break;
   }
 
@@ -396,6 +397,21 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   case ExpansionInterface::EXIDeviceType::EthernetXLink:
   {
     BroadbandAdapterSettingsDialog dialog(this, BroadbandAdapterSettingsDialog::Type::XLinkKai);
+    SetQWidgetWindowDecorations(&dialog);
+    dialog.exec();
+    return;
+  }
+  case ExpansionInterface::EXIDeviceType::EthernetTapServer:
+  {
+    BroadbandAdapterSettingsDialog dialog(this, BroadbandAdapterSettingsDialog::Type::TapServer);
+    SetQWidgetWindowDecorations(&dialog);
+    dialog.exec();
+    return;
+  }
+  case ExpansionInterface::EXIDeviceType::ModemTapServer:
+  {
+    BroadbandAdapterSettingsDialog dialog(this,
+                                          BroadbandAdapterSettingsDialog::Type::ModemTapServer);
     SetQWidgetWindowDecorations(&dialog);
     dialog.exec();
     return;
@@ -498,7 +514,8 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
   const std::string old_eu_path = Config::GetMemcardPath(slot, DiscIO::Region::PAL);
   Config::SetBase(Config::GetInfoForMemcardPath(slot), raw_path);
 
-  if (Core::IsRunning())
+  auto& system = Core::System::GetInstance();
+  if (Core::IsRunning(system))
   {
     // If emulation is running and the new card is different from the old one, notify the system to
     // eject the old and insert the new card.
@@ -507,8 +524,8 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
     {
       // ChangeDevice unplugs the device for 1 second, which means that games should notice that
       // the path has changed and thus the memory card contents have changed
-      Core::System::GetInstance().GetExpansionInterface().ChangeDevice(
-          slot, ExpansionInterface::EXIDeviceType::MemoryCard);
+      system.GetExpansionInterface().ChangeDevice(slot,
+                                                  ExpansionInterface::EXIDeviceType::MemoryCard);
     }
   }
 
@@ -604,7 +621,8 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
 
   Config::SetBase(Config::GetInfoForGCIPath(slot), raw_path);
 
-  if (Core::IsRunning())
+  auto& system = Core::System::GetInstance();
+  if (Core::IsRunning(system))
   {
     // If emulation is running and the new card is different from the old one, notify the system to
     // eject the old and insert the new card.
@@ -613,7 +631,7 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
     {
       // ChangeDevice unplugs the device for 1 second, which means that games should notice that
       // the path has changed and thus the memory card contents have changed
-      Core::System::GetInstance().GetExpansionInterface().ChangeDevice(
+      system.GetExpansionInterface().ChangeDevice(
           slot, ExpansionInterface::EXIDeviceType::MemoryCardFolder);
     }
   }
@@ -644,14 +662,14 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
 
   Config::SetBase(Config::GetInfoForAGPCartPath(slot), path_abs.toStdString());
 
-  if (Core::IsRunning() && path_abs != path_old)
+  auto& system = Core::System::GetInstance();
+  if (Core::IsRunning(system) && path_abs != path_old)
   {
     // ChangeDevice unplugs the device for 1 second.  For an actual AGP, you can remove the
     // cartridge without unplugging it, and it's not clear if the AGP software actually notices
     // that it's been unplugged or the cartridge has changed, but this was done for memcards so
     // we might as well do it for the AGP too.
-    Core::System::GetInstance().GetExpansionInterface().ChangeDevice(
-        slot, ExpansionInterface::EXIDeviceType::AGP);
+    system.GetExpansionInterface().ChangeDevice(slot, ExpansionInterface::EXIDeviceType::AGP);
   }
 
   LoadSettings();
@@ -765,6 +783,7 @@ void GameCubePane::SaveSettings()
   Config::SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_main_menu->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentData().toInt());
 
+  auto& system = Core::System::GetInstance();
   // Device Settings
   for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
   {
@@ -773,9 +792,9 @@ void GameCubePane::SaveSettings()
     const ExpansionInterface::EXIDeviceType current_exi_device =
         Config::Get(Config::GetInfoForEXIDevice(slot));
 
-    if (Core::IsRunning() && current_exi_device != dev)
+    if (Core::IsRunning(system) && current_exi_device != dev)
     {
-      Core::System::GetInstance().GetExpansionInterface().ChangeDevice(slot, dev);
+      system.GetExpansionInterface().ChangeDevice(slot, dev);
     }
 
     Config::SetBaseOrCurrent(Config::GetInfoForEXIDevice(slot), dev);

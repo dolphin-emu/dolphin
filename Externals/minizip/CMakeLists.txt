@@ -26,7 +26,7 @@ add_library(minizip STATIC
   unzip.h
   zip.h
 )
-dolphin_disable_warnings_msvc(minizip)
+dolphin_disable_warnings(minizip)
 
 if (UNIX)
   target_sources(minizip PRIVATE

@@ -258,8 +258,8 @@ void DSPJitRegCache::FlushRegs(DSPJitRegCache& cache, bool emit)
   // free all host regs that are not used for the same guest reg
   for (size_t i = 0; i < m_regs.size(); i++)
   {
-    const auto reg = m_regs[i];
-    const auto cached_reg = cache.m_regs[i];
+    const auto& reg = m_regs[i];
+    const auto& cached_reg = cache.m_regs[i];
 
     if (cached_reg.loc.GetSimpleReg() != reg.loc.GetSimpleReg() && reg.loc.IsSimpleReg())
     {

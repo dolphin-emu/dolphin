@@ -8,4 +8,4 @@ endif()
 target_sources(tinygltf PRIVATE
   tinygltf/tiny_gltf.cc)
 target_include_directories(tinygltf INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-dolphin_disable_warnings_msvc(tinygltf)
+dolphin_disable_warnings(tinygltf)

@@ -33,6 +33,7 @@ private:
   // Debugging
   ConfigBool* m_enable_wireframe;
   ConfigBool* m_show_statistics;
+  ConfigBool* m_show_proj_statistics;
   ConfigBool* m_enable_format_overlay;
   ConfigBool* m_enable_api_validation;
   ConfigBool* m_show_fps;
@@ -60,7 +61,7 @@ private:
 
   // Frame dumping
   ConfigBool* m_dump_use_ffv1;
-  ConfigBool* m_use_fullres_framedumps;
+  ConfigChoice* m_frame_dumps_resolution_type;
   ConfigInteger* m_dump_bitrate;
   ConfigInteger* m_png_compression_level;
 
