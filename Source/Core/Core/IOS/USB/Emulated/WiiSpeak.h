@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -12,6 +13,17 @@
 
 namespace IOS::HLE::USB
 {
+struct WiiSpeakState
+{
+  // Use atomic for members concurrently used by the data callback
+  std::atomic<bool> sample_on;
+  std::atomic<bool> mute;
+  int freq;
+  int gain;
+  bool ec_reset;
+  bool sp_on;
+};
+
 class WiiSpeak final : public Device
 {
 public:
@@ -34,17 +46,7 @@ public:
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
 private:
-  struct WSState
-  {
-    bool sample_on;
-    bool mute;
-    int freq;
-    int gain;
-    bool ec_reset;
-    bool sp_on;
-  };
-
-  WSState m_sampler{};
+  WiiSpeakState m_sampler{};
 
   enum Registers
   {

@@ -43,7 +43,7 @@ bool WiiSpeak::Attach()
 
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x}] Opening device", m_vid, m_pid);
   if (!m_microphone)
-    m_microphone = std::make_unique<Microphone>();
+    m_microphone = std::make_unique<Microphone>(m_sampler);
   m_device_attached = true;
   return true;
 }
@@ -178,7 +178,7 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
   {
   case ENDPOINT_AUDIO_IN:
     // Transfer: Wii Speak -> Wii
-    if (m_microphone && m_microphone->HasData())
+    if (m_microphone && m_microphone->HasData(cmd->length / sizeof(s16)))
       m_microphone->ReadIntoBuffer(packets, cmd->length);
     break;
   case ENDPOINT_AUDIO_OUT:

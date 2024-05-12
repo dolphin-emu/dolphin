@@ -15,6 +15,9 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/IOS/USB/Emulated/WiiSpeak.h"
+#include "Core/System.h"
 
 #ifdef _WIN32
 #include <Objbase.h>
@@ -22,7 +25,7 @@
 
 namespace IOS::HLE::USB
 {
-Microphone::Microphone()
+Microphone::Microphone(const WiiSpeakState& sampler) : m_sampler(sampler)
 {
 #if defined(_WIN32) && defined(HAVE_CUBEB)
   m_work_queue.PushBlocking([this] {
@@ -175,6 +178,15 @@ void Microphone::StreamStop()
 long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
                                    void* /*output_buffer*/, long nframes)
 {
+  // Skip data when core isn't running
+  if (Core::GetState(Core::System::GetInstance()) != Core::State::Running)
+    return nframes;
+
+  // Skip data when HLE Wii Speak is not connected
+  // TODO: Update cubeb and use cubeb_stream_set_input_mute
+  if (!Config::Get(Config::MAIN_WII_SPEAK_CONNECTED))
+    return nframes;
+
   auto* mic = static_cast<Microphone*>(user_data);
   return mic->DataCallback(static_cast<const s16*>(input_buffer), nframes);
 }
@@ -182,6 +194,10 @@ long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const 
 long Microphone::DataCallback(const s16* input_buffer, long nframes)
 {
   std::lock_guard lock(m_ring_lock);
+
+  // Skip data if sampling is off or mute is on
+  if (!m_sampler.sample_on || m_sampler.mute)
+    return nframes;
 
   const s16* buff_in = static_cast<const s16*>(input_buffer);
   for (long i = 0; i < nframes; i++)
@@ -229,9 +245,9 @@ void Microphone::ReadIntoBuffer(u8* dst, u32 size)
   }
 }
 
-bool Microphone::HasData() const
+bool Microphone::HasData(u32 sample_count = BUFF_SIZE_SAMPLES) const
 {
   std::lock_guard lock(m_ring_lock);
-  return m_samples_avail > 0 && Config::Get(Config::MAIN_WII_SPEAK_CONNECTED);
+  return m_samples_avail >= sample_count;
 }
 }  // namespace IOS::HLE::USB
