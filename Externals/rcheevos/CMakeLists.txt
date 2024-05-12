@@ -4,8 +4,6 @@ add_library(rcheevos
 	rcheevos/include/rc_api_request.h
 	rcheevos/include/rc_api_runtime.h
 	rcheevos/include/rc_api_user.h
-	rcheevos/include/rc_client.h
-	rcheevos/include/rc_client_raintegration.h
 	rcheevos/include/rc_consoles.h
 	rcheevos/include/rc_error.h
 	rcheevos/include/rc_export.h
