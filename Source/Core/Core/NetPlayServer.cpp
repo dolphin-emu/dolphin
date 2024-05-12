@@ -85,6 +85,7 @@
 #endif
 #include <arpa/inet.h>
 #endif
+#include "Core.h"
 
 namespace NetPlay
 {
@@ -2111,7 +2112,7 @@ bool NetPlayServer::SyncCodes()
   {
     // Create a Gecko Code Vector with just the active codes
     std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni, game_id));
 
     // Determine Codelist Size
     u16 codelines = 0;
@@ -2151,8 +2152,15 @@ bool NetPlayServer::SyncCodes()
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", code.address, code.data);
           pac << code.address;
           pac << code.data;
+          v_ActiveGeckoCodes.push_back(active_code.name);
         }
       }
+      sf::Packet packet;
+      packet << MessageID::SendCodes;
+      std::string codeStr = "";
+      for (const std::string code : v_ActiveGeckoCodes)
+        codeStr += "• " + code + "\n";
+      packet << codeStr;
       SendAsyncToClients(std::move(pac));
     }
   }
