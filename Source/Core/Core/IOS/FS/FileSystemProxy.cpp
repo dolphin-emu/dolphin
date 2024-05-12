@@ -326,8 +326,8 @@ std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
   return MakeIPCReply([&](Ticks t) {
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
-    return m_core.Read(request.fd, memory.GetPointer(request.buffer), request.size, request.buffer,
-                       t);
+    return m_core.Read(request.fd, memory.GetPointerForRange(request.buffer, request.size),
+                       request.size, request.buffer, t);
   });
 }
 
@@ -357,8 +357,8 @@ std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
   return MakeIPCReply([&](Ticks t) {
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
-    return m_core.Write(request.fd, memory.GetPointer(request.buffer), request.size, request.buffer,
-                        t);
+    return m_core.Write(request.fd, memory.GetPointerForRange(request.buffer, request.size),
+                        request.size, request.buffer, t);
   });
 }
 

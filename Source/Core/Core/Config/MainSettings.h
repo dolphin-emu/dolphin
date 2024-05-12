@@ -96,6 +96,8 @@ extern const Info<std::string> MAIN_BBA_XLINK_IP;
 extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;
 extern const Info<std::string> MAIN_BBA_BUILTIN_DNS;
 extern const Info<std::string> MAIN_BBA_BUILTIN_IP;
+extern const Info<std::string> MAIN_BBA_TAPSERVER_DESTINATION;
+extern const Info<std::string> MAIN_MODEM_TAPSERVER_DESTINATION;
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel);
 const Info<bool>& GetInfoForAdapterRumble(int channel);
 const Info<bool>& GetInfoForSimulateKonga(int channel);
@@ -333,6 +335,7 @@ extern const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_ENABLE_PROFILING;
 
 // Main.BluetoothPassthrough
 

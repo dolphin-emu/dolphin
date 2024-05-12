@@ -42,6 +42,7 @@
 #include "Core/System.h"
 #include "DolphinQt/Debugger/BranchWatchTableModel.h"
 #include "DolphinQt/Debugger/CodeWidget.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -194,30 +195,33 @@ void BranchWatchProxyModel::SetInspected(const QModelIndex& index)
 }
 
 BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& branch_watch,
-                                     CodeWidget* code_widget, QWidget* parent)
+                                     PPCSymbolDB& ppc_symbol_db, CodeWidget* code_widget,
+                                     QWidget* parent)
     : QDialog(parent), m_system(system), m_branch_watch(branch_watch), m_code_widget(code_widget)
 {
   setWindowTitle(tr("Branch Watch Tool"));
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
   SetQWidgetWindowDecorations(this);
-  setLayout([this]() {
-    auto* layout = new QVBoxLayout;
+  setLayout([this, &ppc_symbol_db]() {
+    auto* main_layout = new QVBoxLayout;
 
     // Controls Toolbar (widgets are added later)
-    layout->addWidget(m_control_toolbar = new QToolBar);
+    main_layout->addWidget(m_control_toolbar = new QToolBar);
 
     // Branch Watch Table
-    layout->addWidget(m_table_view = [this]() {
+    main_layout->addWidget(m_table_view = [this, &ppc_symbol_db]() {
       const auto& ui_settings = Settings::Instance();
 
       m_table_proxy = new BranchWatchProxyModel(m_branch_watch);
-      m_table_proxy->setSourceModel(m_table_model =
-                                        new BranchWatchTableModel(m_system, m_branch_watch));
+      m_table_proxy->setSourceModel(
+          m_table_model = new BranchWatchTableModel(m_system, m_branch_watch, ppc_symbol_db));
       m_table_proxy->setSortRole(UserRole::SortRole);
 
       m_table_model->setFont(ui_settings.GetDebugFont());
       connect(&ui_settings, &Settings::DebugFontChanged, m_table_model,
               &BranchWatchTableModel::setFont);
+      connect(Host::GetInstance(), &Host::PPCSymbolsChanged, m_table_model,
+              &BranchWatchTableModel::UpdateSymbols);
 
       auto* const table_view = new QTableView;
       table_view->setModel(m_table_proxy);
@@ -271,7 +275,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     }();
 
     // Menu Bar
-    layout->setMenuBar([this]() {
+    main_layout->setMenuBar([this]() {
       QMenuBar* const menu_bar = new QMenuBar;
       menu_bar->setNativeMenuBar(false);
 
@@ -308,7 +312,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     }());
 
     // Status Bar
-    layout->addWidget(m_status_bar = []() {
+    main_layout->addWidget(m_status_bar = []() {
       auto* const status_bar = new QStatusBar;
       status_bar->setSizeGripEnabled(false);
       return status_bar;
@@ -394,7 +398,8 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     m_control_toolbar->addWidget([this]() {
       auto* const layout = new QGridLayout;
 
-      const auto routine = [this, layout](const QString& text, int row, int column, int width,
+      const auto routine = [this, layout](const QString& placeholder_text, int row, int column,
+                                          int width,
                                           void (BranchWatchProxyModel::*slot)(const QString&)) {
         QLineEdit* const line_edit = new QLineEdit;
         layout->addWidget(line_edit, row, column, 1, width);
@@ -402,7 +407,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
           (m_table_proxy->*slot)(text);
           UpdateStatus();
         });
-        line_edit->setPlaceholderText(text);
+        line_edit->setPlaceholderText(placeholder_text);
         return line_edit;
       };
 
@@ -487,7 +492,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     connect(m_table_proxy, &BranchWatchProxyModel::layoutChanged, this,
             &BranchWatchDialog::UpdateStatus);
 
-    return layout;
+    return main_layout;
   }());
 
   // FIXME: On Linux, Qt6 has recently been resetting column widths to their defaults in many
@@ -504,15 +509,9 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
 }
 
-void BranchWatchDialog::done(int r)
+BranchWatchDialog::~BranchWatchDialog()
 {
-  if (m_timer->isActive())
-    m_timer->stop();
-  auto& settings = Settings::GetQSettings();
-  settings.setValue(QStringLiteral("branchwatchdialog/geometry"), saveGeometry());
-  settings.setValue(QStringLiteral("branchwatchdialog/tableheader/state"),
-                    m_table_view->horizontalHeader()->saveState());
-  QDialog::done(r);
+  SaveSettings();
 }
 
 static constexpr int BRANCH_WATCH_TOOL_TIMER_DELAY_MS = 100;
@@ -523,18 +522,18 @@ static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State st
   return branch_watch.GetRecordingActive() && state > Core::State::Paused;
 }
 
-int BranchWatchDialog::exec()
+void BranchWatchDialog::hideEvent(QHideEvent* event)
 {
-  if (TimerCondition(m_branch_watch, Core::GetState()))
-    m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
-  return QDialog::exec();
+  if (m_timer->isActive())
+    m_timer->stop();
+  QDialog::hideEvent(event);
 }
 
-void BranchWatchDialog::open()
+void BranchWatchDialog::showEvent(QShowEvent* event)
 {
-  if (TimerCondition(m_branch_watch, Core::GetState()))
+  if (TimerCondition(m_branch_watch, Core::GetState(m_system)))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
-  QDialog::open();
+  QDialog::showEvent(event);
 }
 
 void BranchWatchDialog::OnStartPause(bool checked)
@@ -545,7 +544,7 @@ void BranchWatchDialog::OnStartPause(bool checked)
     m_btn_start_pause->setText(tr("Pause Branch Watch"));
     // Restart the timer if the situation calls for it, but always turn off single-shot.
     m_timer->setSingleShot(false);
-    if (Core::GetState() > Core::State::Paused)
+    if (Core::GetState(m_system) > Core::State::Paused)
       m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   }
   else
@@ -553,7 +552,7 @@ void BranchWatchDialog::OnStartPause(bool checked)
     m_branch_watch.Pause();
     m_btn_start_pause->setText(tr("Start Branch Watch"));
     // Schedule one last update in the future in case Branch Watch is in the middle of a hit.
-    if (Core::GetState() > Core::State::Paused)
+    if (Core::GetState(m_system) > Core::State::Paused)
       m_timer->setInterval(BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS);
     m_timer->setSingleShot(true);
   }
@@ -646,7 +645,7 @@ void BranchWatchDialog::OnCodePathNotTaken()
 
 void BranchWatchDialog::OnBranchWasOverwritten()
 {
-  if (Core::GetState() == Core::State::Uninitialized)
+  if (Core::GetState(m_system) == Core::State::Uninitialized)
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
     return;
@@ -661,7 +660,7 @@ void BranchWatchDialog::OnBranchWasOverwritten()
 
 void BranchWatchDialog::OnBranchNotOverwritten()
 {
-  if (Core::GetState() == Core::State::Uninitialized)
+  if (Core::GetState(m_system) == Core::State::Uninitialized)
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
     return;
@@ -758,6 +757,8 @@ void BranchWatchDialog::OnToggleAutoSave(bool checked)
     return;
 
   const QString filepath = DolphinFileDialog::getSaveFileName(
+      // i18n: If the user selects a file, Branch Watch will save to that file.
+      // If the user presses Cancel, Branch Watch will save to a file in the user folder.
       this, tr("Select Branch Watch snapshot auto-save file (for user folder location, cancel)"),
       QString::fromStdString(File::GetUserPath(D_DUMPDEBUG_BRANCHWATCH_IDX)),
       tr("Text file (*.txt);;All Files (*)"));
@@ -805,13 +806,15 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   QModelIndexList index_list = m_table_view->selectionModel()->selectedRows(index.column());
 
   QMenu* const menu = new QMenu;
+  menu->setAttribute(Qt::WA_DeleteOnClose, true);
+
   menu->addAction(tr("&Delete"), [this, index_list]() { OnTableDelete(std::move(index_list)); });
   switch (index.column())
   {
   case Column::Origin:
   {
     QAction* const action = menu->addAction(tr("Insert &NOP"));
-    if (Core::GetState() != Core::State::Uninitialized)
+    if (Core::GetState(m_system) != Core::State::Uninitialized)
       connect(action, &QAction::triggered,
               [this, index_list]() { OnTableSetNOP(std::move(index_list)); });
     else
@@ -825,9 +828,9 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   {
     QAction* const action = menu->addAction(tr("Insert &BLR"));
     const bool enable_action =
-        Core::GetState() != Core::State::Uninitialized &&
-        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& index) {
-          const QModelIndex sibling = index.siblingAtColumn(Column::Instruction);
+        Core::GetState(m_system) != Core::State::Uninitialized &&
+        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
+          const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
           return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
         });
     if (enable_action)
@@ -845,9 +848,9 @@ void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
   {
     QAction* const action = menu->addAction(tr("Insert &BLR at start"));
     const bool enable_action =
-        Core::GetState() != Core::State::Uninitialized &&
-        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& index) {
-          return m_table_proxy->data(index, UserRole::ClickRole).isValid();
+        Core::GetState(m_system) != Core::State::Uninitialized &&
+        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
+          return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
         });
     if (enable_action)
       connect(action, &QAction::triggered, [this, index_list = std::move(index_list)]() {
@@ -927,16 +930,19 @@ void BranchWatchDialog::OnTableCopyAddress(QModelIndexList index_list)
   QApplication::clipboard()->setText(text);
 }
 
+void BranchWatchDialog::SaveSettings()
+{
+  auto& settings = Settings::GetQSettings();
+  settings.setValue(QStringLiteral("branchwatchdialog/geometry"), saveGeometry());
+  settings.setValue(QStringLiteral("branchwatchdialog/tableheader/state"),
+                    m_table_view->horizontalHeader()->saveState());
+}
+
 void BranchWatchDialog::Update()
 {
   if (m_branch_watch.GetRecordingPhase() == Core::BranchWatch::Phase::Blacklist)
     UpdateStatus();
   m_table_model->UpdateHits();
-}
-
-void BranchWatchDialog::UpdateSymbols()
-{
-  m_table_model->UpdateSymbols();
 }
 
 void BranchWatchDialog::UpdateStatus()

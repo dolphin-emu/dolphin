@@ -230,8 +230,8 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
                  input_size, input_ptr, content_id);
 
     std::vector<u8> decrypted(input_size);
-    m_aes_ctx->Crypt(m_aes_iv, m_aes_iv, memory.GetPointer(input_ptr), decrypted.data(),
-                     input_size);
+    m_aes_ctx->Crypt(m_aes_iv, m_aes_iv, memory.GetPointerForRange(input_ptr, input_size),
+                     decrypted.data(), input_size);
 
     m_arc_unpacker.AddBytes(decrypted);
     break;
@@ -519,7 +519,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     }
     else
     {
-      fp.ReadBytes(memory.GetPointer(dol_addr), max_dol_size);
+      fp.ReadBytes(memory.GetPointerForRange(dol_addr, max_dol_size), max_dol_size);
     }
     memory.Write_U32(real_dol_size, request.buffer_out);
     break;
@@ -565,13 +565,13 @@ u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address,
     WARN_LOG_FMT(IOS_WFS, "GetTmd: no such file or directory: {}", path);
     return WFS_ENOENT;
   }
+  *size = static_cast<u32>(fp.GetSize());
   if (address)
   {
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
-    fp.ReadBytes(memory.GetPointer(address), fp.GetSize());
+    fp.ReadBytes(memory.GetPointerForRange(address, *size), *size);
   }
-  *size = fp.GetSize();
   return IPC_SUCCESS;
 }
 

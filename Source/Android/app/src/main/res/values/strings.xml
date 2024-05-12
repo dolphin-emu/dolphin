@@ -133,6 +133,10 @@
     <string name="xlink_kai_guide_header">For setup instructions, <a href="https://www.teamxlink.co.uk/wiki/Dolphin">refer to this page.</a></string>
     <string name="xlink_kai_bba_ip">XLink Kai IP Address/hostname</string>
     <string name="xlink_kai_bba_ip_description">IP address or hostname of device running the XLink Kai client</string>
+    <string name="bba_tapserver_destination">Tapserver destination</string>
+    <string name="bba_tapserver_destination_description">Enter the socket path or netloc (address:port) of the tapserver instance</string>
+    <string name="modem_tapserver_destination">Tapserver destination</string>
+    <string name="modem_tapserver_destination_description">Enter the socket path or netloc (address:port) of the tapserver instance</string>
     <string name="bba_builtin_dns">DNS Server</string>
     <string name="bba_builtin_dns_description">Use 8.8.8.8 for normal DNS, else enter your custom one</string>
 
@@ -402,6 +406,9 @@
     <string name="debug_fastmem">Disable Fastmem</string>
     <string name="debug_fastmem_arena">Disable Fastmem Arena</string>
     <string name="debug_large_entry_points_map">Disable Large Entry Points Map</string>
+    <string name="debug_jit_profiling_header">Jit Profiling</string>
+    <string name="debug_jit_enable_block_profiling">Enable Jit Block Profiling</string>
+    <string name="debug_jit_write_block_log_dump">Write Jit Block Log Dump</string>
     <string name="debug_jit_header">Jit</string>
     <string name="debug_jitoff">Jit Disabled</string>
     <string name="debug_jitloadstoreoff">Jit Load Store Disabled</string>
@@ -677,6 +684,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <!-- Slot SP1 Device selection -->
     <string name="broadband_adapter_xlink">Broadband Adapter (XLink Kai)</string>
     <string name="broadband_adapter_hle">Broadband Adapter (HLE)</string>
+    <string name="broadband_adapter_tapserver">Broadband Adapter (tapserver)</string>
+    <string name="modem_adapter_tapserver">Modem Adapter (tapserver)</string>
 
     <!-- Sound Mode -->
     <string name="sound_mode_mono">Mono</string>

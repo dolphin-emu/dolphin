@@ -15,9 +15,12 @@
 #include <QMap>
 #include <QUrl>
 
+#include <fmt/format.h>
+
 #include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
@@ -94,9 +97,9 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=, this](Core::State state) { OnEmulationStateChanged(state); });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
-          [this] { OnEmulationStateChanged(Core::GetState()); });
+          [this] { OnEmulationStateChanged(Core::GetState(Core::System::GetInstance())); });
 
-  OnEmulationStateChanged(Core::GetState());
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
@@ -151,6 +154,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
                                 !Core::System::GetInstance().GetMovie().IsPlayingInput());
 
   // JIT
+  const bool jit_exists = Core::System::GetInstance().GetJitInterface().GetCore() != nullptr;
   m_jit_interpreter_core->setEnabled(running);
   m_jit_block_linking->setEnabled(!running);
   m_jit_disable_cache->setEnabled(!running);
@@ -159,6 +163,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_jit_clear_cache->setEnabled(running);
   m_jit_log_coverage->setEnabled(!running);
   m_jit_search_instruction->setEnabled(running);
+  m_jit_write_cache_log_dump->setEnabled(running && jit_exists);
 
   // Symbols
   m_symbols->setEnabled(running);
@@ -196,6 +201,30 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   {
     removeAction(m_jit->menuAction());
     removeAction(m_symbols->menuAction());
+  }
+}
+
+void MenuBar::OnWriteJitBlockLogDump()
+{
+  const std::string filename = fmt::format("{}{}.txt", File::GetUserPath(D_DUMPDEBUG_JITBLOCKS_IDX),
+                                           SConfig::GetInstance().GetGameID());
+  File::IOFile f(filename, "w");
+  if (!f)
+  {
+    ModalMessageBox::warning(
+        this, tr("Error"),
+        tr("Failed to open \"%1\" for writing.").arg(QString::fromStdString(filename)));
+    return;
+  }
+  auto& system = Core::System::GetInstance();
+  system.GetJitInterface().JitBlockLogDump(Core::CPUThreadGuard{system}, f.GetHandle());
+  if (static bool ignore = false; ignore == false)
+  {
+    const int button_pressed = ModalMessageBox::information(
+        this, tr("Success"), tr("Wrote to \"%1\".").arg(QString::fromStdString(filename)),
+        QMessageBox::Ok | QMessageBox::Ignore);
+    if (button_pressed == QMessageBox::Ignore)
+      ignore = true;
   }
 }
 
@@ -871,6 +900,17 @@ void MenuBar::AddJITMenu()
 
   m_jit->addSeparator();
 
+  m_jit_profile_blocks = m_jit->addAction(tr("Enable JIT Block Profiling"));
+  m_jit_profile_blocks->setCheckable(true);
+  m_jit_profile_blocks->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
+  connect(m_jit_profile_blocks, &QAction::toggled, [](bool enabled) {
+    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING, enabled);
+  });
+  m_jit_write_cache_log_dump =
+      m_jit->addAction(tr("Write JIT Block Log Dump"), this, &MenuBar::OnWriteJitBlockLogDump);
+
+  m_jit->addSeparator();
+
   m_jit_off = m_jit->addAction(tr("JIT Off (JIT Core)"));
   m_jit_off->setCheckable(true);
   m_jit_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_OFF));
@@ -1204,14 +1244,17 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
 {
   m_game_selected = !!game_file;
 
-  m_recording_play->setEnabled(m_game_selected && !Core::IsRunning());
-  m_recording_start->setEnabled((m_game_selected || Core::IsRunning()) &&
-                                !Core::System::GetInstance().GetMovie().IsPlayingInput());
+  auto& system = Core::System::GetInstance();
+  const bool core_is_running = Core::IsRunning(system);
+  m_recording_play->setEnabled(m_game_selected && !core_is_running);
+  m_recording_start->setEnabled((m_game_selected || core_is_running) &&
+                                !system.GetMovie().IsPlayingInput());
 }
 
 void MenuBar::OnRecordingStatusChanged(bool recording)
 {
-  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning()));
+  auto& system = Core::System::GetInstance();
+  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning(system)));
   m_recording_stop->setEnabled(recording);
   m_recording_export->setEnabled(recording);
 }
@@ -1240,35 +1283,37 @@ void MenuBar::ClearSymbols()
   if (result == QMessageBox::Cancel)
     return;
 
-  g_symbolDB.Clear();
-  emit NotifySymbolsUpdated();
+  Core::System::GetInstance().GetPPCSymbolDB().Clear();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
-
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
+
+  const Core::CPUThreadGuard guard(system);
 
   PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
-                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
-  emit NotifySymbolsUpdated();
+                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
-
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
+
+  const Core::CPUThreadGuard guard(system);
 
   PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
-                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
+                            Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
   SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
-    db.Apply(guard, &g_symbolDB);
+    db.Apply(guard, &ppc_symbol_db);
     ModalMessageBox::information(
         this, tr("Information"),
         tr("Generated symbol names from '%1'").arg(QString::fromStdString(TOTALDB)));
@@ -1281,7 +1326,7 @@ void MenuBar::GenerateSymbolsFromSignatureDB()
         tr("'%1' not found, no symbol names generated").arg(QString::fromStdString(TOTALDB)));
   }
 
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::GenerateSymbolsFromRSO()
@@ -1304,13 +1349,14 @@ void MenuBar::GenerateSymbolsFromRSO()
     return;
   }
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  auto& system = Core::System::GetInstance();
+  const Core::CPUThreadGuard guard(system);
 
   RSOChainView rso_chain;
   if (rso_chain.Load(guard, static_cast<u32>(address)))
   {
-    rso_chain.Apply(guard, &g_symbolDB);
-    emit NotifySymbolsUpdated();
+    rso_chain.Apply(guard, &system.GetPPCSymbolDB());
+    emit Host::GetInstance()->PPCSymbolsChanged();
   }
   else
   {
@@ -1361,12 +1407,13 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   RSOChainView rso_chain;
   const u32 address = item.mid(0, item.indexOf(QLatin1Char(' '))).toUInt(nullptr, 16);
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  auto& system = Core::System::GetInstance();
+  const Core::CPUThreadGuard guard(system);
 
   if (rso_chain.Load(guard, address))
   {
-    rso_chain.Apply(guard, &g_symbolDB);
-    emit NotifySymbolsUpdated();
+    rso_chain.Apply(guard, &system.GetPPCSymbolDB());
+    emit Host::GetInstance()->PPCSymbolsChanged();
   }
   else
   {
@@ -1481,22 +1528,23 @@ void MenuBar::LoadSymbolMap()
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
   std::string existing_map_file, writable_map_file;
   bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
   if (!map_exists)
   {
-    g_symbolDB.Clear();
+    ppc_symbol_db.Clear();
 
     {
-      Core::CPUThreadGuard guard(Core::System::GetInstance());
+      const Core::CPUThreadGuard guard(system);
 
       PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR + 0x1300000,
-                                Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
+                                Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
       SignatureDB db(SignatureDB::HandlerType::DSY);
       if (db.Load(File::GetSysDirectory() + TOTALDB))
-        db.Apply(guard, &g_symbolDB);
+        db.Apply(guard, &ppc_symbol_db);
     }
 
     ModalMessageBox::warning(this, tr("Warning"),
@@ -1515,7 +1563,7 @@ void MenuBar::LoadSymbolMap()
   }
 
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::SaveSymbolMap()
@@ -1540,7 +1588,7 @@ void MenuBar::LoadOtherSymbolMap()
 
   auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::LoadBadSymbolMap()
@@ -1557,7 +1605,7 @@ void MenuBar::LoadBadSymbolMap()
 
   auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::SaveSymbolMapAs()
@@ -1582,13 +1630,8 @@ void MenuBar::SaveCode()
   const std::string path =
       writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
-  bool success;
-  {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    success = g_symbolDB.SaveCodeMap(guard, path);
-  }
-
-  if (!success)
+  auto& system = Core::System::GetInstance();
+  if (!system.GetPPCSymbolDB().SaveCodeMap(Core::CPUThreadGuard{system}, path))
   {
     ModalMessageBox::warning(
         this, tr("Error"),
@@ -1598,9 +1641,10 @@ void MenuBar::SaveCode()
 
 bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  auto& system = Core::System::GetInstance();
+  auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
-  if (!g_symbolDB.LoadMap(guard, path.toStdString(), bad))
+  if (!ppc_symbol_db.LoadMap(Core::CPUThreadGuard{system}, path.toStdString(), bad))
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
     return false;
@@ -1611,7 +1655,7 @@ bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 
 void MenuBar::TrySaveSymbolMap(const QString& path)
 {
-  if (g_symbolDB.SaveSymbolMap(path.toStdString()))
+  if (Core::System::GetInstance().GetPPCSymbolDB().SaveSymbolMap(path.toStdString()))
     return;
 
   ModalMessageBox::warning(this, tr("Error"),
@@ -1632,7 +1676,7 @@ void MenuBar::CreateSignatureFile()
   const std::string prefix = text.toStdString();
   const std::string save_path = file.toStdString();
   SignatureDB db(save_path);
-  db.Populate(&g_symbolDB, prefix);
+  db.Populate(&Core::System::GetInstance().GetPPCSymbolDB(), prefix);
 
   if (!db.Save(save_path))
   {
@@ -1657,7 +1701,7 @@ void MenuBar::AppendSignatureFile()
   const std::string prefix = text.toStdString();
   const std::string signature_path = file.toStdString();
   SignatureDB db(signature_path);
-  db.Populate(&g_symbolDB, prefix);
+  db.Populate(&Core::System::GetInstance().GetPPCSymbolDB(), prefix);
   db.List();
   db.Load(signature_path);
   if (!db.Save(signature_path))
@@ -1678,17 +1722,15 @@ void MenuBar::ApplySignatureFile()
   if (file.isEmpty())
     return;
 
+  auto& system = Core::System::GetInstance();
+
   const std::string load_path = file.toStdString();
   SignatureDB db(load_path);
   db.Load(load_path);
-  {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    db.Apply(guard, &g_symbolDB);
-  }
+  db.Apply(Core::CPUThreadGuard{system}, &system.GetPPCSymbolDB());
   db.List();
-  auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
-  emit NotifySymbolsUpdated();
+  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MenuBar::CombineSignatureFiles()
@@ -1732,7 +1774,8 @@ void MenuBar::PatchHLEFunctions()
 
 void MenuBar::ClearCache()
 {
-  Core::RunAsCPUThread([] { Core::System::GetInstance().GetJitInterface().ClearCache(); });
+  auto& system = Core::System::GetInstance();
+  system.GetJitInterface().ClearCache(Core::CPUThreadGuard{system});
 }
 
 void MenuBar::LogInstructions()
@@ -1753,20 +1796,19 @@ void MenuBar::SearchInstruction()
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  Core::CPUThreadGuard guard(system);
+  const std::string op_std = op.toStdString();
+  const Core::CPUThreadGuard guard(system);
 
   bool found = false;
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal();
        addr += 4)
   {
-    const auto ins_name = QString::fromStdString(
-        PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr), addr));
-    if (op == ins_name)
+    if (op_std == PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr), addr))
     {
-      NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op.toStdString(), addr);
+      NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op_std, addr);
       found = true;
     }
   }
   if (!found)
-    NOTICE_LOG_FMT(POWERPC, "Opcode {} not found", op.toStdString());
+    NOTICE_LOG_FMT(POWERPC, "Opcode {} not found", op_std);
 }

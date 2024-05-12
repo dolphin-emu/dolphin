@@ -43,6 +43,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
+#include "Core/System.h"
 
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 #include "DolphinQt/NetPlay/GameDigestDialog.h"
@@ -584,7 +585,7 @@ void NetPlayDialog::UpdateDiscordPresence()
                                    m_current_game_name);
   };
 
-  if (Core::IsRunning())
+  if (Core::IsRunning(Core::System::GetInstance()))
     return use_default();
 
   if (IsHosting())
@@ -808,7 +809,7 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
 
   QColor c(color.empty() ? QStringLiteral("white") : QString::fromStdString(color));
 
-  if (g_ActiveConfig.bShowNetPlayMessages && Core::IsRunning())
+  if (g_ActiveConfig.bShowNetPlayMessages && Core::IsRunning(Core::System::GetInstance()))
     g_netplay_chat_ui->AppendChat(msg.toStdString(),
                                   {static_cast<float>(c.redF()), static_cast<float>(c.greenF()),
                                    static_cast<float>(c.blueF())});
@@ -909,7 +910,7 @@ void NetPlayDialog::OnMsgStopGame()
 
 void NetPlayDialog::OnMsgPowerButton()
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning(Core::System::GetInstance()))
     return;
   QueueOnObject(this, [] { UICommon::TriggerSTMPowerEvent(); });
 }

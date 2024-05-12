@@ -34,14 +34,11 @@ class TaskDialog : DialogFragment() {
         val progressMessage = requireArguments().getInt(KEY_MESSAGE)
         if (progressMessage != 0) dialog.setMessage(resources.getString(progressMessage))
 
-        viewModel.isComplete.observe(this) { complete: Boolean ->
-            if (complete && viewModel.result.value != null) {
+        viewModel.result.observe(this) { result: Int? ->
+            if (result != null) {
                 dialog.dismiss()
                 val notificationArguments = Bundle()
-                notificationArguments.putInt(
-                    TaskCompleteDialog.KEY_MESSAGE,
-                    viewModel.result.value!!
-                )
+                notificationArguments.putInt(TaskCompleteDialog.KEY_MESSAGE, result)
 
                 val taskCompleteDialog = TaskCompleteDialog()
                 taskCompleteDialog.arguments = notificationArguments

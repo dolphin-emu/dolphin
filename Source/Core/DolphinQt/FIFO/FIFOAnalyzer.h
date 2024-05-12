@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 
 class FifoPlayer;
+class QFont;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
@@ -42,6 +43,8 @@ private:
   void UpdateTree();
   void UpdateDetails();
   void UpdateDescription();
+
+  void OnDebugFontChanged(const QFont& font);
 
   FifoPlayer& m_fifo_player;
 

@@ -217,7 +217,7 @@ signals:
   void JITVisibilityChanged(bool visible);
   void AssemblerVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
-  void DebugFontChanged(QFont font);
+  void DebugFontChanged(const QFont& font);
   void AutoUpdateTrackChanged(const QString& mode);
   void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);

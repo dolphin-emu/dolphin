@@ -15,13 +15,14 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "Core/Config/AchievementSettings.h"
+#include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
@@ -58,7 +59,7 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
           &GeneralPane::OnEmulationStateChanged);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GeneralPane::LoadConfig);
 
-  OnEmulationStateChanged(Core::GetState());
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
 
 void GeneralPane::CreateLayout()
@@ -83,7 +84,7 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
 #ifdef USE_RETRO_ACHIEVEMENTS
-  bool hardcore = Config::Get(Config::RA_HARDCORE_ENABLED);
+  bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_checkbox_cheats->setEnabled(!running && !hardcore);
 #else   // USE_RETRO_ACHIEVEMENTS
   m_checkbox_cheats->setEnabled(!running);

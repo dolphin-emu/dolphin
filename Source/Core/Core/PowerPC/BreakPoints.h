@@ -13,10 +13,6 @@
 
 namespace Core
 {
-class DebugInterface;
-}
-namespace Core
-{
 class System;
 }
 
@@ -49,8 +45,7 @@ struct TMemCheck
   std::optional<Expression> condition;
 
   // returns whether to break
-  bool Action(Core::System& system, Core::DebugInterface* debug_interface, u64 value, u32 addr,
-              bool write, size_t size, u32 pc);
+  bool Action(Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc);
 };
 
 // Code breakpoints.

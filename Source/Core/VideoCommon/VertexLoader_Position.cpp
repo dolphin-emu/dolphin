@@ -71,11 +71,14 @@ void Pos_ReadIndex(VertexLoader* loader)
 }
 
 using ComponentCountRow = Common::EnumMap<TPipelineFunction, CoordComponentCount::XYZ>;
-using ComponentFormatTable = Common::EnumMap<ComponentCountRow, ComponentFormat::Float>;
+using ComponentFormatTable = Common::EnumMap<ComponentCountRow, ComponentFormat::InvalidFloat7>;
 using Table = Common::EnumMap<ComponentFormatTable, VertexComponentFormat::Index16>;
 
 constexpr Table s_table_read_position = {
     ComponentFormatTable({
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
         ComponentCountRow(nullptr, nullptr),
         ComponentCountRow(nullptr, nullptr),
         ComponentCountRow(nullptr, nullptr),
@@ -88,6 +91,9 @@ constexpr Table s_table_read_position = {
         ComponentCountRow(Pos_ReadDirect<u16, 2>, Pos_ReadDirect<u16, 3>),
         ComponentCountRow(Pos_ReadDirect<s16, 2>, Pos_ReadDirect<s16, 3>),
         ComponentCountRow(Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>),
+        ComponentCountRow(Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>),
+        ComponentCountRow(Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>),
+        ComponentCountRow(Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>),
     }),
     ComponentFormatTable({
         ComponentCountRow(Pos_ReadIndex<u8, u8, 2>, Pos_ReadIndex<u8, u8, 3>),
@@ -95,12 +101,18 @@ constexpr Table s_table_read_position = {
         ComponentCountRow(Pos_ReadIndex<u8, u16, 2>, Pos_ReadIndex<u8, u16, 3>),
         ComponentCountRow(Pos_ReadIndex<u8, s16, 2>, Pos_ReadIndex<u8, s16, 3>),
         ComponentCountRow(Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>),
+        ComponentCountRow(Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>),
+        ComponentCountRow(Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>),
+        ComponentCountRow(Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>),
     }),
     ComponentFormatTable({
         ComponentCountRow(Pos_ReadIndex<u16, u8, 2>, Pos_ReadIndex<u16, u8, 3>),
         ComponentCountRow(Pos_ReadIndex<u16, s8, 2>, Pos_ReadIndex<u16, s8, 3>),
         ComponentCountRow(Pos_ReadIndex<u16, u16, 2>, Pos_ReadIndex<u16, u16, 3>),
         ComponentCountRow(Pos_ReadIndex<u16, s16, 2>, Pos_ReadIndex<u16, s16, 3>),
+        ComponentCountRow(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
+        ComponentCountRow(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
+        ComponentCountRow(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
         ComponentCountRow(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
     }),
 };

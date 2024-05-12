@@ -13,6 +13,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -54,9 +55,11 @@ static void WalkTheStack(const Core::CPUThreadGuard& guard,
 // instead of "pointing ahead"
 bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>& output)
 {
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  auto& system = guard.GetSystem();
+  auto& power_pc = system.GetPowerPC();
+  const auto& ppc_state = power_pc.GetPPCState();
 
-  if (!Core::IsRunning() || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
+  if (!Core::IsRunning(system) || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
     return false;
 
   if (LR(ppc_state) == 0)
@@ -68,14 +71,16 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
     return false;
   }
 
+  auto& ppc_symbol_db = power_pc.GetSymbolDB();
+
   output.push_back({
-      .Name = fmt::format(" * {} [ LR = {:08x} ]\n", g_symbolDB.GetDescription(LR(ppc_state)),
+      .Name = fmt::format(" * {} [ LR = {:08x} ]\n", ppc_symbol_db.GetDescription(LR(ppc_state)),
                           LR(ppc_state) - 4),
       .vAddress = LR(ppc_state) - 4,
   });
 
-  WalkTheStack(guard, [&output](u32 func_addr) {
-    std::string func_desc = g_symbolDB.GetDescription(func_addr);
+  WalkTheStack(guard, [&output, &ppc_symbol_db](u32 func_addr) {
+    std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
 
@@ -91,7 +96,9 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
 void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type,
                     Common::Log::LogLevel level)
 {
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  auto& power_pc = guard.GetSystem().GetPowerPC();
+  const auto& ppc_state = power_pc.GetPPCState();
+  auto& ppc_symbol_db = power_pc.GetSymbolDB();
 
   GENERIC_LOG_FMT(type, level, "== STACK TRACE - SP = {:08x} ==", ppc_state.gpr[1]);
 
@@ -100,22 +107,25 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
     GENERIC_LOG_FMT(type, level, " LR = 0 - this is bad");
   }
 
-  if (g_symbolDB.GetDescription(ppc_state.pc) != g_symbolDB.GetDescription(LR(ppc_state)))
+  if (const std::string_view lr_desc = ppc_symbol_db.GetDescription(LR(ppc_state));
+      lr_desc != ppc_symbol_db.GetDescription(ppc_state.pc))
   {
-    GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", g_symbolDB.GetDescription(LR(ppc_state)),
-                    LR(ppc_state));
+    GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", lr_desc, LR(ppc_state));
   }
 
-  WalkTheStack(guard, [type, level](u32 func_addr) {
-    std::string func_desc = g_symbolDB.GetDescription(func_addr);
+  WalkTheStack(guard, [type, level, &ppc_symbol_db](u32 func_addr) {
+    std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
     GENERIC_LOG_FMT(type, level, " * {} [ addr = {:08x} ]", func_desc, func_addr);
   });
 }
 
-void PrintDataBuffer(Common::Log::LogType type, const u8* data, size_t size, std::string_view title)
+void PrintDataBuffer(const Core::System& system, Common::Log::LogType type, u32 address, u32 size,
+                     std::string_view title)
 {
+  const u8* data = system.GetMemory().GetPointerForRange(address, size);
+
   GENERIC_LOG_FMT(type, Common::Log::LogLevel::LDEBUG, "{}", title);
   for (u32 j = 0; j < size;)
   {

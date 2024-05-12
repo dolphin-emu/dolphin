@@ -6,7 +6,7 @@ add_library(usb STATIC EXCLUDE_FROM_ALL
     libusb/libusb/strerror.c
     libusb/libusb/sync.c
 )
-dolphin_disable_warnings_msvc(usb)
+dolphin_disable_warnings(usb)
 
 set_target_properties(usb PROPERTIES VERSION 1.0.26)
 if(WIN32)

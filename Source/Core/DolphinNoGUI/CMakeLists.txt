@@ -5,8 +5,9 @@ add_executable(dolphin-nogui
   MainNoGUI.cpp
 )
 
-if(ENABLE_X11 AND X11_FOUND)
+if(X11_FOUND)
   target_sources(dolphin-nogui PRIVATE PlatformX11.cpp)
+  target_link_libraries(dolphin-nogui PRIVATE PkgConfig::XRANDR PkgConfig::X11)
 endif()
 
 if(WIN32)
@@ -38,6 +39,11 @@ if(APPLE)
       ${COREFOUNDATION_LIBRARY}
       ${IOK_LIBRARY}
   )
+endif()
+
+if(WIN32)
+  # needed for adjusting window decorations with DwmSetWindowAttribute
+  target_link_libraries(dolphin-nogui PRIVATE dwmapi.lib)
 endif()
 
 if(MSVC)

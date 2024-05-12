@@ -122,7 +122,16 @@ enum class ComponentFormat
   UShort = 2,  // Invalid for normals
   Short = 3,
   Float = 4,
+  // Known to be used by Fifa Street and Def Jam: Fight for New York
+  // See https://bugs.dolphin-emu.org/issues/12719
+  // Assumed to behave the same as float, but further testing is needed
+  InvalidFloat5 = 5,
+  // Not known to be used
+  InvalidFloat6 = 6,
+  InvalidFloat7 = 7,
 };
+// NOTE: don't include the invalid formats here, so that EnumFormatter marks them as invalid
+// (EnumFormatter also handles bounds-checking).
 template <>
 struct fmt::formatter<ComponentFormat> : EnumFormatter<ComponentFormat::Float>
 {
@@ -141,6 +150,9 @@ constexpr u32 GetElementSize(ComponentFormat format)
   case ComponentFormat::Short:
     return 2;
   case ComponentFormat::Float:
+  case ComponentFormat::InvalidFloat5:
+  case ComponentFormat::InvalidFloat6:
+  case ComponentFormat::InvalidFloat7:
     return 4;
   default:
     PanicAlertFmt("Unknown format {}", format);

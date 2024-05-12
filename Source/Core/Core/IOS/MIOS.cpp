@@ -67,20 +67,21 @@ bool Load(Core::System& system)
   ReinitHardware(system);
   NOTICE_LOG_FMT(IOS, "Reinitialised hardware.");
 
+  auto& power_pc = system.GetPowerPC();
+  auto& ppc_symbol_db = power_pc.GetSymbolDB();
+
   // Load symbols for the IPL if they exist.
-  if (!g_symbolDB.IsEmpty())
+  if (!ppc_symbol_db.IsEmpty())
   {
-    g_symbolDB.Clear();
-    Host_NotifyMapLoaded();
+    ppc_symbol_db.Clear();
+    Host_PPCSymbolsChanged();
   }
-  if (g_symbolDB.LoadMap(guard, File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
+  if (ppc_symbol_db.LoadMap(guard, File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions(system);
-    Host_NotifyMapLoaded();
+    Host_PPCSymbolsChanged();
   }
-
-  auto& power_pc = system.GetPowerPC();
 
   const PowerPC::CoreMode core_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);

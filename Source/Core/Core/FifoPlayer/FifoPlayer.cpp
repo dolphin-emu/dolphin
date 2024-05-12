@@ -212,7 +212,7 @@ void FifoPlayer::Close()
 
 bool FifoPlayer::IsPlaying() const
 {
-  return GetFile() != nullptr && Core::IsRunning();
+  return GetFile() != nullptr && Core::IsRunning(m_system);
 }
 
 class FifoPlayer::CPUCore final : public CPUCoreBase
@@ -697,7 +697,7 @@ void FifoPlayer::LoadTextureMemory()
 {
   static_assert(static_cast<size_t>(TMEM_SIZE) == static_cast<size_t>(FifoDataFile::TEX_MEM_SIZE),
                 "TMEM_SIZE matches the size of texture memory in FifoDataFile");
-  std::memcpy(texMem, m_File->GetTexMem(), FifoDataFile::TEX_MEM_SIZE);
+  std::memcpy(s_tex_mem.data(), m_File->GetTexMem(), FifoDataFile::TEX_MEM_SIZE);
 }
 
 void FifoPlayer::WriteCP(u32 address, u16 value)

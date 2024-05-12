@@ -18,6 +18,7 @@ class BranchWatch;
 class CPUThreadGuard;
 class System;
 }  // namespace Core
+class PPCSymbolDB;
 
 namespace BranchWatchTableModelColumn
 {
@@ -69,8 +70,9 @@ public:
   using SymbolList = QList<SymbolListValueType>;
 
   explicit BranchWatchTableModel(Core::System& system, Core::BranchWatch& branch_watch,
-                                 QObject* parent = nullptr)
-      : QAbstractTableModel(parent), m_system(system), m_branch_watch(branch_watch)
+                                 PPCSymbolDB& ppc_symbol_db, QObject* parent = nullptr)
+      : QAbstractTableModel(parent), m_system(system), m_branch_watch(branch_watch),
+        m_ppc_symbol_db(ppc_symbol_db)
   {
   }
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -113,6 +115,7 @@ private:
 
   Core::System& m_system;
   Core::BranchWatch& m_branch_watch;
+  PPCSymbolDB& m_ppc_symbol_db;
 
   SymbolList m_symbol_list;
   mutable QFont m_font;

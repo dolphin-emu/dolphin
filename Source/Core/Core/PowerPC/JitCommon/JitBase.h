@@ -31,6 +31,7 @@ namespace PowerPC
 class MMU;
 struct PowerPCState;
 }  // namespace PowerPC
+class PPCSymbolDB;
 
 //#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
 //#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
@@ -85,15 +86,13 @@ protected:
     bool memcheck;
     bool fp_exceptions;
     bool div_by_zero_exceptions;
-    bool profile_blocks;
   };
   struct JitState
   {
     u32 compilerPC;
     u32 blockStart;
-    int instructionNumber;
     int instructionsLeft;
-    int downcountAmount;
+    u32 downcountAmount;
     u32 numLoadStoreInst;
     u32 numFloatingPointInst;
     // If this is set, we need to generate an exception handler for the fastmem load.
@@ -148,6 +147,7 @@ protected:
   bool bJITSystemRegistersOff = false;
   bool bJITBranchOff = false;
   bool bJITRegisterCacheOff = false;
+  bool m_enable_profiling = false;
   bool m_enable_debugging = false;
   bool m_enable_branch_following = false;
   bool m_enable_float_exceptions = false;
@@ -162,7 +162,7 @@ protected:
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JIT_SETTINGS;
 
   bool DoesConfigNeedRefresh();
   void RefreshConfig();
@@ -186,6 +186,7 @@ public:
   JitBase& operator=(JitBase&&) = delete;
   ~JitBase() override;
 
+  bool IsProfilingEnabled() const { return m_enable_profiling; }
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
 
   static const u8* Dispatch(JitBase& jit);
@@ -208,6 +209,7 @@ public:
   PowerPC::PowerPCState& m_ppc_state;
   PowerPC::MMU& m_mmu;
   Core::BranchWatch& m_branch_watch;
+  PPCSymbolDB& m_ppc_symbol_db;
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);

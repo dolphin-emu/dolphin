@@ -296,10 +296,6 @@ void CEXIIPL::TransferByte(u8& data)
     DEBUG_LOG_FMT(EXPANSIONINTERFACE, "IPL-DEV data {} {:08x} {:02x}",
                   m_command.is_write() ? "write" : "read", address, data);
 
-#define IN_RANGE(x) (address >= x##_BASE && address < x##_BASE + x##_SIZE)
-#define DEV_ADDR(x) (address - x##_BASE)
-#define DEV_ADDR_CURSOR(x) (DEV_ADDR(x) + m_cursor++)
-
     auto UartFifoAccess = [&]() {
       if (m_command.is_write())
       {
@@ -323,7 +319,9 @@ void CEXIIPL::TransferByte(u8& data)
     {
       if (!m_command.is_write())
       {
-        u32 dev_addr = DEV_ADDR_CURSOR(ROM);
+        u32 dev_addr = address - ROM_BASE + m_cursor++;
+        // TODO: Is this address wrapping correct? Needs a hardware test
+        dev_addr %= ROM_SIZE;
         // Technically we should descramble here iff descrambling logic is enabled.
         // At the moment, we pre-decrypt the whole thing and
         // ignore the "enabled" bit - see CEXIIPL::CEXIIPL
@@ -346,18 +344,20 @@ void CEXIIPL::TransferByte(u8& data)
         }
       }
     }
-    else if (IN_RANGE(SRAM))
+    else if (address >= SRAM_BASE && address < SRAM_BASE + SRAM_SIZE)
     {
       auto& sram = m_system.GetSRAM();
-      u32 dev_addr = DEV_ADDR_CURSOR(SRAM);
+      u32 dev_addr = address - SRAM_BASE + m_cursor++;
+      // TODO: Is this address wrapping correct? Needs a hardware test
+      dev_addr %= SRAM_SIZE;
       if (m_command.is_write())
         sram[dev_addr] = data;
       else
         data = sram[dev_addr];
     }
-    else if (IN_RANGE(UART))
+    else if (address >= UART_BASE && address < UART_BASE + UART_SIZE)
     {
-      switch (DEV_ADDR(UART))
+      switch (address - UART_BASE)
       {
       case 0:
         // Seems to be 16byte fifo
@@ -371,16 +371,17 @@ void CEXIIPL::TransferByte(u8& data)
         break;
       }
     }
-    else if (IN_RANGE(WII_RTC) && DEV_ADDR(WII_RTC) == 0x20)
+    else if (address >= WII_RTC_BASE && address < WII_RTC_BASE + WII_RTC_SIZE &&
+             address - WII_RTC_BASE == 0x20)
     {
       if (m_command.is_write())
         g_rtc_flags.m_hex = data;
       else
         data = g_rtc_flags.m_hex;
     }
-    else if (IN_RANGE(EUART))
+    else if (address >= EUART_BASE && address < EUART_BASE + EUART_SIZE)
     {
-      switch (DEV_ADDR(EUART))
+      switch (address - EUART_BASE)
       {
       case 0:
         // Writes 0xf2 then 0xf3 on EUART init. Just need to return non-zero
@@ -395,10 +396,6 @@ void CEXIIPL::TransferByte(u8& data)
     {
       NOTICE_LOG_FMT(EXPANSIONINTERFACE, "IPL-DEV Accessing unknown device");
     }
-
-#undef DEV_ADDR_CURSOR
-#undef DEV_ADDR
-#undef IN_RANGE
   }
 }
 

@@ -33,7 +33,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Config/AchievementSettings.h"
+#include "Core/AchievementManager.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -565,7 +565,7 @@ void Settings::SetCheatsEnabled(bool enabled)
 void Settings::SetDebugModeEnabled(bool enabled)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     enabled = false;
 #endif  // USE_RETRO_ACHIEVEMENTS
   if (IsDebugModeEnabled() != enabled)
