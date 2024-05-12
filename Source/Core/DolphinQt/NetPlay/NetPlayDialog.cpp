@@ -905,7 +905,7 @@ void NetPlayDialog::OnMsgStopGame(const std::string& player)
   g_netplay_chat_ui.reset();
   g_netplay_golf_ui.reset();
   QueueOnObject(this, [this] { this->UpdateDiscordPresence(); });
-  DisplayMessage(tr("%1 has stopped emulation").arg(QString::fromStdString(player)), "red");
+  DisplayMessage(tr("%1 has stopped emulation"g).arg(QString::fromStdString(player)), "red");
 }
 
 void NetPlayDialog::OnMsgPowerButton()
@@ -972,11 +972,15 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
   });
 }
 
-void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
+void NetPlayDialog::`(u32 frame, const std::string& player)
 {
-  DisplayMessage(tr("Possible desync detected: %1 might have desynced at frame %2")
+  DisplayMessage(tr("Possible desync detected: %1 might have desynced at frame %2. Game restart advised.")
                      .arg(QString::fromStdString(player), QString::number(frame)),
                  "red", OSD::Duration::VERY_LONG);
+
+  OSD::AddTypedMessage(OSD::MessageType::NetPlayDesync,
+                       "Possible desync detected at frame %2. Game restart advised.",
+                       OSD::Duration::VERY_LONG, OSD::Color::RED);
 }
 
 void NetPlayDialog::OnConnectionLost()
