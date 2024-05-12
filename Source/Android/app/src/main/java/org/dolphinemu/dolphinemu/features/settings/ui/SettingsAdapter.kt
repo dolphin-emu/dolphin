@@ -15,6 +15,7 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.datepicker.CalendarConstraints
@@ -58,6 +59,9 @@ class SettingsAdapter(
 
     val settings: Settings?
         get() = fragmentView.settings
+
+    val fragmentActivity: FragmentActivity
+        get() = fragmentView.fragmentActivity
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SettingViewHolder {
         val inflater = LayoutInflater.from(parent.context)
