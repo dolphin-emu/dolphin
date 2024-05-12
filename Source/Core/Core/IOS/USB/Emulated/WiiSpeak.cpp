@@ -42,7 +42,7 @@ bool WiiSpeak::Attach()
 
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x}] Opening device", m_vid, m_pid);
   if (!m_microphone)
-    m_microphone = std::make_unique<Microphone>();
+    m_microphone = std::make_unique<Microphone>(m_sampler);
   m_device_attached = true;
   return true;
 }

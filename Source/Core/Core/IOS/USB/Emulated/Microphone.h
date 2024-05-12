@@ -15,14 +15,17 @@ struct cubeb_stream;
 
 namespace IOS::HLE::USB
 {
+struct WiiSpeakState;
+
 class Microphone final
 {
 public:
-  Microphone();
+  Microphone(const WiiSpeakState& sampler);
   ~Microphone();
 
   bool HasData() const;
   void ReadIntoBuffer(u8* dst, u32 size);
+  const WiiSpeakState& GetSampler() const;
 
 private:
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
@@ -46,6 +49,8 @@ private:
   std::mutex m_ring_lock;
   std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
+
+  const WiiSpeakState& m_sampler;
 
 #ifdef _WIN32
   Common::WorkQueueThread<std::function<void()>> m_work_queue{
