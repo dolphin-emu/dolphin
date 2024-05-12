@@ -904,7 +904,7 @@ void NetPlayDialog::OnMsgStopGame(const std::string& player)
 {
   g_netplay_chat_ui.reset();
   g_netplay_golf_ui.reset();
-  QueueOnObject(this, [this] { UpdateDiscordPresence(); });
+  QueueOnObject(this, [this] { this->UpdateDiscordPresence(); });
   DisplayMessage(tr("%1 has stopped emulation").arg(QString::fromStdString(player)), "red");
 }
 
