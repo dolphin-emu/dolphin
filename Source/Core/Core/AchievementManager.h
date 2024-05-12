@@ -12,10 +12,6 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <vector>
-#include <memory>
-#include <set>
-#include <chrono>
 
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
@@ -130,7 +126,7 @@ public:
   void Shutdown();
 
 private:
-  AchievementManager();
+  AchievementManager() = default;
 
   struct FilereaderState
   {
