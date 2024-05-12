@@ -189,16 +189,35 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
     break;
   }
 
-  // Anything more causes the visual cue to not appear.
-  // Anything less is more choppy audio.
+  // Transferring too slow causes the visual cue to not appear,
+  // while transferring too fast results in more choppy audio.
   DEBUG_LOG_FMT(IOS_USB,
                 "Wii Speak isochronous transfer: length={:04x} endpoint={:02x} num_packets={:02x}",
                 cmd->length, cmd->endpoint, cmd->num_packets);
 
   // According to the Wii Speak specs on wiibrew, it's "USB 2.0 Full-speed Device Module",
   // so the length of a single frame should be 1 ms.
-  // TODO: Find a proper way to compute the transfer timing.
-  const u32 transfer_timing = 2500;  // 2.5 ms
+  //
+  // Monster Hunter 3 and the Wii Speak Channel use cmd->length=0x100, allowing 256/2 samples
+  // (i.e. 128 samples in 16-bit mono) per frame transfer. The Microphone class is using cubeb
+  // configured with a sample rate of 8000.
+  //
+  // Based on these numbers, here are some theoretical speeds:
+  //  - fastest transfer speed would be 8000 samples in 63 ms (i.e. 8000 * 1/128 = 62.5)
+  //    * using a timing of 1 ms per frame of 128 samples
+  //    * here cubeb sample rate is the bottleneck
+  //  - slowest transfer speed would be 8000 samples in 1000 ms (i.e. 128 * 1000/8000 = 16)
+  //    * using a timing of 16 ms per frame of 128 samples
+  //    * matching cubeb sampling rate
+  //
+  // A decent timing would be 16ms. However, it seems that the Wii Speak Channel record feature is
+  // broken if the timing is less than 32ms and that the record playback is broken when around 34ms
+  // and above. Monster Hunter 3 doesn't seem affected by this timing issue.
+  //
+  // TODO: Investigate and ensure that's the proper way to fix it.
+  // Maybe it's related to the Wii DSP and its stereo/mono mode?
+  // If so, what would be the impact of using DSP LLE/HLE in mono/stereo?
+  const u32 transfer_timing = 32000;
   cmd->ScheduleTransferCompletion(IPC_SUCCESS, transfer_timing);
   return IPC_SUCCESS;
 }
