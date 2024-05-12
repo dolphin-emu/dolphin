@@ -900,7 +900,7 @@ void NetPlayDialog::OnMsgStartGame()
   });
 }
 
-void NetPlayDialog::OnMsgStopGame()
+void NetPlayDialog::OnMsgStopGame(const std::string& player)
 {
   g_netplay_chat_ui.reset();
   g_netplay_golf_ui.reset();
