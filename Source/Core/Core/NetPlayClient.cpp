@@ -972,9 +972,8 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 void NetPlayClient::OnStopGame(sf::Packet& packet)
 {
   INFO_LOG_FMT(NETPLAY, "Game stopped");
-
   StopGame();
-  m_dialog->OnMsgStopGame();
+  m_dialog->OnMsgStopGame(player.name);
 }
 
 void NetPlayClient::OnPowerButton()
