@@ -232,6 +232,18 @@ enum class BooleanSetting(
         "EmulateInfinityBase",
         false
     ),
+    MAIN_EMULATE_WII_SPEAK(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_EMULATED_USB_DEVICES,
+        "EmulateWiiSpeak",
+        false
+    ),
+    MAIN_WII_SPEAK_CONNECTED(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_EMULATED_USB_DEVICES,
+        "WiiSpeakConnected",
+        false
+    ),
     MAIN_SHOW_GAME_TITLES(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
@@ -916,7 +928,8 @@ enum class BooleanSetting(
             MAIN_CUSTOM_RTC_ENABLE,
             MAIN_DSP_JIT,
             MAIN_EMULATE_SKYLANDER_PORTAL,
-            MAIN_EMULATE_INFINITY_BASE
+            MAIN_EMULATE_INFINITY_BASE,
+            MAIN_EMULATE_WII_SPEAK
         )
         private val NOT_RUNTIME_EDITABLE: Set<BooleanSetting> =
             HashSet(listOf(*NOT_RUNTIME_EDITABLE_ARRAY))
