@@ -6,7 +6,6 @@ add_library(rcheevos
 	rcheevos/include/rc_api_user.h
 	rcheevos/include/rc_consoles.h
 	rcheevos/include/rc_error.h
-	rcheevos/include/rc_export.h
 	rcheevos/include/rc_hash.h
 	rcheevos/include/rcheevos.h
 	rcheevos/include/rc_runtime.h
