@@ -13,6 +13,8 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/IOS/USB/Emulated/WiiSpeak.h"
 
 #ifdef _WIN32
 #include <Objbase.h>
@@ -20,7 +22,7 @@
 
 namespace IOS::HLE::USB
 {
-Microphone::Microphone()
+Microphone::Microphone(const WiiSpeakState& sampler) : m_sampler(sampler)
 {
 #ifdef _WIN32
   Common::Event sync_event;
@@ -174,7 +176,16 @@ void Microphone::StopStream()
 long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
                               void* /*output_buffer*/, long nframes)
 {
+  // Skip data when core isn't running
+  if (Core::GetState(Core::System::GetInstance()) != Core::State::Running)
+    return nframes;
+
   auto* mic = static_cast<Microphone*>(user_data);
+  const auto& sampler = mic->GetSampler();
+
+  // Skip data if sampling is off or mute is on
+  if (sampler.sample_on == false || sampler.mute == true)
+    return nframes;
 
   std::lock_guard lk(mic->m_ring_lock);
 
@@ -226,5 +237,10 @@ void Microphone::ReadIntoBuffer(u8* dst, u32 size)
 bool Microphone::HasData() const
 {
   return m_samples_avail > 0 && Config::Get(Config::MAIN_WII_SPEAK_CONNECTED);
+}
+
+const WiiSpeakState& Microphone::GetSampler() const
+{
+  return m_sampler;
 }
 }  // namespace IOS::HLE::USB

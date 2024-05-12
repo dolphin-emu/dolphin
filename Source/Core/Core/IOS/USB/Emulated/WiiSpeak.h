@@ -13,6 +13,16 @@
 
 namespace IOS::HLE::USB
 {
+struct WiiSpeakState
+{
+  bool sample_on;
+  bool mute;
+  int freq;
+  int gain;
+  bool ec_reset;
+  bool sp_on;
+};
+
 class WiiSpeak final : public Device
 {
 public:
@@ -35,17 +45,7 @@ public:
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
 private:
-  struct WSState
-  {
-    bool sample_on;
-    bool mute;
-    int freq;
-    int gain;
-    bool ec_reset;
-    bool sp_on;
-  };
-
-  WSState m_sampler{};
+  WiiSpeakState m_sampler{};
 
   enum Registers
   {
