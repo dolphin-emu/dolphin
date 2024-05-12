@@ -2209,8 +2209,15 @@ bool NetPlayServer::SyncCodes()
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
           pac << op.cmd_addr;
           pac << op.value;
+          v_ActiveARCodes.push_back(active_code.name);
         }
       }
+      sf::Packet packet;
+      packet << MessageID::SendCodes;
+      std::string codeStr = "";
+      for (const std::string code : v_ActiveARCodes)
+        codeStr += "• " + code + "\n";
+      packet << codeStr;
       SendAsyncToClients(std::move(pac));
     }
   }
