@@ -900,12 +900,11 @@ void NetPlayDialog::OnMsgStartGame()
   });
 }
 
-void NetPlayDialog::OnMsgStopGame(const std::string& player)
+void NetPlayDialog::OnMsgStopGame()
 {
   g_netplay_chat_ui.reset();
   g_netplay_golf_ui.reset();
-  QueueOnObject(this, [this] { this->UpdateDiscordPresence(); });
-  DisplayMessage(tr("%1 has stopped emulation"g).arg(QString::fromStdString(player)), "red");
+  QueueOnObject(this, [this] { UpdateDiscordPresence(); });
 }
 
 void NetPlayDialog::OnMsgPowerButton()

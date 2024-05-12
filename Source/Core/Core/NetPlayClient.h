@@ -89,7 +89,7 @@ public:
                                const std::string& netplay_name) = 0;
   virtual void OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config) = 0;
   virtual void OnMsgStartGame() = 0;
-  virtual void OnMsgStopGame(const std::string& player) = 0;
+  virtual void OnMsgStopGame() = 0;
   virtual void OnMsgPowerButton() = 0;
   virtual void OnPlayerConnect(const std::string& player) = 0;
   virtual void OnPlayerDisconnect(const std::string& player) = 0;
