@@ -20,7 +20,7 @@ bool mpn_update_discord()
 
   if (mpn_read_value(CurrentState.Addresses->CurrentTurn, 1) == (mpn_read_value(CurrentState.Addresses->TotalTurns, 1) + 1))
   {
-    State::Save(1);
+    State::Save(1, false);
   }
   if (CurrentState.Addresses != NULL)
   {
