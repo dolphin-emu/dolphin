@@ -3,6 +3,8 @@
 
 #include "Core/IOS/USB/Emulated/WiiSpeak.h"
 
+#include <algorithm>
+
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 
@@ -176,10 +178,18 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
   switch (cmd->endpoint)
   {
   case ENDPOINT_AUDIO_IN:
+  {
     // Transfer: Wii Speak -> Wii
+    u16 size = 0;
     if (m_microphone && m_microphone->HasData())
-      m_microphone->ReadIntoBuffer(packets, cmd->length);
+      size = m_microphone->ReadIntoBuffer(packets, cmd->length);
+    for (std::size_t i = 0; i < cmd->num_packets; i++)
+    {
+      cmd->SetPacketReturnValue(i, std::min(size, cmd->packet_sizes[i]));
+      size = (size > cmd->packet_sizes[i]) ? (size - cmd->packet_sizes[i]) : 0;
+    }
     break;
+  }
   case ENDPOINT_AUDIO_OUT:
     // Transfer: Wii -> Wii Speak
     break;
@@ -202,22 +212,13 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
   // (i.e. 128 samples in 16-bit mono) per frame transfer. The Microphone class is using cubeb
   // configured with a sample rate of 8000.
   //
-  // Based on these numbers, here are some theoretical speeds:
-  //  - fastest transfer speed would be 8000 samples in 63 ms (i.e. 8000 * 1/128 = 62.5)
-  //    * using a timing of 1 ms per frame of 128 samples
-  //    * here cubeb sample rate is the bottleneck
-  //  - slowest transfer speed would be 8000 samples in 1000 ms (i.e. 128 * 1000/8000 = 16)
-  //    * using a timing of 16 ms per frame of 128 samples
-  //    * matching cubeb sampling rate
+  // Based on USB sniffing using Wireshark + Dolphin USB passthrough:
+  //  - 125 frames are received per second (i.e. timing 8 ms per frame)
+  //  - however, the cmd->length=0x80 which doesn't match the HLE emulation
+  //  - each frame having 8 packets of 0x10 bytes
   //
-  // A decent timing would be 16ms. However, it seems that the Wii Speak Channel record feature is
-  // broken if the timing is less than 32ms and that the record playback is broken when around 34ms
-  // and above. Monster Hunter 3 doesn't seem affected by this timing issue.
-  //
-  // TODO: Investigate and ensure that's the proper way to fix it.
-  // Maybe it's related to the Wii DSP and its stereo/mono mode?
-  // If so, what would be the impact of using DSP LLE/HLE in mono/stereo?
-  const u32 transfer_timing = 32000;
+  // Let's sample at a reasonable speed.
+  const u32 transfer_timing = 2000;
   cmd->ScheduleTransferCompletion(IPC_SUCCESS, transfer_timing);
   return IPC_SUCCESS;
 }
