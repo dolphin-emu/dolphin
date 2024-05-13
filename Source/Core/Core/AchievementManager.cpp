@@ -23,10 +23,9 @@
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
 #include "UICommon/DiscordPresence.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
-
-static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge);
 
 AchievementManager& AchievementManager::GetInstance()
 {
@@ -306,9 +305,9 @@ const AchievementManager::BadgeStatus& AchievementManager::GetGameBadge() const
 const AchievementManager::BadgeStatus& AchievementManager::GetAchievementBadge(AchievementId id,
                                                                                bool locked) const
 {
-  auto& badge_list = locked ? m_locked_badges : m_locked_badges;
-  auto itr = badge_list.find(id);
-  return (itr == badge_list.end()) ? m_default_badge : itr->second;
+  auto& badge_list = locked ? m_locked_badges : m_unlocked_badges;
+  // Brief regression - difficult to return a default BadgeStatus, will be fixed in later commit
+  return badge_list.find(id)->second;
 }
 
 const AchievementManager::LeaderboardStatus*
@@ -330,7 +329,7 @@ AchievementManager::RichPresence AchievementManager::GetRichPresence() const
   return m_rich_presence;
 }
 
-const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() const
+const AchievementManager::NamedBadgeMap& AchievementManager::GetChallengeIcons() const
 {
   return m_active_challenges;
 }
@@ -639,8 +638,7 @@ void AchievementManager::DisplayWelcomeMessage()
       rc_client_get_hardcore_enabled(m_client) ? OSD::Color::YELLOW : OSD::Color::CYAN;
   if (!m_game_badge.name.empty())
   {
-    OSD::AddMessage("", OSD::Duration::VERY_LONG, OSD::Color::GREEN,
-                    DecodeBadgeToOSDIcon(m_game_badge.badge));
+    OSD::AddMessage("", OSD::Duration::VERY_LONG, OSD::Color::GREEN, &m_game_badge.badge);
   }
   auto info = rc_client_get_game_info(m_client);
   if (!info)
@@ -671,15 +669,14 @@ void AchievementManager::DisplayWelcomeMessage()
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
-  OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
-                              client_event->achievement->points),
-                  OSD::Duration::VERY_LONG,
-                  (rc_client_get_hardcore_enabled(AchievementManager::GetInstance().m_client)) ?
-                      OSD::Color::YELLOW :
-                      OSD::Color::CYAN,
-                  DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
-                                           .m_unlocked_badges[client_event->achievement->id]
-                                           .badge));
+  OSD::AddMessage(
+      fmt::format("Unlocked: {} ({})", client_event->achievement->title,
+                  client_event->achievement->points),
+      OSD::Duration::VERY_LONG,
+      (rc_client_get_hardcore_enabled(AchievementManager::GetInstance().m_client)) ?
+          OSD::Color::YELLOW :
+          OSD::Color::CYAN,
+      &AchievementManager::GetInstance().m_unlocked_badges[client_event->achievement->id].badge);
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
@@ -741,7 +738,7 @@ void AchievementManager::HandleAchievementChallengeIndicatorShowEvent(
       unlocked_iter != unlocked_badges.end())
   {
     AchievementManager::GetInstance().m_active_challenges[client_event->achievement->badge_name] =
-        DecodeBadgeToOSDIcon(unlocked_iter->second.badge);
+        &unlocked_iter->second.badge;
   }
 }
 
@@ -755,12 +752,11 @@ void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
 void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
-  OSD::AddMessage(fmt::format("{} {}", client_event->achievement->title,
-                              client_event->achievement->measured_progress),
-                  OSD::Duration::SHORT, OSD::Color::GREEN,
-                  DecodeBadgeToOSDIcon(AchievementManager::GetInstance()
-                                           .m_unlocked_badges[client_event->achievement->id]
-                                           .badge));
+  OSD::AddMessage(
+      fmt::format("{} {}", client_event->achievement->title,
+                  client_event->achievement->measured_progress),
+      OSD::Duration::SHORT, OSD::Color::GREEN,
+      &AchievementManager::GetInstance().m_unlocked_badges[client_event->achievement->id].badge);
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
@@ -777,7 +773,7 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
   OSD::AddMessage(fmt::format("Congratulations! {} has {} {}", user_info->display_name,
                               hardcore ? "mastered" : "completed", game_info->title),
                   OSD::Duration::VERY_LONG, hardcore ? OSD::Color::YELLOW : OSD::Color::CYAN,
-                  DecodeBadgeToOSDIcon(AchievementManager::GetInstance().m_game_badge.badge));
+                  &AchievementManager::GetInstance().m_game_badge.badge);
 }
 
 void AchievementManager::HandleResetEvent(const rc_client_event_t* client_event)
@@ -790,20 +786,6 @@ void AchievementManager::HandleServerErrorEvent(const rc_client_event_t* client_
 {
   ERROR_LOG_FMT(ACHIEVEMENTS, "RetroAchievements server error: {} {}",
                 client_event->server_error->api, client_event->server_error->error_message);
-}
-
-static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge)
-{
-  if (badge.empty())
-    return nullptr;
-
-  auto icon = std::make_unique<OSD::Icon>();
-  if (!Common::LoadPNG(badge, &icon->rgba_data, &icon->width, &icon->height))
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Error decoding badge.");
-    return nullptr;
-  }
-  return icon;
 }
 
 void AchievementManager::Request(const rc_api_request_t* request,
@@ -914,7 +896,6 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
     }
 
     rc_api_destroy_request(&api_request);
-    fetched_badge = std::move(*http_response);
 
     INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded badge id {}.", name_to_fetch);
     std::lock_guard lg{m_lock};
@@ -923,7 +904,12 @@ void AchievementManager::FetchBadge(AchievementManager::BadgeStatus* badge, u32 
       INFO_LOG_FMT(ACHIEVEMENTS, "Requested outdated badge id {}.", name_to_fetch);
       return;
     }
-    badge->badge = std::move(fetched_badge);
+
+    if (!LoadPNGTexture(&badge->badge, *http_response))
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Default game badge '{}' failed to load",
+                    DEFAULT_GAME_BADGE_FILENAME);
+    }
     badge->name = std::move(name_to_fetch);
 
     m_update_callback(callback_data);

@@ -63,15 +63,13 @@ void AchievementBox::UpdateData()
     color = AchievementManager::BLUE;
   if (badge.name != "")
   {
-    QImage i_badge{};
-    if (i_badge.loadFromData(&badge.badge.front(), static_cast<int>(badge.badge.size())))
-    {
-      m_badge->setPixmap(QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio,
-                                                            Qt::SmoothTransformation));
-      m_badge->adjustSize();
-      m_badge->setStyleSheet(
-          QStringLiteral("border: 4px solid %1").arg(QtUtils::FromStdString(color)));
-    }
+    QImage i_badge(&badge.badge.data.front(), badge.badge.width, badge.badge.height,
+                   QImage::Format_RGBA8888);
+    m_badge->setPixmap(
+        QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    m_badge->adjustSize();
+    m_badge->setStyleSheet(
+        QStringLiteral("border: 4px solid %1").arg(QtUtils::FromStdString(color)));
   }
   else
   {
