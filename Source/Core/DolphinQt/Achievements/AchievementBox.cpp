@@ -61,20 +61,11 @@ void AchievementBox::UpdateData()
     color = AchievementManager::GOLD;
   else if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_SOFTCORE)
     color = AchievementManager::BLUE;
-  if (badge.name != "")
-  {
-    QImage i_badge(&badge.badge.data.front(), badge.badge.width, badge.badge.height,
-                   QImage::Format_RGBA8888);
-    m_badge->setPixmap(
-        QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    m_badge->adjustSize();
-    m_badge->setStyleSheet(
-        QStringLiteral("border: 4px solid %1").arg(QtUtils::FromStdString(color)));
-  }
-  else
-  {
-    m_badge->setText({});
-  }
+  QImage i_badge(&badge.data.front(), badge.width, badge.height, QImage::Format_RGBA8888);
+  m_badge->setPixmap(
+      QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  m_badge->adjustSize();
+  m_badge->setStyleSheet(QStringLiteral("border: 4px solid %1").arg(QtUtils::FromStdString(color)));
 
   if (m_achievement->state == RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED)
   {
