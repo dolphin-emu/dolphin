@@ -28,7 +28,7 @@ public:
   ~Microphone();
 
   bool HasData(u32 sample_count) const;
-  void ReadIntoBuffer(u8* dst, u32 size);
+  u16 ReadIntoBuffer(u8* ptr, u32 size);
 
 private:
 #ifdef HAVE_CUBEB
