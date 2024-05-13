@@ -206,7 +206,7 @@ long Microphone::DataCallback(cubeb_stream* stream, void* user_data, const void*
   return nframes;
 }
 
-void Microphone::ReadIntoBuffer(u8* dst, u32 size)
+u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
 {
   static constexpr u32 SINGLE_READ_SIZE = BUFF_SIZE_SAMPLES * sizeof(SampleType);
 
@@ -216,22 +216,20 @@ void Microphone::ReadIntoBuffer(u8* dst, u32 size)
 
   std::lock_guard lk(m_ring_lock);
 
-  for (u8* end = dst + size; dst < end; dst += SINGLE_READ_SIZE, size -= SINGLE_READ_SIZE)
+  u8* begin = ptr;
+  for (u8* end = begin + size; ptr < end; ptr += SINGLE_READ_SIZE, size -= SINGLE_READ_SIZE)
   {
     if (size < SINGLE_READ_SIZE || m_samples_avail < BUFF_SIZE_SAMPLES)
       break;
 
     SampleType* last_buffer = &m_stream_buffer[m_stream_rpos];
-    std::memcpy(dst, last_buffer, SINGLE_READ_SIZE);
+    std::memcpy(ptr, last_buffer, SINGLE_READ_SIZE);
 
     m_samples_avail -= BUFF_SIZE_SAMPLES;
     m_stream_rpos += BUFF_SIZE_SAMPLES;
     m_stream_rpos %= STREAM_SIZE;
   }
-  if (size != 0)
-  {
-    std::memset(dst, 0, size);
-  }
+  return static_cast<u16>(ptr - begin);
 }
 
 bool Microphone::HasData() const

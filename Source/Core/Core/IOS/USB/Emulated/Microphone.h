@@ -24,7 +24,7 @@ public:
   ~Microphone();
 
   bool HasData() const;
-  void ReadIntoBuffer(u8* dst, u32 size);
+  u16 ReadIntoBuffer(u8* ptr, u32 size);
   const WiiSpeakState& GetSampler() const;
 
 private:
