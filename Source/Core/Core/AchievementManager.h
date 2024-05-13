@@ -47,12 +47,6 @@ public:
   using NamedBadgeMap = std::unordered_map<std::string, const Badge*>;
   static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
 
-  struct BadgeStatus
-  {
-    std::string name = "";
-    Badge badge{};
-  };
-
   static constexpr std::string_view DEFAULT_PLAYER_BADGE_FILENAME = "achievements_player.png";
   static constexpr std::string_view DEFAULT_GAME_BADGE_FILENAME = "achievements_game.png";
   static constexpr std::string_view DEFAULT_LOCKED_BADGE_FILENAME = "achievements_locked.png";
@@ -108,12 +102,12 @@ public:
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
-  const BadgeStatus& GetPlayerBadge() const;
+  const Badge& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
   rc_client_t* GetClient();
   rc_api_fetch_game_data_response_t* GetGameData();
-  const BadgeStatus& GetGameBadge() const;
-  const BadgeStatus& GetAchievementBadge(AchievementId id, bool locked) const;
+  const Badge& GetGameBadge() const;
+  const Badge& GetAchievementBadge(AchievementId id, bool locked) const;
   const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
   RichPresence GetRichPresence() const;
   const NamedBadgeMap& GetChallengeIcons() const;
@@ -176,7 +170,7 @@ private:
   static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
                       void* callback_data, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
-  void FetchBadge(BadgeStatus* badge, u32 badge_type, const BadgeNameFunction function,
+  void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
                   const UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
@@ -190,15 +184,15 @@ private:
   Badge m_default_game_badge;
   Badge m_default_unlocked_badge;
   Badge m_default_locked_badge;
-  BadgeStatus m_player_badge;
+  Badge m_player_badge;
   Hash m_game_hash{};
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
-  BadgeStatus m_game_badge;
+  Badge m_game_badge;
   bool m_display_welcome_message = false;
-  std::unordered_map<AchievementId, BadgeStatus> m_unlocked_badges;
-  std::unordered_map<AchievementId, BadgeStatus> m_locked_badges;
+  std::unordered_map<AchievementId, Badge> m_unlocked_badges;
+  std::unordered_map<AchievementId, Badge> m_locked_badges;
   RichPresence m_rich_presence;
   std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
 
