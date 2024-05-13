@@ -191,7 +191,6 @@ private:
   s64 m_throttle_last_cycle = 0;
   TimePoint m_throttle_deadline = Clock::now();
   s64 m_throttle_clock_per_sec = 0;
-  s64 m_throttle_min_clock_per_sleep = 0;
   bool m_throttle_disable_vi_int = false;
 
   DT m_max_fallback = {};
