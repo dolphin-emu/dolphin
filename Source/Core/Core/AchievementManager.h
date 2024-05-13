@@ -22,17 +22,13 @@
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
 
 namespace Core
 {
 class CPUThreadGuard;
 class System;
 }  // namespace Core
-
-namespace OSD
-{
-struct Icon;
-}
 
 class AchievementManager
 {
@@ -47,8 +43,8 @@ public:
   using LeaderboardRank = u32;
   static constexpr size_t RP_SIZE = 256;
   using RichPresence = std::array<char, RP_SIZE>;
-  using Badge = std::vector<u8>;
-  using NamedIconMap = std::map<std::string, std::unique_ptr<OSD::Icon>, std::less<>>;
+  using Badge = VideoCommon::CustomTextureData::ArraySlice::Level;
+  using NamedBadgeMap = std::unordered_map<std::string, const Badge*>;
   static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
 
   struct BadgeStatus
@@ -116,7 +112,7 @@ public:
   const BadgeStatus& GetAchievementBadge(AchievementId id, bool locked) const;
   const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
   RichPresence GetRichPresence() const;
-  const NamedIconMap& GetChallengeIcons() const;
+  const NamedBadgeMap& GetChallengeIcons() const;
   std::vector<std::string> GetActiveLeaderboards() const;
 
   void DoState(PointerWrap& p);
@@ -133,8 +129,6 @@ private:
     int64_t position = 0;
     std::unique_ptr<DiscIO::Volume> volume;
   };
-
-  const BadgeStatus m_default_badge;
 
   static void* FilereaderOpenByFilepath(const char* path_utf8);
   static void* FilereaderOpenByVolume(const char* path_utf8);
@@ -200,7 +194,7 @@ private:
   std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
 
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
-  NamedIconMap m_active_challenges;
+  NamedBadgeMap m_active_challenges;
   std::vector<rc_client_leaderboard_tracker_t> m_active_leaderboards;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
