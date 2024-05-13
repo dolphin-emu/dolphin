@@ -20,10 +20,9 @@ void PerformanceMetrics::Reset()
   m_fps_counter.Reset();
   m_vps_counter.Reset();
   m_speed_counter.Reset();
+  m_max_speed_counter.Reset();
 
-  m_time_sleeping = DT::zero();
-  m_real_times.fill(Clock::now());
-  m_cpu_times.fill(Core::System::GetInstance().GetCoreTiming().GetCPUTimePoint(0));
+  m_prev_adjusted_time = Clock::now() - m_time_sleeping;
 }
 
 void PerformanceMetrics::CountFrame()
@@ -45,11 +44,10 @@ void PerformanceMetrics::CountThrottleSleep(DT sleep)
 void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
 {
   std::unique_lock lock(m_time_lock);
+  const TimePoint adjusted_time = Clock::now() - m_time_sleeping;
   m_speed_counter.Count();
-
-  m_real_times[m_time_index] = Clock::now() - m_time_sleeping;
-  m_cpu_times[m_time_index] = system.GetCoreTiming().GetCPUTimePoint(cyclesLate);
-  m_time_index += 1;
+  m_max_speed_counter.Count(adjusted_time - m_prev_adjusted_time);
+  m_prev_adjusted_time = adjusted_time;
 }
 
 double PerformanceMetrics::GetFPS() const
@@ -69,9 +67,7 @@ double PerformanceMetrics::GetSpeed() const
 
 double PerformanceMetrics::GetMaxSpeed() const
 {
-  std::shared_lock lock(m_time_lock);
-  return DT_s(m_cpu_times[u8(m_time_index - 1)] - m_cpu_times[m_time_index]) /
-         DT_s(m_real_times[u8(m_time_index - 1)] - m_real_times[m_time_index]);
+  return m_max_speed_counter.GetHzAvg() / 100.0;
 }
 
 double PerformanceMetrics::GetLastSpeedDenominator() const
