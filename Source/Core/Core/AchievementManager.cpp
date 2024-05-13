@@ -13,6 +13,8 @@
 #include <rcheevos/include/rc_api_info.h>
 #include <rcheevos/include/rc_hash.h>
 
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
@@ -35,6 +37,7 @@ AchievementManager& AchievementManager::GetInstance()
 
 void AchievementManager::Init()
 {
+  LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
     m_client = rc_client_create(MemoryPeeker, Request);
@@ -499,6 +502,55 @@ void AchievementManager::FilereaderClose(void* file_handle)
   delete static_cast<FilereaderState*>(file_handle);
 }
 
+void AchievementManager::LoadDefaultBadges()
+{
+  std::lock_guard lg{m_lock};
+
+  std::string directory = File::GetSysDirectory() + DIR_SEP + RESOURCES_DIR + DIR_SEP;
+
+  if (m_default_player_badge.data.empty())
+  {
+    if (!LoadPNGTexture(&m_default_player_badge,
+                        fmt::format("{}{}", directory, DEFAULT_PLAYER_BADGE_FILENAME)))
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Default player badge '{}' failed to load",
+                    DEFAULT_PLAYER_BADGE_FILENAME);
+    }
+  }
+  m_player_badge.badge = m_default_player_badge;
+
+  if (m_default_game_badge.data.empty())
+  {
+    if (!LoadPNGTexture(&m_default_game_badge,
+                        fmt::format("{}{}", directory, DEFAULT_GAME_BADGE_FILENAME)))
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Default game badge '{}' failed to load",
+                    DEFAULT_GAME_BADGE_FILENAME);
+    }
+  }
+  m_game_badge.badge = m_default_game_badge;
+
+  if (m_default_unlocked_badge.data.empty())
+  {
+    if (!LoadPNGTexture(&m_default_unlocked_badge,
+                        fmt::format("{}{}", directory, DEFAULT_UNLOCKED_BADGE_FILENAME)))
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Default unlocked achievement badge '{}' failed to load",
+                    DEFAULT_UNLOCKED_BADGE_FILENAME);
+    }
+  }
+
+  if (m_default_locked_badge.data.empty())
+  {
+    if (!LoadPNGTexture(&m_default_locked_badge,
+                        fmt::format("{}{}", directory, DEFAULT_LOCKED_BADGE_FILENAME)))
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Default locked achievement badge '{}' failed to load",
+                    DEFAULT_LOCKED_BADGE_FILENAME);
+    }
+  }
+}
+
 void AchievementManager::LoginCallback(int result, const char* error_message, rc_client_t* client,
                                        void* userdata)
 {
@@ -669,14 +721,13 @@ void AchievementManager::DisplayWelcomeMessage()
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
-  OSD::AddMessage(
-      fmt::format("Unlocked: {} ({})", client_event->achievement->title,
-                  client_event->achievement->points),
-      OSD::Duration::VERY_LONG,
-      (rc_client_get_hardcore_enabled(AchievementManager::GetInstance().m_client)) ?
-          OSD::Color::YELLOW :
-          OSD::Color::CYAN,
-      &AchievementManager::GetInstance().m_unlocked_badges[client_event->achievement->id].badge);
+  const auto& instance = AchievementManager::GetInstance();
+  OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
+                              client_event->achievement->points),
+                  OSD::Duration::VERY_LONG,
+                  (rc_client_get_hardcore_enabled(instance.m_client)) ? OSD::Color::YELLOW :
+                                                                        OSD::Color::CYAN,
+                  &instance.GetAchievementBadge(client_event->achievement->id, false).badge);
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
@@ -733,13 +784,11 @@ void AchievementManager::HandleLeaderboardTrackerHideEvent(const rc_client_event
 void AchievementManager::HandleAchievementChallengeIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
-  auto& unlocked_badges = AchievementManager::GetInstance().m_unlocked_badges;
-  if (const auto unlocked_iter = unlocked_badges.find(client_event->achievement->id);
-      unlocked_iter != unlocked_badges.end())
-  {
-    AchievementManager::GetInstance().m_active_challenges[client_event->achievement->badge_name] =
-        &unlocked_iter->second.badge;
-  }
+  auto& instance = AchievementManager::GetInstance();
+  instance.m_active_challenges[client_event->achievement->badge_name] =
+      &AchievementManager::GetInstance()
+           .GetAchievementBadge(client_event->achievement->id, false)
+           .badge;
 }
 
 void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
@@ -752,11 +801,11 @@ void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
 void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
-  OSD::AddMessage(
-      fmt::format("{} {}", client_event->achievement->title,
-                  client_event->achievement->measured_progress),
-      OSD::Duration::SHORT, OSD::Color::GREEN,
-      &AchievementManager::GetInstance().m_unlocked_badges[client_event->achievement->id].badge);
+  const auto& instance = AchievementManager::GetInstance();
+  OSD::AddMessage(fmt::format("{} {}", client_event->achievement->title,
+                              client_event->achievement->measured_progress),
+                  OSD::Duration::SHORT, OSD::Color::GREEN,
+                  &instance.GetAchievementBadge(client_event->achievement->id, false).badge);
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
