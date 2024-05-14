@@ -109,7 +109,6 @@ void BreakpointWidget::CreateWidgets()
   layout->setSpacing(0);
 
   m_new = m_toolbar->addAction(tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
-  m_delete = m_toolbar->addAction(tr("Delete"), this, &BreakpointWidget::OnDelete);
   m_clear = m_toolbar->addAction(tr("Clear"), this, &BreakpointWidget::OnClear);
 
   m_load = m_toolbar->addAction(tr("Load"), this, &BreakpointWidget::OnLoad);
@@ -128,7 +127,6 @@ void BreakpointWidget::CreateWidgets()
 void BreakpointWidget::UpdateIcons()
 {
   m_new->setIcon(Resources::GetThemeIcon("debugger_add_breakpoint"));
-  m_delete->setIcon(Resources::GetThemeIcon("debugger_delete"));
   m_clear->setIcon(Resources::GetThemeIcon("debugger_clear"));
   m_load->setIcon(Resources::GetThemeIcon("debugger_load"));
   m_save->setIcon(Resources::GetThemeIcon("debugger_save"));
@@ -268,30 +266,6 @@ void BreakpointWidget::Update()
   }
 }
 
-void BreakpointWidget::OnDelete()
-{
-  const auto selected_items = m_table->selectedItems();
-  if (selected_items.empty())
-    return;
-
-  const auto item = selected_items.constFirst();
-  const auto address = item->data(ADDRESS_ROLE).toUInt();
-  const bool is_memcheck = item->data(IS_MEMCHECK_ROLE).toBool();
-
-  if (is_memcheck)
-  {
-    const QSignalBlocker blocker(Settings::Instance());
-    m_system.GetPowerPC().GetMemChecks().Remove(address);
-  }
-  else
-  {
-    m_system.GetPowerPC().GetBreakPoints().Remove(address);
-  }
-
-  emit BreakpointsChanged();
-  Update();
-}
-
 void BreakpointWidget::OnClear()
 {
   m_system.GetPowerPC().GetDebugInterface().ClearAllBreakpoints();
@@ -402,9 +376,9 @@ void BreakpointWidget::OnContextMenu()
       return;
 
     menu->addAction(tr("Show in Code"), [this, bp_address] { emit ShowCode(bp_address); });
-    menu->addAction(bp_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
-      m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(bp_address);
-
+    menu->addAction(tr("Edit..."), [this, bp_address] { OnEditBreakpoint(bp_address, true); });
+    menu->addAction(tr("Delete"), [this, &bp_address]() {
+      m_system.GetPowerPC().GetBreakPoints().Remove(bp_address);
       emit BreakpointsChanged();
       Update();
     });
@@ -419,16 +393,14 @@ void BreakpointWidget::OnContextMenu()
       return;
 
     menu->addAction(tr("Show in Memory"), [this, bp_address] { emit ShowMemory(bp_address); });
-    menu->addAction(mb_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
-      m_system.GetPowerPC().GetMemChecks().ToggleBreakPoint(bp_address);
-
+    menu->addAction(tr("Edit..."), [this, bp_address] { OnEditBreakpoint(bp_address, false); });
+    menu->addAction(tr("Delete"), [this, &bp_address]() {
+      const QSignalBlocker blocker(Settings::Instance());
+      m_system.GetPowerPC().GetMemChecks().Remove(bp_address);
       emit BreakpointsChanged();
       Update();
     });
   }
-  menu->addAction(tr("Edit..."), [this, bp_address, is_memory_breakpoint] {
-    OnEditBreakpoint(bp_address, !is_memory_breakpoint);
-  });
 
   menu->exec(QCursor::pos());
 }
