@@ -114,6 +114,8 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
       Update();
   });
 
+  connect(m_table, &QTableWidget::itemChanged, this, &BreakpointWidget::OnItemChanged);
+
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
@@ -239,6 +241,8 @@ void BreakpointWidget::Update()
   if (!isVisible())
     return;
 
+  const QSignalBlocker blocker(m_table);
+
   m_table->clear();
   m_table->setHorizontalHeaderLabels({tr("Active"), tr("Type"), tr("Function"), tr("Address"),
                                       tr("End Addr"), tr("Break"), tr("Log"), tr("Read"),
@@ -288,12 +292,19 @@ void BreakpointWidget::Update()
     m_table->setItem(i, ENABLED_COLUMN, active);
     m_table->setItem(i, TYPE_COLUMN, create_item(QStringLiteral("BP")));
 
+    auto* symbol_item = create_item();
+
     if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(bp.address))
-      m_table->setItem(i, SYMBOL_COLUMN, create_item(QString::fromStdString(symbol->name)));
+      symbol_item->setText(
+          QString::fromStdString(symbol->name).simplified().remove(QStringLiteral("  ")));
 
-    m_table->setItem(i, ADDRESS_COLUMN,
-                     create_item(QStringLiteral("%1").arg(bp.address, 8, 16, QLatin1Char('0'))));
+    m_table->setItem(i, SYMBOL_COLUMN, symbol_item);
 
+    auto* address_item = create_item(QStringLiteral("%1").arg(bp.address, 8, 16, QLatin1Char('0')));
+    address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+
+    m_table->setItem(i, ADDRESS_COLUMN, address_item);
+    m_table->setItem(i, END_ADDRESS_COLUMN, empty_item.clone());
     m_table->setItem(i, BREAK_COLUMN, bp.break_on_hit ? icon_item.clone() : empty_item.clone());
     m_table->setItem(i, LOG_COLUMN, bp.log_on_hit ? icon_item.clone() : empty_item.clone());
     m_table->setItem(i, READ_COLUMN, empty_item.clone());
@@ -322,22 +333,28 @@ void BreakpointWidget::Update()
     m_table->setItem(i, ENABLED_COLUMN, active);
     m_table->setItem(i, TYPE_COLUMN, create_item(QStringLiteral("MBP")));
 
-    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(mbp.start_address))
-      m_table->setItem(i, SYMBOL_COLUMN, create_item(QString::fromStdString(symbol->name)));
+    auto* symbol_item = create_item();
 
-    if (mbp.is_ranged)
+    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(mbp.start_address))
     {
-      m_table->setItem(i, ADDRESS_COLUMN,
-                       create_item(QStringLiteral("%1 - %2")
-                                       .arg(mbp.start_address, 8, 16, QLatin1Char('0'))
-                                       .arg(mbp.end_address, 8, 16, QLatin1Char('0'))));
+      symbol_item->setText(
+          QString::fromStdString(symbol->name).simplified().remove(QStringLiteral("  ")));
     }
-    else
-    {
-      m_table->setItem(
-          i, ADDRESS_COLUMN,
-          create_item(QStringLiteral("%1").arg(mbp.start_address, 8, 16, QLatin1Char('0'))));
-    }
+
+    m_table->setItem(i, SYMBOL_COLUMN, symbol_item);
+
+    auto* start_address_item =
+        create_item(QStringLiteral("%1").arg(mbp.start_address, 8, 16, QLatin1Char('0')));
+    start_address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+
+    m_table->setItem(i, ADDRESS_COLUMN, start_address_item);
+
+    auto* end_address_item =
+        create_item(QStringLiteral("%1").arg(mbp.end_address, 8, 16, QLatin1Char('0')));
+    end_address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+    end_address_item->setData(ADDRESS_ROLE, mbp.end_address);
+
+    m_table->setItem(i, END_ADDRESS_COLUMN, end_address_item);
 
     m_table->setItem(i, BREAK_COLUMN, mbp.break_on_hit ? icon_item.clone() : empty_item.clone());
     m_table->setItem(i, LOG_COLUMN, mbp.log_on_hit ? icon_item.clone() : empty_item.clone());
@@ -497,6 +514,52 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
   }
 
   menu->exec(QCursor::pos());
+}
+
+void BreakpointWidget::OnItemChanged(QTableWidgetItem* item)
+{
+  if (item->column() != ADDRESS_COLUMN && item->column() != END_ADDRESS_COLUMN)
+    return;
+
+  bool ok;
+  const u32 new_address = item->text().toUInt(&ok, 16);
+  if (!ok)
+    return;
+
+  const bool is_code_bp = !m_table->item(item->row(), 0)->data(IS_MEMCHECK_ROLE).toBool();
+  const u32 base_address =
+      static_cast<u32>(m_table->item(item->row(), 0)->data(ADDRESS_ROLE).toUInt());
+
+  if (is_code_bp)
+  {
+    if (item->column() != ADDRESS_COLUMN || new_address == base_address)
+      return;
+
+    EditBreakpoint(base_address, item->column(), item->text());
+  }
+  else
+  {
+    const u32 end_address = static_cast<u32>(
+        m_table->item(item->row(), END_ADDRESS_COLUMN)->data(ADDRESS_ROLE).toUInt());
+
+    // Need to check that the start/base address is always <= end_address.
+    if ((item->column() == ADDRESS_COLUMN && new_address == base_address) ||
+        (item->column() == END_ADDRESS_COLUMN && new_address == end_address))
+    {
+      return;
+    }
+
+    if ((item->column() == ADDRESS_COLUMN && new_address <= end_address) ||
+        (item->column() == END_ADDRESS_COLUMN && new_address >= base_address))
+    {
+      EditMBP(base_address, item->column(), item->text());
+    }
+    else
+    {
+      // Removes invalid text from cell.
+      Update();
+    }
+  }
 }
 
 void BreakpointWidget::AddBP(u32 addr)
