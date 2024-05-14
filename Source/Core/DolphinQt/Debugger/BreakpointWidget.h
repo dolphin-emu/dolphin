@@ -45,7 +45,6 @@ protected:
 private:
   void CreateWidgets();
 
-  void OnDelete();
   void OnClear();
   void OnNewBreakpoint();
   void OnEditBreakpoint(u32 address, bool is_instruction_bp);
@@ -60,7 +59,6 @@ private:
   QToolBar* m_toolbar;
   QTableWidget* m_table;
   QAction* m_new;
-  QAction* m_delete;
   QAction* m_clear;
   QAction* m_load;
   QAction* m_save;
