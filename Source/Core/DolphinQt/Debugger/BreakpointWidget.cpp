@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
@@ -219,10 +220,26 @@ void BreakpointWidget::OnClicked(QTableWidgetItem* item)
     return;
   }
 
+  std::optional<QString> string = std::nullopt;
+
+  if (item->column() == CONDITION_COLUMN)
+  {
+    bool ok;
+    QString new_text = QInputDialog::getMultiLineText(
+        this, tr("Edit Conditional"), tr("Edit conditional expression"), item->text(), &ok);
+
+    if (!ok || item->text() == new_text)
+      return;
+
+    // If new_text is empty, leaving string as nullopt will clear the conditional.
+    if (!new_text.isEmpty())
+      string = new_text;
+  }
+
   if (m_table->item(item->row(), 0)->data(IS_MEMCHECK_ROLE).toBool())
-    EditMBP(address, item->column());
+    EditMBP(address, item->column(), string);
   else
-    EditBreakpoint(address, item->column());
+    EditBreakpoint(address, item->column(), string);
 }
 
 void BreakpointWidget::UpdateButtonsEnabled()
@@ -310,12 +327,9 @@ void BreakpointWidget::Update()
     m_table->setItem(i, READ_COLUMN, empty_item.clone());
     m_table->setItem(i, WRITE_COLUMN, empty_item.clone());
 
-    QString condition;
-
-    if (bp.condition)
-      condition = QString::fromStdString(bp.condition->GetText());
-
-    m_table->setItem(i, CONDITION_COLUMN, create_item(condition));
+    m_table->setItem(
+        i, CONDITION_COLUMN,
+        create_item(bp.condition ? QString::fromStdString(bp.condition->GetText()) : QString()));
 
     i++;
   }
@@ -362,12 +376,9 @@ void BreakpointWidget::Update()
     m_table->setItem(i, WRITE_COLUMN,
                      mbp.is_break_on_write ? icon_item.clone() : empty_item.clone());
 
-    QString condition;
-
-    if (mbp.condition)
-      condition = QString::fromStdString(mbp.condition->GetText());
-
-    m_table->setItem(i, CONDITION_COLUMN, create_item(condition));
+    m_table->setItem(
+        i, CONDITION_COLUMN,
+        create_item(mbp.condition ? QString::fromStdString(mbp.condition->GetText()) : QString()));
 
     i++;
   }
