@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QHeaderView>
 #include <QMenu>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QSignalBlocker>
 #include <QStyleOptionViewItem>
@@ -38,7 +39,21 @@ enum CustomRole
   ADDRESS_ROLE = Qt::UserRole,
   IS_MEMCHECK_ROLE
 };
-}
+
+enum TableColumns
+{
+  ENABLED_COLUMN = 0,
+  TYPE_COLUMN = 1,
+  SYMBOL_COLUMN = 2,
+  ADDRESS_COLUMN = 3,
+  END_ADDRESS_COLUMN = 4,
+  BREAK_COLUMN = 5,
+  LOG_COLUMN = 6,
+  READ_COLUMN = 7,
+  WRITE_COLUMN = 8,
+  CONDITION_COLUMN = 9,
+};
+}  // namespace
 
 // Fix icons not centering properly in a QTableWidget.
 class CustomDelegate : public QStyledItemDelegate
@@ -128,12 +143,11 @@ void BreakpointWidget::CreateWidgets()
   m_table->setItemDelegate(new CustomDelegate(this));
   m_table->setTabKeyNavigation(false);
   m_table->setContentsMargins(0, 0, 0, 0);
-  m_table->setColumnCount(6);
-  m_table->setSelectionMode(QAbstractItemView::SingleSelection);
-  m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
-  m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  m_table->setColumnCount(10);
+  m_table->setSelectionMode(QAbstractItemView::NoSelection);
   m_table->verticalHeader()->hide();
 
+  connect(m_table, &QTableWidget::itemClicked, this, &BreakpointWidget::OnClicked);
   connect(m_table, &QTableWidget::customContextMenuRequested, this,
           &BreakpointWidget::OnContextMenu);
 
@@ -181,6 +195,34 @@ void BreakpointWidget::showEvent(QShowEvent* event)
   Update();
 }
 
+void BreakpointWidget::OnClicked(QTableWidgetItem* item)
+{
+  if (!item)
+    return;
+
+  if (item->column() == ADDRESS_COLUMN || item->column() == END_ADDRESS_COLUMN)
+    return;
+
+  const u32 address = static_cast<u32>(m_table->item(item->row(), 0)->data(ADDRESS_ROLE).toUInt());
+
+  if (item->column() == ENABLED_COLUMN)
+  {
+    if (item->data(IS_MEMCHECK_ROLE).toBool())
+      m_system.GetPowerPC().GetMemChecks().ToggleBreakPoint(address);
+    else
+      m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(address);
+
+    emit BreakpointsChanged();
+    Update();
+    return;
+  }
+
+  if (m_table->item(item->row(), 0)->data(IS_MEMCHECK_ROLE).toBool())
+    EditMBP(address, item->column());
+  else
+    EditBreakpoint(address, item->column());
+}
+
 void BreakpointWidget::UpdateButtonsEnabled()
 {
   if (!isVisible())
@@ -198,12 +240,20 @@ void BreakpointWidget::Update()
     return;
 
   m_table->clear();
+  m_table->setHorizontalHeaderLabels({tr("Active"), tr("Type"), tr("Function"), tr("Address"),
+                                      tr("End Addr"), tr("Break"), tr("Log"), tr("Read"),
+                                      tr("Write"), tr("Condition")});
+  m_table->horizontalHeader()->setStretchLastSection(true);
 
-  m_table->setHorizontalHeaderLabels(
-      {tr("Active"), tr("Type"), tr("Function"), tr("Address"), tr("Flags"), tr("Condition")});
+  // Get row height for icons
+  m_table->setRowCount(1);
+  const int height = m_table->rowHeight(0);
+  m_table->setRowCount(0);
 
-  int i = 0;
-  m_table->setRowCount(i);
+  // Create icon based on row height, downscaled for whitespace padding.
+  const int downscale = static_cast<int>(0.8 * height);
+  QPixmap enabled_icon =
+      Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(downscale, downscale));
 
   const auto create_item = [](const QString& string = {}) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
@@ -211,46 +261,50 @@ void BreakpointWidget::Update()
     return item;
   };
 
+  QTableWidgetItem empty_item = QTableWidgetItem();
+  empty_item.setFlags(Qt::NoItemFlags);
+  QTableWidgetItem icon_item = QTableWidgetItem();
+  icon_item.setData(Qt::DecorationRole, enabled_icon);
+
   auto& power_pc = m_system.GetPowerPC();
   auto& breakpoints = power_pc.GetBreakPoints();
   auto& memchecks = power_pc.GetMemChecks();
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
+
+  int i = 0;
 
   // Breakpoints
   for (const auto& bp : breakpoints.GetBreakPoints())
   {
     m_table->setRowCount(i + 1);
 
-    auto* active = create_item(bp.is_enabled ? tr("on") : tr("off"));
+    auto* active = create_item();
 
     active->setData(ADDRESS_ROLE, bp.address);
     active->setData(IS_MEMCHECK_ROLE, false);
+    if (bp.is_enabled)
+      active->setData(Qt::DecorationRole, enabled_icon);
 
-    m_table->setItem(i, 0, active);
-    m_table->setItem(i, 1, create_item(QStringLiteral("BP")));
+    m_table->setItem(i, ENABLED_COLUMN, active);
+    m_table->setItem(i, TYPE_COLUMN, create_item(QStringLiteral("BP")));
 
     if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(bp.address))
-      m_table->setItem(i, 2, create_item(QString::fromStdString(symbol->name)));
+      m_table->setItem(i, SYMBOL_COLUMN, create_item(QString::fromStdString(symbol->name)));
 
-    m_table->setItem(i, 3,
+    m_table->setItem(i, ADDRESS_COLUMN,
                      create_item(QStringLiteral("%1").arg(bp.address, 8, 16, QLatin1Char('0'))));
 
-    QString flags;
-
-    if (bp.break_on_hit)
-      flags.append(QLatin1Char{'b'});
-
-    if (bp.log_on_hit)
-      flags.append(QLatin1Char{'l'});
-
-    m_table->setItem(i, 4, create_item(flags));
+    m_table->setItem(i, BREAK_COLUMN, bp.break_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, LOG_COLUMN, bp.log_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, READ_COLUMN, empty_item.clone());
+    m_table->setItem(i, WRITE_COLUMN, empty_item.clone());
 
     QString condition;
 
     if (bp.condition)
       condition = QString::fromStdString(bp.condition->GetText());
 
-    m_table->setItem(i, 5, create_item(condition));
+    m_table->setItem(i, CONDITION_COLUMN, create_item(condition));
 
     i++;
   }
@@ -259,20 +313,21 @@ void BreakpointWidget::Update()
   for (const auto& mbp : memchecks.GetMemChecks())
   {
     m_table->setRowCount(i + 1);
-    auto* active =
-        create_item(mbp.is_enabled && (mbp.break_on_hit || mbp.log_on_hit) ? tr("on") : tr("off"));
+    auto* active = create_item();
     active->setData(ADDRESS_ROLE, mbp.start_address);
     active->setData(IS_MEMCHECK_ROLE, true);
+    if (mbp.is_enabled)
+      active->setData(Qt::DecorationRole, enabled_icon);
 
-    m_table->setItem(i, 0, active);
-    m_table->setItem(i, 1, create_item(QStringLiteral("MBP")));
+    m_table->setItem(i, ENABLED_COLUMN, active);
+    m_table->setItem(i, TYPE_COLUMN, create_item(QStringLiteral("MBP")));
 
     if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(mbp.start_address))
-      m_table->setItem(i, 2, create_item(QString::fromStdString(symbol->name)));
+      m_table->setItem(i, SYMBOL_COLUMN, create_item(QString::fromStdString(symbol->name)));
 
     if (mbp.is_ranged)
     {
-      m_table->setItem(i, 3,
+      m_table->setItem(i, ADDRESS_COLUMN,
                        create_item(QStringLiteral("%1 - %2")
                                        .arg(mbp.start_address, 8, 16, QLatin1Char('0'))
                                        .arg(mbp.end_address, 8, 16, QLatin1Char('0'))));
@@ -280,28 +335,31 @@ void BreakpointWidget::Update()
     else
     {
       m_table->setItem(
-          i, 3, create_item(QStringLiteral("%1").arg(mbp.start_address, 8, 16, QLatin1Char('0'))));
+          i, ADDRESS_COLUMN,
+          create_item(QStringLiteral("%1").arg(mbp.start_address, 8, 16, QLatin1Char('0'))));
     }
 
-    QString flags;
-
-    if (mbp.is_break_on_read)
-      flags.append(QLatin1Char{'r'});
-
-    if (mbp.is_break_on_write)
-      flags.append(QLatin1Char{'w'});
-
-    m_table->setItem(i, 4, create_item(flags));
+    m_table->setItem(i, BREAK_COLUMN, mbp.break_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, LOG_COLUMN, mbp.log_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, READ_COLUMN, mbp.is_break_on_read ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, WRITE_COLUMN,
+                     mbp.is_break_on_write ? icon_item.clone() : empty_item.clone());
 
     QString condition;
 
     if (mbp.condition)
       condition = QString::fromStdString(mbp.condition->GetText());
 
-    m_table->setItem(i, 5, create_item(condition));
+    m_table->setItem(i, CONDITION_COLUMN, create_item(condition));
 
     i++;
   }
+
+  m_table->resizeColumnToContents(ENABLED_COLUMN);
+  m_table->resizeColumnToContents(BREAK_COLUMN);
+  m_table->resizeColumnToContents(LOG_COLUMN);
+  m_table->resizeColumnToContents(READ_COLUMN);
+  m_table->resizeColumnToContents(WRITE_COLUMN);
 }
 
 void BreakpointWidget::OnClear()
@@ -389,15 +447,13 @@ void BreakpointWidget::OnSave()
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
 }
 
-void BreakpointWidget::OnContextMenu()
+void BreakpointWidget::OnContextMenu(const QPoint& pos)
 {
-  const auto& selected_items = m_table->selectedItems();
-  if (selected_items.isEmpty())
-  {
+  const auto row = m_table->rowAt(pos.y());
+  const auto& selected_item = m_table->item(row, 0);
+  if (selected_item == nullptr)
     return;
-  }
 
-  const auto& selected_item = selected_items.constFirst();
   const auto bp_address = static_cast<u32>(selected_item->data(ADDRESS_ROLE).toUInt());
   const auto is_memory_breakpoint = selected_item->data(IS_MEMCHECK_ROLE).toBool();
 
@@ -459,6 +515,41 @@ void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on
   Update();
 }
 
+void BreakpointWidget::EditBreakpoint(u32 address, int edit, std::optional<QString> string)
+{
+  TBreakPoint bp;
+  const TBreakPoint* old_bp = m_system.GetPowerPC().GetBreakPoints().GetBreakpoint(address);
+  bp.is_enabled = edit == ENABLED_COLUMN ? !old_bp->is_enabled : old_bp->is_enabled;
+  bp.log_on_hit = edit == LOG_COLUMN ? !old_bp->log_on_hit : old_bp->log_on_hit;
+  bp.break_on_hit = edit == BREAK_COLUMN ? !old_bp->break_on_hit : old_bp->break_on_hit;
+
+  if (edit == ADDRESS_COLUMN && string.has_value())
+  {
+    bool ok;
+    const u32 new_address = string.value().toUInt(&ok, 16);
+    if (!ok)
+      return;
+
+    bp.address = new_address;
+  }
+  else
+  {
+    bp.address = address;
+  }
+
+  if (edit == CONDITION_COLUMN && string.has_value())
+    bp.condition = Expression::TryParse(string.value().toUtf8().constData());
+  else if (old_bp->condition.has_value() && edit != CONDITION_COLUMN)
+    bp.condition = Expression::TryParse(old_bp->condition.value().GetText());
+
+  // Unlike MBPs it Add() for TBreakpoint doesn't check to see if it already exists.
+  m_system.GetPowerPC().GetBreakPoints().Remove(address);
+  m_system.GetPowerPC().GetBreakPoints().Add(std::move(bp));
+
+  emit BreakpointsChanged();
+  Update();
+}
+
 void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool do_log,
                                      bool do_break, const QString& condition)
 {
@@ -499,6 +590,64 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   {
     const QSignalBlocker blocker(Settings::Instance());
     m_system.GetPowerPC().GetMemChecks().Add(std::move(check));
+  }
+
+  emit BreakpointsChanged();
+  Update();
+}
+
+void BreakpointWidget::EditMBP(u32 address, int edit, std::optional<QString> string)
+{
+  bool address_changed = false;
+
+  TMemCheck mbp;
+  const TMemCheck* old_mbp = m_system.GetPowerPC().GetMemChecks().GetMemCheck(address);
+  mbp.is_enabled = edit == ENABLED_COLUMN ? !old_mbp->is_enabled : old_mbp->is_enabled;
+  mbp.log_on_hit = edit == LOG_COLUMN ? !old_mbp->log_on_hit : old_mbp->log_on_hit;
+  mbp.break_on_hit = edit == BREAK_COLUMN ? !old_mbp->break_on_hit : old_mbp->break_on_hit;
+  mbp.is_break_on_read =
+      edit == READ_COLUMN ? !old_mbp->is_break_on_read : old_mbp->is_break_on_read;
+  mbp.is_break_on_write =
+      edit == WRITE_COLUMN ? !old_mbp->is_break_on_write : old_mbp->is_break_on_write;
+
+  if ((edit == ADDRESS_COLUMN || edit == END_ADDRESS_COLUMN) && string.has_value())
+  {
+    bool ok;
+    const u32 new_address = string.value().toUInt(&ok, 16);
+    if (!ok)
+      return;
+
+    if (edit == ADDRESS_COLUMN)
+    {
+      mbp.start_address = new_address;
+      mbp.end_address = old_mbp->end_address;
+      address_changed = true;
+    }
+    else if (edit == END_ADDRESS_COLUMN)
+    {
+      // Will update existing mbp, so does not use address_changed bool.
+      mbp.start_address = old_mbp->start_address;
+      mbp.end_address = new_address;
+    }
+  }
+  else
+  {
+    mbp.start_address = old_mbp->start_address;
+    mbp.end_address = old_mbp->end_address;
+  }
+
+  mbp.is_ranged = mbp.start_address != mbp.end_address;
+
+  if (edit == CONDITION_COLUMN && string.has_value())
+    mbp.condition = Expression::TryParse(string.value().toUtf8().constData());
+  else if (old_mbp->condition.has_value() && edit != CONDITION_COLUMN)
+    mbp.condition = Expression::TryParse(old_mbp->condition.value().GetText());
+
+  {
+    const QSignalBlocker blocker(Settings::Instance());
+    m_system.GetPowerPC().GetMemChecks().Add(std::move(mbp));
+    if (address_changed)
+      m_system.GetPowerPC().GetMemChecks().Remove(address);
   }
 
   emit BreakpointsChanged();
