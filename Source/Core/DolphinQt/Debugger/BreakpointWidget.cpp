@@ -124,7 +124,11 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
     setHidden(!enabled || !Settings::Instance().IsBreakpointsVisible());
   });
 
-  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &BreakpointWidget::UpdateIcons);
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, [this]() {
+    UpdateIcons();
+    Update();
+  });
+
   UpdateIcons();
 }
 
@@ -269,7 +273,9 @@ void BreakpointWidget::Update()
   // Get row height for icons
   m_table->setRowCount(1);
   const int height = m_table->rowHeight(0);
-  m_table->setRowCount(0);
+
+  int i = 0;
+  m_table->setRowCount(i);
 
   // Create icon based on row height, downscaled for whitespace padding.
   const int downscale = static_cast<int>(0.8 * height);
@@ -286,13 +292,17 @@ void BreakpointWidget::Update()
   empty_item.setFlags(Qt::NoItemFlags);
   QTableWidgetItem icon_item = QTableWidgetItem();
   icon_item.setData(Qt::DecorationRole, enabled_icon);
+  QTableWidgetItem disabled_item = QTableWidgetItem();
+  disabled_item.setFlags(Qt::NoItemFlags);
+
+  const QColor disabled_color =
+      Settings::Instance().IsThemeDark() ? QColor(75, 75, 75) : QColor(225, 225, 225);
+  disabled_item.setBackground(disabled_color);
 
   auto& power_pc = m_system.GetPowerPC();
   auto& breakpoints = power_pc.GetBreakPoints();
   auto& memchecks = power_pc.GetMemChecks();
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
-
-  int i = 0;
 
   // Breakpoints
   for (const auto& bp : breakpoints.GetBreakPoints())
@@ -321,15 +331,23 @@ void BreakpointWidget::Update()
     address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 
     m_table->setItem(i, ADDRESS_COLUMN, address_item);
-    m_table->setItem(i, END_ADDRESS_COLUMN, empty_item.clone());
     m_table->setItem(i, BREAK_COLUMN, bp.break_on_hit ? icon_item.clone() : empty_item.clone());
     m_table->setItem(i, LOG_COLUMN, bp.log_on_hit ? icon_item.clone() : empty_item.clone());
-    m_table->setItem(i, READ_COLUMN, empty_item.clone());
-    m_table->setItem(i, WRITE_COLUMN, empty_item.clone());
+
+    m_table->setItem(i, END_ADDRESS_COLUMN, disabled_item.clone());
+    m_table->setItem(i, READ_COLUMN, disabled_item.clone());
+    m_table->setItem(i, WRITE_COLUMN, disabled_item.clone());
 
     m_table->setItem(
         i, CONDITION_COLUMN,
         create_item(bp.condition ? QString::fromStdString(bp.condition->GetText()) : QString()));
+
+    // Color rows that are effectively disabled.
+    if (!bp.is_enabled || (!bp.log_on_hit && !bp.break_on_hit))
+    {
+      for (int col = 0; col < m_table->columnCount(); col++)
+        m_table->item(i, col)->setBackground(disabled_color);
+    }
 
     i++;
   }
@@ -380,10 +398,19 @@ void BreakpointWidget::Update()
         i, CONDITION_COLUMN,
         create_item(mbp.condition ? QString::fromStdString(mbp.condition->GetText()) : QString()));
 
+    // Color rows that are effectively disabled.
+    if (!mbp.is_enabled || (!mbp.is_break_on_write && !mbp.is_break_on_read) ||
+        (!mbp.break_on_hit && !mbp.log_on_hit))
+    {
+      for (int col = 0; col < m_table->columnCount(); col++)
+        m_table->item(i, col)->setBackground(disabled_color);
+    }
+
     i++;
   }
 
   m_table->resizeColumnToContents(ENABLED_COLUMN);
+  m_table->resizeColumnToContents(TYPE_COLUMN);
   m_table->resizeColumnToContents(BREAK_COLUMN);
   m_table->resizeColumnToContents(LOG_COLUMN);
   m_table->resizeColumnToContents(READ_COLUMN);
