@@ -157,6 +157,11 @@ typedef ucontext_t SContext;
 #define CTX_R14 sc_r14
 #define CTX_R15 sc_r15
 #define CTX_RIP sc_rip
+#elif _M_ARM_64
+#define CTX_REG(x) sc_x[x]
+#define CTX_LR sc_lr
+#define CTX_SP sc_sp
+#define CTX_PC sc_elr
 #else
 #error No context definition for architecture
 #endif
