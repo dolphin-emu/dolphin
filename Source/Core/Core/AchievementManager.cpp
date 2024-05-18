@@ -22,6 +22,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
+#include "UICommon/DiscordPresence.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
 
@@ -227,6 +228,8 @@ void AchievementManager::DoFrame()
     m_last_rp_time = current_time;
     rc_client_get_rich_presence_message(m_client, m_rich_presence.data(), RP_SIZE);
     m_update_callback(UpdatedItems{.rich_presence = true});
+    if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+      Discord::UpdateDiscordPresence();
   }
 }
 
