@@ -481,7 +481,9 @@ void OnScreenUI::SetMousePress(u32 button_mask)
   auto lock = GetImGuiLock();
 
   for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
-    ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
+  {
+    ImGui::GetIO().AddMouseButtonEvent(static_cast<int>(i), (button_mask & (1u << i)) != 0);
+  }
 }
 
 }  // namespace VideoCommon
