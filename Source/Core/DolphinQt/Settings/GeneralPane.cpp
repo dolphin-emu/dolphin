@@ -25,6 +25,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -154,7 +155,7 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addWidget(m_checkbox_auto_disc_change);
 
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence = new QCheckBox(tr("Show Current Game on Discord"));
+  m_checkbox_discord_presence = new ToolTipCheckBox(tr("Show Current Game on Discord"));
   basic_group_layout->addWidget(m_checkbox_discord_presence);
 #endif
 
@@ -394,6 +395,13 @@ void GeneralPane::AddDescriptions()
       "provided."
       "<br>- By launching an M3U file with File > Open or the command line interface."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+#ifdef USE_DISCORD_PRESENCE
+  static constexpr char TR_DISCORD_PRESENCE_DESCRIPTION[] =
+      QT_TR_NOOP("Shows which game is active and the duration of your current play session in your "
+                 "Discord status."
+                 "<br><br>This setting cannot be changed while emulation is active."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+#endif
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
 
@@ -402,4 +410,8 @@ void GeneralPane::AddDescriptions()
   m_checkbox_override_region_settings->SetDescription(tr(TR_OVERRIDE_REGION_SETTINGS_DESCRIPTION));
 
   m_checkbox_auto_disc_change->SetDescription(tr(TR_AUTO_DISC_CHANGE_DESCRIPTION));
+
+#ifdef USE_DISCORD_PRESENCE
+  m_checkbox_discord_presence->SetDescription(tr(TR_DISCORD_PRESENCE_DESCRIPTION));
+#endif
 }
