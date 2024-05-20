@@ -11,6 +11,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/Random.h"
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -37,7 +38,7 @@ enum
   IOCTL_DOLPHIN_DISCORD_SET_PRESENCE = 0x08,
   IOCTL_DOLPHIN_DISCORD_RESET = 0x09,
   IOCTL_DOLPHIN_GET_SYSTEM_TIME = 0x0A,
-
+  IOCTL_DOLPHIN_GET_RANDOM = 0x0B,
 };
 
 IPCReply GetVersion(Core::System& system, const IOCtlVRequest& request)
@@ -214,6 +215,25 @@ IPCReply ResetDiscord(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
+IPCReply GetRandom(Core::System& system, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(0, 1))
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  size_t size = request.io_vectors[0].size;
+  auto& memory = system.GetMemory();
+  auto* buffer = memory.GetPointerForRange(request.io_vectors[0].address, size);
+  if (!buffer)
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  Common::Random::Generate(buffer, size);
+  return IPCReply(IPC_SUCCESS);
+}
+
 }  // namespace
 
 IPCReply DolphinDevice::GetElapsedTime(const IOCtlVRequest& request) const
@@ -297,6 +317,8 @@ std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return ResetDiscord(request);
   case IOCTL_DOLPHIN_GET_SYSTEM_TIME:
     return GetSystemTime(request);
+  case IOCTL_DOLPHIN_GET_RANDOM:
+    return GetRandom(GetSystem(), request);
 
   default:
     return IPCReply(IPC_EINVAL);
