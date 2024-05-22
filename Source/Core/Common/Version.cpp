@@ -17,13 +17,6 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-const std::string& GetScmRevStr()
-{
-  #define MPN_REV_STR "02/27/2022"
-  static const std::string scm_rev_str = "Dolphin MPN";
-  return scm_rev_str;
-}
-
 const std::string& GetScmRevGitStr()
 {
   static const std::string scm_rev_git_str = SCM_REV_STR;
@@ -34,6 +27,12 @@ const std::string& GetScmDescStr()
 {
   static const std::string scm_desc_str = SCM_DESC_STR;
   return scm_desc_str;
+
+}
+const std::string& GetScmRevStr()
+{
+  static const std::string scm_rev_str = std::string("Dolphin MPN [") + SCM_DESC_STR + "]";
+  return scm_rev_str;
 }
 
 const std::string& GetScmBranchStr()
