@@ -160,6 +160,8 @@
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
 
+#define GECKO_CODE_HANDLER_MPN "codehandler-mpn.bin"
+
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"

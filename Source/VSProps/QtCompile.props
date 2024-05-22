@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup Label="UserMacros">
-    <ExternalsQtDir>$(ExternalsDir)Qt\Qt6.5.1\</ExternalsQtDir>
+    <ExternalsQtDir>$(ExternalsDir)Qt\Qt6.7.0\</ExternalsQtDir>
     <QtTargetDirDefault>$(ExternalsQtDir)$(Platform)\</QtTargetDirDefault>
     <QTDIR Condition="Exists('$(QtTargetDirDefault)') And ('$(QTDIR)'=='' Or !Exists('$(QTDIR)'))">$(QtTargetDirDefault)</QTDIR>
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
