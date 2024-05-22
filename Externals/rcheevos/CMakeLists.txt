@@ -4,13 +4,17 @@ add_library(rcheevos
 	rcheevos/include/rc_api_request.h
 	rcheevos/include/rc_api_runtime.h
 	rcheevos/include/rc_api_user.h
+	rcheevos/include/rc_client.h
+	rcheevos/include/rc_client_raintegration.h
 	rcheevos/include/rc_consoles.h
 	rcheevos/include/rc_error.h
+	rcheevos/include/rc_export.h
 	rcheevos/include/rc_hash.h
 	rcheevos/include/rcheevos.h
 	rcheevos/include/rc_runtime.h
 	rcheevos/include/rc_runtime_types.h
 	rcheevos/include/rc_url.h
+	rcheevos/include/rc_util.h
 	rcheevos/src/rapi/rc_api_common.c
 	rcheevos/src/rapi/rc_api_common.h
 	rcheevos/src/rapi/rc_api_editor.c

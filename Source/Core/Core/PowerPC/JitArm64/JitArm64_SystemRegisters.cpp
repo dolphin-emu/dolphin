@@ -896,7 +896,8 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
   }
   else if (imm == 0x0)
   {
-    BFI(WA, ARM64Reg::WZR, shift, 4);
+    const u32 inverted_mask = ~mask;
+    AND(WA, WA, LogicalImm(inverted_mask, GPRSize::B32));
   }
   else
   {
