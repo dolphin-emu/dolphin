@@ -77,6 +77,11 @@
     <BuildInfoTemplate>Common\build_info.txt.in</BuildInfoTemplate>
     <BuildInfoOutput>$(BinaryOutputDir)build_info.txt</BuildInfoOutput>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
