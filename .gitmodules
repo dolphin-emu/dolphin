@@ -78,3 +78,6 @@
 [submodule "Externals/tinygltf/tinygltf"]
 	path = Externals/tinygltf/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
+[submodule "Externals/minizip-ng/minizip-ng"]
+	path = Externals/minizip-ng/minizip-ng
+	url = https://github.com/zlib-ng/minizip-ng

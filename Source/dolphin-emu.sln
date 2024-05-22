@@ -61,7 +61,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FreeSurround", "..\External
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "discord-rpc", "..\Externals\discord-rpc\src\discord-rpc.vcxproj", "{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minizip", "..\Externals\minizip\minizip.vcxproj", "{23114507-079A-4418-9707-CFA81A03CA99}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minizip-ng", "..\Externals\minizip-ng\minizip-ng.vcxproj", "{23114507-079A-4418-9707-CFA81A03CA99}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui", "..\Externals\imgui\imgui.vcxproj", "{4C3B2264-EA73-4A7B-9CFE-65B0FD635EBB}"
 EndProject

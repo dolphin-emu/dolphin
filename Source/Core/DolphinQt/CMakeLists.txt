@@ -389,7 +389,7 @@ add_executable(dolphin-mpn
 )
 
 if (WIN32)
-  target_sources(dolphin-emu PRIVATE
+  target_sources(dolphin-mpn PRIVATE
     Styles/Dark/dark.qrc
   )
 endif()
@@ -614,8 +614,8 @@ if(APPLE)
     if(USE_BUNDLED_MOLTENVK)
       add_dependencies(dolphin-mpn MoltenVK)
       ExternalProject_Get_Property(MoltenVK SOURCE_DIR)
-      target_sources(dolphin-mpn PRIVATE "${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib")
-      set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
+      target_sources(dolphin-mpn PRIVATE "${SOURCE_DIR}/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib")
+      set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
     else()
       find_file(MOLTENVK_DYLIB NAMES libMoltenVK.dylib PATH_SUFFIXES lib)
       if(NOT MOLTENVK_DYLIB)

@@ -175,7 +175,7 @@ void InfinityBaseWindow::LoadFigurePath(u8 slot, const QString& path)
   {
     QMessageBox::warning(
         this, tr("Failed to read the Infinity file!"),
-        tr("Failed to read the Infinity file(%1):\n%1\n\nThe file was too small.").arg(path),
+        tr("Failed to read the Infinity file:\n%1\n\nThe file was too small.").arg(path),
         QMessageBox::Ok);
     return;
   }
