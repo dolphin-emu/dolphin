@@ -124,6 +124,20 @@ void Settings::SetThemeName(const QString& theme_name)
   emit ThemeChanged();
 }
 
+QString Settings::GetUserStyleName() const
+{
+  if (GetQSettings().contains(QStringLiteral("userstyle/name")))
+    return GetQSettings().value(QStringLiteral("userstyle/name")).toString();
+
+  // Migration code for the old way of storing this setting
+  return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
+}
+
+void Settings::SetUserStyleName(const QString& stylesheet_name)
+{
+  GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
+}
+
 void Settings::InitDefaultPalette()
 {
   s_default_palette = std::make_unique<QPalette>(qApp->palette());
@@ -158,7 +172,111 @@ bool Settings::IsSystemDark()
 bool Settings::IsThemeDark()
 {
   return qApp->palette().color(QPalette::Base).valueF() < 0.5;
+}
 
+// Calling this before the main window has been created breaks the style of some widgets.
+void Settings::ApplyStyleWin10()
+{
+  const StyleType style_type = GetStyleType();
+  const QString stylesheet_name = GetUserStyleName();
+  QString stylesheet_contents;
+
+  // If we haven't found one, we continue with an empty (default) style
+  if (!stylesheet_name.isEmpty() && style_type == StyleType::User)
+  {
+    // Load custom user stylesheet
+    QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
+    QFile stylesheet(directory.filePath(stylesheet_name));
+
+    if (stylesheet.open(QFile::ReadOnly))
+      stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
+  }
+
+#ifdef _WIN32
+  if (stylesheet_contents.isEmpty())
+  {
+    // No theme selected or found. Usually we would just fallthrough and set an empty stylesheet
+    // which would select Qt's default theme, but unlike other OSes we don't automatically get a
+    // default dark theme on Windows when the user has selected dark mode in the Windows settings.
+    // So manually check if the user wants dark mode and, if yes, load our embedded dark theme.
+    if (style_type == StyleType::Dark || (style_type != StyleType::Light && IsSystemDark()))
+    {
+      QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
+      if (file.open(QFile::ReadOnly))
+        stylesheet_contents = QString::fromUtf8(file.readAll().data());
+
+      QPalette palette = qApp->style()->standardPalette();
+      palette.setColor(QPalette::Window, QColor(32, 32, 32));
+      palette.setColor(QPalette::WindowText, QColor(220, 220, 220));
+      palette.setColor(QPalette::Base, QColor(32, 32, 32));
+      palette.setColor(QPalette::AlternateBase, QColor(48, 48, 48));
+      palette.setColor(QPalette::PlaceholderText, QColor(126, 126, 126));
+      palette.setColor(QPalette::Text, QColor(220, 220, 220));
+      palette.setColor(QPalette::Button, QColor(48, 48, 48));
+      palette.setColor(QPalette::ButtonText, QColor(220, 220, 220));
+      palette.setColor(QPalette::BrightText, QColor(255, 255, 255));
+      palette.setColor(QPalette::Highlight, QColor(0, 120, 215));
+      palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+      palette.setColor(QPalette::Link, QColor(100, 160, 220));
+      palette.setColor(QPalette::LinkVisited, QColor(100, 160, 220));
+      qApp->setPalette(palette);
+    }
+    else
+    {
+      // reset any palette changes that may exist from a previously set dark mode
+      if (s_default_palette)
+        qApp->setPalette(*s_default_palette);
+    }
+  }
+#endif
+
+  // Define tooltips style if not already defined
+  if (!stylesheet_contents.contains(QStringLiteral("QToolTip"), Qt::CaseSensitive))
+  {
+    const QPalette& palette = qApp->palette();
+    QColor window_color;
+    QColor text_color;
+    QColor unused_text_emphasis_color;
+    QColor border_color;
+    GetToolTipStyle(window_color, text_color, unused_text_emphasis_color, border_color, palette,
+                    palette);
+
+    const auto tooltip_stylesheet =
+        QStringLiteral("QToolTip { background-color: #%1; color: #%2; padding: 8px; "
+                       "border: 1px; border-style: solid; border-color: #%3; }")
+            .arg(window_color.rgba(), 0, 16)
+            .arg(text_color.rgba(), 0, 16)
+            .arg(border_color.rgba(), 0, 16);
+    stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
+  }
+
+  qApp->setStyleSheet(stylesheet_contents);
+}
+
+Settings::StyleType Settings::GetStyleType() const
+{
+  if (GetQSettings().contains(QStringLiteral("userstyle/styletype")))
+  {
+    bool ok = false;
+    const int type_int = GetQSettings().value(QStringLiteral("userstyle/styletype")).toInt(&ok);
+    if (ok && type_int >= static_cast<int>(StyleType::MinValue) &&
+        type_int <= static_cast<int>(StyleType::MaxValue))
+    {
+      return static_cast<StyleType>(type_int);
+    }
+  }
+
+  // if the style type is unset or invalid, try the old enabled flag instead
+  const bool enabled = GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
+  return enabled ? StyleType::User : StyleType::System;
+}
+
+void Settings::SetStyleType(StyleType type)
+{
+  GetQSettings().setValue(QStringLiteral("userstyle/styletype"), static_cast<int>(type));
+
+  // also set the old setting so that the config is correctly intepreted by older Dolphin builds
+  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), type == StyleType::User);
 }
 
 void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,

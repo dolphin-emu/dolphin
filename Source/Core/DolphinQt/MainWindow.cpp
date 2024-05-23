@@ -32,6 +32,8 @@
 
 #ifndef _WIN32
 #include <qpa/qplatformnativeinterface.h>
+#include <windows.h>
+#include <iostream>
 #endif
 
 #include "Common/ScopeGuard.h"
@@ -146,6 +148,7 @@
 #endif
 
 #include <qprocess.h>
+#include <qoperatingsystemversion.h>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 void MainWindow::OnSignal()
@@ -240,6 +243,15 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectStack();
   ConnectMenuBar();
   ConnectHotkeys();
+
+  #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  auto current = QOperatingSystemVersion::current();
+  if (current >= QOperatingSystemVersion::Windows11)
+  {
+    connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
+            [](Qt::ColorScheme colorScheme) { Settings::Instance().ApplyStyleWin10(); });
+  }
+  #endif
 
   connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
           &MainWindow::ShowGeneralWindow);
@@ -1858,9 +1870,37 @@ QSize MainWindow::sizeHint() const
 }
 
 #ifdef _WIN32
+
 bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
 {
-  return false;
+  MSG* msg = reinterpret_cast<MSG*>(message);
+  auto current = QOperatingSystemVersion::current();
+    if (msg && msg->message == WM_SETTINGCHANGE &&
+        (current >= QOperatingSystemVersion::Windows11)  &&
+      msg->lParam != NULL &&
+      std::wstring_view(L"ImmersiveColorSet")
+              .compare(reinterpret_cast<const wchar_t*>(msg->lParam)) == 0)
+  {
+    // Windows light/dark theme has changed. Update our flag and refresh the theme.
+    auto& settings = Settings::Instance();
+    const bool was_dark_before = settings.IsSystemDark();
+    settings.UpdateSystemDark();
+    if (settings.IsSystemDark() != was_dark_before)
+    {
+      auto current = QOperatingSystemVersion::current();
+      if (current >= QOperatingSystemVersion::Windows11)
+      {
+        settings.ApplyStyleWin10();
+
+        // force the colors in the Skylander window to update
+        if (m_skylander_window)
+          m_skylander_window->RefreshList();
+      }
+    }
+    return true;  // Event was handled
+  }
+
+  return false;  // Event was not handled
 }
 #endif
 
