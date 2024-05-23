@@ -388,6 +388,12 @@ add_executable(dolphin-mpn
   WiiUpdate.h
 )
 
+if (WIN32)
+  target_sources(dolphin-mpn PRIVATE
+    Styles/Dark/dark.qrc
+  )
+endif()
+
 if (NOT WIN32)
   target_sources(dolphin-mpn PRIVATE
     QtUtils/SignalDaemon.cpp
