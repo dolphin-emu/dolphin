@@ -160,6 +160,13 @@ void CodeWidget::CreateWidgets()
 
 void CodeWidget::ConnectWidgets()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
+          [this](Qt::ColorScheme colorScheme) {
+            m_box_splitter->setStyleSheet(BOX_SPLITTER_STYLESHEET);
+          });
+#endif
+
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
