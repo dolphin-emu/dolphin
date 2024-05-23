@@ -420,7 +420,6 @@ u32 CEXIIPL::GetEmulatedTime(Core::System& system, u32 epoch)
   }
   else
   {
-    ASSERT(!Core::WantsDeterminism());
     ltime = Common::Timer::GetLocalTimeSinceJan1970() -
             system.GetSystemTimers().GetLocalTimeRTCOffset();
   }
