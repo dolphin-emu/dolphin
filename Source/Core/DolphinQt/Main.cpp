@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include <qoperatingsystemversion.h>
+
 #include <Windows.h>
 #endif
 
@@ -256,14 +256,6 @@ int main(int argc, char* argv[])
 
     Settings::Instance().InitDefaultPalette();
     Settings::Instance().UpdateSystemDark();
-
-    #ifdef _WIN32
-    auto current = QOperatingSystemVersion::current();
-    if (current >= QOperatingSystemVersion::Windows11)
-    {
-      Settings::Instance().ApplyStyleWin10();
-    }
-    #endif
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     win.Show();

@@ -78,10 +78,6 @@ public:
                       const std::string& movie_path);
   ~MainWindow();
 
-  #ifdef _WIN32
-  bool IsWindows10OrLower();
-  #endif
-
   void Show();
   WindowSystemInfo GetWindowSystemInfo() const;
 

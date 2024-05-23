@@ -76,7 +76,7 @@ public:
   StyleType GetStyleType() const;
 
   // this evaluates the current stylesheet settings and refreshes the GUI with them
-  void ApplyStyleWin10();
+  void ApplyStyle();
 
   void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,
                        QColor& border_color, const QPalette& palette,
