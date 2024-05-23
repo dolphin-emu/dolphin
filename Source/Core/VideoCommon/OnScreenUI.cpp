@@ -358,7 +358,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
         TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
                                  AbstractTextureType::Texture_2DArray);
         auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
-        res.first->second->Load(0, width, height, width, icon->rgba_data.data(),
+        res.first->second->Load(0, width, height, width, icon->data.data(),
                                 sizeof(u32) * width * height);
       }
       for (auto& [name, texture] : m_challenge_texture_map)
