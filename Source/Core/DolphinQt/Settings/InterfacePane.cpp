@@ -12,6 +12,7 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QOperatingSystemVersion>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -130,27 +131,27 @@ void InterfacePane::CreateUI()
     const QString qt_name = QString::fromStdString(PathToFileName(path));
     m_combobox_theme->addItem(qt_name);
   }
-
+#ifdef _WIN32
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
   m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
-
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
-  m_combobox_userstyle->addItem(tr("System"), static_cast<int>(Settings::StyleType::System));
+  auto current = QOperatingSystemVersionBase::current();
 
-  // TODO: Support forcing light/dark on other OSes too.
-#ifdef _WIN32
-  m_combobox_userstyle->addItem(tr("Light"), static_cast<int>(Settings::StyleType::Light));
-  m_combobox_userstyle->addItem(tr("Dark"), static_cast<int>(Settings::StyleType::Dark));
-#endif
+  if (current <= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10))
+  {
+    m_combobox_userstyle->addItem(tr("Windows 11"), static_cast<int>(Settings::StyleType::Light));
+    m_combobox_userstyle->addItem(tr("Windows 10"), static_cast<int>(Settings::StyleType::Dark));
+  }
 
   for (const std::string& path : userstyle_search_results)
   {
     const QFileInfo file_info(QString::fromStdString(path));
     m_combobox_userstyle->addItem(file_info.completeBaseName(), file_info.fileName());
   }
+#endif
 
   // Checkboxes
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));

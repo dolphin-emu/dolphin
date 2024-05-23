@@ -113,7 +113,7 @@
     <QtDllNames Include="@(QtDllNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
     <QtDllsSrc Include="@(QtDllNames -> '$(QtBinDir)%(Identity)')" />
     <QtDllsDst Include="@(QtDllNames -> '$(BinaryOutputDir)%(Identity)')" />
-    <QtPluginNames_ Include="iconengines\qsvgicon;imageformats\qsvg;platforms\qdirect2d;platforms\qwindows;styles\qwindowsvistastyle"/>
+    <QtPluginNames_ Include="iconengines\qsvgicon;imageformats\qsvg;platforms\qdirect2d;platforms\qwindows;styles\qmodernwindowsstyle"/>
     <QtPluginNames Include="@(QtPluginNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
     <QtPluginsSrc Include="@(QtPluginNames -> '$(QtPluginsDir)%(Identity)')" />
     <QtPluginsDst Include="@(QtPluginNames -> '$(BinaryOutputDir)$(QtPluginFolder)\%(Identity)')" />
