@@ -131,21 +131,6 @@ void InterfacePane::CreateUI()
     m_combobox_theme->addItem(qt_name);
   }
 
-  // User Style Combobox
-  m_combobox_userstyle = new QComboBox;
-  m_label_userstyle = new QLabel(tr("Style:"));
-  combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
-
-  auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
-
-  m_combobox_userstyle->addItem(tr("System"), static_cast<int>(Settings::StyleType::System));
-
-  for (const std::string& path : userstyle_search_results)
-  {
-    const QFileInfo file_info(QString::fromStdString(path));
-    m_combobox_userstyle->addItem(file_info.completeBaseName(), file_info.fileName());
-  }
-
   // Checkboxes
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_use_covers =
@@ -223,8 +208,6 @@ void InterfacePane::ConnectLayout()
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, this, [this](int index) {
     Settings::Instance().SetThemeName(m_combobox_theme->itemText(index));
   });
-  connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
-          &InterfacePane::OnSaveConfig);
   connect(m_combobox_language, &QComboBox::currentIndexChanged, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -270,15 +253,6 @@ void InterfacePane::LoadConfig()
       ->setCurrentIndex(
           m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
 
-  const Settings::StyleType style_type = Settings::Instance().GetStyleType();
-  const QString userstyle = Settings::Instance().GetUserStyleName();
-  const int index = style_type == Settings::StyleType::User ?
-                        m_combobox_userstyle->findData(userstyle) :
-                        m_combobox_userstyle->findData(static_cast<int>(style_type));
-
-  if (index > 0)
-    SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
-
   // Render Window Options
   SignalBlocking(m_checkbox_top_window)
       ->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
@@ -309,15 +283,6 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
                   m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  const auto selected_style = m_combobox_userstyle->currentData();
-  bool is_builtin_type = false;
-  const int style_type_int = selected_style.toInt(&is_builtin_type);
-  Settings::Instance().SetStyleType(is_builtin_type ?
-                                        static_cast<Settings::StyleType>(style_type_int) :
-                                        Settings::StyleType::User);
-  if (!is_builtin_type)
-    Settings::Instance().SetUserStyleName(selected_style.toString());
-  Settings::Instance().ApplyStyle();
 
   // Render Window Options
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());

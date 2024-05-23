@@ -68,6 +68,8 @@ void GeneralPane::CreateLayout()
   // Create layout here
   CreateBasic();
 
+
+
   CreateFallbackRegion();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -301,11 +303,6 @@ void GeneralPane::OnSaveConfig()
   Config::ConfigChangeCallbackGuard config_guard;
 
   auto& settings = SConfig::GetInstance();
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-  {
-    Settings::Instance().SetAutoUpdateTrack(
-        UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
-  }
 
 #ifdef USE_DISCORD_PRESENCE
   Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
