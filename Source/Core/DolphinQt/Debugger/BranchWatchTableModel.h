@@ -75,6 +75,13 @@ public:
         m_ppc_symbol_db(ppc_symbol_db)
   {
   }
+  ~BranchWatchTableModel() override = default;
+
+  BranchWatchTableModel(const BranchWatchTableModel&) = delete;
+  BranchWatchTableModel(BranchWatchTableModel&&) = delete;
+  BranchWatchTableModel& operator=(const BranchWatchTableModel&) = delete;
+  BranchWatchTableModel& operator=(BranchWatchTableModel&&) = delete;
+
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;

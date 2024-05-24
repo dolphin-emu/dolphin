@@ -57,6 +57,12 @@ public:
       : QSortFilterProxyModel(parent), m_branch_watch(branch_watch)
   {
   }
+  ~BranchWatchProxyModel() override = default;
+
+  BranchWatchProxyModel(const BranchWatchProxyModel&) = delete;
+  BranchWatchProxyModel(BranchWatchProxyModel&&) = delete;
+  BranchWatchProxyModel& operator=(const BranchWatchProxyModel&) = delete;
+  BranchWatchProxyModel& operator=(BranchWatchProxyModel&&) = delete;
 
   BranchWatchTableModel* sourceModel() const
   {
