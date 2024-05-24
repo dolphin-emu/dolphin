@@ -5,6 +5,7 @@
 
 #include <bit>
 
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCTables.h"
 
 namespace JitCommon
@@ -32,6 +33,13 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
   case 14:  // addi
   case 15:  // addis
     return EvaluateAddImm(inst);
+  case 21:  // rlwinmx
+    return EvaluateRlwinmxRlwnmx(inst, inst.SH);
+  case 23:  // rlwnmx
+    if (HasGPR(inst.RB))
+      return EvaluateRlwinmxRlwnmx(inst, GetGPR(inst.RB) & 0x1F);
+    else
+      return {};
   case 24:  // ori
   case 25:  // oris
     return EvaluateBitwiseImm(inst, BitOR);
@@ -59,6 +67,16 @@ ConstantPropagationResult ConstantPropagation::EvaluateAddImm(UGeckoInstruction 
     return {};
 
   return ConstantPropagationResult(inst.RD, m_gpr_values[inst.RA] + immediate);
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateRlwinmxRlwnmx(UGeckoInstruction inst,
+                                                                     u32 shift) const
+{
+  if (!HasGPR(inst.RS))
+    return {};
+
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
+  return ConstantPropagationResult(inst.RA, std::rotl(GetGPR(inst.RS), shift) & mask, inst.Rc);
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateBitwiseImm(UGeckoInstruction inst,
