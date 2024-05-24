@@ -1979,112 +1979,99 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
 
-  if (gpr.IsImm(s))
+  const bool left_shift = inst.SH && inst.MB == 0 && inst.ME == 31 - inst.SH;
+  const bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
+  const bool field_extract = inst.SH && inst.ME == 31 && inst.MB > 32 - inst.SH;
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
+  const u32 prerotate_mask = std::rotr(mask, inst.SH);
+  const bool simple_mask = mask == 0xff || mask == 0xffff;
+  const bool simple_prerotate_mask = prerotate_mask == 0xff || prerotate_mask == 0xffff;
+  // In case of a merged branch, track whether or not we've set flags.
+  // If not, we need to do a test later to get them.
+  bool needs_test = true;
+  // If we know the high bit can't be set, we can avoid doing a sign extend for flag storage.
+  bool needs_sext = true;
+  int mask_size = inst.ME - inst.MB + 1;
+
+  if (simple_mask && !(inst.SH & (mask_size - 1)) && !gpr.IsBound(s) && !gpr.IsImm(s))
   {
-    u32 result = gpr.Imm32(s);
-    if (inst.SH != 0)
-      result = std::rotl(result, inst.SH);
-    result &= MakeRotationMask(inst.MB, inst.ME);
-    gpr.SetImmediate32(a, result);
-    if (inst.Rc)
-      ComputeRC(a);
+    // optimized case: byte/word extract from m_ppc_state
+
+    // Note: If a == s, calling Realize(Ra) will allocate a host register for Rs,
+    // so we have to get mem_source from Rs before calling Realize(Ra)
+
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Rs);
+    OpArg mem_source = Rs.Location();
+    if (inst.SH)
+      mem_source.AddMemOffset((32 - inst.SH) >> 3);
+    Rs.Unlock();
+
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RegCache::Realize(Ra);
+    MOVZX(32, mask_size, Ra, mem_source);
+
+    needs_sext = false;
   }
   else
   {
-    const bool left_shift = inst.SH && inst.MB == 0 && inst.ME == 31 - inst.SH;
-    const bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
-    const bool field_extract = inst.SH && inst.ME == 31 && inst.MB > 32 - inst.SH;
-    const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-    const u32 prerotate_mask = std::rotr(mask, inst.SH);
-    const bool simple_mask = mask == 0xff || mask == 0xffff;
-    const bool simple_prerotate_mask = prerotate_mask == 0xff || prerotate_mask == 0xffff;
-    // In case of a merged branch, track whether or not we've set flags.
-    // If not, we need to do a test later to get them.
-    bool needs_test = true;
-    // If we know the high bit can't be set, we can avoid doing a sign extend for flag storage.
-    bool needs_sext = true;
-    int mask_size = inst.ME - inst.MB + 1;
+    RCOpArg Rs = gpr.UseNoImm(s, RCMode::Read);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RegCache::Realize(Rs, Ra);
 
-    if (simple_mask && !(inst.SH & (mask_size - 1)) && !gpr.IsBound(s))
+    if (a != s && left_shift && Rs.IsSimpleReg() && inst.SH <= 3)
     {
-      // optimized case: byte/word extract from m_ppc_state
-
-      // Note: If a == s, calling Realize(Ra) will allocate a host register for Rs,
-      // so we have to get mem_source from Rs before calling Realize(Ra)
-
-      RCOpArg Rs = gpr.Use(s, RCMode::Read);
-      RegCache::Realize(Rs);
-      OpArg mem_source = Rs.Location();
+      LEA(32, Ra, MScaled(Rs.GetSimpleReg(), SCALE_1 << inst.SH, 0));
+    }
+    // optimized case: byte/word extract plus rotate
+    else if (simple_prerotate_mask && !left_shift)
+    {
+      MOVZX(32, prerotate_mask == 0xff ? 8 : 16, Ra, Rs);
       if (inst.SH)
-        mem_source.AddMemOffset((32 - inst.SH) >> 3);
-      Rs.Unlock();
+        ROL(32, Ra, Imm8(inst.SH));
+      needs_sext = (mask & 0x80000000) != 0;
+    }
+    // Use BEXTR where possible: Only AMD implements this in one uop
+    else if (field_extract && cpu_info.bBMI1 && cpu_info.vendor == CPUVendor::AMD)
+    {
+      MOV(32, R(RSCRATCH), Imm32((mask_size << 8) | (32 - inst.SH)));
+      BEXTR(32, Ra, Rs, RSCRATCH);
+      needs_sext = false;
+    }
+    else if (left_shift)
+    {
+      if (a != s)
+        MOV(32, Ra, Rs);
 
-      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
-      RegCache::Realize(Ra);
-      MOVZX(32, mask_size, Ra, mem_source);
+      SHL(32, Ra, Imm8(inst.SH));
+    }
+    else if (right_shift)
+    {
+      if (a != s)
+        MOV(32, Ra, Rs);
 
+      SHR(32, Ra, Imm8(inst.MB));
       needs_sext = false;
     }
     else
     {
-      RCOpArg Rs = gpr.Use(s, RCMode::Read);
-      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
-      RegCache::Realize(Rs, Ra);
+      RotateLeft(32, Ra, Rs, inst.SH);
 
-      if (a != s && left_shift && Rs.IsSimpleReg() && inst.SH <= 3)
+      if (!(inst.MB == 0 && inst.ME == 31))
       {
-        LEA(32, Ra, MScaled(Rs.GetSimpleReg(), SCALE_1 << inst.SH, 0));
-      }
-      // optimized case: byte/word extract plus rotate
-      else if (simple_prerotate_mask && !left_shift)
-      {
-        MOVZX(32, prerotate_mask == 0xff ? 8 : 16, Ra, Rs);
-        if (inst.SH)
-          ROL(32, Ra, Imm8(inst.SH));
-        needs_sext = (mask & 0x80000000) != 0;
-      }
-      // Use BEXTR where possible: Only AMD implements this in one uop
-      else if (field_extract && cpu_info.bBMI1 && cpu_info.vendor == CPUVendor::AMD)
-      {
-        MOV(32, R(RSCRATCH), Imm32((mask_size << 8) | (32 - inst.SH)));
-        BEXTR(32, Ra, Rs, RSCRATCH);
-        needs_sext = false;
-      }
-      else if (left_shift)
-      {
-        if (a != s)
-          MOV(32, Ra, Rs);
-
-        SHL(32, Ra, Imm8(inst.SH));
-      }
-      else if (right_shift)
-      {
-        if (a != s)
-          MOV(32, Ra, Rs);
-
-        SHR(32, Ra, Imm8(inst.MB));
-        needs_sext = false;
-      }
-      else
-      {
-        RotateLeft(32, Ra, Rs, inst.SH);
-
-        if (!(inst.MB == 0 && inst.ME == 31))
-        {
-          // we need flags if we're merging the branch
-          if (inst.Rc && CheckMergedBranch(0))
-            AND(32, Ra, Imm32(mask));
-          else
-            AndWithMask(Ra, mask);
-          needs_sext = inst.MB == 0;
-          needs_test = false;
-        }
+        // we need flags if we're merging the branch
+        if (inst.Rc && CheckMergedBranch(0))
+          AND(32, Ra, Imm32(mask));
+        else
+          AndWithMask(Ra, mask);
+        needs_sext = inst.MB == 0;
+        needs_test = false;
       }
     }
-
-    if (inst.Rc)
-      ComputeRC(a, needs_test, needs_sext);
   }
+
+  if (inst.Rc)
+    ComputeRC(a, needs_test, needs_sext);
 }
 
 void Jit64::rlwimix(UGeckoInstruction inst)
@@ -2233,11 +2220,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, s = inst.RS;
 
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-  if (gpr.IsImm(b, s))
-  {
-    gpr.SetImmediate32(a, std::rotl(gpr.Imm32(s), gpr.Imm32(b) & 0x1F) & mask);
-  }
-  else if (gpr.IsImm(b))
+  if (gpr.IsImm(b))
   {
     u32 amount = gpr.Imm32(b) & 0x1f;
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
