@@ -677,15 +677,7 @@ void JitArm64::cmpli(UGeckoInstruction inst)
 void JitArm64::rlwinmx_internal(UGeckoInstruction inst, u32 sh)
 {
   u32 a = inst.RA, s = inst.RS;
-
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-  if (gpr.IsImm(inst.RS))
-  {
-    gpr.SetImmediate(a, std::rotl(gpr.GetImm(s), sh) & mask);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
-    return;
-  }
 
   gpr.BindToRegister(a, a == s);
 
