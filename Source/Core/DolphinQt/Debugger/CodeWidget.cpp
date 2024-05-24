@@ -206,6 +206,7 @@ void CodeWidget::OnBranchWatchDialog()
     m_branch_watch_dialog = new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(),
                                                   m_ppc_symbol_db, this, this);
   }
+  SetQWidgetWindowDecorations(m_branch_watch_dialog);
   m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
   m_branch_watch_dialog->activateWindow();
