@@ -16,6 +16,15 @@ void Interpreter::Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, u32 value)
 {
   const s64 sign_extended = s64{s32(value)};
   u64 cr_val = u64(sign_extended);
+
+  if (value == 0)
+  {
+    // GT is considered unset if cr_val is zero or if bit 63 of cr_val is set.
+    // If we're about to turn cr_val from zero to non-zero by setting the SO bit,
+    // we need to set bit 63 so we don't accidentally change GT.
+    cr_val |= 1ULL << 63;
+  }
+
   cr_val = (cr_val & ~(1ULL << PowerPC::CR_EMU_SO_BIT)) |
            (u64{ppc_state.GetXER_SO()} << PowerPC::CR_EMU_SO_BIT);
 
