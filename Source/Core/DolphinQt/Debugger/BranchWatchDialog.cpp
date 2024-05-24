@@ -216,6 +216,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       m_table_proxy->setSourceModel(
           m_table_model = new BranchWatchTableModel(m_system, m_branch_watch, ppc_symbol_db));
       m_table_proxy->setSortRole(UserRole::SortRole);
+      m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
 
       m_table_model->setFont(ui_settings.GetDebugFont());
       connect(&ui_settings, &Settings::DebugFontChanged, m_table_model,
