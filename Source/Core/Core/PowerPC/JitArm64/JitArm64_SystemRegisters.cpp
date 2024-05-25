@@ -20,6 +20,142 @@
 
 using namespace Arm64Gen;
 
+void JitArm64::GetCRFieldBit(int field, int bit, ARM64Reg out, bool negate)
+{
+  ARM64Reg CR = gpr.CR(field);
+  ARM64Reg WCR = EncodeRegTo32(CR);
+
+  switch (bit)
+  {
+  case PowerPC::CR_SO_BIT:  // check bit 59 set
+    UBFX(out, CR, PowerPC::CR_EMU_SO_BIT, 1);
+    if (negate)
+      EOR(out, out, LogicalImm(1, GPRSize::B64));
+    break;
+
+  case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
+    CMP(WCR, ARM64Reg::WZR);
+    CSET(out, negate ? CC_NEQ : CC_EQ);
+    break;
+
+  case PowerPC::CR_GT_BIT:  // check val > 0
+    CMP(CR, ARM64Reg::ZR);
+    CSET(out, negate ? CC_LE : CC_GT);
+    break;
+
+  case PowerPC::CR_LT_BIT:  // check bit 62 set
+    UBFX(out, CR, PowerPC::CR_EMU_LT_BIT, 1);
+    if (negate)
+      EOR(out, out, LogicalImm(1, GPRSize::B64));
+    break;
+
+  default:
+    ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
+  }
+}
+
+void JitArm64::SetCRFieldBit(int field, int bit, ARM64Reg in)
+{
+  gpr.BindCRToRegister(field, true);
+  ARM64Reg CR = gpr.CR(field);
+
+  if (bit != PowerPC::CR_GT_BIT)
+    FixGTBeforeSettingCRFieldBit(CR);
+
+  switch (bit)
+  {
+  case PowerPC::CR_SO_BIT:  // set bit 59 to input
+    BFI(CR, in, PowerPC::CR_EMU_SO_BIT, 1);
+    break;
+
+  case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+    AND(CR, CR, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
+    EOR(in, in, LogicalImm(1, GPRSize::B64));
+    ORR(CR, CR, in);
+    break;
+
+  case PowerPC::CR_GT_BIT:  // set bit 63 to !input
+    EOR(in, in, LogicalImm(1, GPRSize::B64));
+    BFI(CR, in, 63, 1);
+    break;
+
+  case PowerPC::CR_LT_BIT:  // set bit 62 to input
+    BFI(CR, in, PowerPC::CR_EMU_LT_BIT, 1);
+    break;
+  }
+
+  ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
+}
+
+void JitArm64::ClearCRFieldBit(int field, int bit)
+{
+  gpr.BindCRToRegister(field, true);
+  ARM64Reg XA = gpr.CR(field);
+
+  switch (bit)
+  {
+  case PowerPC::CR_SO_BIT:
+    AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_SO_BIT), GPRSize::B64));
+    break;
+
+  case PowerPC::CR_EQ_BIT:
+    FixGTBeforeSettingCRFieldBit(XA);
+    ORR(XA, XA, LogicalImm(1, GPRSize::B64));
+    break;
+
+  case PowerPC::CR_GT_BIT:
+    ORR(XA, XA, LogicalImm(u64(1) << 63, GPRSize::B64));
+    break;
+
+  case PowerPC::CR_LT_BIT:
+    AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_LT_BIT), GPRSize::B64));
+    break;
+  }
+}
+
+void JitArm64::SetCRFieldBit(int field, int bit)
+{
+  gpr.BindCRToRegister(field, true);
+  ARM64Reg XA = gpr.CR(field);
+
+  if (bit != PowerPC::CR_GT_BIT)
+    FixGTBeforeSettingCRFieldBit(XA);
+
+  switch (bit)
+  {
+  case PowerPC::CR_SO_BIT:
+    ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_SO_BIT, GPRSize::B64));
+    break;
+
+  case PowerPC::CR_EQ_BIT:
+    AND(XA, XA, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
+    break;
+
+  case PowerPC::CR_GT_BIT:
+    AND(XA, XA, LogicalImm(~(u64(1) << 63), GPRSize::B64));
+    break;
+
+  case PowerPC::CR_LT_BIT:
+    ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_LT_BIT, GPRSize::B64));
+    break;
+  }
+
+  ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
+}
+
+void JitArm64::FixGTBeforeSettingCRFieldBit(ARM64Reg reg)
+{
+  // GT is considered unset if the internal representation is <= 0, or in other words,
+  // if the internal representation either has bit 63 set or has all bits set to zero.
+  // If all bits are zero and we set some bit that's unrelated to GT, we need to set bit 63 so GT
+  // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
+  auto WA = gpr.GetScopedReg();
+  ARM64Reg XA = EncodeRegTo64(WA);
+  ORR(XA, reg, LogicalImm(1ULL << 63, GPRSize::B64));
+  CMP(reg, ARM64Reg::ZR);
+  CSEL(reg, reg, XA, CC_NEQ);
+}
+
 FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
   ARM64Reg XA = gpr.CR(field);
@@ -40,19 +176,6 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
     ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
     return {};
   }
-}
-
-void JitArm64::FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg)
-{
-  // GT is considered unset if the internal representation is <= 0, or in other words,
-  // if the internal representation either has bit 63 set or has all bits set to zero.
-  // If all bits are zero and we set some bit that's unrelated to GT, we need to set bit 63 so GT
-  // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
-  auto WA = gpr.GetScopedReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
-  ORR(XA, reg, LogicalImm(1ULL << 63, GPRSize::B64));
-  CMP(reg, ARM64Reg::ZR);
-  CSEL(reg, reg, XA, CC_NEQ);
 }
 
 void JitArm64::UpdateFPExceptionSummary(ARM64Reg fpscr)
@@ -471,67 +594,14 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   // Special case: crclr
   if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
   {
-    // Clear CR field bit
-    int field = inst.CRBD >> 2;
-    int bit = 3 - (inst.CRBD & 3);
-
-    gpr.BindCRToRegister(field, true);
-    ARM64Reg XA = gpr.CR(field);
-    switch (bit)
-    {
-    case PowerPC::CR_SO_BIT:
-      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_SO_BIT), GPRSize::B64));
-      break;
-
-    case PowerPC::CR_EQ_BIT:
-      FixGTBeforeSettingCRFieldBit(XA);
-      ORR(XA, XA, LogicalImm(1, GPRSize::B64));
-      break;
-
-    case PowerPC::CR_GT_BIT:
-      ORR(XA, XA, LogicalImm(u64(1) << 63, GPRSize::B64));
-      break;
-
-    case PowerPC::CR_LT_BIT:
-      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_LT_BIT), GPRSize::B64));
-      break;
-    }
+    ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
     return;
   }
 
   // Special case: crset
   if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
   {
-    // SetCRFieldBit
-    int field = inst.CRBD >> 2;
-    int bit = 3 - (inst.CRBD & 3);
-
-    gpr.BindCRToRegister(field, true);
-    ARM64Reg XA = gpr.CR(field);
-
-    if (bit != PowerPC::CR_GT_BIT)
-      FixGTBeforeSettingCRFieldBit(XA);
-
-    switch (bit)
-    {
-    case PowerPC::CR_SO_BIT:
-      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_SO_BIT, GPRSize::B64));
-      break;
-
-    case PowerPC::CR_EQ_BIT:
-      AND(XA, XA, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
-      break;
-
-    case PowerPC::CR_GT_BIT:
-      AND(XA, XA, LogicalImm(~(u64(1) << 63), GPRSize::B64));
-      break;
-
-    case PowerPC::CR_LT_BIT:
-      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_LT_BIT, GPRSize::B64));
-      break;
-    }
-
-    ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
+    SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
     return;
   }
 
@@ -547,44 +617,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     bool negateB =
         inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
 
-    // GetCRFieldBit
-    for (int i = 0; i < 2; i++)
-    {
-      int field = i ? inst.CRBB >> 2 : inst.CRBA >> 2;
-      int bit = i ? 3 - (inst.CRBB & 3) : 3 - (inst.CRBA & 3);
-      ARM64Reg out = i ? XB : XA;
-      bool negate = i ? negateB : negateA;
-
-      ARM64Reg XC = gpr.CR(field);
-      ARM64Reg WC = EncodeRegTo32(XC);
-      switch (bit)
-      {
-      case PowerPC::CR_SO_BIT:  // check bit 59 set
-        UBFX(out, XC, PowerPC::CR_EMU_SO_BIT, 1);
-        if (negate)
-          EOR(out, out, LogicalImm(1, GPRSize::B64));
-        break;
-
-      case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
-        CMP(WC, ARM64Reg::WZR);
-        CSET(out, negate ? CC_NEQ : CC_EQ);
-        break;
-
-      case PowerPC::CR_GT_BIT:  // check val > 0
-        CMP(XC, ARM64Reg::ZR);
-        CSET(out, negate ? CC_LE : CC_GT);
-        break;
-
-      case PowerPC::CR_LT_BIT:  // check bit 62 set
-        UBFX(out, XC, PowerPC::CR_EMU_LT_BIT, 1);
-        if (negate)
-          EOR(out, out, LogicalImm(1, GPRSize::B64));
-        break;
-
-      default:
-        ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
-      }
-    }
+    GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, negateA);
+    GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), XB, negateB);
 
     // Compute combined bit
     switch (inst.SUBOP10)
@@ -609,38 +643,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   }
 
   // Store result bit in CRBD
-  int field = inst.CRBD >> 2;
-  int bit = 3 - (inst.CRBD & 3);
-
-  gpr.BindCRToRegister(field, true);
-  ARM64Reg CR = gpr.CR(field);
-
-  if (bit != PowerPC::CR_GT_BIT)
-    FixGTBeforeSettingCRFieldBit(CR);
-
-  switch (bit)
-  {
-  case PowerPC::CR_SO_BIT:  // set bit 59 to input
-    BFI(CR, XA, PowerPC::CR_EMU_SO_BIT, 1);
-    break;
-
-  case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
-    AND(CR, CR, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
-    EOR(XA, XA, LogicalImm(1, GPRSize::B64));
-    ORR(CR, CR, XA);
-    break;
-
-  case PowerPC::CR_GT_BIT:  // set bit 63 to !input
-    EOR(XA, XA, LogicalImm(1, GPRSize::B64));
-    BFI(CR, XA, 63, 1);
-    break;
-
-  case PowerPC::CR_LT_BIT:  // set bit 62 to input
-    BFI(CR, XA, PowerPC::CR_EMU_LT_BIT, 1);
-    break;
-  }
-
-  ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
+  SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), XA);
 }
 
 void JitArm64::mfcr(UGeckoInstruction inst)
