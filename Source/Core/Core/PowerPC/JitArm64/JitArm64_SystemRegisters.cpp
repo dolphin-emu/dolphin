@@ -68,12 +68,14 @@ void JitArm64::SetCRFieldBit(int field, int bit, ARM64Reg in, bool negate)
 
   case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
     AND(CR, CR, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
+    ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
     ORR(CR, CR, in);
     if (!negate)
       EOR(CR, CR, LogicalImm(1ULL << 0, GPRSize::B64));
     break;
 
   case PowerPC::CR_GT_BIT:  // set bit 63 to !input
+    ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
     BFI(CR, in, 63, 1);
     if (!negate)
       EOR(CR, CR, LogicalImm(1ULL << 63, GPRSize::B64));
@@ -85,8 +87,6 @@ void JitArm64::SetCRFieldBit(int field, int bit, ARM64Reg in, bool negate)
       EOR(CR, CR, LogicalImm(1ULL << PowerPC::CR_EMU_LT_BIT, GPRSize::B64));
     break;
   }
-
-  ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
 }
 
 void JitArm64::ClearCRFieldBit(int field, int bit)
@@ -131,18 +131,18 @@ void JitArm64::SetCRFieldBit(int field, int bit)
 
   case PowerPC::CR_EQ_BIT:
     AND(XA, XA, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
+    ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
     break;
 
   case PowerPC::CR_GT_BIT:
     AND(XA, XA, LogicalImm(~(u64(1) << 63), GPRSize::B64));
+    ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
     break;
 
   case PowerPC::CR_LT_BIT:
     ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_LT_BIT, GPRSize::B64));
     break;
   }
-
-  ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
 }
 
 void JitArm64::FixGTBeforeSettingCRFieldBit(ARM64Reg reg)
