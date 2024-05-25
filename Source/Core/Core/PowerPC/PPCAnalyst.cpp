@@ -590,7 +590,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   }
   else if (opinfo->flags & FL_READ_CR_BI)
   {
-    code->crIn[code->inst.BI] = true;
+    code->crIn[code->inst.BI >> 2] = true;
   }
   else if (opinfo->type == OpType::CR)
   {
