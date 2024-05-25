@@ -636,10 +636,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     }
   }
 
-  // crandc or crorc
-  const bool negate_b = inst.SUBOP10 == 129 || inst.SUBOP10 == 417;
-  // crnor or crnand or creqv
-  const bool negate_result = inst.SUBOP10 == 33 || inst.SUBOP10 == 225 || inst.SUBOP10 == 289;
+  // crnor or crnand
+  const bool negate_result = inst.SUBOP10 == 33 || inst.SUBOP10 == 225;
 
   auto WA = gpr.GetScopedReg();
   ARM64Reg XA = EncodeRegTo64(WA);
@@ -648,26 +646,35 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     ARM64Reg XB = EncodeRegTo64(WB);
 
     GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, false);
-    GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), XB, negate_b);
+    GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), XB, false);
 
     // Compute combined bit
     switch (inst.SUBOP10)
     {
-    case 129:  // crandc: A && ~B
     case 225:  // crnand: ~(A && B)
     case 257:  // crand:  A && B
       AND(XA, XA, XB);
       break;
 
+    case 129:  // crandc: A && ~B
+      BIC(XA, XA, XB);
+      break;
+
     case 193:  // crxor: A ^ B
-    case 289:  // creqv: ~(A ^ B)
       EOR(XA, XA, XB);
       break;
 
+    case 289:  // creqv: ~(A ^ B) = A ^ ~B
+      EON(XA, XA, XB);
+      break;
+
     case 33:   // crnor: ~(A || B)
-    case 417:  // crorc: A || ~B
     case 449:  // cror:  A || B
       ORR(XA, XA, XB);
+      break;
+
+    case 417:  // crorc: A || ~B
+      ORN(XA, XA, XB);
       break;
     }
   }
