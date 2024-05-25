@@ -57,21 +57,19 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
   MOV(64, R(RSCRATCH2), CROffset(field));
   MOVZX(32, 8, in, R(in));
 
-  if (bit != PowerPC::CR_GT_BIT)
-    FixGTBeforeSettingCRFieldBit(RSCRATCH2);
-
   switch (bit)
   {
   case PowerPC::CR_SO_BIT:  // set bit 59 to input
+    FixGTBeforeSettingCRFieldBit(RSCRATCH2);
     BTR(64, R(RSCRATCH2), Imm8(PowerPC::CR_EMU_SO_BIT));
     SHL(64, R(in), Imm8(PowerPC::CR_EMU_SO_BIT));
     OR(64, R(RSCRATCH2), R(in));
     break;
 
   case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+    FixGTBeforeSettingEQ(RSCRATCH2);
     SHR(64, R(RSCRATCH2), Imm8(32));
     SHL(64, R(RSCRATCH2), Imm8(32));
-    BTS(64, R(RSCRATCH2), Imm8(32));
     XOR(32, R(in), Imm8(1));
     OR(64, R(RSCRATCH2), R(in));
     break;
@@ -85,6 +83,7 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
     break;
 
   case PowerPC::CR_LT_BIT:  // set bit 62 to input
+    FixGTBeforeSettingCRFieldBit(RSCRATCH2);
     BTR(64, R(RSCRATCH2), Imm8(PowerPC::CR_EMU_LT_BIT));
     SHL(64, R(in), Imm8(PowerPC::CR_EMU_LT_BIT));
     OR(64, R(RSCRATCH2), R(in));
@@ -124,19 +123,18 @@ void Jit64::ClearCRFieldBit(int field, int bit)
 void Jit64::SetCRFieldBit(int field, int bit)
 {
   MOV(64, R(RSCRATCH), CROffset(field));
-  if (bit != PowerPC::CR_GT_BIT)
-    FixGTBeforeSettingCRFieldBit(RSCRATCH);
 
   switch (bit)
   {
   case PowerPC::CR_SO_BIT:
+    FixGTBeforeSettingCRFieldBit(RSCRATCH);
     BTS(64, R(RSCRATCH), Imm8(PowerPC::CR_EMU_SO_BIT));
     break;
 
   case PowerPC::CR_EQ_BIT:
+    FixGTBeforeSettingEQ(RSCRATCH);
     SHR(64, R(RSCRATCH), Imm8(32));
     SHL(64, R(RSCRATCH), Imm8(32));
-    BTS(64, R(RSCRATCH), Imm8(32));
     break;
 
   case PowerPC::CR_GT_BIT:
@@ -145,6 +143,7 @@ void Jit64::SetCRFieldBit(int field, int bit)
     break;
 
   case PowerPC::CR_LT_BIT:
+    FixGTBeforeSettingCRFieldBit(RSCRATCH);
     BTS(64, R(RSCRATCH), Imm8(PowerPC::CR_EMU_LT_BIT));
     break;
   }
@@ -162,6 +161,14 @@ void Jit64::FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg)
   FixupBranch dont_clear_gt = J_CC(CC_NZ);
   BTS(64, R(reg), Imm8(63));
   SetJumpTarget(dont_clear_gt);
+}
+
+void Jit64::FixGTBeforeSettingEQ(Gen::X64Reg reg)
+{
+  TEST(32, R(reg), R(reg));
+  FixupBranch dont_set_bit_32 = J_CC(CC_Z);
+  BTS(64, R(reg), Imm8(63));
+  SetJumpTarget(dont_set_bit_32);
 }
 
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
