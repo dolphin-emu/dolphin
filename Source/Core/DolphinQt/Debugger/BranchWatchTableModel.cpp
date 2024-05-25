@@ -11,6 +11,7 @@
 
 #include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"
+#include "Common/Unreachable.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
@@ -355,7 +356,8 @@ QVariant BranchWatchTableModel::DisplayRoleData(const QModelIndex& index) const
   case Column::TotalHits:
     return QString::number(kv->second.total_hits);
   }
-  return QVariant();
+  static_assert(Column::NumberOfColumns == 8);
+  Common::Unreachable();
 }
 
 QVariant BranchWatchTableModel::FontRoleData(const QModelIndex& index) const
@@ -400,7 +402,8 @@ QVariant BranchWatchTableModel::TextAlignmentRoleData(const QModelIndex& index) 
   case Column::DestinSymbol:
     return QVariant::fromValue(Qt::AlignLeft | Qt::AlignVCenter);
   }
-  return QVariant();
+  static_assert(Column::NumberOfColumns == 8);
+  Common::Unreachable();
 }
 
 QVariant BranchWatchTableModel::ForegroundRoleData(const QModelIndex& index) const
@@ -498,5 +501,6 @@ QVariant BranchWatchTableModel::SortRoleData(const QModelIndex& index) const
   case Column::TotalHits:
     return qulonglong{kv->second.total_hits};
   }
-  return QVariant();
+  static_assert(Column::NumberOfColumns == 8);
+  Common::Unreachable();
 }
