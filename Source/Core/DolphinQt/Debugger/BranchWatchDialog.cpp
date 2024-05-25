@@ -47,6 +47,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
 class BranchWatchProxyModel final : public QSortFilterProxyModel
@@ -490,9 +491,13 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       return group_box;
     }());
 
+    UpdateIcons();
+
     connect(m_timer = new QTimer, &QTimer::timeout, this, &BranchWatchDialog::OnTimeout);
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
             &BranchWatchDialog::OnEmulationStateChanged);
+    connect(&Settings::Instance(), &Settings::ThemeChanged, this,
+            &BranchWatchDialog::OnThemeChanged);
     connect(m_table_proxy, &BranchWatchProxyModel::layoutChanged, this,
             &BranchWatchDialog::UpdateStatus);
 
@@ -694,13 +699,19 @@ void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state)
   Update();
 }
 
+void BranchWatchDialog::OnThemeChanged()
+{
+  UpdateIcons();
+}
+
 void BranchWatchDialog::OnHelp()
 {
   ModalMessageBox::information(
       this, tr("Branch Watch Tool Help (1/4)"),
       tr("Branch Watch is a code-searching tool that can isolate branches tracked by the emulated "
          "CPU by testing candidate branches with simple criteria. If you are familiar with Cheat "
-         "Engine's Ultimap, Branch Watch is similar to that.\n\n"
+         "Engine's Ultimap, Branch Watch is similar to that."
+         "\n\n"
          "Press the \"Start Branch Watch\" button to activate Branch Watch. Branch Watch persists "
          "across emulation sessions, and a snapshot of your progress can be saved to and loaded "
          "from the User Directory to persist after Dolphin Emulator is closed. \"Save As...\" and "
@@ -723,7 +734,8 @@ void BranchWatchDialog::OnHelp()
          "taken since the last time it was checked. It is also possible to reduce the candidates "
          "by determining whether a branch instruction has or has not been overwritten since it was "
          "first hit. Filter the candidates by branch kind, branch condition, origin or destination "
-         "address, and origin or destination symbol name.\n\n"
+         "address, and origin or destination symbol name."
+         "\n\n"
          "After enough passes and experimentation, you may be able to find function calls and "
          "conditional code paths that are only taken when an action is performed in the emulated "
          "software."));
@@ -731,17 +743,27 @@ void BranchWatchDialog::OnHelp()
       this, tr("Branch Watch Tool Help (4/4)"),
       tr("Rows in the table can be left-clicked on the origin, destination, and symbol columns to "
          "view the associated address in Code View. Right-clicking the selected row(s) will bring "
-         "up a context menu.\n\n"
+         "up a context menu."
+         "\n\n"
+         "If the origin, destination, or symbol columns are right-clicked, an action copy the "
+         "relevant address(es) to the clipboard will be available, and an action to set a "
+         "breakpoint at the relevant address(es) will be available. Note that, for the origin / "
+         "destination symbol columns, these actions will only be enabled if every row in the "
+         "selection has a symbol."
+         "\n\n"
          "If the origin column of a row selection is right-clicked, an action to replace the "
-         "branch instruction at the origin(s) with a NOP instruction (No Operation), and an action "
-         "to copy the address(es) to the clipboard will be available.\n\n"
+         "branch instruction at the origin(s) with a NOP instruction (No Operation) will be "
+         "available."
+         "\n\n"
          "If the destination column of a row selection is right-clicked, an action to replace the "
          "instruction at the destination(s) with a BLR instruction (Branch to Link Register) will "
-         "be available, but only if the branch instruction at every origin saves the link "
-         "register, and an action to copy the address(es) to the clipboard will be available.\n\n"
+         "be available, but will only be enabled if the branch instruction at every origin updates "
+         "the link register."
+         "\n\n"
          "If the origin / destination symbol column of a row selection is right-clicked, an action "
-         "to replace the instruction(s) at the start of the symbol with a BLR instruction will be "
-         "available, but only if every origin / destination symbol is found.\n\n"
+         "to replace the instruction at the start of the symbol(s) with a BLR instruction will be "
+         "available, but will only be enabled if every row in the selection has a symbol."
+         "\n\n"
          "All context menus have the action to delete the selected row(s) from the candidates."));
 }
 
@@ -864,6 +886,21 @@ void BranchWatchDialog::OnTableCopyAddress()
   QApplication::clipboard()->setText(text);
 }
 
+void BranchWatchDialog::OnTableSetBreakpointBreak()
+{
+  SetBreakpoints(true, false);
+}
+
+void BranchWatchDialog::OnTableSetBreakpointLog()
+{
+  SetBreakpoints(false, true);
+}
+
+void BranchWatchDialog::OnTableSetBreakpointBoth()
+{
+  SetBreakpoints(true, true);
+}
+
 void BranchWatchDialog::SaveSettings()
 {
   auto& settings = Settings::GetQSettings();
@@ -914,6 +951,12 @@ void BranchWatchDialog::UpdateStatus()
     return;
   }
   }
+}
+
+void BranchWatchDialog::UpdateIcons()
+{
+  m_icn_full = Resources::GetThemeIcon("debugger_breakpoint");
+  m_icn_partial = Resources::GetThemeIcon("stop");
 }
 
 void BranchWatchDialog::Save(const Core::CPUThreadGuard& guard, const std::string& filepath)
@@ -972,6 +1015,18 @@ void BranchWatchDialog::SetStubPatches(u32 value) const
   m_code_widget->Update();
 }
 
+void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
+{
+  auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+  for (const QModelIndex& index : m_index_list_temp)
+  {
+    const u32 address = m_table_proxy->data(index, UserRole::ClickRole).value<u32>();
+    breakpoints.Add(address, false, break_on_hit, log_on_hit, {});
+  }
+  emit m_code_widget->BreakpointsChanged();
+  m_code_widget->Update();
+}
+
 QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
 {
   if (m_mnu_table_context == nullptr)
@@ -984,7 +1039,18 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
         m_mnu_table_context->addAction(tr("Insert &BLR"), this, &BranchWatchDialog::OnTableSetBLR);
     m_act_copy_address = m_mnu_table_context->addAction(tr("&Copy Address"), this,
                                                         &BranchWatchDialog::OnTableCopyAddress);
+
+    m_mnu_set_breakpoint = new QMenu(tr("Set Brea&kpoint"));
+    m_act_break_on_hit = m_mnu_set_breakpoint->addAction(
+        tr("&Break On Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBreak);
+    m_act_log_on_hit = m_mnu_set_breakpoint->addAction(tr("&Log On Hit"), this,
+                                                       &BranchWatchDialog::OnTableSetBreakpointLog);
+    m_act_both_on_hit = m_mnu_set_breakpoint->addAction(
+        tr("Break &And Log On Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBoth);
+    m_mnu_table_context->addMenu(m_mnu_set_breakpoint);
   }
+
+  const bool core_initialized = Core::GetState(m_system) != Core::State::Uninitialized;
 
   bool supported_column = true;
   switch (index.column())
@@ -992,15 +1058,16 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
   case Column::Origin:
     m_act_insert_blr->setVisible(false);
     m_act_insert_nop->setVisible(true);
-    m_act_insert_nop->setEnabled(Core::GetState(m_system) != Core::State::Uninitialized);
+    m_act_insert_nop->setEnabled(core_initialized);
     m_act_copy_address->setEnabled(true);
+    m_mnu_set_breakpoint->setEnabled(true);
     break;
   case Column::Destination:
   {
     m_act_insert_nop->setVisible(false);
     m_act_insert_blr->setVisible(true);
     const bool all_branches_save_lr =
-        Core::GetState(m_system) != Core::State::Uninitialized &&
+        core_initialized &&
         std::all_of(
             m_index_list_temp.begin(), m_index_list_temp.end(), [this](const QModelIndex& idx) {
               const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
@@ -1008,6 +1075,7 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
             });
     m_act_insert_blr->setEnabled(all_branches_save_lr);
     m_act_copy_address->setEnabled(true);
+    m_mnu_set_breakpoint->setEnabled(true);
     break;
   }
   case Column::OriginSymbol:
@@ -1016,13 +1084,14 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
     m_act_insert_nop->setVisible(false);
     m_act_insert_blr->setVisible(true);
     const bool all_symbols_valid =
-        Core::GetState(m_system) != Core::State::Uninitialized &&
+        core_initialized &&
         std::all_of(m_index_list_temp.begin(), m_index_list_temp.end(),
                     [this](const QModelIndex& idx) {
                       return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
                     });
     m_act_insert_blr->setEnabled(all_symbols_valid);
     m_act_copy_address->setEnabled(all_symbols_valid);
+    m_mnu_set_breakpoint->setEnabled(all_symbols_valid);
     break;
   }
   default:
@@ -1032,5 +1101,40 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
     break;
   }
   m_act_copy_address->setVisible(supported_column);
+  m_mnu_set_breakpoint->menuAction()->setVisible(supported_column);
+  // Setting breakpoints while nothing is being emulated is discouraged in the UI.
+  m_mnu_set_breakpoint->setEnabled(core_initialized);
+
+  if (core_initialized && supported_column)
+  {
+    qsizetype bp_break_count = 0, bp_log_count = 0, bp_both_count = 0;
+    for (auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+         const QModelIndex& idx : m_index_list_temp)
+    {
+      if (const TBreakPoint* bp =
+              breakpoints.GetBreakpoint(m_table_proxy->data(idx, UserRole::ClickRole).value<u32>()))
+      {
+        if (bp->is_temporary)
+          continue;
+        if (bp->break_on_hit && bp->log_on_hit)
+        {
+          bp_both_count += 1;
+          continue;
+        }
+        bp_break_count += bp->break_on_hit;
+        bp_log_count += bp->log_on_hit;
+      }
+    }
+    m_act_break_on_hit->setIconVisibleInMenu(bp_break_count != 0);
+    m_act_break_on_hit->setIcon(bp_break_count == m_index_list_temp.size() ? m_icn_full :
+                                                                             m_icn_partial);
+    m_act_log_on_hit->setIconVisibleInMenu(bp_log_count != 0);
+    m_act_log_on_hit->setIcon(bp_log_count == m_index_list_temp.size() ? m_icn_full :
+                                                                         m_icn_partial);
+    m_act_both_on_hit->setIconVisibleInMenu(bp_both_count != 0);
+    m_act_both_on_hit->setIcon(bp_both_count == m_index_list_temp.size() ? m_icn_full :
+                                                                           m_icn_partial);
+  }
+
   return m_mnu_table_context;
 }
