@@ -356,7 +356,7 @@ protected:
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   void GetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg out, bool negate = false);
-  void SetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg in);
+  void SetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg in, bool negate = false);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
   void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
