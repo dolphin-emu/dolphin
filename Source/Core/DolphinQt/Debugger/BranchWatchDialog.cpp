@@ -141,15 +141,15 @@ bool BranchWatchProxyModel::filterAcceptsRow(int source_row, const QModelIndex&)
   if (!m_origin_symbol_name.isEmpty())
   {
     if (const QVariant& symbol_name_v = sourceModel()->GetSymbolList()[source_row].origin_name;
-        !symbol_name_v.isValid() ||
-        !symbol_name_v.value<QString>().contains(m_origin_symbol_name, Qt::CaseInsensitive))
+        !symbol_name_v.isValid() || !static_cast<const QString*>(symbol_name_v.data())
+                                         ->contains(m_origin_symbol_name, Qt::CaseInsensitive))
       return false;
   }
   if (!m_destin_symbol_name.isEmpty())
   {
     if (const QVariant& symbol_name_v = sourceModel()->GetSymbolList()[source_row].destin_name;
-        !symbol_name_v.isValid() ||
-        !symbol_name_v.value<QString>().contains(m_destin_symbol_name, Qt::CaseInsensitive))
+        !symbol_name_v.isValid() || !static_cast<const QString*>(symbol_name_v.data())
+                                         ->contains(m_destin_symbol_name, Qt::CaseInsensitive))
       return false;
   }
   return true;
