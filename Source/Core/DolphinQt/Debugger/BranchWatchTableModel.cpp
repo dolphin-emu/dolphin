@@ -145,18 +145,6 @@ void BranchWatchTableModel::OnWipeInspection()
                    roles);
 }
 
-void BranchWatchTableModel::OnDelete(QModelIndexList index_list)
-{
-  std::sort(index_list.begin(), index_list.end());
-  // TODO C++20: std::ranges::reverse_view
-  for (auto iter = index_list.rbegin(); iter != index_list.rend(); ++iter)
-  {
-    if (!iter->isValid())
-      continue;
-    removeRow(iter->row());
-  }
-}
-
 void BranchWatchTableModel::Save(const Core::CPUThreadGuard& guard, std::FILE* file) const
 {
   m_branch_watch.Save(guard, file);
