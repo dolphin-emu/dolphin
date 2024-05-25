@@ -91,11 +91,6 @@ public:
   {
     return false;
   }
-  virtual bool CheckContentIntegrity(const IOS::ES::Content& content, u64 content_offset,
-                                     const IOS::ES::TicketReader& ticket) const
-  {
-    return false;
-  }
   virtual IOS::ES::TicketReader GetTicketWithFixedCommonKey() const { return {}; }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
