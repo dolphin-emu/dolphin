@@ -591,18 +591,43 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  // Special case: crclr
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
+  if (inst.CRBA == inst.CRBB)
   {
-    ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
-    return;
-  }
-
-  // Special case: crset
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
-  {
-    SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
-    return;
+    switch (inst.SUBOP10)
+    {
+    // crclr
+    case 129:  // crandc: A && ~B => 0
+    case 193:  // crxor:  A ^ B   => 0
+    {
+      ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+      return;
+    }
+    // crset
+    case 289:  // creqv: ~(A ^ B) => 1
+    case 417:  // crorc: A || ~B  => 1
+    {
+      SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+      return;
+    }
+    case 257:  // crand: A && B => A
+    case 449:  // cror:  A || B => A
+    {
+      auto WA = gpr.GetScopedReg();
+      ARM64Reg XA = EncodeRegTo64(WA);
+      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, false);
+      SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), XA);
+      return;
+    }
+    case 33:   // crnor:  ~(A || B) => ~A
+    case 225:  // crnand: ~(A && B) => ~A
+    {
+      auto WA = gpr.GetScopedReg();
+      ARM64Reg XA = EncodeRegTo64(WA);
+      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, true);
+      SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), XA);
+      return;
+    }
+    }
   }
 
   auto WA = gpr.GetScopedReg();
