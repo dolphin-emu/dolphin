@@ -272,8 +272,6 @@ bool JitBase::CanMergeNextInstructions(int count) const
     {
       return false;
     }
-    if (js.op[i].isBranchTarget)
-      return false;
   }
   return true;
 }
