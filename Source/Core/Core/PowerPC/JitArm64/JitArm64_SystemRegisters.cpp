@@ -520,10 +520,12 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 
     case PowerPC::CR_EQ_BIT:
       AND(XA, XA, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
+      ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
       break;
 
     case PowerPC::CR_GT_BIT:
       AND(XA, XA, LogicalImm(~(u64(1) << 63), GPRSize::B64));
+      ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
       break;
 
     case PowerPC::CR_LT_BIT:
@@ -531,7 +533,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
     }
 
-    ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
     return;
   }
 
@@ -626,11 +627,13 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 
   case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
     AND(CR, CR, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
+    ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
     EOR(XA, XA, LogicalImm(1, GPRSize::B64));
     ORR(CR, CR, XA);
     break;
 
   case PowerPC::CR_GT_BIT:  // set bit 63 to !input
+    ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
     EOR(XA, XA, LogicalImm(1, GPRSize::B64));
     BFI(CR, XA, 63, 1);
     break;
@@ -639,8 +642,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     BFI(CR, XA, PowerPC::CR_EMU_LT_BIT, 1);
     break;
   }
-
-  ORR(CR, CR, LogicalImm(1ULL << 32, GPRSize::B64));
 }
 
 void JitArm64::mfcr(UGeckoInstruction inst)

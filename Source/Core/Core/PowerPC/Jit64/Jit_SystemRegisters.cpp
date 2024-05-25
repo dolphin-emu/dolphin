@@ -71,6 +71,7 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
   case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
     SHR(64, R(RSCRATCH2), Imm8(32));
     SHL(64, R(RSCRATCH2), Imm8(32));
+    BTS(64, R(RSCRATCH2), Imm8(32));
     XOR(32, R(in), Imm8(1));
     OR(64, R(RSCRATCH2), R(in));
     break;
@@ -78,6 +79,7 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
   case PowerPC::CR_GT_BIT:  // set bit 63 to !input
     BTR(64, R(RSCRATCH2), Imm8(63));
     NOT(32, R(in));
+    BTS(64, R(RSCRATCH2), Imm8(32));
     SHL(64, R(in), Imm8(63));
     OR(64, R(RSCRATCH2), R(in));
     break;
@@ -89,7 +91,6 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
     break;
   }
 
-  BTS(64, R(RSCRATCH2), Imm8(32));
   MOV(64, CROffset(field), R(RSCRATCH2));
 }
 
@@ -135,10 +136,12 @@ void Jit64::SetCRFieldBit(int field, int bit)
   case PowerPC::CR_EQ_BIT:
     SHR(64, R(RSCRATCH), Imm8(32));
     SHL(64, R(RSCRATCH), Imm8(32));
+    BTS(64, R(RSCRATCH), Imm8(32));
     break;
 
   case PowerPC::CR_GT_BIT:
     BTR(64, R(RSCRATCH), Imm8(63));
+    BTS(64, R(RSCRATCH), Imm8(32));
     break;
 
   case PowerPC::CR_LT_BIT:
@@ -146,7 +149,6 @@ void Jit64::SetCRFieldBit(int field, int bit)
     break;
   }
 
-  BTS(64, R(RSCRATCH), Imm8(32));
   MOV(64, CROffset(field), R(RSCRATCH));
 }
 
