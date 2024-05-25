@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <ranges>
 #include <utility>
 
 #include <QApplication>
@@ -99,7 +100,6 @@ public:
       this->*member = std::nullopt;
     invalidateRowsFilter();
   }
-  void OnDelete(QModelIndexList index_list);
 
   bool IsBranchTypeAllowed(UGeckoInstruction inst) const;
   void SetInspected(const QModelIndex& index);
@@ -153,13 +153,6 @@ bool BranchWatchProxyModel::filterAcceptsRow(int source_row, const QModelIndex&)
       return false;
   }
   return true;
-}
-
-void BranchWatchProxyModel::OnDelete(QModelIndexList index_list)
-{
-  std::transform(index_list.begin(), index_list.end(), index_list.begin(),
-                 [this](const QModelIndex& index) { return mapToSource(index); });
-  sourceModel()->OnDelete(std::move(index_list));
 }
 
 static constexpr bool BranchSavesLR(UGeckoInstruction inst)
@@ -801,68 +794,18 @@ void BranchWatchDialog::OnTableClicked(const QModelIndex& index)
 
 void BranchWatchDialog::OnTableContextMenu(const QPoint& pos)
 {
+  if (m_table_view->horizontalHeader()->hiddenSectionCount() == Column::NumberOfColumns)
+  {
+    m_mnu_column_visibility->exec(m_table_view->viewport()->mapToGlobal(pos));
+    return;
+  }
   const QModelIndex index = m_table_view->indexAt(pos);
   if (!index.isValid())
     return;
-  QModelIndexList index_list = m_table_view->selectionModel()->selectedRows(index.column());
-
-  QMenu* const menu = new QMenu;
-  menu->setAttribute(Qt::WA_DeleteOnClose, true);
-
-  menu->addAction(tr("&Delete"), [this, index_list]() { OnTableDelete(std::move(index_list)); });
-  switch (index.column())
-  {
-  case Column::Origin:
-  {
-    QAction* const action = menu->addAction(tr("Insert &NOP"));
-    if (Core::GetState(m_system) != Core::State::Uninitialized)
-      connect(action, &QAction::triggered,
-              [this, index_list]() { OnTableSetNOP(std::move(index_list)); });
-    else
-      action->setEnabled(false);
-    menu->addAction(tr("&Copy Address"), [this, index_list = std::move(index_list)]() {
-      OnTableCopyAddress(std::move(index_list));
-    });
-    break;
-  }
-  case Column::Destination:
-  {
-    QAction* const action = menu->addAction(tr("Insert &BLR"));
-    const bool enable_action =
-        Core::GetState(m_system) != Core::State::Uninitialized &&
-        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
-          const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
-          return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
-        });
-    if (enable_action)
-      connect(action, &QAction::triggered,
-              [this, index_list]() { OnTableSetBLR(std::move(index_list)); });
-    else
-      action->setEnabled(false);
-    menu->addAction(tr("&Copy Address"), [this, index_list = std::move(index_list)]() {
-      OnTableCopyAddress(std::move(index_list));
-    });
-    break;
-  }
-  case Column::OriginSymbol:
-  case Column::DestinSymbol:
-  {
-    QAction* const action = menu->addAction(tr("Insert &BLR at start"));
-    const bool enable_action =
-        Core::GetState(m_system) != Core::State::Uninitialized &&
-        std::all_of(index_list.begin(), index_list.end(), [this](const QModelIndex& idx) {
-          return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
-        });
-    if (enable_action)
-      connect(action, &QAction::triggered, [this, index_list = std::move(index_list)]() {
-        OnTableSetBLR(std::move(index_list));
-      });
-    else
-      action->setEnabled(false);
-    break;
-  }
-  }
-  menu->exec(m_table_view->viewport()->mapToGlobal(pos));
+  m_index_list_temp = m_table_view->selectionModel()->selectedRows(index.column());
+  GetTableContextMenu(index)->exec(m_table_view->viewport()->mapToGlobal(pos));
+  m_index_list_temp.clear();
+  m_index_list_temp.shrink_to_fit();
 }
 
 void BranchWatchDialog::OnTableHeaderContextMenu(const QPoint& pos)
@@ -870,61 +813,51 @@ void BranchWatchDialog::OnTableHeaderContextMenu(const QPoint& pos)
   m_mnu_column_visibility->exec(m_table_view->horizontalHeader()->mapToGlobal(pos));
 }
 
-void BranchWatchDialog::OnTableDelete(QModelIndexList index_list)
+void BranchWatchDialog::OnTableDelete()
 {
-  m_table_proxy->OnDelete(std::move(index_list));
+  std::ranges::transform(
+      m_index_list_temp, m_index_list_temp.begin(),
+      [this](const QModelIndex& index) { return m_table_proxy->mapToSource(index); });
+  std::ranges::sort(m_index_list_temp, std::less{});
+  for (const auto& index : std::ranges::reverse_view{m_index_list_temp})
+  {
+    if (!index.isValid())
+      continue;
+    m_table_model->removeRow(index.row());
+  }
   UpdateStatus();
 }
 
 void BranchWatchDialog::OnTableDeleteKeypress()
 {
-  OnTableDelete(m_table_view->selectionModel()->selectedRows());
+  m_index_list_temp = m_table_view->selectionModel()->selectedRows();
+  OnTableDelete();
+  m_index_list_temp.clear();
+  m_index_list_temp.shrink_to_fit();
 }
 
-void BranchWatchDialog::OnTableSetBLR(QModelIndexList index_list)
+void BranchWatchDialog::OnTableSetBLR()
 {
-  for (const QModelIndex& index : index_list)
-  {
-    m_system.GetPowerPC().GetDebugInterface().SetPatch(
-        Core::CPUThreadGuard{m_system},
-        m_table_proxy->data(index, UserRole::ClickRole).value<u32>(), 0x4e800020);
-    m_table_proxy->SetInspected(index);
-  }
-  // TODO: This is not ideal. What I need is a signal for when memory has been changed by the GUI,
-  // but I cannot find one. UpdateDisasmDialog comes close, but does too much in one signal. For
-  // example, CodeViewWidget will scroll to the current PC when UpdateDisasmDialog is signaled. This
-  // seems like a pervasive issue. For example, modifying an instruction in the CodeViewWidget will
-  // not reflect in the MemoryViewWidget, and vice versa. Neither of these widgets changing memory
-  // will reflect in the JITWidget, either. At the very least, we can make sure the CodeWidget
-  // is updated in an acceptable way.
-  m_code_widget->Update();
+  SetStubPatches(0x4e800020);
 }
 
-void BranchWatchDialog::OnTableSetNOP(QModelIndexList index_list)
+void BranchWatchDialog::OnTableSetNOP()
 {
-  for (const QModelIndex& index : index_list)
-  {
-    m_system.GetPowerPC().GetDebugInterface().SetPatch(
-        Core::CPUThreadGuard{m_system},
-        m_table_proxy->data(index, UserRole::ClickRole).value<u32>(), 0x60000000);
-    m_table_proxy->SetInspected(index);
-  }
-  // Same issue as OnSetBLR.
-  m_code_widget->Update();
+  SetStubPatches(0x60000000);
 }
 
-void BranchWatchDialog::OnTableCopyAddress(QModelIndexList index_list)
+void BranchWatchDialog::OnTableCopyAddress()
 {
-  auto iter = index_list.begin();
-  if (iter == index_list.end())
+  auto iter = m_index_list_temp.begin();
+  if (iter == m_index_list_temp.end())
     return;
 
   QString text;
-  text.reserve(index_list.size() * 9 - 1);
+  text.reserve(m_index_list_temp.size() * 9 - 1);
   while (true)
   {
     text.append(QString::number(m_table_proxy->data(*iter, UserRole::ClickRole).value<u32>(), 16));
-    if (++iter == index_list.end())
+    if (++iter == m_index_list_temp.end())
       break;
     text.append(QChar::fromLatin1('\n'));
   }
@@ -1018,4 +951,86 @@ void BranchWatchDialog::AutoSave(const Core::CPUThreadGuard& guard)
   if (!m_act_autosave->isChecked() || !m_branch_watch.CanSave())
     return;
   Save(guard, m_autosave_filepath ? m_autosave_filepath.value() : GetSnapshotDefaultFilepath());
+}
+
+void BranchWatchDialog::SetStubPatches(u32 value) const
+{
+  auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
+  for (const Core::CPUThreadGuard guard(m_system); const QModelIndex& index : m_index_list_temp)
+  {
+    debug_interface.SetPatch(guard, m_table_proxy->data(index, UserRole::ClickRole).value<u32>(),
+                             value);
+    m_table_proxy->SetInspected(index);
+  }
+  // TODO: This is not ideal. What I need is a signal for when memory has been changed by the GUI,
+  // but I cannot find one. UpdateDisasmDialog comes close, but does too much in one signal. For
+  // example, CodeViewWidget will scroll to the current PC when UpdateDisasmDialog is signaled. This
+  // seems like a pervasive issue. For example, modifying an instruction in the CodeViewWidget will
+  // not reflect in the MemoryViewWidget, and vice versa. Neither of these widgets changing memory
+  // will reflect in the JITWidget, either. At the very least, we can make sure the CodeWidget
+  // is updated in an acceptable way.
+  m_code_widget->Update();
+}
+
+QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
+{
+  if (m_mnu_table_context == nullptr)
+  {
+    m_mnu_table_context = new QMenu(this);
+    m_mnu_table_context->addAction(tr("&Delete"), this, &BranchWatchDialog::OnTableDelete);
+    m_act_insert_nop =
+        m_mnu_table_context->addAction(tr("Insert &NOP"), this, &BranchWatchDialog::OnTableSetNOP);
+    m_act_insert_blr =
+        m_mnu_table_context->addAction(tr("Insert &BLR"), this, &BranchWatchDialog::OnTableSetBLR);
+    m_act_copy_address = m_mnu_table_context->addAction(tr("&Copy Address"), this,
+                                                        &BranchWatchDialog::OnTableCopyAddress);
+  }
+
+  bool supported_column = true;
+  switch (index.column())
+  {
+  case Column::Origin:
+    m_act_insert_blr->setVisible(false);
+    m_act_insert_nop->setVisible(true);
+    m_act_insert_nop->setEnabled(Core::GetState(m_system) != Core::State::Uninitialized);
+    m_act_copy_address->setEnabled(true);
+    break;
+  case Column::Destination:
+  {
+    m_act_insert_nop->setVisible(false);
+    m_act_insert_blr->setVisible(true);
+    const bool all_branches_save_lr =
+        Core::GetState(m_system) != Core::State::Uninitialized &&
+        std::all_of(
+            m_index_list_temp.begin(), m_index_list_temp.end(), [this](const QModelIndex& idx) {
+              const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
+              return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
+            });
+    m_act_insert_blr->setEnabled(all_branches_save_lr);
+    m_act_copy_address->setEnabled(true);
+    break;
+  }
+  case Column::OriginSymbol:
+  case Column::DestinSymbol:
+  {
+    m_act_insert_nop->setVisible(false);
+    m_act_insert_blr->setVisible(true);
+    const bool all_symbols_valid =
+        Core::GetState(m_system) != Core::State::Uninitialized &&
+        std::all_of(m_index_list_temp.begin(), m_index_list_temp.end(),
+                    [this](const QModelIndex& idx) {
+                      return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
+                    });
+    m_act_insert_blr->setEnabled(all_symbols_valid);
+    m_act_copy_address->setEnabled(all_symbols_valid);
+    break;
+  }
+  default:
+    m_act_insert_nop->setVisible(false);
+    m_act_insert_blr->setVisible(false);
+    supported_column = false;
+    break;
+  }
+  m_act_copy_address->setVisible(supported_column);
+  return m_mnu_table_context;
 }
