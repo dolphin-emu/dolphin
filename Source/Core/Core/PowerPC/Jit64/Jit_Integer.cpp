@@ -16,6 +16,7 @@
 #include "Common/x64Emitter.h"
 
 #include "Core/CoreTiming.h"
+#include "Core/PowerPC/ConditionRegister.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
@@ -453,32 +454,31 @@ void Jit64::DoMergedBranchCondition()
   js.downcountAmount++;
   js.skipInstructions = 1;
   const UGeckoInstruction& next = js.op[1].inst;
-  int test_bit = 8 >> (next.BI & 3);
+  int test_bit = 3 - (next.BI & 3);
   bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
   ASSERT(gpr.IsAllUnlocked());
 
   FixupBranch pDontBranch;
-  if (test_bit & 8)
+  switch (test_bit)
   {
+  case PowerPC::CR_LT_BIT:
     // Test < 0, so jump over if >= 0.
     pDontBranch = J_CC(condition ? CC_GE : CC_L, Jump::Near);
-  }
-  else if (test_bit & 4)
-  {
+    break;
+  case PowerPC::CR_GT_BIT:
     // Test > 0, so jump over if <= 0.
     pDontBranch = J_CC(condition ? CC_LE : CC_G, Jump::Near);
-  }
-  else if (test_bit & 2)
-  {
+    break;
+  case PowerPC::CR_EQ_BIT:
     // Test = 0, so jump over if != 0.
     pDontBranch = J_CC(condition ? CC_NE : CC_E, Jump::Near);
-  }
-  else
-  {
+    break;
+  case PowerPC::CR_SO_BIT:
     // SO bit, do not branch (we don't emulate SO for cmp).
     pDontBranch = J(Jump::Near);
+    break;
   }
 
   {
@@ -516,21 +516,28 @@ void Jit64::DoMergedBranchImmediate(s64 val)
   js.downcountAmount++;
   js.skipInstructions = 1;
   const UGeckoInstruction& next = js.op[1].inst;
-  int test_bit = 8 >> (next.BI & 3);
+  int test_bit = 3 - (next.BI & 3);
   bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
   ASSERT(gpr.IsAllUnlocked());
 
-  bool branch;
-  if (test_bit & 8)
+  bool branch = false;
+  switch (test_bit)
+  {
+  case PowerPC::CR_LT_BIT:
     branch = condition ? val < 0 : val >= 0;
-  else if (test_bit & 4)
+    break;
+  case PowerPC::CR_GT_BIT:
     branch = condition ? val > 0 : val <= 0;
-  else if (test_bit & 2)
+    break;
+  case PowerPC::CR_EQ_BIT:
     branch = condition ? val == 0 : val != 0;
-  else  // SO bit, do not branch (we don't emulate SO for cmp).
-    branch = false;
+    break;
+  case PowerPC::CR_SO_BIT:
+    // SO bit, do not branch (we don't emulate SO for cmp).
+    break;
+  }
 
   if (branch)
   {
