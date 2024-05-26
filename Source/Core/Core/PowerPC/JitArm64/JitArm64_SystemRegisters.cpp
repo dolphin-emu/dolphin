@@ -32,7 +32,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
   case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     return jump_if_set ? CBZ(WA) : CBNZ(WA);
   case PowerPC::CR_GT_BIT:  // check val > 0
-    CMP(XA, ARM64Reg::SP);
+    CMP(XA, 0);
     return B(jump_if_set ? CC_GT : CC_LE);
   case PowerPC::CR_LT_BIT:  // check bit 62 set
     return jump_if_set ? TBNZ(XA, PowerPC::CR_EMU_LT_BIT) : TBZ(XA, PowerPC::CR_EMU_LT_BIT);
