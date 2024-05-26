@@ -15,6 +15,7 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 public class PermissionsHandler
 {
   public static final int REQUEST_CODE_WRITE_PERMISSION = 500;
+  public static final int REQUEST_CODE_RECORD_AUDIO = 501;
   private static boolean sWritePermissionDenied = false;
 
   public static void requestWritePermission(final FragmentActivity activity)
