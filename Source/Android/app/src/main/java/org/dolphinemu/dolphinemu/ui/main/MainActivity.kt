@@ -18,9 +18,10 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
-import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter
+import org.dolphinemu.dolphinemu.adapters.PlatformStateAdapter
 import org.dolphinemu.dolphinemu.databinding.ActivityMainBinding
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
@@ -282,26 +283,21 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
     // Don't call this before DirectoryInitialization completes.
     private fun setPlatformTabsAndStartGameFileCacheService() {
-        val platformPagerAdapter = PlatformPagerAdapter(
-            supportFragmentManager, this
-        )
-        binding.pagerPlatforms.adapter = platformPagerAdapter
-        binding.pagerPlatforms.offscreenPageLimit = platformPagerAdapter.count
-        binding.tabsPlatforms.setupWithViewPager(binding.pagerPlatforms)
-        binding.tabsPlatforms.addOnTabSelectedListener(
-            object : TabLayout.ViewPagerOnTabSelectedListener(binding.pagerPlatforms) {
-                override fun onTabSelected(tab: TabLayout.Tab) {
-                    super.onTabSelected(tab)
-                    IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(
-                        NativeConfig.LAYER_BASE,
-                        tab.position
-                    )
-                }
-            })
+        val platformStateAdapter = PlatformStateAdapter(this, this)
+        binding.pagerPlatforms.adapter = platformStateAdapter
+        binding.pagerPlatforms.offscreenPageLimit = platformStateAdapter.itemCount
+        TabLayoutMediator(binding.tabsPlatforms, binding.pagerPlatforms) { tab, position ->
+            tab.setIcon(platformStateAdapter.getTabIcon(position))
+        }.attach()
+        binding.tabsPlatforms.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(NativeConfig.LAYER_BASE, tab.position)
+            }
 
-        for (i in PlatformPagerAdapter.TAB_ICONS.indices) {
-            binding.tabsPlatforms.getTabAt(i)?.setIcon(PlatformPagerAdapter.TAB_ICONS[i])
-        }
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
 
         binding.pagerPlatforms.currentItem = IntSetting.MAIN_LAST_PLATFORM_TAB.int
 

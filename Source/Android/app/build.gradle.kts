@@ -131,6 +131,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
 
     // Kotlin extensions for lifecycle components
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
