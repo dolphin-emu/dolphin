@@ -152,9 +152,10 @@ void Jit64::SetCRFieldBit(int field, int bit)
 
 void Jit64::FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg)
 {
-  // Gross but necessary; if the input is totally zero and we set SO or LT,
-  // or even just add the (1<<32), GT will suddenly end up set without us
-  // intending to. This can break actual games, so fix it up.
+  // GT is considered unset if the internal representation is <= 0, or in other words,
+  // if the internal representation either has bit 63 set or has all bits set to zero.
+  // If all bits are zero and we set some bit that's unrelated to GT, we need to set bit 63 so GT
+  // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
   TEST(64, R(reg), R(reg));
   FixupBranch dont_clear_gt = J_CC(CC_NZ);
   BTS(64, R(reg), Imm8(63));
