@@ -59,6 +59,10 @@ bool Host_RendererIsFullscreen()
 {
   return false;
 }
+bool Host_TASInputHasFocus()
+{
+  return false;
+}
 void Host_YieldToUI()
 {
 }

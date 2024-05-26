@@ -53,6 +53,7 @@ bool Host_UIBlocksControllerState();
 bool Host_RendererHasFocus();
 bool Host_RendererHasFullFocus();
 bool Host_RendererIsFullscreen();
+bool Host_TASInputHasFocus();
 
 void Host_Message(HostMessageID id);
 void Host_PPCSymbolsChanged();
