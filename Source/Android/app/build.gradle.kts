@@ -12,6 +12,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -116,12 +117,11 @@ android {
 }
 
 dependencies {
-    "baselineProfile"(project(":benchmark"))
+    baselineProfile(project(":benchmark"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     implementation("androidx.core:core-ktx:1.13.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.exifinterface:exifinterface:1.3.7")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -135,7 +135,6 @@ dependencies {
     // Kotlin extensions for lifecycle components
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 
     // Android TV UI libraries.
     implementation("androidx.leanback:leanback:1.0.0")
