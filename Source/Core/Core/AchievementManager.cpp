@@ -403,17 +403,20 @@ void AchievementManager::CloseGame()
       m_unlocked_badges.clear();
       m_locked_badges.clear();
       m_leaderboard_map.clear();
+      m_rich_presence.fill('\0');
       rc_api_destroy_fetch_game_data_response(&m_game_data);
       m_game_data = {};
       m_queue.Cancel();
       m_image_queue.Cancel();
       rc_client_unload_game(m_client);
       m_system = nullptr;
+      if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
+        Discord::UpdateDiscordPresence();
+      INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
     }
   }
 
   m_update_callback(UpdatedItems{.all = true});
-  INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
 }
 
 void AchievementManager::Logout()
