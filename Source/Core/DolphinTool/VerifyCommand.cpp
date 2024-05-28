@@ -12,7 +12,7 @@
 #include <fmt/ostream.h>
 
 #include "Common/StringUtil.h"
-#include "DiscIO/VolumeDisc.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeVerifier.h"
 #include "UICommon/UICommon.h"
 
@@ -89,7 +89,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   parser.add_option("-i", "--input")
       .type("string")
       .action("store")
-      .help("Path to disc image FILE.")
+      .help("Path to input file.")
       .metavar("FILE");
 
   parser.add_option("-a", "--algorithm")
@@ -139,10 +139,10 @@ int VerifyCommand(const std::vector<std::string>& args)
   }
 
   // Open the volume
-  const std::unique_ptr<DiscIO::VolumeDisc> volume = DiscIO::CreateDisc(input_file_path);
+  const std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(input_file_path);
   if (!volume)
   {
-    fmt::print(std::cerr, "Error: Unable to open disc image\n");
+    fmt::print(std::cerr, "Error: Unable to open input file\n");
     return EXIT_FAILURE;
   }
 
