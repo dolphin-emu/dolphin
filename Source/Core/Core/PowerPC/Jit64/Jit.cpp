@@ -1018,6 +1018,11 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  BitSet32 previous_gpr_in_use{};
+  BitSet32 previous_fpr_in_use{};
+  BitSet32 previous_gpr_will_be_written{};
+  BitSet32 previous_fpr_will_be_written{};
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -1259,12 +1264,17 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         gpr.Discard(op.gprDiscardable);
         fpr.Discard(op.fprDiscardable);
       }
-      gpr.Flush(~(op.gprWillBeRead | op.gprWillBeWritten) & (op.regsIn | op.regsOut),
+      gpr.Flush(~(op.gprWillBeRead | op.gprWillBeWritten) & previous_gpr_in_use,
                 RegCache::FlushMode::Full);
-      fpr.Flush(~(op.fprWillBeRead | op.fprWillBeWritten) & (op.fregsIn | op.GetFregsOut()),
+      fpr.Flush(~(op.fprWillBeRead | op.fprWillBeWritten) & previous_fpr_in_use,
                 RegCache::FlushMode::Full);
-      gpr.Flush(~op.gprWillBeWritten & op.regsOut, RegCache::FlushMode::Undirty);
-      fpr.Flush(~op.fprWillBeWritten & op.GetFregsOut(), RegCache::FlushMode::Undirty);
+      gpr.Flush(~op.gprWillBeWritten & previous_gpr_will_be_written, RegCache::FlushMode::Undirty);
+      fpr.Flush(~op.fprWillBeWritten & previous_fpr_will_be_written, RegCache::FlushMode::Undirty);
+
+      previous_gpr_in_use = op.gprWillBeRead | op.gprWillBeWritten;
+      previous_fpr_in_use = op.fprWillBeRead | op.fprWillBeWritten;
+      previous_gpr_will_be_written = op.gprWillBeWritten;
+      previous_fpr_will_be_written = op.fprWillBeWritten;
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
