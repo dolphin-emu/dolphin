@@ -1171,6 +1171,10 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  BitSet32 previous_gpr_in_use{};
+  BitSet32 previous_fpr_in_use{};
+  BitSet8 previous_cr_in_use{};
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -1354,9 +1358,13 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         fpr.DiscardRegisters(op.fprDiscardable);
         gpr.DiscardCRRegisters(op.crDiscardable);
       }
-      gpr.StoreRegisters(~op.gprInUse & (op.regsIn | op.regsOut));
-      fpr.StoreRegisters(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
-      gpr.StoreCRRegisters(~op.crInUse & (op.crIn | op.crOut));
+      gpr.StoreRegisters(~op.gprInUse & previous_gpr_in_use);
+      fpr.StoreRegisters(~op.fprInUse & previous_fpr_in_use);
+      gpr.StoreCRRegisters(~op.crInUse & previous_cr_in_use);
+
+      previous_gpr_in_use = op.gprInUse;
+      previous_fpr_in_use = op.fprInUse;
+      previous_cr_in_use = op.crInUse;
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
