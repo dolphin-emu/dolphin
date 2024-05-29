@@ -1351,14 +1351,14 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         }
 
         CompileInstruction(op);
-
-        if (opinfo->flags & FL_LOADSTORE)
-          ++js.numLoadStoreInst;
-
-        if (opinfo->flags & FL_USE_FPU)
-          ++js.numFloatingPointInst;
       }
     }
+
+    if (opinfo->flags & FL_LOADSTORE)
+      ++js.numLoadStoreInst;
+
+    if (opinfo->flags & FL_USE_FPU)
+      ++js.numFloatingPointInst;
 
     js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
 
