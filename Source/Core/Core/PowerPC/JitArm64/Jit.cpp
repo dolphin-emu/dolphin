@@ -1390,14 +1390,14 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
               ComputeRC0(constant_propagation_result.gpr_value);
           }
         }
-
-        if (opinfo->flags & FL_LOADSTORE)
-          ++js.numLoadStoreInst;
-
-        if (opinfo->flags & FL_USE_FPU)
-          ++js.numFloatingPointInst;
       }
     }
+
+    if (opinfo->flags & FL_LOADSTORE)
+      ++js.numLoadStoreInst;
+
+    if (opinfo->flags & FL_USE_FPU)
+      ++js.numFloatingPointInst;
 
     js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
 
