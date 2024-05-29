@@ -970,6 +970,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  BitSet32 previous_gpr_in_use{};
+  BitSet32 previous_fpr_in_use{};
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -1211,8 +1214,11 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         gpr.Discard(op.gprDiscardable);
         fpr.Discard(op.fprDiscardable);
       }
-      gpr.Flush(~op.gprInUse & (op.regsIn | op.regsOut));
-      fpr.Flush(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
+      gpr.Flush(~op.gprInUse & previous_gpr_in_use);
+      fpr.Flush(~op.fprInUse & previous_fpr_in_use);
+
+      previous_gpr_in_use = op.gprInUse;
+      previous_fpr_in_use = op.fprInUse;
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
