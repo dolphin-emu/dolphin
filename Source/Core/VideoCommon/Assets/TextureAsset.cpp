@@ -21,77 +21,120 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   *sampler = RenderState::GetLinearSamplerState();
 
   const auto sampler_state_mode_iter = json.find("texture_mode");
-  if (sampler_state_mode_iter == json.end())
+  if (sampler_state_mode_iter != json.end())
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_mode' not found", asset_id);
-    return false;
-  }
-  if (!sampler_state_mode_iter->second.is<std::string>())
-  {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_mode' is not the right type",
-                  asset_id);
-    return false;
-  }
-  std::string sampler_state_mode = sampler_state_mode_iter->second.to_str();
-  Common::ToLower(&sampler_state_mode);
+    if (!sampler_state_mode_iter->second.is<picojson::object>())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_mode' is not the right type",
+                    asset_id);
+      return false;
+    }
+    const auto sampler_state_mode_obj = sampler_state_mode_iter->second.get<picojson::object>();
 
-  if (sampler_state_mode == "clamp")
-  {
-    sampler->tm0.wrap_u = WrapMode::Clamp;
-    sampler->tm0.wrap_v = WrapMode::Clamp;
-  }
-  else if (sampler_state_mode == "repeat")
-  {
-    sampler->tm0.wrap_u = WrapMode::Repeat;
-    sampler->tm0.wrap_v = WrapMode::Repeat;
-  }
-  else if (sampler_state_mode == "mirrored_repeat")
-  {
-    sampler->tm0.wrap_u = WrapMode::Mirror;
-    sampler->tm0.wrap_v = WrapMode::Mirror;
-  }
-  else
-  {
-    ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' failed to parse json, 'texture_mode' has an invalid "
-                  "value '{}'",
-                  asset_id, sampler_state_mode);
-    return false;
+    for (const auto& uv : std::array<std::string, 2>{"u", "v"})
+    {
+      auto uv_mode = ReadStringFromJson(sampler_state_mode_obj, uv).value_or("");
+      Common::ToLower(&uv_mode);
+
+      if (uv_mode == "clamp")
+      {
+        if (uv == "u")
+        {
+          sampler->tm0.wrap_u = WrapMode::Clamp;
+        }
+        else
+        {
+          sampler->tm0.wrap_v = WrapMode::Clamp;
+        }
+      }
+      else if (uv_mode == "repeat")
+      {
+        if (uv == "u")
+        {
+          sampler->tm0.wrap_u = WrapMode::Repeat;
+        }
+        else
+        {
+          sampler->tm0.wrap_v = WrapMode::Repeat;
+        }
+      }
+      else if (uv_mode == "mirror")
+      {
+        if (uv == "u")
+        {
+          sampler->tm0.wrap_u = WrapMode::Mirror;
+        }
+        else
+        {
+          sampler->tm0.wrap_v = WrapMode::Mirror;
+        }
+      }
+      else
+      {
+        ERROR_LOG_FMT(VIDEO,
+                      "Asset '{}' failed to parse json, 'texture_mode[{}]' has an invalid "
+                      "value '{}'",
+                      asset_id, uv, uv_mode);
+        return false;
+      }
+    }
   }
 
   const auto sampler_state_filter_iter = json.find("texture_filter");
-  if (sampler_state_filter_iter == json.end())
+  if (sampler_state_filter_iter != json.end())
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_filter' not found", asset_id);
-    return false;
-  }
-  if (!sampler_state_filter_iter->second.is<std::string>())
-  {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_filter' is not the right type",
-                  asset_id);
-    return false;
-  }
-  std::string sampler_state_filter = sampler_state_filter_iter->second.to_str();
-  Common::ToLower(&sampler_state_filter);
-  if (sampler_state_filter == "linear")
-  {
-    sampler->tm0.min_filter = FilterMode::Linear;
-    sampler->tm0.mag_filter = FilterMode::Linear;
-    sampler->tm0.mipmap_filter = FilterMode::Linear;
-  }
-  else if (sampler_state_filter == "near")
-  {
-    sampler->tm0.min_filter = FilterMode::Near;
-    sampler->tm0.mag_filter = FilterMode::Near;
-    sampler->tm0.mipmap_filter = FilterMode::Near;
-  }
-  else
-  {
-    ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' failed to parse json, 'texture_filter' has an invalid "
-                  "value '{}'",
-                  asset_id, sampler_state_filter);
-    return false;
+    if (!sampler_state_filter_iter->second.is<picojson::object>())
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' failed to parse json, 'texture_filter' is not the right type",
+                    asset_id);
+      return false;
+    }
+    const auto sampler_state_filter_obj = sampler_state_filter_iter->second.get<picojson::object>();
+
+    for (const auto& filter_type : std::array<std::string, 3>{"min", "mag", "mipmap"})
+    {
+      auto filter = ReadStringFromJson(sampler_state_filter_obj, filter_type).value_or("");
+      Common::ToLower(&filter);
+      if (filter == "linear")
+      {
+        if (filter_type == "min")
+        {
+          sampler->tm0.min_filter = FilterMode::Linear;
+        }
+        else if (filter_type == "mag")
+        {
+          sampler->tm0.mag_filter = FilterMode::Linear;
+        }
+        else
+        {
+          sampler->tm0.mipmap_filter = FilterMode::Linear;
+        }
+      }
+      else if (filter == "near")
+      {
+        if (filter_type == "min")
+        {
+          sampler->tm0.min_filter = FilterMode::Near;
+        }
+        else if (filter_type == "mag")
+        {
+          sampler->tm0.mag_filter = FilterMode::Near;
+        }
+        else
+        {
+          sampler->tm0.mipmap_filter = FilterMode::Near;
+        }
+      }
+      else
+      {
+        ERROR_LOG_FMT(VIDEO,
+                      "Asset '{}' failed to parse json, 'texture_filter[{}]' has an invalid "
+                      "value '{}'",
+                      asset_id, filter_type, filter);
+        return false;
+      }
+    }
   }
 
   return true;
