@@ -9,12 +9,11 @@
 #include <QDialog>
 #include <QModelIndexList>
 
-#include "Core/Core.h"
-
 namespace Core
 {
 class BranchWatch;
 class CPUThreadGuard;
+enum class State;
 class System;
 }  // namespace Core
 class PPCSymbolDB;
@@ -53,6 +52,11 @@ public:
                              PPCSymbolDB& ppc_symbol_db, CodeWidget* code_widget,
                              QWidget* parent = nullptr);
   ~BranchWatchDialog() override;
+
+  BranchWatchDialog(const BranchWatchDialog&) = delete;
+  BranchWatchDialog(BranchWatchDialog&&) = delete;
+  BranchWatchDialog& operator=(const BranchWatchDialog&) = delete;
+  BranchWatchDialog& operator=(BranchWatchDialog&&) = delete;
 
 protected:
   void hideEvent(QHideEvent* event) override;

@@ -57,6 +57,12 @@ public:
       : QSortFilterProxyModel(parent), m_branch_watch(branch_watch)
   {
   }
+  ~BranchWatchProxyModel() override = default;
+
+  BranchWatchProxyModel(const BranchWatchProxyModel&) = delete;
+  BranchWatchProxyModel(BranchWatchProxyModel&&) = delete;
+  BranchWatchProxyModel& operator=(const BranchWatchProxyModel&) = delete;
+  BranchWatchProxyModel& operator=(BranchWatchProxyModel&&) = delete;
 
   BranchWatchTableModel* sourceModel() const
   {
@@ -201,7 +207,6 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
 {
   setWindowTitle(tr("Branch Watch Tool"));
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
-  SetQWidgetWindowDecorations(this);
   setLayout([this, &ppc_symbol_db]() {
     auto* main_layout = new QVBoxLayout;
 
@@ -216,6 +221,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       m_table_proxy->setSourceModel(
           m_table_model = new BranchWatchTableModel(m_system, m_branch_watch, ppc_symbol_db));
       m_table_proxy->setSortRole(UserRole::SortRole);
+      m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
 
       m_table_model->setFont(ui_settings.GetDebugFont());
       connect(&ui_settings, &Settings::DebugFontChanged, m_table_model,
@@ -234,6 +240,11 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
       table_view->setCornerButtonEnabled(false);
       table_view->verticalHeader()->hide();
+      table_view->setColumnWidth(Column::Instruction, 50);
+      table_view->setColumnWidth(Column::Condition, 50);
+      table_view->setColumnWidth(Column::OriginSymbol, 250);
+      table_view->setColumnWidth(Column::DestinSymbol, 250);
+      // The default column width (100 units) is fine for the rest.
 
       QHeaderView* const horizontal_header = table_view->horizontalHeader();
       horizontal_header->restoreState(  // Restore column visibility state.
@@ -494,16 +505,6 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
 
     return main_layout;
   }());
-
-  // FIXME: On Linux, Qt6 has recently been resetting column widths to their defaults in many
-  // unexpected ways. This affects all kinds of QTables in Dolphin's GUI, so to avoid it in
-  // this QTableView, I have deferred this operation. Any earlier, and this would be undone.
-  // SetQWidgetWindowDecorations was moved to before these operations for the same reason.
-  m_table_view->setColumnWidth(Column::Instruction, 50);
-  m_table_view->setColumnWidth(Column::Condition, 50);
-  m_table_view->setColumnWidth(Column::OriginSymbol, 250);
-  m_table_view->setColumnWidth(Column::DestinSymbol, 250);
-  // The default column width (100 units) is fine for the rest.
 
   const auto& settings = Settings::GetQSettings();
   restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
