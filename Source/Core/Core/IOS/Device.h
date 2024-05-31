@@ -29,6 +29,7 @@ enum ReturnCode : s32
   IPC_EMAX = -5,           // Too many file descriptors open
   IPC_ENOENT = -6,         // File not found
   IPC_EQUEUEFULL = -8,     // Queue full
+  IPC_UNKNOWN = -9,        // Unknown
   IPC_EIO = -12,           // ECC error
   IPC_ENOMEM = -22,        // Alloc failed during request
   FS_EINVAL = -101,        // Invalid path
