@@ -69,7 +69,7 @@ void SlippiPane::CreateLayout()
   m_main_layout->addWidget(online_settings);
 
   m_delay_spin = new QSpinBox();
-  m_delay_spin->setFixedSize(35, 25);
+  m_delay_spin->setFixedSize(45, 25);
   m_delay_spin->setRange(1, 9);
   m_delay_spin->setToolTip(tr("Leave this at 2 unless consistently playing on 120+ ping. "
                               "Increasing this can cause unplayable input delay, and lowering it "
