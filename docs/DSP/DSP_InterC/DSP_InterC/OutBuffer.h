@@ -5,14 +5,19 @@
 
 #pragma once
 
-namespace OutBuffer {
-void Init();
+namespace OutBuffer
+{
+	void Init();
+	
+	void Add(const char* _fmt, ...);
+	void AddCode(const char* _fmt, ...);
 
-void Add(const char *_fmt, ...);
-void AddCode(const char *_fmt, ...);
+	const char* GetRegName(uint16 reg);
+	const char* GetMemName(uint16 addr);
+}
 
-const char *GetRegName(uint16 reg);
-const char *GetMemName(uint16 addr);
-} // namespace OutBuffer
+
+
+
 
 // TODO: reference additional headers your program requires here

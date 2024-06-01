@@ -40,8 +40,9 @@ void dsp_opcd(uint16 opc);
 void dsp_ope(uint16 opc);
 void dsp_opf(uint16 opc);
 
-#define R_SR 0x13
 
-#define FLAG_ENABLE_INTERUPT 11
+#define R_SR            0x13
+
+#define FLAG_ENABLE_INTERUPT    11
 
 #endif
