@@ -170,7 +170,7 @@ fun getGitVersion(): String {
 
 fun getBuildVersionCode(): Int {
     try {
-        return Integer.valueOf(
+        val commitCount = Integer.valueOf(
             ProcessBuilder("git", "rev-list", "--first-parent", "--count", "HEAD")
                 .directory(project.rootDir)
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
@@ -178,6 +178,15 @@ fun getBuildVersionCode(): Int {
                 .start().inputStream.bufferedReader().use { it.readText() }
                 .trim()
         )
+
+        val isRelease = ProcessBuilder("git", "describe", "--exact-match", "HEAD")
+            .directory(project.rootDir)
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectError(ProcessBuilder.Redirect.PIPE)
+            .start()
+            .waitFor() == 0
+
+        return commitCount * 2 + (if (isRelease) 0 else 1)
     } catch (e: Exception) {
         logger.error("Cannot find git, defaulting to dummy version code")
     }
