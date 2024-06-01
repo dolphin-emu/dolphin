@@ -1,5 +1,6 @@
 //
 // Copyright (C) 2016 Google, Inc.
+// Copyright (C) 2022-2024 Arm Limited.
 //
 // All rights reserved.
 //
@@ -211,6 +212,7 @@ INSTANTIATE_TEST_SUITE_P(
         "runtimeArray.vert",
         "simpleFunctionCall.frag",
         "stringToDouble.vert",
+        "struct.error.frag",
         "structAssignment.frag",
         "structDeref.frag",
         "structure.frag",
@@ -251,6 +253,7 @@ INSTANTIATE_TEST_SUITE_P(
         "glsl.450.subgroupClustered.comp",
         "glsl.450.subgroupClusteredNeg.comp",
         "glsl.450.subgroupPartitioned.comp",
+        "glsl.450.subgroupRotate.comp",
         "glsl.450.subgroupShuffle.comp",
         "glsl.450.subgroupShuffleRelative.comp",
         "glsl.450.subgroupQuad.comp",
@@ -276,10 +279,14 @@ INSTANTIATE_TEST_SUITE_P(
         "glsl.es320.subgroupClustered.comp",
         "glsl.es320.subgroupClusteredNeg.comp",
         "glsl.es320.subgroupPartitioned.comp",
+        "glsl.es320.subgroupRotate.comp",
         "glsl.es320.subgroupShuffle.comp",
         "glsl.es320.subgroupShuffleRelative.comp",
         "glsl.es320.subgroupQuad.comp",
         "glsl.es320.subgroupVote.comp",
+        "glsl.es320.extTextureShadowLod.frag",
+        "gl_samplemask_array_size.frag",
+        "glsl.ext.textureShadowLod.frag",
         "terminate.frag",
         "terminate.vert",
         "negativeWorkGroupSize.comp",
@@ -291,11 +298,21 @@ INSTANTIATE_TEST_SUITE_P(
         "GL_EXT_shader_integer_mix.vert",
         "GL_ARB_draw_instanced.vert",
         "GL_ARB_fragment_coord_conventions.vert",
+        "GL_ARB_bindless_texture.frag",
+        "GL_ARB_texture_multisample.vert",
         "BestMatchFunction.vert",
         "EndStreamPrimitive.geom",
         "floatBitsToInt.vert",
         "coord_conventions.frag",
-        "gl_FragCoord.frag"
+        "gl_FragCoord.frag",
+        "glsl.interpOp.error.frag",
+        "location_aliasing.tesc",
+        "location_aliasing1.frag",
+        "GL_EXT_draw_instanced.vert",
+        "overflow_underflow_toinf_0.frag",
+        "GL_EXT_texture_array.frag",
+        "index_outside_sample_mask_range.frag",
+        "positive_infinity.frag",
     })),
     FileNameAsCustomTestSuffix
 );

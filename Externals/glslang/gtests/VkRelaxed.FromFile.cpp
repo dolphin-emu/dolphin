@@ -42,7 +42,6 @@
 #include "glslang/MachineIndependent/iomapper.h"
 #include "glslang/MachineIndependent/reflection.h"
 
-#ifndef GLSLANG_WEB
 namespace glslangtest {
 namespace {
 
@@ -291,11 +290,11 @@ TEST_P(VulkanRelaxedTest, FromFile)
 INSTANTIATE_TEST_SUITE_P(
     Glsl, VulkanRelaxedTest,
     ::testing::ValuesIn(std::vector<vkRelaxedData>({
-        {{"vk.relaxed.frag"}},
-        {{"vk.relaxed.link1.frag", "vk.relaxed.link2.frag"}},
-        {{"vk.relaxed.stagelink.0.0.vert", "vk.relaxed.stagelink.0.1.vert", "vk.relaxed.stagelink.0.2.vert", "vk.relaxed.stagelink.0.0.frag", "vk.relaxed.stagelink.0.1.frag", "vk.relaxed.stagelink.0.2.frag"}},
-        {{"vk.relaxed.stagelink.vert", "vk.relaxed.stagelink.frag"}},
-        {{"vk.relaxed.errorcheck.vert", "vk.relaxed.errorcheck.frag"}},
+        {{"vk.relaxed.frag"}, {}},
+        {{"vk.relaxed.link1.frag", "vk.relaxed.link2.frag"}, {}},
+        {{"vk.relaxed.stagelink.0.0.vert", "vk.relaxed.stagelink.0.1.vert", "vk.relaxed.stagelink.0.2.vert", "vk.relaxed.stagelink.0.0.frag", "vk.relaxed.stagelink.0.1.frag", "vk.relaxed.stagelink.0.2.frag"}, {}},
+        {{"vk.relaxed.stagelink.vert", "vk.relaxed.stagelink.frag"}, {}},
+        {{"vk.relaxed.errorcheck.vert", "vk.relaxed.errorcheck.frag"}, {}},
         {{"vk.relaxed.changeSet.vert", "vk.relaxed.changeSet.frag" }, { {"0"}, {"1"} } },
     }))
 );
@@ -303,4 +302,3 @@ INSTANTIATE_TEST_SUITE_P(
 
 }  // anonymous namespace
 }  // namespace glslangtest
-#endif 

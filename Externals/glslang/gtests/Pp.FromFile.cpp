@@ -67,6 +67,8 @@ INSTANTIATE_TEST_SUITE_P(
         "preprocessor.defined.vert",
         "preprocessor.many.endif.vert",
         "preprocessor.eof_missing.vert",
+        "preprocess.arb_shading_language_include.vert",
+        "preprocess.include_directive_missing_extension.vert",
     })),
     FileNameAsCustomTestSuffix
 );
