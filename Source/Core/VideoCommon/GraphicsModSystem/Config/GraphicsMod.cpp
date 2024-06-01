@@ -7,6 +7,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -15,17 +16,9 @@
 std::optional<GraphicsModConfig> GraphicsModConfig::Create(const std::string& file_path,
                                                            Source source)
 {
-  std::string json_data;
-  if (!File::ReadFileToString(file_path, json_data))
-  {
-    ERROR_LOG_FMT(VIDEO, "Failed to load graphics mod json file '{}'", file_path);
-    return std::nullopt;
-  }
-
   picojson::value root;
-  const auto error = picojson::parse(root, json_data);
-
-  if (!error.empty())
+  std::string error;
+  if (!JsonFromFile(file_path, &root, &error))
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load graphics mod json file '{}' due to parse error: {}",
                   file_path, error);
