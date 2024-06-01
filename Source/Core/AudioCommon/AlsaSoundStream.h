@@ -30,14 +30,8 @@ public:
 private:
   void SoundLoop();
 
-  // maximum number of frames the buffer can hold
-  static constexpr size_t BUFFER_SIZE_MAX = 8192;
-
-  // minimum number of frames to deliver in one transfer
-  static constexpr u32 FRAME_COUNT_MIN = 256;
-
-  // number of channels per frame
-  static constexpr u32 CHANNEL_COUNT = 2;
+  // target number of frames to deliver in one transfer
+  static constexpr u32 FRAME_COUNT_MIN = 96;
 
   enum class ALSAThreadStatus
   {
@@ -50,13 +44,14 @@ private:
   bool AlsaInit();
   void AlsaShutdown();
 
-  s16 mix_buffer[BUFFER_SIZE_MAX * CHANNEL_COUNT];
   std::thread thread;
   std::atomic<ALSAThreadStatus> m_thread_status;
   std::condition_variable cv;
   std::mutex cv_m;
 
-  snd_pcm_t* handle;
-  unsigned int frames_to_deliver;
+  snd_pcm_t* m_handle;
+  bool m_stereo;
+  snd_pcm_uframes_t m_period_size;
+  snd_pcm_uframes_t m_buffer_size;
 #endif
 };
