@@ -56,3 +56,6 @@ std::optional<bool> ReadBoolFromJson(const picojson::object& obj, const std::str
 
 picojson::object ToJsonObject(const Common::Vec3& vec);
 void FromJson(const picojson::object& obj, Common::Vec3& vec);
+
+bool JsonToFile(const std::string& filename, const picojson::value& root, bool prettify = false);
+bool JsonFromFile(const std::string& filename, picojson::value* root, std::string* error);
