@@ -9,7 +9,6 @@
 
 #include <picojson.h>
 
-#include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
 // Ideally this would use a concept like, 'template <std::ranges::range Range>' to constrain it,
@@ -47,7 +46,7 @@ std::optional<Type> ReadNumericFromJson(const picojson::object& obj, const std::
     return std::nullopt;
   if (!it->second.is<double>())
     return std::nullopt;
-  return MathUtil::SaturatingCast<Type>(it->second.get<double>());
+  return static_cast<Type>(it->second.get<double>());
 }
 
 std::optional<std::string> ReadStringFromJson(const picojson::object& obj, const std::string& key);
