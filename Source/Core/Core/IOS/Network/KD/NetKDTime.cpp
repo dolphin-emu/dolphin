@@ -75,7 +75,7 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
   break;
 
   case IOCTL_NW24_UNIMPLEMENTED:
-    result = -9;
+    result = IPC_UNKNOWN;
     INFO_LOG_FMT(IOS_WC24, "IOCTL_NW24_UNIMPLEMENTED = {}", result);
     break;
 

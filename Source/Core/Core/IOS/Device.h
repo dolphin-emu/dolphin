@@ -22,15 +22,34 @@ namespace IOS::HLE
 {
 enum ReturnCode : s32
 {
-  IPC_SUCCESS = 0,         // Success
-  IPC_EACCES = -1,         // Permission denied
-  IPC_EEXIST = -2,         // File exists
-  IPC_EINVAL = -4,         // Invalid argument or fd
-  IPC_EMAX = -5,           // Too many file descriptors open
-  IPC_ENOENT = -6,         // File not found
-  IPC_EQUEUEFULL = -8,     // Queue full
-  IPC_EIO = -12,           // ECC error
-  IPC_ENOMEM = -22,        // Alloc failed during request
+  // Kernel return codes
+  IPC_SUCCESS = 0,            // Success
+  IPC_EACCES = -1,            // Permission denied
+  IPC_EEXIST = -2,            // File exists
+  IPC_EINTR = -3,             // Interrupted system call
+  IPC_EINVAL = -4,            // Invalid argument or fd
+  IPC_EMAX = -5,              // Too many file descriptors open
+  IPC_ENOENT = -6,            // File not found
+  IPC_EQUEUEEMPTY = -7,       // Queue empty
+  IPC_EQUEUEFULL = -8,        // Queue full
+  IPC_UNKNOWN = -9,           // Unknown error
+  IPC_ENOTREADY = -10,        // Not ready
+  IPC_ECC = -11,              // ECC error
+  IPC_ECC_CRIT = -12,         // ECC critical error
+  IPC_BADBLOCK = -13,         // Bad block
+  IPC_INVALID_OBJTYPE = -14,  // Invalid object type
+  IPC_INVALID_RNG = -15,      // Invalid RNG
+  IPC_INVALID_FLAG = -16,     // Invalid flag
+  IPC_INVALID_FORMAT = -17,   // Invalid format
+  IPC_INVALID_VERSION = -18,  // Invalid version
+  IPC_INVALID_SIGNER = -19,   // Invalid signer
+  IPC_MISMATCH = -20,         // Value mismatch
+  IPC_INTERNAL_ERROR = -21,   // IOS internal error
+  IPC_ENOMEM = -22,           // Alloc failed during request
+  IPC_INVALID_SIZE = -23,     // Invalid size
+  IPC_ENOLINK = -24,          // No link
+
+  // FS return codes
   FS_EINVAL = -101,        // Invalid path
   FS_EACCESS = -102,       // Permission denied
   FS_ECORRUPT = -103,      // Corrupted NAND

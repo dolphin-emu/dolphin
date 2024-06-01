@@ -75,11 +75,11 @@ std::optional<IPCReply> NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
     if (m_ipc_fd == request_handle)
     {
       m_ipc_fd = 0;
-      common_result = 0;
+      common_result = IPC_SUCCESS;
     }
     else
     {
-      common_result = -3;
+      common_result = IPC_EINTR;
     }
 
     break;
