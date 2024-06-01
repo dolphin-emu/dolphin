@@ -213,6 +213,9 @@
     <ClInclude Include="glslang\MachineIndependent\ScanContext.h">
       <Filter>glslang\MachineIndependant</Filter>
     </ClInclude>
+    <ClInclude Include="glslang\MachineIndependent\span.h">
+      <Filter>glslang\MachineIndependant</Filter>
+    </ClInclude>
     <ClInclude Include="glslang\MachineIndependent\SymbolTable.h">
       <Filter>glslang\MachineIndependant</Filter>
     </ClInclude>
@@ -250,6 +253,9 @@
       <Filter>SPIRV</Filter>
     </ClInclude>
     <ClInclude Include="SPIRV\NonSemanticDebugPrintf.h">
+      <Filter>SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRV\NonSemanticShaderDebugInfo100.h">
       <Filter>SPIRV</Filter>
     </ClInclude>
     <ClInclude Include="SPIRV\spirv.hpp">

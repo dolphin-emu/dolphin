@@ -108,6 +108,7 @@
     <ClInclude Include="glslang\MachineIndependent\RemoveTree.h" />
     <ClInclude Include="glslang\MachineIndependent\Scan.h" />
     <ClInclude Include="glslang\MachineIndependent\ScanContext.h" />
+    <ClInclude Include="glslang\MachineIndependent\span.h" />
     <ClInclude Include="glslang\MachineIndependent\SymbolTable.h" />
     <ClInclude Include="glslang\MachineIndependent\Versions.h" />
     <ClInclude Include="glslang\OSDependent\osinclude.h" />
@@ -119,6 +120,7 @@
     <ClInclude Include="SPIRV\GlslangToSpv.h" />
     <ClInclude Include="SPIRV\Logger.h" />
     <ClInclude Include="SPIRV\NonSemanticDebugPrintf.h" />
+    <ClInclude Include="SPIRV\NonSemanticShaderDebugInfo100.h" />
     <ClInclude Include="SPIRV\spirv.hpp" />
     <ClInclude Include="SPIRV\SpvBuilder.h" />
     <ClInclude Include="SPIRV\spvIR.h" />
