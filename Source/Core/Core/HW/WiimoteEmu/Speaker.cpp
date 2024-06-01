@@ -15,7 +15,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
-//#define WIIMOTE_SPEAKER_DUMP
+// #define WIIMOTE_SPEAKER_DUMP
 #ifdef WIIMOTE_SPEAKER_DUMP
 #include <cstdlib>
 #include <fstream>

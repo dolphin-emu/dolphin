@@ -28,11 +28,11 @@
 
 #include "Globals.h"
 
-#include "gdsp_opcodes.h"
-#include "gdsp_memory.h"
-#include "gdsp_interpreter.h"
-#include "gdsp_registers.h"
 #include "gdsp_ext_op.h"
+#include "gdsp_interpreter.h"
+#include "gdsp_memory.h"
+#include "gdsp_opcodes.h"
+#include "gdsp_registers.h"
 
 // ---------------------------------------------------------------------------------------
 //
@@ -40,17 +40,11 @@
 //
 // ---------------------------------------------------------------------------------------
 
-inline void dsp_SR_set_flag(uint8 flag)
-{
-	g_dsp.r[R_SR] |= (1 << flag);
+inline void dsp_SR_set_flag(uint8 flag) { g_dsp.r[R_SR] |= (1 << flag); }
+
+inline bool dsp_SR_is_flag_set(uint8 flag) {
+  return ((g_dsp.r[R_SR] & (1 << flag)) > 0);
 }
-
-
-inline bool dsp_SR_is_flag_set(uint8 flag)
-{
-	return((g_dsp.r[R_SR] & (1 << flag)) > 0);
-}
-
 
 // ---------------------------------------------------------------------------------------
 //
@@ -58,45 +52,39 @@ inline bool dsp_SR_is_flag_set(uint8 flag)
 //
 // ---------------------------------------------------------------------------------------
 
-inline uint16 dsp_op_read_reg(uint8 reg)
-{
-	uint16 val;
+inline uint16 dsp_op_read_reg(uint8 reg) {
+  uint16 val;
 
-	switch (reg & 0x1f)
-	{
-	    case 0x0c:
-	    case 0x0d:
-	    case 0x0e:
-	    case 0x0f:
-		    val = dsp_reg_load_stack(reg - 0x0c);
-		    break;
+  switch (reg & 0x1f) {
+  case 0x0c:
+  case 0x0d:
+  case 0x0e:
+  case 0x0f:
+    val = dsp_reg_load_stack(reg - 0x0c);
+    break;
 
-	    default:
-		    val = g_dsp.r[reg];
-		    break;
-	}
+  default:
+    val = g_dsp.r[reg];
+    break;
+  }
 
-	return(val);
+  return (val);
 }
 
+inline void dsp_op_write_reg(uint8 reg, uint16 val) {
+  switch (reg & 0x1f) {
+  case 0x0c:
+  case 0x0d:
+  case 0x0e:
+  case 0x0f:
+    dsp_reg_store_stack(reg - 0x0c, val);
+    break;
 
-inline void dsp_op_write_reg(uint8 reg, uint16 val)
-{
-	switch (reg & 0x1f)
-	{
-	    case 0x0c:
-	    case 0x0d:
-	    case 0x0e:
-	    case 0x0f:
-		    dsp_reg_store_stack(reg - 0x0c, val);
-		    break;
-
-	    default:
-		    g_dsp.r[reg] = val;
-		    break;
-	}
+  default:
+    g_dsp.r[reg] = val;
+    break;
+  }
 }
-
 
 // ---------------------------------------------------------------------------------------
 //
@@ -104,32 +92,27 @@ inline void dsp_op_write_reg(uint8 reg, uint16 val)
 //
 // ---------------------------------------------------------------------------------------
 
-
-inline sint64 dsp_get_long_prod()
-{
-	sint64 val;
-	sint64 low_prod;
-	val   = (sint8)g_dsp.r[0x16];
-	val <<= 32;
-	low_prod  = g_dsp.r[0x15];
-	low_prod += g_dsp.r[0x17];
-	low_prod <<= 16;
-	low_prod |= g_dsp.r[0x14];
-	val += low_prod;
-	return(val);
+inline sint64 dsp_get_long_prod() {
+  sint64 val;
+  sint64 low_prod;
+  val = (sint8)g_dsp.r[0x16];
+  val <<= 32;
+  low_prod = g_dsp.r[0x15];
+  low_prod += g_dsp.r[0x17];
+  low_prod <<= 16;
+  low_prod |= g_dsp.r[0x14];
+  val += low_prod;
+  return (val);
 }
 
-
-inline void dsp_set_long_prod(sint64 val)
-{
-	g_dsp.r[0x14] = (uint16)val;
-	val >>= 16;
-	g_dsp.r[0x15] = (uint16)val;
-	val >>= 16;
-	g_dsp.r[0x16] = (uint16)val;
-	g_dsp.r[0x17] = 0;
+inline void dsp_set_long_prod(sint64 val) {
+  g_dsp.r[0x14] = (uint16)val;
+  val >>= 16;
+  g_dsp.r[0x15] = (uint16)val;
+  val >>= 16;
+  g_dsp.r[0x16] = (uint16)val;
+  g_dsp.r[0x17] = 0;
 }
-
 
 // ---------------------------------------------------------------------------------------
 //
@@ -137,67 +120,55 @@ inline void dsp_set_long_prod(sint64 val)
 //
 // ---------------------------------------------------------------------------------------
 
-inline sint64 dsp_get_long_acc(uint8 reg)
-{
-	_dbg_assert_(reg < 2);
-	sint64 val;
-	sint64 low_acc;
-	val       = (sint8)g_dsp.r[0x10 + reg];
-	val     <<= 32;
-	low_acc   = g_dsp.r[0x1e + reg];
-	low_acc <<= 16;
-	low_acc  |= g_dsp.r[0x1c + reg];
-	val |= low_acc;
-	return(val);
+inline sint64 dsp_get_long_acc(uint8 reg) {
+  _dbg_assert_(reg < 2);
+  sint64 val;
+  sint64 low_acc;
+  val = (sint8)g_dsp.r[0x10 + reg];
+  val <<= 32;
+  low_acc = g_dsp.r[0x1e + reg];
+  low_acc <<= 16;
+  low_acc |= g_dsp.r[0x1c + reg];
+  val |= low_acc;
+  return (val);
 }
 
-
-inline uint64 dsp_get_ulong_acc(uint8 reg)
-{
-	_dbg_assert_(reg < 2);
-	uint64 val;
-	uint64 low_acc;
-	val       = (uint8)g_dsp.r[0x10 + reg];
-	val     <<= 32;
-	low_acc   = g_dsp.r[0x1e + reg];
-	low_acc <<= 16;
-	low_acc  |= g_dsp.r[0x1c + reg];
-	val |= low_acc;
-	return(val);
+inline uint64 dsp_get_ulong_acc(uint8 reg) {
+  _dbg_assert_(reg < 2);
+  uint64 val;
+  uint64 low_acc;
+  val = (uint8)g_dsp.r[0x10 + reg];
+  val <<= 32;
+  low_acc = g_dsp.r[0x1e + reg];
+  low_acc <<= 16;
+  low_acc |= g_dsp.r[0x1c + reg];
+  val |= low_acc;
+  return (val);
 }
 
-
-inline void dsp_set_long_acc(uint8 _reg, sint64 val)
-{
-	_dbg_assert_(_reg < 2);
-	g_dsp.r[0x1c + _reg] = (uint16)val;
-	val >>= 16;
-	g_dsp.r[0x1e + _reg] = (uint16)val;
-	val >>= 16;
-	g_dsp.r[0x10 + _reg] = (uint16)val;
+inline void dsp_set_long_acc(uint8 _reg, sint64 val) {
+  _dbg_assert_(_reg < 2);
+  g_dsp.r[0x1c + _reg] = (uint16)val;
+  val >>= 16;
+  g_dsp.r[0x1e + _reg] = (uint16)val;
+  val >>= 16;
+  g_dsp.r[0x10 + _reg] = (uint16)val;
 }
 
-
-inline sint16 dsp_get_acc_l(uint8 _reg)
-{
-	_dbg_assert_(_reg < 2);
-	return(g_dsp.r[0x1c + _reg]);
+inline sint16 dsp_get_acc_l(uint8 _reg) {
+  _dbg_assert_(_reg < 2);
+  return (g_dsp.r[0x1c + _reg]);
 }
 
-
-inline sint16 dsp_get_acc_m(uint8 _reg)
-{
-	_dbg_assert_(_reg < 2);
-	return(g_dsp.r[0x1e + _reg]);
+inline sint16 dsp_get_acc_m(uint8 _reg) {
+  _dbg_assert_(_reg < 2);
+  return (g_dsp.r[0x1e + _reg]);
 }
 
-
-inline sint16 dsp_get_acc_h(uint8 _reg)
-{
-	_dbg_assert_(_reg < 2);
-	return(g_dsp.r[0x10 + _reg]);
+inline sint16 dsp_get_acc_h(uint8 _reg) {
+  _dbg_assert_(_reg < 2);
+  return (g_dsp.r[0x10 + _reg]);
 }
-
 
 // ---------------------------------------------------------------------------------------
 //
@@ -205,30 +176,23 @@ inline sint16 dsp_get_acc_h(uint8 _reg)
 //
 // ---------------------------------------------------------------------------------------
 
-
-inline sint64 dsp_get_long_acx(uint8 _reg)
-{
-	_dbg_assert_(_reg < 2);
-	sint64 val = (sint16)g_dsp.r[0x1a + _reg];
-	val <<= 16;
-	sint64 low_acc = g_dsp.r[0x18 + _reg];
-	val |= low_acc;
-	return(val);
+inline sint64 dsp_get_long_acx(uint8 _reg) {
+  _dbg_assert_(_reg < 2);
+  sint64 val = (sint16)g_dsp.r[0x1a + _reg];
+  val <<= 16;
+  sint64 low_acc = g_dsp.r[0x18 + _reg];
+  val |= low_acc;
+  return (val);
 }
 
-
-inline sint16 dsp_get_ax_l(uint8 _reg)
-{
-	_dbg_assert_(_reg < 2);
-	return(g_dsp.r[0x18 + _reg]);
+inline sint16 dsp_get_ax_l(uint8 _reg) {
+  _dbg_assert_(_reg < 2);
+  return (g_dsp.r[0x18 + _reg]);
 }
 
-
-inline sint16 dsp_get_ax_h(uint8 _reg)
-{
-	_dbg_assert_(_reg < 2);
-	return(g_dsp.r[0x1a + _reg]);
+inline sint16 dsp_get_ax_h(uint8 _reg) {
+  _dbg_assert_(_reg < 2);
+  return (g_dsp.r[0x1a + _reg]);
 }
-
 
 #endif

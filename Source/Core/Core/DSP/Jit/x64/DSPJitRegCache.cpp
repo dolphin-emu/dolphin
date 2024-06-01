@@ -105,7 +105,7 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
 #endif
 
 #define STATIC_REG_ACCS
-//#undef STATIC_REG_ACCS
+// #undef STATIC_REG_ACCS
 
 DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter) : m_emitter(emitter), m_is_temporary(false)
 {

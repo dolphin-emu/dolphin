@@ -615,7 +615,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   system.GetPowerPC().SetMode(PowerPC::CoreMode::Interpreter);
 
   // Determine the CPU thread function
-  void (*cpuThreadFunc)(Core::System & system, const std::optional<std::string>& savestate_path,
+  void (*cpuThreadFunc)(Core::System& system, const std::optional<std::string>& savestate_path,
                         bool delete_savestate);
   if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
     cpuThreadFunc = FifoPlayerThread;

@@ -429,7 +429,10 @@ extern const CaseInsensitiveDict<ParseInfo, '.', '_'> mnemonic_tokens = {
 
 #define PSEUDO(mnemonic, base, variant_bits, alg)                                                  \
   {                                                                                                \
-    mnemonic, { static_cast<size_t>(base) * VARIANT_PERMUTATIONS + (variant_bits), alg }           \
+    mnemonic,                                                                                      \
+    {                                                                                              \
+      static_cast<size_t>(base) * VARIANT_PERMUTATIONS + (variant_bits), alg                       \
+    }                                                                                              \
   }
 #define PLAIN_PSEUDO(mnemonic, base, alg) PSEUDO(mnemonic, base, PLAIN_MNEMONIC, alg)
 #define RC_PSEUDO(mnemonic, base, alg)                                                             \
@@ -1043,7 +1046,10 @@ void FillMfsprBatAndBitswap(OperandList& operands)
 }  // namespace
 
 #define PSEUDO(base, variant_bits, cb)                                                             \
-  ExtendedMnemonicDesc { static_cast<size_t>(base) * VARIANT_PERMUTATIONS + variant_bits, cb }
+  ExtendedMnemonicDesc                                                                             \
+  {                                                                                                \
+    static_cast<size_t>(base) * VARIANT_PERMUTATIONS + variant_bits, cb                            \
+  }
 #define PLAIN_PSEUDO(base, cb)                                                                     \
   PSEUDO(base, PLAIN_MNEMONIC, cb), INVALID_EXT_MNEMONIC, INVALID_EXT_MNEMONIC, INVALID_EXT_MNEMONIC
 #define RC_PSEUDO(base, cb)                                                                        \

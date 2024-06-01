@@ -231,8 +231,7 @@ Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer
     : m_text(text), m_expr(std::move(ex)), m_vars(std::move(vars))
 {
   using LookupKV = std::pair<std::string_view, Expression::VarBinding>;
-  static constexpr auto sorted_lookup = []() consteval
-  {
+  static constexpr auto sorted_lookup = []() consteval {
     using enum Expression::VarBindingType;
     auto unsorted_lookup = std::to_array<LookupKV>({
         {"r0", {GPR, 0}},
@@ -386,8 +385,7 @@ Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer
     });
     std::ranges::sort(unsorted_lookup, {}, &LookupKV::first);
     return unsorted_lookup;
-  }
-  ();
+  }();
   static_assert(std::ranges::adjacent_find(sorted_lookup, {}, &LookupKV::first) ==
                     sorted_lookup.end(),
                 "Expression: Sorted lookup should not contain duplicate keys.");

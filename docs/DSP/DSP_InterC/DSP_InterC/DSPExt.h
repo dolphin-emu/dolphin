@@ -29,5 +29,4 @@
 void dsp_op_ext_ops_pro(uint16 _Opcode);
 void dsp_op_ext_ops_epi(uint16 _Opcode);
 
-
 #endif

@@ -336,8 +336,7 @@ constexpr std::array<Jit64OpTemplate, 10> s_table63_2{{
     {31, &Jit64::fmaddXX},   // fnmaddx
 }};
 
-constexpr std::array<Jit64::Instruction, 64> s_dyna_op_table = []() consteval
-{
+constexpr std::array<Jit64::Instruction, 64> s_dyna_op_table = []() consteval {
   std::array<Jit64::Instruction, 64> table{};
   Common::Fill(table, &Jit64::FallBackToInterpreter);
 
@@ -348,11 +347,9 @@ constexpr std::array<Jit64::Instruction, 64> s_dyna_op_table = []() consteval
   }
 
   return table;
-}
-();
+}();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = []() consteval
-{
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = []() consteval {
   std::array<Jit64::Instruction, 1024> table{};
   Common::Fill(table, &Jit64::FallBackToInterpreter);
 
@@ -386,11 +383,9 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = []() consteval
   }
 
   return table;
-}
-();
+}();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table19 = []() consteval
-{
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table19 = []() consteval {
   std::array<Jit64::Instruction, 1024> table{};
   Common::Fill(table, &Jit64::FallBackToInterpreter);
 
@@ -401,11 +396,9 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table19 = []() consteva
   }
 
   return table;
-}
-();
+}();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table31 = []() consteval
-{
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table31 = []() consteval {
   std::array<Jit64::Instruction, 1024> table{};
   Common::Fill(table, &Jit64::FallBackToInterpreter);
 
@@ -416,11 +409,9 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table31 = []() consteva
   }
 
   return table;
-}
-();
+}();
 
-constexpr std::array<Jit64::Instruction, 32> s_dyna_op_table59 = []() consteval
-{
+constexpr std::array<Jit64::Instruction, 32> s_dyna_op_table59 = []() consteval {
   std::array<Jit64::Instruction, 32> table{};
   Common::Fill(table, &Jit64::FallBackToInterpreter);
 
@@ -431,11 +422,9 @@ constexpr std::array<Jit64::Instruction, 32> s_dyna_op_table59 = []() consteval
   }
 
   return table;
-}
-();
+}();
 
-constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = []() consteval
-{
+constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = []() consteval {
   std::array<Jit64::Instruction, 1024> table{};
   Common::Fill(table, &Jit64::FallBackToInterpreter);
 
@@ -457,8 +446,7 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = []() consteva
   }
 
   return table;
-}
-();
+}();
 
 }  // Anonymous namespace
 

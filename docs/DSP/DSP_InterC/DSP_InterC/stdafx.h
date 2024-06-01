@@ -10,11 +10,6 @@
 #include <stdio.h>
 #include <tchar.h>
 
-
-
-
-
-
 typedef unsigned char uint8;
 typedef unsigned short uint16;
 typedef unsigned int uint32;
@@ -27,12 +22,9 @@ typedef signed int sint32;
 typedef signed long long sint64;
 
 extern uint16 FetchOpcode();
-extern void ErrorLog(const char* _fmt, ...);
+extern void ErrorLog(const char *_fmt, ...);
 
-inline uint16 swap16(uint16 x)
-{
-	return((x >> 8) | (x << 8));
-}
+inline uint16 swap16(uint16 x) { return ((x >> 8) | (x << 8)); }
 
 #include "OutBuffer.h"
 
