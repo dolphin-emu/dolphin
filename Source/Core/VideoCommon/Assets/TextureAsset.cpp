@@ -78,11 +78,11 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     sampler->tm0.mag_filter = FilterMode::Linear;
     sampler->tm0.mipmap_filter = FilterMode::Linear;
   }
-  else if (sampler_state_filter == "point")
+  else if (sampler_state_filter == "near")
   {
-    sampler->tm0.min_filter = FilterMode::Linear;
-    sampler->tm0.mag_filter = FilterMode::Linear;
-    sampler->tm0.mipmap_filter = FilterMode::Linear;
+    sampler->tm0.min_filter = FilterMode::Near;
+    sampler->tm0.mag_filter = FilterMode::Near;
+    sampler->tm0.mipmap_filter = FilterMode::Near;
   }
   else
   {
