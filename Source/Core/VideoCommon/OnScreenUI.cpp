@@ -472,8 +472,7 @@ void OnScreenUI::SetMousePos(float x, float y)
 {
   auto lock = GetImGuiLock();
 
-  ImGui::GetIO().MousePos.x = x;
-  ImGui::GetIO().MousePos.y = y;
+  ImGui::GetIO().AddMousePosEvent(x, y);
 }
 
 void OnScreenUI::SetMousePress(u32 button_mask)
