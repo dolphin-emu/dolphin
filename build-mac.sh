@@ -4,6 +4,12 @@
 QT_BREW_PATH=$(brew --prefix qt@6)
 CMAKE_FLAGS="-DQT_DIR=${QT_BREW_PATH}/lib/cmake/Qt6 -DENABLE_NOGUI=false"
 
+# For some reason the system xxhash library doesn't get properly linked,
+# at least on my M1. The clang command gets -lxxhash, but probably needs
+# -L/opt/homebrew/lib/ to actually find the library.
+if [[ $(arch) == 'arm64' ]]; then
+  CMAKE_FLAGS+=" -DUSE_SYSTEM_XXHASH=OFF"
+fi
 export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib:/usr/lib/
 
 # Build type
