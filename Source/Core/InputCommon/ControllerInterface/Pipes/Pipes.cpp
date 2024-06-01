@@ -17,12 +17,12 @@
 
 #include <Core/Config/MainSettings.h>
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-// SLIPPITODO: Do we need to make this extern?
-bool g_need_input_for_frame;
+extern bool g_need_input_for_frame;  // From EXI_DeviceSlippi.cpp
 
 namespace ciface::Pipes
 {
@@ -148,46 +148,67 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
     }
   }
   return (s32)bytesread;
-#ifndef _WIN32
-  if (SConfig::GetInstance().m_blockingPipes)
-  {
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(file_descriptor, &set);
-
-    // Wait for activity on the socket
-    select(1, &set, NULL, NULL, NULL);
-  }
-#endif
 #else
   return read(file_descriptor, in_buffer, size);
 #endif
 }
 
+void waitForInput(PIPE_FD file_descriptor)
+{
+#ifdef _WIN32
+  // Not implemented yet.
+#else
+  fd_set set;
+  FD_ZERO(&set);
+  FD_SET(file_descriptor, &set);
+
+  // Wait for activity on the socket
+  // TODO: we should be using `poll` instead
+  select(file_descriptor + 1, &set, NULL, NULL, NULL);
+#endif
+}
+
 Core::DeviceRemoval PipeDevice::UpdateInput()
 {
+  bool wait_for_input = Config::Get(Config::SLIPPI_BLOCKING_PIPES) && g_need_input_for_frame;
   bool finished = false;
   do
   {
     // Read any pending characters off the pipe. If we hit a newline,
     // then dequeue a command off the front of m_buf and parse it.
     char buf[32];
-    std::size_t bytes_read =
-        readFromPipe(m_fd, buf, sizeof buf);  // slippi: confirm this still works for libmelee
-    while (bytes_read > 0)
+
+    // Avoids a busy loop if no data is present.
+    if (wait_for_input)
+      waitForInput(m_fd);
+
+    // Fill buffer with whatever data is present.
+    while (true)
     {
+      s32 bytes_read = readFromPipe(m_fd, buf, sizeof buf);
+
+      // -1 is technically an error, but can actually mean no data for
+      // non-blocking sockets; see https://man7.org/linux/man-pages/man2/read.2.html
+      // TODO: handle real errors
+      if (bytes_read <= 0)
+        break;
+
       m_buf.append(buf, bytes_read);
-      bytes_read = readFromPipe(m_fd, buf, sizeof buf);
     }
+
+    // Execute any commands given to us.
     std::size_t newline = m_buf.find("\n");
     while (newline != std::string::npos)
     {
       std::string command = m_buf.substr(0, newline);
-      ParseCommand(command);
+      finished = ParseCommand(command);
       m_buf.erase(0, newline + 1);
       newline = m_buf.find("\n");
     }
-  } while (!finished && Config::Get(Config::SLIPPI_BLOCKING_PIPES));
+
+    // In blocking mode, we continue until a FLUSH command is given.
+  } while (wait_for_input && !finished);
+
   return Core::DeviceRemoval::Keep;
 }
 
@@ -216,37 +237,57 @@ void PipeDevice::SetAxis(const std::string& entry, double value)
     search_lo->second->SetState(lo);
 }
 
+// Returns whether commands for this frame are finished.
 bool PipeDevice::ParseCommand(const std::string& command)
 {
-  const std::vector<std::string> tokens = SplitString(command, ' ');
-  if (tokens.size() < 2 || tokens.size() > 4)
-    return false;
-  if (tokens[0] == "FLUSH")
+  if (command == "FLUSH")
   {
-    g_need_input_for_frame = false;
+    // Don't set g_need_input_for_frame = false here because other PipeDevices
+    // might not have been flushed yet. Instead, the flag will be cleared in
+    // ControllerInterface.cpp after UpdateInputs is called on all devices.
     return true;
   }
-  if (tokens[0] == "PRESS" || tokens[0] == "RELEASE")
+
+  bool valid = false;
+  const std::vector<std::string> tokens = SplitString(command, ' ');
+  if (tokens.size() < 2 || tokens.size() > 4)
+    valid = false;
+  else if (tokens[0] == "PRESS" || tokens[0] == "RELEASE")
   {
     auto search = m_buttons.find(tokens[1]);
     if (search != m_buttons.end())
+    {
       search->second->SetState(tokens[0] == "PRESS" ? 1.0 : 0.0);
+      valid = true;
+    }
   }
   else if (tokens[0] == "SET")
   {
+    // Analog L or R Trigger
     if (tokens.size() == 3)
     {
       double value = StringToDouble(tokens[2]);
+      // Note: inputs here are squashed into [0.5, 1], corresponding to the
+      // "ax_hi" PipeInput. The corresponding setting in GCPadNew.ini is
+      // "Triggers/L-Analog=Axis L +" (and same for R). If we didn't squash,
+      // users would instead use "Axis L -+" or "Full Axis +".
       SetAxis(tokens[1], (value / 2.0) + 0.5);
+      valid = true;
     }
+    // Main or C Stick
     else if (tokens.size() == 4)
     {
       double x = StringToDouble(tokens[2]);
       double y = StringToDouble(tokens[3]);
       SetAxis(tokens[1] + " X", x);
       SetAxis(tokens[1] + " Y", y);
+      valid = true;
     }
   }
+
+  if (!valid)
+    WARN_LOG_FMT(SLIPPI, "Invalid command '{}'", command);
+
   return false;
 }
 }  // namespace ciface::Pipes
