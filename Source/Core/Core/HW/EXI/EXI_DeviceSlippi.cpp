@@ -3323,8 +3323,11 @@ void CEXISlippi::ConfigureJukebox()
   }
 #endif
 
-  bool no_audio_output = backend.find(BACKEND_NULLSOUND) != std::string::npos;
-  int dolphin_system_volume = Config::Get(Config::MAIN_AUDIO_MUTED) || no_audio_output ?
+  if (backend.find(BACKEND_NULLSOUND) != std::string::npos) {
+    return;
+  }
+
+  int dolphin_system_volume = Config::Get(Config::MAIN_AUDIO_MUTED) ?
                                   0 :
                                   Config::Get(Config::MAIN_AUDIO_VOLUME);
 
