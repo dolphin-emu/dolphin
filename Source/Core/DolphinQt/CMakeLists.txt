@@ -582,16 +582,6 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
   endforeach()
 endif()
 
-# Link SlippiRustExtensions in.
-#
-# (This doesn't feel perfect here, but truth be told I can't think offhand of
-# a better location for it at the moment.)
-#set(RUST_FEATURES "")
-#if(DIS_PLAYBACK)
-#    set(RUST_FEATURES "playback")
-#endif()
-
-corrosion_import_crate(MANIFEST_PATH ${CMAKE_SOURCE_DIR}/Externals/SlippiRustExtensions/Cargo.toml ${RUST_FEATURES})
 target_link_libraries(dolphin-emu PUBLIC slippi-rust-extensions)
 
 if(APPLE)

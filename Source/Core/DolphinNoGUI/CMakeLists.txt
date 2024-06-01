@@ -26,7 +26,8 @@ set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
 
 target_link_libraries(dolphin-nogui
 PUBLIC
-	z
+  slippi-rust-extensions
+  z
 PRIVATE
   core
   uicommon
@@ -54,4 +55,3 @@ endif()
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-nogui)
 install(TARGETS dolphin-nogui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
