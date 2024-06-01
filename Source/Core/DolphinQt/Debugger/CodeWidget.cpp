@@ -339,7 +339,7 @@ void CodeWidget::UpdateCallstack()
 {
   m_callstack_list->clear();
 
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (Core::GetState(m_system) != Core::State::Paused || !Core::IsRunningAndStarted())
     return;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
