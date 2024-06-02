@@ -134,8 +134,13 @@ void UndeclareAsHostThread();
 
 std::string StopMessage(bool main_thread, std::string_view message);
 
+// Returns true when GetState returns Running or Paused.
 bool IsRunning(Core::System& system);
+// Returns true when GetState returns Starting, Running or Paused.
 bool IsRunningOrStarting(Core::System& system);
+// Returns true when GetState returns Uninitialized.
+bool IsUninitialized(Core::System& system);
+
 bool IsCPUThread();  // this tells us whether we are the CPU thread.
 bool IsGPUThread();
 bool IsHostThread();

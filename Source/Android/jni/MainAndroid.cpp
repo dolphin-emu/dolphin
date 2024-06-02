@@ -118,8 +118,7 @@ void Host_Message(HostMessageID id)
   }
   else if (id == HostMessageID::WMUserStop)
   {
-    if (Core::IsRunning(Core::System::GetInstance()))
-      Core::QueueHostJob(&Core::Stop);
+    Core::QueueHostJob(&Core::Stop);
   }
 }
 
@@ -277,13 +276,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetIsBooting
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunning(JNIEnv*, jclass)
 {
-  return s_is_booting.IsSet() ||
-         static_cast<jboolean>(Core::IsRunning(Core::System::GetInstance()));
-}
-
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndStarted(JNIEnv*,
-                                                                                            jclass)
-{
   return static_cast<jboolean>(Core::IsRunning(Core::System::GetInstance()));
 }
 
@@ -291,6 +283,13 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndUnpaused(JNIEnv*, jclass)
 {
   return static_cast<jboolean>(Core::GetState(Core::System::GetInstance()) == Core::State::Running);
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsUninitialized(JNIEnv*,
+                                                                                        jclass)
+{
+  return static_cast<jboolean>(Core::IsUninitialized(Core::System::GetInstance()) &&
+                               !s_is_booting.IsSet());
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
