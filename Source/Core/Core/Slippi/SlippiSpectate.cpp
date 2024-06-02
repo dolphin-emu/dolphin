@@ -37,10 +37,6 @@ void SlippiSpectateServer::write(u8* payload, u32 length)
 // CALLED FROM DOLPHIN MAIN THREAD
 void SlippiSpectateServer::startGame()
 {
-  if (isSpectatorEnabled())
-  {
-    m_event_queue.Push("START_GAME");
-  }
   json start_game_message;
   start_game_message["type"] = "start_game";
   m_event_queue.Push(start_game_message.dump());
@@ -49,10 +45,6 @@ void SlippiSpectateServer::startGame()
 // CALLED FROM DOLPHIN MAIN THREAD
 void SlippiSpectateServer::endGame(bool dolphin_closed)
 {
-  if (isSpectatorEnabled())
-  {
-    m_event_queue.Push("END_GAME");
-  }
   json end_game_message;
   end_game_message["type"] = "end_game";
   end_game_message["dolphin_closed"] = dolphin_closed;
