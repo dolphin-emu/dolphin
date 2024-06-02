@@ -33,6 +33,7 @@
 class AbstractFramebuffer;
 class AbstractStagingTexture;
 class PointerWrap;
+struct SamplerState;
 struct VideoConfig;
 
 namespace VideoCommon
@@ -282,7 +283,7 @@ public:
   RcTcacheEntry GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                               MathUtil::Rectangle<int>* display_rect);
 
-  virtual void BindTextures(BitSet32 used_textures);
+  virtual void BindTextures(BitSet32 used_textures, const std::array<SamplerState, 8>& samplers);
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
                                  u32 dstStride, bool is_depth_copy,
                                  const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
@@ -307,6 +308,10 @@ public:
 
   static bool AllCopyFilterCoefsNeeded(const std::array<u32, 3>& coefficients);
   static bool CopyFilterCanOverflow(const std::array<u32, 3>& coefficients);
+
+  // Get a new sampler state
+  static SamplerState GetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
+                                      bool has_arbitrary_mips);
 
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
