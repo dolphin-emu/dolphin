@@ -791,7 +791,7 @@ bool AssemblerWidget::SaveEditor(AsmEditor* editor)
 
 void AssemblerWidget::OnEmulationStateChanged(Core::State state)
 {
-  m_inject->setEnabled(state != Core::State::Uninitialized);
+  m_inject->setEnabled(state == Core::State::Running || state == Core::State::Paused);
 }
 
 void AssemblerWidget::OnTabClose(int index)

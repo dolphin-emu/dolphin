@@ -211,6 +211,11 @@ bool IsRunningOrStarting(Core::System& system)
   return state == State::Running || state == State::Starting;
 }
 
+bool IsUninitialized(Core::System& system)
+{
+  return s_state.load() == State::Uninitialized;
+}
+
 bool IsCPUThread()
 {
   return tls_is_cpu_thread;
@@ -237,7 +242,7 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
 {
   if (s_emu_thread.joinable())
   {
-    if (IsRunning(system))
+    if (!IsUninitialized(system))
     {
       PanicAlertFmtT("Emu Thread already running");
       return false;

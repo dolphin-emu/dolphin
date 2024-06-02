@@ -104,8 +104,9 @@ void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
   if (!force && (state == Core::State::Starting || state == Core::State::Stopping))
     return;
 
-  const auto& game_id =
-      state != Core::State::Uninitialized ? SConfig::GetInstance().GetGameID() : std::string();
+  const auto& game_id = state == Core::State::Running || state == Core::State::Paused ?
+                            SConfig::GetInstance().GetGameID() :
+                            std::string();
   const auto& game_tdb_id = SConfig::GetInstance().GetGameTDBID();
   const u16 revision = SConfig::GetInstance().GetRevision();
 

@@ -43,7 +43,7 @@ public:
 
   explicit MenuBar(QWidget* parent = nullptr);
 
-  void UpdateToolsMenu(bool emulation_started);
+  void UpdateToolsMenu(Core::State state);
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 

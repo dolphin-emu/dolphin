@@ -59,11 +59,14 @@ FIFOPlayerWindow::FIFOPlayerWindow(FifoPlayer& fifo_player, FifoRecorder& fifo_r
   });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    if (state == Core::State::Running && m_emu_state != Core::State::Paused)
-      OnEmulationStarted();
-    else if (state == Core::State::Uninitialized)
-      OnEmulationStopped();
-    m_emu_state = state;
+    if (state != m_emu_state)
+    {
+      if (state == Core::State::Running && m_emu_state != Core::State::Paused)
+        OnEmulationStarted();
+      else if (state == Core::State::Uninitialized)
+        OnEmulationStopped();
+      m_emu_state = state;
+    }
   });
 
   installEventFilter(this);
@@ -376,9 +379,11 @@ void FIFOPlayerWindow::UpdateLimits()
 
 void FIFOPlayerWindow::UpdateControls()
 {
-  bool running = Core::IsRunning(Core::System::GetInstance());
-  bool is_recording = m_fifo_recorder.IsRecording();
-  bool is_playing = m_fifo_player.IsPlaying();
+  Core::System& system = Core::System::GetInstance();
+  const bool core_is_uninitialized = Core::IsUninitialized(system);
+  const bool core_is_running = Core::IsRunning(system);
+  const bool is_recording = m_fifo_recorder.IsRecording();
+  const bool is_playing = m_fifo_player.IsPlaying();
 
   m_frame_range_from->setEnabled(is_playing);
   m_frame_range_from_label->setEnabled(is_playing);
@@ -394,10 +399,10 @@ void FIFOPlayerWindow::UpdateControls()
   m_frame_record_count_label->setEnabled(enable_frame_record_count);
   m_frame_record_count->setEnabled(enable_frame_record_count);
 
-  m_load->setEnabled(!running);
-  m_record->setEnabled(running && !is_playing);
+  m_load->setEnabled(core_is_uninitialized);
+  m_record->setEnabled(core_is_running && !is_playing);
 
-  m_stop->setVisible(running && is_recording);
+  m_stop->setVisible(core_is_running && is_recording);
   m_record->setVisible(!m_stop->isVisible());
 
   m_save->setEnabled(m_fifo_recorder.IsRecordingDone());
