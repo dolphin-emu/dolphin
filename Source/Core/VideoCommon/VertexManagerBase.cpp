@@ -563,13 +563,19 @@ void VertexManagerBase::Flush()
   const auto used_textures = UsedTextures();
   std::vector<std::string> texture_names;
   Common::SmallVector<u32, 8> texture_units;
+  std::array<SamplerState, 8> samplers;
   if (!m_cull_all)
   {
     if (!g_ActiveConfig.bGraphicMods)
     {
       for (const u32 i : used_textures)
       {
-        g_texture_cache->Load(TextureInfo::FromStage(i));
+        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
+        if (!cache_entry)
+          continue;
+        const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
+        samplers[i] = TextureCacheBase::GetSamplerState(
+            i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
       }
     }
     else
@@ -585,6 +591,10 @@ void VertexManagerBase::Flush()
             texture_names.push_back(cache_entry->texture_info_name);
             texture_units.push_back(i);
           }
+
+          const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
+          samplers[i] = TextureCacheBase::GetSamplerState(
+              i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
         }
       }
     }
@@ -633,7 +643,7 @@ void VertexManagerBase::Flush()
     // Texture loading can cause palettes to be applied (-> uniforms -> draws).
     // Palette application does not use vertices, only a full-screen quad, so this is okay.
     // Same with GPU texture decoding, which uses compute shaders.
-    g_texture_cache->BindTextures(used_textures);
+    g_texture_cache->BindTextures(used_textures, samplers);
 
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
