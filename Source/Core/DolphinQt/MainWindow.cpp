@@ -1882,7 +1882,7 @@ void MainWindow::OnStartRecording()
 {
   auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
-  if ((!Core::IsRunningAndStarted() && Core::IsRunning(system)) || movie.IsRecordingInput() ||
+  if (Core::GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
       movie.IsPlayingInput())
   {
     return;

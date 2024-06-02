@@ -66,7 +66,7 @@ void VideoConfig::Refresh()
     CPUThreadConfigCallback::AddConfigChangedCallback([]() {
       auto& system = Core::System::GetInstance();
 
-      const bool lock_gpu_thread = Core::IsRunningAndStarted();
+      const bool lock_gpu_thread = Core::IsRunning(system);
       if (lock_gpu_thread)
         system.GetFifo().PauseAndLock(true, false);
 

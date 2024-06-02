@@ -185,22 +185,22 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
-  if (Core::IsRunning(system))
-  {
+
+  const bool is_running_or_starting = Core::IsRunningOrStarting(system);
+  if (is_running_or_starting)
     Core::UpdateTitle(system);
-  }
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
-  if (Core::IsRunning(system))
+  if (is_running_or_starting)
     DolphinAnalytics::Instance().ReportGameStart();
 }
 
 void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
-  if (!Core::IsRunning(system))
+  if (!Core::IsRunningOrStarting(system))
     return;
 
   auto& ppc_symbol_db = system.GetPPCSymbolDB();

@@ -518,7 +518,7 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
   if (hang_ppc == HangPPC::Yes)
     ResetAndPausePPC(m_system);
 
-  if (Core::IsRunningAndStarted())
+  if (Core::IsRunning(m_system))
   {
     m_system.GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
                                            ios_title_id);
