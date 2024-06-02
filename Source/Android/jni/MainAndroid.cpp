@@ -279,7 +279,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunnin
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndStarted(JNIEnv*,
                                                                                             jclass)
 {
-  return static_cast<jboolean>(Core::IsRunningAndStarted());
+  return static_cast<jboolean>(Core::IsRunning(Core::System::GetInstance()));
 }
 
 JNIEXPORT jboolean JNICALL
