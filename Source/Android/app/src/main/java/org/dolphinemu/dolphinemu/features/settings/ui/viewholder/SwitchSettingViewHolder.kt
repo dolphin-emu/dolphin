@@ -2,10 +2,7 @@
 
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder
 
-import android.Manifest
 import android.app.Activity
-import android.content.pm.PackageManager
-import android.os.Build
 import android.view.View
 import android.widget.CompoundButton
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding
@@ -63,13 +60,9 @@ class SwitchSettingViewHolder(
             }
 
             if (setting.setting === BooleanSetting.MAIN_EMULATE_WII_SPEAK && isChecked) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                    itemView.context.checkSelfPermission(Manifest.permission.RECORD_AUDIO)
-                      != PackageManager.PERMISSION_GRANTED) {
-                    val settingsActivity = itemView.context as Activity
-                    settingsActivity.requestPermissions(
-                        arrayOf(Manifest.permission.RECORD_AUDIO),
-                        PermissionsHandler.REQUEST_CODE_RECORD_AUDIO)
+                if (!PermissionsHandler.hasRecordAudioPermission(itemView.context)) {
+                  val settingsActivity = itemView.context as Activity
+                  PermissionsHandler.requestRecordAudioPermission(settingsActivity)
                 }
             }
 

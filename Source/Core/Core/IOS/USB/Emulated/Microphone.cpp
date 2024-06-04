@@ -20,6 +20,10 @@
 #include <Objbase.h>
 #endif
 
+#ifdef ANDROID
+#include "jni/AndroidCommon/IDCache.h"
+#endif
+
 namespace IOS::HLE::USB
 {
 Microphone::Microphone(const WiiSpeakState& sampler) : m_sampler(sampler)
@@ -115,6 +119,19 @@ void Microphone::StreamStart()
   Common::Event sync_event;
   m_work_queue.EmplaceItem([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
+
+#ifdef ANDROID
+    JNIEnv* env = IDCache::GetEnvForThread();
+    if (jboolean result = env->CallStaticBooleanMethod(
+            IDCache::GetPermissionHandlerClass(),
+            IDCache::GetPermissionHandlerHasRecordAudioPermission(), nullptr);
+        result == JNI_FALSE)
+    {
+      env->CallStaticVoidMethod(IDCache::GetPermissionHandlerClass(),
+                                IDCache::GetPermissionHandlerRequestRecordAudioPermission(),
+                                nullptr);
+    }
 #endif
 
     cubeb_stream_params params{};
