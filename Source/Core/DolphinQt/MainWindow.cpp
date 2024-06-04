@@ -239,7 +239,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   QSettings& settings = Settings::GetQSettings();
   restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
   restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
-  show();
+  if (!Settings::Instance().IsBatchModeEnabled())
+    show();
 
   InitControllers();
   ConnectHotkeys();
