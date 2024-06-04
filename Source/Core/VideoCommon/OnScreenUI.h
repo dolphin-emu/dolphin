@@ -61,9 +61,7 @@ public:
 
 private:
   void DrawDebugText();
-#ifdef USE_RETRO_ACHIEVEMENTS
   void DrawChallengesAndLeaderboards();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   // ImGui resources.
   std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;

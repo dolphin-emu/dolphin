@@ -30,10 +30,9 @@
 void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPatch& patch,
                       bool store_existing_value)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
-#endif  // USE_RETRO_ACHIEVEMENTS
+
   if (patch.value.empty())
     return;
 

@@ -550,10 +550,8 @@ void Settings::SetCheatsEnabled(bool enabled)
 
 void Settings::SetDebugModeEnabled(bool enabled)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     enabled = false;
-#endif  // USE_RETRO_ACHIEVEMENTS
   if (IsDebugModeEnabled() != enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
