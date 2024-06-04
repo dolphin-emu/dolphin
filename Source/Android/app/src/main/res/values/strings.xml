@@ -927,4 +927,6 @@ It can efficiently compress both junk data and encrypted Wii data.
 
     <string name="emulate_wii_speak">Wii Speak</string>
     <string name="disconnect_wii_speak">Mute Wii Speak</string>
+    <string name="wii_speak_permission_warning">Missing Microphone Permission</string>
+    <string name="wii_speak_permission_warning_description">Wii Speak emulation requires microphone permission. You might need to restart the game for the permission to be effective.</string>
 </resources>

@@ -7,8 +7,12 @@ import android.os.Bundle
 class ActivityTracker : ActivityLifecycleCallbacks {
     val resumedActivities = HashSet<Activity>()
     var backgroundExecutionAllowed = false
+    var currentActivity : Activity? = null
+        private set
 
-    override fun onActivityCreated(activity: Activity, bundle: Bundle?) {}
+    override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
+        currentActivity = activity
+    }
 
     override fun onActivityStarted(activity: Activity) {}
 
@@ -32,7 +36,11 @@ class ActivityTracker : ActivityLifecycleCallbacks {
 
     override fun onActivitySaveInstanceState(activity: Activity, bundle: Bundle) {}
 
-    override fun onActivityDestroyed(activity: Activity) {}
+    override fun onActivityDestroyed(activity: Activity) {
+        if (currentActivity === activity) {
+            currentActivity = null
+        }
+    }
 
     companion object {
         @JvmStatic
