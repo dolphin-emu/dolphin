@@ -4,6 +4,7 @@
 #include "Common/Assembler/GekkoLexer.h"
 
 #include "Common/Assert.h"
+#include "Common/StringUtil.h"
 
 #include <iterator>
 #include <numeric>
@@ -181,6 +182,11 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
   case TokenType::BinaryLit:
     return std::accumulate(val.begin() + 2, val.end(), T{0}, bin_step);
   case TokenType::GPR:
+    if (CaseInsensitiveEquals(val, "sp"))
+      return T{1};
+    if (CaseInsensitiveEquals(val, "rtoc"))
+      return T{2};
+    [[fallthrough]];
   case TokenType::FPR:
     return std::accumulate(val.begin() + 1, val.end(), T{0}, dec_step);
   case TokenType::CRField:
@@ -649,19 +655,12 @@ TokenType Lexer::ClassifyAlnum() const
 
     return false;
   };
-  constexpr auto eq_nocase = [](std::string_view str, std::string_view lwr) {
-    auto it_l = str.cbegin(), it_r = lwr.cbegin();
-    for (; it_l != str.cend() && it_r != lwr.cend(); it_l++, it_r++)
-    {
-      if (std::tolower(*it_l) != *it_r)
-      {
-        return false;
-      }
-    }
-    return it_l == str.end() && it_r == lwr.end();
-  };
 
   if (std::tolower(alnum[0]) == 'r' && valid_regnum(alnum.substr(1)))
+  {
+    return TokenType::GPR;
+  }
+  else if ((CaseInsensitiveEquals(alnum, "sp")) || (CaseInsensitiveEquals(alnum, "rtoc")))
   {
     return TokenType::GPR;
   }
@@ -669,24 +668,24 @@ TokenType Lexer::ClassifyAlnum() const
   {
     return TokenType::FPR;
   }
-  else if (alnum.length() == 3 && eq_nocase(alnum.substr(0, 2), "cr") && alnum[2] >= '0' &&
-           alnum[2] <= '7')
+  else if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") &&
+           alnum[2] >= '0' && alnum[2] <= '7')
   {
     return TokenType::CRField;
   }
-  else if (eq_nocase(alnum, "lt"))
+  else if (CaseInsensitiveEquals(alnum, "lt"))
   {
     return TokenType::Lt;
   }
-  else if (eq_nocase(alnum, "gt"))
+  else if (CaseInsensitiveEquals(alnum, "gt"))
   {
     return TokenType::Gt;
   }
-  else if (eq_nocase(alnum, "eq"))
+  else if (CaseInsensitiveEquals(alnum, "eq"))
   {
     return TokenType::Eq;
   }
-  else if (eq_nocase(alnum, "so"))
+  else if (CaseInsensitiveEquals(alnum, "so"))
   {
     return TokenType::So;
   }
