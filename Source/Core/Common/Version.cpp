@@ -9,6 +9,8 @@
 
 namespace Common
 {
+#define EMULATOR_NAME "Dolphin"
+
 #ifdef _DEBUG
 #define BUILD_TYPE_STR "Debug "
 #elif defined DEBUGFAST
@@ -19,10 +21,10 @@ namespace Common
 
 const std::string& GetScmRevStr()
 {
-  static const std::string scm_rev_str = "Dolphin "
+  static const std::string scm_rev_str = EMULATOR_NAME " "
   // Note this macro can be empty if the master branch does not exist.
 #if 1 - SCM_COMMITS_AHEAD_MASTER - 1 != 0
-                                         "[" SCM_BRANCH_STR "] "
+                                                       "[" SCM_BRANCH_STR "] "
 #endif
 
 #ifdef __INTEL_COMPILER
@@ -49,6 +51,12 @@ const std::string& GetScmBranchStr()
 {
   static const std::string scm_branch_str = SCM_BRANCH_STR;
   return scm_branch_str;
+}
+
+const std::string& GetUserAgentStr()
+{
+  static const std::string user_agent_str = EMULATOR_NAME "/" SCM_DESC_STR;
+  return user_agent_str;
 }
 
 const std::string& GetScmDistributorStr()
