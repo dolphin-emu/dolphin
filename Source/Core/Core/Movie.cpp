@@ -941,10 +941,8 @@ bool MovieManager::PlayInput(const std::string& movie_path,
 
   ReadHeader();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return false;
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   m_total_frames = m_temp_header.frameCount;
   m_total_lag_count = m_temp_header.lagCount;

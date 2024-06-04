@@ -268,7 +268,6 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
   static constexpr char TR_DISABLED_IN_HARDCORE_DESCRIPTION[] =
       QT_TR_NOOP("<dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>");
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
   if (hardcore)
@@ -281,9 +280,6 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
   {
     m_checkbox_show_debugging_ui->SetDescription(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION));
   }
-#else
-  m_checkbox_show_debugging_ui->SetDescription(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION));
-#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void InterfacePane::LoadUserStyle()

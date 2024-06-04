@@ -331,9 +331,9 @@ void OnScreenUI::DrawDebugText()
     ImGui::TextUnformatted(profile_output.c_str());
 }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
 void OnScreenUI::DrawChallengesAndLeaderboards()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   const auto& challenge_icons = AchievementManager::GetInstance().GetChallengeIcons();
   const auto& leaderboard_progress = AchievementManager::GetInstance().GetActiveLeaderboards();
@@ -396,8 +396,8 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
     }
     ImGui::End();
   }
-}
 #endif  // USE_RETRO_ACHIEVEMENTS
+}
 
 void OnScreenUI::Finalize()
 {
@@ -406,9 +406,7 @@ void OnScreenUI::Finalize()
   g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
   DrawDebugText();
   OSD::DrawMessages();
-#ifdef USE_RETRO_ACHIEVEMENTS
   DrawChallengesAndLeaderboards();
-#endif  // USE_RETRO_ACHIEVEMENTS
   ImGui::Render();
 }
 
