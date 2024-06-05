@@ -649,7 +649,7 @@ TokenType Lexer::ClassifyAlnum() const
 
       if (rn[0] == '3')
       {
-        return rn[1] <= '2';
+        return rn[1] < '2';
       }
     }
 
