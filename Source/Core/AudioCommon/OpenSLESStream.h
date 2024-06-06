@@ -4,6 +4,9 @@
 #pragma once
 
 #ifdef HAVE_OPENSL_ES
+#include <array>
+#include <vector>
+
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #endif  // HAVE_OPENSL_ES
@@ -35,11 +38,11 @@ private:
   SLAndroidSimpleBufferQueueItf m_bq_player_buffer_queue;
   SLVolumeItf m_bq_player_volume;
 
-  static constexpr int BUFFER_SIZE = 512;
-  static constexpr int BUFFER_SIZE_IN_SAMPLES = BUFFER_SIZE / 2;
+  SLuint32 m_frames_per_buffer;
+  SLuint32 m_bytes_per_buffer;
 
   // Double buffering.
-  short m_buffer[2][BUFFER_SIZE];
+  std::array<std::vector<short>, 2> m_buffer;
   int m_current_buffer = 0;
 #endif  // HAVE_OPENSL_ES
 };

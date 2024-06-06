@@ -8,11 +8,13 @@
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+#include <jni.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "jni/AndroidCommon/IDCache.h"
 
 void OpenSLESStream::BQPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
 {
@@ -24,8 +26,8 @@ void OpenSLESStream::PushSamples(SLAndroidSimpleBufferQueueItf bq)
   ASSERT(bq == m_bq_player_buffer_queue);
 
   // Render to the fresh buffer
-  m_mixer->Mix(reinterpret_cast<short*>(m_buffer[m_current_buffer]), BUFFER_SIZE_IN_SAMPLES);
-  SLresult result = (*bq)->Enqueue(bq, m_buffer[m_current_buffer], sizeof(m_buffer[0]));
+  m_mixer->Mix(m_buffer[m_current_buffer].data(), m_frames_per_buffer);
+  SLresult result = (*bq)->Enqueue(bq, m_buffer[m_current_buffer].data(), m_bytes_per_buffer);
   m_current_buffer ^= 1;  // Switch buffer
 
   // Comment from sample code:
@@ -36,6 +38,23 @@ void OpenSLESStream::PushSamples(SLAndroidSimpleBufferQueueItf bq)
 
 bool OpenSLESStream::Init()
 {
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jclass audio_utils = IDCache::GetAudioUtilsClass();
+  const SLuint32 sample_rate =
+      env->CallStaticIntMethod(audio_utils, IDCache::GetAudioUtilsGetSampleRate());
+  m_frames_per_buffer =
+      env->CallStaticIntMethod(audio_utils, IDCache::GetAudioUtilsGetFramesPerBuffer());
+
+  INFO_LOG_FMT(AUDIO, "OpenSLES configuration: {} Hz, {} frames per buffer", sample_rate,
+               m_frames_per_buffer);
+
+  constexpr SLuint32 channels = 2;
+  const SLuint32 samples_per_buffer = m_frames_per_buffer * channels;
+  m_bytes_per_buffer = m_frames_per_buffer * channels * sizeof(m_buffer[0][0]);
+
+  for (std::vector<short>& buffer : m_buffer)
+    buffer.resize(samples_per_buffer);
+
   SLresult result;
   // create engine
   result = slCreateEngine(&m_engine_object, 0, nullptr, 0, nullptr, nullptr);
@@ -50,13 +69,11 @@ bool OpenSLESStream::Init()
   ASSERT(SL_RESULT_SUCCESS == result);
 
   SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-  SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,
-                                 2,
-                                 m_mixer->GetSampleRate() * 1000,
-                                 SL_PCMSAMPLEFORMAT_FIXED_16,
-                                 SL_PCMSAMPLEFORMAT_FIXED_16,
-                                 SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
-                                 SL_BYTEORDER_LITTLEENDIAN};
+  SLDataFormat_PCM format_pcm = {
+      SL_DATAFORMAT_PCM,           channels,
+      sample_rate * 1000,          SL_PCMSAMPLEFORMAT_FIXED_16,
+      SL_PCMSAMPLEFORMAT_FIXED_16, SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+      SL_BYTEORDER_LITTLEENDIAN};
 
   SLDataSource audioSrc = {&loc_bufq, &format_pcm};
 
@@ -92,7 +109,7 @@ bool OpenSLESStream::Init()
   m_current_buffer ^= 1;
 
   result = (*m_bq_player_buffer_queue)
-               ->Enqueue(m_bq_player_buffer_queue, m_buffer[0], sizeof(m_buffer[0]));
+               ->Enqueue(m_bq_player_buffer_queue, m_buffer[0].data(), m_bytes_per_buffer);
   if (SL_RESULT_SUCCESS != result)
     return false;
 
