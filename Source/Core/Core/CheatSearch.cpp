@@ -207,10 +207,8 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
                   PowerPC::RequestedAddressSpace address_space, bool aligned,
                   const std::function<bool(const T& value)>& validator)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-#endif  // USE_RETRO_ACHIEVEMENTS
   auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
   const Core::State core_state = Core::GetState(system);
@@ -262,10 +260,8 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
                    PowerPC::RequestedAddressSpace address_space,
                    const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-#endif  // USE_RETRO_ACHIEVEMENTS
   auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
   const Core::State core_state = Core::GetState(system);
@@ -429,10 +425,8 @@ MakeCompareFunctionForLastValue(Cheats::CompareType op)
 template <typename T>
 Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPUThreadGuard& guard)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-#endif  // USE_RETRO_ACHIEVEMENTS
   Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
       Cheats::SearchErrorCode::InvalidParameters;
   if (m_filter_type == FilterType::CompareAgainstSpecificValue)

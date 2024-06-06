@@ -100,10 +100,8 @@ enum class SearchErrorCode
   // currently off in the emulated game.
   VirtualAddressesCurrentlyNotAccessible,
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   // Cheats and memory reading are disabled in RetroAchievements hardcore mode.
   DisabledInHardcoreMode,
-#endif  // USE_RETRO_ACHIEVEMENTS
 };
 
 // Returns the corresponding DataType enum for the value currently held by the given SearchValue.

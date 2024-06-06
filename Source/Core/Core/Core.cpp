@@ -287,9 +287,7 @@ void Stop(Core::System& system)  // - Hammertime!
     return;
   }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().CloseGame();
-#endif  // USE_RETRO_ACHIEVEMENTS
 
   s_is_stopping = true;
 
@@ -908,9 +906,7 @@ void Callback_NewField(Core::System& system)
     }
   }
 
-#ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().DoFrame();
-#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void UpdateTitle(Core::System& system)
@@ -1048,13 +1044,11 @@ void HostDispatchJobs(Core::System& system)
 // NOTE: Host Thread
 void DoFrameStep(Core::System& system)
 {
-#ifdef USE_RETRO_ACHIEVEMENTS
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
   {
     OSD::AddMessage("Frame stepping is disabled in RetroAchievements hardcore mode");
     return;
   }
-#endif  // USE_RETRO_ACHIEVEMENTS
   if (GetState(system) == State::Paused)
   {
     // if already paused, frame advance for 1 frame

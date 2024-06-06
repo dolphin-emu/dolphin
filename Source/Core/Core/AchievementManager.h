@@ -5,19 +5,25 @@
 
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <array>
+#include <chrono>
 #include <ctime>
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <set>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
 #include <rcheevos/include/rc_client.h>
 #include <rcheevos/include/rc_runtime.h>
 
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
@@ -205,5 +211,32 @@ private:
   mutable std::recursive_mutex m_lock;
   std::recursive_mutex m_filereader_lock;
 };  // class AchievementManager
+
+#else  // USE_RETRO_ACHIEVEMENTS
+
+#include <string>
+
+namespace DiscIO
+{
+class Volume;
+}
+
+class AchievementManager
+{
+public:
+  static AchievementManager& GetInstance()
+  {
+    static AchievementManager s_instance;
+    return s_instance;
+  }
+
+  constexpr bool IsHardcoreModeActive() { return false; }
+
+  constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
+
+  constexpr void DoFrame() {}
+
+  constexpr void CloseGame() {}
+};
 
 #endif  // USE_RETRO_ACHIEVEMENTS
