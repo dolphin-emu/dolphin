@@ -346,8 +346,11 @@ MainWindow::~MainWindow()
 
   QSettings& settings = Settings::GetQSettings();
 
-  settings.setValue(QStringLiteral("mainwindow/state"), saveState());
-  settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
+  if (!Settings::Instance().IsBatchModeEnabled())
+  {
+    settings.setValue(QStringLiteral("mainwindow/state"), saveState());
+    settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
+  }
 
   settings.setValue(QStringLiteral("renderwidget/geometry"), m_render_widget_geometry);
 
