@@ -13,8 +13,10 @@
 
 namespace GraphicsModActionFactory
 {
-std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data,
-                                          std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+std::unique_ptr<GraphicsModAction>
+Create(std::string_view name, const picojson::value& json_data,
+       std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+       std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache)
 {
   if (name == PrintAction::factory_name)
   {
@@ -34,7 +36,7 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   }
   else if (name == CustomPipelineAction::factory_name)
   {
-    return CustomPipelineAction::Create(json_data, std::move(library));
+    return CustomPipelineAction::Create(json_data, std::move(library), std::move(texture_cache));
   }
   else if (name == TransformAction::factory_name)
   {

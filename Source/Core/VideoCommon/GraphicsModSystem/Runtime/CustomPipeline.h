@@ -15,31 +15,33 @@
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 
 namespace VideoCommon
 {
 class CustomAssetLoader;
-}
+class CustomTextureCache;
+}  // namespace VideoCommon
 
 struct CustomPipeline
 {
   void UpdatePixelData(VideoCommon::CustomAssetLoader& loader,
                        std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                       std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache,
                        std::span<const u32> texture_units,
                        const VideoCommon::CustomAssetLibrary::AssetID& material_to_load);
 
   VideoCommon::CachedAsset<VideoCommon::MaterialAsset> m_pixel_material;
   VideoCommon::CachedAsset<VideoCommon::PixelShaderAsset> m_pixel_shader;
 
-  struct CachedTextureAsset
+  struct TextureData
   {
-    VideoCommon::CachedAsset<VideoCommon::GameTextureAsset> m_cached_asset;
-    std::unique_ptr<AbstractTexture> m_texture;
+    AbstractTexture* m_texture;
     std::string m_sampler_code;
     std::string m_define_code;
   };
-  std::vector<std::optional<CachedTextureAsset>> m_game_textures;
+  std::vector<std::optional<TextureData>> m_game_textures;
 
   ShaderCode m_last_generated_shader_code;
   ShaderCode m_last_generated_material_code;

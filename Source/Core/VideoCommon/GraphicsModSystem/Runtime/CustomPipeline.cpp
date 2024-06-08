@@ -175,7 +175,9 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
 
 void CustomPipeline::UpdatePixelData(
     VideoCommon::CustomAssetLoader& loader,
-    std::shared_ptr<VideoCommon::CustomAssetLibrary> library, std::span<const u32> texture_units,
+    std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+    std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache,
+    std::span<const u32> texture_units,
     const VideoCommon::CustomAssetLibrary::AssetID& material_to_load)
 {
   if (!m_pixel_material.m_asset || material_to_load != m_pixel_material.m_asset->GetAssetId())
@@ -250,108 +252,53 @@ void CustomPipeline::UpdatePixelData(
     {
       if (*texture_asset_id != "")
       {
-        auto asset = loader.LoadGameTexture(*texture_asset_id, library);
-        if (!asset)
+        AbstractTextureType texture_type = AbstractTextureType::Texture_2DArray;
+        if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
+                shader_it->second.m_default))
         {
-          return;
+          texture_type = AbstractTextureType::Texture_CubeMap;
         }
-
-        auto& texture_asset = m_game_textures[index];
-        if (!texture_asset ||
-            texture_asset->m_cached_asset.m_asset->GetLastLoadedTime() >
-                texture_asset->m_cached_asset.m_cached_write_time ||
-            *texture_asset_id != texture_asset->m_cached_asset.m_asset->GetAssetId())
+        else if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2D>(
+                     shader_it->second.m_default))
         {
-          if (!texture_asset)
-          {
-            texture_asset = CachedTextureAsset{};
-          }
-          const auto loaded_time = asset->GetLastLoadedTime();
-          texture_asset->m_cached_asset = VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{
-              std::move(asset), loaded_time};
-          texture_asset->m_texture.reset();
-
+          texture_type = AbstractTextureType::Texture_2D;
+        }
+        auto& texture_data = m_game_textures[index];
+        if (!texture_data)
+        {
+          texture_data = CustomPipeline::TextureData{};
           if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2D>(
                   shader_it->second.m_default))
           {
-            texture_asset->m_sampler_code =
+            texture_data->m_sampler_code =
                 fmt::format("SAMPLER_BINDING({}) uniform sampler2D samp_{};\n", sampler_index,
                             property.m_code_name);
-            texture_asset->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
+            texture_data->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
           }
           else if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2DArray>(
                        shader_it->second.m_default))
           {
-            texture_asset->m_sampler_code =
+            texture_data->m_sampler_code =
                 fmt::format("SAMPLER_BINDING({}) uniform sampler2DArray samp_{};\n", sampler_index,
                             property.m_code_name);
-            texture_asset->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
+            texture_data->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
           }
           else if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
                        shader_it->second.m_default))
           {
-            texture_asset->m_sampler_code =
+            texture_data->m_sampler_code =
                 fmt::format("SAMPLER_BINDING({}) uniform samplerCube samp_{};\n", sampler_index,
                             property.m_code_name);
-            texture_asset->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
+            texture_data->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
           }
         }
+        const auto texture_result =
+            texture_cache->GetTextureAsset(loader, library, *texture_asset_id, texture_type);
 
-        const auto texture_data = texture_asset->m_cached_asset.m_asset->GetData();
-        if (!texture_data)
+        if (texture_result)
         {
-          return;
-        }
-
-        if (texture_asset->m_texture)
-        {
-          g_gfx->SetTexture(sampler_index, texture_asset->m_texture.get());
-          g_gfx->SetSamplerState(sampler_index, texture_data->m_sampler);
-        }
-        else
-        {
-          AbstractTextureType texture_type = AbstractTextureType::Texture_2DArray;
-          if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
-                  shader_it->second.m_default))
-          {
-            texture_type = AbstractTextureType::Texture_CubeMap;
-          }
-          else if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2D>(
-                       shader_it->second.m_default))
-          {
-            texture_type = AbstractTextureType::Texture_2D;
-          }
-
-          if (texture_data->m_texture.m_slices.empty() ||
-              texture_data->m_texture.m_slices[0].m_levels.empty())
-          {
-            return;
-          }
-
-          auto& first_slice = texture_data->m_texture.m_slices[0];
-          const TextureConfig texture_config(
-              first_slice.m_levels[0].width, first_slice.m_levels[0].height,
-              static_cast<u32>(first_slice.m_levels.size()),
-              static_cast<u32>(texture_data->m_texture.m_slices.size()), 1,
-              first_slice.m_levels[0].format, 0, texture_type);
-          texture_asset->m_texture = g_gfx->CreateTexture(
-              texture_config, fmt::format("Custom shader texture '{}'", property.m_code_name));
-          if (texture_asset->m_texture)
-          {
-            for (std::size_t slice_index = 0; slice_index < texture_data->m_texture.m_slices.size();
-                 slice_index++)
-            {
-              auto& slice = texture_data->m_texture.m_slices[slice_index];
-              for (u32 level_index = 0; level_index < static_cast<u32>(slice.m_levels.size());
-                   ++level_index)
-              {
-                auto& level = slice.m_levels[level_index];
-                texture_asset->m_texture->Load(level_index, level.width, level.height,
-                                               level.row_length, level.data.data(),
-                                               level.data.size(), static_cast<u32>(slice_index));
-              }
-            }
-          }
+          g_gfx->SetTexture(sampler_index, texture_result->texture);
+          g_gfx->SetSamplerState(sampler_index, texture_result->data->m_sampler);
         }
 
         sampler_index++;
