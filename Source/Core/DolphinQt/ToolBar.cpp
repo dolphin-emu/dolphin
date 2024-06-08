@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QIcon>
 
+#include "Core/AchievementManager.h"
 #include "Core/Core.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
@@ -158,6 +159,7 @@ void ToolBar::UpdatePausePlayButtonState(const bool playing_state)
     disconnect(m_pause_play_action, nullptr, nullptr, nullptr);
     m_pause_play_action->setText(tr("Pause"));
     m_pause_play_action->setIcon(Resources::GetThemeIcon("pause"));
+    m_pause_play_action->setEnabled(!AchievementManager::GetInstance().IsHardcoreModeActive());
     connect(m_pause_play_action, &QAction::triggered, this, &ToolBar::PausePressed);
   }
   else

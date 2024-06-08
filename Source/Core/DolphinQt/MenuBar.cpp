@@ -110,6 +110,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 {
   bool running = state != Core::State::Uninitialized;
   bool playing = running && state != Core::State::Paused;
+  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
 
   // File
   m_eject_disc->setEnabled(running);
@@ -118,7 +119,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // Emulation
   m_play_action->setEnabled(!playing);
   m_play_action->setVisible(!playing);
-  m_pause_action->setEnabled(playing);
+  m_pause_action->setEnabled(running && !hardcore);
   m_pause_action->setVisible(playing);
   m_stop_action->setEnabled(running);
   m_stop_action->setVisible(running);
@@ -126,8 +127,6 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
   m_state_save_menu->setEnabled(running);
-
-  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_state_load_menu->setEnabled(running && !hardcore);
   m_frame_advance_action->setEnabled(running && !hardcore);
 

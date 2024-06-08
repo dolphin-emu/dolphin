@@ -854,7 +854,8 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
 
 void MainWindow::Pause()
 {
-  Core::SetState(Core::System::GetInstance(), Core::State::Paused);
+  if (!AchievementManager::GetInstance().IsHardcoreModeActive())
+    Core::SetState(Core::System::GetInstance(), Core::State::Paused);
 }
 
 void MainWindow::TogglePause()

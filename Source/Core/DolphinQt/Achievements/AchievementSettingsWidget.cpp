@@ -72,8 +72,9 @@ void AchievementSettingsWidget::CreateLayout()
          "ensure this experience, the following features will be disabled, as they give emulator "
          "players an advantage over console players:<br>- Loading states<br>-- Saving states is "
          "allowed<br>- Emulator speeds below 100%<br>-- Frame advance is disabled<br>-- Turbo is "
-         "allowed<br>- Cheats<br>- Memory patches<br>-- File patches are allowed<br>- Debug "
-         "UI<br>- Freelook<br><br><dolphin_emphasis>This cannot be turned on while a game is "
+         "allowed<br>- Emulator pause<br>-- In-game pause menus are allowed<br>- Cheats<br>- "
+         "Memory patches<br>-- File patches are allowed<br>- Debug UI<br>- "
+         "Freelook<br><br><dolphin_emphasis>This cannot be turned on while a game is "
          "playing.</dolphin_emphasis><br>Close your current game before enabling.<br>Be aware that "
          "turning Hardcore Mode off while a game is running requires the game to be closed before "
          "re-enabling."));
