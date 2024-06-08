@@ -13,10 +13,12 @@
 #include "VideoCommon/GraphicsModEditor/Controls/AssetDisplay.h"
 #include "VideoCommon/GraphicsModEditor/EditorEvents.h"
 #include "VideoCommon/GraphicsModEditor/EditorMain.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureCache.h"
 
 std::unique_ptr<CustomMeshAction>
 CustomMeshAction::Create(const picojson::value& json_data,
-                         std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+                         std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                         std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache)
 {
   VideoCommon::CustomAssetLibrary::AssetID mesh_asset;
 
@@ -60,23 +62,25 @@ CustomMeshAction::Create(const picojson::value& json_data,
     }
   }
 
-  return std::make_unique<CustomMeshAction>(std::move(library), std::move(rotation),
-                                            std::move(scale), std::move(translation),
-                                            std::move(mesh_asset));
+  return std::make_unique<CustomMeshAction>(std::move(library), std::move(texture_cache),
+                                            std::move(rotation), std::move(scale),
+                                            std::move(translation), std::move(mesh_asset));
 }
 
-CustomMeshAction::CustomMeshAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
-    : m_library(std::move(library))
+CustomMeshAction::CustomMeshAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                                   std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache)
+    : m_library(std::move(library)), m_texture_cache(std::move(texture_cache))
 {
 }
 
 CustomMeshAction::CustomMeshAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                                   std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache,
                                    Common::Vec3 rotation, Common::Vec3 scale,
                                    Common::Vec3 translation,
                                    VideoCommon::CustomAssetLibrary::AssetID mesh_asset_id)
-    : m_library(std::move(library)), m_mesh_asset_id(std::move(mesh_asset_id)),
-      m_scale(std::move(scale)), m_rotation(std::move(rotation)),
-      m_translation(std::move(translation))
+    : m_library(std::move(library)), m_texture_cache(std::move(texture_cache)),
+      m_mesh_asset_id(std::move(mesh_asset_id)), m_scale(std::move(scale)),
+      m_rotation(std::move(rotation)), m_translation(std::move(translation))
 {
 }
 
@@ -214,7 +218,7 @@ void CustomMeshAction::OnDrawStarted(GraphicsModActionData::DrawStarted* draw_st
   const auto& curr_mesh_chunk = mesh_data->m_mesh_chunks[*draw_started->current_mesh_index];
 
   curr_render_chunk.m_custom_pipeline.UpdatePixelData(
-      loader, m_library, curr_render_chunk.m_tex_units,
+      loader, m_library, m_texture_cache, curr_render_chunk.m_tex_units,
       mesh_data->m_mesh_material_to_material_asset_id[curr_mesh_chunk.material_name]);
 
   *draw_started->mesh_chunk = curr_render_chunk.m_mesh_chunk;
