@@ -1,39 +1,44 @@
 @echo off
+setlocal enabledelayedexpansion
 
-set originalISO=%~1
+REM Initialize the iso_files variable
+set "iso_files="
 
+REM Get a list of ISO and WBFS files in the same directory as the script
+for %%F in ("%~dp0*.iso") do (
+    set "iso_files=!iso_files! \"%%~F\""
+)
+for %%F in ("%~dp0*.wbfs") do (
+    set "iso_files=!iso_files! \"%%~F\""
+)
 
+REM Check if there are no ISO or WBFS files
+if not defined iso_files (
+    echo.
+    echo No ISO or WBFS files found in the same directory as the script.
+    echo Place the Mario Party 8 (USA) (Revision 2) ISO or WBFS in the script's directory and run it again.
+    echo.
+    pause
+    exit /b 0
+)
 
-
-	:: First, ensure a file was provided to the script.
-
-if NOT "%originalISO%"=="" goto :sourceProvided
+REM Iterate over each ISO or WBFS file and process it
+for %%I in (!iso_files!) do (
+    echo.
+    echo Given %%~I
+    wit extract %%~I --dest=temp
+    IF exist "temp\DATA" (
+        xcopy "..\mp8motion" "temp\DATA" /s /y /e
+    ) ELSE (
+        xcopy "..\mp8motion" "temp" /s /y /e
+    )
+    wit copy "temp" "..\Mario Party 8 (USA) [GameCube Contrller v5].wbfs"
+    rmdir /s /q temp
+    echo Press Enter to continue.
+    pause
+)
 
 echo.
-echo  To use this, drag-and-drop your Vanilla Mario Party 8 (US) ISO or WBFS onto the batch file.
-echo.
-echo  (That is, the actual file icon in the folder, not this window.)
-echo. 
-echo  Press any key to exit. . . && pause > nul
-
-goto eof
-
-
-:sourceProvided
-
-echo.
-echo  Constructing the Mario Party 8 GC ControllerWBFS Please stand by....
-
-cd /d %~dp0
-cd tools
-
-wit extract "%originalISO%" --dest=temp
-IF exist "temp/DATA" (xcopy "../mp8motion" "temp/DATA" /s /y /e) ELSE (xcopy "../mp8motion" "temp" /s /y /e)
-wit copy "temp" "../Mario Party 8 GC Controller.wbfs"
-rmdir /s /q temp
-
-echo. && echo.
-echo        Construction complete!
-echo.
-echo  Press any key to exit. . . && pause > nul
-:eof
+echo Press Enter to exit.
+pause
+exit /b 0
