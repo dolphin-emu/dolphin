@@ -31,7 +31,7 @@ const std::string& GetScmDescStr()
 }
 const std::string& GetScmRevStr()
 {
-  static const std::string scm_rev_str = std::string("Dolphin MPN [") + SCM_DESC_STR + "]";
+  static const std::string scm_rev_str = std::string("Dolphin MPN (") + SCM_DESC_STR + ")";
   return scm_rev_str;
 }
 

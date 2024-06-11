@@ -20,6 +20,8 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include "ConfigManager.h"
+#include "Config/MainSettings.h"
 
 namespace Gecko
 {
@@ -116,21 +118,26 @@ std::vector<GeckoCode> SetAndReturnActiveCodes(std::span<const GeckoCode> gcodes
   return s_active_codes;
 }
 
+const char* GetGeckoCodeHandlerPath()
+{
+  return Config::Get(Config::MAIN_CODE_HANDLER) ?
+    GECKO_CODE_HANDLER_MPN : GECKO_CODE_HANDLER;
+}
+
 // Requires s_active_codes_lock
 // NOTE: Refer to "codehandleronly.s" from Gecko OS.
 static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 {
   std::string data;
-  if (!File::ReadFileToString(File::GetSysDirectory() + GECKO_CODE_HANDLER, data))
+  if (!File::ReadFileToString(File::GetSysDirectory() + GetGeckoCodeHandlerPath(), data))
   {
-    ERROR_LOG_FMT(ACTIONREPLAY,
-                  "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
+    ERROR_LOG_FMT(ACTIONREPLAY, "Could not enable cheats because the selected codehandler was missing.");
     return Installation::Failed;
   }
 
   if (data.size() > INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS - CODE_SIZE)
   {
-    ERROR_LOG_FMT(ACTIONREPLAY, GECKO_CODE_HANDLER " is too big. The file may be corrupt.");
+    ERROR_LOG_FMT(ACTIONREPLAY, "The codehandler is too big. The file may be corrupt.");
     return Installation::Failed;
   }
 

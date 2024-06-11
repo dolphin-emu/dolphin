@@ -29,6 +29,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
+#include "Common/Config/Config.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
@@ -84,6 +85,12 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
+}
+
+namespace Config
+{
+  // Initialize the configuration option
+  const Info<bool> MAIN_CODE_HANDLER{{System::Main, "CodeHandler", "UseMPN"}, false};
 }
 
 void SConfig::SaveSettings()

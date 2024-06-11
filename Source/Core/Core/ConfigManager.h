@@ -13,6 +13,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 
 namespace Common
 {
@@ -33,6 +34,12 @@ enum class Region;
 struct Partition;
 class Volume;
 }  // namespace DiscIO
+
+namespace Config
+{
+  // Define the configuration option
+  extern const Info<bool> MAIN_CODE_HANDLER;
+}
 
 namespace IOS::ES
 {
