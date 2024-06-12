@@ -1041,19 +1041,6 @@ void VertexManagerBase::OnEndFrame()
     }
   }
 
-#if 0
-  {
-    std::ostringstream ss;
-    std::for_each(m_cpu_accesses_this_frame.begin(), m_cpu_accesses_this_frame.end(), [&ss](u32 idx) { ss << idx << ","; });
-    WARN_LOG_FMT(VIDEO, "CPU EFB accesses in last frame: {}", ss.str());
-  }
-  {
-    std::ostringstream ss;
-    std::for_each(m_scheduled_command_buffer_kicks.begin(), m_scheduled_command_buffer_kicks.end(), [&ss](u32 idx) { ss << idx << ","; });
-    WARN_LOG_FMT(VIDEO, "Scheduled command buffer kicks: {}", ss.str());
-  }
-#endif
-
   m_cpu_accesses_this_frame.clear();
 
   // We invalidate the pipeline object at the start of the frame.
