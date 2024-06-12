@@ -649,6 +649,7 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
 void AchievementManager::LoadGameCallback(int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
+  AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
@@ -679,6 +680,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
 void AchievementManager::ChangeMediaCallback(int result, const char* error_message,
                                              rc_client_t* client, void* userdata)
 {
+  AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
   if (result == RC_OK)
     return;
 
