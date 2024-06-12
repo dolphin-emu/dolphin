@@ -18,6 +18,8 @@
 
 #include "DolphinQt/QtUtils/FromStdString.h"
 
+static constexpr size_t PROGRESS_LENGTH = 24;
+
 AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achievement)
     : QGroupBox(parent), m_achievement(achievement)
 {
@@ -37,6 +39,8 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   QSizePolicy sp_retain = m_progress_bar->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);
   m_progress_bar->setSizePolicy(sp_retain);
+  m_progress_label = new QLabel();
+  m_progress_label->setAlignment(Qt::AlignCenter);
 
   QVBoxLayout* a_col_right = new QVBoxLayout();
   a_col_right->addWidget(title);
@@ -44,6 +48,9 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   a_col_right->addWidget(points);
   a_col_right->addWidget(m_status);
   a_col_right->addWidget(m_progress_bar);
+  QVBoxLayout* a_prog_layout = new QVBoxLayout(m_progress_bar);
+  a_prog_layout->setContentsMargins(0, 0, 0, 0);
+  a_prog_layout->addWidget(m_progress_label);
   QHBoxLayout* a_total = new QHBoxLayout();
   a_total->addWidget(m_badge);
   a_total->addLayout(a_col_right);
@@ -84,6 +91,8 @@ void AchievementBox::UpdateData()
   {
     m_progress_bar->setRange(0, 100);
     m_progress_bar->setValue(m_achievement->measured_percent);
+    m_progress_bar->setTextVisible(false);
+    m_progress_label->setText(QString::fromUtf8(m_achievement->measured_progress, PROGRESS_LENGTH));
     m_progress_bar->setVisible(true);
   }
   else
