@@ -4,6 +4,7 @@
 #pragma once
 
 #include <chrono>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -147,6 +148,7 @@ public:
   // A higher priority means it will be one of the first ones (smaller index), making it more
   // likely to be index 0, which is automatically set as the default device when there isn't one.
   // Every platform should have at least one device with priority >= 0.
+  static constexpr int DEFAULT_DEVICE_SORT_PRIORITY = std::numeric_limits<int>::max();
   virtual int GetSortPriority() const { return 0; }
 
   const std::vector<Input*>& Inputs() const { return m_inputs; }

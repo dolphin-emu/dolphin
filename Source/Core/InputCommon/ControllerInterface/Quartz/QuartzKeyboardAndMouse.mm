@@ -289,6 +289,11 @@ std::string KeyboardAndMouse::GetSource() const
   return Quartz::GetSourceName();
 }
 
+int KeyboardAndMouse::GetSortPriority() const
+{
+  return DEFAULT_DEVICE_SORT_PRIORITY;
+}
+
 ControlState KeyboardAndMouse::Cursor::GetState() const
 {
   return std::max(0.0, ControlState(m_axis) / (m_positive ? 1.0 : -1.0));
