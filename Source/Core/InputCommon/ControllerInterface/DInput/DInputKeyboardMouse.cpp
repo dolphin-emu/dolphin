@@ -271,7 +271,7 @@ std::string KeyboardMouse::GetSource() const
 // Give this device a higher priority to make sure it shows first
 int KeyboardMouse::GetSortPriority() const
 {
-  return 5;
+  return DEFAULT_DEVICE_SORT_PRIORITY;
 }
 
 bool KeyboardMouse::IsVirtualDevice() const
