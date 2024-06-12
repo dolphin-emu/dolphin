@@ -3,7 +3,7 @@ var oFS				= new ActiveXObject("Scripting.FileSystemObject");
 
 var outfile			= "./scmrev.h";
 var cmd_revision	= " rev-parse HEAD";
-var cmd_describe	= " describe --always --long --dirty";
+var cmd_describe	= " rev-parse --short HEAD";
 var cmd_branch		= " rev-parse --abbrev-ref HEAD";
 var cmd_commits_ahead = " rev-list --count HEAD ^master";
 

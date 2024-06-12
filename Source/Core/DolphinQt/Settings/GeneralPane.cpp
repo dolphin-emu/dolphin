@@ -231,6 +231,9 @@ void GeneralPane::CreateCheats()
   code_handler_layout->addRow(code_handler_label, m_combobox_codehandler);
 
   cheats_group_layout->addLayout(code_handler_layout);
+
+  code_handler_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  code_handler_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 }
 
 void GeneralPane::LoadConfig()

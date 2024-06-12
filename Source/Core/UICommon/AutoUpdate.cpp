@@ -29,10 +29,6 @@
 #include <sys/stat.h>
 #endif
 
-#if defined(_WIN32) || defined(__APPLE__)
-#define OS_SUPPORTS_UPDATER
-#endif
-
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
 namespace
@@ -80,14 +76,6 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
   }
   return cmdline;
 }
-
-#ifdef __APPLE__
-void CleanupFromPreviousUpdate()
-{
-  // Remove the relocated updater file.
-  File::DeleteDirRecursively(UpdaterPath(true));
-}
-#endif
 
 #endif
 
@@ -185,10 +173,6 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   // Don't bother checking if updates are not supported or not enabled.
   if (!SystemSupportsAutoUpdates() || update_track.empty())
     return;
-
-#ifdef __APPLE__
-  CleanupFromPreviousUpdate();
-#endif
 
   std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
   std::string url = fmt::format("{}/update/check/v1/{}/{}/{}", GetUpdateServerUrl(), update_track,

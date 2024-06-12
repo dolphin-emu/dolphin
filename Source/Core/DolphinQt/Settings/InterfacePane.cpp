@@ -131,7 +131,6 @@ void InterfacePane::CreateUI()
     const QString qt_name = QString::fromStdString(PathToFileName(path));
     m_combobox_theme->addItem(qt_name);
   }
-#ifdef _WIN32
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
   m_label_userstyle = new QLabel(tr("Style:"));
@@ -140,18 +139,19 @@ void InterfacePane::CreateUI()
 
   auto current = QOperatingSystemVersionBase::current();
 
+#ifdef _WIN32
   if (current <= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10))
   {
     m_combobox_userstyle->addItem(tr("Windows 11"), static_cast<int>(Settings::StyleType::Light));
     m_combobox_userstyle->addItem(tr("Windows 10"), static_cast<int>(Settings::StyleType::Dark));
   }
+#endif
 
   for (const std::string& path : userstyle_search_results)
   {
     const QFileInfo file_info(QString::fromStdString(path));
     m_combobox_userstyle->addItem(file_info.completeBaseName(), file_info.fileName());
   }
-#endif
 
   // Checkboxes
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
