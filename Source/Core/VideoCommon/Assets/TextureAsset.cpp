@@ -199,6 +199,61 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 
+void TextureData::ToJson(picojson::object* obj, const TextureData& data)
+{
+  if (!obj) [[unlikely]]
+    return;
+
+  auto& json_obj = *obj;
+  switch (data.m_type)
+  {
+  case TextureData::Type::Type_Texture2D:
+    json_obj.emplace("type", "texture2d");
+    break;
+  case TextureData::Type::Type_TextureCube:
+    json_obj.emplace("type", "texturecube");
+    break;
+  case TextureData::Type::Type_Undefined:
+    break;
+  };
+
+  auto wrap_mode_to_string = [](WrapMode mode) {
+    switch (mode)
+    {
+    case WrapMode::Clamp:
+      return "clamp";
+    case WrapMode::Mirror:
+      return "mirror";
+    case WrapMode::Repeat:
+      return "repeat";
+    };
+
+    return "";
+  };
+  auto filter_mode_to_string = [](FilterMode mode) {
+    switch (mode)
+    {
+    case FilterMode::Linear:
+      return "linear";
+    case FilterMode::Near:
+      return "near";
+    };
+
+    return "";
+  };
+
+  picojson::object wrap_mode;
+  wrap_mode.emplace("u", wrap_mode_to_string(data.m_sampler.tm0.wrap_u));
+  wrap_mode.emplace("v", wrap_mode_to_string(data.m_sampler.tm0.wrap_v));
+  json_obj.emplace("wrap_mode", wrap_mode);
+
+  picojson::object filter_mode;
+  filter_mode.emplace("min", filter_mode_to_string(data.m_sampler.tm0.min_filter));
+  filter_mode.emplace("mag", filter_mode_to_string(data.m_sampler.tm0.mag_filter));
+  filter_mode.emplace("mipmap", filter_mode_to_string(data.m_sampler.tm0.mipmap_filter));
+  json_obj.emplace("filter_mode", filter_mode);
+}
+
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   auto potential_data = std::make_shared<TextureData>();
