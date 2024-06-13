@@ -338,7 +338,18 @@ AchievementManager::RichPresence AchievementManager::GetRichPresence() const
   return m_rich_presence;
 }
 
-const AchievementManager::NamedBadgeMap& AchievementManager::GetChallengeIcons() const
+const bool AchievementManager::AreChallengesUpdated() const
+{
+  return m_challenges_updated;
+}
+
+void AchievementManager::ResetChallengesUpdated()
+{
+  m_challenges_updated = false;
+}
+
+const std::unordered_set<AchievementManager::AchievementId>&
+AchievementManager::GetActiveChallenges() const
 {
   return m_active_challenges;
 }
@@ -796,15 +807,18 @@ void AchievementManager::HandleAchievementChallengeIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
   auto& instance = AchievementManager::GetInstance();
-  instance.m_active_challenges[client_event->achievement->badge_name] =
-      &AchievementManager::GetInstance().GetAchievementBadge(client_event->achievement->id, false);
+  const auto [iter, inserted] = instance.m_active_challenges.insert(client_event->achievement->id);
+  if (inserted)
+    instance.m_challenges_updated = true;
 }
 
 void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
     const rc_client_event_t* client_event)
 {
-  AchievementManager::GetInstance().m_active_challenges.erase(
-      client_event->achievement->badge_name);
+  auto& instance = AchievementManager::GetInstance();
+  const auto removed = instance.m_active_challenges.erase(client_event->achievement->id);
+  if (removed > 0)
+    instance.m_challenges_updated = true;
 }
 
 void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
@@ -968,6 +982,11 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
     }
 
     m_update_callback(callback_data);
+    if (badge_type == RC_IMAGE_TYPE_ACHIEVEMENT &&
+        m_active_challenges.contains(*callback_data.achievements.begin()))
+    {
+      m_challenges_updated = true;
+    }
   });
 }
 
