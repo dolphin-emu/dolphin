@@ -103,6 +103,9 @@ public:
 
   void DoFrame();
 
+  bool CanPause();
+  void DoIdle();
+
   std::recursive_mutex& GetLock();
   void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
@@ -194,6 +197,7 @@ private:
   Badge m_default_game_badge;
   Badge m_default_unlocked_badge;
   Badge m_default_locked_badge;
+  std::atomic_bool m_background_execution_allowed = true;
   Badge m_player_badge;
   Hash m_game_hash{};
   u32 m_game_id = 0;
