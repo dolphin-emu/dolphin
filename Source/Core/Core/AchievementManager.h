@@ -201,6 +201,7 @@ private:
   std::unordered_map<AchievementId, Badge> m_locked_badges;
   RichPresence m_rich_presence;
   std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point m_last_progress_message = std::chrono::steady_clock::now();
 
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   NamedBadgeMap m_active_challenges;
