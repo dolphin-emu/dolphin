@@ -333,6 +333,8 @@ void OnScreenUI::DrawDebugText()
 
 void OnScreenUI::DrawChallengesAndLeaderboards()
 {
+  if (!Config::Get(Config::MAIN_OSD_MESSAGES))
+    return;
 #ifdef USE_RETRO_ACHIEVEMENTS
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   const auto& challenge_icons = AchievementManager::GetInstance().GetChallengeIcons();
