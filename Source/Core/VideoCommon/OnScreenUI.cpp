@@ -359,6 +359,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
   float leaderboard_y = ImGui::GetIO().DisplaySize.y;
   if (!m_challenge_texture_map.empty())
   {
+    float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), 0,
                             ImVec2(1, 1));
@@ -370,8 +371,8 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
     {
       for (auto& [name, texture] : m_challenge_texture_map)
       {
-        ImGui::Image(texture.get(), ImVec2(static_cast<float>(texture->GetWidth()),
-                                           static_cast<float>(texture->GetHeight())));
+        ImGui::Image(texture.get(), ImVec2(static_cast<float>(texture->GetWidth()) * scale,
+                                           static_cast<float>(texture->GetHeight()) * scale));
         ImGui::SameLine();
       }
     }
