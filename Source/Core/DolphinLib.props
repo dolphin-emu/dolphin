@@ -813,6 +813,7 @@
     <ClCompile Include="Common\IniFile.cpp" />
     <ClCompile Include="Common\IOFile.cpp" />
     <ClCompile Include="Common\JitRegister.cpp" />
+    <ClCompile Include="Common\JsonUtil.cpp" />
     <ClCompile Include="Common\LdrWatcher.cpp" />
     <ClCompile Include="Common\Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="Common\Logging\LogManager.cpp" />
