@@ -20,6 +20,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Debugger/OSThread.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
@@ -502,8 +503,11 @@ void PPCDebugInterface::SetPC(u32 address)
   m_system.GetPPCState().pc = address;
 }
 
-void PPCDebugInterface::RunToBreakpoint()
+void PPCDebugInterface::RunTo(u32 address)
 {
+  auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+  breakpoints.Add(address, true);
+  m_system.GetCPU().SetStepping(false);
 }
 
 std::shared_ptr<Core::NetworkCaptureLogger> PPCDebugInterface::NetworkLogger()
