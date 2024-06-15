@@ -1021,7 +1021,7 @@ void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
   for (const QModelIndex& index : m_index_list_temp)
   {
     const u32 address = m_table_proxy->data(index, UserRole::ClickRole).value<u32>();
-    breakpoints.Add(address, false, break_on_hit, log_on_hit, {});
+    breakpoints.Add(address, break_on_hit, log_on_hit, {});
   }
   emit m_code_widget->BreakpointsChanged();
   m_code_widget->Update();
@@ -1111,11 +1111,9 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
     for (auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
          const QModelIndex& idx : m_index_list_temp)
     {
-      if (const TBreakPoint* bp =
-              breakpoints.GetBreakpoint(m_table_proxy->data(idx, UserRole::ClickRole).value<u32>()))
+      if (const TBreakPoint* bp = breakpoints.GetRegularBreakpoint(
+              m_table_proxy->data(idx, UserRole::ClickRole).value<u32>()))
       {
-        if (bp->is_temporary)
-          continue;
         if (bp->break_on_hit && bp->log_on_hit)
         {
           bp_both_count += 1;
