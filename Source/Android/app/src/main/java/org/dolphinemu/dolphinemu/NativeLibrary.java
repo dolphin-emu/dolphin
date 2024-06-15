@@ -12,6 +12,7 @@ import android.view.Surface;
 import android.widget.Toast;
 
 import androidx.annotation.Keep;
+import androidx.core.util.Pair;
 import androidx.fragment.app.FragmentManager;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -20,7 +21,6 @@ import org.dolphinemu.dolphinemu.utils.CompressCallback;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.lang.ref.WeakReference;
-import java.util.LinkedHashMap;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -400,7 +400,7 @@ public final class NativeLibrary
    */
   public static native void RefreshWiimotes();
 
-  public static native LinkedHashMap<String, String> GetLogTypeNames();
+  public static native Pair<String, String>[] GetLogTypeNames();
 
   public static native void ReloadLoggerConfig();
 

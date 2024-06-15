@@ -29,9 +29,8 @@ static jclass s_analytics_class;
 static jmethodID s_send_analytics_report;
 static jmethodID s_get_analytics_value;
 
-static jclass s_linked_hash_map_class;
-static jmethodID s_linked_hash_map_init;
-static jmethodID s_linked_hash_map_put;
+static jclass s_pair_class;
+static jmethodID s_pair_constructor;
 
 static jclass s_hash_map_class;
 static jmethodID s_hash_map_init;
@@ -212,19 +211,14 @@ jfieldID GetGameFileCachePointer()
   return s_game_file_cache_pointer;
 }
 
-jclass GetLinkedHashMapClass()
+jclass GetPairClass()
 {
-  return s_linked_hash_map_class;
+  return s_pair_class;
 }
 
-jmethodID GetLinkedHashMapInit()
+jmethodID GetPairConstructor()
 {
-  return s_linked_hash_map_init;
-}
-
-jmethodID GetLinkedHashMapPut()
-{
-  return s_linked_hash_map_put;
+  return s_pair_constructor;
 }
 
 jclass GetHashMapClass()
@@ -565,12 +559,11 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
                                                  "(Ljava/lang/String;)Ljava/lang/String;");
   env->DeleteLocalRef(analytics_class);
 
-  const jclass linked_hash_map_class = env->FindClass("java/util/LinkedHashMap");
-  s_linked_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(linked_hash_map_class));
-  s_linked_hash_map_init = env->GetMethodID(s_linked_hash_map_class, "<init>", "(I)V");
-  s_linked_hash_map_put = env->GetMethodID(
-      s_linked_hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-  env->DeleteLocalRef(linked_hash_map_class);
+  const jclass pair_class = env->FindClass("androidx/core/util/Pair");
+  s_pair_class = reinterpret_cast<jclass>(env->NewGlobalRef(pair_class));
+  s_pair_constructor =
+      env->GetMethodID(s_pair_class, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  env->DeleteLocalRef(pair_class);
 
   const jclass hash_map_class = env->FindClass("java/util/HashMap");
   s_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(hash_map_class));
@@ -741,7 +734,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_game_file_class);
   env->DeleteGlobalRef(s_game_file_cache_class);
   env->DeleteGlobalRef(s_analytics_class);
-  env->DeleteGlobalRef(s_linked_hash_map_class);
+  env->DeleteGlobalRef(s_pair_class);
   env->DeleteGlobalRef(s_hash_map_class);
   env->DeleteGlobalRef(s_compress_cb_class);
   env->DeleteGlobalRef(s_content_handler_class);

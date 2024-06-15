@@ -252,12 +252,13 @@ bool LogManager::IsEnabled(LogType type, LogLevel level) const
   return m_log[type].m_enable && GetLogLevel() >= level;
 }
 
-std::map<std::string, std::string> LogManager::GetLogTypes()
+std::vector<LogManager::LogContainer> LogManager::GetLogTypes()
 {
-  std::map<std::string, std::string> log_types;
+  std::vector<LogContainer> log_types;
+  log_types.reserve(m_log.size());
 
   for (const auto& container : m_log)
-    log_types.emplace(container.m_short_name, container.m_full_name);
+    log_types.emplace_back(container);
 
   return log_types;
 }
