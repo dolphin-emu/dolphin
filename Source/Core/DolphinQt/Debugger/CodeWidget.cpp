@@ -455,7 +455,6 @@ void CodeWidget::Step()
   auto& power_pc = m_system.GetPowerPC();
   PowerPC::CoreMode old_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
-  power_pc.GetBreakPoints().ClearAllTemporary();
   cpu.StepOpcode(&sync_event);
   sync_event.WaitFor(std::chrono::milliseconds(20));
   power_pc.SetMode(old_mode);
@@ -482,8 +481,7 @@ void CodeWidget::StepOver()
   if (inst.LK)
   {
     auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
-    breakpoints.ClearAllTemporary();
-    breakpoints.Add(m_system.GetPPCState().pc + 4, true);
+    breakpoints.SetTemporary(m_system.GetPPCState().pc + 4);
     cpu.SetStepping(false);
     Core::DisplayMessage(tr("Step over in progress...").toStdString(), 2000);
   }
@@ -519,11 +517,8 @@ void CodeWidget::StepOut()
 
   auto& power_pc = m_system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
-  auto& breakpoints = power_pc.GetBreakPoints();
   {
     Core::CPUThreadGuard guard(m_system);
-
-    breakpoints.ClearAllTemporary();
 
     PowerPC::CoreMode old_mode = power_pc.GetMode();
     power_pc.SetMode(PowerPC::CoreMode::Interpreter);

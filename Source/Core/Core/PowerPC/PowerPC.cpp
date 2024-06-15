@@ -270,9 +270,6 @@ void PowerPCManager::Init(CPUCore cpu_core)
   auto& memory = m_system.GetMemory();
   m_ppc_state.iCache.Init(memory);
   m_ppc_state.dCache.Init(memory);
-
-  if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
-    m_breakpoints.ClearAllTemporary();
 }
 
 void PowerPCManager::Reset()

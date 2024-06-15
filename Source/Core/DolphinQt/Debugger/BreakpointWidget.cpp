@@ -443,8 +443,8 @@ void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
 {
   if (is_instruction_bp)
   {
-    auto* dialog =
-        new BreakpointDialog(this, m_system.GetPowerPC().GetBreakPoints().GetBreakpoint(address));
+    auto* dialog = new BreakpointDialog(
+        this, m_system.GetPowerPC().GetBreakPoints().GetRegularBreakpoint(address));
     dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     SetQWidgetWindowDecorations(dialog);
     dialog->exec();
@@ -602,14 +602,13 @@ void BreakpointWidget::OnItemChanged(QTableWidgetItem* item)
 
 void BreakpointWidget::AddBP(u32 addr)
 {
-  AddBP(addr, false, true, true, {});
+  AddBP(addr, true, true, {});
 }
 
-void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on_hit,
-                             const QString& condition)
+void BreakpointWidget::AddBP(u32 addr, bool break_on_hit, bool log_on_hit, const QString& condition)
 {
   m_system.GetPowerPC().GetBreakPoints().Add(
-      addr, temp, break_on_hit, log_on_hit,
+      addr, break_on_hit, log_on_hit,
       !condition.isEmpty() ? Expression::TryParse(condition.toUtf8().constData()) : std::nullopt);
 
   emit BreakpointsChanged();
@@ -619,7 +618,7 @@ void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on
 void BreakpointWidget::EditBreakpoint(u32 address, int edit, std::optional<QString> string)
 {
   TBreakPoint bp;
-  const TBreakPoint* old_bp = m_system.GetPowerPC().GetBreakPoints().GetBreakpoint(address);
+  const TBreakPoint* old_bp = m_system.GetPowerPC().GetBreakPoints().GetRegularBreakpoint(address);
   bp.is_enabled = edit == ENABLED_COLUMN ? !old_bp->is_enabled : old_bp->is_enabled;
   bp.log_on_hit = edit == LOG_COLUMN ? !old_bp->log_on_hit : old_bp->log_on_hit;
   bp.break_on_hit = edit == BREAK_COLUMN ? !old_bp->break_on_hit : old_bp->break_on_hit;

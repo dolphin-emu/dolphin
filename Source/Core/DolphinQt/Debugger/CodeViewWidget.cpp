@@ -382,10 +382,11 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     if (ins == "blr")
       ins_item->setForeground(dark_theme ? QColor(0xa0FFa0) : Qt::darkGreen);
 
-    if (debug_interface.IsBreakpoint(addr))
+    const TBreakPoint* bp = power_pc.GetBreakPoints().GetRegularBreakpoint(addr);
+    if (bp != nullptr)
     {
       auto icon = Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
-      if (!power_pc.GetBreakPoints().IsBreakPointEnable(addr))
+      if (!bp->is_enabled)
       {
         QPixmap disabled_icon(icon.size());
         disabled_icon.fill(Qt::transparent);

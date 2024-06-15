@@ -244,6 +244,8 @@ bool CPUManager::SetStateLocked(State s)
 {
   if (m_state == State::PowerDown)
     return false;
+  if (s == State::Stepping)
+    m_system.GetPowerPC().GetBreakPoints().ClearTemporary();
   m_state = s;
   return true;
 }
