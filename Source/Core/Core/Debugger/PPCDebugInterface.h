@@ -100,7 +100,7 @@ public:
   u32 GetPC() const override;
   void SetPC(u32 address) override;
   void Step() override {}
-  void RunToBreakpoint() override;
+  void RunTo(u32 address) override;
   u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string_view GetDescription(u32 address) const override;
 
