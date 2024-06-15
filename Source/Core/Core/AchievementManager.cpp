@@ -812,11 +812,16 @@ void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
 void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
-  const auto& instance = AchievementManager::GetInstance();
+  auto& instance = AchievementManager::GetInstance();
+  auto current_time = std::chrono::steady_clock::now();
+  const auto message_wait_time = std::chrono::milliseconds{OSD::Duration::SHORT};
+  if (current_time - instance.m_last_progress_message < message_wait_time)
+    return;
   OSD::AddMessage(fmt::format("{} {}", client_event->achievement->title,
                               client_event->achievement->measured_progress),
                   OSD::Duration::SHORT, OSD::Color::GREEN,
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
+  instance.m_last_progress_message = current_time;
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
