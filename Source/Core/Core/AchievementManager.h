@@ -96,6 +96,7 @@ public:
   bool HasAPIToken() const;
   void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
+  void SetBackgroundExecutionAllowed(bool allowed);
 
   void FetchPlayerBadge();
   void FetchGameBadges();
@@ -238,6 +239,8 @@ public:
   constexpr bool IsHardcoreModeActive() { return false; }
 
   constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
+
+  constexpr void SetBackgroundExecutionAllowed(bool allowed) {}
 
   constexpr void DoFrame() {}
 

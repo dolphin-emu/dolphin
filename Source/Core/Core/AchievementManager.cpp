@@ -158,6 +158,10 @@ bool AchievementManager::IsGameLoaded() const
   return game_info && game_info->id != 0;
 }
 
+void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
+{
+}
+
 void AchievementManager::FetchPlayerBadge()
 {
   FetchBadge(&m_player_badge, RC_IMAGE_TYPE_USER,
