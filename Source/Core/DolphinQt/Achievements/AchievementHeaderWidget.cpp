@@ -29,6 +29,9 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_game_progress = new QProgressBar();
   m_rich_presence = new QLabel();
 
+  m_name->setWordWrap(true);
+  m_points->setWordWrap(true);
+  m_rich_presence->setWordWrap(true);
   QSizePolicy sp_retain = m_game_progress->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);
   m_game_progress->setSizePolicy(sp_retain);

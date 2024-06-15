@@ -55,7 +55,9 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
         const auto* leaderboard = leaderboard_bucket.leaderboards[board];
         m_leaderboard_order[leaderboard->id] = row;
         QLabel* a_title = new QLabel(QString::fromUtf8(leaderboard->title));
+        a_title->setWordWrap(true);
         QLabel* a_description = new QLabel(QString::fromUtf8(leaderboard->description));
+        a_description->setWordWrap(true);
         QVBoxLayout* a_col_left = new QVBoxLayout();
         a_col_left->addWidget(a_title);
         a_col_left->addWidget(a_description);
