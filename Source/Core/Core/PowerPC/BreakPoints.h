@@ -66,23 +66,22 @@ public:
   TBreakPointsStr GetStrings() const;
   void AddFromStrings(const TBreakPointsStr& bp_strings);
 
-  // is address breakpoint
   bool IsAddressBreakPoint(u32 address) const;
   bool IsBreakPointEnable(u32 adresss) const;
   bool IsTempBreakPoint(u32 address) const;
   const TBreakPoint* GetBreakpoint(u32 address) const;
 
-  // Add BreakPoint
+  // Add BreakPoint. If one already exists on the same address, replace it.
   void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
            std::optional<Expression> condition);
   void Add(u32 address, bool temp = false);
   void Add(TBreakPoint bp);
 
-  // Modify Breakpoint
   bool ToggleBreakPoint(u32 address);
+  bool ToggleEnable(u32 address);
 
-  // Remove Breakpoint
-  void Remove(u32 address);
+  // Remove Breakpoint. Returns whether it was removed.
+  bool Remove(u32 address);
   void Clear();
   void ClearAllTemporary();
 
@@ -111,12 +110,12 @@ public:
 
   void Add(TMemCheck memory_check);
 
-  bool ToggleBreakPoint(u32 address);
+  bool ToggleEnable(u32 address);
 
-  // memory breakpoint
   TMemCheck* GetMemCheck(u32 address, size_t size = 1);
   bool OverlapsMemcheck(u32 address, u32 length) const;
-  void Remove(u32 address);
+  // Remove Breakpoint. Returns whether it was removed.
+  bool Remove(u32 address);
 
   void Clear();
   bool HasAny() const { return !m_mem_checks.empty(); }

@@ -80,8 +80,8 @@ public:
                                  u32 address) const override;
   bool IsAlive() const override;
   bool IsBreakpoint(u32 address) const override;
-  void SetBreakpoint(u32 address) override;
-  void ClearBreakpoint(u32 address) override;
+  void AddBreakpoint(u32 address) override;
+  void RemoveBreakpoint(u32 address) override;
   void ClearAllBreakpoints() override;
   void ToggleBreakpoint(u32 address) override;
   void ClearAllMemChecks() override;

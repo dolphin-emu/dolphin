@@ -73,8 +73,8 @@ public:
   }
   virtual bool IsAlive() const { return true; }
   virtual bool IsBreakpoint(u32 /*address*/) const { return false; }
-  virtual void SetBreakpoint(u32 /*address*/) {}
-  virtual void ClearBreakpoint(u32 /*address*/) {}
+  virtual void AddBreakpoint(u32 /*address*/) {}
+  virtual void RemoveBreakpoint(u32 /*address*/) {}
   virtual void ClearAllBreakpoints() {}
   virtual void ToggleBreakpoint(u32 /*address*/) {}
   virtual void ClearAllMemChecks() {}
