@@ -629,19 +629,13 @@ void PowerPCManager::CheckExternalExceptions()
   m_system.GetJitInterface().UpdateMembase();
 }
 
-void PowerPCManager::CheckBreakPoints()
+bool PowerPCManager::CheckBreakPoints()
 {
   const TBreakPoint* bp = m_breakpoints.GetBreakpoint(m_ppc_state.pc);
 
   if (!bp || !bp->is_enabled || !EvaluateCondition(m_system, bp->condition))
-    return;
+    return false;
 
-  if (bp->break_on_hit)
-  {
-    m_system.GetCPU().Break();
-    if (GDBStub::IsActive())
-      GDBStub::TakeControl();
-  }
   if (bp->log_on_hit)
   {
     NOTICE_LOG_FMT(MEMMAP,
@@ -652,8 +646,21 @@ void PowerPCManager::CheckBreakPoints()
                    m_ppc_state.gpr[8], m_ppc_state.gpr[9], m_ppc_state.gpr[10], m_ppc_state.gpr[11],
                    m_ppc_state.gpr[12], LR(m_ppc_state));
   }
-  if (m_breakpoints.IsTempBreakPoint(m_ppc_state.pc))
-    m_breakpoints.Remove(m_ppc_state.pc);
+  if (bp->break_on_hit)
+    return true;
+  return false;
+}
+
+bool PowerPCManager::CheckAndHandleBreakPoints()
+{
+  if (CheckBreakPoints())
+  {
+    m_system.GetCPU().Break();
+    if (GDBStub::IsActive())
+      GDBStub::TakeControl();
+    return true;
+  }
+  return false;
 }
 
 void PowerPCState::SetSR(u32 index, u32 value)
@@ -722,8 +729,8 @@ void CheckExternalExceptionsFromJIT(PowerPCManager& power_pc)
   power_pc.CheckExternalExceptions();
 }
 
-void CheckBreakPointsFromJIT(PowerPCManager& power_pc)
+void CheckAndHandleBreakPointsFromJIT(PowerPCManager& power_pc)
 {
-  power_pc.CheckBreakPoints();
+  power_pc.CheckAndHandleBreakPoints();
 }
 }  // namespace PowerPC
