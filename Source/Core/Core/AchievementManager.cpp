@@ -741,6 +741,8 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
                   (rc_client_get_hardcore_enabled(instance.m_client)) ? OSD::Color::YELLOW :
                                                                         OSD::Color::CYAN,
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
+  AchievementManager::GetInstance().m_update_callback(
+      UpdatedItems{.achievements = {client_event->achievement->id}});
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
@@ -765,6 +767,8 @@ void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t
                               client_event->leaderboard->title),
                   OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
   AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
+  AchievementManager::GetInstance().m_update_callback(
+      UpdatedItems{.leaderboards = {client_event->leaderboard->id}});
 }
 
 void AchievementManager::HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event)
@@ -822,6 +826,8 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
                   OSD::Duration::SHORT, OSD::Color::GREEN,
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
   instance.m_last_progress_message = current_time;
+  AchievementManager::GetInstance().m_update_callback(
+      UpdatedItems{.achievements = {client_event->achievement->id}});
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
