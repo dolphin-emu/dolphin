@@ -179,7 +179,8 @@ void KeyboardMouse::UpdateCursorInput()
   const auto win_height = std::max(rect.bottom - rect.top, 1l);
 
   POINT point = {};
-  if (g_controller_interface.IsMouseCenteringRequested() && Host_RendererHasFocus())
+  if (g_controller_interface.IsMouseCenteringRequested() &&
+      (Host_RendererHasFocus() || Host_TASInputHasFocus()))
   {
     point.x = win_width / 2;
     point.y = win_height / 2;
@@ -188,6 +189,15 @@ void KeyboardMouse::UpdateCursorInput()
     ClientToScreen(s_hwnd, &screen_point);
     SetCursorPos(screen_point.x, screen_point.y);
     g_controller_interface.SetMouseCenteringRequested(false);
+  }
+  else if (Host_TASInputHasFocus())
+  {
+    // When a TAS Input window has focus and "Enable Controller Input" is checked most types of
+    // input should be read normally as if the render window had focus instead. The cursor is an
+    // exception, as otherwise using the mouse to set any control in the TAS Input window will also
+    // update the Wii IR value (or any other input controlled by the cursor).
+
+    return;
   }
   else
   {

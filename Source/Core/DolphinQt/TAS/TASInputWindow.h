@@ -18,6 +18,7 @@
 class QBoxLayout;
 class QCheckBox;
 class QDialog;
+class QEvent;
 class QGroupBox;
 class QSpinBox;
 class QString;
@@ -67,6 +68,8 @@ protected:
   TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
                                     QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget);
+
+  void changeEvent(QEvent* event) override;
 
   QGroupBox* m_settings_box;
   QCheckBox* m_use_controller;
