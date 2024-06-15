@@ -20,7 +20,6 @@ struct TBreakPoint
 {
   u32 address = 0;
   bool is_enabled = false;
-  bool is_temporary = false;
   bool log_on_hit = false;
   bool break_on_hit = false;
   std::optional<Expression> condition;
@@ -68,14 +67,21 @@ public:
 
   bool IsAddressBreakPoint(u32 address) const;
   bool IsBreakPointEnable(u32 adresss) const;
-  bool IsTempBreakPoint(u32 address) const;
+  // Get the breakpoint in this address (for most purposes)
   const TBreakPoint* GetBreakpoint(u32 address) const;
+  // Get the breakpoint in this address (ignore temporary breakpoint, e.g. for editing purposes)
+  const TBreakPoint* GetRegularBreakpoint(u32 address) const;
 
   // Add BreakPoint. If one already exists on the same address, replace it.
-  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
-           std::optional<Expression> condition);
-  void Add(u32 address, bool temp = false);
+  void Add(u32 address, bool break_on_hit, bool log_on_hit, std::optional<Expression> condition);
+  void Add(u32 address);
   void Add(TBreakPoint bp);
+  // Add temporary breakpoint (e.g., Step Over, Run to Here)
+  // It can be on the same address of a regular breakpoint (it will have priority in this case)
+  // It's cleared whenever the emulation is paused for any reason
+  // (CPUManager::SetStateLocked(State::Paused))
+  // TODO: Should it somehow force to resume emulation when called?
+  void SetTemporary(u32 address);
 
   bool ToggleBreakPoint(u32 address);
   bool ToggleEnable(u32 address);
@@ -83,10 +89,11 @@ public:
   // Remove Breakpoint. Returns whether it was removed.
   bool Remove(u32 address);
   void Clear();
-  void ClearAllTemporary();
+  void ClearTemporary();
 
 private:
   TBreakPoints m_breakpoints;
+  std::optional<TBreakPoint> m_temp_breakpoint;
   Core::System& m_system;
 };
 

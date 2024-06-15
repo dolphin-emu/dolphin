@@ -506,7 +506,7 @@ void PPCDebugInterface::SetPC(u32 address)
 void PPCDebugInterface::RunTo(u32 address)
 {
   auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
-  breakpoints.Add(address, true);
+  breakpoints.SetTemporary(address);
   m_system.GetCPU().SetStepping(false);
 }
 
