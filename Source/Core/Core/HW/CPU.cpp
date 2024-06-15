@@ -85,23 +85,20 @@ void CPUManager::Run()
       m_state_cpu_thread_active = true;
       state_lock.unlock();
 
-      // Adjust PC for JIT when debugging
+      // Adjust PC when debugging
       // SingleStep so that the "continue", "step over" and "step out" debugger functions
       // work when the PC is at a breakpoint at the beginning of the block
       // Don't use PowerPCManager::CheckBreakPoints, otherwise you get double logging
       // If watchpoints are enabled, any instruction could be a breakpoint.
-      if (power_pc.GetMode() != PowerPC::CoreMode::Interpreter)
+      if (power_pc.GetBreakPoints().IsAddressBreakPoint(power_pc.GetPPCState().pc) ||
+          power_pc.GetMemChecks().HasAny())
       {
-        if (power_pc.GetBreakPoints().IsAddressBreakPoint(power_pc.GetPPCState().pc) ||
-            power_pc.GetMemChecks().HasAny())
-        {
-          m_state = State::Stepping;
-          PowerPC::CoreMode old_mode = power_pc.GetMode();
-          power_pc.SetMode(PowerPC::CoreMode::Interpreter);
-          power_pc.SingleStep();
-          power_pc.SetMode(old_mode);
-          m_state = State::Running;
-        }
+        m_state = State::Stepping;
+        PowerPC::CoreMode old_mode = power_pc.GetMode();
+        power_pc.SetMode(PowerPC::CoreMode::Interpreter);
+        power_pc.SingleStep();
+        power_pc.SetMode(old_mode);
+        m_state = State::Running;
       }
 
       // Enter a fast runloop
