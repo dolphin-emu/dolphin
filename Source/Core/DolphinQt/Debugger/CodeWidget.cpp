@@ -484,7 +484,7 @@ void CodeWidget::StepOver()
     auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
     breakpoints.ClearAllTemporary();
     breakpoints.Add(m_system.GetPPCState().pc + 4, true);
-    cpu.EnableStepping(false);
+    cpu.SetStepping(false);
     Core::DisplayMessage(tr("Step over in progress...").toStdString(), 2000);
   }
   else
@@ -547,8 +547,7 @@ void CodeWidget::StepOut()
         do
         {
           power_pc.SingleStep();
-        } while (ppc_state.pc != next_pc && clock::now() < timeout &&
-                 !breakpoints.IsAddressBreakPoint(ppc_state.pc));
+        } while (ppc_state.pc != next_pc && clock::now() < timeout && !power_pc.CheckBreakPoints());
       }
       else
       {
@@ -556,14 +555,14 @@ void CodeWidget::StepOut()
       }
 
       inst = PowerPC::MMU::HostRead_Instruction(guard, ppc_state.pc);
-    } while (clock::now() < timeout && !breakpoints.IsAddressBreakPoint(ppc_state.pc));
+    } while (clock::now() < timeout && !power_pc.CheckBreakPoints());
 
     power_pc.SetMode(old_mode);
   }
 
   emit Host::GetInstance()->UpdateDisasmDialog();
 
-  if (breakpoints.IsAddressBreakPoint(ppc_state.pc))
+  if (power_pc.CheckBreakPoints())
     Core::DisplayMessage(tr("Breakpoint encountered! Step out aborted.").toStdString(), 2000);
   else if (clock::now() >= timeout)
     Core::DisplayMessage(tr("Step out timed out!").toStdString(), 2000);

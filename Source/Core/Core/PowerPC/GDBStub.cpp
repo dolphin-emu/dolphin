@@ -865,7 +865,7 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
 static void Step()
 {
   auto& system = Core::System::GetInstance();
-  system.GetCPU().EnableStepping(true);
+  system.GetCPU().SetStepping(true);
   Core::CallOnStateChangedCallbacks(Core::State::Paused);
 }
 

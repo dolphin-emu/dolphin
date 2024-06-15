@@ -88,6 +88,7 @@ void CPUManager::Run()
       // Adjust PC for JIT when debugging
       // SingleStep so that the "continue", "step over" and "step out" debugger functions
       // work when the PC is at a breakpoint at the beginning of the block
+      // Don't use PowerPCManager::CheckBreakPoints, otherwise you get double logging
       // If watchpoints are enabled, any instruction could be a breakpoint.
       if (power_pc.GetMode() != PowerPC::CoreMode::Interpreter)
       {
@@ -174,7 +175,7 @@ void CPUManager::Run()
 // Requires holding m_state_change_lock
 void CPUManager::RunAdjacentSystems(bool running)
 {
-  // NOTE: We're assuming these will not try to call Break or EnableStepping.
+  // NOTE: We're assuming these will not try to call Break or SetStepping.
   m_system.GetFifo().EmulatorState(running);
   // Core is responsible for shutting down the sound stream.
   if (m_state != State::PowerDown)
@@ -247,7 +248,7 @@ bool CPUManager::SetStateLocked(State s)
   return true;
 }
 
-void CPUManager::EnableStepping(bool stepping)
+void CPUManager::SetStepping(bool stepping)
 {
   std::lock_guard stepping_lock(m_stepping_lock);
   std::unique_lock state_lock(m_state_change_lock);
@@ -290,7 +291,7 @@ void CPUManager::Break()
 
 void CPUManager::Continue()
 {
-  EnableStepping(false);
+  SetStepping(false);
   Core::CallOnStateChangedCallbacks(Core::State::Running);
 }
 

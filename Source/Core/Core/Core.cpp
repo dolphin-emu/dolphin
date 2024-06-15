@@ -709,7 +709,7 @@ void SetState(Core::System& system, State state, bool report_state_change,
 #endif  // USE_RETRO_ACHIEVEMENTS
     // NOTE: GetState() will return State::Paused immediately, even before anything has
     //   stopped (including the CPU).
-    system.GetCPU().EnableStepping(true);  // Break
+    system.GetCPU().SetStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -718,7 +718,7 @@ void SetState(Core::System& system, State state, bool report_state_change,
     break;
   case State::Running:
   {
-    system.GetCPU().EnableStepping(false);
+    system.GetCPU().SetStepping(false);
     Wiimote::Resume();
     break;
   }
@@ -821,7 +821,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
     // The CPU is responsible for managing the Audio and FIFO state so we use its
     // mechanism to unpause them. If we unpaused the systems above when releasing
     // the locks then they could call CPU::Break which would require detecting it
-    // and re-pausing with CPU::EnableStepping.
+    // and re-pausing with CPU::SetStepping.
     was_unpaused = system.GetCPU().PauseAndLock(false, unpause_on_unlock, true);
   }
 
