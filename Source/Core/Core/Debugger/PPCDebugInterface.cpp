@@ -357,12 +357,12 @@ bool PPCDebugInterface::IsBreakpoint(u32 address) const
   return m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(address);
 }
 
-void PPCDebugInterface::SetBreakpoint(u32 address)
+void PPCDebugInterface::AddBreakpoint(u32 address)
 {
   m_system.GetPowerPC().GetBreakPoints().Add(address);
 }
 
-void PPCDebugInterface::ClearBreakpoint(u32 address)
+void PPCDebugInterface::RemoveBreakpoint(u32 address)
 {
   m_system.GetPowerPC().GetBreakPoints().Remove(address);
 }
@@ -374,11 +374,7 @@ void PPCDebugInterface::ClearAllBreakpoints()
 
 void PPCDebugInterface::ToggleBreakpoint(u32 address)
 {
-  auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
-  if (breakpoints.IsAddressBreakPoint(address))
-    breakpoints.Remove(address);
-  else
-    breakpoints.Add(address);
+  m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(address);
 }
 
 void PPCDebugInterface::ClearAllMemChecks()

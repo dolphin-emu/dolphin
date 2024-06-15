@@ -164,9 +164,8 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
     auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
-    while (breakpoints.IsAddressBreakPoint(addr))
+    if (breakpoints.Remove(addr))
     {
-      breakpoints.Remove(addr);
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a breakpoint: {:08x} bytes at {:08x}", len, addr);
     }
   }

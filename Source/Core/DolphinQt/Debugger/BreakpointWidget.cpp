@@ -215,9 +215,9 @@ void BreakpointWidget::OnClicked(QTableWidgetItem* item)
   if (item->column() == ENABLED_COLUMN)
   {
     if (item->data(IS_MEMCHECK_ROLE).toBool())
-      m_system.GetPowerPC().GetMemChecks().ToggleBreakPoint(address);
+      m_system.GetPowerPC().GetMemChecks().ToggleEnable(address);
     else
-      m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(address);
+      m_system.GetPowerPC().GetBreakPoints().ToggleEnable(address);
 
     emit BreakpointsChanged();
     Update();

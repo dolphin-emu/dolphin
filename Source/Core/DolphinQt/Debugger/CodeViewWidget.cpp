@@ -869,7 +869,7 @@ void CodeViewWidget::OnRunToHere()
 {
   const u32 addr = GetContextAddress();
 
-  m_system.GetPowerPC().GetDebugInterface().SetBreakpoint(addr);
+  m_system.GetPowerPC().GetDebugInterface().AddBreakpoint(addr);
   m_system.GetPowerPC().GetDebugInterface().RunToBreakpoint();
   Update();
 }
@@ -1137,11 +1137,7 @@ void CodeViewWidget::showEvent(QShowEvent* event)
 
 void CodeViewWidget::ToggleBreakpoint()
 {
-  auto& power_pc = m_system.GetPowerPC();
-  if (power_pc.GetDebugInterface().IsBreakpoint(GetContextAddress()))
-    power_pc.GetBreakPoints().Remove(GetContextAddress());
-  else
-    power_pc.GetBreakPoints().Add(GetContextAddress());
+  m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(GetContextAddress());
 
   emit BreakpointsChanged();
   Update();
