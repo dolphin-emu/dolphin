@@ -173,7 +173,6 @@ void BreakpointWidget::CreateWidgets()
   m_load = m_toolbar->addAction(tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = m_toolbar->addAction(tr("Save"), this, &BreakpointWidget::OnSave);
 
-  m_new->setEnabled(false);
   m_load->setEnabled(false);
   m_save->setEnabled(false);
 
@@ -252,7 +251,6 @@ void BreakpointWidget::UpdateButtonsEnabled()
     return;
 
   const bool is_initialised = Core::GetState(m_system) != Core::State::Uninitialized;
-  m_new->setEnabled(is_initialised);
   m_load->setEnabled(is_initialised);
   m_save->setEnabled(is_initialised);
 }
