@@ -111,11 +111,13 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
       {
         ImGui::Image(msg.texture.get(), ImVec2(static_cast<float>(msg.icon->width),
                                                static_cast<float>(msg.icon->height)));
+        ImGui::SameLine();
       }
     }
 
     // Use %s in case message contains %.
-    ImGui::TextColored(ARGBToImVec4(msg.color), "%s", msg.text.c_str());
+    if (msg.text.size() > 0)
+      ImGui::TextColored(ARGBToImVec4(msg.color), "%s", msg.text.c_str());
     window_height =
         ImGui::GetWindowSize().y + (WINDOW_PADDING * ImGui::GetIO().DisplayFramebufferScale.y);
   }
