@@ -950,6 +950,20 @@ void VulkanContext::InitDriverDetails()
     vendor = DriverDetails::VENDOR_APPLE;
     driver = DriverDetails::DRIVER_PORTABILITY;
   }
+  else if (vendor_id == 0x14E4)
+  {
+    // Official Broadcom binary driver
+    vendor = DriverDetails::VENDOR_BROADCOM;
+    driver = DriverDetails::DRIVER_BROADCOM;
+
+    if (device_name.find("V3D") != std::string::npos)
+    {
+      // Raspberry Pi use Broadcom VideoCore GPU drivers:
+      //  - RPI 4: DeviceName "V3D 4.2"
+      //  - RPI 5: DeviceName "V3D 7.1"
+      driver = DriverDetails::DRIVER_RPI;
+    }
+  }
   else
   {
     WARN_LOG_FMT(VIDEO, "Unknown Vulkan driver vendor, please report it to us.");

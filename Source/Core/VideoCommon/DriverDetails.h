@@ -46,6 +46,7 @@ enum Vendor
   VENDOR_VIVANTE,
   VENDOR_MESA,
   VENDOR_APPLE,
+  VENDOR_BROADCOM,
   VENDOR_UNKNOWN
 };
 
@@ -67,6 +68,8 @@ enum Driver
   DRIVER_VIVANTE,      // Official Vivante driver
   DRIVER_PORTABILITY,  // Vulkan via Metal on macOS
   DRIVER_APPLE,        // Metal on macOS
+  DRIVER_BROADCOM,     // Official Broadcom driver
+  DRIVER_RPI,          // Raspberry Pi Broadcom Videocore drivers
   DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 };
 

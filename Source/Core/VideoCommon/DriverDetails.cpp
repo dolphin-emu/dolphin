@@ -158,6 +158,8 @@ constexpr BugInfo m_known_bugs[] = {
      BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING, -1.0, -1.0, true},
     {API_VULKAN, OS_ANDROID, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY, -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_BROADCOM, DRIVER_RPI, Family::UNKNOWN,
+     BUG_SLOW_CACHED_READBACK_MEMORY, -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;
@@ -260,6 +262,8 @@ static const char* to_string(Driver driver)
     case DRIVER_VIVANTE:     return "Vivante";
     case DRIVER_PORTABILITY: return "Portability";
     case DRIVER_APPLE:       return "Apple";
+    case DRIVER_BROADCOM:    return "Broadcom";
+    case DRIVER_RPI:         return "Broadcom Videocore";
     case DRIVER_UNKNOWN:     return "Unknown";
   }
   return "Unknown";
