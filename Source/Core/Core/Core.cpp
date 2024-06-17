@@ -398,7 +398,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   {
 #ifndef _WIN32
     std::string gdb_socket = Config::Get(Config::MAIN_GDB_SOCKET);
-    if (!gdb_socket.empty())
+    if (!gdb_socket.empty() && !AchievementManager::GetInstance().IsHardcoreModeActive())
     {
       GDBStub::InitLocal(gdb_socket.data());
       CPUSetInitialExecutionState(true);
@@ -407,7 +407,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 #endif
     {
       int gdb_port = Config::Get(Config::MAIN_GDB_PORT);
-      if (gdb_port > 0)
+      if (gdb_port > 0 && !AchievementManager::GetInstance().IsHardcoreModeActive())
       {
         GDBStub::Init(gdb_port);
         CPUSetInitialExecutionState(true);
