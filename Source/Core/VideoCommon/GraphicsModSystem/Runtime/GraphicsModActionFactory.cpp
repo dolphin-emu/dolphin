@@ -3,6 +3,7 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomMeshAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
@@ -38,6 +39,10 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   else if (name == TransformAction::factory_name)
   {
     return TransformAction::Create(json_data);
+  }
+  else if (name == CustomMeshAction::factory_name)
+  {
+    return CustomMeshAction::Create(json_data, std::move(library), std::move(texture_cache));
   }
 
   return nullptr;
