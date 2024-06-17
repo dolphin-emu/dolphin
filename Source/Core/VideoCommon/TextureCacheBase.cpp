@@ -38,7 +38,6 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
-#include "VideoCommon/Assets/CustomResourceManager.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/BPMemory.h"
@@ -48,6 +47,7 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
@@ -291,9 +291,9 @@ bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
   if (!entry.hires_texture)
     return false;
 
-  const auto [texture_data, load_time] = entry.hires_texture->LoadTexture();
+  const auto* resource = entry.hires_texture->LoadTexture();
 
-  return load_time > entry.last_load_time;
+  return resource->GetLoadTime() > entry.last_load_time;
 }
 
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
@@ -1599,7 +1599,9 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     if (hires_texture)
     {
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
-      std::tie(custom_texture_data, load_time) = hires_texture->LoadTexture();
+      const auto resource = hires_texture->LoadTexture();
+      load_time = resource->GetLoadTime();
+      custom_texture_data = resource->GetData();
       if (custom_texture_data && !VideoCommon::ValidateTextureData(
                                      hires_texture->GetId(), *custom_texture_data,
                                      texture_info.GetRawWidth(), texture_info.GetRawHeight()))
@@ -1617,7 +1619,6 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
                          has_arbitrary_mipmaps, skip_texture_dump);
   entry->hires_texture = std::move(hires_texture);
   entry->last_load_time = load_time;
-  entry->texture_info_name = std::move(texture_name);
   if (g_ActiveConfig.bGraphicMods)
   {
     entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
@@ -2763,8 +2764,11 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     auto& mod_manager = system.GetGraphicsModManager();
     if (entry->is_efb_copy)
     {
-      mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
-                                               entry->texture_info_name);
+      if (entry->pending_efb_copy && discard_pending_efb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
+                                                 entry->texture_info_name);
+      }
     }
     else if (entry->is_xfb_copy)
     {
