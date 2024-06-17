@@ -23,6 +23,8 @@
 #include "ConfigManager.h"
 #include "Config/MainSettings.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
+
 namespace Gecko
 {
 static constexpr u32 CODE_SIZE = 8;
@@ -191,6 +193,11 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
                      "not write: \"{}\". Need {} bytes, only {} remain.",
                      active_code.name, active_code.codes.size() * CODE_SIZE,
                      end_address - next_address);
+      OSD::AddMessage(fmt::format("Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+                      "not write: \"{}\". Need {} bytes, only {} remain.",
+                      active_code.name, active_code.codes.size() * CODE_SIZE,
+                      end_address - next_address),
+          OSD::Duration::VERY_LONG);
       continue;
     }
 
@@ -204,6 +211,9 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
                end_address - start_address);
+
+  OSD::AddMessage(fmt::format("Gecko Codes: Using {} of {} bytes", next_address - start_address,
+               end_address - start_address));
 
   // Stop code. Tells the handler that this is the end of the list.
   PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);

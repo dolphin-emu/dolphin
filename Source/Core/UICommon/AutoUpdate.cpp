@@ -158,15 +158,6 @@ static std::string GetUpdateServerUrl()
   return "https://dolphin-emu.org";
 }
 
-static u32 GetOwnProcessId()
-{
-#ifdef _WIN32
-  return GetCurrentProcessId();
-#else
-  return getpid();
-#endif
-}
-
 void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
                                        std::string_view hash_override, const CheckType check_type)
 {
