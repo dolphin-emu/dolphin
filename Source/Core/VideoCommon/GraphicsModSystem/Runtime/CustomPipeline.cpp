@@ -12,6 +12,7 @@
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace
 {
@@ -297,8 +298,25 @@ void CustomPipeline::UpdatePixelData(
 
         if (texture_result)
         {
+          SamplerState state = texture_result->data->m_sampler;
+          if (g_ActiveConfig.iMaxAnisotropy != 0 && !(state.tm0.min_filter == FilterMode::Near &&
+                                                      state.tm0.mag_filter == FilterMode::Near))
+          {
+            state.tm0.min_filter = FilterMode::Linear;
+            state.tm0.mag_filter = FilterMode::Linear;
+            if (!texture_result->data->m_texture.m_slices.empty() &&
+                !texture_result->data->m_texture.m_slices[0].m_levels.empty())
+            {
+              state.tm0.mipmap_filter = FilterMode::Linear;
+            }
+            state.tm0.anisotropic_filtering = true;
+          }
+          else
+          {
+            state.tm0.anisotropic_filtering = false;
+          }
           g_gfx->SetTexture(sampler_index, texture_result->texture);
-          g_gfx->SetSamplerState(sampler_index, texture_result->data->m_sampler);
+          g_gfx->SetSamplerState(sampler_index, state);
         }
 
         sampler_index++;
