@@ -2794,8 +2794,11 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     auto& mod_manager = system.GetGraphicsModManager();
     if (entry->is_efb_copy)
     {
-      mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
-                                               entry->texture_info_name);
+      if (entry->pending_efb_copy && discard_pending_efb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
+                                                 entry->texture_info_name);
+      }
     }
     else if (entry->is_xfb_copy)
     {
