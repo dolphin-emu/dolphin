@@ -164,7 +164,7 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
     {
       if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CREATE_HOST_ACCESS_RANDOM_BIT))
       {
-	    alloc_create_info.requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        alloc_create_info.requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         alloc_create_info.requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         alloc_create_info.preferredFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
       }
