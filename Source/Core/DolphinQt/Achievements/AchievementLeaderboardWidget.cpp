@@ -44,12 +44,13 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
       return;
     auto* client = instance.GetClient();
     auto* leaderboard_list =
-        rc_client_create_leaderboard_list(client, RC_CLIENT_LEADERBOARD_LIST_GROUPING_NONE);
+        rc_client_create_leaderboard_list(client, RC_CLIENT_LEADERBOARD_LIST_GROUPING_TRACKING);
 
     u32 row = 0;
     for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; bucket++)
     {
       const auto& leaderboard_bucket = leaderboard_list->buckets[bucket];
+      m_common_layout->addWidget(new QLabel(tr(leaderboard_bucket.label)));
       for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; board++)
       {
         const auto* leaderboard = leaderboard_bucket.leaderboards[board];

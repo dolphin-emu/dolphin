@@ -49,9 +49,10 @@ void AchievementProgressWidget::UpdateData(bool clean_all)
     auto* client = instance.GetClient();
     auto* achievement_list = rc_client_create_achievement_list(
         client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE_AND_UNOFFICIAL,
-        RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_LOCK_STATE);
+        RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_PROGRESS);
     for (u32 ix = 0; ix < achievement_list->num_buckets; ix++)
     {
+      m_common_layout->addWidget(new QLabel(tr(achievement_list->buckets[ix].label)));
       for (u32 jx = 0; jx < achievement_list->buckets[ix].num_achievements; jx++)
       {
         auto* achievement = achievement_list->buckets[ix].achievements[jx];
