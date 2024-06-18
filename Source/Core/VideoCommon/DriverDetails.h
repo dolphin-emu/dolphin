@@ -349,7 +349,8 @@ enum Bug
 
   // BUG: Vulkan vmaCreateBuffer fails to allocate a memory buffer with error
   // VK_FEATURE_NOT_PRESENT when requesting memory with flag
-  // VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+  // VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT because it has no available
+  // video memory satisfying all HOST_VISIBLE, HOST_COHERENT, HOST_CACHED bits
   // Affected devices: Broadcom Videocore 6/7
   // Started Version: -1
   // Ended Version: -1

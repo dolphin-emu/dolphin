@@ -156,16 +156,21 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     alloc_create_info.preferredFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
   }
-  else if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CREATE_HOST_ACCESS_RANDOM_BIT))
-  {
-    alloc_create_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
-  }
   else
   {
     if (type == STAGING_BUFFER_TYPE_UPLOAD)
       alloc_create_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
     else
-      alloc_create_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    {
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CREATE_HOST_ACCESS_RANDOM_BIT))
+      {
+	    alloc_create_info.requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        alloc_create_info.requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        alloc_create_info.preferredFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+      }
+      else
+        alloc_create_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    }
   }
 
   VmaAllocationInfo alloc_info;
