@@ -345,7 +345,15 @@ enum Bug
   // Affected devices: Adreno
   // Started Version: -1
   // Ended Version: -1
-  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY
+  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY,
+
+  // BUG: Vulkan vmaCreateBuffer fails to allocate a memory buffer with error
+  // VK_FEATURE_NOT_PRESENT when requesting memory with flag
+  // VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+  // Affected devices: Broadcom Videocore 6/7
+  // Started Version: -1
+  // Ended Version: -1
+  BUG_BROKEN_CREATE_HOST_ACCESS_RANDOM_BIT
 };
 
 // Initializes our internal vendor, device family, and driver version

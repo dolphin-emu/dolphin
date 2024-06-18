@@ -159,7 +159,7 @@ constexpr BugInfo m_known_bugs[] = {
     {API_VULKAN, OS_ANDROID, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY, -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_BROADCOM, DRIVER_RPI, Family::UNKNOWN,
-     BUG_SLOW_CACHED_READBACK_MEMORY, -1.0, -1.0, true},
+     BUG_BROKEN_CREATE_HOST_ACCESS_RANDOM_BIT, -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;
@@ -301,6 +301,7 @@ static const char* to_string(Bug bug)
     case BUG_BROKEN_DISCARD_WITH_EARLY_Z:                return "broken-discard-with-early-z";
     case BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING:            return "broken-dynamic-sampler-indexing";
     case BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY:          return "slow-optimal-image-to-buffer-copy";
+    case BUG_BROKEN_CREATE_HOST_ACCESS_RANDOM_BIT:       return "broken-create-host-access-random-bit";
   }
   return "Unknown";
 }
