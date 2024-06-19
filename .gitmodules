@@ -81,3 +81,6 @@
 [submodule "Externals/minizip-ng/minizip-ng"]
 	path = Externals/minizip-ng/minizip-ng
 	url = https://github.com/zlib-ng/minizip-ng
+[submodule "Externals/Vulkan-Headers"]
+	path = Externals/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git

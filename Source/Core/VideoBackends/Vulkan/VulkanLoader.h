@@ -46,18 +46,21 @@
 #ifdef _MSVC_LANG
 #pragma warning(push, 4)
 #pragma warning(disable : 4189)  // local variable is initialized but not referenced
+#pragma warning(disable : 4505)  // function with internal linkage is not referenced
 
 #endif  // #ifdef _MSVC_LANG
 
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
 #pragma clang diagnostic ignored "-Wnullability-completeness"
 #endif  // #ifdef __clang__
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
 #endif  // #ifdef __GNUC__
 
 #define VMA_VULKAN_VERSION 1001000
