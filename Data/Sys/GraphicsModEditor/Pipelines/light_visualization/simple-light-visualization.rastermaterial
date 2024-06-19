@@ -1,0 +1,7 @@
+{
+	"next_material_asset":"",
+	"properties":[],
+	"textures":[],
+	"render_targets":[],
+	"shader_asset": "simple_light_visualization_shader"
+}
