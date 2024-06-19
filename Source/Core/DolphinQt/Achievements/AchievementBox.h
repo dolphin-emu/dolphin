@@ -25,6 +25,7 @@ private:
   QLabel* m_badge;
   QLabel* m_status;
   QProgressBar* m_progress_bar;
+  QLabel* m_progress_label;
 
   rc_client_achievement_t* m_achievement;
 };
