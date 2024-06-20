@@ -166,6 +166,9 @@ struct PowerPCState
 
   u32 sr[16]{};  // Segment registers.
 
+  bool ibat_update_pending = false;
+  bool dbat_update_pending = false;
+
   // special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
   // also for power management, but we don't care about that.
   // JitArm64 needs 64-bit alignment for SPR_TL.
