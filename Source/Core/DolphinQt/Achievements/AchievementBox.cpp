@@ -61,33 +61,36 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
 
 void AchievementBox::UpdateData()
 {
-  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-  // rc_client guarantees m_achievement will be valid as long as the game is loaded
-  if (!AchievementManager::GetInstance().IsGameLoaded())
-    return;
-
-  const auto& badge = AchievementManager::GetInstance().GetAchievementBadge(
-      m_achievement->id, m_achievement->state != RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED);
-  std::string_view color = AchievementManager::GRAY;
-  if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_HARDCORE)
-    color = AchievementManager::GOLD;
-  else if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_SOFTCORE)
-    color = AchievementManager::BLUE;
-  QImage i_badge(&badge.data.front(), badge.width, badge.height, QImage::Format_RGBA8888);
-  m_badge->setPixmap(
-      QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-  m_badge->adjustSize();
-  m_badge->setStyleSheet(QStringLiteral("border: 4px solid %1").arg(QtUtils::FromStdString(color)));
-
-  if (m_achievement->state == RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED)
   {
-    m_status->setText(
-        tr("Unlocked at %1")
-            .arg(QDateTime::fromSecsSinceEpoch(m_achievement->unlock_time).toString()));
-  }
-  else
-  {
-    m_status->setText(tr("Locked"));
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+    // rc_client guarantees m_achievement will be valid as long as the game is loaded
+    if (!AchievementManager::GetInstance().IsGameLoaded())
+      return;
+
+    const auto& badge = AchievementManager::GetInstance().GetAchievementBadge(
+        m_achievement->id, m_achievement->state != RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED);
+    std::string_view color = AchievementManager::GRAY;
+    if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_HARDCORE)
+      color = AchievementManager::GOLD;
+    else if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_SOFTCORE)
+      color = AchievementManager::BLUE;
+    QImage i_badge(&badge.data.front(), badge.width, badge.height, QImage::Format_RGBA8888);
+    m_badge->setPixmap(
+        QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    m_badge->adjustSize();
+    m_badge->setStyleSheet(
+        QStringLiteral("border: 4px solid %1").arg(QtUtils::FromStdString(color)));
+
+    if (m_achievement->state == RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED)
+    {
+      m_status->setText(
+          tr("Unlocked at %1")
+              .arg(QDateTime::fromSecsSinceEpoch(m_achievement->unlock_time).toString()));
+    }
+    else
+    {
+      m_status->setText(tr("Locked"));
+    }
   }
 
   UpdateProgress();

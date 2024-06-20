@@ -51,7 +51,7 @@ void AchievementProgressWidget::UpdateData(bool clean_all)
       m_common_layout->removeWidget(widget);
       if (std::strcmp(widget->metaObject()->className(), "QLabel") == 0)
       {
-        delete widget;
+        widget->deleteLater();
         delete item;
       }
     }
@@ -64,22 +64,26 @@ void AchievementProgressWidget::UpdateData(bool clean_all)
   auto* achievement_list =
       rc_client_create_achievement_list(client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE_AND_UNOFFICIAL,
                                         RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_PROGRESS);
+  if (!achievement_list)
+    return;
   for (u32 ix = 0; ix < achievement_list->num_buckets; ix++)
   {
     m_common_layout->addWidget(new QLabel(tr(achievement_list->buckets[ix].label)));
     for (u32 jx = 0; jx < achievement_list->buckets[ix].num_achievements; jx++)
     {
       auto* achievement = achievement_list->buckets[ix].achievements[jx];
-      auto box_itr = m_achievement_boxes.find(achievement->id);
-      if (box_itr == m_achievement_boxes.end())
+      auto box_itr = m_achievement_boxes.lower_bound(achievement->id);
+      if (box_itr != m_achievement_boxes.end() && box_itr->first == achievement->id)
       {
-        m_achievement_boxes[achievement->id] = std::make_shared<AchievementBox>(this, achievement);
+        box_itr->second->UpdateProgress();
+        m_common_layout->addWidget(box_itr->second.get());
       }
       else
       {
-        box_itr->second->UpdateProgress();
+        const auto new_box_itr = m_achievement_boxes.try_emplace(
+            box_itr, achievement->id, std::make_shared<AchievementBox>(this, achievement));
+        m_common_layout->addWidget(new_box_itr->second.get());
       }
-      m_common_layout->addWidget(m_achievement_boxes[achievement->id].get());
     }
   }
   rc_client_destroy_achievement_list(achievement_list);

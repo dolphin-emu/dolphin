@@ -89,7 +89,7 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
     {
       m_header_widget->UpdateData();
     }
-    if (updated_items.all_achievements)
+    if (updated_items.all_achievements || updated_items.rich_presence)
       m_progress_widget->UpdateData(false);
     else if (updated_items.achievements.size() > 0)
       m_progress_widget->UpdateData(updated_items.achievements);
