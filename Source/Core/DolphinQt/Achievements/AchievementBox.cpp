@@ -87,6 +87,11 @@ void AchievementBox::UpdateData()
     m_status->setText(tr("Locked"));
   }
 
+  UpdateProgress();
+}
+
+void AchievementBox::UpdateProgress()
+{
   if (m_achievement->measured_percent > 0.000)
   {
     m_progress_bar->setRange(0, 100);
