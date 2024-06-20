@@ -62,6 +62,9 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
 void AchievementBox::UpdateData()
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+  // rc_client guarantees m_achievement will be valid as long as the game is loaded
+  if (!AchievementManager::GetInstance().IsGameLoaded())
+    return;
 
   const auto& badge = AchievementManager::GetInstance().GetAchievementBadge(
       m_achievement->id, m_achievement->state != RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED);
@@ -92,6 +95,11 @@ void AchievementBox::UpdateData()
 
 void AchievementBox::UpdateProgress()
 {
+  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+  // rc_client guarantees m_achievement will be valid as long as the game is loaded
+  if (!AchievementManager::GetInstance().IsGameLoaded())
+    return;
+
   if (m_achievement->measured_percent > 0.000)
   {
     m_progress_bar->setRange(0, 100);
