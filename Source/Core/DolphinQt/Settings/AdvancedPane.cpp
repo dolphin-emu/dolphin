@@ -99,11 +99,22 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   clock_override_layout->addLayout(cpu_clock_override_slider_layout);
 
+  QFontMetrics fm(font());
+  const int sliderh = fm.height() * 1.5;
+
   m_cpu_clock_override_slider = new QSlider(Qt::Horizontal);
   m_cpu_clock_override_slider->setRange(0, 150);
+  m_cpu_clock_override_slider->setMinimumHeight(sliderh);
+  m_cpu_clock_override_slider->setTickPosition(QSlider::TicksBelow);
+  m_cpu_clock_override_slider->setTickInterval(37.5);
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider);
 
   m_cpu_clock_override_slider_label = new QLabel();
+  m_cpu_clock_override_slider_label->setAlignment(Qt::AlignRight);
+
+  // Prevent change in the number of digits from affecting width, and thus slider size.
+  const int label_width = fm.boundingRect(QStringLiteral(" 400% (1444 mhz) ")).width();
+  m_cpu_clock_override_slider_label->setMinimumWidth(label_width);
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider_label);
 
   auto* cpu_clock_override_description =
@@ -131,6 +142,9 @@ void AdvancedPane::CreateLayout()
 
   m_mem1_override_slider = new QSlider(Qt::Horizontal);
   m_mem1_override_slider->setRange(24, 64);
+  m_mem1_override_slider->setMinimumHeight(sliderh);
+  m_mem1_override_slider->setTickInterval(10);
+  m_mem1_override_slider->setTickPosition(QSlider::TicksBelow);
   mem1_override_slider_layout->addWidget(m_mem1_override_slider);
 
   m_mem1_override_slider_label = new QLabel();
@@ -142,6 +156,9 @@ void AdvancedPane::CreateLayout()
 
   m_mem2_override_slider = new QSlider(Qt::Horizontal);
   m_mem2_override_slider->setRange(64, 128);
+  m_mem2_override_slider->setMinimumHeight(sliderh);
+  m_mem2_override_slider->setTickInterval(16);
+  m_mem2_override_slider->setTickPosition(QSlider::TicksBelow);
   mem2_override_slider_layout->addWidget(m_mem2_override_slider);
 
   m_mem2_override_slider_label = new QLabel();
