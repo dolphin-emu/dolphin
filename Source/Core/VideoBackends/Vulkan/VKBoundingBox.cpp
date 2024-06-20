@@ -43,10 +43,10 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
   StateTracker::GetInstance()->EndRenderPass();
 
   // Ensure all writes are completed to the GPU buffer prior to the transfer.
-  StagingBuffer::BufferMemoryBarrier(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
-      VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, 0,
-      BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+  StagingBuffer::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
+                                     VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, 0,
+                                     BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
   m_readback_buffer->PrepareForGPUWrite(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                         VK_ACCESS_TRANSFER_WRITE_BIT,
                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -57,10 +57,10 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
                   m_readback_buffer->GetBuffer(), 1, &region);
 
   // Restore GPU buffer access.
-  StagingBuffer::BufferMemoryBarrier(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer, VK_ACCESS_TRANSFER_READ_BIT,
-      VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
-      VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+  StagingBuffer::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
+                                     0, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0,
+                                     BUFFER_SIZE, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
   m_readback_buffer->FlushGPUCache(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
@@ -84,10 +84,10 @@ void VKBoundingBox::Write(u32 index, std::span<const BBoxType> values)
   StateTracker::GetInstance()->EndRenderPass();
 
   // Ensure GPU buffer is in a state where it can be transferred to.
-  StagingBuffer::BufferMemoryBarrier(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
-      VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, 0,
-      BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+  StagingBuffer::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
+                                     VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, 0,
+                                     BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Write the values to the GPU buffer
   vkCmdUpdateBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,

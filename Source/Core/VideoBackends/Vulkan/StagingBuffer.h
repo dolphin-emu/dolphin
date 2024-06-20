@@ -29,12 +29,6 @@ public:
   // Upload part 1: Prepare from device read from the CPU side
   void FlushCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE);
 
-  // Upload part 2: Prepare for device read from the GPU side
-  // Implicit when submitting the command buffer, so rarely needed.
-  void InvalidateGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits dst_access_flags,
-                          VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
-                          VkDeviceSize size = VK_WHOLE_SIZE);
-
   // Readback part 0: Prepare for GPU usage (if necessary)
   void PrepareForGPUWrite(VkCommandBuffer command_buffer, VkAccessFlagBits dst_access_flags,
                           VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
