@@ -393,7 +393,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
       for (const auto& value : leaderboard_progress)
-        ImGui::Text(value.data());
+        ImGui::TextUnformatted(value.c_str());
     }
     ImGui::End();
   }

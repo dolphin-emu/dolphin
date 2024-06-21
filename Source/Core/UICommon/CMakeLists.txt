@@ -28,6 +28,7 @@ add_library(uicommon
 target_link_libraries(uicommon
 PUBLIC
   common
+  core
   cpp-optparse
   minizip::minizip
   pugixml
