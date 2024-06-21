@@ -40,6 +40,7 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   sp_retain.setRetainSizeWhenHidden(true);
   m_progress_bar->setSizePolicy(sp_retain);
   m_progress_label = new QLabel();
+  m_progress_label->setStyleSheet(QStringLiteral("background-color:transparent;"));
   m_progress_label->setAlignment(Qt::AlignCenter);
 
   QVBoxLayout* a_col_right = new QVBoxLayout();
