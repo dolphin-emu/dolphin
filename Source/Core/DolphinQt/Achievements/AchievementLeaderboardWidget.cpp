@@ -57,8 +57,10 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
         m_leaderboard_order[leaderboard->id] = row;
         QLabel* a_title = new QLabel(QString::fromUtf8(leaderboard->title));
         a_title->setWordWrap(true);
+        a_title->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
         QLabel* a_description = new QLabel(QString::fromUtf8(leaderboard->description));
         a_description->setWordWrap(true);
+        a_description->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
         QVBoxLayout* a_col_left = new QVBoxLayout();
         a_col_left->addWidget(a_title);
         a_col_left->addWidget(a_description);
