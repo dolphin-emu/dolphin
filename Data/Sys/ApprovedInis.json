@@ -1,0 +1,31 @@
+{
+  "GCCE01" : {
+    "title" : "FINAL FANTASY Crystal Chronicles",
+    "6C107FEC15C76201233CA2645EB5FAB4FF9751CE" : "Fix buffer overrun bug (crash at Goblin Wall)",
+    "483BDB94615C690045C3759795AF13CE76552286" : "Fix GBA connections"
+  },
+  "GHAE08" : {
+    "title" : "Resident Evil 2",
+    "9799AFF8463EC86C9230E31E2627E141F0C129D3" : "Fix audio issues"
+  },
+  "GHAJ08" : {
+    "title" : "Biohazard 2",
+    "B45A8FC32D14567B8D6C95F303E00A72C0E1D344" : "Fix audio issues"
+  },
+  "GHAP08" : {
+    "title" : "Resident Evil 2",
+    "BC7F3CFC97593AA2055C370C175950DC478D2709" : "Fix audio issues"
+  },
+  "GLEE08" : {
+    "title" : "Resident Evil 3: Nemesis",
+    "7355F358CAC6F418D37E4C23E64F7867D46E4FC9" : "Fix audio issues"
+  },
+  "GLEJ08" : {
+    "title" : "BioHazard 3: Last Escape",
+    "12B24A6D7389A2AC5AB75FC0BF8493E7661F2A73" : "Fix audio issues"
+  },
+  "GLEP08" : {
+    "title" : "Resident Evil 3: Nemesis",
+    "81BD39F5527552DE89E3B59BA86298900F0A3168" : "Fix audio issues"
+  }
+}
