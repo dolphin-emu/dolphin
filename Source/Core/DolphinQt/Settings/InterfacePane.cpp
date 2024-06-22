@@ -235,15 +235,15 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::GameListRefreshRequested);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::RefreshMetadata);
+          &Settings::MetadataRefreshRequested);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetDebugModeEnabled);
-  connect(m_combobox_theme, &QComboBox::currentIndexChanged, this,
-          [this](int index) { Settings::Instance().TriggerThemeChanged(); });
+  connect(m_combobox_theme, &QComboBox::currentIndexChanged, &Settings::Instance(),
+          &Settings::ThemeChanged);
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnUserStyleChanged);
   connect(m_combobox_language, &QComboBox::currentIndexChanged, this,
-          [this]() { OnLanguageChanged(); });
+          &InterfacePane::OnLanguageChanged);
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::KeepWindowOnTopChanged);
   connect(m_radio_cursor_visible_movement, &ConfigRadioInt::OnSelected, &Settings::Instance(),
@@ -253,7 +253,7 @@ void InterfacePane::ConnectLayout()
   connect(m_radio_cursor_visible_always, &ConfigRadioInt::OnSelected, &Settings::Instance(),
           &Settings::CursorVisibilityChanged);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
-          [this]() { Settings::Instance().LockCursorChanged(); });
+          &Settings::LockCursorChanged);
 }
 
 void InterfacePane::UpdateShowDebuggingCheckbox()
