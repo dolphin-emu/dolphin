@@ -385,4 +385,17 @@ Digest CalculateDigest(const u8* msg, size_t len)
   ctx->Update(msg, len);
   return ctx->Finish();
 }
+
+std::string DigestToString(const Digest& digest)
+{
+  std::string hash;
+  for (size_t ix = 0; ix < digest.size(); ix++)
+  {
+    u8 upper = digest[ix] / 16;
+    hash.append(1, upper + ((upper > 9) ? 'A' - 10 : '0'));
+    u8 lower = digest[ix] % 16;
+    hash.append(1, lower + ((lower > 9) ? 'A' - 10 : '0'));
+  }
+  return hash;
+}
 }  // namespace Common::SHA1
