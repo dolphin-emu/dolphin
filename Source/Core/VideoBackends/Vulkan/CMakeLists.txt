@@ -58,7 +58,7 @@ endif()
 # Only include the Vulkan headers when building the Vulkan backend
 target_include_directories(videovulkan
 PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include
+  ${CMAKE_SOURCE_DIR}/Externals/Vulkan-Headers/include
   ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
   ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
 )
