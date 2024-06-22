@@ -40,8 +40,7 @@ AudioPane::AudioPane()
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
-                          Core::State::Uninitialized);
+  OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
 }
 
 void AudioPane::CreateWidgets()

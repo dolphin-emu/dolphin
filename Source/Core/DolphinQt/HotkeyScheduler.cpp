@@ -159,7 +159,8 @@ void HotkeyScheduler::Run()
     if (!HotkeyManagerEmu::IsEnabled())
       continue;
 
-    if (Core::GetState(Core::System::GetInstance()) != Core::State::Stopping)
+    Core::System& system = Core::System::GetInstance();
+    if (Core::GetState(system) != Core::State::Stopping)
     {
       // Obey window focus (config permitting) before checking hotkeys.
       Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
@@ -187,7 +188,7 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_EXIT))
         emit ExitHotkey();
 
-      if (!Core::IsRunningAndStarted())
+      if (Core::IsUninitialized(system))
       {
         // Only check for Play Recording hotkey when no game is running
         if (IsHotkey(HK_PLAY_RECORDING))
