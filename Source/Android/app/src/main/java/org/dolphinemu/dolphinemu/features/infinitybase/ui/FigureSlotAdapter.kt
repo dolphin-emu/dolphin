@@ -75,6 +75,11 @@ class FigureSlotAdapter(
                 }
 
                 1, 2 -> {
+                    // Hexagon Power Discs
+                    validFigures.filter { (_, value) -> value in 4000000..4999999 }
+                }
+
+                3, 6  -> {
                     // Characters
                     validFigures.filter { (_, value) -> value in 1000000..1999999 }
                 }
