@@ -39,7 +39,6 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   const int w = indexed ? inst.Wx : inst.W;
 
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Lock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
   {
     gpr.Lock(ARM64Reg::W0, ARM64Reg::W2, ARM64Reg::W3);
@@ -49,6 +48,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   {
     gpr.Lock(ARM64Reg::W0);
   }
+  if (!js.assumeNoPairedQuantize || w)
+    fpr.Lock(ARM64Reg::Q0);
 
   constexpr ARM64Reg type_reg = ARM64Reg::W0;
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
@@ -87,7 +88,6 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
       gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
     if (jo.memcheck || !jo.fastmem)
       gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
-    fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
     if (!jo.memcheck)
       fprs_in_use[DecodeReg(VS)] = 0;
 
@@ -134,7 +134,6 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
   {
     gpr.Unlock(ARM64Reg::W0, ARM64Reg::W2, ARM64Reg::W3);
@@ -144,6 +143,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   {
     gpr.Unlock(ARM64Reg::W0);
   }
+  if (!js.assumeNoPairedQuantize || w)
+    fpr.Unlock(ARM64Reg::Q0);
 }
 
 void JitArm64::psq_stXX(UGeckoInstruction inst)

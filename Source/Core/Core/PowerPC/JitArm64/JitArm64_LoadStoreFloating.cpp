@@ -78,7 +78,6 @@ void JitArm64::lfXX(UGeckoInstruction inst)
       (flags & BackPatchInfo::FLAG_SIZE_64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
 
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Lock(ARM64Reg::Q0);
   if (jo.memcheck || !jo.fastmem)
     gpr.Lock(ARM64Reg::W0);
 
@@ -170,7 +169,6 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
   if (jo.memcheck || !jo.fastmem)
     regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
-  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
   if (!jo.memcheck)
     fprs_in_use[DecodeReg(VD)] = 0;
 
@@ -193,7 +191,6 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
   if (jo.memcheck || !jo.fastmem)
     gpr.Unlock(ARM64Reg::W0);
 }
