@@ -268,14 +268,14 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   const bool have_single = fpr.IsSingle(inst.FS, true);
 
-  ARM64Reg V0 =
+  Arm64FPRCache::ScopedARM64Reg V0 =
       fpr.R(inst.FS, want_single && have_single ? RegType::LowerPairSingle : RegType::LowerPair);
 
   if (want_single && !have_single)
   {
-    const ARM64Reg single_reg = fpr.GetReg();
+    auto single_reg = fpr.GetScopedReg();
     ConvertDoubleToSingleLower(inst.FS, single_reg, V0);
-    V0 = single_reg;
+    V0 = std::move(single_reg);
   }
 
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
@@ -424,9 +424,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     set_addr_reg_if_needed();
     MOV(gpr.R(a), addr_reg);
   }
-
-  if (want_single && !have_single)
-    fpr.Unlock(V0);
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
