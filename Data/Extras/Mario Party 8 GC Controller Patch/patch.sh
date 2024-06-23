@@ -31,7 +31,7 @@ for originalISO in $iso_files; do
     cp -r "../mp8motion" "temp"
   fi
 
-  wit copy "temp" "../Mario Party 8 GC Controller.wbfs"
+  wit copy "temp" "../Mario Party 8 (USA) [GameCube Controller v6].wbfs"
   rm -rf temp
 
   echo ""
