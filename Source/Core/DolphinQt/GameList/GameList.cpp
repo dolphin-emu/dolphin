@@ -299,16 +299,14 @@ void GameList::MakeEmptyView()
   size_policy.setRetainSizeWhenHidden(true);
   m_empty->setSizePolicy(size_policy);
 
-  connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
-          [this, refreshing_msg = refreshing_msg] {
-            m_empty->setText(refreshing_msg);
-            m_empty->setEnabled(false);
-          });
-  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, this,
-          [this, empty_msg = empty_msg] {
-            m_empty->setText(empty_msg);
-            m_empty->setEnabled(true);
-          });
+  connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this, [this, refreshing_msg] {
+    m_empty->setText(refreshing_msg);
+    m_empty->setEnabled(false);
+  });
+  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, this, [this, empty_msg] {
+    m_empty->setText(empty_msg);
+    m_empty->setEnabled(true);
+  });
 }
 
 void GameList::resizeEvent(QResizeEvent* event)
