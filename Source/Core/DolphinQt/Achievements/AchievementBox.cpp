@@ -8,6 +8,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QProgressBar>
+#include <QSizePolicy>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -30,9 +31,11 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   m_badge = new QLabel();
   QLabel* title = new QLabel(QString::fromUtf8(achievement->title, strlen(achievement->title)));
   title->setWordWrap(true);
+  title->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   QLabel* description =
       new QLabel(QString::fromUtf8(achievement->description, strlen(achievement->description)));
   description->setWordWrap(true);
+  description->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   QLabel* points = new QLabel(tr("%1 points").arg(achievement->points));
   m_status = new QLabel();
   m_progress_bar = new QProgressBar();
