@@ -30,6 +30,7 @@ public:
   void CountFrame();
   void CountVBlank();
 
+  void CountAudioLatency(DT latency);
   void CountThrottleSleep(DT sleep);
   void CountPerformanceMarker(Core::System& system, s64 cyclesLate);
 
@@ -37,6 +38,7 @@ public:
   double GetFPS() const;
   double GetVPS() const;
   double GetSpeed() const;
+  double GetAudioSpeed() const;
   double GetMaxSpeed() const;
 
   double GetLastSpeedDenominator() const;
@@ -47,15 +49,17 @@ public:
 private:
   PerformanceTracker m_fps_counter{"render_times.txt"};
   PerformanceTracker m_vps_counter{"vblank_times.txt"};
-  PerformanceTracker m_speed_counter{std::nullopt, 1000000};
+
+  PerformanceTracker m_audio_latency_counter{};
+  PerformanceTracker m_audio_speed_counter{std::nullopt, 128000};
+
+  PerformanceTracker m_speed_counter{std::nullopt, 1280000};
+  PerformanceTracker m_max_speed_counter{std::nullopt, 1280000};
 
   double m_graph_max_time = 0.0;
 
   mutable std::shared_mutex m_time_lock;
-
-  u8 m_time_index = 0;
-  std::array<TimePoint, 256> m_real_times{};
-  std::array<TimePoint, 256> m_cpu_times{};
+  TimePoint m_prev_adjusted_time{};
   DT m_time_sleeping{};
 };
 
