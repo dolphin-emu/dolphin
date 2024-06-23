@@ -78,7 +78,6 @@ public:
                       const std::string& movie_path);
   ~MainWindow();
 
-  void Show();
   WindowSystemInfo GetWindowSystemInfo() const;
 
   bool eventFilter(QObject* object, QEvent* event) override;
