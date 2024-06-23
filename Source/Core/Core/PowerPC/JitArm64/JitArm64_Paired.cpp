@@ -108,200 +108,195 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const ARM64Reg VC = use_c ? reg_encoder(fpr.R(c, type)) : ARM64Reg::INVALID_REG;
   const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
-  ARM64Reg V0Q = ARM64Reg::INVALID_REG;
-  ARM64Reg V1Q = ARM64Reg::INVALID_REG;
-  ARM64Reg V2Q = ARM64Reg::INVALID_REG;
-
-  ARM64Reg rounded_c_reg = VC;
-  if (round_c)
   {
-    ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
+    Arm64FPRCache::ScopedARM64Reg V0Q = ARM64Reg::INVALID_REG;
+    Arm64FPRCache::ScopedARM64Reg V1Q = ARM64Reg::INVALID_REG;
+    Arm64FPRCache::ScopedARM64Reg V2Q = ARM64Reg::INVALID_REG;
 
-    V0Q = fpr.GetReg();
-    rounded_c_reg = reg_encoder(V0Q);
-    Force25BitPrecision(rounded_c_reg, VC);
-  }
-
-  ARM64Reg inaccurate_fma_reg = VD;
-  if (fma && inaccurate_fma && VD == VB)
-  {
-    if (V0Q == ARM64Reg::INVALID_REG)
-      V0Q = fpr.GetReg();
-    inaccurate_fma_reg = reg_encoder(V0Q);
-  }
-
-  ARM64Reg result_reg = VD;
-  const bool need_accurate_fma_reg =
-      fma && !inaccurate_fma && (msub || VD != VB) && (VD == VA || VD == rounded_c_reg);
-  const bool preserve_d =
-      m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
-  if (need_accurate_fma_reg || preserve_d)
-  {
-    V1Q = fpr.GetReg();
-    result_reg = reg_encoder(V1Q);
-  }
-
-  if (m_accurate_nans)
-  {
-    if (V0Q == ARM64Reg::INVALID_REG)
-      V0Q = fpr.GetReg();
-
-    if (duplicated_c || VD == result_reg)
-      V2Q = fpr.GetReg();
-  }
-
-  switch (op5)
-  {
-  case 12:  // ps_muls0: d = a * c.ps0
-    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 0);
-    break;
-  case 13:  // ps_muls1: d = a * c.ps1
-    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 1);
-    break;
-  case 14:  // ps_madds0: d = a * c.ps0 + b
-    if (inaccurate_fma)
+    ARM64Reg rounded_c_reg = VC;
+    if (round_c)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 0);
-      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
-    }
-    else
-    {
-      if (result_reg != VB)
-        m_float_emit.MOV(result_reg, VB);
-      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 0);
-    }
-    break;
-  case 15:  // ps_madds1: d = a * c.ps1 + b
-    if (inaccurate_fma)
-    {
-      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 1);
-      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
-    }
-    else
-    {
-      if (result_reg != VB)
-        m_float_emit.MOV(result_reg, VB);
-      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 1);
-    }
-    break;
-  case 18:  // ps_div
-    m_float_emit.FDIV(size, result_reg, VA, VB);
-    break;
-  case 20:  // ps_sub
-    m_float_emit.FSUB(size, result_reg, VA, VB);
-    break;
-  case 21:  // ps_add
-    m_float_emit.FADD(size, result_reg, VA, VB);
-    break;
-  case 25:  // ps_mul
-    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg);
-    break;
-  case 28:  // ps_msub:  d = a * c - b
-  case 30:  // ps_nmsub: d = -(a * c - b)
-    if (inaccurate_fma)
-    {
-      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
-      m_float_emit.FSUB(size, result_reg, inaccurate_fma_reg, VB);
-    }
-    else
-    {
-      m_float_emit.FNEG(size, result_reg, VB);
-      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
-    }
-    break;
-  case 29:  // ps_madd:  d = a * c + b
-  case 31:  // ps_nmadd: d = -(a * c + b)
-    if (inaccurate_fma)
-    {
-      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
-      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
-    }
-    else
-    {
-      if (result_reg != VB)
-        m_float_emit.MOV(result_reg, VB);
-      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
-    }
-    break;
-  default:
-    ASSERT_MSG(DYNA_REC, 0, "ps_arith - invalid op");
-    break;
-  }
+      ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
 
-  FixupBranch nan_fixup;
-  if (m_accurate_nans)
-  {
-    const ARM64Reg nan_temp_reg = singles ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
-    const ARM64Reg nan_temp_reg_paired = reg_encoder(V0Q);
-
-    // Check if we need to handle NaNs
-
-    m_float_emit.FMAXP(nan_temp_reg, result_reg);
-    m_float_emit.FCMP(nan_temp_reg);
-    FixupBranch no_nan = B(CCFlags::CC_VC);
-    FixupBranch nan = B();
-    SetJumpTarget(no_nan);
-
-    SwitchToFarCode();
-    SetJumpTarget(nan);
-
-    // Pick the right NaNs
-
-    const auto check_input = [&](ARM64Reg input) {
-      m_float_emit.FCMEQ(size, nan_temp_reg_paired, input, input);
-      m_float_emit.BIF(result_reg, input, nan_temp_reg_paired);
-    };
-
-    ARM64Reg c_reg_for_nan_purposes = VC;
-    if (duplicated_c)
-    {
-      c_reg_for_nan_purposes = reg_encoder(V2Q);
-      m_float_emit.DUP(size, c_reg_for_nan_purposes, VC, op5 & 0x1);
+      V0Q = fpr.GetScopedReg();
+      rounded_c_reg = reg_encoder(V0Q);
+      Force25BitPrecision(rounded_c_reg, VC);
     }
 
-    if (use_c)
-      check_input(c_reg_for_nan_purposes);
+    ARM64Reg inaccurate_fma_reg = VD;
+    if (fma && inaccurate_fma && VD == VB)
+    {
+      if (V0Q == ARM64Reg::INVALID_REG)
+        V0Q = fpr.GetScopedReg();
+      inaccurate_fma_reg = reg_encoder(V0Q);
+    }
 
-    if (use_b && (!use_c || VB != c_reg_for_nan_purposes))
-      check_input(VB);
+    ARM64Reg result_reg = VD;
+    const bool need_accurate_fma_reg =
+        fma && !inaccurate_fma && (msub || VD != VB) && (VD == VA || VD == rounded_c_reg);
+    const bool preserve_d =
+        m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
+    if (need_accurate_fma_reg || preserve_d)
+    {
+      V1Q = fpr.GetScopedReg();
+      result_reg = reg_encoder(V1Q);
+    }
 
-    if ((!use_b || VA != VB) && (!use_c || VA != c_reg_for_nan_purposes))
-      check_input(VA);
+    if (m_accurate_nans)
+    {
+      if (V0Q == ARM64Reg::INVALID_REG)
+        V0Q = fpr.GetScopedReg();
 
-    // Make the NaNs quiet
+      if (duplicated_c || VD == result_reg)
+        V2Q = fpr.GetScopedReg();
+    }
 
-    const ARM64Reg quiet_nan_reg = VD == result_reg ? reg_encoder(V2Q) : VD;
+    switch (op5)
+    {
+    case 12:  // ps_muls0: d = a * c.ps0
+      m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 0);
+      break;
+    case 13:  // ps_muls1: d = a * c.ps1
+      m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 1);
+      break;
+    case 14:  // ps_madds0: d = a * c.ps0 + b
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 0);
+        m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
+      }
+      else
+      {
+        if (result_reg != VB)
+          m_float_emit.MOV(result_reg, VB);
+        m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 0);
+      }
+      break;
+    case 15:  // ps_madds1: d = a * c.ps1 + b
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 1);
+        m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
+      }
+      else
+      {
+        if (result_reg != VB)
+          m_float_emit.MOV(result_reg, VB);
+        m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 1);
+      }
+      break;
+    case 18:  // ps_div
+      m_float_emit.FDIV(size, result_reg, VA, VB);
+      break;
+    case 20:  // ps_sub
+      m_float_emit.FSUB(size, result_reg, VA, VB);
+      break;
+    case 21:  // ps_add
+      m_float_emit.FADD(size, result_reg, VA, VB);
+      break;
+    case 25:  // ps_mul
+      m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg);
+      break;
+    case 28:  // ps_msub:  d = a * c - b
+    case 30:  // ps_nmsub: d = -(a * c - b)
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
+        m_float_emit.FSUB(size, result_reg, inaccurate_fma_reg, VB);
+      }
+      else
+      {
+        m_float_emit.FNEG(size, result_reg, VB);
+        m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
+      }
+      break;
+    case 29:  // ps_madd:  d = a * c + b
+    case 31:  // ps_nmadd: d = -(a * c + b)
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
+        m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
+      }
+      else
+      {
+        if (result_reg != VB)
+          m_float_emit.MOV(result_reg, VB);
+        m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
+      }
+      break;
+    default:
+      ASSERT_MSG(DYNA_REC, 0, "ps_arith - invalid op");
+      break;
+    }
 
-    m_float_emit.FADD(size, quiet_nan_reg, result_reg, result_reg);
-    m_float_emit.FCMEQ(size, nan_temp_reg_paired, result_reg, result_reg);
+    FixupBranch nan_fixup;
+    if (m_accurate_nans)
+    {
+      const ARM64Reg nan_temp_reg = singles ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
+      const ARM64Reg nan_temp_reg_paired = reg_encoder(V0Q);
+
+      // Check if we need to handle NaNs
+
+      m_float_emit.FMAXP(nan_temp_reg, result_reg);
+      m_float_emit.FCMP(nan_temp_reg);
+      FixupBranch no_nan = B(CCFlags::CC_VC);
+      FixupBranch nan = B();
+      SetJumpTarget(no_nan);
+
+      SwitchToFarCode();
+      SetJumpTarget(nan);
+
+      // Pick the right NaNs
+
+      const auto check_input = [&](ARM64Reg input) {
+        m_float_emit.FCMEQ(size, nan_temp_reg_paired, input, input);
+        m_float_emit.BIF(result_reg, input, nan_temp_reg_paired);
+      };
+
+      ARM64Reg c_reg_for_nan_purposes = VC;
+      if (duplicated_c)
+      {
+        c_reg_for_nan_purposes = reg_encoder(V2Q);
+        m_float_emit.DUP(size, c_reg_for_nan_purposes, VC, op5 & 0x1);
+      }
+
+      if (use_c)
+        check_input(c_reg_for_nan_purposes);
+
+      if (use_b && (!use_c || VB != c_reg_for_nan_purposes))
+        check_input(VB);
+
+      if ((!use_b || VA != VB) && (!use_c || VA != c_reg_for_nan_purposes))
+        check_input(VA);
+
+      // Make the NaNs quiet
+
+      const ARM64Reg quiet_nan_reg = VD == result_reg ? reg_encoder(V2Q) : VD;
+
+      m_float_emit.FADD(size, quiet_nan_reg, result_reg, result_reg);
+      m_float_emit.FCMEQ(size, nan_temp_reg_paired, result_reg, result_reg);
+      if (negate_result)
+        m_float_emit.FNEG(size, result_reg, result_reg);
+      if (VD == result_reg)
+        m_float_emit.BIF(VD, quiet_nan_reg, nan_temp_reg_paired);
+      else  // quiet_nan_reg == VD
+        m_float_emit.BIT(VD, result_reg, nan_temp_reg_paired);
+
+      nan_fixup = B();
+
+      SwitchToNearCode();
+    }
+
+    // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
+    // for any of AArch64's FMA instructions, so we negate using a separate instruction.
     if (negate_result)
-      m_float_emit.FNEG(size, result_reg, result_reg);
-    if (VD == result_reg)
-      m_float_emit.BIF(VD, quiet_nan_reg, nan_temp_reg_paired);
-    else  // quiet_nan_reg == VD
-      m_float_emit.BIT(VD, result_reg, nan_temp_reg_paired);
+      m_float_emit.FNEG(size, VD, result_reg);
+    else if (result_reg != VD)
+      m_float_emit.MOV(VD, result_reg);
 
-    nan_fixup = B();
-
-    SwitchToNearCode();
+    if (m_accurate_nans)
+      SetJumpTarget(nan_fixup);
   }
-
-  // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
-  // for any of AArch64's FMA instructions, so we negate using a separate instruction.
-  if (negate_result)
-    m_float_emit.FNEG(size, VD, result_reg);
-  else if (result_reg != VD)
-    m_float_emit.MOV(VD, result_reg);
-
-  if (m_accurate_nans)
-    SetJumpTarget(nan_fixup);
-
-  if (V0Q != ARM64Reg::INVALID_REG)
-    fpr.Unlock(V0Q);
-  if (V1Q != ARM64Reg::INVALID_REG)
-    fpr.Unlock(V1Q);
-  if (V2Q != ARM64Reg::INVALID_REG)
-    fpr.Unlock(V2Q);
 
   ASSERT_MSG(DYNA_REC, singles == singles_func(),
              "Register allocation turned singles into doubles in the middle of ps_arith");
@@ -339,12 +334,11 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
   }
   else
   {
-    const ARM64Reg V0Q = fpr.GetReg();
+    const auto V0Q = fpr.GetScopedReg();
     const ARM64Reg V0 = reg_encoder(V0Q);
     m_float_emit.FCMGE(size, V0, VA);
     m_float_emit.BSL(V0, VC, VB);
     m_float_emit.MOV(VD, V0);
-    fpr.Unlock(V0Q);
   }
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
@@ -375,41 +369,45 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   const ARM64Reg VB = fpr.R(b, type);
   const ARM64Reg VC = fpr.R(c, type);
   const ARM64Reg VD = fpr.RW(d, type);
-  const ARM64Reg V0 = fpr.GetReg();
 
-  m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VB), 1);
+  {
+    const auto V0 = fpr.GetScopedReg();
 
-  if (m_accurate_nans)
-  {
-    // If the first input is NaN, set the temp register for the second input to 0. This is because:
-    //
-    // - If the second input is also NaN, setting it to 0 ensures that the first NaN will be picked.
-    // - If only the first input is NaN, setting the second input to 0 has no effect on the result.
-    //
-    // Either way, we can then do an FADD as usual, and the FADD will make the NaN quiet.
-    m_float_emit.FCMP(scalar_reg_encoder(VA));
-    FixupBranch a_not_nan = B(CCFlags::CC_VC);
-    m_float_emit.MOVI(64, scalar_reg_encoder(V0), 0);
-    SetJumpTarget(a_not_nan);
-  }
+    m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VB), 1);
 
-  if (upper)
-  {
-    m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
-    m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V0));
-  }
-  else if (d != c)
-  {
-    m_float_emit.FADD(scalar_reg_encoder(VD), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
-    m_float_emit.INS(size, VD, 1, VC, 1);
-  }
-  else
-  {
-    m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
-    m_float_emit.INS(size, VD, 0, V0, 0);
-  }
+    if (m_accurate_nans)
+    {
+      // If the first input is NaN, set the temp register for the second input to 0. This is
+      // because:
+      //
+      // - If the second input is also NaN, setting it to 0 ensures that the first NaN will be
+      // picked.
+      // - If only the first input is NaN, setting the second input to 0 has no effect on the
+      // result.
+      //
+      // Either way, we can then do an FADD as usual, and the FADD will make the NaN quiet.
+      m_float_emit.FCMP(scalar_reg_encoder(VA));
+      FixupBranch a_not_nan = B(CCFlags::CC_VC);
+      m_float_emit.MOVI(64, scalar_reg_encoder(V0), 0);
+      SetJumpTarget(a_not_nan);
+    }
 
-  fpr.Unlock(V0);
+    if (upper)
+    {
+      m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
+      m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V0));
+    }
+    else if (d != c)
+    {
+      m_float_emit.FADD(scalar_reg_encoder(VD), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
+      m_float_emit.INS(size, VD, 1, VC, 1);
+    }
+    else
+    {
+      m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
+      m_float_emit.INS(size, VD, 0, V0, 0);
+    }
+  }
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_sumX");
