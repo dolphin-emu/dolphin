@@ -187,5 +187,60 @@ TEST(MathUtil, RectangleGetHeightUnsigned)
   EXPECT_EQ(rect_e.GetHeight(), u32{0xFFFFFFF8});
 }
 
-// TODO: Add unit test coverage for `Rectangle::ClampUL`. (And consider removing
-// `Rectangle::ClampLL`, which does not have any callers.)
+TEST(MathUtil, RectangleClampUL)
+{
+  // Clamp in one direction
+  MathUtil::Rectangle<int> rect_a(2, 2, 5, 6);
+  rect_a.ClampUL(3, 1, 6, 7);
+  EXPECT_EQ(rect_a, MathUtil::Rectangle<int>(3, 2, 5, 6));
+
+  MathUtil::Rectangle<int> rect_b(2, 2, 5, 6);
+  rect_b.ClampUL(1, 3, 6, 7);
+  EXPECT_EQ(rect_b, MathUtil::Rectangle<int>(2, 3, 5, 6));
+
+  MathUtil::Rectangle<int> rect_c(2, 2, 5, 6);
+  rect_c.ClampUL(1, 1, 4, 7);
+  EXPECT_EQ(rect_c, MathUtil::Rectangle<int>(2, 2, 4, 6));
+
+  MathUtil::Rectangle<int> rect_d(2, 2, 5, 6);
+  rect_d.ClampUL(1, 1, 6, 5);
+  EXPECT_EQ(rect_d, MathUtil::Rectangle<int>(2, 2, 5, 5));
+
+  // Clamp in two directions
+  MathUtil::Rectangle<int> rect_e(2, 2, 5, 6);
+  rect_e.ClampUL(4, 3, 6, 7);
+  EXPECT_EQ(rect_e, MathUtil::Rectangle<int>(4, 3, 5, 6));
+
+  MathUtil::Rectangle<int> rect_f(2, 2, 5, 6);
+  rect_f.ClampUL(1, 1, 4, 4);
+  EXPECT_EQ(rect_f, MathUtil::Rectangle<int>(2, 2, 4, 4));
+
+  // Given rectangle contains this rectangle
+  MathUtil::Rectangle<int> rect_g(2, 2, 5, 6);
+  rect_g.ClampUL(1, 1, 6, 7);
+  EXPECT_EQ(rect_g, MathUtil::Rectangle<int>(2, 2, 5, 6));
+
+  // Given rectangle lies entirely within this rectangle
+  MathUtil::Rectangle<int> rect_h(2, 2, 5, 6);
+  rect_h.ClampUL(3, 3, 4, 4);
+  EXPECT_EQ(rect_h, MathUtil::Rectangle<int>(3, 3, 4, 4));
+
+  // Given rectangle exactly matches this rectangle
+  MathUtil::Rectangle<int> rect_i(2, 2, 5, 6);
+  rect_i.ClampUL(2, 2, 5, 6);
+  EXPECT_EQ(rect_i, MathUtil::Rectangle<int>(2, 2, 5, 6));
+
+  // Given rectangle does not intersect this rectangle at all
+  MathUtil::Rectangle<int> rect_j(2, 2, 5, 6);
+  rect_j.ClampUL(7, 8, 10, 11);
+  EXPECT_EQ(rect_j, MathUtil::Rectangle<int>(7, 8, 7, 8));
+
+  MathUtil::Rectangle<int> rect_k(2, 2, 5, 6);
+  rect_k.ClampUL(-1, -1, 1, 0);
+  EXPECT_EQ(rect_k, MathUtil::Rectangle<int>(1, 0, 1, 0));
+
+  // This rectangle is in a lower-right coordinate system
+  MathUtil::Rectangle<int> rect_l(10, 10, 3, 4);
+  rect_l.ClampUL(5, 5, 7, 8);
+  EXPECT_EQ(rect_l, MathUtil::Rectangle<int>(7, 8, 5, 5));
+}
