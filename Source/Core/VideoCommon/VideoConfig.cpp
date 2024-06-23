@@ -66,12 +66,15 @@ void VideoConfig::Refresh()
     CPUThreadConfigCallback::AddConfigChangedCallback([]() {
       auto& system = Core::System::GetInstance();
 
-      system.GetFifo().PauseAndLock(true, false);
+      const bool lock_gpu_thread = Core::IsRunning(system);
+      if (lock_gpu_thread)
+        system.GetFifo().PauseAndLock(true, false);
 
       g_Config.Refresh();
       g_Config.VerifyValidity();
 
-      system.GetFifo().PauseAndLock(false, true);
+      if (lock_gpu_thread)
+        system.GetFifo().PauseAndLock(false, true);
     });
     s_has_registered_callback = true;
   }
