@@ -371,12 +371,12 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
 
   const auto fs = system.GetIOS()->GetFS();
   {
-    Common::SettingsHandler::Buffer data;
+    Common::SettingsBuffer data;
     const auto file = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path,
                                    IOS::HLE::FS::Mode::Read);
     if (file && file->Read(data.data(), data.size()))
     {
-      Common::SettingsHandler settings_reader(data);
+      Common::SettingsReader settings_reader(data);
       serno = settings_reader.GetValue("SERNO");
       model = settings_reader.GetValue("MODEL");
 
@@ -413,7 +413,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
     if (Core::WantsDeterminism())
       serno = "123456789";
     else
-      serno = Common::SettingsHandler::GenerateSerialNumber();
+      serno = Common::SettingsWriter::GenerateSerialNumber();
     INFO_LOG_FMT(BOOT, "No previous serial number found, generated one instead: {}", serno);
   }
   else
@@ -421,20 +421,21 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
     INFO_LOG_FMT(BOOT, "Using serial number: {}", serno);
   }
 
-  Common::SettingsHandler gen;
-  gen.AddSetting("AREA", region_setting.area);
-  gen.AddSetting("MODEL", model);
-  gen.AddSetting("DVD", "0");
-  gen.AddSetting("MPCH", "0x7FFE");
-  gen.AddSetting("CODE", region_setting.code);
-  gen.AddSetting("SERNO", serno);
-  gen.AddSetting("VIDEO", region_setting.video);
-  gen.AddSetting("GAME", region_setting.game);
+  Common::SettingsWriter settings_writer;
+  settings_writer.AddSetting("AREA", region_setting.area);
+  settings_writer.AddSetting("MODEL", model);
+  settings_writer.AddSetting("DVD", "0");
+  settings_writer.AddSetting("MPCH", "0x7FFE");
+  settings_writer.AddSetting("CODE", region_setting.code);
+  settings_writer.AddSetting("SERNO", serno);
+  settings_writer.AddSetting("VIDEO", region_setting.video);
+  settings_writer.AddSetting("GAME", region_setting.game);
 
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   const auto settings_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID,
                                                    settings_file_path, {rw_mode, rw_mode, rw_mode});
-  if (!settings_file || !settings_file->Write(gen.GetBytes().data(), gen.GetBytes().size()))
+  if (!settings_file ||
+      !settings_file->Write(settings_writer.GetBytes().data(), settings_writer.GetBytes().size()))
   {
     PanicAlertFmtT("SetupWiiMemory: Can't create setting.txt file");
     return false;
@@ -443,7 +444,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   auto& memory = system.GetMemory();
 
   // Write the 256 byte setting.txt to memory.
-  memory.CopyToEmu(0x3800, gen.GetBytes().data(), gen.GetBytes().size());
+  memory.CopyToEmu(0x3800, settings_writer.GetBytes().data(), settings_writer.GetBytes().size());
 
   INFO_LOG_FMT(BOOT, "Setup Wii Memory...");
 

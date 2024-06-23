@@ -133,13 +133,13 @@ IPCReply GetRealProductCode(Core::System& system, const IOCtlVRequest& request)
   if (!file)
     return IPCReply(IPC_ENOENT);
 
-  Common::SettingsHandler::Buffer data;
+  Common::SettingsBuffer data;
 
   if (!file.ReadBytes(data.data(), data.size()))
     return IPCReply(IPC_ENOENT);
 
-  Common::SettingsHandler gen(data);
-  const std::string code = gen.GetValue("CODE");
+  Common::SettingsReader settings_reader(data);
+  const std::string code = settings_reader.GetValue("CODE");
 
   const size_t length = std::min<size_t>(request.io_vectors[0].size, code.length());
   if (length == 0)
