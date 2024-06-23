@@ -59,8 +59,6 @@
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"
 
-constexpr const char* PROFILES_DIR = "Profiles/";
-
 MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
     : QDialog(parent), m_port(port_num)
 {
