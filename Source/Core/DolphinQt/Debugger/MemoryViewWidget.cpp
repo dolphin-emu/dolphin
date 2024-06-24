@@ -99,7 +99,9 @@ public:
   void resizeEvent(QResizeEvent* event) override
   {
     QTableWidget::resizeEvent(event);
-    m_view->CreateTable();
+    // Remakes table if vertically resized
+    const int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
+    if (rows != rowCount())
     m_view->UpdateDisbatcher(MemoryViewWidget::UpdateType::Full);
   }
 
