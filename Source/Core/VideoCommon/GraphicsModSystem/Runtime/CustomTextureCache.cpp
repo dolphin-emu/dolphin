@@ -27,24 +27,24 @@ std::optional<CustomTextureCache::TextureResult> CustomTextureCache::GetTextureA
     CustomAssetLoader& loader, std::shared_ptr<CustomAssetLibrary> library,
     const CustomAssetLibrary::AssetID& asset_id, AbstractTextureType texture_type)
 {
-  auto asset = loader.LoadGameTexture(asset_id, library);
-  if (!asset)
-  {
-    return std::nullopt;
-  }
-
   const auto [iter, inserted] = m_cached_texture_assets.try_emplace(asset_id, CachedTextureAsset{});
-  if (inserted ||
+  if (inserted || !iter->second.cached_asset.m_asset ||
       iter->second.cached_asset.m_asset->GetLastLoadedTime() >
           iter->second.cached_asset.m_cached_write_time ||
-      asset_id != iter->second.cached_asset.m_asset->GetAssetId() ||
+      asset_id != iter->second.cached_asset.m_asset->GetAssetId() || !iter->second.texture ||
       iter->second.texture->GetConfig().type != texture_type)
   {
+    auto asset = loader.LoadGameTexture(asset_id, library);
     const auto loaded_time = asset->GetLastLoadedTime();
     iter->second.cached_asset =
         VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{std::move(asset), loaded_time};
     ReleaseToPool(&iter->second);
   }
+  else
+  {
+    loader.AssetReferenced(iter->second.cached_asset.m_asset->GetSessionId());
+  }
+  iter->second.time = std::chrono::steady_clock::now();
 
   const auto texture_data = iter->second.cached_asset.m_asset->GetData();
   if (!texture_data)
@@ -54,7 +54,6 @@ std::optional<CustomTextureCache::TextureResult> CustomTextureCache::GetTextureA
 
   if (iter->second.texture)
   {
-    iter->second.time = std::chrono::steady_clock::now();
     return TextureResult{iter->second.texture.get(), iter->second.framebuffer.get(), texture_data};
   }
 
@@ -86,7 +85,6 @@ std::optional<CustomTextureCache::TextureResult> CustomTextureCache::GetTextureA
     }
   }
 
-  iter->second.time = std::chrono::steady_clock::now();
   return TextureResult{iter->second.texture.get(), iter->second.framebuffer.get(), texture_data};
 }
 
