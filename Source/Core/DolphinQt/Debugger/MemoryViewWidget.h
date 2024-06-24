@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+#include <mutex>
 
 #include <QStyledItemDelegate>
 #include <QWidget>
@@ -70,10 +71,20 @@ public:
     WriteOnly
   };
 
+  enum class UpdateType
+  {
+    Full,
+    Addresses,
+    Values,
+    Auto,
+  };
+
   explicit MemoryViewWidget(Core::System& system, QWidget* parent = nullptr);
 
   void CreateTable();
+  void UpdateDispatcher(UpdateType type = UpdateType::Addresses);
   void Update();
+  void GetValues();
   void UpdateFont(const QFont& font);
   void ToggleBreakpoint(u32 addr, bool row);
 
@@ -97,7 +108,6 @@ private:
   void OnCopyHex(u32 addr);
   void UpdateBreakpointTags();
   void UpdateColumns();
-  void UpdateColumns(const Core::CPUThreadGuard* guard);
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
   QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
@@ -111,6 +121,9 @@ private:
   BPType m_bp_type = BPType::ReadWrite;
   bool m_do_log = true;
   u32 m_address = 0x80000000;
+  std::pair<u32, u32> m_address_range;
+  std::map<u32, std::optional<QString>> m_values;
+  std::map<u32, std::optional<QString>> m_values_dual_view;
   u32 m_address_highlight = 0;
   int m_font_width = 0;
   int m_font_vspace = 0;
@@ -118,6 +131,7 @@ private:
   int m_alignment = 16;
   int m_data_columns;
   bool m_dual_view = false;
+  QColor m_highlight_color = QColor(120, 255, 255, 100);
 
   friend class MemoryViewTable;
 };
