@@ -247,11 +247,22 @@ void MemoryWidget::CreateWidgets()
   // Sidebar top menu
   QMenuBar* menubar = new QMenuBar(sidebar);
   menubar->setNativeMenuBar(false);
+  QMenu* menu_views = new QMenu(tr("&View"), menubar);
+  menubar->addMenu(menu_views);
 
   QMenu* menu_import = new QMenu(tr("&Import"), menubar);
   menu_import->addAction(tr("&Load file to current address"), this,
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
+
+  auto* highlight_update_action =
+      menu_views->addAction(tr("Highlight recently changed values"), this,
+                            [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
+  highlight_update_action->setCheckable(true);
+  highlight_update_action->setChecked(true);
+
+  menu_views->addAction(tr("Highlight color"), this,
+                        [this] { m_memory_view->SetHighlightColor(); });
 
   QMenu* menu_export = new QMenu(tr("&Export"), menubar);
   menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
