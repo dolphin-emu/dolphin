@@ -352,7 +352,7 @@ void MemoryWidget::Update()
   if (!isVisible())
     return;
 
-  m_memory_view->Update();
+  m_memory_view->UpdateDisbatcher(MemoryViewWidget::UpdateType::Addresses);
   update();
 }
 
