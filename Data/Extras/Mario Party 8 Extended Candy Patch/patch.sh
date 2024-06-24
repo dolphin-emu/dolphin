@@ -16,7 +16,7 @@ fi
 # Iterate over each ISO or WBFS file and process it
 for originalISO in $iso_files; do
   echo ""
-  echo "Constructing the Mario Party 8 GC Controller WBFS for \"$originalISO\". Please stand by...."
+  echo "Constructing the Mario Party 8 Extended Candy WBFS for \"$originalISO\". Please stand by...."
 
   cd "$(dirname "$0")/tools"
 
@@ -26,12 +26,12 @@ for originalISO in $iso_files; do
   wit extract "$originalISO" --dest=temp
 
   if [ -d "temp/DATA" ]; then
-    cp -r "../mp8motion" "temp/DATA"
+    cp -r "../mp8candy" "temp/DATA"
   else
-    cp -r "../mp8motion" "temp"
+    cp -r "../mp8candy" "temp"
   fi
 
-  wit copy "temp" "../Mario Party 8 GC Controller.wbfs"
+  wit copy "temp" "../Mario Party 8 (USA) [Extended Candy].wbfs"
   rm -rf temp
 
   echo ""

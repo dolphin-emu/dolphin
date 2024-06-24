@@ -36,7 +36,7 @@ for %%F in (%iso_files%) do (
     )
     
     REM Copy files using xcopy
-    xcopy "mp8motion" "!dest_dir!" /s /y /e
+    xcopy "mp8candy" "!dest_dir!" /s /y /e
 
     "tools/wit" copy "temp" "..\Mario Party 8 (USA) [Extended Candy].wbfs"
     rmdir /s /q temp
