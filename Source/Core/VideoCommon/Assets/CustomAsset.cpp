@@ -6,8 +6,8 @@
 namespace VideoCommon
 {
 CustomAsset::CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
-                         const CustomAssetLibrary::AssetID& asset_id)
-    : m_owning_library(std::move(library)), m_asset_id(asset_id)
+                         const CustomAssetLibrary::AssetID& asset_id, u64 session_id)
+    : m_owning_library(std::move(library)), m_asset_id(asset_id), m_session_id(session_id)
 {
 }
 
@@ -32,6 +32,11 @@ const CustomAssetLibrary::TimeType& CustomAsset::GetLastLoadedTime() const
 {
   std::lock_guard lk(m_info_lock);
   return m_last_loaded_time;
+}
+
+std::size_t CustomAsset::GetSessionId() const
+{
+  return m_session_id;
 }
 
 const CustomAssetLibrary::AssetID& CustomAsset::GetAssetId() const
