@@ -311,7 +311,12 @@ constexpr int GetCharacterCount(MemoryViewWidget::Type type)
 
 void MemoryViewWidget::UpdateDispatcher(UpdateType type)
 {
-  if (!isVisible())
+  std::unique_lock lock(m_updating, std::defer_lock);
+
+  // A full update may change parameters like row count, so make sure it goes through.
+  if (type == UpdateType::Full)
+    lock.lock();
+  else if (!isVisible() || !lock.try_lock())
     return;
 
   // Check if table needs to be created.
@@ -331,6 +336,10 @@ void MemoryViewWidget::UpdateDispatcher(UpdateType type)
       GetValues();
     UpdateColumns();
     break;
+  case UpdateType::Auto:
+    // Values were captured on CPU thread while doing a callback.
+    if (m_values.size() != 0)
+      UpdateColumns();
   default:
     break;
   }
@@ -519,6 +528,18 @@ void MemoryViewWidget::UpdateColumns()
       else
         cell_item->setText(new_text.value());
     }
+  }
+}
+
+// Always runs on CPU thread from a callback.
+void MemoryViewWidget::UpdateOnFrameEnd()
+{
+  std::unique_lock lock(m_updating, std::try_to_lock);
+  if (lock)
+  {
+    GetValues();
+    // Should not directly trigger widget updates on a cpu thread. Signal main thread to do it.
+    emit AutoUpdate();
   }
 }
 

@@ -340,11 +340,36 @@ void MemoryWidget::ConnectWidgets()
 void MemoryWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetMemoryVisible(false);
+  RemoveAfterFrameEventCallback();
 }
 
 void MemoryWidget::showEvent(QShowEvent* event)
 {
+  RegisterAfterFrameEventCallback();
   Update();
+}
+
+void MemoryWidget::hideEvent(QHideEvent* event)
+{
+  RemoveAfterFrameEventCallback();
+}
+
+void MemoryWidget::RegisterAfterFrameEventCallback()
+{
+  m_vi_end_field_event = VIEndFieldEvent::Register([this] { AutoUpdateTable(); }, "MemoryWidget");
+}
+
+void MemoryWidget::RemoveAfterFrameEventCallback()
+{
+  m_vi_end_field_event.reset();
+}
+
+void MemoryWidget::AutoUpdateTable()
+{
+  if (!isVisible())
+    return;
+
+  m_memory_view->UpdateOnFrameEnd();
 }
 
 void MemoryWidget::Update()
