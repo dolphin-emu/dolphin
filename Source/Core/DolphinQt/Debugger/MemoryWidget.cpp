@@ -66,6 +66,13 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
+  connect(this, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+    // Stop auto-update if MemoryView is tabbed out.
+    if (visible)
+      RegisterAfterFrameEventCallback();
+    else
+      RemoveAfterFrameEventCallback();
+  });
   LoadSettings();
 
   ConnectWidgets();
@@ -255,6 +262,17 @@ void MemoryWidget::CreateWidgets()
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
+  auto* auto_update_action =
+      menu_views->addAction(tr("Auto update memory values"), this, [this](bool checked) {
+        m_auto_update_enabled = checked;
+        if (checked)
+          RegisterAfterFrameEventCallback();
+        else
+          RemoveAfterFrameEventCallback();
+      });
+  auto_update_action->setCheckable(true);
+  auto_update_action->setChecked(true);
+
   auto* highlight_update_action =
       menu_views->addAction(tr("Highlight recently changed values"), this,
                             [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
@@ -353,7 +371,9 @@ void MemoryWidget::closeEvent(QCloseEvent*)
 
 void MemoryWidget::showEvent(QShowEvent* event)
 {
-  RegisterAfterFrameEventCallback();
+  if (m_auto_update_enabled)
+    RegisterAfterFrameEventCallback();
+
   Update();
 }
 
@@ -374,9 +394,6 @@ void MemoryWidget::RemoveAfterFrameEventCallback()
 
 void MemoryWidget::AutoUpdateTable()
 {
-  if (!isVisible())
-    return;
-
   m_memory_view->UpdateOnFrameEnd();
 }
 
