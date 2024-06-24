@@ -874,7 +874,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="about_website"><a href="https://dolphin-emu.org/">Website</a></string>
     <string name="about_github"><a href="https://github.com/dolphin-emu/dolphin">GitHub</a></string>
     <string name="about_support"><a href="https://forums.dolphin-emu.org/">Support</a></string>
-    <string name="about_copyright_warning">\u00A9 2003–2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
+    <string name="about_copyright_warning">\u00A9 2003–2024+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
     <string name="system_driver">System driver</string>
     <string name="system_driver_desc">The GPU driver that is part of the OS.</string>
 
