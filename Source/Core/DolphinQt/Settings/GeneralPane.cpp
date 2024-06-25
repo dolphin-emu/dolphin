@@ -194,7 +194,7 @@ void GeneralPane::CreateAutoUpdate()
   auto_update_group_layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
 
   for (const QString& option :
-       {tr("Don't Update"), tr("Beta (once a month)"), tr("Dev (multiple times a day)")})
+       {tr("Don't Update"), tr("Releases (every few months)"), tr("Dev (multiple times a day)")})
     m_combobox_update_track->addItem(option);
 }
 
