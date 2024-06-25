@@ -5,11 +5,11 @@
 
 #include <memory>
 
+#include <QApplication>
 #include <QBitmap>
 #include <QBrush>
 #include <QCursor>
 #include <QFont>
-#include <QGuiApplication>
 #include <QLabel>
 #include <QPainter>
 #include <QPainterPath>
@@ -25,11 +25,17 @@
 #include <QToolTip>
 #endif
 
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
 namespace
 {
 std::unique_ptr<BalloonTip> s_the_balloon_tip = nullptr;
+// Remember the parent ToolTipWidget so cursor-related events can see whether the cursor is inside
+// the parent's bounding box or not. Use this variable instead of BalloonTip's parent() member
+// because the ToolTipWidget isn't responsible for deleting the BalloonTip and so doesn't set its
+// parent member.
+QWidget* s_parent = nullptr;
 }  // namespace
 
 void BalloonTip::ShowBalloon(const QString& title, const QString& message,
@@ -53,6 +59,7 @@ void BalloonTip::ShowBalloon(const QString& title, const QString& message,
 
 void BalloonTip::HideBalloon()
 {
+  s_parent = nullptr;
 #if defined(__APPLE__)
   QToolTip::hideText();
 #else
@@ -66,6 +73,9 @@ void BalloonTip::HideBalloon()
 BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidget* const parent)
     : QWidget(nullptr, Qt::ToolTip)
 {
+  s_parent = parent;
+  setMouseTracking(true);
+
   QColor window_color;
   QColor text_color;
   QColor dolphin_emphasis;
@@ -111,6 +121,49 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
 
   if (!message.isEmpty())
     create_label(message);
+}
+
+bool BalloonTip::IsCursorInsideWidgetBoundingBox(const QWidget& widget)
+{
+  QPoint local_cursor_position = widget.mapFromGlobal(QCursor::pos());
+  return widget.rect().contains(local_cursor_position);
+}
+
+bool BalloonTip::IsCursorOnBalloonTip()
+{
+  return s_the_balloon_tip != nullptr &&
+         QApplication::widgetAt(QCursor::pos()) == s_the_balloon_tip.get();
+}
+
+bool BalloonTip::IsWidgetBalloonTipActive(const QWidget& widget)
+{
+  return &widget == s_parent;
+}
+
+// Hiding the balloon causes the BalloonTip widget to be deleted. Triggering that deletion while
+// inside a BalloonTip event handler leads to a use-after-free crash or worse, so queue the deletion
+// for later.
+static void QueueHideBalloon()
+{
+  QueueOnObject(s_parent, BalloonTip::HideBalloon);
+}
+
+void BalloonTip::enterEvent(QEnterEvent*)
+{
+  if (!IsCursorInsideWidgetBoundingBox(*s_parent))
+    QueueHideBalloon();
+}
+
+void BalloonTip::mouseMoveEvent(QMouseEvent*)
+{
+  if (!IsCursorInsideWidgetBoundingBox(*s_parent))
+    QueueHideBalloon();
+}
+
+void BalloonTip::leaveEvent(QEvent*)
+{
+  if (QApplication::widgetAt(QCursor::pos()) != s_parent)
+    QueueHideBalloon();
 }
 
 void BalloonTip::paintEvent(QPaintEvent*)
