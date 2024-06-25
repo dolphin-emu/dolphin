@@ -1377,6 +1377,11 @@ bool NetPlayServer::SetupNetSettings()
       // There's no way the BBA is going to sync, disable it
       device = ExpansionInterface::EXIDeviceType::None;
     }
+    else if (slot == ExpansionInterface::Slot::SP2)
+    {
+      // SD cards probably won't sync either
+      device = ExpansionInterface::EXIDeviceType::None;
+    }
     else
     {
       device = Config::Get(Config::GetInfoForEXIDevice(slot));

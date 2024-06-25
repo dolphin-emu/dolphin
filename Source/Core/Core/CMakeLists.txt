@@ -217,6 +217,8 @@ add_library(core
   HW/EXI/EXI_DeviceMic.h
   HW/EXI/EXI_DeviceModem.cpp
   HW/EXI/EXI_DeviceModem.h
+  HW/EXI/EXI_DeviceSD.cpp
+  HW/EXI/EXI_DeviceSD.h
   HW/EXI/EXI.cpp
   HW/EXI/EXI.h
   HW/GBAPad.cpp
