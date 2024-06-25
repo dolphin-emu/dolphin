@@ -60,6 +60,16 @@ void CheatsManager::OnFrameEnd()
   if (!isVisible())
     return;
 
+  std::unique_lock<std::mutex> frameend_update_lock{m_tab_deletion_or_frameend_update_mutex,
+                                                    std::try_to_lock};
+  if (!frameend_update_lock.owns_lock())
+  {
+    // Either the currently selected CheatSearchWidget is in the process of being deleted and is
+    // unsafe to access, or try_to_lock failed spuriously. Occasional spurious failures are fine
+    // since the next FrameEnd or Pause event will update the table soon.
+    return;
+  }
+
   auto* const selected_cheat_search_widget =
       qobject_cast<CheatSearchWidget*>(m_tab_widget->currentWidget());
   if (selected_cheat_search_widget != nullptr)
@@ -67,6 +77,8 @@ void CheatsManager::OnFrameEnd()
     selected_cheat_search_widget->UpdateTableVisibleCurrentValues(
         CheatSearchWidget::UpdateSource::Auto);
   }
+
+  frameend_update_lock.unlock();
 }
 
 void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
@@ -184,11 +196,35 @@ void CheatsManager::OnNewSessionCreated(const Cheats::CheatSearchSessionBase& se
   m_tab_widget->setCurrentIndex(tab_index);
 }
 
-void CheatsManager::OnTabCloseRequested(int index)
+void CheatsManager::BlockFrameEndEvents()
 {
-  auto* w = m_tab_widget->widget(index);
-  if (w)
-    w->deleteLater();
+  m_tab_deletion_lock.lock();
+  // The next currentChanged signal will be triggered by the automatic tab change caused by the
+  // deletion of the current tab.
+  connect(m_tab_widget, &QTabWidget::currentChanged, this, &CheatsManager::AllowFrameEndEvents);
+}
+
+void CheatsManager::AllowFrameEndEvents()
+{
+  // This function is currently connected to QTabWidget::currentChanged which would cause the
+  // semaphore to be incremented by the user changing the tab normally.
+  disconnect(m_tab_widget, &QTabWidget::currentChanged, this, &CheatsManager::AllowFrameEndEvents);
+  // It's now safe to run FrameEnd events again.
+  m_tab_deletion_lock.unlock();
+}
+
+void CheatsManager::OnTabCloseRequested(const int index)
+{
+  auto* const widget = m_tab_widget->widget(index);
+  if (widget)
+  {
+    const bool is_current_tab = index == m_tab_widget->currentIndex();
+    const bool is_cheatsearch = qobject_cast<CheatSearchWidget*>(widget);
+    if (is_current_tab && is_cheatsearch)
+      BlockFrameEndEvents();
+
+    widget->deleteLater();
+  }
 }
 
 void CheatsManager::ConnectWidgets()
