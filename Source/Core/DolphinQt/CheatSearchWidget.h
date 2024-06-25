@@ -82,7 +82,7 @@ private:
 
   Core::System& m_system;
 
-  std::unique_ptr<Cheats::CheatSearchSessionBase> m_session;
+  std::unique_ptr<Cheats::CheatSearchSessionBase> m_last_value_session;
 
   // storage for the 'Current Value' column's data
   std::unordered_map<u32, std::string> m_address_table_current_values;
