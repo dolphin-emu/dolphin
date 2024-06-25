@@ -1,0 +1,13 @@
+<wiidisc version="1">
+	<options>
+		<section name="Fix VP6 video decoding">
+			<option name="Fix idctcolumn64" id="fixvp6" default="1">
+				<choice name="Enabled"><patch id="fixvp6" /></choice>
+			</option>
+		</section>
+	</options>
+	<patch id="fixvp6">
+        <!-- idctcolumn64(): "ps_add f19,f19,f19" -> "ps_add f19,f18,f19" -->
+		<memory original="12010272122302f21247027212630372120783fa12258b7a124193fc12659afc129088281230882a12b298281273982a" value="12010272122302f21247027212630372120783fa12258b7a124193fc12659afc129088281230882a12b298281272982a" search="true" align="4" />
+	</patch>
+</wiidisc>
