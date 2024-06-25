@@ -268,7 +268,7 @@ void CodeViewWidget::Update()
   if (m_updating)
     return;
 
-  if (Core::GetState(m_system) == Core::State::Paused)
+  if (Core::GetState(m_system) == Core::State::Paused && Core::IsRunningAndStarted())
   {
     Core::CPUThreadGuard guard(m_system);
     Update(&guard);
