@@ -366,10 +366,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
 
-  out.Write("int4 lacc;\n"
-            "float3 ldir, h, cosAttn, distAttn;\n"
-            "float dist, dist2, attn;\n");
-
   GenerateLightingShaderCode(out, uid_data->lighting, "vertex_color_", "o.colors_");
 
   // transform texcoords
@@ -433,7 +429,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
       // transform the light dir into tangent space
-      out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
+      out.Write("float3 ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
                 LIGHT_POS_PARAMS(texinfo.embosslightshift));
       out.Write(
           "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
