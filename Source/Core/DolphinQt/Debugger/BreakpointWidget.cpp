@@ -251,7 +251,7 @@ void BreakpointWidget::UpdateButtonsEnabled()
   if (!isVisible())
     return;
 
-  const bool is_initialised = Core::IsRunning(m_system);
+  const bool is_initialised = Core::GetState(m_system) != Core::State::Uninitialized;
   m_new->setEnabled(is_initialised);
   m_load->setEnabled(is_initialised);
   m_save->setEnabled(is_initialised);

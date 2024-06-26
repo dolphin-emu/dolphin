@@ -43,7 +43,8 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
   });
 
   OnBackendChanged();
-  OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
+                          Core::State::Uninitialized);
 }
 
 void AdvancedWidget::CreateWidgets()

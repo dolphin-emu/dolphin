@@ -159,7 +159,8 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
   if (m_standard_address_space->isChecked())
   {
     auto& system = Core::System::GetInstance();
-    if (!Core::IsRunning(system))
+    const Core::State core_state = Core::GetState(system);
+    if (core_state != Core::State::Running && core_state != Core::State::Paused)
     {
       ModalMessageBox::warning(
           this, tr("No game running."),

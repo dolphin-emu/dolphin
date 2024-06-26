@@ -44,7 +44,8 @@ GeneralWidget::GeneralWidget(GraphicsWindow* parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
-  OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
+                          Core::State::Uninitialized);
 }
 
 void GeneralWidget::CreateWidgets()
@@ -360,8 +361,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   const bool supports_adapters = !adapters.empty();
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(supports_adapters &&
-                              Core::IsUninitialized(Core::System::GetInstance()));
+  m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning(Core::System::GetInstance()));
 
   static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"
