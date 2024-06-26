@@ -180,11 +180,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private fun run(isActivityRecreated: Boolean) {
         if (isActivityRecreated) {
-            if (NativeLibrary.IsUninitialized()) {
-                loadPreviousTemporaryState = true
-            } else {
+            if (NativeLibrary.IsRunning()) {
                 loadPreviousTemporaryState = false
                 deleteFile(temporaryStateFilePath)
+            } else {
+                loadPreviousTemporaryState = true
             }
         } else {
             Log.debug("[EmulationFragment] activity resumed or fresh start")
@@ -203,7 +203,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private fun runWithValidSurface() {
         runWhenSurfaceIsValid = false
-        if (NativeLibrary.IsUninitialized()) {
+        if (!NativeLibrary.IsRunning()) {
             NativeLibrary.SetIsBooting()
             val emulationThread = Thread({
                 if (loadPreviousTemporaryState) {

@@ -381,15 +381,9 @@ public final class NativeLibrary
    */
   public static native boolean IsRunning();
 
-  /**
-   * Returns true if emulation is running and not paused.
-   */
-  public static native boolean IsRunningAndUnpaused();
+  public static native boolean IsRunningAndStarted();
 
-  /**
-   * Returns true if emulation is fully shut down.
-   */
-  public static native boolean IsUninitialized();
+  public static native boolean IsRunningAndUnpaused();
 
   /**
    * Writes out the JitBlock Cache log dump

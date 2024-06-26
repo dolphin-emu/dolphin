@@ -905,7 +905,7 @@ void MainWindow::OnStopComplete()
 
 bool MainWindow::RequestStop()
 {
-  if (Core::IsUninitialized(Core::System::GetInstance()))
+  if (!Core::IsRunning(Core::System::GetInstance()))
   {
     Core::QueueHostJob([this](Core::System&) { OnStopComplete(); }, true);
     return true;
@@ -1112,7 +1112,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   }
 
   // If we're running, only start a new game once we've stopped the last.
-  if (!Core::IsUninitialized(Core::System::GetInstance()))
+  if (Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized)
   {
     if (!RequestStop())
       return;
@@ -1536,7 +1536,7 @@ void MainWindow::NetPlayInit()
 
 bool MainWindow::NetPlayJoin()
 {
-  if (!Core::IsUninitialized(Core::System::GetInstance()))
+  if (Core::IsRunning(Core::System::GetInstance()))
   {
     ModalMessageBox::critical(nullptr, tr("Error"),
                               tr("Can't start a NetPlay Session while a game is still running!"));
@@ -1603,7 +1603,7 @@ bool MainWindow::NetPlayJoin()
 
 bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
-  if (!Core::IsUninitialized(Core::System::GetInstance()))
+  if (Core::IsRunning(Core::System::GetInstance()))
   {
     ModalMessageBox::critical(nullptr, tr("Error"),
                               tr("Can't start a NetPlay Session while a game is still running!"));
@@ -1850,7 +1850,7 @@ void MainWindow::OnImportNANDBackup()
 
   result.wait();
 
-  m_menu_bar->UpdateToolsMenu(Core::State::Uninitialized);
+  m_menu_bar->UpdateToolsMenu(Core::IsRunning(Core::System::GetInstance()));
 }
 
 void MainWindow::OnPlayRecording()
@@ -1882,8 +1882,7 @@ void MainWindow::OnStartRecording()
 {
   auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
-  if (Core::GetState(system) == Core::State::Starting ||
-      Core::GetState(system) == Core::State::Stopping || movie.IsRecordingInput() ||
+  if (Core::GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
       movie.IsPlayingInput())
   {
     return;
@@ -1915,7 +1914,7 @@ void MainWindow::OnStartRecording()
   {
     emit RecordingStatusChanged(true);
 
-    if (Core::IsUninitialized(system))
+    if (!Core::IsRunning(system))
       Play();
   }
 }
