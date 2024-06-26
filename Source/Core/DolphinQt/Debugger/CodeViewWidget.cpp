@@ -560,7 +560,7 @@ void CodeViewWidget::OnContextMenu()
   QMenu* menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
-  const bool running = Core::IsRunning(m_system);
+  const bool running = Core::GetState(m_system) != Core::State::Uninitialized;
   const bool paused = Core::GetState(m_system) == Core::State::Paused;
 
   const u32 addr = GetContextAddress();

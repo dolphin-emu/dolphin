@@ -138,11 +138,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_stop->setEnabled(false);
     m_recording_export->setEnabled(false);
   }
-  const bool can_start_from_boot = m_game_selected && state == Core::State::Uninitialized;
-  const bool can_start_from_savestate =
-      state == Core::State::Running || state == Core::State::Paused;
-  m_recording_play->setEnabled(can_start_from_boot && !hardcore);
-  m_recording_start->setEnabled((can_start_from_boot || can_start_from_savestate) &&
+  m_recording_play->setEnabled(m_game_selected && !running);
+  m_recording_play->setEnabled(m_game_selected && !running && !hardcore);
+  m_recording_start->setEnabled((m_game_selected || running) &&
                                 !Core::System::GetInstance().GetMovie().IsPlayingInput());
 
   // JIT
@@ -161,7 +159,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_symbols->setEnabled(running);
 
   UpdateStateSlotMenu();
-  UpdateToolsMenu(state);
+  UpdateToolsMenu(running);
 
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
 }
@@ -302,8 +300,7 @@ void MenuBar::AddToolsMenu()
 
   m_boot_sysmenu->setEnabled(false);
 
-  connect(&Settings::Instance(), &Settings::NANDRefresh, this,
-          [this] { UpdateToolsMenu(Core::State::Uninitialized); });
+  connect(&Settings::Instance(), &Settings::NANDRefresh, this, [this] { UpdateToolsMenu(false); });
 
   m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
   m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
@@ -1053,23 +1050,20 @@ void MenuBar::AddSymbolsMenu()
   m_symbols->addAction(tr("&Patch HLE Functions"), this, &MenuBar::PatchHLEFunctions);
 }
 
-void MenuBar::UpdateToolsMenu(Core::State state)
+void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
-  const bool is_uninitialized = state == Core::State::Uninitialized;
-  const bool is_running = state == Core::State::Running || state == Core::State::Paused;
+  m_boot_sysmenu->setEnabled(!emulation_started);
+  m_perform_online_update_menu->setEnabled(!emulation_started);
+  m_ntscj_ipl->setEnabled(!emulation_started && File::Exists(Config::GetBootROMPath(JAP_DIR)));
+  m_ntscu_ipl->setEnabled(!emulation_started && File::Exists(Config::GetBootROMPath(USA_DIR)));
+  m_pal_ipl->setEnabled(!emulation_started && File::Exists(Config::GetBootROMPath(EUR_DIR)));
+  m_wad_install_action->setEnabled(!emulation_started);
+  m_import_backup->setEnabled(!emulation_started);
+  m_check_nand->setEnabled(!emulation_started);
+  m_import_wii_save->setEnabled(!emulation_started);
+  m_export_wii_saves->setEnabled(!emulation_started);
 
-  m_boot_sysmenu->setEnabled(is_uninitialized);
-  m_perform_online_update_menu->setEnabled(is_uninitialized);
-  m_ntscj_ipl->setEnabled(is_uninitialized && File::Exists(Config::GetBootROMPath(JAP_DIR)));
-  m_ntscu_ipl->setEnabled(is_uninitialized && File::Exists(Config::GetBootROMPath(USA_DIR)));
-  m_pal_ipl->setEnabled(is_uninitialized && File::Exists(Config::GetBootROMPath(EUR_DIR)));
-  m_wad_install_action->setEnabled(is_uninitialized);
-  m_import_backup->setEnabled(is_uninitialized);
-  m_check_nand->setEnabled(is_uninitialized);
-  m_import_wii_save->setEnabled(is_uninitialized);
-  m_export_wii_saves->setEnabled(is_uninitialized);
-
-  if (is_uninitialized)
+  if (!emulation_started)
   {
     IOS::HLE::Kernel ios;
     const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -1092,7 +1086,7 @@ void MenuBar::UpdateToolsMenu(Core::State state)
   }
 
   const auto bt = WiiUtils::GetBluetoothEmuDevice();
-  const bool enable_wiimotes = is_running && bt != nullptr;
+  const bool enable_wiimotes = emulation_started && bt != nullptr;
 
   for (std::size_t i = 0; i < m_wii_remotes.size(); i++)
   {
@@ -1263,20 +1257,16 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
   m_game_selected = !!game_file;
 
   auto& system = Core::System::GetInstance();
-  const bool can_start_from_boot = m_game_selected && Core::IsUninitialized(system);
-  const bool can_start_from_savestate = Core::IsRunning(system);
-  m_recording_play->setEnabled(can_start_from_boot);
-  m_recording_start->setEnabled((can_start_from_boot || can_start_from_savestate) &&
+  const bool core_is_running = Core::IsRunning(system);
+  m_recording_play->setEnabled(m_game_selected && !core_is_running);
+  m_recording_start->setEnabled((m_game_selected || core_is_running) &&
                                 !system.GetMovie().IsPlayingInput());
 }
 
 void MenuBar::OnRecordingStatusChanged(bool recording)
 {
   auto& system = Core::System::GetInstance();
-  const bool can_start_from_boot = m_game_selected && Core::IsUninitialized(system);
-  const bool can_start_from_savestate = Core::IsRunning(system);
-
-  m_recording_start->setEnabled(!recording && (can_start_from_boot || can_start_from_savestate));
+  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning(system)));
   m_recording_stop->setEnabled(recording);
   m_recording_export->setEnabled(recording);
 }

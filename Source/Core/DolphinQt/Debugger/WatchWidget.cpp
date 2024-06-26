@@ -195,11 +195,10 @@ void WatchWidget::Update()
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
-    const bool core_is_running = Core::IsRunning(m_system);
-    if (!core_is_running || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
+    if (!Core::IsRunning(m_system) || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       brush.setColor(Qt::red);
 
-    if (core_is_running)
+    if (Core::IsRunning(m_system))
     {
       if (PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       {

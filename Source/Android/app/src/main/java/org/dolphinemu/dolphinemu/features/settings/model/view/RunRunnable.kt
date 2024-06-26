@@ -20,5 +20,5 @@ class RunRunnable(
     override val setting: AbstractSetting? = null
 
     override val isEditable: Boolean
-        get() = worksDuringEmulation || NativeLibrary.IsUninitialized()
+        get() = worksDuringEmulation || !NativeLibrary.IsRunning()
 }
