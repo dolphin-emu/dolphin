@@ -51,7 +51,8 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
     for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; bucket++)
     {
       const auto& leaderboard_bucket = leaderboard_list->buckets[bucket];
-      m_common_layout->addWidget(new QLabel(tr(leaderboard_bucket.label)));
+      m_common_layout->addWidget(new QLabel(tr(leaderboard_bucket.label)), row, 0);
+      row += 2;
       for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; board++)
       {
         const auto* leaderboard = leaderboard_bucket.leaderboards[board];
@@ -65,24 +66,18 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
         QVBoxLayout* a_col_left = new QVBoxLayout();
         a_col_left->addWidget(a_title);
         a_col_left->addWidget(a_description);
-        if (row > 0)
-        {
-          QFrame* a_divider = new QFrame();
-          a_divider->setFrameShape(QFrame::HLine);
-          m_common_layout->addWidget(a_divider, row - 1, 0);
-        }
+        QFrame* a_divider = new QFrame();
+        a_divider->setFrameShape(QFrame::HLine);
+        m_common_layout->addWidget(a_divider, row - 1, 0);
         m_common_layout->addLayout(a_col_left, row, 0);
         for (size_t ix = 0; ix < 4; ix++)
         {
           QVBoxLayout* a_col = new QVBoxLayout();
           for (size_t jx = 0; jx < 3; jx++)
             a_col->addWidget(new QLabel(QStringLiteral("---")));
-          if (row > 0)
-          {
-            QFrame* a_divider = new QFrame();
-            a_divider->setFrameShape(QFrame::HLine);
-            m_common_layout->addWidget(a_divider, row - 1, static_cast<int>(ix) + 1);
-          }
+          QFrame* a_divider_2 = new QFrame();
+          a_divider_2->setFrameShape(QFrame::HLine);
+          m_common_layout->addWidget(a_divider_2, row - 1, static_cast<int>(ix) + 1);
           m_common_layout->addLayout(a_col, row, static_cast<int>(ix) + 1);
         }
         row += 2;
