@@ -63,6 +63,7 @@
 #define COVERCACHE_DIR "GameCovers"
 #define REDUMPCACHE_DIR "Redump"
 #define SHADERCACHE_DIR "Shaders"
+#define RETROACHIEVEMENTSCACHE_DIR "RetroAchievements"
 #define STATESAVES_DIR "StateSaves"
 #define SCREENSHOTS_DIR "ScreenShots"
 #define LOAD_DIR "Load"
