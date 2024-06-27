@@ -1020,8 +1020,15 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
 
     if (!LoadPNGTexture(badge, *http_response))
     {
-      ERROR_LOG_FMT(ACHIEVEMENTS, "Default game badge '{}' failed to load",
-                    DEFAULT_GAME_BADGE_FILENAME);
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Badge '{}' failed to load", name_to_fetch);
+    }
+
+    std::string cache_base = File::GetUserPath(D_RETROACHIEVEMENTSCACHE_IDX);
+    std::string cache_path = fmt::format("{}/{}-{}.png", cache_base, badge_type, name_to_fetch);
+    if (!Common::SavePNG(cache_path, badge->data.data(), Common::ImageByteFormat::RGBA,
+                         badge->width, badge->height, badge->width * 4))
+    {
+      WARN_LOG_FMT(ACHIEVEMENTS, "Failed to cache badge '{}-{}.png'", badge_type, name_to_fetch);
     }
 
     m_update_callback(callback_data);
