@@ -341,7 +341,7 @@ AchievementManager::RichPresence AchievementManager::GetRichPresence() const
   return m_rich_presence;
 }
 
-const bool AchievementManager::AreChallengesUpdated() const
+bool AchievementManager::AreChallengesUpdated() const
 {
   return m_challenges_updated;
 }
