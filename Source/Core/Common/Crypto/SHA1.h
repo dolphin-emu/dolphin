@@ -51,4 +51,6 @@ inline Digest CalculateDigest(const std::array<T, Size>& msg)
   static_assert(std::is_trivially_copyable_v<T>);
   return CalculateDigest(reinterpret_cast<const u8*>(msg.data()), sizeof(msg));
 }
+
+std::string DigestToString(const Digest& digest);
 }  // namespace Common::SHA1
