@@ -47,6 +47,12 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   m_progress_label->setStyleSheet(QStringLiteral("background-color:transparent;"));
   m_progress_label->setAlignment(Qt::AlignCenter);
 
+  QVBoxLayout* a_col_left = new QVBoxLayout();
+  a_col_left->addSpacerItem(new QSpacerItem(0, 0));
+  a_col_left->addWidget(m_badge);
+  a_col_left->addSpacerItem(new QSpacerItem(0, 0));
+  a_col_left->setSizeConstraint(QLayout::SetFixedSize);
+  a_col_left->setAlignment(Qt::AlignCenter);
   QVBoxLayout* a_col_right = new QVBoxLayout();
   a_col_right->addWidget(title);
   a_col_right->addWidget(description);
@@ -57,7 +63,7 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   a_prog_layout->setContentsMargins(0, 0, 0, 0);
   a_prog_layout->addWidget(m_progress_label);
   QHBoxLayout* a_total = new QHBoxLayout();
-  a_total->addWidget(m_badge);
+  a_total->addLayout(a_col_left);
   a_total->addLayout(a_col_right);
   setLayout(a_total);
 
