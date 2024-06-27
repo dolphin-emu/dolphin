@@ -33,6 +33,7 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
   layout->addWidget(m_common_box);
+  layout->setSizeConstraint(QLayout::SetFixedSize);
   setLayout(layout);
 }
 
