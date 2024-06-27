@@ -24,6 +24,12 @@ public:
   virtual ~Context() = default;
   virtual void Update(const u8* msg, size_t len) = 0;
   void Update(const std::vector<u8>& msg) { return Update(msg.data(), msg.size()); }
+  template <size_t length>
+  void Update(const std::array<u8, length>& data)
+  {
+    return Update(data.data(), data.size());
+  }
+  void Update(const std::string data) { return Update(std::vector<u8>(data.begin(), data.end())); }
   virtual Digest Finish() = 0;
   virtual bool HwAccelerated() const = 0;
 };
@@ -51,4 +57,6 @@ inline Digest CalculateDigest(const std::array<T, Size>& msg)
   static_assert(std::is_trivially_copyable_v<T>);
   return CalculateDigest(reinterpret_cast<const u8*>(msg.data()), sizeof(msg));
 }
+
+std::string DigestToString(const Digest& digest);
 }  // namespace Common::SHA1
