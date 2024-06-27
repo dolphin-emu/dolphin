@@ -7,6 +7,8 @@
 #include <mutex>
 
 #include <QDialogButtonBox>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -83,6 +85,8 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
     m_header_widget->UpdateData();
     m_progress_widget->UpdateData(true);
     m_leaderboard_widget->UpdateData(true);
+    static_cast<QScrollArea*>(m_tab_widget->widget(1))->verticalScrollBar()->setValue(0);
+    static_cast<QScrollArea*>(m_tab_widget->widget(2))->verticalScrollBar()->setValue(0);
   }
   else
   {
