@@ -28,9 +28,8 @@
 
 #include "UICommon/GameFile.h"
 
-ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
-    : m_game_id(std::move(game_id)), m_game_revision(game_revision),
-      m_restart_required(restart_required)
+ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision)
+    : m_game_id(std::move(game_id)), m_game_revision(game_revision)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -56,7 +55,7 @@ ARCodeWidget::~ARCodeWidget() = default;
 
 void ARCodeWidget::CreateWidgets()
 {
-  m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
+  m_warning = new CheatWarningWidget(m_game_id, this);
 #ifdef USE_RETRO_ACHIEVEMENTS
   m_hc_warning = new HardcoreWarningWidget(this);
 #endif  // USE_RETRO_ACHIEVEMENTS
@@ -115,8 +114,7 @@ void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
 {
   m_ar_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
 
-  if (!m_restart_required)
-    ActionReplay::ApplyCodes(m_ar_codes);
+  ActionReplay::ApplyCodes(m_ar_codes);
 
   UpdateList();
   SaveCodes();

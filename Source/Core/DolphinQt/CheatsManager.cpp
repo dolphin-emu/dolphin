@@ -134,8 +134,8 @@ void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
     m_gecko_code = nullptr;
   }
 
-  m_ar_code = new ARCodeWidget(m_game_id, m_revision, false);
-  m_gecko_code = new GeckoCodeWidget(m_game_id, m_game_tdb_id, m_revision, false);
+  m_ar_code = new ARCodeWidget(m_game_id, m_revision);
+  m_gecko_code = new GeckoCodeWidget(m_game_id, m_game_tdb_id, m_revision);
   m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
   m_tab_widget->insertTab(1, m_gecko_code, tr("Gecko Codes"));
   m_tab_widget->setTabUnclosable(0);

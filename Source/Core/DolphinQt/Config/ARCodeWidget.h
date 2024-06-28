@@ -28,7 +28,7 @@ class ARCodeWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required = true);
+  explicit ARCodeWidget(std::string game_id, u16 game_revision);
   ~ARCodeWidget() override;
 
   void AddCode(ActionReplay::ARCode code);
@@ -71,5 +71,4 @@ private:
   QPushButton* m_code_remove;
 
   std::vector<ActionReplay::ARCode> m_ar_codes;
-  bool m_restart_required;
 };

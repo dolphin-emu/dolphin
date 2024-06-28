@@ -29,8 +29,7 @@ class GeckoCodeWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
-                           bool restart_required = true);
+  explicit GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision);
   ~GeckoCodeWidget() override;
 
 signals:
@@ -75,5 +74,4 @@ private:
   QPushButton* m_remove_code;
   QPushButton* m_download_codes;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
-  bool m_restart_required;
 };

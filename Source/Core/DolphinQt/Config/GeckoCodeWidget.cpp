@@ -34,10 +34,9 @@
 
 #include "UICommon/GameFile.h"
 
-GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
-                                 bool restart_required)
+GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision)
     : m_game_id(std::move(game_id)), m_gametdb_id(std::move(gametdb_id)),
-      m_game_revision(game_revision), m_restart_required(restart_required)
+      m_game_revision(game_revision)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -62,7 +61,7 @@ GeckoCodeWidget::~GeckoCodeWidget() = default;
 
 void GeckoCodeWidget::CreateWidgets()
 {
-  m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
+  m_warning = new CheatWarningWidget(m_game_id, this);
 #ifdef USE_RETRO_ACHIEVEMENTS
   m_hc_warning = new HardcoreWarningWidget(this);
 #endif  // USE_RETRO_ACHIEVEMENTS
@@ -201,8 +200,7 @@ void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
   const int index = item->data(Qt::UserRole).toInt();
   m_gecko_codes[index].enabled = (item->checkState() == Qt::Checked);
 
-  if (!m_restart_required)
-    Gecko::SetActiveCodes(m_gecko_codes);
+  Gecko::SetActiveCodes(m_gecko_codes);
 
   SaveCodes();
 }
