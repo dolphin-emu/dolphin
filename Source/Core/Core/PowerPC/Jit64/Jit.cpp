@@ -958,9 +958,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
 
-    if (!m_enable_debugging)
-      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
-
     if (i == (code_block.m_num_instructions - 1))
     {
       js.isLastInstruction = true;
