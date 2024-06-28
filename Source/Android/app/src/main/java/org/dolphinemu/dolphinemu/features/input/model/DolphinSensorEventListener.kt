@@ -45,18 +45,11 @@ class DolphinSensorEventListener : SensorEventListener {
     @Keep
     constructor(inputDevice: InputDevice) {
         rotateCoordinatesForScreenOrientation = false
-        sensorManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            inputDevice.sensorManager
-
-            // TODO: There is a bug where after suspending sensors, onSensorChanged can get called for
-            // a sensor that we never registered as a listener for. The way our code is currently written,
-            // this causes a NullPointerException, but if we checked for null we would instead have the
-            // problem of being spammed with onSensorChanged calls even though the sensor shouldn't be
-            // enabled. For now, let's comment out the ability to use InputDevice sensors.
-
-            //addSensors();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          sensorManager = inputDevice.sensorManager
+          addSensors()
         } else {
-            null
+            sensorManager = null
         }
     }
 
@@ -259,8 +252,23 @@ class DolphinSensorEventListener : SensorEventListener {
     }
 
     override fun onSensorChanged(sensorEvent: SensorEvent) {
-        val sensorDetails = sensorDetails[sensorEvent.sensor]
+      var realSensor: Sensor? = null
+      var sensorDetails: SensorDetails? = null
+        for ((key) in this.sensorDetails) {
+          if (key == sensorEvent.sensor) {
+            realSensor = key
+            sensorDetails = this.sensorDetails[key]
+            break
+          }
+        }
 
+
+        //val sensorDetails = sensorDetails[sensorEvent.sensor]
+        if (sensorDetails == null) {
+          Log.wtf("Sensor is null!!")
+          Log.wtf(sensorEvent.sensor.name)
+          return
+        }
         val values = sensorEvent.values
         val axisNames = sensorDetails!!.axisNames
         val axisSetDetails = sensorDetails.axisSetDetails
@@ -356,7 +364,7 @@ class DolphinSensorEventListener : SensorEventListener {
             }
         }
         if (!keepSensorAlive) {
-            setSensorSuspended(sensorEvent.sensor, sensorDetails, true)
+            setSensorSuspended(realSensor!!, sensorDetails, true)
         }
     }
 
