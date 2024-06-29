@@ -481,6 +481,7 @@ add_library(core
   PowerPC/BreakPoints.h
   PowerPC/CachedInterpreter/CachedInterpreter.cpp
   PowerPC/CachedInterpreter/CachedInterpreter.h
+  PowerPC/CachedInterpreter/CachedOpCodeFunction.h
   PowerPC/CachedInterpreter/InterpreterBlockCache.cpp
   PowerPC/CachedInterpreter/InterpreterBlockCache.h
   PowerPC/ConditionRegister.cpp
