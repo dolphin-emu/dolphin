@@ -59,7 +59,12 @@ Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
   Core::AddOnStateChangedCallback([this](Core::State new_state) {
-    QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
+    QueueOnObject(this, [this, new_state] {
+      // Avoid signal spam while continuously frame stepping. Will still send a signal for the first
+      // and last framestep.
+      if (!m_continuously_frame_stepping)
+        emit EmulationStateChanged(new_state);
+    });
   });
 
   Config::AddConfigChangedCallback([this] {
@@ -826,4 +831,14 @@ void Settings::SetUSBKeyboardConnected(bool connected)
     Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
     emit USBKeyboardConnectionChanged(connected);
   }
+}
+
+void Settings::SetIsContinuouslyFrameStepping(bool is_stepping)
+{
+  m_continuously_frame_stepping = is_stepping;
+}
+
+bool Settings::GetIsContinuouslyFrameStepping() const
+{
+  return m_continuously_frame_stepping;
 }

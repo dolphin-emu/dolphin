@@ -113,6 +113,8 @@ static void HandleFrameStepHotkeys()
 
     if ((frame_step_count == 0 || frame_step_count == FRAME_STEP_DELAY) && !frame_step_hold)
     {
+      if (frame_step_count > 0)
+        Settings::Instance().SetIsContinuouslyFrameStepping(true);
       Core::QueueHostJob([](auto& system) { Core::DoFrameStep(system); });
       frame_step_hold = true;
     }
@@ -138,6 +140,8 @@ static void HandleFrameStepHotkeys()
     frame_step_count = 0;
     frame_step_hold = false;
     frame_step_delay_count = 0;
+    Settings::Instance().SetIsContinuouslyFrameStepping(false);
+    emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
   }
 }
 
