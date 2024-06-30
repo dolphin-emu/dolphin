@@ -821,6 +821,9 @@ void AchievementManager::HandleAchievementChallengeIndicatorShowEvent(
   const auto [iter, inserted] = instance.m_active_challenges.insert(client_event->achievement->id);
   if (inserted)
     instance.m_challenges_updated = true;
+  OSD::AddMessage(fmt::format("Challenge Started: {}", client_event->achievement->title),
+                  OSD::Duration::VERY_LONG, OSD::Color::GREEN,
+                  &instance.GetAchievementBadge(client_event->achievement->id, false));
 }
 
 void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
@@ -830,6 +833,9 @@ void AchievementManager::HandleAchievementChallengeIndicatorHideEvent(
   const auto removed = instance.m_active_challenges.erase(client_event->achievement->id);
   if (removed > 0)
     instance.m_challenges_updated = true;
+  OSD::AddMessage(fmt::format("Challenge Ended: {}", client_event->achievement->title),
+                  OSD::Duration::VERY_LONG, OSD::Color::GREEN,
+                  &instance.GetAchievementBadge(client_event->achievement->id, false));
 }
 
 void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
