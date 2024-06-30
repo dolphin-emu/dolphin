@@ -132,8 +132,6 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     result_reg = reg_encoder(V1Q);
   }
 
-  const ARM64Reg temp_gpr = m_accurate_nans && !single ? gpr.GetReg() : ARM64Reg::INVALID_REG;
-
   switch (op5)
   {
   case 18:
@@ -251,8 +249,6 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     fpr.Unlock(V0Q);
   if (V1Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V1Q);
-  if (temp_gpr != ARM64Reg::INVALID_REG)
-    gpr.Unlock(temp_gpr);
 
   if (output_is_single)
   {
