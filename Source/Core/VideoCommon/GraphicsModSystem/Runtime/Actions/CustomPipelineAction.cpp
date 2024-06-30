@@ -7,24 +7,19 @@
 #include <array>
 #include <optional>
 
-#include <fmt/format.h>
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-#include "Common/FileUtil.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Common/VariantUtil.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/GraphicsModEditor/Controls/AssetDisplay.h"
 #include "VideoCommon/GraphicsModEditor/EditorEvents.h"
 #include "VideoCommon/GraphicsModEditor/EditorMain.h"
-#include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
 
 std::unique_ptr<CustomPipelineAction>
 CustomPipelineAction::Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
@@ -36,58 +31,17 @@ std::unique_ptr<CustomPipelineAction>
 CustomPipelineAction::Create(const picojson::value& json_data,
                              std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
-  std::vector<CustomPipelineAction::PipelinePassPassDescription> pipeline_passes;
+  const auto material_asset =
+      ReadStringFromJson(json_data.get<picojson::object>(), "material_asset");
 
-  const auto& passes_json = json_data.get("passes");
-  if (passes_json.is<picojson::array>())
+  if (!material_asset)
   {
-    for (const auto& passes_json_val : passes_json.get<picojson::array>())
-    {
-      CustomPipelineAction::PipelinePassPassDescription pipeline_pass;
-      if (!passes_json_val.is<picojson::object>())
-      {
-        ERROR_LOG_FMT(VIDEO,
-                      "Failed to load custom pipeline action, 'passes' has an array value that "
-                      "is not an object!");
-        return nullptr;
-      }
-
-      auto pass = passes_json_val.get<picojson::object>();
-      if (!pass.contains("pixel_material_asset"))
-      {
-        ERROR_LOG_FMT(VIDEO,
-                      "Failed to load custom pipeline action, 'passes' value missing required "
-                      "field 'pixel_material_asset'");
-        return nullptr;
-      }
-
-      auto pixel_material_asset_json = pass["pixel_material_asset"];
-      if (!pixel_material_asset_json.is<std::string>())
-      {
-        ERROR_LOG_FMT(VIDEO, "Failed to load custom pipeline action, 'passes' field "
-                             "'pixel_material_asset' is not a string!");
-        return nullptr;
-      }
-      pipeline_pass.m_pixel_material_asset = pixel_material_asset_json.to_str();
-      pipeline_passes.push_back(std::move(pipeline_pass));
-    }
-  }
-
-  if (pipeline_passes.empty())
-  {
-    ERROR_LOG_FMT(VIDEO, "Failed to load custom pipeline action, must specify at least one pass");
+    ERROR_LOG_FMT(VIDEO,
+                  "Failed to load custom pipeline action, 'material_asset' does not have a value");
     return nullptr;
   }
 
-  if (pipeline_passes.size() > 1)
-  {
-    ERROR_LOG_FMT(
-        VIDEO,
-        "Failed to load custom pipeline action, multiple passes are not currently supported");
-    return nullptr;
-  }
-
-  return std::make_unique<CustomPipelineAction>(std::move(library), std::move(pipeline_passes));
+  return std::make_unique<CustomPipelineAction>(std::move(library), std::move(*material_asset));
 }
 
 CustomPipelineAction::CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
@@ -95,12 +49,10 @@ CustomPipelineAction::CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAs
 {
 }
 
-CustomPipelineAction::CustomPipelineAction(
-    std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
-    std::vector<PipelinePassPassDescription> pass_descriptions)
-    : m_library(std::move(library)), m_passes_config(std::move(pass_descriptions))
+CustomPipelineAction::CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                                           std::string material_asset)
+    : m_library(std::move(library)), m_material_asset(std::move(material_asset))
 {
-  m_pipeline_passes.resize(m_passes_config.size());
 }
 
 void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* draw_started)
@@ -108,25 +60,15 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
   if (!draw_started) [[unlikely]]
     return;
 
-  if (!draw_started->custom_pixel_shader) [[unlikely]]
+  if (!draw_started->material) [[unlikely]]
     return;
 
-  if (m_pipeline_passes.empty()) [[unlikely]]
+  if (m_material_asset.empty())
     return;
 
-  auto& loader = Core::System::GetInstance().GetCustomAssetLoader();
-
-  // For now assume a single pass
-  const auto& pass_config = m_passes_config[0];
-  auto& pass = m_pipeline_passes[0];
-
-  pass.UpdatePixelData(loader, m_library, draw_started->texture_units,
-                       pass_config.m_pixel_material_asset);
-  CustomPixelShader custom_pixel_shader;
-  custom_pixel_shader.custom_shader = pass.m_last_generated_shader_code.GetBuffer();
-  custom_pixel_shader.material_uniform_block = pass.m_last_generated_material_code.GetBuffer();
-  *draw_started->custom_pixel_shader = custom_pixel_shader;
-  *draw_started->material_uniform_buffer = pass.m_material_data;
+  auto& resource_manager = Core::System::GetInstance().GetCustomResourceManager();
+  *draw_started->material = resource_manager.GetMaterialFromAsset(m_material_asset, m_library,
+                                                                  draw_started->draw_data_view);
 }
 
 void CustomPipelineAction::DrawImGui()
@@ -134,38 +76,19 @@ void CustomPipelineAction::DrawImGui()
   auto& editor = Core::System::GetInstance().GetGraphicsModEditor();
   if (ImGui::CollapsingHeader("Custom pipeline", ImGuiTreeNodeFlags_DefaultOpen))
   {
-    if (m_passes_config.size() == 1)
+    if (ImGui::BeginTable("CustomPipelineForm", 2))
     {
-      if (ImGui::BeginTable("CustomPipelineForm", 2))
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Material");
+      ImGui::TableNextColumn();
+      if (GraphicsModEditor::Controls::AssetDisplay("CustomPipelineActionMaterial",
+                                                    editor.GetEditorState(), &m_material_asset,
+                                                    GraphicsModEditor::RasterMaterial))
       {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Material");
-        ImGui::TableNextColumn();
-        if (GraphicsModEditor::Controls::AssetDisplay(
-                "CustomPipelineActionMaterial", editor.GetEditorState(),
-                &m_passes_config[0].m_pixel_material_asset, GraphicsModEditor::Material))
-        {
-          GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
-        }
-        ImGui::EndTable();
+        GraphicsModEditor::EditorEvents::AssetReloadEvent::Trigger(m_material_asset);
       }
-    }
-
-    if (m_passes_config.empty())
-    {
-      if (ImGui::Button("Add pass"))
-      {
-        m_passes_config.emplace_back();
-        m_pipeline_passes.emplace_back();
-      }
-    }
-    else
-    {
-      // Disable pass adding for now
-      ImGui::BeginDisabled();
-      ImGui::Button("Add pass");
-      ImGui::EndDisabled();
+      ImGui::EndTable();
     }
   }
 }
@@ -176,15 +99,7 @@ void CustomPipelineAction::SerializeToConfig(picojson::object* obj)
     return;
 
   auto& json_obj = *obj;
-
-  picojson::array serialized_passes;
-  for (const auto& pass : m_passes_config)
-  {
-    picojson::object serialized_pass;
-    serialized_pass["pixel_material_asset"] = picojson::value{pass.m_pixel_material_asset};
-    serialized_passes.push_back(picojson::value{serialized_pass});
-  }
-  json_obj["passes"] = picojson::value{serialized_passes};
+  json_obj["material_asset"] = picojson::value{m_material_asset};
 }
 
 std::string CustomPipelineAction::GetFactoryName() const
