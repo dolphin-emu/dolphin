@@ -29,6 +29,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc)
     volume = 0x8000;
 
   m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
+  m_new_filter = crc == 0x347112ba || crc == 0x4cc52064;
 
   m_accelerator = std::make_unique<HLEAccelerator>(dsphle->GetSystem().GetDSP());
 }
@@ -448,9 +449,9 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
       for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
       {
         ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
-        ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
-                     ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                     m_coeffs_checksum ? m_coeffs.data() : nullptr);
+        ProcessVoice<spms>(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers,
+                           ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+                           m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
 
         // Forward the buffers
         for (auto& ptr : buffers.ptrs)
@@ -460,9 +461,9 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     }
     else
     {
-      ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, 96,
-                   ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr);
+      ProcessVoice<96>(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers,
+                       ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+                       m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
     }
 
     WritePB(memory, pb_addr, pb, m_crc);

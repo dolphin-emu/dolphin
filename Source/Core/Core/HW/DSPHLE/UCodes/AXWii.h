@@ -21,22 +21,25 @@ public:
 
 protected:
   // Additional AUX buffers
-  int m_samples_auxC_left[32 * 3]{};
-  int m_samples_auxC_right[32 * 3]{};
-  int m_samples_auxC_surround[32 * 3]{};
+  alignas(32) int m_samples_auxC_left[32 * 3]{};
+  alignas(32) int m_samples_auxC_right[32 * 3]{};
+  alignas(32) int m_samples_auxC_surround[32 * 3]{};
 
   // Wiimote buffers
-  int m_samples_wm0[6 * 3]{};
-  int m_samples_aux0[6 * 3]{};
-  int m_samples_wm1[6 * 3]{};
-  int m_samples_aux1[6 * 3]{};
-  int m_samples_wm2[6 * 3]{};
-  int m_samples_aux2[6 * 3]{};
-  int m_samples_wm3[6 * 3]{};
-  int m_samples_aux3[6 * 3]{};
+  alignas(32) int m_samples_wm0[6 * 3]{};
+  alignas(32) int m_samples_aux0[6 * 3]{};
+  alignas(32) int m_samples_wm1[6 * 3]{};
+  alignas(32) int m_samples_aux1[6 * 3]{};
+  alignas(32) int m_samples_wm2[6 * 3]{};
+  alignas(32) int m_samples_aux2[6 * 3]{};
+  alignas(32) int m_samples_wm3[6 * 3]{};
+  alignas(32) int m_samples_aux3[6 * 3]{};
 
   // Are we implementing an old version of AXWii which still has updates?
   bool m_old_axwii = false;
+
+  // Late AXWii versions support Wiimote filtering and a biquad filter.
+  bool m_new_filter = false;
 
   // Last volume values for MAIN and AUX. Used to generate volume ramps to
   // interpolate nicely between old and new volume values.

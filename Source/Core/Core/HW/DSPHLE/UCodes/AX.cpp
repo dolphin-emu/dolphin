@@ -436,9 +436,9 @@ void AXUCode::ProcessPBList(u32 pb_addr)
     {
       ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
 
-      ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
-                   ConvertMixerControl(pb.mixer_control),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr);
+      ProcessVoice<spms>(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers,
+                         ConvertMixerControl(pb.mixer_control),
+                         m_coeffs_checksum ? m_coeffs.data() : nullptr, false);
 
       // Forward the buffers
       for (auto& ptr : buffers.ptrs)
