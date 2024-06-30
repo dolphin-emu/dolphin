@@ -6,6 +6,7 @@ var cmd_revision	= " rev-parse HEAD";
 var cmd_describe	= " describe --always --long --dirty";
 var cmd_branch		= " rev-parse --abbrev-ref HEAD";
 var cmd_commits_ahead = " rev-list --count HEAD ^master";
+var cmd_get_tag       = " describe --exact-match HEAD";
 
 function GetGitExe()
 {
@@ -59,6 +60,25 @@ function GetFirstStdOutLine(cmd)
 	}
 }
 
+function AttemptToExecuteCommand(cmd)
+{
+	try
+	{
+		var exec = wshShell.Exec(cmd)
+
+		// wait until the command has finished
+		while (exec.Status == 0) {}
+
+		return exec.ExitCode;
+	}
+	catch (e)
+	{
+		// catch "the system cannot find the file specified" error
+		WScript.Echo("Failed to exec " + cmd + " this should never happen");
+		WScript.Quit(1);
+	}
+}
+
 function GetFileContents(f)
 {
 	try
@@ -87,6 +107,12 @@ if (default_update_track == "%DOLPHIN_DEFAULT_UPDATE_TRACK%") default_update_tra
 
 // remove hash (and trailing "-0" if needed) from description
 describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
+
+// set commits ahead to zero if on a tag
+if (AttemptToExecuteCommand(gitexe + cmd_get_tag) == 0)
+{
+	commits_ahead = "0";
+}
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
