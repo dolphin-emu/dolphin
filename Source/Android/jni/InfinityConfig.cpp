@@ -10,6 +10,8 @@
 #include "Core/IOS/USB/Emulated/Infinity.h"
 #include "Core/System.h"
 
+using FigureUIPosition = IOS::HLE::USB::FigureUIPosition;
+
 extern "C" {
 
 JNIEXPORT jobject JNICALL
@@ -66,7 +68,7 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_removeFigure
                                                                                  jint position)
 {
   auto& system = Core::System::GetInstance();
-  system.GetInfinityBase().RemoveFigure(position);
+  system.GetInfinityBase().RemoveFigure(static_cast<FigureUIPosition>(position));
 }
 
 JNIEXPORT jstring JNICALL
@@ -87,9 +89,10 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_loadFigure(J
   }
 
   auto& system = Core::System::GetInstance();
-  system.GetInfinityBase().RemoveFigure(position);
+  system.GetInfinityBase().RemoveFigure(static_cast<FigureUIPosition>(position));
   return ToJString(env,
-                   system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file), position));
+                   system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file),
+                                                       static_cast<FigureUIPosition>(position)));
 }
 
 JNIEXPORT jstring JNICALL
@@ -102,7 +105,7 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_createFigure
 
   auto& system = Core::System::GetInstance();
   system.GetInfinityBase().CreateFigure(file_name, fig_num);
-  system.GetInfinityBase().RemoveFigure(position);
+  system.GetInfinityBase().RemoveFigure(static_cast<FigureUIPosition>(position));
 
   File::IOFile inf_file(file_name, "r+b");
   if (!inf_file)
@@ -116,6 +119,7 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_createFigure
   }
 
   return ToJString(env,
-                   system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file), position));
+                   system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file),
+                                                       static_cast<FigureUIPosition>(position)));
 }
 }
