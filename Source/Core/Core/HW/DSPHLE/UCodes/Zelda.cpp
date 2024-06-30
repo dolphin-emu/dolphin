@@ -1407,12 +1407,13 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     else
       shift = 2;
     u32 mask = (1 << shift) - 1;
+    u32 ratio = vpb->resampling_ratio << (shift - 1);
 
     u32 pos = vpb->current_pos_frac << shift;
     for (s16& sample : *buffer)
     {
       sample = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
-      pos += vpb->resampling_ratio;
+      pos += ratio;
     }
     vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
     break;
