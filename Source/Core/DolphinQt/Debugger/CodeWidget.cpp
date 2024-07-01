@@ -223,6 +223,11 @@ void CodeWidget::OnPPCSymbolsChanged()
   }
 }
 
+void CodeWidget::OnSetCodeAddress(u32 address)
+{
+  SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
+}
+
 void CodeWidget::OnSearchAddress()
 {
   bool good = true;

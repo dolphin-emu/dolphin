@@ -117,6 +117,7 @@
     <ClInclude Include="Common\GL\GLX11Window.h" />
     <ClInclude Include="Common\Hash.h" />
     <ClInclude Include="Common\HookableEvent.h" />
+    <ClInclude Include="Common\HostDisassembler.h" />
     <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
     <ClInclude Include="Common\Image.h" />
@@ -428,7 +429,8 @@
     <ClInclude Include="Core\PatchEngine.h" />
     <ClInclude Include="Core\PowerPC\BreakPoints.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.h" />
-    <ClInclude Include="Core\PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
+    <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreterBlockCache.h" />
+    <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreterEmitter.h" />
     <ClInclude Include="Core\PowerPC\ConditionRegister.h" />
     <ClInclude Include="Core\PowerPC\CPUCoreBase.h" />
     <ClInclude Include="Core\PowerPC\Expression.h" />
@@ -548,7 +550,6 @@
     <ClInclude Include="InputCommon\KeyboardStatus.h" />
     <ClInclude Include="UICommon\AutoUpdate.h" />
     <ClInclude Include="UICommon\CommandLineParse.h" />
-    <ClInclude Include="UICommon\Disassembler.h" />
     <ClInclude Include="UICommon\DiscordPresence.h" />
     <ClInclude Include="UICommon\GameFile.h" />
     <ClInclude Include="UICommon\GameFileCache.h" />
@@ -808,6 +809,7 @@
     <ClCompile Include="Common\GL\GLInterface\WGL.cpp" />
     <ClCompile Include="Common\GL\GLUtil.cpp" />
     <ClCompile Include="Common\Hash.cpp" />
+    <ClCompile Include="Common\HostDisassembler.cpp" />
     <ClCompile Include="Common\HRWrap.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
     <ClCompile Include="Common\Image.cpp" />
@@ -1088,8 +1090,10 @@
     <ClCompile Include="Core\NetworkCaptureLogger.cpp" />
     <ClCompile Include="Core\PatchEngine.cpp" />
     <ClCompile Include="Core\PowerPC\BreakPoints.cpp" />
+    <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreter_Disassembler.cpp" />
     <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
-    <ClCompile Include="Core\PowerPC\CachedInterpreter\InterpreterBlockCache.cpp" />
+    <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreterBlockCache.cpp" />
+    <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreterEmitter.cpp" />
     <ClCompile Include="Core\PowerPC\ConditionRegister.cpp" />
     <ClCompile Include="Core\PowerPC\Expression.cpp" />
     <ClCompile Include="Core\PowerPC\GDBStub.cpp" />
@@ -1204,7 +1208,6 @@
     <ClCompile Include="InputCommon\InputProfile.cpp" />
     <ClCompile Include="UICommon\AutoUpdate.cpp" />
     <ClCompile Include="UICommon\CommandLineParse.cpp" />
-    <ClCompile Include="UICommon\Disassembler.cpp" />
     <ClCompile Include="UICommon\DiscordPresence.cpp" />
     <ClCompile Include="UICommon\GameFile.cpp" />
     <ClCompile Include="UICommon\GameFileCache.cpp" />

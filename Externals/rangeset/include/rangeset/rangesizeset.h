@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <map>
 #include <type_traits>
+#include <utility>
 
 namespace HyoutaUtilities {
 // Like RangeSet, but additionally stores a map of the ranges sorted by their size, for quickly finding the largest or
@@ -396,6 +397,16 @@ public:
 
   bool operator!=(const RangeSizeSet<T>& other) const {
     return !(*this == other);
+  }
+
+  // Get free size and fragmentation ratio
+  std::pair<std::size_t, double> get_stats() const {
+    std::size_t free_total = 0;
+    if (begin() == end())
+      return {free_total, 1.0};
+    for (auto iter = begin(); iter != end(); ++iter)
+      free_total += calc_size(iter.from(), iter.to());
+    return {free_total, static_cast<double>(free_total - Sizes.begin()->first) / free_total};
   }
 
 private:

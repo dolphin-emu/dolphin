@@ -51,7 +51,7 @@ public:
   void UpdateSymbols();
 signals:
   void BreakpointsChanged();
-  void RequestPPCComparison(u32 addr);
+  void RequestPPCComparison(u32 address, bool effective);
   void ShowMemory(u32 address);
 
 private:
@@ -61,6 +61,10 @@ private:
   void UpdateFunctionCalls(const Common::Symbol* symbol);
   void UpdateFunctionCallers(const Common::Symbol* symbol);
 
+public slots:
+  void OnSetCodeAddress(u32 address);
+
+private:
   void OnPPCSymbolsChanged();
   void OnSearchAddress();
   void OnSearchSymbols();

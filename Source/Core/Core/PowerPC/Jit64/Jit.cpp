@@ -4,11 +4,12 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 
 #include <map>
+#include <span>
 #include <sstream>
 #include <string>
 
-#include <disasm.h>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 // for the PROFILER stuff
 #ifdef _WIN32
@@ -18,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumUtils.h"
 #include "Common/GekkoDisassembler.h"
+#include "Common/HostDisassembler.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -116,7 +118,9 @@ using namespace PowerPC;
     and such, but it's currently limited to integer ops only. This can definitely be made better.
 */
 
-Jit64::Jit64(Core::System& system) : JitBase(system), QuantizedMemoryRoutines(*this)
+Jit64::Jit64(Core::System& system)
+    : JitBase(system), QuantizedMemoryRoutines(*this),
+      m_disassembler(HostDisassembler::Factory(HostDisassembler::Platform::x86_64))
 {
 }
 
@@ -308,6 +312,18 @@ void Jit64::ClearCache()
   RefreshConfig();
   asm_routines.Regenerate();
   ResetFreeMemoryRanges();
+  JitBase::ClearCache();
+}
+
+void Jit64::FreeRanges()
+{
+  // Check if any code blocks have been freed in the block cache and transfer this information to
+  // the local rangesets to allow overwriting them with new code.
+  for (auto range : blocks.GetRangesToFreeNear())
+    m_free_ranges_near.insert(range.first, range.second);
+  for (auto range : blocks.GetRangesToFreeFar())
+    m_free_ranges_far.insert(range.first, range.second);
+  blocks.ClearRangesToFree();
 }
 
 void Jit64::ResetFreeMemoryRanges()
@@ -746,14 +762,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     }
     ClearCache();
   }
-
-  // Check if any code blocks have been freed in the block cache and transfer this information to
-  // the local rangesets to allow overwriting them with new code.
-  for (auto range : blocks.GetRangesToFreeNear())
-    m_free_ranges_near.insert(range.first, range.second);
-  for (auto range : blocks.GetRangesToFreeFar())
-    m_free_ranges_far.insert(range.first, range.second);
-  blocks.ClearRangesToFree();
+  FreeRanges();
 
   std::size_t block_size = m_code_buffer.size();
 
@@ -822,7 +831,11 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       b->far_begin = far_start;
       b->far_end = far_end;
 
-      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
+
+#ifdef JIT_LOG_GENERATED_CODE
+      LogGeneratedCode();
+#endif
       return;
     }
   }
@@ -1190,14 +1203,30 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     return false;
   }
 
-  b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
-  b->originalSize = code_block.m_num_instructions;
-
-#ifdef JIT_LOG_GENERATED_CODE
-  LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
-#endif
-
   return true;
+}
+
+void Jit64::EraseSingleBlock(const JitBlock& block)
+{
+  blocks.EraseSingleBlock(block);
+  FreeRanges();
+}
+
+void Jit64::DisasmNearCode(const JitBlock& block, std::ostream& stream,
+                           std::size_t& instruction_count) const
+{
+  return m_disassembler->Disassemble(block.normalEntry, block.near_end, stream, instruction_count);
+}
+
+void Jit64::DisasmFarCode(const JitBlock& block, std::ostream& stream,
+                          std::size_t& instruction_count) const
+{
+  return m_disassembler->Disassemble(block.far_begin, block.far_end, stream, instruction_count);
+}
+
+std::vector<JitBase::MemoryStats> Jit64::GetMemoryStats() const
+{
+  return {{"near", m_free_ranges_near.get_stats()}, {"far", m_free_ranges_far.get_stats()}};
 }
 
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
@@ -1279,39 +1308,24 @@ bool Jit64::HandleFunctionHooking(u32 address)
   return true;
 }
 
-void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
-                     const JitBlock* b)
+void Jit64::LogGeneratedCode() const
 {
-  for (size_t i = 0; i < size; i++)
+  std::ostringstream stream;
+
+  stream << "\nPPC Code Buffer:\n";
+  for (const PPCAnalyst::CodeOp& op :
+       std::span{m_code_buffer.data(), code_block.m_num_instructions})
   {
-    const PPCAnalyst::CodeOp& op = code_buffer[i];
-    const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 PPC: {:08x} {}\n", op.address, disasm);
+    fmt::print(stream, "0x{:08x}\t\t{}\n", op.address,
+               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
   }
 
-  disassembler x64disasm;
-  x64disasm.set_syntax_intel();
+  const JitBlock* const block = js.curBlock;
+  stream << "\nHost Near Code:\n";
+  m_disassembler->Disassemble(block->normalEntry, block->near_end, stream);
+  stream << "\nHost Far Code:\n";
+  m_disassembler->Disassemble(block->far_begin, block->far_end, stream);
 
-  u64 disasmPtr = reinterpret_cast<u64>(normalEntry);
-  const u8* end = normalEntry + b->codeSize;
-
-  while (reinterpret_cast<u8*>(disasmPtr) < end)
-  {
-    char sptr[1000] = "";
-    disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, reinterpret_cast<u8*>(disasmPtr), sptr);
-    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 x86: {}", sptr);
-  }
-
-  if (b->codeSize <= 250)
-  {
-    std::ostringstream ss;
-    ss << std::hex;
-    for (u8 i = 0; i <= b->codeSize; i++)
-    {
-      ss.width(2);
-      ss.fill('0');
-      ss << static_cast<u32>(*(normalEntry + i));
-    }
-    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 bin: {}\n\n\n", ss.str());
-  }
+  // TODO C++20: std::ostringstream::view()
+  DEBUG_LOG_FMT(DYNA_REC, "{}", std::move(stream).str());
 }

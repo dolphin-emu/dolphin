@@ -106,6 +106,26 @@ void JitInterface::UpdateMembase()
   }
 }
 
+void JitInterface::RunOnBlocks(const Core::CPUThreadGuard& guard,
+                               std::function<void(const JitBlock&)> f) const
+{
+  if (m_jit)
+    m_jit->GetBlockCache()->RunOnBlocks(guard, std::move(f));
+}
+
+void JitInterface::WipeBlockProfilingData(const Core::CPUThreadGuard& guard)
+{
+  if (m_jit)
+    m_jit->GetBlockCache()->WipeBlockProfilingData(guard);
+}
+
+std::size_t JitInterface::GetBlockCount() const
+{
+  if (m_jit)
+    return m_jit->GetBlockCache()->GetBlockCount();
+  return 0;
+}
+
 static std::string_view GetDescription(const CPUEmuFeatureFlags flags)
 {
   static constexpr std::array<std::string_view, (FEATURE_FLAG_END_OF_ENUMERATION - 1) << 1>
@@ -182,48 +202,6 @@ void JitInterface::JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE*
   }
 }
 
-std::variant<JitInterface::GetHostCodeError, JitInterface::GetHostCodeResult>
-JitInterface::GetHostCode(u32 address) const
-{
-  if (!m_jit)
-  {
-    return GetHostCodeError::NoJitActive;
-  }
-
-  auto& ppc_state = m_system.GetPPCState();
-  JitBlock* block =
-      m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.feature_flags);
-  if (!block)
-  {
-    for (int i = 0; i < 500; i++)
-    {
-      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
-                                                               ppc_state.feature_flags);
-      if (block)
-        break;
-    }
-
-    if (block)
-    {
-      if (!(block->effectiveAddress <= address &&
-            block->originalSize + block->effectiveAddress >= address))
-        block = nullptr;
-    }
-
-    // Do not merge this "if" with the above - block changes inside it.
-    if (!block)
-    {
-      return GetHostCodeError::NoTranslation;
-    }
-  }
-
-  GetHostCodeResult result;
-  result.code = block->normalEntry;
-  result.code_size = block->codeSize;
-  result.entry_address = block->effectiveAddress;
-  return result;
-}
-
 bool JitInterface::HandleFault(uintptr_t access_address, SContext* ctx)
 {
   // Prevent nullptr dereference on a crash with no JIT present
@@ -255,6 +233,33 @@ void JitInterface::ClearSafe()
 {
   if (m_jit)
     m_jit->GetBlockCache()->Clear();
+}
+
+void JitInterface::EraseSingleBlock(const JitBlock& block)
+{
+  if (m_jit)
+    m_jit->EraseSingleBlock(block);
+}
+
+void JitInterface::DisasmNearCode(const JitBlock& block, std::ostream& stream,
+                                  std::size_t& instruction_count) const
+{
+  if (m_jit)
+    m_jit->DisasmNearCode(block, stream, instruction_count);
+}
+
+void JitInterface::DisasmFarCode(const JitBlock& block, std::ostream& stream,
+                                 std::size_t& instruction_count) const
+{
+  if (m_jit)
+    m_jit->DisasmFarCode(block, stream, instruction_count);
+}
+
+std::vector<JitBase::MemoryStats> JitInterface::GetMemoryStats() const
+{
+  if (m_jit)
+    return m_jit->GetMemoryStats();
+  return {};
 }
 
 void JitInterface::InvalidateICache(u32 address, u32 size, bool forced)
