@@ -17,6 +17,7 @@ struct TextureData
 {
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        TextureData* data);
+  static void ToJson(picojson::object* obj, const TextureData& data);
   enum class Type
   {
     Type_Undefined,
