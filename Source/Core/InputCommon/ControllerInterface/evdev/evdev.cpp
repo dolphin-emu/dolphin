@@ -98,15 +98,7 @@ protected:
   {
     if (const char* code_name = libevdev_event_code_get_name(EV_KEY, m_code))
     {
-      const auto name = StripWhitespace(code_name);
-
-      for (auto remove_prefix : {"BTN_", "KEY_"})
-      {
-        if (name.find(remove_prefix) == 0)
-          return std::string(name.substr(std::strlen(remove_prefix)));
-      }
-
-      return std::string(name);
+      return std::string(code_name);
     }
     else
     {
@@ -483,7 +475,6 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
     m_name = potential_new_name;
 
   const bool is_motion_device = libevdev_has_property(dev, INPUT_PROP_ACCELEROMETER);
-  const bool is_pointing_device = libevdev_has_property(dev, INPUT_PROP_BUTTONPAD);
 
   // If a device has BTN_JOYSTICK it probably uses event codes counting up from 0x120
   // which have very useless and wrong names.
@@ -496,21 +487,7 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
   {
     if (libevdev_has_event_code(dev, EV_KEY, key))
     {
-      if (is_pointing_device || is_motion_device)
-      {
-        // This node will probably be combined with another with regular buttons.
-        // We don't want to match "Button 0" names here as it will name clash.
-        AddInput(new NamedButtonWithNoBackwardsCompat(num_buttons, key, dev));
-      }
-      else if (has_sensible_button_names)
-      {
-        AddInput(new NamedButton(num_buttons, key, dev));
-      }
-      else
-      {
-        AddInput(new NumberedButton(num_buttons, key, dev));
-      }
-
+      AddInput(new NamedButton(num_buttons, key, dev));
       ++num_buttons;
     }
   }
@@ -542,24 +519,6 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
 
     add_motion_inputs(ABS_X, accel_scale);
     add_motion_inputs(ABS_RX, gyro_scale);
-
-    return true;
-  }
-
-  if (is_pointing_device)
-  {
-    auto add_cursor_input = [&num_axis, dev, this](int code) {
-      if (libevdev_has_event_code(dev, EV_ABS, code))
-      {
-        AddInput(new CursorInput(num_axis, code, false, dev));
-        AddInput(new CursorInput(num_axis, code, true, dev));
-
-        ++num_axis;
-      }
-    };
-
-    add_cursor_input(ABS_X);
-    add_cursor_input(ABS_Y);
 
     return true;
   }
