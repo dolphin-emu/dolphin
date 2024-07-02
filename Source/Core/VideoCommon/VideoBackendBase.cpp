@@ -286,7 +286,7 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
 {
   // If the core has been initialized, the backend info will have been populated already. Doing it
   // again would be unnecessary and could cause the UI thread to race with the GPU thread.
-  if (Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized)
+  if (!Core::IsUninitialized(Core::System::GetInstance()))
     return;
 
   g_Config.Refresh();

@@ -69,7 +69,7 @@ class SettingsFragmentPresenter(
         } else if (
             menuTag == MenuTag.GRAPHICS
             && this.gameId.isNullOrEmpty()
-            && !NativeLibrary.IsRunning()
+            && NativeLibrary.IsUninitialized()
             && GpuDriverHelper.supportsCustomDriverLoading()
         ) {
             this.gpuDriver =
@@ -1303,7 +1303,7 @@ class SettingsFragmentPresenter(
 
         if (
             this.gpuDriver != null && this.gameId.isNullOrEmpty()
-            && !NativeLibrary.IsRunning()
+            && NativeLibrary.IsUninitialized()
             && GpuDriverHelper.supportsCustomDriverLoading()
         ) {
             sl.add(

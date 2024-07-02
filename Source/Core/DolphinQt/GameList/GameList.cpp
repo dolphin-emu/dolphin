@@ -436,7 +436,7 @@ void GameList::ShowContextMenu(const QPoint&)
                                                     // system menu, trigger a refresh.
                                                     Settings::Instance().NANDRefresh();
                                                   });
-      perform_disc_update->setEnabled(!Core::IsRunning(system) || !system.IsWii());
+      perform_disc_update->setEnabled(Core::IsUninitialized(system) || !system.IsWii());
     }
 
     if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)
@@ -449,10 +449,10 @@ void GameList::ShowContextMenu(const QPoint&)
 
       for (QAction* a : {wad_install_action, wad_uninstall_action})
       {
-        a->setEnabled(!Core::IsRunning(system));
+        a->setEnabled(Core::IsUninitialized(system));
         menu->addAction(a);
       }
-      if (!Core::IsRunning(system))
+      if (Core::IsUninitialized(system))
         wad_uninstall_action->setEnabled(WiiUtils::IsTitleInstalled(game->GetTitleID()));
 
       connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu,
@@ -473,8 +473,8 @@ void GameList::ShowContextMenu(const QPoint&)
       QAction* export_wii_save =
           menu->addAction(tr("Export Wii Save"), this, &GameList::ExportWiiSave);
 
-      open_wii_save_folder->setEnabled(!Core::IsRunning(system));
-      export_wii_save->setEnabled(!Core::IsRunning(system));
+      open_wii_save_folder->setEnabled(Core::IsUninitialized(system));
+      export_wii_save->setEnabled(Core::IsUninitialized(system));
 
       menu->addSeparator();
     }
@@ -531,7 +531,7 @@ void GameList::ShowContextMenu(const QPoint&)
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
       netplay_host->setEnabled(state == Core::State::Uninitialized);
     });
-    netplay_host->setEnabled(!Core::IsRunning(system));
+    netplay_host->setEnabled(Core::IsUninitialized(system));
 
     menu->addAction(netplay_host);
   }

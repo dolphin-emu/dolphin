@@ -36,7 +36,7 @@ class Settings : Closeable {
 
         if (isGameSpecific) {
             // Loading game INIs while the core is running will mess with the game INIs loaded by the core
-            check(!NativeLibrary.IsRunning()) { "Attempted to load game INI while emulating" }
+            check(NativeLibrary.IsUninitialized()) { "Attempted to load game INI while emulating" }
             NativeConfig.loadGameInis(gameId, revision)
         }
     }
