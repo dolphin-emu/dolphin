@@ -1,0 +1,6 @@
+{
+  "GCCE01" : {
+    "6C107FEC15C76201233CA2645EB5FAB4FF9751CE" : "Fix buffer overrun bug (crash at Goblin Wall)",
+    "483BDB94615C690045C3759795AF13CE76552286" : "Fix GBA connections"
+  }
+}
