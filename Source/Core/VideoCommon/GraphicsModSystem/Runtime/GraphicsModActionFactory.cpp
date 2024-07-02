@@ -7,6 +7,7 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/ScaleAction.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/SetSettingsAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/SkipAction.h"
 
 namespace GraphicsModActionFactory
@@ -33,6 +34,10 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   else if (name == CustomPipelineAction::factory_name)
   {
     return CustomPipelineAction::Create(json_data, std::move(library));
+  }
+  else if (name == "set_settings")
+  {
+    return SetSettingsAction::Create(json_data);
   }
 
   return nullptr;

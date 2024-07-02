@@ -1,0 +1,40 @@
+{
+	"meta":
+	{
+		"title": "Performance Fixes",
+		"author": "iwubcode",
+		"description": "Automatically disables 'Store EFB Copies to Texture Only' when viewing unknown photo fish in the photobook."
+	},
+	"groups":
+	[
+		{
+			"name": "InvisiblePhotoFish",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000920_256x256_3"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000921_128x128_3"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n005662_448x448_3"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "InvisiblePhotoFish",
+			"action": "set_settings",
+			"action_data":
+			{
+				"setting_name": "skip_efb_to_ram",
+				"setting_value": false
+			}
+		}
+	]
+}
