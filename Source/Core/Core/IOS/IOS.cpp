@@ -533,7 +533,7 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
 
 void EmulationKernel::InitIPC()
 {
-  if (!Core::IsRunning(m_system))
+  if (!Core::IsRunningOrStarting(m_system))
     return;
 
   INFO_LOG_FMT(IOS, "IPC initialised.");
