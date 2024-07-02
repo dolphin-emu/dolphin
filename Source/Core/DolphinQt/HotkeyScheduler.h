@@ -53,6 +53,9 @@ signals:
   void ExportRecording();
   void ToggleReadOnlyMode();
   void ConnectWiiRemote(int id);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  void OpenAchievements();
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   void Step();
   void StepOver();
