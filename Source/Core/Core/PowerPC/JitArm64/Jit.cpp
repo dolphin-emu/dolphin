@@ -270,7 +270,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
   if (jo.memcheck && (js.op->opinfo->flags & FL_LOADSTORE))
   {
-    WriteConditionalExceptionExit(EXCEPTION_DSI);
+    WriteConditionalExceptionExit(ANY_LOADSTORE_EXCEPTION);
   }
 }
 
@@ -802,7 +802,16 @@ void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_gpr, A
                                              u64 increment_sp_on_exit)
 {
   LDR(IndexType::Unsigned, temp_gpr, PPC_REG, PPCSTATE_OFF(Exceptions));
-  FixupBranch no_exception = TBZ(temp_gpr, MathUtil::IntLog2(exception));
+  FixupBranch no_exception;
+  if (BitSet32(exception).Count() == 1)
+  {
+    no_exception = TBZ(temp_gpr, MathUtil::IntLog2(exception));
+  }
+  else
+  {
+    TST(temp_gpr, LogicalImm(exception, GPRSize::B32));
+    no_exception = B(CCFlags::CC_EQ);
+  }
 
   const bool switch_to_far_code = !IsInFarCode();
 

@@ -1099,6 +1099,15 @@ public:
   }
 
   template <typename FunctionPointer>
+  void ABI_CallFunctionPCC(FunctionPointer func, const void* param1, u32 param2, u32 param3)
+  {
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
   void ABI_CallFunctionPPC(FunctionPointer func, const void* param1, const void* param2, u32 param3)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
@@ -1126,6 +1135,16 @@ public:
     ABI_CallFunction(func);
   }
 
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPRC(FunctionPointer func, const void* ptr, X64Reg reg1, u32 param3)
+  {
+    if (reg1 != ABI_PARAM2)
+      MOV(64, R(ABI_PARAM2), R(reg1));
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    ABI_CallFunction(func);
+  }
+
   // Pass two registers as parameters.
   template <typename FunctionPointer>
   void ABI_CallFunctionRR(FunctionPointer func, X64Reg reg1, X64Reg reg2)
@@ -1144,6 +1163,16 @@ public:
   }
 
   template <typename FunctionPointer>
+  void ABI_CallFunctionPRRC(FunctionPointer func, const void* ptr, X64Reg reg1, X64Reg reg2,
+                            u32 param4)
+  {
+    MOVTwo(64, ABI_PARAM2, reg1, 0, ABI_PARAM3, reg2);
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
+    MOV(32, R(ABI_PARAM4), Imm32(param4));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
   void ABI_CallFunctionAC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
@@ -1158,8 +1187,20 @@ public:
   {
     if (!arg2.IsSimpleReg(ABI_PARAM2))
       MOV(bits, R(ABI_PARAM2), arg2);
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr1)));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPACC(int bits, FunctionPointer func, const void* ptr1,
+                            const Gen::OpArg& arg2, u32 param3, u32 param4)
+  {
+    if (!arg2.IsSimpleReg(ABI_PARAM2))
+      MOV(bits, R(ABI_PARAM2), arg2);
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr1)));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    MOV(32, R(ABI_PARAM4), Imm32(param4));
     ABI_CallFunction(func);
   }
 
