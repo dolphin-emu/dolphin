@@ -7,19 +7,23 @@
 
 #include <SoundTouch.h>
 
+#include "Common/CommonTypes.h"
+
 namespace AudioCommon
 {
 class AudioStretcher
 {
 public:
-  explicit AudioStretcher(unsigned int sample_rate);
-  void ProcessSamples(const short* in, unsigned int num_in, unsigned int num_out);
-  void GetStretchedSamples(short* out, unsigned int num_out);
+  explicit AudioStretcher(u64 sample_rate);
+  void ProcessSamples(const s16* in, u32 num_in, u32 num_out);
+  void GetStretchedSamples(s16* out, u32 num_out);
   void Clear();
 
+  DT AvailableSamplesTime() const;
+
 private:
-  unsigned int m_sample_rate;
-  std::array<short, 2> m_last_stretched_sample = {};
+  u64 m_sample_rate;
+  std::array<s16, 2> m_last_stretched_sample = {};
   soundtouch::SoundTouch m_sound_touch;
   double m_stretch_ratio = 1.0;
 };
