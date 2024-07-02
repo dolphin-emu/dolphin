@@ -1,4 +1,6 @@
 add_library(videovulkan
+  VKTimelineSemaphore.cpp
+  VKTimelineSemaphore.h
   CommandBufferManager.cpp
   CommandBufferManager.h
   Constants.h
@@ -35,6 +37,8 @@ add_library(videovulkan
   VulkanContext.h
   VulkanLoader.cpp
   VulkanLoader.h
+  VKScheduler.h
+  VKScheduler.cpp
 )
 
 target_link_libraries(videovulkan

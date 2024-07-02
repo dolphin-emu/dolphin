@@ -14,6 +14,8 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
+#include "VideoBackends/Vulkan/VKScheduler.h"
+#include "VideoBackends/Vulkan/VKTimelineSemaphore.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -51,9 +53,11 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
   if (query_count > m_query_buffer.size() / 2)
     PartialFlush(query_count == PERF_QUERY_BUFFER_SIZE);
 
-  // Ensure command buffer is ready to go before beginning the query, that way we don't submit
-  // a buffer with open queries.
-  StateTracker::GetInstance()->Bind();
+  g_scheduler->Record([](CommandBufferManager* command_buffer_mgr) {
+    // Ensure command buffer is ready to go before beginning the query, that way we don't submit
+    // a buffer with open queries.
+    command_buffer_mgr->GetStateTracker()->Bind();
+  });
 
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
@@ -61,15 +65,16 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
     DEBUG_ASSERT(!entry.has_value);
     entry.has_value = true;
     entry.query_group = group;
+    g_scheduler->Record([c_query_pool = m_query_pool,
+                         c_pos = m_query_next_pos](CommandBufferManager* command_buffer_mgr) {
+      // Use precise queries if supported, otherwise boolean (which will be incorrect).
+      VkQueryControlFlags flags =
+          g_vulkan_context->SupportsPreciseOcclusionQueries() ? VK_QUERY_CONTROL_PRECISE_BIT : 0;
 
-    // Use precise queries if supported, otherwise boolean (which will be incorrect).
-    VkQueryControlFlags flags =
-        g_vulkan_context->SupportsPreciseOcclusionQueries() ? VK_QUERY_CONTROL_PRECISE_BIT : 0;
-
-    // Ensure the query starts within a render pass.
-    StateTracker::GetInstance()->BeginRenderPass();
-    vkCmdBeginQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos,
-                    flags);
+      // Ensure the query starts within a render pass.
+      command_buffer_mgr->GetStateTracker()->BeginRenderPass();
+      vkCmdBeginQuery(command_buffer_mgr->GetCurrentCommandBuffer(), c_query_pool, c_pos, flags);
+    });
   }
 }
 
@@ -77,10 +82,13 @@ void PerfQuery::DisableQuery(PerfQueryGroup group)
 {
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    vkCmdEndQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos);
-    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
-    entry.fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+    g_scheduler->Record([c_query_pool = m_query_pool, c_pos = m_query_next_pos
 
+    ](CommandBufferManager* command_buffer_mgr) {
+      vkCmdEndQuery(command_buffer_mgr->GetCurrentCommandBuffer(), c_query_pool, c_pos);
+    });
+    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
+    entry.fence_counter = g_scheduler->GetCurrentFenceCounter();
     m_query_next_pos = (m_query_next_pos + 1) % PERF_QUERY_BUFFER_SIZE;
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
@@ -95,10 +103,11 @@ void PerfQuery::ResetQuery()
     m_results[i].store(0, std::memory_order_relaxed);
 
   // Reset entire query pool, ensuring all queries are ready to write to.
-  StateTracker::GetInstance()->EndRenderPass();
-  vkCmdResetQueryPool(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, 0,
-                      PERF_QUERY_BUFFER_SIZE);
-
+  g_scheduler->Record([c_query_pool = m_query_pool](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->EndRenderPass();
+    vkCmdResetQueryPool(command_buffer_mgr->GetCurrentCommandBuffer(), c_query_pool, 0,
+                        PERF_QUERY_BUFFER_SIZE);
+  });
   std::memset(m_query_buffer.data(), 0, sizeof(ActiveQuery) * m_query_buffer.size());
 }
 
@@ -162,7 +171,7 @@ bool PerfQuery::CreateQueryPool()
 
 void PerfQuery::ReadbackQueries()
 {
-  const u64 completed_fence_counter = g_command_buffer_mgr->GetCompletedFenceCounter();
+  const u64 completed_fence_counter = g_scheduler->GetCompletedFenceCounter();
 
   // Need to save these since ProcessResults will modify them.
   const u32 outstanding_queries = m_query_count.load(std::memory_order_relaxed);
@@ -203,9 +212,12 @@ void PerfQuery::ReadbackQueries(u32 query_count)
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkGetQueryPoolResults failed: ");
 
-  StateTracker::GetInstance()->EndRenderPass();
-  vkCmdResetQueryPool(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool,
-                      m_query_readback_pos, query_count);
+  g_scheduler->Record([c_query_pool = m_query_pool, c_query_readback_pos = m_query_readback_pos,
+                       query_count](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->EndRenderPass();
+    vkCmdResetQueryPool(command_buffer_mgr->GetCurrentCommandBuffer(), c_query_pool,
+                        c_query_readback_pos, query_count);
+  });
 
   // Remove pending queries.
   for (u32 i = 0; i < query_count; i++)
@@ -235,8 +247,8 @@ void PerfQuery::ReadbackQueries(u32 query_count)
 void PerfQuery::PartialFlush(bool blocking)
 {
   // Submit a command buffer in the background if the front query is not bound to one.
-  if (blocking || m_query_buffer[m_query_readback_pos].fence_counter ==
-                      g_command_buffer_mgr->GetCurrentFenceCounter())
+  if (blocking ||
+      m_query_buffer[m_query_readback_pos].fence_counter == g_scheduler->GetCurrentFenceCounter())
   {
     VKGfx::GetInstance()->ExecuteCommandBuffer(true, blocking);
   }

@@ -12,7 +12,7 @@
 namespace Vulkan
 {
 // Number of command buffers.
-constexpr size_t NUM_COMMAND_BUFFERS = 8;
+constexpr size_t NUM_COMMAND_BUFFERS = 16;
 
 // Number of frames in flight, will be used to decide how many descriptor pools are used
 constexpr size_t NUM_FRAMES_IN_FLIGHT = 2;

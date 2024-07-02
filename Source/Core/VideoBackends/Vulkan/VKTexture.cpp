@@ -18,9 +18,12 @@
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
+#include "VideoBackends/Vulkan/VKScheduler.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
+#include "VideoBackends/Vulkan/VKTimelineSemaphore.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VKTimelineSemaphore.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -45,14 +48,17 @@ VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkIma
 
 VKTexture::~VKTexture()
 {
-  StateTracker::GetInstance()->UnbindTexture(m_view);
-  g_command_buffer_mgr->DeferImageViewDestruction(m_view);
+  g_scheduler->Record([c_view = m_view, c_image = m_image,
+                       c_alloc = m_alloc](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->UnbindTexture(c_view);
+    command_buffer_mgr->DeferImageViewDestruction(c_view);
 
-  // If we don't have device memory allocated, the image is not owned by us (e.g. swapchain)
-  if (m_alloc != VK_NULL_HANDLE)
-  {
-    g_command_buffer_mgr->DeferImageDestruction(m_image, m_alloc);
-  }
+    // If we don't have device memory allocated, the image is not owned by us (e.g. swapchain)
+    if (c_alloc != VK_NULL_HANDLE)
+    {
+      command_buffer_mgr->DeferImageDestruction(c_image, c_alloc);
+    }
+  });
 }
 
 std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, std::string_view name)
@@ -292,30 +298,35 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                  static_cast<u32>(dst_rect.GetHeight()) <= m_config.height,
              "Dest rect is too large for CopyRectangleFromTexture");
 
+  g_scheduler->Record([](CommandBufferManager* command_buffer_mgr) {
+    // Must be called outside of a render pass.
+    command_buffer_mgr->GetStateTracker()->EndRenderPass();
+  });
+
   const u32 copy_layer_count = 1;
-
-  VkImageCopy image_copy = {
-      {VK_IMAGE_ASPECT_COLOR_BIT, src_level, src_layer, copy_layer_count},
-      {src_rect.left, src_rect.top, 0},
-      {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, copy_layer_count},
-      {dst_rect.left, dst_rect.top, 0},
-      {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()), 1}};
-
-  // Must be called outside of a render pass.
-  StateTracker::GetInstance()->EndRenderPass();
-
   const VkImageLayout old_src_layout = src_texture->GetLayout();
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  src_texture->TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  vkCmdCopyImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_texture->m_image,
-                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image,
-                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+  g_scheduler->Record([c_src_image = src_texture->GetImage(), c_image = m_image,
+                       c_src_level = src_level, c_src_layer = src_layer,
+                       c_layers = copy_layer_count, c_src_rect = src_rect, c_dst_level = dst_level,
+                       c_dst_layer = dst_layer,
+                       c_dst_rect = dst_rect](CommandBufferManager* command_buffer_mgr) {
+    VkImageCopy image_copy = {{VK_IMAGE_ASPECT_COLOR_BIT, c_src_level, c_src_layer, c_layers},
+                              {c_src_rect.left, c_src_rect.top, 0},
+                              {VK_IMAGE_ASPECT_COLOR_BIT, c_dst_level, c_dst_layer, c_layers},
+                              {c_dst_rect.left, c_dst_rect.top, 0},
+                              {static_cast<uint32_t>(c_src_rect.GetWidth()),
+                               static_cast<uint32_t>(c_src_rect.GetHeight()), 1}};
+
+    vkCmdCopyImage(command_buffer_mgr->GetCurrentCommandBuffer(), c_src_image,
+                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, c_image,
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+  });
 
   // Only restore the source layout. Destination is restored by FinishedRendering().
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
+  src_texture->TransitionToLayout(old_src_layout);
 }
 
 void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
@@ -328,24 +339,28 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
                rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
 
   // Resolving is considered to be a transfer operation.
-  StateTracker::GetInstance()->EndRenderPass();
+  g_scheduler->Record([](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->EndRenderPass();
+  });
   VkImageLayout old_src_layout = srcentry->m_layout;
-  srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  srcentry->TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  VkImageResolve resolve = {
-      {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // srcSubresource
-      {rect.left, rect.top, 0},                                                   // srcOffset
-      {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // dstSubresource
-      {rect.left, rect.top, 0},                                                   // dstOffset
-      {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight()), 1}  // extent
-  };
-  vkCmdResolveImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), srcentry->m_image,
-                    srcentry->m_layout, m_image, m_layout, 1, &resolve);
+  g_scheduler->Record([c_src_image = srcentry->GetImage(), c_image = m_image,
+                       c_src_layout = srcentry->GetLayout(), c_dst_layout = m_layout, c_rect = rect,
+                       c_layer = layer, c_level = level](CommandBufferManager* command_buffer_mgr) {
+    VkImageResolve resolve = {
+        {VK_IMAGE_ASPECT_COLOR_BIT, c_level, c_layer, 1},  // srcSubresource
+        {c_rect.left, c_rect.top, 0},                      // srcOffset
+        {VK_IMAGE_ASPECT_COLOR_BIT, c_level, c_layer, 1},  // dstSubresource
+        {c_rect.left, c_rect.top, 0},                      // dstOffset
+        {static_cast<u32>(c_rect.GetWidth()), static_cast<u32>(c_rect.GetHeight()), 1}  // extent
+    };
+    vkCmdResolveImage(command_buffer_mgr->GetCurrentCommandBuffer(), c_src_image, c_src_layout,
+                      c_image, c_dst_layout, 1, &resolve);
+  });
 
-  srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
+  srcentry->TransitionToLayout(old_src_layout);
 }
 
 void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
@@ -371,8 +386,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // When the last mip level is uploaded, we transition to SHADER_READ_ONLY, ready for use. This is
   // because we can't transition in a render pass, and we don't necessarily know when this texture
   // is going to be used.
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, true);
 
   // For unaligned textures, we can save some memory in the transfer buffer by skipping the rows
   // that lie outside of the texture's dimensions.
@@ -423,17 +437,23 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     temp_buffer->Unmap();
   }
 
-  // Copy from the streaming buffer to the actual image.
-  VkBufferImageCopy image_copy = {
-      upload_buffer_offset,                          // VkDeviceSize             bufferOffset
-      row_length,                                    // uint32_t                 bufferRowLength
-      0,                                             // uint32_t                 bufferImageHeight
-      {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},  // VkImageSubresourceLayers imageSubresource
-      {0, 0, 0},                                     // VkOffset3D               imageOffset
-      {width, height, 1}                             // VkExtent3D               imageExtent
-  };
-  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), upload_buffer,
-                         m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+  g_scheduler->Record([c_upload_buffer_offset = upload_buffer_offset, c_row_length = row_length,
+                       c_level = level, c_width = width, c_height = height,
+                       c_upload_buffer = upload_buffer, c_layer = layer,
+                       c_image = m_image](CommandBufferManager* command_buffer_mgr) {
+    // Copy from the streaming buffer to the actual image.
+    VkBufferImageCopy image_copy = {
+        c_upload_buffer_offset,  // VkDeviceSize                bufferOffset
+        c_row_length,            // uint32_t                    bufferRowLength
+        0,                       // uint32_t                    bufferImageHeight
+        {VK_IMAGE_ASPECT_COLOR_BIT, c_level, c_layer,
+         1},                    // VkImageSubresourceLayers    imageSubresource
+        {0, 0, 0},              // VkOffset3D                  imageOffset
+        {c_width, c_height, 1}  // VkExtent3D                  imageExtent
+    };
+    vkCmdCopyBufferToImage(command_buffer_mgr->GetCurrentInitCommandBuffer(), c_upload_buffer,
+                           c_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+  });
 
   // Preemptively transition to shader read only after uploading the last mip level, as we're
   // likely finished with writes to this texture for now. We can't do this in common with a
@@ -441,8 +461,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // don't want to interrupt the render pass with calls which were executed ages before.
   if (level == (m_config.levels - 1) && layer == (m_config.layers - 1))
   {
-    TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, true);
   }
 }
 
@@ -451,9 +470,10 @@ void VKTexture::FinishedRendering()
   if (m_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
     return;
 
-  StateTracker::GetInstance()->EndRenderPass();
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  g_scheduler->Record([](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->EndRenderPass();
+  });
+  TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void VKTexture::OverrideImageLayout(VkImageLayout new_layout)
@@ -461,9 +481,9 @@ void VKTexture::OverrideImageLayout(VkImageLayout new_layout)
   m_layout = new_layout;
 }
 
-void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const
+void VKTexture::TransitionToLayout(VkImageLayout new_layout, bool init_command_buffer) const
 {
-  if (m_layout == new_layout)
+  if (m_layout == new_layout) [[likely]]
     return;
 
   VkImageMemoryBarrier barrier = {
@@ -600,14 +620,19 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   }
   m_compute_layout = ComputeImageLayout::Undefined;
 
-  vkCmdPipelineBarrier(command_buffer, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
-                       &barrier);
+  g_scheduler->Record([c_src_stage_mask = srcStageMask, c_dst_stage_mask = dstStageMask,
+                       c_barrier = barrier,
+                       init_command_buffer](CommandBufferManager* command_buffer_mgr) {
+    vkCmdPipelineBarrier(init_command_buffer ? command_buffer_mgr->GetCurrentInitCommandBuffer() :
+                                               command_buffer_mgr->GetCurrentCommandBuffer(),
+                         c_src_stage_mask, c_dst_stage_mask, 0, 0, nullptr, 0, nullptr, 1,
+                         &c_barrier);
+  });
 
   m_layout = new_layout;
 }
 
-void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
-                                   ComputeImageLayout new_layout) const
+void VKTexture::TransitionToLayout(ComputeImageLayout new_layout, bool init_command_buffer) const
 {
   ASSERT(new_layout != ComputeImageLayout::Undefined);
   if (m_compute_layout == new_layout)
@@ -705,8 +730,14 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
   m_layout = barrier.newLayout;
   m_compute_layout = new_layout;
 
-  vkCmdPipelineBarrier(command_buffer, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
-                       &barrier);
+  g_scheduler->Record([c_src_stage_mask = srcStageMask, c_dst_stage_mask = dstStageMask,
+                       c_barrier = barrier,
+                       init_command_buffer](CommandBufferManager* command_buffer_mgr) {
+    vkCmdPipelineBarrier(init_command_buffer ? command_buffer_mgr->GetCurrentInitCommandBuffer() :
+                                               command_buffer_mgr->GetCurrentCommandBuffer(),
+                         c_src_stage_mask, c_dst_stage_mask, 0, 0, nullptr, 0, nullptr, 1,
+                         &c_barrier);
+  });
 }
 
 VKStagingTexture::VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
@@ -721,7 +752,11 @@ VKStagingTexture::~VKStagingTexture()
 {
   if (m_linear_image != VK_NULL_HANDLE)
   {
-    g_command_buffer_mgr->DeferImageDestruction(m_linear_image, m_linear_image_alloc);
+    g_scheduler->Record(
+        [c_linear_image = m_linear_image,
+         c_linear_image_alloc = m_linear_image_alloc](CommandBufferManager* command_buffer_mgr) {
+          command_buffer_mgr->DeferImageDestruction(c_linear_image, c_linear_image_alloc);
+        });
   }
 }
 
@@ -843,12 +878,12 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src_tex->GetHeight());
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
          dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
-
-  StateTracker::GetInstance()->EndRenderPass();
+  g_scheduler->Record([](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->EndRenderPass();
+  });
 
   VkImageLayout old_layout = src_tex->GetLayout();
-  src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  src_tex->TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   // Issue the image->buffer copy, but delay it for now.
   VkBufferImageCopy image_copy = {};
@@ -871,15 +906,17 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
     image_copy.imageOffset = {0, 0, 0};
   }
 
-  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_image,
-                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_staging_buffer->GetBuffer(), 1,
-                         &image_copy);
+  g_scheduler->Record([c_src_image = src_image, c_dst_buffer = m_staging_buffer->GetBuffer(),
+                       c_image_copy = image_copy](CommandBufferManager* command_buffer_mgr) {
+    vkCmdCopyImageToBuffer(command_buffer_mgr->GetCurrentCommandBuffer(), c_src_image,
+                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, c_dst_buffer, 1, &c_image_copy);
+  });
 
   // Restore old source texture layout.
-  src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
+  src_tex->TransitionToLayout(old_layout);
 
   m_needs_flush = true;
-  m_flush_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+  m_flush_fence_counter = g_scheduler->GetCurrentFenceCounter();
 }
 
 void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
@@ -891,44 +928,49 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
   // with optimal tiling (VK_IMAGE_TILING_OPTIMAL) to a buffer.
   // That allocation is very slow, so we just do it ourself and reuse the intermediate image.
 
-  const VkImageAspectFlags aspect = VKTexture::GetImageViewAspectForFormat(src_tex->GetFormat());
+  g_scheduler->Record([c_linear_image = m_linear_image, c_src_image = src_tex->GetImage(),
+                       c_src_format = src_tex->GetFormat(), c_src_rect = src_rect,
+                       c_dst_rect = dst_rect, c_src_layer = src_layer,
+                       c_src_level = src_level](CommandBufferManager* command_buffer_mgr) {
+    const VkImageAspectFlags aspect = VKTexture::GetImageViewAspectForFormat(c_src_format);
 
-  VkImageMemoryBarrier linear_image_barrier = {};
-  linear_image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  linear_image_barrier.pNext = nullptr;
-  linear_image_barrier.srcAccessMask = 0;
-  linear_image_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-  linear_image_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  linear_image_barrier.image = m_linear_image;
-  linear_image_barrier.subresourceRange = {aspect, 0, 1, 0, 1};
-  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
-                       nullptr, 0, nullptr, 1, &linear_image_barrier);
+    VkImageMemoryBarrier linear_image_barrier = {};
+    linear_image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    linear_image_barrier.pNext = nullptr;
+    linear_image_barrier.srcAccessMask = 0;
+    linear_image_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+    linear_image_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    linear_image_barrier.image = c_linear_image;
+    linear_image_barrier.subresourceRange = {aspect, 0, 1, 0, 1};
+    vkCmdPipelineBarrier(command_buffer_mgr->GetCurrentCommandBuffer(),
+                         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+                         nullptr, 0, nullptr, 1, &linear_image_barrier);
 
-  VkImageBlit blit;
-  blit.srcSubresource = {aspect, src_level, src_layer, 1};
-  blit.dstSubresource.layerCount = 1;
-  blit.dstSubresource.baseArrayLayer = 0;
-  blit.dstSubresource.mipLevel = 0;
-  blit.dstSubresource.aspectMask = linear_image_barrier.subresourceRange.aspectMask;
-  blit.srcOffsets[0] = {src_rect.left, src_rect.top, 0};
-  blit.srcOffsets[1] = {static_cast<s32>(blit.srcOffsets[0].x + src_rect.GetWidth()),
-                        static_cast<s32>(blit.srcOffsets[0].y + src_rect.GetHeight()), 1};
-  blit.dstOffsets[0] = {0, 0, 0};
-  blit.dstOffsets[1] = {dst_rect.GetWidth(), dst_rect.GetHeight(), 1u};
+    VkImageBlit blit;
+    blit.srcSubresource = {aspect, c_src_level, c_src_layer, 1};
+    blit.dstSubresource.layerCount = 1;
+    blit.dstSubresource.baseArrayLayer = 0;
+    blit.dstSubresource.mipLevel = 0;
+    blit.dstSubresource.aspectMask = linear_image_barrier.subresourceRange.aspectMask;
+    blit.srcOffsets[0] = {c_src_rect.left, c_src_rect.top, 0};
+    blit.srcOffsets[1] = {static_cast<s32>(blit.srcOffsets[0].x + c_src_rect.GetWidth()),
+                          static_cast<s32>(blit.srcOffsets[0].y + c_src_rect.GetHeight()), 1};
+    blit.dstOffsets[0] = {0, 0, 0};
+    blit.dstOffsets[1] = {c_dst_rect.GetWidth(), c_dst_rect.GetHeight(), 1u};
 
-  vkCmdBlitImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_tex->GetImage(),
-                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_linear_image,
-                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_NEAREST);
+    vkCmdBlitImage(command_buffer_mgr->GetCurrentCommandBuffer(), c_src_image,
+                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, c_linear_image,
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_NEAREST);
 
-  linear_image_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-  linear_image_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    linear_image_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    linear_image_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
-  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
-                       nullptr, 0, nullptr, 1, &linear_image_barrier);
+    vkCmdPipelineBarrier(command_buffer_mgr->GetCurrentCommandBuffer(),
+                         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+                         nullptr, 0, nullptr, 1, &linear_image_barrier);
+  });
 }
 
 void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
@@ -946,32 +988,39 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
 
   // Flush caches before copying.
   m_staging_buffer->FlushCPUCache();
-  StateTracker::GetInstance()->EndRenderPass();
+
+  g_scheduler->Record([](CommandBufferManager* command_buffer_manager) {
+    command_buffer_manager->GetStateTracker()->EndRenderPass();
+  });
 
   VkImageLayout old_layout = dst_tex->GetLayout();
-  dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  dst_tex->TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  // Issue the image->buffer copy, but delay it for now.
-  VkBufferImageCopy image_copy = {};
-  image_copy.bufferOffset =
-      static_cast<VkDeviceSize>(static_cast<size_t>(src_rect.top) * m_config.GetStride() +
-                                static_cast<size_t>(src_rect.left) * m_texel_size);
-  image_copy.bufferRowLength = static_cast<u32>(m_config.width);
-  image_copy.bufferImageHeight = 0;
-  image_copy.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, 1};
-  image_copy.imageOffset = {dst_rect.left, dst_rect.top, 0};
-  image_copy.imageExtent = {static_cast<u32>(dst_rect.GetWidth()),
-                            static_cast<u32>(dst_rect.GetHeight()), 1u};
-  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         m_staging_buffer->GetBuffer(), dst_tex->GetImage(),
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+  g_scheduler->Record(
+      [c_src_rect = src_rect, c_dst_rect = dst_rect, c_dst_layer = dst_layer,
+       c_dst_level = dst_level, c_width = m_config.width, c_stride = m_config.GetStride(),
+       c_texel_size = m_texel_size, c_staging_buffer = m_staging_buffer->GetBuffer(),
+       c_dst_image = dst_tex->GetImage()](CommandBufferManager* command_buffer_mgr) {
+        // Issue the image->buffer copy, but delay it for now.
+        VkBufferImageCopy image_copy = {};
+        image_copy.bufferOffset =
+            static_cast<VkDeviceSize>(static_cast<size_t>(c_src_rect.top) * c_stride +
+                                      static_cast<size_t>(c_src_rect.left) * c_texel_size);
+        image_copy.bufferRowLength = static_cast<u32>(c_width);
+        image_copy.bufferImageHeight = 0;
+        image_copy.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, c_dst_level, c_dst_layer, 1};
+        image_copy.imageOffset = {c_dst_rect.left, c_dst_rect.top, 0};
+        image_copy.imageExtent = {static_cast<u32>(c_dst_rect.GetWidth()),
+                                  static_cast<u32>(c_dst_rect.GetHeight()), 1u};
+        vkCmdCopyBufferToImage(command_buffer_mgr->GetCurrentCommandBuffer(), c_staging_buffer,
+                               c_dst_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+      });
 
   // Restore old source texture layout.
-  dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
+  dst_tex->TransitionToLayout(old_layout);
 
   m_needs_flush = true;
-  m_flush_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+  m_flush_fence_counter = g_scheduler->GetCurrentFenceCounter();
 }
 
 bool VKStagingTexture::Map()
@@ -991,7 +1040,7 @@ void VKStagingTexture::Flush()
     return;
 
   // Is this copy in the current command buffer?
-  if (g_command_buffer_mgr->GetCurrentFenceCounter() == m_flush_fence_counter)
+  if (g_scheduler->GetCurrentFenceCounter() == m_flush_fence_counter)
   {
     // Execute the command buffer and wait for it to finish.
     VKGfx::GetInstance()->ExecuteCommandBuffer(false, true);
@@ -999,7 +1048,7 @@ void VKStagingTexture::Flush()
   else
   {
     // Wait for the GPU to finish with it.
-    g_command_buffer_mgr->WaitForFenceCounter(m_flush_fence_counter);
+    g_scheduler->WaitForFenceCounter(m_flush_fence_counter);
   }
 
   // For readback textures, invalidate the CPU cache as there is new data there.
@@ -1026,7 +1075,9 @@ VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attac
 
 VKFramebuffer::~VKFramebuffer()
 {
-  g_command_buffer_mgr->DeferFramebufferDestruction(m_fb);
+  g_scheduler->Record([c_fb = m_fb](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->DeferFramebufferDestruction(c_fb);
+  });
 }
 
 std::unique_ptr<VKFramebuffer>
@@ -1101,17 +1152,24 @@ void VKFramebuffer::Unbind()
 {
   if (m_color_attachment)
   {
-    StateTracker::GetInstance()->UnbindTexture(
-        static_cast<VKTexture*>(m_color_attachment)->GetView());
+    g_scheduler->Record([c_image_view = static_cast<VKTexture*>(m_color_attachment)->GetView()](
+                            CommandBufferManager* command_buffer_mgr) {
+      command_buffer_mgr->GetStateTracker()->UnbindTexture(c_image_view);
+    });
   }
   for (auto* attachment : m_additional_color_attachments)
   {
-    StateTracker::GetInstance()->UnbindTexture(static_cast<VKTexture*>(attachment)->GetView());
+    g_scheduler->Record([c_image_view = static_cast<VKTexture*>(attachment)->GetView()](
+                            CommandBufferManager* command_buffer_mgr) {
+      command_buffer_mgr->GetStateTracker()->UnbindTexture(c_image_view);
+    });
   }
   if (m_depth_attachment)
   {
-    StateTracker::GetInstance()->UnbindTexture(
-        static_cast<VKTexture*>(m_depth_attachment)->GetView());
+    g_scheduler->Record([c_image_view = static_cast<VKTexture*>(m_depth_attachment)->GetView()](
+                            CommandBufferManager* command_buffer_mgr) {
+      command_buffer_mgr->GetStateTracker()->UnbindTexture(c_image_view);
+    });
   }
 }
 
@@ -1120,21 +1178,18 @@ void VKFramebuffer::TransitionForRender()
   if (m_color_attachment)
   {
     static_cast<VKTexture*>(m_color_attachment)
-        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        ->TransitionToLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   }
   for (auto* attachment : m_additional_color_attachments)
   {
     static_cast<VKTexture*>(attachment)
-        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        ->TransitionToLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   }
 
   if (m_depth_attachment)
   {
     static_cast<VKTexture*>(m_depth_attachment)
-        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        ->TransitionToLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
   }
 }
 
@@ -1154,7 +1209,12 @@ void VKFramebuffer::SetAndClear(const VkRect2D& rect, const VkClearValue& color_
   {
     clear_values.push_back(color_value);
   }
-  StateTracker::GetInstance()->BeginClearRenderPass(rect, clear_values.data(),
-                                                    static_cast<u32>(clear_values.size()));
+
+  g_scheduler->Record([c_clear_values = std::move(clear_values),
+                       c_rect = rect](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->BeginClearRenderPass(
+        c_rect, c_clear_values.data(), static_cast<u32>(c_clear_values.size()));
+  });
 }
+
 }  // namespace Vulkan

@@ -67,8 +67,8 @@ public:
   // irrelevant and will not be loaded.
   void OverrideImageLayout(VkImageLayout new_layout);
 
-  void TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const;
-  void TransitionToLayout(VkCommandBuffer command_buffer, ComputeImageLayout new_layout) const;
+  void TransitionToLayout(VkImageLayout new_layout, bool init_command_buffer = false) const;
+  void TransitionToLayout(ComputeImageLayout new_layout, bool init_command_buffer = false) const;
 
 private:
   bool CreateView(VkImageViewType type);

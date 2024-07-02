@@ -15,6 +15,7 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
+#include "VideoBackends/Vulkan/VKScheduler.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
@@ -67,11 +68,11 @@ bool VertexManager::Initialize()
 
   m_vertex_stream_buffer =
       StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                           VERTEX_STREAM_BUFFER_SIZE);
+                           VERTEX_STREAM_BUFFER_SIZE * 2);
   m_index_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, INDEX_STREAM_BUFFER_SIZE);
+      StreamBuffer::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, INDEX_STREAM_BUFFER_SIZE * 2);
   m_uniform_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, UNIFORM_STREAM_BUFFER_SIZE);
+      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, UNIFORM_STREAM_BUFFER_SIZE * 2);
   if (!m_vertex_stream_buffer || !m_index_stream_buffer || !m_uniform_stream_buffer)
   {
     PanicAlertFmt("Failed to allocate streaming buffers");
@@ -121,13 +122,18 @@ bool VertexManager::Initialize()
 
   // Bind the buffers to all the known spots even if it's not used, to keep the driver happy.
   UploadAllConstants();
-  StateTracker::GetInstance()->SetUtilityUniformBuffer(m_uniform_stream_buffer->GetBuffer(), 0,
-                                                       sizeof(VertexShaderConstants));
-  for (u32 i = 0; i < NUM_COMPUTE_TEXEL_BUFFERS; i++)
-  {
-    StateTracker::GetInstance()->SetTexelBuffer(i,
-                                                m_texel_buffer_views[TEXEL_BUFFER_FORMAT_R8_UINT]);
-  }
+
+  g_scheduler->Record([c_buffer = m_uniform_stream_buffer->GetBuffer(),
+                       c_texel_buffer_view = m_texel_buffer_views[TEXEL_BUFFER_FORMAT_R8_UINT]](
+                          CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->SetUtilityUniformBuffer(c_buffer, 0,
+                                                                   sizeof(VertexShaderConstants));
+
+    for (u32 i = 0; i < NUM_COMPUTE_TEXEL_BUFFERS; i++)
+    {
+      command_buffer_mgr->GetStateTracker()->SetTexelBuffer(i, c_texel_buffer_view);
+    }
+  });
 
   return true;
 }
@@ -189,10 +195,13 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, static_cast<int>(vertex_data_size));
   ADDSTAT(g_stats.this_frame.bytes_index_streamed, static_cast<int>(index_data_size));
 
-  StateTracker::GetInstance()->SetVertexBuffer(m_vertex_stream_buffer->GetBuffer(), 0,
-                                               VERTEX_STREAM_BUFFER_SIZE);
-  StateTracker::GetInstance()->SetIndexBuffer(m_index_stream_buffer->GetBuffer(), 0,
-                                              VK_INDEX_TYPE_UINT16);
+  g_scheduler->Record([c_vertex_buffer = m_vertex_stream_buffer->GetBuffer(),
+                       c_index_buffer = m_index_stream_buffer->GetBuffer()](
+                          CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->SetVertexBuffer(c_vertex_buffer, 0,
+                                                           VERTEX_STREAM_BUFFER_SIZE);
+    command_buffer_mgr->GetStateTracker()->SetIndexBuffer(c_index_buffer, 0, VK_INDEX_TYPE_UINT16);
+  });
 }
 
 void VertexManager::UploadUniforms()
@@ -210,9 +219,12 @@ void VertexManager::UpdateVertexShaderConstants()
   if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
     return;
 
-  StateTracker::GetInstance()->SetGXUniformBuffer(
-      UBO_DESCRIPTOR_SET_BINDING_VS, m_uniform_stream_buffer->GetBuffer(),
-      m_uniform_stream_buffer->GetCurrentOffset(), sizeof(VertexShaderConstants));
+  g_scheduler->Record([c_buffer = m_uniform_stream_buffer->GetBuffer(),
+                       c_offset = m_uniform_stream_buffer->GetCurrentOffset()](
+                          CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(
+        UBO_DESCRIPTOR_SET_BINDING_VS, c_buffer, c_offset, sizeof(VertexShaderConstants));
+  });
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &vertex_shader_manager.constants,
               sizeof(VertexShaderConstants));
   m_uniform_stream_buffer->CommitMemory(sizeof(VertexShaderConstants));
@@ -228,9 +240,13 @@ void VertexManager::UpdateGeometryShaderConstants()
   if (!geometry_shader_manager.dirty || !ReserveConstantStorage())
     return;
 
-  StateTracker::GetInstance()->SetGXUniformBuffer(
-      UBO_DESCRIPTOR_SET_BINDING_GS, m_uniform_stream_buffer->GetBuffer(),
-      m_uniform_stream_buffer->GetCurrentOffset(), sizeof(GeometryShaderConstants));
+  g_scheduler->Record([c_buffer = m_uniform_stream_buffer->GetBuffer(),
+                       c_offset = m_uniform_stream_buffer->GetCurrentOffset()](
+                          CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(
+        UBO_DESCRIPTOR_SET_BINDING_GS, c_buffer, c_offset, sizeof(GeometryShaderConstants));
+  });
+
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &geometry_shader_manager.constants,
               sizeof(GeometryShaderConstants));
   m_uniform_stream_buffer->CommitMemory(sizeof(GeometryShaderConstants));
@@ -248,9 +264,12 @@ void VertexManager::UpdatePixelShaderConstants()
 
   if (pixel_shader_manager.dirty)
   {
-    StateTracker::GetInstance()->SetGXUniformBuffer(
-        UBO_DESCRIPTOR_SET_BINDING_PS, m_uniform_stream_buffer->GetBuffer(),
-        m_uniform_stream_buffer->GetCurrentOffset(), sizeof(PixelShaderConstants));
+    g_scheduler->Record([c_buffer = m_uniform_stream_buffer->GetBuffer(),
+                         c_offset = m_uniform_stream_buffer->GetCurrentOffset()](
+                            CommandBufferManager* command_buffer_mgr) {
+      command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(
+          UBO_DESCRIPTOR_SET_BINDING_PS, c_buffer, c_offset, sizeof(PixelShaderConstants));
+    });
     std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &pixel_shader_manager.constants,
                 sizeof(PixelShaderConstants));
     m_uniform_stream_buffer->CommitMemory(sizeof(PixelShaderConstants));
@@ -260,10 +279,13 @@ void VertexManager::UpdatePixelShaderConstants()
 
   if (pixel_shader_manager.custom_constants_dirty)
   {
-    StateTracker::GetInstance()->SetGXUniformBuffer(
-        UBO_DESCRIPTOR_SET_BINDING_PS_CUST, m_uniform_stream_buffer->GetBuffer(),
-        m_uniform_stream_buffer->GetCurrentOffset(),
-        static_cast<u32>(pixel_shader_manager.custom_constants.size()));
+    g_scheduler->Record([c_buffer = m_uniform_stream_buffer->GetBuffer(),
+                         c_offset = m_uniform_stream_buffer->GetCurrentOffset(),
+                         c_size = static_cast<u32>(pixel_shader_manager.custom_constants.size())](
+                            CommandBufferManager* command_buffer_mgr) {
+      command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(UBO_DESCRIPTOR_SET_BINDING_PS_CUST,
+                                                                c_buffer, c_offset, c_size);
+    });
     std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(),
                 pixel_shader_manager.custom_constants.data(),
                 pixel_shader_manager.custom_constants.size());
@@ -325,26 +347,32 @@ void VertexManager::UploadAllConstants()
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
 
   // Update bindings
-  StateTracker::GetInstance()->SetGXUniformBuffer(
-      UBO_DESCRIPTOR_SET_BINDING_PS, m_uniform_stream_buffer->GetBuffer(),
-      m_uniform_stream_buffer->GetCurrentOffset() + pixel_constants_offset,
-      sizeof(PixelShaderConstants));
-  StateTracker::GetInstance()->SetGXUniformBuffer(
-      UBO_DESCRIPTOR_SET_BINDING_VS, m_uniform_stream_buffer->GetBuffer(),
-      m_uniform_stream_buffer->GetCurrentOffset() + vertex_constants_offset,
-      sizeof(VertexShaderConstants));
+  g_scheduler->Record(
+      [c_buffer = m_uniform_stream_buffer->GetBuffer(),
+       c_ps_offset = m_uniform_stream_buffer->GetCurrentOffset() + pixel_constants_offset,
+       c_vs_offset = m_uniform_stream_buffer->GetCurrentOffset() + vertex_constants_offset,
+       c_ps_custom_offset =
+           m_uniform_stream_buffer->GetCurrentOffset() + custom_pixel_constants_offset,
+       c_has_custom_constants = !pixel_shader_manager.custom_constants.empty(),
+       c_custom_constants_size = custom_constants_size,
+       c_gs_offset = m_uniform_stream_buffer->GetCurrentOffset() +
+                     geometry_constants_offset](CommandBufferManager* command_buffer_mgr) {
+        command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(
+            UBO_DESCRIPTOR_SET_BINDING_PS, c_buffer, c_ps_offset, sizeof(PixelShaderConstants));
 
-  if (!pixel_shader_manager.custom_constants.empty())
-  {
-    StateTracker::GetInstance()->SetGXUniformBuffer(
-        UBO_DESCRIPTOR_SET_BINDING_PS_CUST, m_uniform_stream_buffer->GetBuffer(),
-        m_uniform_stream_buffer->GetCurrentOffset() + custom_pixel_constants_offset,
-        custom_constants_size);
-  }
-  StateTracker::GetInstance()->SetGXUniformBuffer(
-      UBO_DESCRIPTOR_SET_BINDING_GS, m_uniform_stream_buffer->GetBuffer(),
-      m_uniform_stream_buffer->GetCurrentOffset() + geometry_constants_offset,
-      sizeof(GeometryShaderConstants));
+        command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(
+            UBO_DESCRIPTOR_SET_BINDING_VS, c_buffer, c_vs_offset, sizeof(VertexShaderConstants));
+
+        if (c_has_custom_constants)
+        {
+          command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(
+              UBO_DESCRIPTOR_SET_BINDING_PS_CUST, c_buffer, c_ps_custom_offset,
+              c_custom_constants_size);
+        }
+
+        command_buffer_mgr->GetStateTracker()->SetGXUniformBuffer(
+            UBO_DESCRIPTOR_SET_BINDING_VS, c_buffer, c_gs_offset, sizeof(GeometryShaderConstants));
+      });
 
   // Copy the actual data in
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + pixel_constants_offset,
@@ -380,8 +408,11 @@ void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
     VKGfx::GetInstance()->ExecuteCommandBuffer(false);
   }
 
-  StateTracker::GetInstance()->SetUtilityUniformBuffer(
-      m_uniform_stream_buffer->GetBuffer(), m_uniform_stream_buffer->GetCurrentOffset(), data_size);
+  g_scheduler->Record([c_buffer = m_uniform_stream_buffer->GetBuffer(),
+                       c_offset = m_uniform_stream_buffer->GetCurrentOffset(),
+                       c_size = data_size](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->SetUtilityUniformBuffer(c_buffer, c_offset, c_size);
+  });
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), data, data_size);
   m_uniform_stream_buffer->CommitMemory(data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
@@ -410,7 +441,10 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   *out_offset = static_cast<u32>(m_texel_stream_buffer->GetCurrentOffset()) / elem_size;
   m_texel_stream_buffer->CommitMemory(data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
-  StateTracker::GetInstance()->SetTexelBuffer(0, m_texel_buffer_views[format]);
+  g_scheduler->Record([c_texel_buffer_view =
+                           m_texel_buffer_views[format]](CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->SetTexelBuffer(0, c_texel_buffer_view);
+  });
   return true;
 }
 
@@ -447,8 +481,13 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
 
   m_texel_stream_buffer->CommitMemory(palette_byte_offset + palette_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, palette_byte_offset + palette_size);
-  StateTracker::GetInstance()->SetTexelBuffer(0, m_texel_buffer_views[format]);
-  StateTracker::GetInstance()->SetTexelBuffer(1, m_texel_buffer_views[palette_format]);
+
+  g_scheduler->Record([c_texel_buffer_view = m_texel_buffer_views[format],
+                       c_palette_texel_buffer_view = m_texel_buffer_views[palette_format]](
+                          CommandBufferManager* command_buffer_mgr) {
+    command_buffer_mgr->GetStateTracker()->SetTexelBuffer(0, c_texel_buffer_view);
+    command_buffer_mgr->GetStateTracker()->SetTexelBuffer(1, c_palette_texel_buffer_view);
+  });
   return true;
 }
 }  // namespace Vulkan
