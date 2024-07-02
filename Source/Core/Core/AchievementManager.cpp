@@ -14,6 +14,7 @@
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Image.h"
@@ -967,6 +968,12 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
   return num_bytes;
 }
 
+template <size_t length>
+void UpdateFromArray(Common::SHA1::Context& context, const std::array<u8, length>& data)
+{
+  context.Update(data.data(), data.size());
+}
+
 void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_type,
                                     const AchievementManager::BadgeNameFunction function,
                                     const UpdatedItems callback_data)
@@ -993,6 +1000,30 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
       if (name_to_fetch.empty())
         return;
     }
+
+    std::string cache_base = File::GetUserPath(D_RETROACHIEVEMENTSCACHE_IDX);
+    auto context = Common::SHA1::CreateContext();
+    context->Update(name_to_fetch);
+    auto name_hash = context->Finish();
+    const std::string cache_path = fmt::format("{}/{}-{}.png", cache_base, badge_type,
+                                               Common::SHA1::DigestToString(name_hash));
+
+    AchievementManager::Badge tmp_badge;
+    if (LoadPNGTexture(&tmp_badge, cache_path))
+    {
+      std::lock_guard lg{m_lock};
+      if (function(*this).empty() || name_to_fetch != function(*this))
+      {
+        INFO_LOG_FMT(ACHIEVEMENTS, "Requested outdated badge id {}.", name_to_fetch);
+        return;
+      }
+      *badge = tmp_badge;
+      m_update_callback(callback_data);
+      if (m_display_welcome_message && badge_type == RC_IMAGE_TYPE_GAME)
+        DisplayWelcomeMessage();
+      return;
+    }
+
     rc_api_fetch_image_request_t icon_request = {.image_name = name_to_fetch.c_str(),
                                                  .image_type = badge_type};
     Badge fetched_badge;
@@ -1026,8 +1057,16 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
 
     if (!LoadPNGTexture(badge, *http_response))
     {
-      ERROR_LOG_FMT(ACHIEVEMENTS, "Default game badge '{}' failed to load",
-                    DEFAULT_GAME_BADGE_FILENAME);
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Badge '{}' failed to load", name_to_fetch);
+    }
+
+    std::string temp_path = fmt::format("{}/temp.png", cache_base);
+    if (!Common::SavePNG(temp_path, badge->data.data(), Common::ImageByteFormat::RGBA, badge->width,
+                         badge->height, badge->width * 4) ||
+        !File::Rename(temp_path, cache_path))
+    {
+      File::Delete(temp_path);
+      WARN_LOG_FMT(ACHIEVEMENTS, "Failed to cache badge '{}-{}.png'", badge_type, name_to_fetch);
     }
 
     m_update_callback(callback_data);
