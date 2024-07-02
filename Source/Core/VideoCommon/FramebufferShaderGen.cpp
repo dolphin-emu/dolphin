@@ -491,6 +491,61 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
   return code.GetBuffer();
 }
 
+std::string GenerateTextureBlurShader()
+{
+  ShaderCode code;
+  EmitUniformBufferDeclaration(code);
+  code.Write("{{"
+             "  int pass;\n"
+             "  int width;\n"
+             "  int height;\n"
+             "  int blur_radius;\n"
+             "  float bloom_strength;\n"
+             "}};\n\n");
+
+  EmitSamplerDeclarations(code, 0, 1, false);
+  EmitPixelMainDeclaration(code, 1, 0, "float4", "", true);
+  code.Write("  {{\n"
+             "  int layer = int(v_tex0.z);\n"
+             "  int r = blur_radius;\n"
+             "  int coord; int length;\n"
+             "  int2 initial_coords = int2(frag_coord.xy);\n"
+             "  float4 str = float4(1.0, 1.0, 1.0, 1.0);\n"
+             "  if (pass == 1)\n"
+             "  {{\n"
+             "  length = width;\n"
+             "  coord = initial_coords.x;\n"
+             "  str = bloom_strength * str;\n"
+             "  }}\n"
+             "  else\n"
+             "  {{\n"
+             "  length = height;\n"
+             "  coord = initial_coords.y;\n"
+             "  }}\n"
+             "  int offset;\n"
+             "  float4 count = float4(0.0,0.0,0.0,0.0);\n"
+             "  float4 col = float4(0.0,0.0,0.0,0.0);\n");
+  code.Write("  for (offset = -r; offset <= r; offset++)\n "
+             "  {{\n "
+             "  int pos = coord + offset;"
+             "  if (pos <= length && pos >= 0)\n"
+             "  {{\n"
+             "  count += float4(1.0,1.0,1.0,1.0);\n"
+             "  int3 sample_coords;\n"
+             "  if (pass == 1)\n"
+             "  {{\n"
+             "  sample_coords = int3(int2(pos, initial_coords.y), layer);\n"
+             "  }}\n"
+             "  else\n"
+             "  {{\n"
+             "  sample_coords = int3(int2(initial_coords.x, pos), layer);\n"
+             "  }}\n"
+             "  col += texelFetch(samp0, sample_coords, 0);\n"
+             "  }}}}\n");
+  code.Write("ocol0 = col / count * str;}}\n");
+  return code.GetBuffer();
+}
+
 std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureFormat to_format)
 {
   ShaderCode code;
