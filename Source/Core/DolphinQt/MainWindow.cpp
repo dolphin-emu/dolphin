@@ -658,6 +658,10 @@ void MainWindow::ConnectHotkeys()
     movie.SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_hotkey_scheduler, &HotkeyScheduler::OpenAchievements, this,
+          &MainWindow::ShowAchievementsWindow, Qt::QueuedConnection);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StepOver, m_code_widget, &CodeWidget::StepOver);
