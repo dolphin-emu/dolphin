@@ -52,6 +52,17 @@ public:
   std::shared_ptr<MeshAsset> LoadMesh(const CustomAssetLibrary::AssetID& asset_id,
                                       std::shared_ptr<CustomAssetLibrary> library);
 
+  void Reset()
+  {
+    std::lock_guard lk(m_asset_load_lock);
+    m_game_textures.clear();
+    m_pixel_shaders.clear();
+    m_materials.clear();
+    m_meshes.clear();
+    m_total_bytes_loaded = 0;
+    m_assets_to_monitor.clear();
+  }
+
 private:
   // TODO C++20: use a 'derived_from' concept against 'CustomAsset' when available
   template <typename AssetType>
@@ -71,7 +82,6 @@ private:
       {
         std::lock_guard lk(m_asset_load_lock);
         m_total_bytes_loaded -= a->GetByteSizeInMemory();
-        m_assets_to_monitor.erase(a->GetAssetId());
         if (m_max_memory_available >= m_total_bytes_loaded && m_memory_exceeded)
         {
           INFO_LOG_FMT(VIDEO, "Asset memory went below limit, new assets can begin loading.");

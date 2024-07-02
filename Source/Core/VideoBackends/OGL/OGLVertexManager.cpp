@@ -167,6 +167,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   auto buffer = m_vertex_buffer->Map(MAXVBUFFERSIZE, vertex_stride);
   m_cur_buffer_pointer = m_base_buffer_pointer = buffer.first;
   m_end_buffer_pointer = buffer.first + MAXVBUFFERSIZE;
+  m_last_reset_pointer = m_cur_buffer_pointer;
 
   buffer = m_index_buffer->Map(MAXIBUFFERSIZE * sizeof(u16));
   m_index_generator.Start(reinterpret_cast<u16*>(buffer.first));

@@ -9,11 +9,14 @@
 
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
-struct GraphicsModAssetConfig
+namespace GraphicsModSystem::Config
+{
+struct GraphicsModAsset
 {
   VideoCommon::CustomAssetLibrary::AssetID m_asset_id;
   VideoCommon::DirectFilesystemAssetLibrary::AssetMap m_map;
 
-  void SerializeToConfig(picojson::object& json_obj) const;
-  bool DeserializeFromConfig(const picojson::object& obj);
+  void Serialize(picojson::object& json_obj) const;
+  bool Deserialize(const picojson::object& json_obj);
 };
+}  // namespace GraphicsModSystem::Config

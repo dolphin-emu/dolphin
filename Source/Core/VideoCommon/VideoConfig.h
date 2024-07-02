@@ -206,7 +206,7 @@ struct VideoConfig final
   bool bPreferVSForLinePointExpansion = false;
   int iBitrateKbps = 0;
   bool bGraphicMods = false;
-  std::optional<GraphicsModGroupConfig> graphics_mod_config;
+  std::optional<GraphicsModSystem::Config::GraphicsModGroup> graphics_mod_config;
 
   // Hacks
   bool bEFBAccessEnable = false;
