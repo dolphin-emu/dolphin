@@ -158,6 +158,10 @@ void HotkeyScheduler::Run()
 
     if (!HotkeyManagerEmu::IsEnabled())
       continue;
+#ifdef USE_RETRO_ACHIEVEMENTS
+    if (IsHotkey(HK_OPEN_ACHIEVEMENTS))
+      emit OpenAchievements();
+#endif  // USE_RETRO_ACHIEVEMENTS
 
     Core::System& system = Core::System::GetInstance();
     if (Core::GetState(system) != Core::State::Stopping)
