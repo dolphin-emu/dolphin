@@ -8,6 +8,7 @@
 #include <span>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"

@@ -34,10 +34,10 @@ using PMapViewOfFile3 = PVOID(WINAPI*)(HANDLE FileMapping, HANDLE Process, PVOID
 
 using PUnmapViewOfFileEx = BOOL(WINAPI*)(PVOID BaseAddress, ULONG UnmapFlags);
 
-using PVirtualProtect = BOOL(WINAPI*)(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
+using PVirtualProtect = BOOL(WINAPI*)(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect,
+                                      PDWORD lpflOldProtect);
 
 using PIsApiSetImplemented = BOOL(APIENTRY*)(PCSTR Contract);
-
 
 namespace Common
 {
@@ -218,7 +218,8 @@ void MemArena::ReleaseMemoryRegion()
 bool MemArena::WriteProtectMemoryRegion(u8* data, size_t size)
 {
   DWORD lpflOldProtect = 0;
-  return static_cast<PVirtualProtect>(m_memory_functions.m_address_VirtualProtect)(data, size, PAGE_READONLY, &lpflOldProtect);
+  return static_cast<PVirtualProtect>(m_memory_functions.m_address_VirtualProtect)(
+      data, size, PAGE_READONLY, &lpflOldProtect);
 }
 
 WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, size_t size)

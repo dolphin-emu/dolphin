@@ -63,8 +63,8 @@ void MemoryManager::WriteProtectMemory()
     size_t page_size = Common::PageSize();
     for (size_t i = 0; i < region.size; i += page_size)
     {
-      bool change_protection = m_arena.WriteProtectMemoryRegion(
-          (*region.out_pointer) + i, page_size);
+      bool change_protection =
+          m_arena.WriteProtectMemoryRegion((*region.out_pointer) + i, page_size);
       if (!change_protection)
       {
         PanicAlertFmt(

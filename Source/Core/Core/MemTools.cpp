@@ -14,10 +14,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
+#include "Core/HW/Memmap.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/System.h"
-#include "Core/HW/Memmap.h"
 
 #if defined(__FreeBSD__) || defined(__NetBSD__)
 #include <signal.h>
@@ -74,7 +74,9 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
       size_t page_mask = page_size - 1;
       u64 page_index = fault_address & page_mask;
       DWORD lpflOldProtect = 0;
-      bool change_protection = VirtualProtect(reinterpret_cast<u8*>(fault_address), page_size - page_index, PAGE_READWRITE, &lpflOldProtect);
+      bool change_protection =
+          VirtualProtect(reinterpret_cast<u8*>(fault_address), page_size - page_index,
+                         PAGE_READWRITE, &lpflOldProtect);
       if (!change_protection)
       {
         return EXCEPTION_CONTINUE_SEARCH;

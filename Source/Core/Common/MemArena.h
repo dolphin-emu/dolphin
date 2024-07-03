@@ -113,7 +113,7 @@ public:
   void UnmapFromMemoryRegion(void* view, size_t size);
 
   ///
-  /// Write protect a section from the memory region previously mapped by CreateView. 
+  /// Write protect a section from the memory region previously mapped by CreateView.
   ///
   /// @param data Pointer to data to protect.
   /// @param size Size of the protection.
