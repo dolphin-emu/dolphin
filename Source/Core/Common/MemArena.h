@@ -113,12 +113,13 @@ public:
   void UnmapFromMemoryRegion(void* view, size_t size);
 
   ///
-  /// Write protect a section from the memory region previously mapped by CreateView.
+  /// Virtual protect a section from the memory region previously mapped by CreateView.
   ///
   /// @param data Pointer to data to protect.
   /// @param size Size of the protection.
+  /// @param flag What new permission to protect with.
   ///
-  bool WriteProtectMemoryRegion(u8* data, size_t size);
+  bool VirtualProtectMemoryRegion(u8* data, size_t size, u64 flag);
 
 private:
 #ifdef _WIN32

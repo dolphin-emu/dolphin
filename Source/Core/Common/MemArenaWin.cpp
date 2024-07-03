@@ -215,11 +215,11 @@ void MemArena::ReleaseMemoryRegion()
   }
 }
 
-bool MemArena::WriteProtectMemoryRegion(u8* data, size_t size)
+bool MemArena::VirtualProtectMemoryRegion(u8* data, size_t size, u64 flag)
 {
   DWORD lpflOldProtect = 0;
   return static_cast<PVirtualProtect>(m_memory_functions.m_address_VirtualProtect)(
-      data, size, PAGE_READONLY, &lpflOldProtect);
+      data, size, flag, &lpflOldProtect);
 }
 
 WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, size_t size)

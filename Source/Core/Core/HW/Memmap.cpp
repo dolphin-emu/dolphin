@@ -54,7 +54,12 @@ std::optional<size_t> MemoryManager::GetDirtyPageIndexFromAddress(u64 address)
   return (address & ~page_mask) >> 12;
 }
 
-void MemoryManager::WriteProtectMemory()
+bool MemoryManager::VirtualProtectMemory(u8* data, size_t size, u64 flag)
+{
+  return m_arena.VirtualProtectMemoryRegion(data, size, flag);
+}
+
+void MemoryManager::WriteProtectPhysicalMemoryRegions()
 {
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
@@ -63,12 +68,11 @@ void MemoryManager::WriteProtectMemory()
     size_t page_size = Common::PageSize();
     for (size_t i = 0; i < region.size; i += page_size)
     {
-      bool change_protection =
-          m_arena.WriteProtectMemoryRegion((*region.out_pointer) + i, page_size);
+      bool change_protection = VirtualProtectMemory((*region.out_pointer) + i, page_size, PAGE_READONLY);
       if (!change_protection)
       {
         PanicAlertFmt(
-            "Memory::Init(): Failed to write protect for this block of memory at 0x{:08X}.",
+            "Memory::WriteProtectPhysicalMemoryRegions(): Failed to write protect for this block of memory at 0x{:08X}.",
             reinterpret_cast<u64>(*region.out_pointer));
       }
       std::optional<size_t> index =
@@ -105,7 +109,7 @@ void MemoryManager::InitMMIO(bool is_wii)
 
 void MemoryManager::InitDirtyPages()
 {
-  WriteProtectMemory();
+  WriteProtectPhysicalMemoryRegions();
 }
 
 void MemoryManager::Init()
@@ -675,7 +679,7 @@ void MemoryManager::SetPageDirtyBit(uintptr_t address, size_t size, bool dirty)
 
 void MemoryManager::ResetDirtyPages()
 {
-  WriteProtectMemory();
+  WriteProtectPhysicalMemoryRegions();
 }
 
 }  // namespace Memory

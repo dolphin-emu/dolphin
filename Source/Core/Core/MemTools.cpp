@@ -62,21 +62,21 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
     // virtual address of the inaccessible data
     uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
     SContext* ctx = pPtrs->ContextRecord;
-    if (Core::System::GetInstance().GetJitInterface().HandleFault(fault_address, ctx))
+    Core::System& system = Core::System::GetInstance();
+    Memory::MemoryManager& memory = system.GetMemory();
+    if (system.GetJitInterface().HandleFault(fault_address, ctx))
     {
       return EXCEPTION_CONTINUE_EXECUTION;
     }
-    else if (!Core::System::GetInstance().GetMemory().IsPageDirty(fault_address))
+    else if (!memory.IsPageDirty(fault_address))
     {
-      Core::System::GetInstance().GetMemory().SetPageDirtyBit(fault_address, 1, true);
+      memory.SetPageDirtyBit(fault_address, 1, true);
 
       size_t page_size = Common::PageSize();
       size_t page_mask = page_size - 1;
       u64 page_index = fault_address & page_mask;
-      DWORD lpflOldProtect = 0;
-      bool change_protection =
-          VirtualProtect(reinterpret_cast<u8*>(fault_address), page_size - page_index,
-                         PAGE_READWRITE, &lpflOldProtect);
+      bool change_protection = memory.VirtualProtectMemory(reinterpret_cast<u8*>(fault_address),
+                                                         page_size - page_index, PAGE_READWRITE);
       if (!change_protection)
       {
         return EXCEPTION_CONTINUE_SEARCH;
