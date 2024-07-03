@@ -65,6 +65,7 @@ std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_STM_READDDRREG2:
   case IOCTL_STM_LEDFLASH:
   case IOCTL_STM_READVER:
+  case IOCTL_STM_WRITEDMCU:
     ERROR_LOG_FMT(IOS_STM, "{} - Unimplemented IOCtl: {}", GetDeviceName(), request.request);
     break;
 
