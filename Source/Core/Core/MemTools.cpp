@@ -72,9 +72,9 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
       size_t page_size = Common::PageSize();
       size_t page_mask = page_size - 1;
-      u64 page_base = fault_address & ~page_mask;
+      u64 page_index = fault_address & page_mask;
       DWORD lpflOldProtect = 0;
-      bool change_protection = VirtualProtect(reinterpret_cast<u8*>(page_base), page_size, PAGE_READONLY, &lpflOldProtect);
+      bool change_protection = VirtualProtect(reinterpret_cast<u8*>(fault_address), page_size - page_index, PAGE_READWRITE, &lpflOldProtect);
       if (!change_protection)
       {
         return EXCEPTION_CONTINUE_SEARCH;

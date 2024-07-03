@@ -22,7 +22,7 @@ struct WindowsMemoryFunctions
   void* m_address_UnmapViewOfFileEx = nullptr;
   void* m_address_VirtualAlloc2 = nullptr;
   void* m_address_MapViewOfFile3 = nullptr;
-  void* m_address_VirtualProtectEx = nullptr;
+  void* m_address_VirtualProtect = nullptr;
 };
 #endif
 
@@ -118,7 +118,7 @@ public:
   /// @param data Pointer to data to protect.
   /// @param size Size of the protection.
   ///
-  bool WriteProtectMemoryRegion(void* data, size_t size);
+  bool WriteProtectMemoryRegion(u8* data, size_t size);
 
 private:
 #ifdef _WIN32

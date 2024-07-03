@@ -135,7 +135,7 @@ public:
   void SetPageDirtyBit(uintptr_t address, size_t size, bool dirty);
   void ResetDirtyPages();
 
-  std::vector<u8>& GetDirtyPages() { return m_dirty_pages; }
+  std::map<u64, u8>& GetDirtyPages() { return m_dirty_pages; }
 
   // Templated functions for byteswapped copies.
   template <typename T>
@@ -261,9 +261,10 @@ private:
 
   Core::System& m_system;
 
-  std::vector<u8> m_dirty_pages;
+  std::map<u64, u8> m_dirty_pages;
 
   std::optional<size_t> GetDirtyPageIndexFromAddress(u64 address);
+  void WriteProtectMemory();
   void InitMMIO(bool is_wii);
 };
 }  // namespace Memory

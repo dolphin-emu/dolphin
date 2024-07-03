@@ -51,31 +51,32 @@ std::optional<size_t> MemoryManager::GetDirtyPageIndexFromAddress(u64 address)
 {
   size_t page_size = Common::PageSize();
   size_t page_mask = page_size - 1;
-  u64 page_base = address & ~page_mask;
+  return (address & ~page_mask) >> 12;
+}
 
-  size_t index = 0;
-  bool foundPageBase = false;
-
+void MemoryManager::WriteProtectMemory()
+{
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
     if (!region.active)
       continue;
-    uintptr_t region_address = reinterpret_cast<uintptr_t>(*region.out_pointer);
-    if (page_base >= region_address && page_base <= region_address + region.size)
+    size_t page_size = Common::PageSize();
+    for (size_t i = 0; i < region.size; i += page_size)
     {
-      foundPageBase = true;
-      index += std::floorl((page_base - region_address) / page_size);
-      break;
+      bool change_protection = m_arena.WriteProtectMemoryRegion(
+          (*region.out_pointer) + i, page_size);
+      if (!change_protection)
+      {
+        PanicAlertFmt(
+            "Memory::Init(): Failed to write protect for this block of memory at 0x{:08X}.",
+            reinterpret_cast<u64>(*region.out_pointer));
+      }
+      std::optional<size_t> index =
+          GetDirtyPageIndexFromAddress(reinterpret_cast<u64>(*region.out_pointer + i));
+      if (index.has_value())
+        m_dirty_pages[index.value()] = false;
     }
-    index += (region.size / page_size);
   }
-  if (!foundPageBase)
-  {
-    PanicAlertFmt("Unknown PTE in Dirty Bit Lookup: {:#010x}", page_base);
-    return std::nullopt;
-  }
-
-  return index;
 }
 
 void MemoryManager::InitMMIO(bool is_wii)
@@ -104,25 +105,7 @@ void MemoryManager::InitMMIO(bool is_wii)
 
 void MemoryManager::InitDirtyPages()
 {
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
-  {
-    if (!region.active)
-      continue;
-    size_t page_size = Common::PageSize();
-    for (size_t i = 0; i < region.size; i += page_size)
-    {
-      DWORD lpflOldProtect = 0;
-      bool change_protection =
-          VirtualProtect((*region.out_pointer) + i, page_size, PAGE_READONLY, &lpflOldProtect);
-      if (!change_protection)
-      {
-        PanicAlertFmt(
-            "Memory::Init(): Failed to write protect for this block of memory at 0x{:08X}.",
-            reinterpret_cast<u64>(*region.out_pointer));
-      }
-      m_dirty_pages.push_back(false);
-    }
-  }
+  WriteProtectMemory();
 }
 
 void MemoryManager::Init()
@@ -388,7 +371,7 @@ void MemoryManager::DoState(PointerWrap& p)
     if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_ram[i])))
     {
       p.DoArray(m_ram + i, page_count);
-      i += page_count + 1;
+      i += page_count;
     }
   }
   for (size_t i = 0; i < current_l1_cache_size; i++)
@@ -396,7 +379,7 @@ void MemoryManager::DoState(PointerWrap& p)
     if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_l1_cache[i])))
     {
       p.DoArray(m_l1_cache + i, page_count);
-      i += page_count + 1;
+      i += page_count;
     }
   }
   p.DoMarker("Memory RAM");
@@ -407,7 +390,7 @@ void MemoryManager::DoState(PointerWrap& p)
       if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_fake_vmem[i])))
       {
         p.DoArray(m_fake_vmem + i, page_count);
-        i += page_count + 1;
+        i += page_count;
       }
     }
   }
@@ -419,7 +402,7 @@ void MemoryManager::DoState(PointerWrap& p)
       if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_exram[i])))
       {
         p.DoArray(m_exram + i, page_count);
-        i += page_count + 1;
+        i += page_count;
       }
     }
   }
@@ -692,8 +675,7 @@ void MemoryManager::SetPageDirtyBit(uintptr_t address, size_t size, bool dirty)
 
 void MemoryManager::ResetDirtyPages()
 {
-  for (int i = 0; i < m_dirty_pages.size(); i++)
-    m_dirty_pages[i] = false;
+  WriteProtectMemory();
 }
 
 }  // namespace Memory
