@@ -17,6 +17,7 @@
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/System.h"
+#include "Core/HW/Memmap.h"
 
 #if defined(__FreeBSD__) || defined(__NetBSD__)
 #include <signal.h>
@@ -24,6 +25,7 @@
 #ifndef _WIN32
 #include <unistd.h>  // Needed for _POSIX_VERSION
 #endif
+#include <Common/MemoryUtil.h>
 
 #if defined(__APPLE__)
 #ifdef _M_X86_64
@@ -60,9 +62,24 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
     // virtual address of the inaccessible data
     uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
     SContext* ctx = pPtrs->ContextRecord;
-
     if (Core::System::GetInstance().GetJitInterface().HandleFault(fault_address, ctx))
     {
+      return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    else if (!Core::System::GetInstance().GetMemory().IsPageDirty(fault_address))
+    {
+      Core::System::GetInstance().GetMemory().SetPageDirtyBit(fault_address, 1, true);
+
+      size_t page_size = Common::PageSize();
+      size_t page_mask = page_size - 1;
+      u64 page_base = fault_address & ~page_mask;
+      DWORD lpflOldProtect = 0;
+      bool change_protection = VirtualProtect(reinterpret_cast<u8*>(page_base), page_size, PAGE_READONLY, &lpflOldProtect);
+      if (!change_protection)
+      {
+        return EXCEPTION_CONTINUE_SEARCH;
+      }
+
       return EXCEPTION_CONTINUE_EXECUTION;
     }
     else

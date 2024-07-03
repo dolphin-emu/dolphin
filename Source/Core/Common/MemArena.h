@@ -22,6 +22,7 @@ struct WindowsMemoryFunctions
   void* m_address_UnmapViewOfFileEx = nullptr;
   void* m_address_VirtualAlloc2 = nullptr;
   void* m_address_MapViewOfFile3 = nullptr;
+  void* m_address_VirtualProtectEx = nullptr;
 };
 #endif
 
@@ -110,6 +111,14 @@ public:
   /// @param size Size passed to the corresponding MapInMemoryRegion() call.
   ///
   void UnmapFromMemoryRegion(void* view, size_t size);
+
+  ///
+  /// Write protect a section from the memory region previously mapped by CreateView. 
+  ///
+  /// @param data Pointer to data to protect.
+  /// @param size Size of the protection.
+  ///
+  bool WriteProtectMemoryRegion(void* data, size_t size);
 
 private:
 #ifdef _WIN32

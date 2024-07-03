@@ -94,6 +94,7 @@ public:
   // Init and Shutdown
   bool IsInitialized() const { return m_is_initialized; }
   void Init();
+  void InitDirtyPages();
   void Shutdown();
   bool InitFastmemArena();
   void ShutdownFastmemArena();
@@ -129,6 +130,12 @@ public:
   void Write_U64(u64 var, u32 address);
   void Write_U32_Swap(u32 var, u32 address);
   void Write_U64_Swap(u64 var, u32 address);
+
+  bool IsPageDirty(uintptr_t address);
+  void SetPageDirtyBit(uintptr_t address, size_t size, bool dirty);
+  void ResetDirtyPages();
+
+  std::vector<u8>& GetDirtyPages() { return m_dirty_pages; }
 
   // Templated functions for byteswapped copies.
   template <typename T>
@@ -254,6 +261,9 @@ private:
 
   Core::System& m_system;
 
+  std::vector<u8> m_dirty_pages;
+
+  std::optional<size_t> GetDirtyPageIndexFromAddress(u64 address);
   void InitMMIO(bool is_wii);
 };
 }  // namespace Memory

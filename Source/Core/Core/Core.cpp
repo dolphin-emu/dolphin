@@ -75,6 +75,7 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
+#include "Core/HW/Memmap.h"
 
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
@@ -380,8 +381,10 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   // The JIT need to be able to intercept faults, both for fastmem and for the BLR optimization.
   const bool exception_handler = EMM::IsExceptionHandlerSupported();
   if (exception_handler)
+  {
     EMM::InstallExceptionHandler();
-
+    system.GetMemory().InitDirtyPages();
+  }
 #ifdef USE_MEMORYWATCHER
   s_memory_watcher = std::make_unique<MemoryWatcher>();
 #endif

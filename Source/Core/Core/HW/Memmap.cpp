@@ -47,6 +47,37 @@ MemoryManager::MemoryManager(Core::System& system) : m_system(system)
 
 MemoryManager::~MemoryManager() = default;
 
+std::optional<size_t> MemoryManager::GetDirtyPageIndexFromAddress(u64 address)
+{
+  size_t page_size = Common::PageSize();
+  size_t page_mask = page_size - 1;
+  u64 page_base = address & ~page_mask;
+
+  size_t index = 0;
+  bool foundPageBase = false;
+
+  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  {
+    if (!region.active)
+      continue;
+    uintptr_t region_address = reinterpret_cast<uintptr_t>(*region.out_pointer);
+    if (page_base >= region_address && page_base <= region_address + region.size)
+    {
+      foundPageBase = true;
+      index += std::floorl((page_base - region_address) / page_size);
+      break;
+    }
+    index += (region.size / page_size);
+  }
+  if (!foundPageBase)
+  {
+    PanicAlertFmt("Unknown PTE in Dirty Bit Lookup: {:#010x}", page_base);
+    return std::nullopt;
+  }
+
+  return index;
+}
+
 void MemoryManager::InitMMIO(bool is_wii)
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
@@ -68,6 +99,29 @@ void MemoryManager::InitMMIO(bool is_wii)
     m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
     m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
     m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
+  }
+}
+
+void MemoryManager::InitDirtyPages()
+{
+  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  {
+    if (!region.active)
+      continue;
+    size_t page_size = Common::PageSize();
+    for (size_t i = 0; i < region.size; i += page_size)
+    {
+      DWORD lpflOldProtect = 0;
+      bool change_protection =
+          VirtualProtect((*region.out_pointer) + i, page_size, PAGE_READONLY, &lpflOldProtect);
+      if (!change_protection)
+      {
+        PanicAlertFmt(
+            "Memory::Init(): Failed to write protect for this block of memory at 0x{:08X}.",
+            reinterpret_cast<u64>(*region.out_pointer));
+      }
+      m_dirty_pages.push_back(false);
+    }
   }
 }
 
@@ -327,16 +381,54 @@ void MemoryManager::DoState(PointerWrap& p)
     p.SetVerifyMode();
     return;
   }
-
-  p.DoArray(m_ram, current_ram_size);
-  p.DoArray(m_l1_cache, current_l1_cache_size);
+  u32 page_count = static_cast<u32>(Common::PageSize());
+  p.Do(m_dirty_pages);
+  for (size_t i = 0; i < current_ram_size; i++)
+  {
+    if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_ram[i])))
+    {
+      p.DoArray(m_ram + i, page_count);
+      i += page_count + 1;
+    }
+  }
+  for (size_t i = 0; i < current_l1_cache_size; i++)
+  {
+    if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_l1_cache[i])))
+    {
+      p.DoArray(m_l1_cache + i, page_count);
+      i += page_count + 1;
+    }
+  }
   p.DoMarker("Memory RAM");
   if (current_have_fake_vmem)
-    p.DoArray(m_fake_vmem, current_fake_vmem_size);
+  {
+    for (size_t i = 0; i < current_fake_vmem_size; i++)
+    {
+      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_fake_vmem[i])))
+      {
+        p.DoArray(m_fake_vmem + i, page_count);
+        i += page_count + 1;
+      }
+    }
+  }
   p.DoMarker("Memory FakeVMEM");
   if (current_have_exram)
-    p.DoArray(m_exram, current_exram_size);
+  {
+    for (size_t i = 0; i < current_exram_size; i++)
+    {
+      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_exram[i])))
+      {
+        p.DoArray(m_exram + i, page_count);
+        i += page_count + 1;
+      }
+    }
+  }
   p.DoMarker("Memory EXRAM");
+
+  if (p.IsWriteMode())
+  {
+    ResetDirtyPages();
+  }
 }
 
 void MemoryManager::Shutdown()
@@ -571,6 +663,37 @@ void MemoryManager::Write_U32_Swap(u32 value, u32 address)
 void MemoryManager::Write_U64_Swap(u64 value, u32 address)
 {
   CopyToEmu(address, &value, sizeof(value));
+}
+
+bool MemoryManager::IsPageDirty(uintptr_t address)
+{
+  std::optional<size_t> index = GetDirtyPageIndexFromAddress(address);
+  if (index.has_value())
+  {
+    return m_dirty_pages[index.value()];
+  }
+  else
+  {
+    return true;
+  }
+}
+
+void MemoryManager::SetPageDirtyBit(uintptr_t address, size_t size, bool dirty)
+{
+  for (size_t i = 0; i < size; i++)
+  {
+    std::optional<size_t> index = GetDirtyPageIndexFromAddress(address + i);
+    if (index.has_value())
+    {
+      m_dirty_pages[index.value()] = dirty;
+    }
+  }
+}
+
+void MemoryManager::ResetDirtyPages()
+{
+  for (int i = 0; i < m_dirty_pages.size(); i++)
+    m_dirty_pages[i] = false;
 }
 
 }  // namespace Memory
