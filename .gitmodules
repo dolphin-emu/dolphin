@@ -84,3 +84,6 @@
 [submodule "Externals/Vulkan-Headers"]
 	path = Externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "Externals/watcher/watcher"]
+	path = Externals/watcher/watcher
+	url = https://github.com/e-dant/watcher.git
