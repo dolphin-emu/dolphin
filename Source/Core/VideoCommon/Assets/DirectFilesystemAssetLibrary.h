@@ -9,6 +9,7 @@
 #include <string>
 
 #include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/Assets/Types.h"
 #include "VideoCommon/Assets/WatchableFilesystemAssetLibrary.h"
 
 namespace VideoCommon
@@ -18,8 +19,6 @@ namespace VideoCommon
 class DirectFilesystemAssetLibrary final : public WatchableFilesystemAssetLibrary
 {
 public:
-  using AssetMap = std::map<std::string, std::filesystem::path>;
-
   LoadInfo LoadTexture(const AssetID& asset_id, TextureData* data) override;
   LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) override;
   LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) override;
@@ -31,7 +30,7 @@ public:
   // Assigns the asset id to a map of files, how this map is read is dependent on the data
   // For instance, a raw texture would expect the map to have a single entry and load that
   // file as the asset.  But a model file data might have its data spread across multiple files
-  void SetAssetIDMapData(const AssetID& asset_id, AssetMap asset_path_map);
+  void SetAssetIDMapData(const AssetID& asset_id, Assets::AssetMap asset_path_map);
 
 private:
   void PathModified(std::string_view path) override;
@@ -40,10 +39,10 @@ private:
   bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData::ArraySlice* data);
 
   // Gets the asset map given an asset id
-  AssetMap GetAssetMapForID(const AssetID& asset_id) const;
+  Assets::AssetMap GetAssetMapForID(const AssetID& asset_id) const;
 
   mutable std::mutex m_asset_map_lock;
-  std::map<AssetID, std::map<std::string, std::filesystem::path>> m_assetid_to_asset_map_path;
+  std::map<AssetID, Assets::AssetMap> m_assetid_to_asset_map_path;
 
   mutable std::mutex m_path_map_lock;
   std::map<std::string, AssetID, std::less<>> m_path_to_asset_id;

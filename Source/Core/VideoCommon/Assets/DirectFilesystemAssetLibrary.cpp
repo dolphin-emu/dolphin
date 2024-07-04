@@ -436,9 +436,9 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
 }
 
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
-                                                     AssetMap asset_path_map)
+                                                     VideoCommon::Assets::AssetMap asset_path_map)
 {
-  AssetMap previous_asset_map;
+  VideoCommon::Assets::AssetMap previous_asset_map;
   {
     std::lock_guard lk(m_asset_map_lock);
     previous_asset_map = m_assetid_to_asset_map_path[asset_id];
@@ -526,7 +526,7 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
   return true;
 }
 
-DirectFilesystemAssetLibrary::AssetMap
+VideoCommon::Assets::AssetMap
 DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
 {
   std::lock_guard lk(m_asset_map_lock);

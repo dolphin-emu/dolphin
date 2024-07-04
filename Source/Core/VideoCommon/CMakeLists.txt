@@ -26,6 +26,7 @@ add_library(videocommon
   Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
   Assets/TextureAsset.h
+  Assets/Types.h
   Assets/WatchableFilesystemAssetLibrary.cpp
   Assets/WatchableFilesystemAssetLibrary.h
   AsyncRequests.cpp
