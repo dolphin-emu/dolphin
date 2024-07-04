@@ -25,6 +25,7 @@
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
@@ -47,7 +48,10 @@ void AchievementManager::Init()
   LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
-    m_client = rc_client_create(MemoryVerifier, Request);
+    {
+      std::lock_guard lg{m_lock};
+      m_client = rc_client_create(MemoryVerifier, Request);
+    }
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
       rc_client_set_host(m_client, host_url.c_str());
@@ -159,6 +163,13 @@ bool AchievementManager::IsGameLoaded() const
   return game_info && game_info->id != 0;
 }
 
+void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
+{
+  m_background_execution_allowed = allowed;
+  if (allowed && Core::GetState(*AchievementManager::GetInstance().m_system) == Core::State::Paused)
+    DoIdle();
+}
+
 void AchievementManager::FetchPlayerBadge()
 {
   FetchBadge(&m_player_badge, RC_IMAGE_TYPE_USER,
@@ -241,6 +252,54 @@ void AchievementManager::DoFrame()
     if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
       Discord::UpdateDiscordPresence();
   }
+}
+
+bool AchievementManager::CanPause()
+{
+  u32 frames_to_next_pause = 0;
+  bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
+  if (!can_pause)
+  {
+    OSD::AddMessage("Cannot spam pausing in hardcore mode.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    OSD::AddMessage(
+        fmt::format("Can pause in {} seconds.",
+                    static_cast<float>(frames_to_next_pause) /
+                        Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate()),
+        OSD::Duration::VERY_LONG, OSD::Color::RED);
+  }
+  return can_pause;
+}
+
+void AchievementManager::DoIdle()
+{
+  std::thread([this]() {
+    while (true)
+    {
+      Common::SleepCurrentThread(1000);
+      {
+        std::lock_guard lg{m_lock};
+        if (!m_system || Core::GetState(*m_system) != Core::State::Paused)
+          return;
+        if (!m_background_execution_allowed)
+          return;
+        if (!m_client || !IsGameLoaded())
+          return;
+      }
+      // rc_client_idle peeks at memory to recalculate rich presence and therefore
+      // needs to be on host or CPU thread to access memory.
+      Core::QueueHostJob([this](Core::System& system) {
+        std::lock_guard lg{m_lock};
+        if (!m_system || Core::GetState(*m_system) != Core::State::Paused)
+          return;
+        if (!m_background_execution_allowed)
+          return;
+        if (!m_client || !IsGameLoaded())
+          return;
+        rc_client_idle(m_client);
+      });
+    }
+  }).detach();
 }
 
 std::recursive_mutex& AchievementManager::GetLock()
@@ -441,8 +500,8 @@ void AchievementManager::CloseGame()
 void AchievementManager::Logout()
 {
   {
-    std::lock_guard lg{m_lock};
     CloseGame();
+    std::lock_guard lg{m_lock};
     m_player_badge.width = 0;
     m_player_badge.height = 0;
     m_player_badge.data.clear();
@@ -459,6 +518,7 @@ void AchievementManager::Shutdown()
   {
     CloseGame();
     m_queue.Shutdown();
+    std::lock_guard lg{m_lock};
     // DON'T log out - keep those credentials for next run.
     rc_client_destroy(m_client);
     m_client = nullptr;
