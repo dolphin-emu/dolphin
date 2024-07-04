@@ -36,6 +36,7 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
+#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
@@ -263,10 +264,13 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 
 bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
 {
+  auto& system = Core::System::GetInstance();
+  auto& loader = system.GetCustomAssetLoader();
   for (const auto& cached_asset : entry.linked_game_texture_assets)
   {
     if (cached_asset.m_asset)
     {
+      loader.AssetReferenced(cached_asset.m_asset->GetSessionId());
       if (cached_asset.m_asset->GetLastLoadedTime() > cached_asset.m_cached_write_time)
         return true;
     }

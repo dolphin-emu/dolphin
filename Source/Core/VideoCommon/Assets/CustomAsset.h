@@ -18,7 +18,7 @@ class CustomAsset
 {
 public:
   CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
-              const CustomAssetLibrary::AssetID& asset_id);
+              const CustomAssetLibrary::AssetID& asset_id, u64 session_id);
   virtual ~CustomAsset() = default;
   CustomAsset(const CustomAsset&) = delete;
   CustomAsset(CustomAsset&&) = delete;
@@ -39,6 +39,9 @@ public:
   // Returns an id that uniquely identifies this asset
   const CustomAssetLibrary::AssetID& GetAssetId() const;
 
+  // Returns an id that is unique to this session
+  std::size_t GetSessionId() const;
+
   // A rough estimate of how much space this asset
   // will take in memroy
   std::size_t GetByteSizeInMemory() const;
@@ -49,6 +52,7 @@ protected:
 private:
   virtual CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) = 0;
   CustomAssetLibrary::AssetID m_asset_id;
+  std::size_t m_session_id;
 
   mutable std::mutex m_info_lock;
   std::size_t m_bytes_loaded = 0;

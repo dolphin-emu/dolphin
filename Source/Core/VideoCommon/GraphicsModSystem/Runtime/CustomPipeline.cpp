@@ -182,6 +182,10 @@ void CustomPipeline::UpdatePixelData(
   {
     m_pixel_material.m_asset = loader.LoadMaterial(material_to_load, library);
   }
+  else
+  {
+    loader.AssetReferenced(m_pixel_material.m_asset->GetSessionId());
+  }
 
   const auto material_data = m_pixel_material.m_asset->GetData();
   if (!material_data)
@@ -216,6 +220,10 @@ void CustomPipeline::UpdatePixelData(
     m_pixel_shader.m_cached_write_time = m_pixel_shader.m_asset->GetLastLoadedTime();
 
     m_last_generated_shader_code = ShaderCode{};
+  }
+  else
+  {
+    loader.AssetReferenced(m_pixel_shader.m_asset->GetSessionId());
   }
 
   const auto shader_data = m_pixel_shader.m_asset->GetData();
