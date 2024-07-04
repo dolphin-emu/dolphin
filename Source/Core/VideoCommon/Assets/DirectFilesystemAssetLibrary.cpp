@@ -13,6 +13,8 @@
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/System.h"
+#include "VideoCommon/Assets/CustomResourceManager.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
@@ -383,14 +385,46 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
                                                      VideoCommon::Assets::AssetMap asset_path_map)
 {
-  std::lock_guard lk(m_lock);
-  m_asset_id_to_asset_map_path[asset_id] = std::move(asset_path_map);
+  VideoCommon::Assets::AssetMap previous_asset_map;
+  {
+    std::lock_guard lk(m_asset_map_lock);
+    previous_asset_map = m_asset_id_to_asset_map_path[asset_id];
+  }
+
+  {
+    std::lock_guard lk(m_path_map_lock);
+    for (const auto& [name, path] : previous_asset_map)
+    {
+      m_path_to_asset_id.erase(PathToString(path));
+    }
+
+    for (const auto& [name, path] : asset_path_map)
+    {
+      m_path_to_asset_id[PathToString(path)] = asset_id;
+    }
+  }
+
+  {
+    std::lock_guard lk(m_asset_map_lock);
+    m_asset_id_to_asset_map_path[asset_id] = std::move(asset_path_map);
+  }
+}
+
+void DirectFilesystemAssetLibrary::PathModified(std::string_view path)
+{
+  std::lock_guard lk(m_path_map_lock);
+  if (const auto iter = m_path_to_asset_id.find(path); iter != m_path_to_asset_id.end())
+  {
+    auto& system = Core::System::GetInstance();
+    auto& resource_manager = system.GetCustomResourceManager();
+    resource_manager.MarkAssetDirty(iter->second);
+  }
 }
 
 VideoCommon::Assets::AssetMap
 DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
 {
-  std::lock_guard lk(m_lock);
+  std::lock_guard lk(m_asset_map_lock);
   if (auto iter = m_asset_id_to_asset_map_path.find(asset_id);
       iter != m_asset_id_to_asset_map_path.end())
   {

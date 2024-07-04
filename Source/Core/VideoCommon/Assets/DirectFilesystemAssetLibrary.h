@@ -8,16 +8,16 @@
 #include <mutex>
 #include <string>
 
-#include "VideoCommon/Assets/CustomAssetLibrary.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/Assets/Types.h"
+#include "VideoCommon/Assets/WatchableFilesystemAssetLibrary.h"
 
 namespace VideoCommon
 {
 // This class implements 'CustomAssetLibrary' and loads any assets
 // directly from the filesystem
-class DirectFilesystemAssetLibrary final : public CustomAssetLibrary
+class DirectFilesystemAssetLibrary final : public WatchableFilesystemAssetLibrary
 {
 public:
   LoadInfo LoadTexture(const AssetID& asset_id, TextureAndSamplerData* data) override;
@@ -32,10 +32,15 @@ public:
   void SetAssetIDMapData(const AssetID& asset_id, Assets::AssetMap asset_path_map);
 
 private:
+  void PathModified(std::string_view path) override;
+
   // Gets the asset map given an asset id
   Assets::AssetMap GetAssetMapForID(const AssetID& asset_id) const;
 
-  mutable std::mutex m_lock;
+  mutable std::mutex m_asset_map_lock;
   std::map<AssetID, Assets::AssetMap> m_asset_id_to_asset_map_path;
+
+  mutable std::mutex m_path_map_lock;
+  std::map<std::string, AssetID, std::less<>> m_path_to_asset_id;
 };
 }  // namespace VideoCommon

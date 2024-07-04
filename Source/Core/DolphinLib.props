@@ -679,6 +679,7 @@
     <ClInclude Include="VideoCommon\Assets\TextureAsset.h" />
     <ClInclude Include="VideoCommon\Assets\TextureAssetUtils.h" />
     <ClInclude Include="VideoCommon\Assets\Types.h" />
+    <ClInclude Include="VideoCommon\Assets\WatchableFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
     <ClInclude Include="VideoCommon\BoundingBox.h" />
