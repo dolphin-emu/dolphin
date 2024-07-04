@@ -21,6 +21,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
+#include "Core/NetPlayClient.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
@@ -355,7 +356,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       //       display.
 
       auto& system = Core::System::GetInstance();
-      if (g_ActiveConfig.bImmediateXFB)
+      if (g_ActiveConfig.bImmediateXFB && !NetPlay::IsRollingBack())
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
         u64 ticks = system.GetCoreTiming().GetTicks();

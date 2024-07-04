@@ -156,6 +156,7 @@ private:
   QAction* m_host_input_authority_action;
   QAction* m_golf_mode_action;
   QAction* m_golf_mode_overlay_action;
+  QAction* m_rollback_action;
   QAction* m_fixed_delay_action;
   QAction* m_hide_remote_gbas_action;
   QPushButton* m_quit_button;

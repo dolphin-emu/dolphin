@@ -43,6 +43,35 @@ struct SerializedWiimoteState;
 
 namespace NetPlay
 {
+constexpr int rollback_frames_supported = 10;
+using SaveState = std::pair<std::vector<u8>, u64>;
+// 0 is the closest SaveState in time from the current frame
+class SaveStateArray
+{
+public:
+  std::shared_ptr<SaveState>& New()
+  {
+    std::array<std::shared_ptr<SaveState>, rollback_frames_supported> new_array{};
+
+    for (int i = rollback_frames_supported - 2; i >= 0; i--)
+    {
+      new_array.at(i + 1) = main_array.at(i);
+    }
+    new_array.at(0) = std::shared_ptr<SaveState>{};
+    main_array = std::move(new_array);
+
+    return main_array.at(0);
+  };
+
+  void reset()
+  {
+    for (auto& save_state : main_array)
+      save_state = std::shared_ptr<SaveState>{};
+  }
+
+  std::array<std::shared_ptr<SaveState>, rollback_frames_supported> main_array;
+};
+
 class NetPlayUI
 {
 public:
@@ -178,6 +207,17 @@ public:
                       std::string redirect_folder);
 
   static SyncIdentifier GetSDCardIdentifier();
+
+  void OnFrameEnd(std::unique_lock<std::mutex>& lock);
+  bool IsRollingBack();
+  bool IsInRollbackMode();
+
+  // Only for use in NetPlayClient.cpp >:(
+  size_t current_frame = 0;
+  // Only for use in NetPlayClient.cpp >:(
+  size_t frame_to_stop_at = 0;
+
+  bool done_fast_forwarding;
 
 protected:
   struct AsyncQueueEntry
@@ -350,10 +390,24 @@ private:
   std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
   std::vector<u64> m_wii_sync_titles;
   std::string m_wii_sync_redirect_folder;
+
+  std::vector<std::vector<GCPadStatus>> inputs;
+  int delay = 2;
+  std::condition_variable wait_for_inputs;
+  SaveStateArray save_states;
+
+
+  bool LoadFromFrame(u64 frame);
+  void RollbackToFrame(u64 frame);
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
 bool NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataBatchEntry>& entries);
 unsigned int NetPlay_GetLocalWiimoteForSlot(unsigned int slot);
+void OnFrameEnd();
+// tells when Dolphin is actually mid rollback
+bool IsRollingBack();
+// tells if we're using rollback networking
+bool IsInRollbackMode();
 }  // namespace NetPlay

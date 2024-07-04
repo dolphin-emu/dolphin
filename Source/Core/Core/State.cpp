@@ -204,9 +204,75 @@ static void DoState(Core::System& system, PointerWrap& p)
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
+void DecompressBuffer(std::vector<u8>& buffer)
+{
+  //std::vector<u8> return_vector{};
+  //size_t i = 0;
+  //while (true)
+  //{
+  //  lzo_uint32 cur_len = 0;  // number of bytes to read
+  //  lzo_uint new_len = 0;    // number of bytes to write
+
+  //  if (i > buffer.size())
+  //    break;
+
+  //  std::memcpy(&cur_len, buffer.data() + i, sizeof(cur_len));
+
+  //  std::memcpy(out, buffer.data() + i, cur_len);
+  //  const int res = lzo1x_decompress(out, cur_len, &buffer[i], &new_len, nullptr);
+  //  if (res != LZO_E_OK)
+  //  {
+  //    // This doesn't seem to happen anymore.
+  //    PanicAlertFmtT("Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
+  //                   "Try loading the state again",
+  //                   res, i, new_len);
+  //    return;
+  //  }
+
+  //  i += new_len;
+  //}
+}
+
+void CompressBuffer(std::vector<u8>& buffer)
+{
+ /* std::vector<u8> return_vector{};
+  lzo_uint i = 0;
+  while (true)
+  {
+    lzo_uint32 cur_len = 0;
+    lzo_uint out_len = 0;
+
+    if ((i + IN_LEN) >= buffer.size())
+    {
+      cur_len = (lzo_uint32)(buffer.size() - i);
+    }
+    else
+    {
+      cur_len = IN_LEN;
+    }
+
+    if (lzo1x_1_compress(buffer.data() + i, cur_len, out, &out_len, wrkmem) != LZO_E_OK)
+      PanicAlertFmtT("Internal LZO Error - compression failed");
+
+    size_t old_size = return_vector.size();
+    return_vector.resize(sizeof(out_len));
+    std::memcpy(return_vector.data() + old_size, &out_len, sizeof(out_len));
+
+    old_size = return_vector.size();
+    return_vector.resize(out_len);
+    std::memcpy(return_vector.data() + old_size, out, out_len);
+
+    if (cur_len != IN_LEN)
+      break;
+
+    i += cur_len;
+  }
+  buffer = return_vector;*/
+}
+
 void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
 {
-  if (NetPlay::IsNetPlayRunning())
+  if (!NetPlay::IsInRollbackMode() && NetPlay::IsNetPlayRunning())
   {
     OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
     return;

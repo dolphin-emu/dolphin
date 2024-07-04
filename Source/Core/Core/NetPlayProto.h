@@ -105,6 +105,7 @@ struct NetSettings
   bool golf_mode = false;
   bool use_fma = false;
   bool hide_remote_gbas = false;
+  bool m_RollbackMode = false;
 
   Sram sram;
 
