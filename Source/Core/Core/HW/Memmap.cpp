@@ -205,6 +205,27 @@ bool MemoryManager::IsAddressInFastmemArea(const u8* address) const
   return address >= m_fastmem_arena && address < m_fastmem_arena + m_fastmem_arena_size;
 }
 
+bool MemoryManager::IsAddressInEmulatedMemory(const u8* address) const
+{
+  if (m_ram && address > m_ram && address <= m_ram + GetRamSize())
+  {
+    return true;
+  }
+  else if (m_exram && address > m_exram && address <= m_exram + GetExRamSize())
+  {
+    return true;
+  }
+  else if (m_l1_cache && address > m_l1_cache && address <= m_l1_cache + GetL1CacheSize())
+  {
+    return true;
+  }
+  else if (m_fake_vmem && address > m_fake_vmem && address <= m_fake_vmem + GetFakeVMemSize())
+  {
+    return true;
+  }
+  return false;
+}
+
 bool MemoryManager::InitFastmemArena()
 {
   // Here we set up memory mappings for fastmem. The basic idea of fastmem is that we reserve 4 GiB
@@ -331,7 +352,7 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
   }
 }
 
-void MemoryManager::DoState(PointerWrap& p)
+void MemoryManager::DoState(PointerWrap& p, bool delta)
 {
   const u32 current_ram_size = GetRamSize();
   const u32 current_l1_cache_size = GetL1CacheSize();
@@ -368,53 +389,68 @@ void MemoryManager::DoState(PointerWrap& p)
     p.SetVerifyMode();
     return;
   }
-  u32 page_count = static_cast<u32>(Common::PageSize());
-  p.Do(m_dirty_pages);
-  for (size_t i = 0; i < current_ram_size; i++)
+  if (delta)
   {
-    if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_ram[i])))
+    u32 page_size = static_cast<u32>(Common::PageSize());
+    p.Do(m_dirty_pages);
+    for (size_t i = 0; i < current_ram_size; i++)
     {
-      p.DoArray(m_ram + i, page_count);
-      i += page_count;
-    }
-  }
-  for (size_t i = 0; i < current_l1_cache_size; i++)
-  {
-    if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_l1_cache[i])))
-    {
-      p.DoArray(m_l1_cache + i, page_count);
-      i += page_count;
-    }
-  }
-  p.DoMarker("Memory RAM");
-  if (current_have_fake_vmem)
-  {
-    for (size_t i = 0; i < current_fake_vmem_size; i++)
-    {
-      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_fake_vmem[i])))
+      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_ram[i])))
       {
-        p.DoArray(m_fake_vmem + i, page_count);
-        i += page_count;
+        p.DoArray(m_ram + i, page_size);
+        i += page_size;
       }
     }
-  }
-  p.DoMarker("Memory FakeVMEM");
-  if (current_have_exram)
-  {
-    for (size_t i = 0; i < current_exram_size; i++)
+    for (size_t i = 0; i < current_l1_cache_size; i++)
     {
-      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_exram[i])))
+      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_l1_cache[i])))
       {
-        p.DoArray(m_exram + i, page_count);
-        i += page_count;
+        p.DoArray(m_l1_cache + i, page_size);
+        i += page_size;
       }
     }
-  }
-  p.DoMarker("Memory EXRAM");
+    p.DoMarker("Memory RAM");
+    if (current_have_fake_vmem)
+    {
+      for (size_t i = 0; i < current_fake_vmem_size; i++)
+      {
+        if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_fake_vmem[i])))
+        {
+          p.DoArray(m_fake_vmem + i, page_size);
+          i += page_size;
+        }
+      }
+    }
+    p.DoMarker("Memory FakeVMEM");
+    if (current_have_exram)
+    {
+      for (size_t i = 0; i < current_exram_size; i++)
+      {
+        if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_exram[i])))
+        {
+          p.DoArray(m_exram + i, page_size);
+          i += page_size;
+        }
+      }
+    }
+    p.DoMarker("Memory EXRAM");
 
-  if (p.IsWriteMode())
+    if (p.IsWriteMode())
+    {
+      ResetDirtyPages();
+    }
+  }
+  else
   {
-    ResetDirtyPages();
+    p.DoArray(m_ram, current_ram_size);
+    p.DoArray(m_l1_cache, current_l1_cache_size);
+    p.DoMarker("Memory RAM");
+    if (current_have_fake_vmem)
+      p.DoArray(m_fake_vmem, current_fake_vmem_size);
+    p.DoMarker("Memory FakeVMEM");
+    if (current_have_exram)
+      p.DoArray(m_exram, current_exram_size);
+    p.DoMarker("Memory EXRAM");
   }
 }
 
