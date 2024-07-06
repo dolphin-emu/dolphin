@@ -45,7 +45,7 @@ PUBLIC
 PRIVATE
   # Link against glslang, the other necessary libraries are referenced by the executable.
   glslang
-  xxhash
+  xxhash::xxhash
 )
 
 if (ANDROID AND _M_ARM_64)
