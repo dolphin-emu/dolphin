@@ -27,6 +27,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"
+#include "Common/JsonUtil.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
@@ -36,6 +37,11 @@ namespace Core
 class CPUThreadGuard;
 class System;
 }  // namespace Core
+
+namespace PatchEngine
+{
+struct Patch;
+}  // namespace PatchEngine
 
 class AchievementManager
 {
@@ -60,6 +66,10 @@ public:
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
+  static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
+  static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
+      0x01, 0x1E, 0x2E, 0x74, 0xDD, 0x07, 0x79, 0xDA, 0x0E, 0x5D,
+      0xF8, 0x51, 0x09, 0xC7, 0x9B, 0x46, 0x22, 0x95, 0x50, 0xE9};
 
   struct LeaderboardEntry
   {
@@ -109,6 +119,9 @@ public:
   std::recursive_mutex& GetLock();
   void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
+  void SetGameIniId(const std::string& game_ini_id) { m_game_ini_id = game_ini_id; }
+  void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
+                             const std::string& game_ini_id) const;
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
@@ -132,13 +145,15 @@ public:
   void Shutdown();
 
 private:
-  AchievementManager() = default;
+  AchievementManager() { LoadApprovedList(); };
 
   struct FilereaderState
   {
     int64_t position = 0;
     std::unique_ptr<DiscIO::Volume> volume;
   };
+
+  void LoadApprovedList();
 
   static void* FilereaderOpenByFilepath(const char* path_utf8);
   static void* FilereaderOpenByVolume(const char* path_utf8);
@@ -210,6 +225,9 @@ private:
   RichPresence m_rich_presence;
   std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point m_last_progress_message = std::chrono::steady_clock::now();
+
+  picojson::value m_ini_root;
+  std::string m_game_ini_id;
 
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
   bool m_challenges_updated = false;
