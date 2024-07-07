@@ -166,7 +166,12 @@ bool AchievementManager::IsGameLoaded() const
 void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
 {
   m_background_execution_allowed = allowed;
-  if (allowed && Core::GetState(*AchievementManager::GetInstance().m_system) == Core::State::Paused)
+
+  Core::System* system = m_system.load(std::memory_order_acquire);
+  if (!system)
+    return;
+
+  if (allowed && Core::GetState(*system) == Core::State::Paused)
     DoIdle();
 }
 
@@ -241,7 +246,8 @@ void AchievementManager::DoFrame()
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
   }
-  if (!m_system)
+  Core::System* system = m_system.load(std::memory_order_acquire);
+  if (!system)
     return;
   auto current_time = std::chrono::steady_clock::now();
   if (current_time - m_last_rp_time > std::chrono::seconds{10})
@@ -279,7 +285,8 @@ void AchievementManager::DoIdle()
       Common::SleepCurrentThread(1000);
       {
         std::lock_guard lg{m_lock};
-        if (!m_system || Core::GetState(*m_system) != Core::State::Paused)
+        Core::System* system = m_system.load(std::memory_order_acquire);
+        if (!system || Core::GetState(*system) != Core::State::Paused)
           return;
         if (!m_background_execution_allowed)
           return;
@@ -290,7 +297,7 @@ void AchievementManager::DoIdle()
       // needs to be on host or CPU thread to access memory.
       Core::QueueHostJob([this](Core::System& system) {
         std::lock_guard lg{m_lock};
-        if (!m_system || Core::GetState(*m_system) != Core::State::Paused)
+        if (Core::GetState(system) != Core::State::Paused)
           return;
         if (!m_background_execution_allowed)
           return;
@@ -487,7 +494,7 @@ void AchievementManager::CloseGame()
       m_queue.Cancel();
       m_image_queue.Cancel();
       rc_client_unload_game(m_client);
-      m_system = nullptr;
+      m_system.store(nullptr, std::memory_order_release);
       if (Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED))
         Discord::UpdateDiscordPresence();
       INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
@@ -747,7 +754,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
   instance.m_display_welcome_message = true;
   instance.FetchGameBadges();
-  instance.m_system = &Core::System::GetInstance();
+  instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
   instance.m_update_callback({.all = true});
   // Set this to a value that will immediately trigger RP
   instance.m_last_rp_time = std::chrono::steady_clock::now() - std::chrono::minutes{2};
