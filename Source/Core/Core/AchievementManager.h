@@ -5,6 +5,7 @@
 
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <ctime>
 #include <functional>
@@ -204,7 +205,7 @@ private:
 
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
-  Core::System* m_system{};
+  std::atomic<Core::System*> m_system{};
   bool m_is_runtime_initialized = false;
   UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
