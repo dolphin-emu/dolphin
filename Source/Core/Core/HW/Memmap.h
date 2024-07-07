@@ -49,6 +49,7 @@ struct PhysicalMemoryRegion
   } flags;
   u32 shm_position;
   bool active;
+  bool track;
 };
 
 struct LogicalMemoryView

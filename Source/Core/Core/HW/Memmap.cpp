@@ -56,14 +56,14 @@ u64 MemoryManager::GetDirtyPageIndexFromAddress(u64 address)
 
 bool MemoryManager::HandleFault(uintptr_t fault_address)
 {
-  u8* page_base_bytes = reinterpret_cast<u8*>(fault_address);
-  if (!IsAddressInEmulatedMemory(page_base_bytes) || IsPageDirty(fault_address) || !(Core::IsCPUThread() || Core::IsGPUThread()))
+  u8* fault_address_bytes = reinterpret_cast<u8*>(fault_address);
+  if (!IsAddressInEmulatedMemory(fault_address_bytes) || IsPageDirty(fault_address))
   {
     return false;
   }
   SetPageDirtyBit(fault_address, 0x1, true);
   bool change_protection =
-      m_arena.VirtualProtectMemoryRegion(page_base_bytes, 0x1, PAGE_READWRITE);
+      m_arena.VirtualProtectMemoryRegion(fault_address_bytes, 0x1, PAGE_READWRITE);
 
   if (!change_protection)
   {
@@ -77,7 +77,7 @@ void MemoryManager::WriteProtectPhysicalMemoryRegions()
 {
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
-    if (!region.active)
+    if (!region.active || !region.track)
       continue;
 
     bool change_protection =
@@ -90,10 +90,9 @@ void MemoryManager::WriteProtectPhysicalMemoryRegions()
                     reinterpret_cast<u64>(*region.out_pointer));
     }
     const size_t page_size = Common::PageSize();
-    for (size_t i = 0; i < region.size; i += page_size)
+    for (size_t i = reinterpret_cast<intptr_t>(*region.out_pointer); i < region.size; i += page_size)
     {
-      const uintptr_t index = reinterpret_cast<uintptr_t>((*region.out_pointer) + i);
-      m_dirty_pages[index] = false;
+      m_dirty_pages[i] = false;
     }
   }
 }
@@ -151,13 +150,13 @@ void MemoryManager::Init()
   m_exram_mask = GetExRamSize() - 1;
 
   m_physical_regions[0] = PhysicalMemoryRegion{
-      &m_ram, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, 0, false};
+      &m_ram, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, 0, false, true};
   m_physical_regions[1] = PhysicalMemoryRegion{
-      &m_l1_cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS, 0, false};
+      &m_l1_cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS, 0, false, false};
   m_physical_regions[2] = PhysicalMemoryRegion{
-      &m_fake_vmem, 0x7E000000, GetFakeVMemSize(), PhysicalMemoryRegion::FAKE_VMEM, 0, false};
+      &m_fake_vmem, 0x7E000000, GetFakeVMemSize(), PhysicalMemoryRegion::FAKE_VMEM, 0, false, false};
   m_physical_regions[3] = PhysicalMemoryRegion{
-      &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false};
+      &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false, true};
 
   const bool wii = m_system.IsWii();
   const bool mmu = m_system.IsMMUMode();
@@ -222,21 +221,15 @@ bool MemoryManager::IsAddressInFastmemArea(const u8* address) const
 
 bool MemoryManager::IsAddressInEmulatedMemory(const u8* address) const
 {
-  if (!!m_ram && address >= m_ram && address < m_ram + GetRamSize())
+  for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
-    return true;
-  }
-  else if (!!m_exram && address >= m_exram && address < m_exram + GetExRamSize())
-  {
-    return true;
-  }
-  else if (!!m_l1_cache && address >= m_l1_cache && address < m_l1_cache + GetL1CacheSize())
-  {
-    return true;
-  }
-  else if (!!m_fake_vmem && address >= m_fake_vmem && address < m_fake_vmem + GetFakeVMemSize())
-  {
-    return true;
+    if (!region.active || !region.track)
+      continue;
+
+    if (address >= *region.out_pointer && address < *region.out_pointer + region.size)
+    {
+      return true;
+    }
   }
   return false;
 }
