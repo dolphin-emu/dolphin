@@ -495,7 +495,7 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
         current_buffer.resize(buffer_size);
         ptr = current_buffer.data();
         PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
-        DoState(system, p, false);
+        DoState(system, p, true);
 
         if (p.IsWriteMode())
         {
@@ -901,7 +901,7 @@ void LoadAs(Core::System& system, const std::string& filename)
           {
             u8* ptr = buffer.data();
             PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
-            DoState(system, p, false);
+            DoState(system, p, true);
             loaded = true;
             loadedSuccessfully = p.IsReadMode();
           }

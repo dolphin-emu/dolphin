@@ -137,6 +137,7 @@ public:
   void SetPageDirtyBit(uintptr_t address, size_t size, bool dirty);
   void ResetDirtyPages();
   bool VirtualProtectMemory(u8* data, size_t size, u64 flag);
+  bool HandleFault(uintptr_t fault_address);
 
   std::map<u64, u8>& GetDirtyPages() { return m_dirty_pages; }
 
@@ -266,7 +267,7 @@ private:
 
   std::map<u64, u8> m_dirty_pages;
 
-  std::optional<size_t> GetDirtyPageIndexFromAddress(u64 address);
+  u64 GetDirtyPageIndexFromAddress(u64 address);
   void WriteProtectPhysicalMemoryRegions();
 
   void InitMMIO(bool is_wii);

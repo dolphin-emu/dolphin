@@ -47,16 +47,30 @@ MemoryManager::MemoryManager(Core::System& system) : m_system(system)
 
 MemoryManager::~MemoryManager() = default;
 
-std::optional<size_t> MemoryManager::GetDirtyPageIndexFromAddress(u64 address)
+u64 MemoryManager::GetDirtyPageIndexFromAddress(u64 address)
 {
-  size_t page_size = Common::PageSize();
-  size_t page_mask = page_size - 1;
-  return (address & ~page_mask) >> 12;
+  const size_t page_size = Common::PageSize();
+  const size_t page_mask = page_size - 1;
+  return address & ~page_mask;
 }
 
-bool MemoryManager::VirtualProtectMemory(u8* data, size_t size, u64 flag)
+bool MemoryManager::HandleFault(uintptr_t fault_address)
 {
-  return m_arena.VirtualProtectMemoryRegion(data, size, flag);
+  u8* page_base_bytes = reinterpret_cast<u8*>(fault_address);
+  if (!IsAddressInEmulatedMemory(page_base_bytes) || IsPageDirty(fault_address) || !(Core::IsCPUThread() || Core::IsGPUThread()))
+  {
+    return false;
+  }
+  SetPageDirtyBit(fault_address, 0x1, true);
+  bool change_protection =
+      m_arena.VirtualProtectMemoryRegion(page_base_bytes, 0x1, PAGE_READWRITE);
+
+  if (!change_protection)
+  {
+    return false;
+  }
+
+  return true;
 }
 
 void MemoryManager::WriteProtectPhysicalMemoryRegions()
@@ -65,20 +79,21 @@ void MemoryManager::WriteProtectPhysicalMemoryRegions()
   {
     if (!region.active)
       continue;
-    size_t page_size = Common::PageSize();
+
+    bool change_protection =
+        m_arena.VirtualProtectMemoryRegion((*region.out_pointer), region.size, PAGE_READONLY);
+
+    if (!change_protection)
+    {
+      PanicAlertFmt("Memory::WriteProtectPhysicalMemoryRegions(): Failed to write protect for "
+                    "this block of memory at 0x{:08X}.",
+                    reinterpret_cast<u64>(*region.out_pointer));
+    }
+    const size_t page_size = Common::PageSize();
     for (size_t i = 0; i < region.size; i += page_size)
     {
-      bool change_protection = VirtualProtectMemory((*region.out_pointer) + i, page_size, PAGE_READONLY);
-      if (!change_protection)
-      {
-        PanicAlertFmt(
-            "Memory::WriteProtectPhysicalMemoryRegions(): Failed to write protect for this block of memory at 0x{:08X}.",
-            reinterpret_cast<u64>(*region.out_pointer));
-      }
-      std::optional<size_t> index =
-          GetDirtyPageIndexFromAddress(reinterpret_cast<u64>(*region.out_pointer + i));
-      if (index.has_value())
-        m_dirty_pages[index.value()] = false;
+      const uintptr_t index = reinterpret_cast<uintptr_t>((*region.out_pointer) + i);
+      m_dirty_pages[index] = false;
     }
   }
 }
@@ -207,19 +222,19 @@ bool MemoryManager::IsAddressInFastmemArea(const u8* address) const
 
 bool MemoryManager::IsAddressInEmulatedMemory(const u8* address) const
 {
-  if (m_ram && address > m_ram && address <= m_ram + GetRamSize())
+  if (!!m_ram && address >= m_ram && address < m_ram + GetRamSize())
   {
     return true;
   }
-  else if (m_exram && address > m_exram && address <= m_exram + GetExRamSize())
+  else if (!!m_exram && address >= m_exram && address < m_exram + GetExRamSize())
   {
     return true;
   }
-  else if (m_l1_cache && address > m_l1_cache && address <= m_l1_cache + GetL1CacheSize())
+  else if (!!m_l1_cache && address >= m_l1_cache && address < m_l1_cache + GetL1CacheSize())
   {
     return true;
   }
-  else if (m_fake_vmem && address > m_fake_vmem && address <= m_fake_vmem + GetFakeVMemSize())
+  else if (!!m_fake_vmem && address >= m_fake_vmem && address < m_fake_vmem + GetFakeVMemSize())
   {
     return true;
   }
@@ -391,54 +406,45 @@ void MemoryManager::DoState(PointerWrap& p, bool delta)
   }
   if (delta)
   {
-    u32 page_size = static_cast<u32>(Common::PageSize());
+    const u32 page_size = static_cast<u32>(Common::PageSize());
     p.Do(m_dirty_pages);
-    for (size_t i = 0; i < current_ram_size; i++)
+    for (size_t i = 0; i < current_ram_size; i += page_size)
     {
       if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_ram[i])))
       {
         p.DoArray(m_ram + i, page_size);
-        i += page_size;
       }
     }
-    for (size_t i = 0; i < current_l1_cache_size; i++)
+    for (size_t i = 0; i < current_l1_cache_size; i += page_size)
     {
       if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_l1_cache[i])))
       {
         p.DoArray(m_l1_cache + i, page_size);
-        i += page_size;
       }
     }
     p.DoMarker("Memory RAM");
     if (current_have_fake_vmem)
     {
-      for (size_t i = 0; i < current_fake_vmem_size; i++)
+      for (size_t i = 0; i < current_fake_vmem_size; i += page_size)
       {
         if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_fake_vmem[i])))
         {
           p.DoArray(m_fake_vmem + i, page_size);
-          i += page_size;
         }
       }
     }
     p.DoMarker("Memory FakeVMEM");
     if (current_have_exram)
     {
-      for (size_t i = 0; i < current_exram_size; i++)
+      for (size_t i = 0; i < current_exram_size; i += page_size)
       {
         if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_exram[i])))
         {
           p.DoArray(m_exram + i, page_size);
-          i += page_size;
         }
       }
     }
     p.DoMarker("Memory EXRAM");
-
-    if (p.IsWriteMode())
-    {
-      ResetDirtyPages();
-    }
   }
   else
   {
@@ -690,26 +696,14 @@ void MemoryManager::Write_U64_Swap(u64 value, u32 address)
 
 bool MemoryManager::IsPageDirty(uintptr_t address)
 {
-  std::optional<size_t> index = GetDirtyPageIndexFromAddress(address);
-  if (index.has_value())
-  {
-    return m_dirty_pages[index.value()];
-  }
-  else
-  {
-    return true;
-  }
+  return m_dirty_pages[GetDirtyPageIndexFromAddress(address)];
 }
 
 void MemoryManager::SetPageDirtyBit(uintptr_t address, size_t size, bool dirty)
 {
   for (size_t i = 0; i < size; i++)
   {
-    std::optional<size_t> index = GetDirtyPageIndexFromAddress(address + i);
-    if (index.has_value())
-    {
-      m_dirty_pages[index.value()] = dirty;
-    }
+    m_dirty_pages[GetDirtyPageIndexFromAddress(address + i)] = dirty;
   }
 }
 
