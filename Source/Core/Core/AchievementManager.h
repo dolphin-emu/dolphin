@@ -29,6 +29,7 @@
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"
 #include "Common/JsonUtil.h"
+#include "Common/Lazy.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
@@ -146,7 +147,7 @@ public:
   void Shutdown();
 
 private:
-  AchievementManager() { LoadApprovedList(); };
+  AchievementManager() = default;
 
   struct FilereaderState
   {
@@ -154,7 +155,7 @@ private:
     std::unique_ptr<DiscIO::Volume> volume;
   };
 
-  void LoadApprovedList();
+  static picojson::value LoadApprovedList();
 
   static void* FilereaderOpenByFilepath(const char* path_utf8);
   static void* FilereaderOpenByVolume(const char* path_utf8);
@@ -227,7 +228,7 @@ private:
   std::chrono::steady_clock::time_point m_last_rp_time = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point m_last_progress_message = std::chrono::steady_clock::now();
 
-  picojson::value m_ini_root;
+  Common::Lazy<picojson::value> m_ini_root{LoadApprovedList};
   std::string m_game_ini_id;
 
   std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
