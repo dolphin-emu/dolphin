@@ -137,7 +137,6 @@ public:
   bool IsPageDirty(uintptr_t address);
   void SetPageDirtyBit(uintptr_t address, size_t size, bool dirty);
   void ResetDirtyPages();
-  bool VirtualProtectMemory(u8* data, size_t size, u64 flag);
   bool HandleFault(uintptr_t fault_address);
 
   std::map<u64, u8>& GetDirtyPages() { return m_dirty_pages; }

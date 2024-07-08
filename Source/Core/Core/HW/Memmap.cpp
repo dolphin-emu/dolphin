@@ -90,7 +90,8 @@ void MemoryManager::WriteProtectPhysicalMemoryRegions()
                     reinterpret_cast<u64>(*region.out_pointer));
     }
     const size_t page_size = Common::PageSize();
-    for (size_t i = reinterpret_cast<intptr_t>(*region.out_pointer); i < region.size; i += page_size)
+    const intptr_t out_pointer = reinterpret_cast<intptr_t>(*region.out_pointer);
+    for (size_t i = out_pointer; i < region.size; i += page_size)
     {
       m_dirty_pages[i] = false;
     }
@@ -154,7 +155,8 @@ void MemoryManager::Init()
   m_physical_regions[1] = PhysicalMemoryRegion{
       &m_l1_cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS, 0, false, false};
   m_physical_regions[2] = PhysicalMemoryRegion{
-      &m_fake_vmem, 0x7E000000, GetFakeVMemSize(), PhysicalMemoryRegion::FAKE_VMEM, 0, false, false};
+      &m_fake_vmem, 0x7E000000, GetFakeVMemSize(), PhysicalMemoryRegion::FAKE_VMEM, 0,
+      false,        false};
   m_physical_regions[3] = PhysicalMemoryRegion{
       &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false, true};
 
@@ -408,23 +410,11 @@ void MemoryManager::DoState(PointerWrap& p, bool delta)
         p.DoArray(m_ram + i, page_size);
       }
     }
-    for (size_t i = 0; i < current_l1_cache_size; i += page_size)
-    {
-      if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_l1_cache[i])))
-      {
-        p.DoArray(m_l1_cache + i, page_size);
-      }
-    }
+    p.DoArray(m_l1_cache, current_l1_cache_size);
     p.DoMarker("Memory RAM");
     if (current_have_fake_vmem)
     {
-      for (size_t i = 0; i < current_fake_vmem_size; i += page_size)
-      {
-        if (IsPageDirty(reinterpret_cast<uintptr_t>(&m_fake_vmem[i])))
-        {
-          p.DoArray(m_fake_vmem + i, page_size);
-        }
-      }
+      p.DoArray(m_fake_vmem, current_fake_vmem_size);
     }
     p.DoMarker("Memory FakeVMEM");
     if (current_have_exram)
@@ -456,13 +446,13 @@ void MemoryManager::DoState(PointerWrap& p, bool delta)
 void MemoryManager::Shutdown()
 {
   ShutdownFastmemArena();
+  m_dirty_pages.clear();
 
   m_is_initialized = false;
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
     if (!region.active)
       continue;
-
     m_arena.ReleaseView(*region.out_pointer, region.size);
     *region.out_pointer = nullptr;
   }

@@ -383,7 +383,6 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   if (exception_handler)
   {
     EMM::InstallExceptionHandler();
-    system.GetMemory().InitDirtyPages();
   }
 #ifdef USE_MEMORYWATCHER
   s_memory_watcher = std::make_unique<MemoryWatcher>();
@@ -688,6 +687,9 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     // Become the CPU thread
     cpuThreadFunc(system, savestate_path, delete_savestate);
   }
+
+  if (cpuThreadFunc == CpuThread)
+    system.GetMemory().InitDirtyPages();
 
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
   GDBStub::Deinit();
