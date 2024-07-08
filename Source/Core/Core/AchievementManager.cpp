@@ -361,6 +361,12 @@ bool AchievementManager::IsHardcoreModeActive() const
 void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                                                const std::string& game_ini_id) const
 {
+  if (patches.empty())
+  {
+    // There's nothing to verify, so let's save ourselves some work
+    return;
+  }
+
   std::lock_guard lg{m_lock};
 
   if (!IsHardcoreModeActive())
