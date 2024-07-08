@@ -638,6 +638,13 @@
    "Tags": ""
   },
   {
+   "InjectionAddress": "802F70C4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/LGLExceededGameEnd.asm",
+   "Tags": ""
+  },
+  {
    "InjectionAddress": "801A5014",
    "Name": "Required: Slippi Online",
    "Codetype": "Auto",

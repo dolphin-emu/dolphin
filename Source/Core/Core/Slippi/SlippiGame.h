@@ -69,6 +69,9 @@ typedef struct
 
   uint8_t joystickXRaw;
   uint8_t joystickYRaw;
+
+  uint8_t cstickXRaw;
+  uint8_t cstickYRaw;
 } PlayerFrameData;
 
 typedef struct FrameData
