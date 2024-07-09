@@ -72,7 +72,7 @@ void AchievementManager::Init()
   }
 }
 
-void AchievementManager::LoadApprovedList()
+picojson::value AchievementManager::LoadApprovedList()
 {
   picojson::value temp;
   std::string error;
@@ -82,7 +82,7 @@ void AchievementManager::LoadApprovedList()
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load approved game settings list {}",
                  APPROVED_LIST_FILENAME);
     WARN_LOG_FMT(ACHIEVEMENTS, "Error: {}", error);
-    return;
+    return {};
   }
   auto context = Common::SHA1::CreateContext();
   context->Update(temp.serialize());
@@ -94,10 +94,9 @@ void AchievementManager::LoadApprovedList()
     WARN_LOG_FMT(ACHIEVEMENTS, "Expected hash {}, found hash {}",
                  Common::SHA1::DigestToString(APPROVED_LIST_HASH),
                  Common::SHA1::DigestToString(digest));
-    return;
+    return {};
   }
-  std::lock_guard lg{m_lock};
-  m_ini_root = std::move(temp);
+  return temp;
 }
 
 void AchievementManager::SetUpdateCallback(UpdateCallback callback)
@@ -362,10 +361,18 @@ bool AchievementManager::IsHardcoreModeActive() const
 void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                                                const std::string& game_ini_id) const
 {
+  if (patches.empty())
+  {
+    // There's nothing to verify, so let's save ourselves some work
+    return;
+  }
+
+  std::lock_guard lg{m_lock};
+
   if (!IsHardcoreModeActive())
     return;
 
-  if (!m_ini_root.contains(game_ini_id))
+  if (!m_ini_root->contains(game_ini_id))
     patches.clear();
   auto patch_itr = patches.begin();
   while (patch_itr != patches.end())
@@ -384,7 +391,7 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
     }
     auto digest = context->Finish();
 
-    bool verified = m_ini_root.get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
+    bool verified = m_ini_root->get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
     if (!verified)
     {
       patch_itr = patches.erase(patch_itr);
