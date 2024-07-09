@@ -105,7 +105,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" OFF)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" OFF)
 option(STEAM "Creates a build for Steam" OFF)
-option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
+option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
