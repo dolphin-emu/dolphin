@@ -83,7 +83,8 @@ private:
     if (!pix.isNull())
     {
       const QRect r = option.rect;
-      const QPoint p = QPoint((r.width() - pix.width()) / 2, (r.height() - pix.height()) / 2);
+      const QSize size = pix.deviceIndependentSize().toSize();
+      const QPoint p = QPoint((r.width() - size.width()) / 2, (r.height() - size.height()) / 2);
       painter->drawPixmap(r.topLeft() + p, pix);
     }
   }
