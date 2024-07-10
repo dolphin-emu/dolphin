@@ -117,11 +117,12 @@ void AchievementBox::UpdateProgress()
   if (m_achievement->measured_percent > 0.000)
   {
     m_progress_bar->setRange(0, 100);
-    m_progress_bar->setValue(m_achievement->measured_percent);
+    m_progress_bar->setValue(m_achievement->unlocked ? 100 : m_achievement->measured_percent);
     m_progress_bar->setTextVisible(false);
     m_progress_label->setText(
         QString::fromUtf8(m_achievement->measured_progress,
                           qstrnlen(m_achievement->measured_progress, PROGRESS_LENGTH)));
+    m_progress_label->setVisible(!m_achievement->unlocked);
     m_progress_bar->setVisible(true);
   }
   else
