@@ -27,6 +27,7 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_name = new QLabel();
   m_points = new QLabel();
   m_game_progress = new QProgressBar();
+  m_progress_label = new QLabel();
   m_rich_presence = new QLabel();
 
   m_name->setWordWrap(true);
@@ -35,6 +36,9 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   QSizePolicy sp_retain = m_game_progress->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);
   m_game_progress->setSizePolicy(sp_retain);
+  m_game_progress->setTextVisible(false);
+  m_progress_label->setStyleSheet(QStringLiteral("background-color:transparent;"));
+  m_progress_label->setAlignment(Qt::AlignCenter);
 
   QVBoxLayout* icon_col = new QVBoxLayout();
   icon_col->addWidget(m_user_icon);
@@ -44,6 +48,9 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   text_col->addWidget(m_points);
   text_col->addWidget(m_game_progress);
   text_col->addWidget(m_rich_presence);
+  QVBoxLayout* prog_layout = new QVBoxLayout(m_game_progress);
+  prog_layout->setContentsMargins(0, 0, 0, 0);
+  prog_layout->addWidget(m_progress_label);
   QHBoxLayout* header_layout = new QHBoxLayout();
   header_layout->addLayout(icon_col);
   header_layout->addLayout(text_col);
@@ -115,10 +122,15 @@ void AchievementHeaderWidget::UpdateData()
                           .arg(game_summary.points_unlocked)
                           .arg(game_summary.points_core));
 
-    m_game_progress->setRange(0, game_summary.num_core_achievements);
-    if (!m_game_progress->isVisible())
-      m_game_progress->setVisible(true);
+    // This ensures that 0/0 renders as empty instead of full
+    m_game_progress->setRange(
+        0, (game_summary.num_core_achievements == 0) ? 1 : game_summary.num_core_achievements);
+    m_game_progress->setVisible(true);
     m_game_progress->setValue(game_summary.num_unlocked_achievements);
+    m_progress_label->setVisible(true);
+    m_progress_label->setText(tr("%1/%2")
+                                  .arg(game_summary.num_unlocked_achievements)
+                                  .arg(game_summary.num_core_achievements));
     m_rich_presence->setText(QString::fromUtf8(instance.GetRichPresence().data()));
     m_rich_presence->setVisible(true);
   }
@@ -128,6 +140,7 @@ void AchievementHeaderWidget::UpdateData()
     m_points->setText(tr("%1 points").arg(instance.GetPlayerScore()));
 
     m_game_progress->setVisible(false);
+    m_progress_label->setVisible(false);
     m_rich_presence->setVisible(false);
   }
 }
