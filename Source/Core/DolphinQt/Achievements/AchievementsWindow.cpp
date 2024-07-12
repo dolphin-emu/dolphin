@@ -55,12 +55,12 @@ void AchievementsWindow::CreateMainLayout()
   m_tab_widget = new QTabWidget();
   m_settings_widget = new AchievementSettingsWidget(m_tab_widget);
   m_progress_widget = new AchievementProgressWidget(m_tab_widget);
-  m_leaderboard_widget = new AchievementLeaderboardWidget(m_tab_widget);
+  //  m_leaderboard_widget = new AchievementLeaderboardWidget(m_tab_widget);
   m_tab_widget->addTab(GetWrappedWidget(m_settings_widget, this, 125, 100), tr("Settings"));
   m_tab_widget->addTab(GetWrappedWidget(m_progress_widget, this, 125, 100), tr("Progress"));
   m_tab_widget->setTabVisible(1, is_game_loaded);
-  m_tab_widget->addTab(GetWrappedWidget(m_leaderboard_widget, this, 125, 100), tr("Leaderboards"));
-  m_tab_widget->setTabVisible(2, is_game_loaded);
+  //  m_tab_widget->addTab(GetWrappedWidget(m_leaderboard_widget, this, 125, 100),
+  //  tr("Leaderboards")); m_tab_widget->setTabVisible(2, is_game_loaded);
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -84,9 +84,9 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
   {
     m_header_widget->UpdateData();
     m_progress_widget->UpdateData(true);
-    m_leaderboard_widget->UpdateData(true);
+    //    m_leaderboard_widget->UpdateData(true);
     static_cast<QScrollArea*>(m_tab_widget->widget(1))->verticalScrollBar()->setValue(0);
-    static_cast<QScrollArea*>(m_tab_widget->widget(2))->verticalScrollBar()->setValue(0);
+    //    static_cast<QScrollArea*>(m_tab_widget->widget(2))->verticalScrollBar()->setValue(0);
   }
   else
   {
@@ -99,10 +99,10 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
       m_progress_widget->UpdateData(false);
     else if (updated_items.achievements.size() > 0)
       m_progress_widget->UpdateData(updated_items.achievements);
-    if (updated_items.all_leaderboards)
-      m_leaderboard_widget->UpdateData(false);
-    else if (updated_items.leaderboards.size() > 0)
-      m_leaderboard_widget->UpdateData(updated_items.leaderboards);
+    //    if (updated_items.all_leaderboards)
+    //      m_leaderboard_widget->UpdateData(false);
+    //    else if (updated_items.leaderboards.size() > 0)
+    //      m_leaderboard_widget->UpdateData(updated_items.leaderboards);
   }
 
   {
@@ -111,7 +111,7 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
     const bool is_game_loaded = instance.IsGameLoaded();
     m_header_widget->setVisible(instance.HasAPIToken());
     m_tab_widget->setTabVisible(1, is_game_loaded);
-    m_tab_widget->setTabVisible(2, is_game_loaded);
+    //    m_tab_widget->setTabVisible(2, is_game_loaded);
   }
   update();
 }
