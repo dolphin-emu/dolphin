@@ -324,7 +324,15 @@ def build(config):
                 + python_to_cmake_bool(config["steam"]),
                 "-DENABLE_AUTOUPDATE="
                 + python_to_cmake_bool(config["autoupdate"]),
-                '-DDISTRIBUTOR=' + config['distributor']
+                '-DDISTRIBUTOR=' + config['distributor'],
+                # Always use libraries from Externals to prevent any libraries
+                # installed by Homebrew from leaking in to the app
+                "-DUSE_SYSTEM_LIBS=OFF",
+                # However, we should still use the macOS provided versions of
+                # iconv, bzip2, and curl
+                "-DUSE_SYSTEM_ICONV=ON",
+                "-DUSE_SYSTEM_BZIP2=ON",
+                "-DUSE_SYSTEM_CURL=ON"
             ],
             env=env, cwd=arch)
 
