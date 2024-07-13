@@ -87,7 +87,7 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
   }
   for (auto row : m_leaderboard_order)
   {
-    UpdateRow(row.second);
+    UpdateRow(row.first);
   }
 }
 
@@ -98,7 +98,7 @@ void AchievementLeaderboardWidget::UpdateData(
   {
     if (update_ids.contains(row.first))
     {
-      UpdateRow(row.second);
+      UpdateRow(row.first);
     }
   }
 }
