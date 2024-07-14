@@ -375,6 +375,7 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
   const bool known_id = m_ini_root->contains(game_ini_id);
 
   auto patch_itr = patches.begin();
+  bool any_patches_denied = false;
   while (patch_itr != patches.end())
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "Verifying patch {}", patch_itr->name);
@@ -401,16 +402,19 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
     if (!verified)
     {
       patch_itr = patches.erase(patch_itr);
-      OSD::AddMessage(
-          fmt::format("Failed to verify patch {} from file {}.", patch_itr->name, game_ini_id),
-          OSD::Duration::VERY_LONG, OSD::Color::RED);
-      OSD::AddMessage("Disable hardcore mode to enable this patch.", OSD::Duration::VERY_LONG,
-                      OSD::Color::RED);
+      any_patches_denied = true;
     }
     else
     {
       patch_itr++;
     }
+  }
+  if (any_patches_denied)
+  {
+    OSD::AddMessage("Unverified patches found and disabled.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    OSD::AddMessage("Disable hardcore mode to enable unapproved patches.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
   }
 }
 
