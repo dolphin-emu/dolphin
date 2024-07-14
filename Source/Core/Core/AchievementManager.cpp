@@ -372,26 +372,32 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
   if (!IsHardcoreModeActive())
     return;
 
-  if (!m_ini_root->contains(game_ini_id))
-    patches.clear();
+  const bool known_id = m_ini_root->contains(game_ini_id);
+
   auto patch_itr = patches.begin();
   while (patch_itr != patches.end())
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "Verifying patch {}", patch_itr->name);
 
-    auto context = Common::SHA1::CreateContext();
-    context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch_itr->entries.size())));
-    for (const auto& entry : patch_itr->entries)
-    {
-      context->Update(Common::BitCastToArray<u8>(entry.type));
-      context->Update(Common::BitCastToArray<u8>(entry.address));
-      context->Update(Common::BitCastToArray<u8>(entry.value));
-      context->Update(Common::BitCastToArray<u8>(entry.comparand));
-      context->Update(Common::BitCastToArray<u8>(entry.conditional));
-    }
-    auto digest = context->Finish();
+    bool verified = false;
 
-    bool verified = m_ini_root->get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
+    if (known_id)
+    {
+      auto context = Common::SHA1::CreateContext();
+      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch_itr->entries.size())));
+      for (const auto& entry : patch_itr->entries)
+      {
+        context->Update(Common::BitCastToArray<u8>(entry.type));
+        context->Update(Common::BitCastToArray<u8>(entry.address));
+        context->Update(Common::BitCastToArray<u8>(entry.value));
+        context->Update(Common::BitCastToArray<u8>(entry.comparand));
+        context->Update(Common::BitCastToArray<u8>(entry.conditional));
+      }
+      auto digest = context->Finish();
+
+      verified = m_ini_root->get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
+    }
+
     if (!verified)
     {
       patch_itr = patches.erase(patch_itr);
