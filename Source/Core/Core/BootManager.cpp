@@ -50,6 +50,7 @@
 
 #include "DiscIO/Enums.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace BootManager
@@ -142,7 +143,15 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
 
   // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
   if (!boot->riivolution_patches.empty())
+  {
     Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
+  }
+  else if (Config::Get(Config::MAIN_FAST_DISC_SPEED) && AchievementManager::GetInstance().IsHardcoreModeActive())
+  {
+    Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, false);
+
+    OSD::AddMessage("Emulate Disc Speed is enforced in Hardcore Mode.");
+  }
 
   system.Initialize();
 
