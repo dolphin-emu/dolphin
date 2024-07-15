@@ -295,10 +295,9 @@ bool AchievementManager::CanPause()
   bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
   if (!can_pause)
   {
-    OSD::AddMessage("Cannot spam pausing in hardcore mode.", OSD::Duration::VERY_LONG,
-                    OSD::Color::RED);
     OSD::AddMessage(
-        fmt::format("Can pause in {} seconds.",
+        fmt::format("RetroAchievements Hardcore Mode:\n"
+                    "Cannot pause until another {:.2f} seconds have passed.",
                     static_cast<float>(frames_to_next_pause) /
                         Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate()),
         OSD::Duration::VERY_LONG, OSD::Color::RED);
