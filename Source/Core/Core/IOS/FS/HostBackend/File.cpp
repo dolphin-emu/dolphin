@@ -81,6 +81,12 @@ Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, M
     return ResultCode::NoFreeHandle;
 
   const std::string host_path = BuildFilename(path).host_path;
+  if (File::IsDirectory(host_path))
+  {
+    *handle = Handle{};
+    return ResultCode::Invalid;
+  }
+
   if (!File::IsFile(host_path))
   {
     *handle = Handle{};
