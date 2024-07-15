@@ -84,10 +84,13 @@ void AchievementHeaderWidget::UpdateData()
   m_user_icon->setVisible(false);
   m_user_icon->clear();
   m_user_icon->setText({});
-  QImage i_user_icon(&player_badge.data.front(), player_badge.width, player_badge.height,
-                     QImage::Format_RGBA8888);
-  m_user_icon->setPixmap(QPixmap::fromImage(i_user_icon)
-                             .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  if (!player_badge.data.empty())
+  {
+    QImage i_user_icon(player_badge.data.data(), player_badge.width, player_badge.height,
+                       QImage::Format_RGBA8888);
+    m_user_icon->setPixmap(QPixmap::fromImage(i_user_icon)
+                               .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  }
   m_user_icon->adjustSize();
   m_user_icon->setStyleSheet(QStringLiteral("border: 4px solid transparent"));
   m_user_icon->setVisible(true);
@@ -100,10 +103,13 @@ void AchievementHeaderWidget::UpdateData()
   {
     rc_client_user_game_summary_t game_summary;
     rc_client_get_user_game_summary(instance.GetClient(), &game_summary);
-    QImage i_game_icon(&game_badge.data.front(), game_badge.width, game_badge.height,
-                       QImage::Format_RGBA8888);
-    m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
-                               .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    if (game_badge.data.empty())
+    {
+      QImage i_game_icon(game_badge.data.data(), game_badge.width, game_badge.height,
+                         QImage::Format_RGBA8888);
+      m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
+                                 .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
     m_game_icon->adjustSize();
     std::string_view color = AchievementManager::GRAY;
     if (game_summary.num_core_achievements == game_summary.num_unlocked_achievements)
