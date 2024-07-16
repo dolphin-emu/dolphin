@@ -184,7 +184,7 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-std::optional<IPCReply> BluetoothRealDevice::Close(u32 fd)
+std::optional<IPCReply> BluetoothRealDevice::Close(const u32 fd)
 {
   if (m_handle)
   {
@@ -494,7 +494,7 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
   return true;
 }
 
-void BluetoothRealDevice::FakeVendorCommandReply(USB::V0IntrMessage& ctrl)
+void BluetoothRealDevice::FakeVendorCommandReply(const USB::V0IntrMessage& ctrl)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -514,7 +514,7 @@ void BluetoothRealDevice::FakeVendorCommandReply(USB::V0IntrMessage& ctrl)
 // - it will cause a u8 underflow and royally screw things up.
 // Therefore, the reply to this command has to be faked to avoid random, weird issues
 // (including Wiimote disconnects and "event mismatch" warning messages).
-void BluetoothRealDevice::FakeReadBufferSizeReply(USB::V0IntrMessage& ctrl)
+void BluetoothRealDevice::FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -538,7 +538,7 @@ void BluetoothRealDevice::FakeReadBufferSizeReply(USB::V0IntrMessage& ctrl)
                                        static_cast<s32>(sizeof(hci_event) + sizeof(reply)));
 }
 
-void BluetoothRealDevice::FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, const u8* payload,
+void BluetoothRealDevice::FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload,
                                               const u8 size)
 {
   auto& system = GetSystem();

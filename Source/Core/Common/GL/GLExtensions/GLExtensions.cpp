@@ -2165,7 +2165,7 @@ static void InitExtensionList21()
     s_extension_list[tmp] = true;
 }
 
-static void InitExtensionList(GLContext* context)
+static void InitExtensionList(const GLContext* context)
 {
   s_extension_list.clear();
   if (context->IsGLES())

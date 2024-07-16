@@ -33,7 +33,7 @@ static const X64Reg base_reg = RBX;
 
 static const u8* memory_base_ptr = (u8*)&g_main_cp_state.array_strides;
 
-static OpArg MPIC(const void* ptr, X64Reg scale_reg, int scale = SCALE_1)
+static OpArg MPIC(const void* ptr, const X64Reg scale_reg, const int scale = SCALE_1)
 {
   return MComplex(base_reg, scale_reg, scale, PtrOffset(ptr, memory_base_ptr));
 }
@@ -55,7 +55,7 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
                                 vtx_desc, vtx_att);
 }
 
-OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attribute)
+OpArg VertexLoaderX64::GetVertexAddr(const CPArray array, const VertexComponentFormat attribute)
 {
   OpArg data = MDisp(src_reg, m_src_ofs);
   if (IsIndexed(attribute))
@@ -78,9 +78,9 @@ OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attrib
   }
 }
 
-void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
-                                 ComponentFormat format, int count_in, int count_out,
-                                 bool dequantize, u8 scaling_exponent,
+void VertexLoaderX64::ReadVertex(OpArg data, const VertexComponentFormat attribute,
+                                 const ComponentFormat format, const int count_in, const int count_out,
+                                 const bool dequantize, const u8 scaling_exponent,
                                  AttributeFormat* native_format)
 {
   using ShuffleRow = std::array<__m128i, 3>;
@@ -291,7 +291,7 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
   write_zfreeze();
 }
 
-void VertexLoaderX64::ReadColor(OpArg data, VertexComponentFormat attribute, ColorFormat format)
+void VertexLoaderX64::ReadColor(OpArg data, const VertexComponentFormat attribute, const ColorFormat format)
 {
   int load_bytes = 0;
   switch (format)
@@ -599,7 +599,7 @@ void VertexLoaderX64::GenerateVertexLoader()
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 
-int VertexLoaderX64::RunVertices(const u8* src, u8* dst, int count)
+int VertexLoaderX64::RunVertices(const u8* src, u8* dst, const int count)
 {
   m_numLoadedVertices += count;
   return ((int (*)(const u8* src, u8* dst, int count, const void* base))region)(src, dst, count,

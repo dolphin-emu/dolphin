@@ -22,7 +22,7 @@ static constexpr const char* VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validatio
 
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
-VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
+VulkanContext::VulkanContext(const VkInstance instance, const VkPhysicalDevice physical_device)
     : m_instance(instance), m_physical_device(physical_device)
 {
   // Read device physical memory properties, we need it for allocating buffers
@@ -115,8 +115,8 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   return supports_debug_utils && supports_validation_layers;
 }
 
-VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_utils,
-                                               bool enable_validation_layer,
+VkInstance VulkanContext::CreateVulkanInstance(const WindowSystemType wstype, const bool enable_debug_utils,
+                                               const bool enable_validation_layer,
                                                u32* out_vk_api_version)
 {
   std::vector<const char*> enabled_extensions;
@@ -188,8 +188,8 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
 }
 
 bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension_list,
-                                             WindowSystemType wstype, bool enable_debug_utils,
-                                             bool validation_layer_enabled)
+                                             WindowSystemType wstype, const bool enable_debug_utils,
+                                             const bool validation_layer_enabled)
 {
   u32 extension_count = 0;
   VkResult res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -240,7 +240,7 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
                  extension_properties.extensionName);
   }
 
-  auto AddExtension = [&](const char* name, bool required) {
+  auto AddExtension = [&](const char* name, const bool required) {
     bool extension_supported =
         std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
@@ -318,7 +318,7 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   return true;
 }
 
-VulkanContext::GPUList VulkanContext::EnumerateGPUs(VkInstance instance)
+VulkanContext::GPUList VulkanContext::EnumerateGPUs(const VkInstance instance)
 {
   u32 gpu_count = 0;
   VkResult res = vkEnumeratePhysicalDevices(instance, &gpu_count, nullptr);
@@ -466,7 +466,7 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(
-    VideoConfig* config, VkPhysicalDevice gpu, const VkPhysicalDeviceProperties& properties)
+    VideoConfig* config, const VkPhysicalDevice gpu, const VkPhysicalDeviceProperties& properties)
 {
   // Query image support for the EFB texture formats.
   VkImageFormatProperties efb_color_properties = {};
@@ -514,9 +514,9 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
 }
 
 std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu,
-                                                     VkSurfaceKHR surface, bool enable_debug_utils,
-                                                     bool enable_validation_layer,
-                                                     u32 vk_api_version)
+                                                     const VkSurfaceKHR surface, const bool enable_debug_utils,
+                                                     const bool enable_validation_layer,
+                                                     const u32 vk_api_version)
 {
   std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu);
 
@@ -542,7 +542,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
   return context;
 }
 
-bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
+bool VulkanContext::SelectDeviceExtensions(const bool enable_surface)
 {
   u32 extension_count = 0;
   VkResult res =
@@ -567,7 +567,7 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
   for (const auto& extension_properties : available_extension_list)
     INFO_LOG_FMT(VIDEO, "Available extension: {}", extension_properties.extensionName);
 
-  auto AddExtension = [&](const char* name, bool required) {
+  auto AddExtension = [&](const char* name, const bool required) {
     if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
                        return !strcmp(name, properties.extensionName);
@@ -636,7 +636,7 @@ bool VulkanContext::SelectDeviceFeatures()
   return true;
 }
 
-bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer)
+bool VulkanContext::CreateDevice(const VkSurfaceKHR surface, const bool enable_validation_layer)
 {
   u32 queue_family_count;
   vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_family_count, nullptr);
@@ -782,7 +782,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   return true;
 }
 
-bool VulkanContext::CreateAllocator(u32 vk_api_version)
+bool VulkanContext::CreateAllocator(const u32 vk_api_version)
 {
   VmaAllocatorCreateInfo allocator_info = {};
   allocator_info.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
@@ -811,7 +811,7 @@ bool VulkanContext::CreateAllocator(u32 vk_api_version)
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
-DebugUtilsCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+DebugUtilsCallback(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                    VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 {
@@ -1003,7 +1003,7 @@ void VulkanContext::PopulateShaderSubgroupSupport()
       subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT;
 }
 
-bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface)
+bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, const VkSurfaceKHR surface)
 {
 #ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
   if (!surface || !vkGetPhysicalDeviceSurfaceCapabilities2KHR ||

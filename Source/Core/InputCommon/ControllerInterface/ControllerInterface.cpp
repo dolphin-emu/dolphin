@@ -101,7 +101,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
     InvokeDevicesChangedCallbacks();
 }
 
-void ControllerInterface::ChangeWindow(void* hwnd, WindowChangeReason reason)
+void ControllerInterface::ChangeWindow(void* hwnd, const WindowChangeReason reason)
 {
   if (!m_is_init)
     return;
@@ -116,7 +116,7 @@ void ControllerInterface::ChangeWindow(void* hwnd, WindowChangeReason reason)
     RefreshDevices(RefreshReason::WindowChangeOnly);
 }
 
-void ControllerInterface::RefreshDevices(RefreshReason reason)
+void ControllerInterface::RefreshDevices(const RefreshReason reason)
 {
   if (!m_is_init)
     return;
@@ -293,7 +293,7 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
 }
 
 void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback,
-                                       bool force_devices_release)
+                                       const bool force_devices_release)
 {
   // If we are shutdown (or in process of shutting down) ignore this request:
   if (!m_is_init)
@@ -376,7 +376,7 @@ void ControllerInterface::UpdateInput()
   }
 }
 
-void ControllerInterface::SetCurrentInputChannel(ciface::InputChannel input_channel)
+void ControllerInterface::SetCurrentInputChannel(const ciface::InputChannel input_channel)
 {
   tls_input_channel = input_channel;
 }
@@ -391,7 +391,7 @@ WindowSystemInfo ControllerInterface::GetWindowSystemInfo() const
   return m_wsi;
 }
 
-void ControllerInterface::SetAspectRatioAdjustment(float value)
+void ControllerInterface::SetAspectRatioAdjustment(const float value)
 {
   m_aspect_ratio_adjustment = value;
 }
@@ -406,7 +406,7 @@ Common::Vec2 ControllerInterface::GetWindowInputScale() const
     return {1 / ar, 1.f};
 }
 
-void ControllerInterface::SetMouseCenteringRequested(bool center)
+void ControllerInterface::SetMouseCenteringRequested(const bool center)
 {
   m_requested_mouse_centering = center;
 }

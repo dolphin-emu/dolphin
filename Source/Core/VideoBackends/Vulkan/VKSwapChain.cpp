@@ -23,7 +23,7 @@
 
 namespace Vulkan
 {
-SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
+SwapChain::SwapChain(const WindowSystemInfo& wsi, const VkSurfaceKHR surface, const bool vsync)
     : m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync),
       m_fullscreen_supported(g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface))
 {
@@ -244,7 +244,7 @@ bool SwapChain::SelectPresentMode()
   // Checks if a particular mode is supported, if it is, returns that mode.
   auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
     auto it = std::find_if(present_modes.begin(), present_modes.end(),
-                           [check_mode](VkPresentModeKHR mode) { return check_mode == mode; });
+                           [check_mode](const VkPresentModeKHR mode) { return check_mode == mode; });
     return it != present_modes.end();
   };
 
@@ -528,7 +528,7 @@ bool SwapChain::RecreateSwapChain()
   return true;
 }
 
-bool SwapChain::SetVSync(bool enabled)
+bool SwapChain::SetVSync(const bool enabled)
 {
   if (m_vsync_enabled == enabled)
     return true;
@@ -538,7 +538,7 @@ bool SwapChain::SetVSync(bool enabled)
   return RecreateSwapChain();
 }
 
-bool SwapChain::SetFullscreenState(bool state)
+bool SwapChain::SetFullscreenState(const bool state)
 {
 #ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
   if (m_current_fullscreen_state == state)

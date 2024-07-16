@@ -239,7 +239,7 @@ bool OH0::HasDeviceWithVidPid(const u16 vid, const u16 pid) const
   });
 }
 
-void OH0::OnDeviceChange(const ChangeEvent event, std::shared_ptr<USB::Device> device)
+void OH0::OnDeviceChange(const ChangeEvent event, const std::shared_ptr<USB::Device> device)
 {
   std::lock_guard lk(m_devices_mutex);
   if (event == ChangeEvent::Inserted)

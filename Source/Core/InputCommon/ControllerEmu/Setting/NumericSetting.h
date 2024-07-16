@@ -31,7 +31,7 @@ struct NumericSettingDetails
   NumericSettingDetails(const char* const _ini_name, const char* const _ui_suffix = nullptr,
                         const char* const _ui_description = nullptr,
                         const char* const _ui_name = nullptr,
-                        SettingVisibility _visibility = SettingVisibility::Normal)
+                        const SettingVisibility _visibility = SettingVisibility::Normal)
       : ini_name(_ini_name), ui_suffix(_ui_suffix), ui_description(_ui_description),
         ui_name(_ui_name ? _ui_name : _ini_name), visibility(_visibility)
   {

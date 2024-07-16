@@ -107,8 +107,8 @@ public:
   explicit LLEAccelerator(SDSP& dsp) : m_dsp{dsp} {}
 
 protected:
-  u8 ReadMemory(u32 address) override { return Host::ReadHostMemory(address); }
-  void WriteMemory(u32 address, u8 value) override { Host::WriteHostMemory(value, address); }
+  u8 ReadMemory(const u32 address) override { return Host::ReadHostMemory(address); }
+  void WriteMemory(const u32 address, const u8 value) override { Host::WriteHostMemory(value, address); }
   void OnEndException() override { m_dsp.SetException(ExceptionType::AcceleratorOverflow); }
 
 private:
@@ -197,7 +197,7 @@ void SDSP::SetException(ExceptionType exception)
   exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
 }
 
-void SDSP::SetExternalInterrupt(bool val)
+void SDSP::SetExternalInterrupt(const bool val)
 {
   external_interrupt_waiting.store(val, std::memory_order_release);
 }
@@ -248,7 +248,7 @@ void SDSP::CheckExceptions()
   }
 }
 
-u16 SDSP::ReadRegister(size_t reg) const
+u16 SDSP::ReadRegister(const size_t reg) const
 {
   switch (reg)
   {
@@ -305,7 +305,7 @@ u16 SDSP::ReadRegister(size_t reg) const
   }
 }
 
-void SDSP::WriteRegister(size_t reg, u16 val)
+void SDSP::WriteRegister(const size_t reg, const u16 val)
 {
   switch (reg)
   {
@@ -499,7 +499,7 @@ void DSPCore::ClearIRAM()
   m_dsp_jit->ClearIRAM();
 }
 
-void DSPCore::SetState(State new_state)
+void DSPCore::SetState(const State new_state)
 {
   m_core_state = new_state;
 
@@ -515,12 +515,12 @@ State DSPCore::GetState() const
   return m_core_state;
 }
 
-void DSPCore::SetException(ExceptionType exception)
+void DSPCore::SetException(const ExceptionType exception)
 {
   m_dsp.SetException(exception);
 }
 
-void DSPCore::SetExternalInterrupt(bool val)
+void DSPCore::SetExternalInterrupt(const bool val)
 {
   m_dsp.SetExternalInterrupt(val);
 }
@@ -535,52 +535,52 @@ void DSPCore::CheckExceptions()
   m_dsp.CheckExceptions();
 }
 
-u16 DSPCore::ReadRegister(size_t reg) const
+u16 DSPCore::ReadRegister(const size_t reg) const
 {
   return m_dsp.ReadRegister(reg);
 }
 
-void DSPCore::WriteRegister(size_t reg, u16 val)
+void DSPCore::WriteRegister(const size_t reg, const u16 val)
 {
   m_dsp.WriteRegister(reg, val);
 }
 
-u32 DSPCore::PeekMailbox(Mailbox mailbox) const
+u32 DSPCore::PeekMailbox(const Mailbox mailbox) const
 {
   return m_dsp.PeekMailbox(mailbox);
 }
 
-u16 DSPCore::ReadMailboxLow(Mailbox mailbox)
+u16 DSPCore::ReadMailboxLow(const Mailbox mailbox)
 {
   return m_dsp.ReadMailboxLow(mailbox);
 }
 
-u16 DSPCore::ReadMailboxHigh(Mailbox mailbox)
+u16 DSPCore::ReadMailboxHigh(const Mailbox mailbox)
 {
   return m_dsp.ReadMailboxHigh(mailbox);
 }
 
-void DSPCore::WriteMailboxLow(Mailbox mailbox, u16 value)
+void DSPCore::WriteMailboxLow(const Mailbox mailbox, const u16 value)
 {
   m_dsp.WriteMailboxLow(mailbox, value);
 }
 
-void DSPCore::WriteMailboxHigh(Mailbox mailbox, u16 value)
+void DSPCore::WriteMailboxHigh(const Mailbox mailbox, const u16 value)
 {
   m_dsp.WriteMailboxHigh(mailbox, value);
 }
 
-void DSPCore::LogIFXRead(u16 address, u16 read_value)
+void DSPCore::LogIFXRead(const u16 address, const u16 read_value)
 {
   m_dsp_cap->LogIFXRead(address, read_value);
 }
 
-void DSPCore::LogIFXWrite(u16 address, u16 written_value)
+void DSPCore::LogIFXWrite(const u16 address, const u16 written_value)
 {
   m_dsp_cap->LogIFXWrite(address, written_value);
 }
 
-void DSPCore::LogDMA(u16 control, u32 gc_address, u16 dsp_address, u16 length, const u8* data)
+void DSPCore::LogDMA(const u16 control, const u32 gc_address, const u16 dsp_address, const u16 length, const u8* data)
 {
   m_dsp_cap->LogDMA(control, gc_address, dsp_address, length, data);
 }

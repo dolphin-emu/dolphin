@@ -85,7 +85,7 @@ static const char* CommandBufferAsString()
 }
 
 // private helpers
-static u8 Hex2char(u8 hex)
+static u8 Hex2char(const u8 hex)
 {
   if (hex >= '0' && hex <= '9')
     return hex - '0';
@@ -107,7 +107,7 @@ static u8 Nibble2hex(u8 n)
     return 'A' + n - 0xa;
 }
 
-static void Mem2hex(u8* dst, u8* src, u32 len)
+static void Mem2hex(u8* dst, const u8* src, u32 len)
 {
   while (len-- > 0)
   {
@@ -117,7 +117,7 @@ static void Mem2hex(u8* dst, u8* src, u32 len)
   }
 }
 
-static void Hex2mem(u8* dst, u8* src, u32 len)
+static void Hex2mem(u8* dst, const u8* src, u32 len)
 {
   while (len-- > 0)
   {
@@ -159,7 +159,7 @@ static u8 CalculateChecksum()
   return c;
 }
 
-static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
+static void RemoveBreakpoint(const BreakpointType type, const u32 addr, const u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
@@ -362,21 +362,21 @@ static void HandleIsThreadAlive()
   SendReply("E01");
 }
 
-static void wbe32hex(u8* p, u32 v)
+static void wbe32hex(u8* p, const u32 v)
 {
   u32 i;
   for (i = 0; i < 8; i++)
     p[i] = Nibble2hex(v >> (28 - 4 * i));
 }
 
-static void wbe64hex(u8* p, u64 v)
+static void wbe64hex(u8* p, const u64 v)
 {
   u32 i;
   for (i = 0; i < 16; i++)
     p[i] = Nibble2hex(v >> (60 - 4 * i));
 }
 
-static u32 re32hex(u8* p)
+static u32 re32hex(const u8* p)
 {
   u32 i;
   u32 res = 0;
@@ -387,7 +387,7 @@ static u32 re32hex(u8* p)
   return res;
 }
 
-static u64 re64hex(u8* p)
+static u64 re64hex(const u8* p)
 {
   u32 i;
   u64 res = 0;
@@ -869,7 +869,7 @@ static void Step()
   CallOnStateChangedCallbacks(Core::State::Paused);
 }
 
-static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
+static bool AddBreakpoint(BreakpointType type, const u32 addr, const u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
@@ -944,7 +944,7 @@ static void HandleRemoveBreakpoint()
   SendReply("OK");
 }
 
-void ProcessCommands(bool loop_until_continue)
+void ProcessCommands(const bool loop_until_continue)
 {
   s_just_connected = false;
   auto& system = Core::System::GetInstance();
@@ -1059,7 +1059,7 @@ void InitLocal(const char* socket)
 }
 #endif
 
-void Init(u32 port)
+void Init(const u32 port)
 {
   sockaddr_in saddr_server = {};
   sockaddr_in saddr_client;
@@ -1076,7 +1076,7 @@ void Init(u32 port)
   saddr_client.sin_addr.s_addr = ntohl(saddr_client.sin_addr.s_addr);
 }
 
-static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
+static void InitGeneric(const int domain, const sockaddr* server_addr, const socklen_t server_addrlen,
                         sockaddr* client_addr, socklen_t* client_addrlen)
 {
   s_socket_context.emplace();

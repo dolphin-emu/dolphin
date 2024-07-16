@@ -13,7 +13,7 @@
 
 namespace DSP::HLE
 {
-CARDUCode::CARDUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+CARDUCode::CARDUCode(DSPHLE* dsphle, const u32 crc) : UCodeInterface(dsphle, crc)
 {
   INFO_LOG_FMT(DSPHLE, "CARDUCode - initialized");
 }
@@ -32,7 +32,7 @@ void CARDUCode::Update()
   }
 }
 
-void CARDUCode::HandleMail(u32 mail)
+void CARDUCode::HandleMail(const u32 mail)
 {
   if (mail == 0xFF000000)  // unlock card
   {

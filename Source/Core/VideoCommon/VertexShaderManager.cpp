@@ -251,7 +251,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       dstlight.pos[2] = light.dpos[2];
 
       // TODO: Hardware testing is needed to confirm that this normalization is correct
-      auto sanitize = [](float f) {
+      auto sanitize = [](const float f) {
         if (std::isnan(f))
           return 0.0f;
         else if (std::isinf(f))
@@ -451,7 +451,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   }
 }
 
-void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
+void VertexShaderManager::TransformToClipSpace(const float* data, float* out, const u32 MtxIdx)
 {
   const float* world_matrix = &xfmem.posMatrices[(MtxIdx & 0x3f) * 4];
 

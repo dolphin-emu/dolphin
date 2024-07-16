@@ -117,7 +117,7 @@ void Shinkansen::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-ControllerEmu::ControlGroup* Shinkansen::GetGroup(ShinkansenGroup group)
+ControllerEmu::ControlGroup* Shinkansen::GetGroup(const ShinkansenGroup group)
 {
   switch (group)
   {

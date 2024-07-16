@@ -48,7 +48,7 @@ DSPEmitter::~DSPEmitter()
   FreeCodeSpace();
 }
 
-u16 DSPEmitter::RunCycles(u16 cycles)
+u16 DSPEmitter::RunCycles(const u16 cycles)
 {
   if (m_dsp_core.DSPState().external_interrupt_waiting.exchange(false, std::memory_order_acquire))
   {
@@ -105,7 +105,7 @@ static void CheckExceptionsThunk(DSPCore& dsp)
 }
 
 // Must go out of block if exception is detected
-void DSPEmitter::checkExceptions(u32 retval)
+void DSPEmitter::checkExceptions(const u32 retval)
 {
   // Check for interrupts and exceptions
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
@@ -131,12 +131,12 @@ bool DSPEmitter::FlagsNeeded() const
   return !analyzer.IsStartOfInstruction(m_compile_pc) || analyzer.IsUpdateSR(m_compile_pc);
 }
 
-static void FallbackThunk(Interpreter::Interpreter& interpreter, UDSPInstruction inst)
+static void FallbackThunk(Interpreter::Interpreter& interpreter, const UDSPInstruction inst)
 {
   (interpreter.*Interpreter::GetOp(inst))(inst);
 }
 
-void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
+void DSPEmitter::FallBackToInterpreter(const UDSPInstruction inst)
 {
   const DSPOPCTemplate* const op_template = GetOpTemplate(inst);
 
@@ -158,7 +158,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
   m_gpr.PopRegs();
 }
 
-static void FallbackExtThunk(Interpreter::Interpreter& interpreter, UDSPInstruction inst)
+static void FallbackExtThunk(Interpreter::Interpreter& interpreter, const UDSPInstruction inst)
 {
   (interpreter.*Interpreter::GetExtOp(inst))(inst);
 }
@@ -168,7 +168,7 @@ static void ApplyWriteBackLogThunk(Interpreter::Interpreter& interpreter)
   interpreter.ApplyWriteBackLog();
 }
 
-void DSPEmitter::EmitInstruction(UDSPInstruction inst)
+void DSPEmitter::EmitInstruction(const UDSPInstruction inst)
 {
   const DSPOPCTemplate* const op_template = GetOpTemplate(inst);
   bool ext_is_jit = false;
@@ -224,7 +224,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
   }
 }
 
-void DSPEmitter::Compile(u16 start_addr)
+void DSPEmitter::Compile(const u16 start_addr)
 {
   // Remember the current block address for later
   m_start_address = start_addr;
@@ -497,12 +497,12 @@ OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
   return MDisp(R15, static_cast<int>(offsetof(SDSP, external_interrupt_waiting)));
 }
 
-OpArg DSPEmitter::M_SDSP_r_st(size_t index)
+OpArg DSPEmitter::M_SDSP_r_st(const size_t index)
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st) + sizeof(SDSP::r.st[0]) * index));
 }
 
-OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
+OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(const size_t index)
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs) +
                                      sizeof(SDSP::reg_stack_ptrs[0]) * index));

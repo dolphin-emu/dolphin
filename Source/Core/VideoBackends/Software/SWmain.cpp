@@ -40,7 +40,7 @@ public:
   void EnableQuery(PerfQueryGroup type) override {}
   void DisableQuery(PerfQueryGroup type) override {}
   void ResetQuery() override { EfbInterface::ResetPerfQuery(); }
-  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::GetPerfQueryResult(type); }
+  u32 GetQueryResult(const PerfQueryType type) override { return EfbInterface::GetPerfQueryResult(type); }
   void FlushResults() override {}
   bool IsFlushed() const override { return true; }
 };

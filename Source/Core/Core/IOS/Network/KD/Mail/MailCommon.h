@@ -12,7 +12,7 @@ namespace IOS::HLE::NWC24::Mail
 {
 constexpr u32 MAIL_LIST_MAGIC = 0x57635466;  // WcTf
 
-inline u32 CalculateFileOffset(u32 index)
+inline u32 CalculateFileOffset(const u32 index)
 {
   return Common::swap32(128 + (index * 128));
 }

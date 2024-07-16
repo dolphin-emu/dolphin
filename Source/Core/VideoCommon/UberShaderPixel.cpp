@@ -19,7 +19,7 @@ namespace UberShader
 {
 namespace
 {
-void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, bool per_pixel_lighting)
+void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, const bool per_pixel_lighting)
 {
   out->Write("\tCustomShaderData custom_data;\n");
   if (per_pixel_lighting)
@@ -293,7 +293,7 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
-void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
+void ClearUnusedPixelShaderUidBits(const APIType api_type, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid)
 {
   pixel_ubershader_uid_data* const uid_data = uid->GetUidData();

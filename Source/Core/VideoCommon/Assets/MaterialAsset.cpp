@@ -84,8 +84,8 @@ bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::v
   return true;
 }
 bool ParsePropertyValue(const CustomAssetLibrary::AssetID& asset_id,
-                        const picojson::value& json_value, std::string_view code_name,
-                        std::string_view type, MaterialProperty::Value* value)
+                        const picojson::value& json_value, const std::string_view code_name,
+                        const std::string_view type, MaterialProperty::Value* value)
 {
   if (type == "int")
   {
@@ -212,7 +212,7 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
 
 void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& property)
 {
-  const auto write_memory = [&](const void* raw_value, std::size_t data_size) {
+  const auto write_memory = [&](const void* raw_value, const std::size_t data_size) {
     std::memcpy(buffer, raw_value, data_size);
     std::memset(buffer + data_size, 0, MemorySize - data_size);
     buffer += MemorySize;
@@ -220,15 +220,15 @@ void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& proper
   std::visit(
       overloaded{
           [&](const CustomAssetLibrary::AssetID&) {},
-          [&](s32 value) { write_memory(&value, sizeof(s32)); },
+          [&](const s32 value) { write_memory(&value, sizeof(s32)); },
           [&](const std::array<s32, 2>& value) { write_memory(value.data(), sizeof(s32) * 2); },
           [&](const std::array<s32, 3>& value) { write_memory(value.data(), sizeof(s32) * 3); },
           [&](const std::array<s32, 4>& value) { write_memory(value.data(), sizeof(s32) * 4); },
-          [&](float value) { write_memory(&value, sizeof(float)); },
+          [&](const float value) { write_memory(&value, sizeof(float)); },
           [&](const std::array<float, 2>& value) { write_memory(value.data(), sizeof(float) * 2); },
           [&](const std::array<float, 3>& value) { write_memory(value.data(), sizeof(float) * 3); },
           [&](const std::array<float, 4>& value) { write_memory(value.data(), sizeof(float) * 4); },
-          [&](bool value) { write_memory(&value, sizeof(bool)); }},
+          [&](const bool value) { write_memory(&value, sizeof(bool)); }},
       property.m_value);
 }
 
@@ -336,7 +336,7 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
                             json_property["type"] = picojson::value{"texture_asset"};
                             json_property["value"] = picojson::value{value};
                           },
-                          [&](s32 value) {
+                          [&](const s32 value) {
                             json_property["type"] = picojson::value{"int"};
                             json_property["value"] = picojson::value{static_cast<double>(value)};
                           },
@@ -352,7 +352,7 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
                             json_property["type"] = picojson::value{"int4"};
                             json_property["value"] = picojson::value{ToJsonArray(value)};
                           },
-                          [&](float value) {
+                          [&](const float value) {
                             json_property["type"] = picojson::value{"float"};
                             json_property["value"] = picojson::value{static_cast<double>(value)};
                           },
@@ -368,7 +368,7 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
                             json_property["type"] = picojson::value{"float4"};
                             json_property["value"] = picojson::value{ToJsonArray(value)};
                           },
-                          [&](bool value) {
+                          [&](const bool value) {
                             json_property["type"] = picojson::value{"bool"};
                             json_property["value"] = picojson::value{value};
                           }},

@@ -249,7 +249,7 @@ std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::I
   return codes;
 }
 
-void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes)
+void SaveCodes(Common::IniFile* local_ini, const std::span<const ARCode> codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
@@ -308,7 +308,7 @@ std::string SerializeLine(const AREntry& op)
   return fmt::format("{:08X} {:08X}", op.cmd_addr, op.value);
 }
 
-static void VLogInfo(std::string_view format, fmt::format_args args)
+static void VLogInfo(const std::string_view format, const fmt::format_args args)
 {
   if (s_disable_logging)
     return;
@@ -328,12 +328,12 @@ static void VLogInfo(std::string_view format, fmt::format_args args)
 }
 
 template <typename... Args>
-static void LogInfo(std::string_view format, const Args&... args)
+static void LogInfo(const std::string_view format, const Args&... args)
 {
   VLogInfo(format, fmt::make_format_args(args...));
 }
 
-void EnableSelfLogging(bool enable)
+void EnableSelfLogging(const bool enable)
 {
   s_use_internal_log.store(enable, std::memory_order_relaxed);
 }

@@ -33,7 +33,7 @@ std::unique_ptr<BlobReader> PlainFileReader::CopyReader() const
   return Create(m_file.Duplicate("rb"));
 }
 
-bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
+bool PlainFileReader::Read(const u64 offset, const u64 nbytes, u8* out_ptr)
 {
   if (m_file.Seek(offset, File::SeekOrigin::Begin) && m_file.ReadBytes(out_ptr, nbytes))
   {

@@ -29,7 +29,7 @@ namespace DiscIO::Riivolution
 FileDataLoader::~FileDataLoader() = default;
 
 FileDataLoaderHostFS::FileDataLoaderHostFS(std::string sd_root, const std::string& xml_path,
-                                           std::string_view patch_root)
+                                           const std::string_view patch_root)
     : m_sd_root(std::move(sd_root))
 {
   // Riivolution treats 'external' file paths as follows:
@@ -57,7 +57,7 @@ FileDataLoaderHostFS::FileDataLoaderHostFS(std::string sd_root, const std::strin
 }
 
 std::optional<std::string>
-FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relative_path)
+FileDataLoaderHostFS::MakeAbsoluteFromRelative(const std::string_view external_relative_path)
 {
 #ifdef _WIN32
   // Riivolution treats a backslash as just a standard filename character, but we can't replicate
@@ -104,7 +104,7 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
         result.pop_back();
       result.pop_back();
     }
-    else if (std::all_of(element.begin(), element.end(), [](char c) { return c == '.'; }))
+    else if (std::all_of(element.begin(), element.end(), [](const char c) { return c == '.'; }))
     {
       // This is a triple, quadruple, etc. dot.
       // Some file systems treat this as several 'up' path traversals, but Riivolution does not.
@@ -163,7 +163,7 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
 }
 
 std::optional<u64>
-FileDataLoaderHostFS::GetExternalFileSize(std::string_view external_relative_path)
+FileDataLoaderHostFS::GetExternalFileSize(const std::string_view external_relative_path)
 {
   auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
@@ -174,7 +174,7 @@ FileDataLoaderHostFS::GetExternalFileSize(std::string_view external_relative_pat
   return f.GetSize();
 }
 
-std::vector<u8> FileDataLoaderHostFS::GetFileContents(std::string_view external_relative_path)
+std::vector<u8> FileDataLoaderHostFS::GetFileContents(const std::string_view external_relative_path)
 {
   auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
@@ -191,7 +191,7 @@ std::vector<u8> FileDataLoaderHostFS::GetFileContents(std::string_view external_
 }
 
 std::vector<FileDataLoader::Node>
-FileDataLoaderHostFS::GetFolderContents(std::string_view external_relative_path)
+FileDataLoaderHostFS::GetFolderContents(const std::string_view external_relative_path)
 {
   auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
@@ -205,8 +205,8 @@ FileDataLoaderHostFS::GetFolderContents(std::string_view external_relative_path)
 }
 
 BuilderContentSource
-FileDataLoaderHostFS::MakeContentSource(std::string_view external_relative_path,
-                                        u64 external_offset, u64 external_size, u64 disc_offset)
+FileDataLoaderHostFS::MakeContentSource(const std::string_view external_relative_path,
+                                        const u64 external_offset, const u64 external_size, const u64 disc_offset)
 {
   auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
@@ -216,14 +216,14 @@ FileDataLoaderHostFS::MakeContentSource(std::string_view external_relative_path,
 }
 
 std::optional<std::string>
-FileDataLoaderHostFS::ResolveSavegameRedirectPath(std::string_view external_relative_path)
+FileDataLoaderHostFS::ResolveSavegameRedirectPath(const std::string_view external_relative_path)
 {
   return MakeAbsoluteFromRelative(external_relative_path);
 }
 
 // 'before' and 'after' should be two copies of the same source
 // 'split_at' needs to be between the start and end of the source, may not match either boundary
-static void SplitAt(BuilderContentSource* before, BuilderContentSource* after, u64 split_at)
+static void SplitAt(BuilderContentSource* before, BuilderContentSource* after, const u64 split_at)
 {
   const u64 start = before->m_offset;
   const u64 size = before->m_size;
@@ -361,7 +361,7 @@ static void ApplyPatchToFile(const Patch& patch, const File& file_patch,
 }
 
 static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTBuilderNode>* fst,
-                                         bool create_if_not_exists)
+                                         const bool create_if_not_exists)
 {
   const size_t path_separator = path.find('/');
   const bool is_file = path_separator == std::string_view::npos;
@@ -398,8 +398,8 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
                            create_if_not_exists);
 }
 
-static FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
-                                                     std::vector<FSTBuilderNode>& fst)
+static FSTBuilderNode* FindFilenameNodeInFST(const std::string_view filename,
+                                             std::vector<FSTBuilderNode>& fst)
 {
   for (FSTBuilderNode& node : fst)
   {
@@ -446,8 +446,8 @@ static void ApplyFilePatchToFST(const Patch& patch, const File& file,
 
 static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
                                   std::vector<FSTBuilderNode>* fst,
-                                  FSTBuilderNode* dol_node, std::string_view disc_path,
-                                  std::string_view external_path)
+                                  FSTBuilderNode* dol_node, const std::string_view disc_path,
+                                  const std::string_view external_path)
 {
   const auto external_files = patch.m_file_data_loader->GetFolderContents(external_path);
   for (const auto& child : external_files)
@@ -491,7 +491,7 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
   ApplyFolderPatchToFST(patch, folder, fst, dol_node, folder.m_disc, folder.m_external);
 }
 
-void ApplyPatchesToFiles(std::span<const Patch> patches, PatchIndex index,
+void ApplyPatchesToFiles(const std::span<const Patch> patches, const PatchIndex index,
                          std::vector<FSTBuilderNode>* fst, FSTBuilderNode* dol_node)
 {
   for (const auto& patch : patches)
@@ -509,8 +509,8 @@ void ApplyPatchesToFiles(std::span<const Patch> patches, PatchIndex index,
   }
 }
 
-static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
-                            std::span<const u8> value)
+static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, const u32 offset,
+                            const std::span<const u8> value)
 {
   for (u32 i = 0; i < value.size(); ++i)
   {
@@ -521,8 +521,8 @@ static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
   return true;
 }
 
-static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
-                             std::span<const u8> value, std::span<const u8> original)
+static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, const u32 offset,
+                             const std::span<const u8> value, const std::span<const u8> original)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
@@ -563,7 +563,7 @@ static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& pat
 }
 
 static void ApplySearchMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& patch,
-                                   const Memory& memory_patch, u32 ram_start, u32 length)
+                                   const Memory& memory_patch, const u32 ram_start, const u32 length)
 {
   if (memory_patch.m_original.empty() || memory_patch.m_align == 0)
     return;
@@ -581,7 +581,7 @@ static void ApplySearchMemoryPatch(const Core::CPUThreadGuard& guard, const Patc
 }
 
 static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& patch,
-                                    const Memory& memory_patch, u32 ram_start, u32 length)
+                                    const Memory& memory_patch, const u32 ram_start, const u32 length)
 {
   if (memory_patch.m_offset == 0)
     return;
@@ -621,7 +621,7 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
   }
 }
 
-void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, std::span<const Patch> patches)
+void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, const std::span<const Patch> patches)
 {
   const auto& system = guard.GetSystem();
   const auto& system_memory = system.GetMemory();
@@ -641,8 +641,8 @@ void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, std::span<cons
   }
 }
 
-void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard, std::span<const Patch> patches,
-                                 u32 ram_address, u32 ram_length)
+void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard, const std::span<const Patch> patches,
+                                 const u32 ram_address, const u32 ram_length)
 {
   for (const auto& patch : patches)
   {
@@ -659,7 +659,7 @@ void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard, std::span<co
   }
 }
 
-std::optional<SavegameRedirect> ExtractSavegameRedirect(std::span<const Patch> riivolution_patches)
+std::optional<SavegameRedirect> ExtractSavegameRedirect(const std::span<const Patch> riivolution_patches)
 {
   for (const auto& patch : riivolution_patches)
   {

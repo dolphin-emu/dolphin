@@ -120,7 +120,7 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
   }
 }
 
-void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform)
+void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, const DiscIO::Platform platform)
 {
   const u64 tmd_title_id = tmd.GetTitleId();
 
@@ -143,7 +143,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id)
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                                     u64 title_id, u16 revision, DiscIO::Region region)
+                                     const u64 title_id, const u16 revision, const DiscIO::Region region)
 {
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
                            m_title_id != title_id || m_revision != revision;
@@ -227,7 +227,7 @@ void SConfig::LoadDefaults()
 }
 
 // Static method to make a simple game ID for elf/dol files
-std::string SConfig::MakeGameID(std::string_view file_name)
+std::string SConfig::MakeGameID(const std::string_view file_name)
 {
   size_t lastdot = file_name.find_last_of(".");
   if (lastdot == std::string::npos)
@@ -357,7 +357,7 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
   return true;
 }
 
-DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
+DiscIO::Language SConfig::GetCurrentLanguage(const bool wii) const
 {
   DiscIO::Language language;
   if (wii)
@@ -371,7 +371,7 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
   return language;
 }
 
-DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const
+DiscIO::Language SConfig::GetLanguageAdjustedForRegion(const bool wii, DiscIO::Region region) const
 {
   const DiscIO::Language language = GetCurrentLanguage(wii);
 
@@ -420,7 +420,7 @@ Common::IniFile SConfig::LoadGameIni() const
   return LoadGameIni(GetGameID(), m_revision);
 }
 
-Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, const std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -428,7 +428,7 @@ Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, const std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -436,7 +436,7 @@ Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadGameIni(const std::string& id, const std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -446,7 +446,7 @@ Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> r
   return game_ini;
 }
 
-std::string SConfig::GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) const
+std::string SConfig::GetGameTDBImageRegionCode(const bool wii, const DiscIO::Region region) const
 {
   switch (region)
   {

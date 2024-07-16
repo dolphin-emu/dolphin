@@ -12,7 +12,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-void Interpreter::Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, u32 value)
+void Interpreter::Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, const u32 value)
 {
   const s64 sign_extended = s64{s32(value)};
   u64 cr_val = u64(sign_extended);
@@ -31,7 +31,7 @@ void Interpreter::Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, u32 value)
   ppc_state.cr.fields[0] = cr_val;
 }
 
-u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
+u32 Interpreter::Helper_Carry(const u32 value1, const u32 value2)
 {
   return value2 > (~value1);
 }
@@ -405,7 +405,7 @@ void Interpreter::xorx(Interpreter& interpreter, UGeckoInstruction inst)
     Helper_UpdateCR0(ppc_state, ppc_state.gpr[inst.RA]);
 }
 
-static bool HasAddOverflowed(u32 x, u32 y, u32 result)
+static bool HasAddOverflowed(const u32 x, const u32 y, const u32 result)
 {
   // If x and y have the same sign, but the result is different
   // then an overflow has occurred.

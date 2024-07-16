@@ -164,7 +164,7 @@ void ShaderCache::WaitForAsyncCompiler()
 {
   bool running = true;
 
-  constexpr auto update_ui_progress = [](size_t completed, size_t total) {
+  constexpr auto update_ui_progress = [](const size_t completed, const size_t total) {
     const float center_x = ImGui::GetIO().DisplaySize.x * 0.5f;
     const float center_y = ImGui::GetIO().DisplaySize.y * 0.5f;
     const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
@@ -226,13 +226,13 @@ static void UnserializePipelineUid(const SerializedUidType& uid, UidType& real_u
 }
 
 template <ShaderStage stage, typename K, typename T>
-void ShaderCache::LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid)
+void ShaderCache::LoadShaderCache(T& cache, const APIType api_type, const char* type, const bool include_gameid)
 {
   class CacheReader : public Common::LinearDiskCacheReader<K, u8>
   {
   public:
     CacheReader(T& cache_) : cache(cache_) {}
-    void Read(const K& key, const u8* value, u32 value_size) override
+    void Read(const K& key, const u8* value, const u32 value_size) override
     {
       auto shader = g_gfx->CreateShaderFromBinary(stage, value, value_size);
       if (shader)
@@ -277,14 +277,14 @@ void ShaderCache::ClearShaderCache(T& cache)
 
 template <typename KeyType, typename DiskKeyType, typename T>
 void ShaderCache::LoadPipelineCache(T& cache, Common::LinearDiskCache<DiskKeyType, u8>& disk_cache,
-                                    APIType api_type, const char* type, bool include_gameid)
+                                    const APIType api_type, const char* type, const bool include_gameid)
 {
   class CacheReader : public Common::LinearDiskCacheReader<DiskKeyType, u8>
   {
   public:
     CacheReader(ShaderCache* this_ptr_, T& cache_) : this_ptr(this_ptr_), cache(cache_) {}
     bool AnyFailed() const { return failed; }
-    void Read(const DiskKeyType& key, const u8* value, u32 value_size) override
+    void Read(const DiskKeyType& key, const u8* value, const u32 value_size) override
     {
       KeyType real_uid;
       UnserializePipelineUid(key, real_uid);
@@ -589,7 +589,7 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
     const NativeVertexFormat* vertex_format, const AbstractShader* vertex_shader,
     const AbstractShader* geometry_shader, const AbstractShader* pixel_shader,
     const RasterizationState& rasterization_state, const DepthState& depth_state,
-    const BlendingState& blending_state, AbstractPipelineUsage usage)
+    const BlendingState& blending_state, const AbstractPipelineUsage usage)
 {
   AbstractPipelineConfig config = {};
   config.usage = usage;
@@ -1027,7 +1027,7 @@ void ShaderCache::AppendGXPipelineUID(const GXPipelineUid& config)
   }
 }
 
-void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid, u32 priority)
+void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid, const u32 priority)
 {
   class VertexShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -1056,7 +1056,7 @@ void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid, u32 prior
   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid, u32 priority)
+void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid, const u32 priority)
 {
   class VertexUberShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -1085,7 +1085,7 @@ void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid
   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priority)
+void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, const u32 priority)
 {
   class PixelShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -1114,7 +1114,7 @@ void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priorit
   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid, u32 priority)
+void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid, const u32 priority)
 {
   class PixelUberShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -1148,7 +1148,7 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
   class PipelineWorkItem final : public AsyncShaderCompiler::WorkItem
   {
   public:
-    PipelineWorkItem(ShaderCache* shader_cache_, const GXPipelineUid& uid_, u32 priority_)
+    PipelineWorkItem(ShaderCache* shader_cache_, const GXPipelineUid& uid_, const u32 priority_)
         : shader_cache(shader_cache_), uid(uid_), priority(priority_)
     {
       // Check if all the stages required for this pipeline have been compiled.
@@ -1220,7 +1220,7 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
   class UberPipelineWorkItem final : public AsyncShaderCompiler::WorkItem
   {
   public:
-    UberPipelineWorkItem(ShaderCache* shader_cache_, const GXUberPipelineUid& uid_, u32 priority_)
+    UberPipelineWorkItem(ShaderCache* shader_cache_, const GXUberPipelineUid& uid_, const u32 priority_)
         : shader_cache(shader_cache_), uid(uid_), priority(priority_)
     {
       // Check if all the stages required for this UberPipeline have been compiled.
@@ -1575,7 +1575,7 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
 
 const AbstractShader*
 ShaderCache::GetTextureDecodingShader(TextureFormat format,
-                                      std::optional<TLUTFormat> palette_format)
+                                      const std::optional<TLUTFormat> palette_format)
 {
   const auto key = std::make_pair(static_cast<u32>(format),
                                   static_cast<u32>(palette_format.value_or(TLUTFormat::IA8)));

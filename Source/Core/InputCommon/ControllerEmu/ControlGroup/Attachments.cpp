@@ -25,7 +25,7 @@ u32 Attachments::GetSelectedAttachment() const
   return 0;
 }
 
-void Attachments::SetSelectedAttachment(u32 val)
+void Attachments::SetSelectedAttachment(const u32 val)
 {
   m_selection_setting.SetValue(val);
 }

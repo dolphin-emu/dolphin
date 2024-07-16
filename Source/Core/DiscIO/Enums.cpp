@@ -14,7 +14,7 @@
 
 namespace DiscIO
 {
-std::string GetName(Country country, bool translate)
+std::string GetName(const Country country, const bool translate)
 {
   std::string name;
 
@@ -67,7 +67,7 @@ std::string GetName(Country country, bool translate)
   return translate ? Common::GetStringT(name.c_str()) : name;
 }
 
-std::string GetName(Language language, bool translate)
+std::string GetName(const Language language, const bool translate)
 {
   std::string name;
 
@@ -111,7 +111,7 @@ std::string GetName(Language language, bool translate)
   return translate ? Common::GetStringT(name.c_str()) : name;
 }
 
-std::string GetName(Region region, bool translate)
+std::string GetName(const Region region, const bool translate)
 {
   std::string name;
 
@@ -137,17 +137,17 @@ std::string GetName(Region region, bool translate)
   return translate ? Common::GetStringT(name.c_str()) : name;
 }
 
-bool IsDisc(Platform volume_type)
+bool IsDisc(const Platform volume_type)
 {
   return volume_type == Platform::GameCubeDisc || volume_type == Platform::WiiDisc;
 }
 
-bool IsWii(Platform volume_type)
+bool IsWii(const Platform volume_type)
 {
   return volume_type == Platform::WiiDisc || volume_type == Platform::WiiWAD;
 }
 
-bool IsNTSC(Region region)
+bool IsNTSC(const Region region)
 {
   return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
 }
@@ -160,7 +160,7 @@ int ToGameCubeLanguage(Language language)
     return static_cast<int>(language) - 1;
 }
 
-Language FromGameCubeLanguage(int language)
+Language FromGameCubeLanguage(const int language)
 {
   if (language < 0 || language > 5)
     return Language::Unknown;
@@ -170,7 +170,7 @@ Language FromGameCubeLanguage(int language)
 
 // Increment CACHE_REVISION (GameFileCache.cpp) if the code below is modified
 
-Country TypicalCountryForRegion(Region region)
+Country TypicalCountryForRegion(const Region region)
 {
   switch (region)
   {
@@ -187,7 +187,7 @@ Country TypicalCountryForRegion(Region region)
   }
 }
 
-Region SysConfCountryToRegion(u8 country_code)
+Region SysConfCountryToRegion(const u8 country_code)
 {
   if (country_code == 0)
     return Region::Unknown;
@@ -210,8 +210,8 @@ Region SysConfCountryToRegion(u8 country_code)
   return Region::Unknown;
 }
 
-Region CountryCodeToRegion(u8 country_code, Platform platform, Region expected_region,
-                           std::optional<u16> revision)
+Region CountryCodeToRegion(const u8 country_code, const Platform platform, const Region expected_region,
+                           const std::optional<u16> revision)
 {
   switch (country_code)
   {
@@ -280,8 +280,8 @@ Region CountryCodeToRegion(u8 country_code, Platform platform, Region expected_r
   }
 }
 
-Country CountryCodeToCountry(u8 country_code, Platform platform, Region region,
-                             std::optional<u16> revision)
+Country CountryCodeToCountry(const u8 country_code, const Platform platform, const Region region,
+                             const std::optional<u16> revision)
 {
   switch (country_code)
   {
@@ -371,7 +371,7 @@ Country CountryCodeToCountry(u8 country_code, Platform platform, Region region,
   }
 }
 
-Region GetSysMenuRegion(u16 title_version)
+Region GetSysMenuRegion(const u16 title_version)
 {
   switch (title_version & 0xf)
   {

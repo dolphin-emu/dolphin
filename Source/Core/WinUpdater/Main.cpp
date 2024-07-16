@@ -17,7 +17,7 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI wWinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, const PWSTR pCmdLine, int nCmdShow)
 {
   if (lstrlenW(pCmdLine) == 0)
   {

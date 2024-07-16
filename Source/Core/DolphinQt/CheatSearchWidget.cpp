@@ -457,7 +457,7 @@ void CheatSearchWidget::OnResetClicked()
   m_info_label_2->clear();
 }
 
-void CheatSearchWidget::OnAddressTableItemChanged(QTableWidgetItem* item)
+void CheatSearchWidget::OnAddressTableItemChanged(const QTableWidgetItem* item)
 {
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
   const int column = item->column();

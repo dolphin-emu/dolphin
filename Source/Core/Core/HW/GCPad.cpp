@@ -51,12 +51,12 @@ bool IsInitialized()
   return !s_config.ControllersNeedToBeCreated();
 }
 
-GCPadStatus GetStatus(int pad_num)
+GCPadStatus GetStatus(const int pad_num)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput();
 }
 
-ControllerEmu::ControlGroup* GetGroup(int pad_num, PadGroup group)
+ControllerEmu::ControlGroup* GetGroup(const int pad_num, const PadGroup group)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetGroup(group);
 }

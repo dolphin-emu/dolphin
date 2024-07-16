@@ -155,7 +155,7 @@ bool IsFile(const std::string& path)
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string& filename, IfAbsentBehavior behavior)
+bool Delete(const std::string& filename, const IfAbsentBehavior behavior)
 {
   DEBUG_LOG_FMT(COMMON, "{}: file {}", __func__, filename);
 
@@ -215,7 +215,7 @@ bool CreateDir(const std::string& path)
   return success;
 }
 
-bool CreateDirs(std::string_view path)
+bool CreateDirs(const std::string_view path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, path);
 
@@ -231,7 +231,7 @@ bool CreateDirs(std::string_view path)
   return success;
 }
 
-bool CreateFullPath(std::string_view fullPath)
+bool CreateFullPath(const std::string_view fullPath)
 {
   DEBUG_LOG_FMT(COMMON, "{}: path {}", __func__, fullPath);
 
@@ -248,7 +248,7 @@ bool CreateFullPath(std::string_view fullPath)
 }
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
+bool DeleteDir(const std::string& filename, const IfAbsentBehavior behavior)
 {
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, filename);
 
@@ -335,7 +335,7 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
   return true;
 }
 
-bool CopyRegularFile(std::string_view source_path, std::string_view destination_path)
+bool CopyRegularFile(const std::string_view source_path, const std::string_view destination_path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, destination_path);
 
@@ -539,7 +539,7 @@ bool DeleteDirRecursively(const std::string& directory)
   return success;
 }
 
-bool Copy(std::string_view source_path, std::string_view dest_path, bool overwrite_existing)
+bool Copy(const std::string_view source_path, const std::string_view dest_path, const bool overwrite_existing)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {} ({})", __func__, source_path, dest_path,
                 overwrite_existing ? "overwrite" : "preserve");
@@ -602,7 +602,7 @@ static bool MoveWithOverwrite(const std::filesystem::path& src, const std::files
   return true;
 }
 
-bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path)
+bool MoveWithOverwrite(const std::string_view source_path, const std::string_view dest_path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, dest_path);
   auto src_path = StringToPath(source_path);
@@ -842,7 +842,7 @@ const std::string GetGpuDriverDirectory(unsigned int dir_index)
 #endif
 
 static std::string s_user_paths[NUM_PATH_INDICES];
-static void RebuildUserDirectories(unsigned int dir_index)
+static void RebuildUserDirectories(const unsigned int dir_index)
 {
   switch (dir_index)
   {
@@ -983,14 +983,14 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
 // Gets a set user directory path
 // Don't call prior to setting the base user directory
-const std::string& GetUserPath(unsigned int dir_index)
+const std::string& GetUserPath(const unsigned int dir_index)
 {
   return s_user_paths[dir_index];
 }
 
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
-void SetUserPath(unsigned int dir_index, std::string path)
+void SetUserPath(const unsigned int dir_index, std::string path)
 {
   if (path.empty())
     return;
@@ -1033,7 +1033,7 @@ std::string GetThemeDir(const std::string& theme_name)
   return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
-bool WriteStringToFile(const std::string& filename, std::string_view str)
+bool WriteStringToFile(const std::string& filename, const std::string_view str)
 {
   return IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }

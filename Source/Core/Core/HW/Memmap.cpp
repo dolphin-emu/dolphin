@@ -47,7 +47,7 @@ MemoryManager::MemoryManager(Core::System& system) : m_system(system)
 
 MemoryManager::~MemoryManager() = default;
 
-void MemoryManager::InitMMIO(bool is_wii)
+void MemoryManager::InitMMIO(const bool is_wii)
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
 
@@ -399,7 +399,7 @@ void MemoryManager::Clear()
     memset(m_exram, 0, GetExRamSize());
 }
 
-u8* MemoryManager::GetPointerForRange(u32 address, size_t size) const
+u8* MemoryManager::GetPointerForRange(const u32 address, const size_t size) const
 {
   std::span<u8> span = GetSpanForAddress(address);
 
@@ -420,7 +420,7 @@ u8* MemoryManager::GetPointerForRange(u32 address, size_t size) const
   return span.data();
 }
 
-void MemoryManager::CopyFromEmu(void* data, u32 address, size_t size) const
+void MemoryManager::CopyFromEmu(void* data, const u32 address, const size_t size) const
 {
   if (size == 0)
     return;
@@ -434,7 +434,7 @@ void MemoryManager::CopyFromEmu(void* data, u32 address, size_t size) const
   memcpy(data, pointer, size);
 }
 
-void MemoryManager::CopyToEmu(u32 address, const void* data, size_t size)
+void MemoryManager::CopyToEmu(const u32 address, const void* data, const size_t size)
 {
   if (size == 0)
     return;
@@ -448,7 +448,7 @@ void MemoryManager::CopyToEmu(u32 address, const void* data, size_t size)
   memcpy(pointer, data, size);
 }
 
-void MemoryManager::Memset(u32 address, u8 value, size_t size)
+void MemoryManager::Memset(const u32 address, const u8 value, const size_t size)
 {
   if (size == 0)
     return;
@@ -462,7 +462,7 @@ void MemoryManager::Memset(u32 address, u8 value, size_t size)
   memset(pointer, value, size);
 }
 
-std::string MemoryManager::GetString(u32 em_address, size_t size)
+std::string MemoryManager::GetString(u32 em_address, const size_t size)
 {
   std::string result;
 
@@ -512,63 +512,63 @@ std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
   return {};
 }
 
-u8 MemoryManager::Read_U8(u32 address) const
+u8 MemoryManager::Read_U8(const u32 address) const
 {
   u8 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return value;
 }
 
-u16 MemoryManager::Read_U16(u32 address) const
+u16 MemoryManager::Read_U16(const u32 address) const
 {
   u16 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return Common::swap16(value);
 }
 
-u32 MemoryManager::Read_U32(u32 address) const
+u32 MemoryManager::Read_U32(const u32 address) const
 {
   u32 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return Common::swap32(value);
 }
 
-u64 MemoryManager::Read_U64(u32 address) const
+u64 MemoryManager::Read_U64(const u32 address) const
 {
   u64 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return Common::swap64(value);
 }
 
-void MemoryManager::Write_U8(u8 value, u32 address)
+void MemoryManager::Write_U8(const u8 value, const u32 address)
 {
   CopyToEmu(address, &value, sizeof(value));
 }
 
-void MemoryManager::Write_U16(u16 value, u32 address)
+void MemoryManager::Write_U16(const u16 value, const u32 address)
 {
   u16 swapped_value = Common::swap16(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U32(u32 value, u32 address)
+void MemoryManager::Write_U32(const u32 value, const u32 address)
 {
   u32 swapped_value = Common::swap32(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U64(u64 value, u32 address)
+void MemoryManager::Write_U64(const u64 value, const u32 address)
 {
   u64 swapped_value = Common::swap64(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U32_Swap(u32 value, u32 address)
+void MemoryManager::Write_U32_Swap(const u32 value, const u32 address)
 {
   CopyToEmu(address, &value, sizeof(value));
 }
 
-void MemoryManager::Write_U64_Swap(u64 value, u32 address)
+void MemoryManager::Write_U64_Swap(const u64 value, const u32 address)
 {
   CopyToEmu(address, &value, sizeof(value));
 }

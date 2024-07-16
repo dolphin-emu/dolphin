@@ -70,7 +70,7 @@ Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationB
          scalar;
 }
 
-auto MotionPlus::CalibrationBlocks::GetRelevantCalibration(SlowType is_slow) const
+auto MotionPlus::CalibrationBlocks::GetRelevantCalibration(const SlowType is_slow) const
     -> RelevantCalibration
 {
   RelevantCalibration result;
@@ -189,7 +189,7 @@ ExtensionPort& MotionPlus::GetExtPort()
   return m_extension_port;
 }
 
-int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+int MotionPlus::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
   switch (GetActivationStatus())
   {
@@ -222,7 +222,7 @@ int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   }
 }
 
-int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int MotionPlus::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
   switch (GetActivationStatus())
   {
@@ -661,7 +661,7 @@ void MotionPlus::PrepareInput(const DataFormat::Data& gyroscope_data)
   Common::BitCastPtr<DataFormat>(data) = mplus_data;
 }
 
-void MotionPlus::ApplyPassthroughModifications(PassthroughMode mode, u8* data)
+void MotionPlus::ApplyPassthroughModifications(const PassthroughMode mode, u8* data)
 {
   if (mode == PassthroughMode::Nunchuk)
   {
@@ -691,7 +691,7 @@ void MotionPlus::ApplyPassthroughModifications(PassthroughMode mode, u8* data)
   }
 }
 
-void MotionPlus::ReversePassthroughModifications(PassthroughMode mode, u8* data)
+void MotionPlus::ReversePassthroughModifications(const PassthroughMode mode, u8* data)
 {
   if (mode == PassthroughMode::Nunchuk)
   {

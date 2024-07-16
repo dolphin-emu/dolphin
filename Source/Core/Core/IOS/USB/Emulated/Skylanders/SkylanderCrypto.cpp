@@ -13,7 +13,7 @@
 
 namespace IOS::HLE::USB::SkylanderCrypto
 {
-u16 ComputeCRC16(std::span<const u8> data)
+u16 ComputeCRC16(const std::span<const u8> data)
 {
   const u16 polynomial = 0x1021;
 
@@ -39,7 +39,7 @@ u16 ComputeCRC16(std::span<const u8> data)
   return crc;
 }
 // CRC-64 algorithm that is limited to 48 bits every iteration
-u64 ComputeCRC48(std::span<const u8> data)
+u64 ComputeCRC48(const std::span<const u8> data)
 {
   const u64 polynomial = 0x42f0e1eba9ea3693;
   const u64 initial_register_value = 2ULL * 2ULL * 3ULL * 1103ULL * 12868356821ULL;
@@ -62,7 +62,7 @@ u64 ComputeCRC48(std::span<const u8> data)
   }
   return crc & 0x0000FFFFFFFFFFFF;
 }
-u64 CalculateKeyA(u8 sector, std::span<const u8, 0x4> nuid)
+u64 CalculateKeyA(const u8 sector, const std::span<const u8, 0x4> nuid)
 {
   if (sector == 0)
   {

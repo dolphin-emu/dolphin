@@ -21,12 +21,12 @@ u16 GetCoordinate(Coordinate coordinate)
   return s_coordinates[static_cast<u32>(coordinate)];
 }
 
-void SetCoordinate(Coordinate coordinate, u16 value)
+void SetCoordinate(Coordinate coordinate, const u16 value)
 {
   s_coordinates[static_cast<u32>(coordinate)] = value;
 }
 
-void Update(u16 left, u16 right, u16 top, u16 bottom)
+void Update(const u16 left, const u16 right, const u16 top, const u16 bottom)
 {
   const u16 new_left = std::min(left, GetCoordinate(Coordinate::Left));
   const u16 new_right = std::max(right, GetCoordinate(Coordinate::Right));
@@ -43,7 +43,7 @@ void Update(u16 left, u16 right, u16 top, u16 bottom)
 
 namespace SW
 {
-std::vector<BBoxType> SWBoundingBox::Read(u32 index, u32 length)
+std::vector<BBoxType> SWBoundingBox::Read(const u32 index, const u32 length)
 {
   std::vector<BBoxType> values(length);
 
@@ -55,7 +55,7 @@ std::vector<BBoxType> SWBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void SWBoundingBox::Write(u32 index, std::span<const BBoxType> values)
+void SWBoundingBox::Write(const u32 index, const std::span<const BBoxType> values)
 {
   for (size_t i = 0; i < values.size(); i++)
   {

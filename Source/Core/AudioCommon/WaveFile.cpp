@@ -29,7 +29,7 @@ WaveFileWriter::~WaveFileWriter()
   Stop();
 }
 
-bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate_divisor)
+bool WaveFileWriter::Start(const std::string& filename, const u32 sample_rate_divisor)
 {
   // Ask to delete file
   if (File::Exists(filename))
@@ -107,7 +107,7 @@ void WaveFileWriter::Stop()
   file.Close();
 }
 
-void WaveFileWriter::Write(u32 value)
+void WaveFileWriter::Write(const u32 value)
 {
   file.WriteArray(&value, 1);
 }
@@ -117,8 +117,8 @@ void WaveFileWriter::Write4(const char* ptr)
   file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
-                                        u32 sample_rate_divisor, int l_volume, int r_volume)
+void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, const u32 count,
+                                        const u32 sample_rate_divisor, const int l_volume, const int r_volume)
 {
   if (!file)
   {

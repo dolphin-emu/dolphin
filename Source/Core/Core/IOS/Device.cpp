@@ -16,7 +16,7 @@
 
 namespace IOS::HLE
 {
-Request::Request(Core::System& system, const u32 address_) : address(address_)
+Request::Request(const Core::System& system, const u32 address_) : address(address_)
 {
   auto& memory = system.GetMemory();
   command = static_cast<IPCCommandType>(memory.Read_U32(address));
@@ -83,7 +83,7 @@ IOCtlVRequest::IOCtlVRequest(Core::System& system, const u32 address_) : Request
   }
 }
 
-const IOCtlVRequest::IOVector* IOCtlVRequest::GetVector(size_t index) const
+const IOCtlVRequest::IOVector* IOCtlVRequest::GetVector(const size_t index) const
 {
   if (index >= in_vectors.size() + io_vectors.size())
     return nullptr;
@@ -102,15 +102,15 @@ bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t 
          std::all_of(io_vectors.begin(), io_vectors.end(), IsValidVector);
 }
 
-void IOCtlRequest::Log(std::string_view device_name, Common::Log::LogType type,
-                       Common::Log::LogLevel verbosity) const
+void IOCtlRequest::Log(const std::string_view device_name, const Common::Log::LogType type,
+                       const Common::Log::LogLevel verbosity) const
 {
   GENERIC_LOG_FMT(type, verbosity, "{} (fd {}) - IOCtl {:#x} (in_size={:#x}, out_size={:#x})",
                   device_name, fd, request, buffer_in_size, buffer_out_size);
 }
 
-void IOCtlRequest::Dump(Core::System& system, const std::string& description,
-                        Common::Log::LogType type, Common::Log::LogLevel level) const
+void IOCtlRequest::Dump(const Core::System& system, const std::string& description,
+                        const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
   auto& memory = system.GetMemory();
 
@@ -122,13 +122,13 @@ void IOCtlRequest::Dump(Core::System& system, const std::string& description,
 }
 
 void IOCtlRequest::DumpUnknown(Core::System& system, const std::string& description,
-                               Common::Log::LogType type, Common::Log::LogLevel level) const
+                               const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
   Dump(system, "Unknown IOCtl - " + description, type, level);
 }
 
-void IOCtlVRequest::Dump(Core::System& system, std::string_view description,
-                         Common::Log::LogType type, Common::Log::LogLevel level) const
+void IOCtlVRequest::Dump(const Core::System& system, const std::string_view description,
+                         const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
   auto& memory = system.GetMemory();
 
@@ -148,7 +148,7 @@ void IOCtlVRequest::Dump(Core::System& system, std::string_view description,
 }
 
 void IOCtlVRequest::DumpUnknown(Core::System& system, const std::string& description,
-                                Common::Log::LogType type, Common::Log::LogLevel level) const
+                                const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
   Dump(system, "Unknown IOCtlV - " + description, type, level);
 }

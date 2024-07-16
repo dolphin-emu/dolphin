@@ -40,7 +40,7 @@ struct fmt::formatter<EFBReinterpretType> : EnumFormatter<EFBReinterpretType::RG
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+inline bool AddressRangesOverlap(const u32 aLower, const u32 aUpper, const u32 bLower, const u32 bUpper)
 {
   return !((aLower >= bUpper) || (bLower >= aUpper));
 }
@@ -106,7 +106,7 @@ public:
   // Swaps EFB framebuffers, so re-bind afterwards.
   bool ReinterpretPixelData(EFBReinterpretType convtype);
   PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
-  void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
+  void StorePixelFormat(const PixelFormat new_format) { m_prev_efb_format = new_format; }
 
   // Clears the EFB using shaders.
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,

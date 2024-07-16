@@ -94,13 +94,13 @@ bool VertexManager::Initialize()
   return true;
 }
 
-void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
+void VertexManager::UploadUtilityUniforms(const void* uniforms, const u32 uniforms_size)
 {
   InvalidateConstants();
   ProgramShaderCache::UploadConstants(uniforms, uniforms_size);
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
                                       u32* out_offset)
 {
   if (data_size > m_texel_buffer->GetSize())
@@ -120,9 +120,9 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   return true;
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                      u32* out_offset, const void* palette_data, u32 palette_size,
-                                      TexelBufferFormat palette_format, u32* out_palette_offset)
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
+                                      u32* out_offset, const void* palette_data, const u32 palette_size,
+                                      const TexelBufferFormat palette_format, u32* out_palette_offset)
 {
   const u32 elem_size = GetTexelBufferElementSize(format);
   const u32 palette_elem_size = GetTexelBufferElementSize(palette_format);
@@ -160,7 +160,7 @@ GLuint VertexManager::GetIndexBufferHandle() const
   return m_index_buffer->m_buffer;
 }
 
-void VertexManager::ResetBuffer(u32 vertex_stride)
+void VertexManager::ResetBuffer(const u32 vertex_stride)
 {
   CheckBufferBinding();
 
@@ -172,7 +172,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_index_generator.Start(reinterpret_cast<u16*>(buffer.first));
 }
 
-void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride, const u32 num_indices,
                                  u32* out_base_vertex, u32* out_base_index)
 {
   u32 vertex_data_size = num_vertices * vertex_stride;

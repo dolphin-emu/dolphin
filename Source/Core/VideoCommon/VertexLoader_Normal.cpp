@@ -33,7 +33,7 @@ constexpr float FracAdjust(T val)
 }
 
 template <>
-constexpr float FracAdjust(float val)
+constexpr float FracAdjust(const float val)
 {
   return val;
 }
@@ -219,9 +219,9 @@ consteval Types InitializeTable()
 constexpr Types s_table_read_normal = InitializeTable();
 }  // Anonymous namespace
 
-TPipelineFunction VertexLoader_Normal::GetFunction(VertexComponentFormat type,
-                                                   ComponentFormat format,
-                                                   NormalComponentCount elements, bool index3)
+TPipelineFunction VertexLoader_Normal::GetFunction(const VertexComponentFormat type,
+                                                   const ComponentFormat format,
+                                                   const NormalComponentCount elements, const bool index3)
 {
   return s_table_read_normal[type][index3][elements][format];
 }

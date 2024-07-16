@@ -23,7 +23,7 @@
 
 namespace DSP
 {
-bool Assemble(const std::string& text, std::vector<u16>& code, bool force)
+bool Assemble(const std::string& text, std::vector<u16>& code, const bool force)
 {
   AssemblerSettings settings;
   // settings.pc = 0;
@@ -38,7 +38,7 @@ bool Assemble(const std::string& text, std::vector<u16>& code, bool force)
   return assembler.Assemble(text, code);
 }
 
-bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& text)
+bool Disassemble(const std::vector<u16>& code, const bool line_numbers, std::string& text)
 {
   if (code.empty())
     return false;
@@ -163,7 +163,7 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
   return File::WriteStringToFile(filename, buffer);
 }
 
-bool DumpDSPCode(const u8* code_be, size_t size_in_bytes, u32 crc)
+bool DumpDSPCode(const u8* code_be, const size_t size_in_bytes, u32 crc)
 {
   const std::string root_name =
       File::GetUserPath(D_DUMPDSP_IDX) + fmt::format("DSP_UC_{:08X}", crc);

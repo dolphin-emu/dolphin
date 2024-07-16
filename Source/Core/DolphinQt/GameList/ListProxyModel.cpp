@@ -10,7 +10,7 @@ ListProxyModel::ListProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
   setDynamicSortFilter(true);
 }
 
-bool ListProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
+bool ListProxyModel::filterAcceptsRow(const int source_row, const QModelIndex& source_parent) const
 {
   GameListModel* glm = qobject_cast<GameListModel*>(sourceModel());
   return glm->ShouldDisplayGameListItem(source_row);

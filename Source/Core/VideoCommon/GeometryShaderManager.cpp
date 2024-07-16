@@ -37,7 +37,7 @@ void GeometryShaderManager::Dirty()
   dirty = true;
 }
 
-void GeometryShaderManager::SetVSExpand(VSExpand expand)
+void GeometryShaderManager::SetVSExpand(const VSExpand expand)
 {
   if (constants.vs_expand != expand)
   {
@@ -46,7 +46,7 @@ void GeometryShaderManager::SetVSExpand(VSExpand expand)
   }
 }
 
-void GeometryShaderManager::SetConstants(PrimitiveType prim)
+void GeometryShaderManager::SetConstants(const PrimitiveType prim)
 {
   if (m_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
   {
@@ -110,7 +110,7 @@ void GeometryShaderManager::SetLinePtWidthChanged()
   dirty = true;
 }
 
-void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
+void GeometryShaderManager::SetTexCoordChanged(const u8 texmapid)
 {
   TCoordInfo& tc = bpmem.texcoords[texmapid];
   int bitmask = 1 << texmapid;

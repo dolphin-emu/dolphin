@@ -67,7 +67,7 @@ void FifoManager::DoState(PointerWrap& p)
   p.Do(m_syncing_suspended);
 }
 
-void FifoManager::PauseAndLock(bool do_lock, bool unpause_on_unlock)
+void FifoManager::PauseAndLock(const bool do_lock, const bool unpause_on_unlock)
 {
   if (do_lock)
   {
@@ -137,7 +137,7 @@ void FifoManager::ExitGpuLoop()
   m_gpu_mainloop.Stop(Common::BlockingLoop::StopMode::NonBlock);
 }
 
-void FifoManager::EmulatorState(bool running)
+void FifoManager::EmulatorState(const bool running)
 {
   m_emu_running_state.Set(running);
   if (running)
@@ -146,7 +146,7 @@ void FifoManager::EmulatorState(bool running)
     m_gpu_mainloop.AllowSleep();
 }
 
-void FifoManager::SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
+void FifoManager::SyncGPU(SyncGPUReason reason, const bool may_move_read_ptr)
 {
   if (m_use_deterministic_gpu_thread)
   {
@@ -184,7 +184,7 @@ void FifoManager::SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
   }
 }
 
-void FifoManager::PushFifoAuxBuffer(const void* ptr, size_t size)
+void FifoManager::PushFifoAuxBuffer(const void* ptr, const size_t size)
 {
   if (size > (size_t)(m_fifo_aux_data + FIFO_SIZE - m_fifo_aux_write_ptr))
   {
@@ -206,7 +206,7 @@ void FifoManager::PushFifoAuxBuffer(const void* ptr, size_t size)
   m_fifo_aux_write_ptr += size;
 }
 
-void* FifoManager::PopFifoAuxBuffer(size_t size)
+void* FifoManager::PopFifoAuxBuffer(const size_t size)
 {
   void* ret = m_fifo_aux_read_ptr;
   m_fifo_aux_read_ptr += size;
@@ -214,7 +214,7 @@ void* FifoManager::PopFifoAuxBuffer(size_t size)
 }
 
 // Description: RunGpuLoop() sends data through this function.
-void FifoManager::ReadDataFromFifo(u32 read_ptr)
+void FifoManager::ReadDataFromFifo(const u32 read_ptr)
 {
   if (GPFifo::GATHER_PIPE_SIZE >
       static_cast<size_t>(m_video_buffer + FIFO_SIZE - m_video_buffer_write_ptr))
@@ -237,7 +237,7 @@ void FifoManager::ReadDataFromFifo(u32 read_ptr)
 }
 
 // The deterministic_gpu_thread version.
-void FifoManager::ReadDataFromFifoOnCPU(u32 read_ptr)
+void FifoManager::ReadDataFromFifoOnCPU(const u32 read_ptr)
 {
   u8* write_ptr = m_video_buffer_write_ptr;
   if (GPFifo::GATHER_PIPE_SIZE > static_cast<size_t>(m_video_buffer + FIFO_SIZE - write_ptr))
@@ -409,7 +409,7 @@ void FifoManager::GpuMaySleep()
   m_gpu_mainloop.AllowSleep();
 }
 
-bool AtBreakpoint(Core::System& system)
+bool AtBreakpoint(const Core::System& system)
 {
   auto& command_processor = system.GetCommandProcessor();
   const auto& fifo = command_processor.GetFifo();
@@ -440,7 +440,7 @@ void FifoManager::RunGpu()
   }
 }
 
-int FifoManager::RunGpuOnCpu(int ticks)
+int FifoManager::RunGpuOnCpu(const int ticks)
 {
   auto& command_processor = m_system.GetCommandProcessor();
   auto& fifo = command_processor.GetFifo();
@@ -502,7 +502,7 @@ int FifoManager::RunGpuOnCpu(int ticks)
   return -available_ticks + GPU_TIME_SLOT_SIZE;
 }
 
-void FifoManager::UpdateWantDeterminism(bool want)
+void FifoManager::UpdateWantDeterminism(const bool want)
 {
   // We are paused (or not running at all yet), so
   // it should be safe to change this.
@@ -540,7 +540,7 @@ void FifoManager::UpdateWantDeterminism(bool want)
  * @ticks The gone emulated CPU time.
  * @return A good time to call WaitForGpuThread() next.
  */
-int FifoManager::WaitForGpuThread(int ticks)
+int FifoManager::WaitForGpuThread(const int ticks)
 {
   int old = m_sync_ticks.fetch_add(ticks);
   int now = old + ticks;
@@ -564,7 +564,7 @@ int FifoManager::WaitForGpuThread(int ticks)
   return GPU_TIME_SLOT_SIZE;
 }
 
-void FifoManager::SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLate)
+void FifoManager::SyncGPUCallback(const Core::System& system, u64 ticks, const s64 cyclesLate)
 {
   ticks += cyclesLate;
   int next = -1;

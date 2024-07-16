@@ -104,7 +104,7 @@ u64 NetKDTimeDevice::GetAdjustedUTC() const
   return u64(s64(emulated_time) + utcdiff - dst_diff);
 }
 
-void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
+void NetKDTimeDevice::SetAdjustedUTC(const u64 wii_utc)
 {
   using namespace ExpansionInterface;
 

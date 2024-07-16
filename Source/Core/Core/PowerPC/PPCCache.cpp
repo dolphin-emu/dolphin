@@ -111,7 +111,7 @@ void InstructionCache::Reset(JitInterface& jit_interface)
   jit_interface.ClearSafe();
 }
 
-void Cache::Init(Memory::MemoryManager& memory)
+void Cache::Init(const Memory::MemoryManager& memory)
 {
   data.fill({});
   addrs.fill({});
@@ -130,7 +130,7 @@ void InstructionCache::Init(Memory::MemoryManager& memory)
   Cache::Init(memory);
 }
 
-void Cache::Store(Memory::MemoryManager& memory, u32 addr)
+void Cache::Store(Memory::MemoryManager& memory, const u32 addr)
 {
   auto [set, way] = GetCache(memory, addr, true);
 
@@ -156,7 +156,7 @@ void Cache::FlushAll(Memory::MemoryManager& memory)
   Reset();
 }
 
-void Cache::Invalidate(Memory::MemoryManager& memory, u32 addr)
+void Cache::Invalidate(Memory::MemoryManager& memory, const u32 addr)
 {
   auto [set, way] = GetCache(memory, addr, true);
 
@@ -177,7 +177,7 @@ void Cache::Invalidate(Memory::MemoryManager& memory, u32 addr)
   }
 }
 
-void Cache::Flush(Memory::MemoryManager& memory, u32 addr)
+void Cache::Flush(Memory::MemoryManager& memory, const u32 addr)
 {
   auto [set, way] = GetCache(memory, addr, true);
 
@@ -201,12 +201,12 @@ void Cache::Flush(Memory::MemoryManager& memory, u32 addr)
   }
 }
 
-void Cache::Touch(Memory::MemoryManager& memory, u32 addr, bool store)
+void Cache::Touch(Memory::MemoryManager& memory, const u32 addr, bool store)
 {
   GetCache(memory, addr, false);
 }
 
-std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, bool locked)
+std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, const bool locked)
 {
   addr &= ~31;
   u32 set = (addr >> 5) & 0x7f;
@@ -270,7 +270,7 @@ std::pair<u32, u32> Cache::GetCache(Memory::MemoryManager& memory, u32 addr, boo
   return {set, way};
 }
 
-void Cache::Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len, bool locked)
+void Cache::Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len, const bool locked)
 {
   auto* value = static_cast<u8*>(buffer);
 
@@ -297,7 +297,7 @@ void Cache::Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len,
   }
 }
 
-void Cache::Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u32 len, bool locked)
+void Cache::Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u32 len, const bool locked)
 {
   auto* value = static_cast<const u8*>(buffer);
 
@@ -325,7 +325,7 @@ void Cache::Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u
   }
 }
 
-void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
+void Cache::DoState(const Memory::MemoryManager& memory, PointerWrap& p)
 {
   if (p.IsReadMode())
   {
@@ -376,7 +376,7 @@ void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
 }
 
 u32 InstructionCache::ReadInstruction(Memory::MemoryManager& memory,
-                                      PowerPCState& ppc_state, u32 addr)
+                                      PowerPCState& ppc_state, const u32 addr)
 {
   if (!HID0(ppc_state).ICE || m_disable_icache)  // instruction cache is disabled
     return memory.Read_U32(addr);
@@ -386,8 +386,8 @@ u32 InstructionCache::ReadInstruction(Memory::MemoryManager& memory,
   return Common::swap32(value);
 }
 
-void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface,
-                                  u32 addr)
+void InstructionCache::Invalidate(const Memory::MemoryManager& memory, JitInterface& jit_interface,
+                                  const u32 addr)
 {
   // Per the 750cl manual, section 3.4.1.5 Instruction Cache Enabling/Disabling (page 137)
   // and section 3.4.2.6 Instruction Cache Block Invalidate (icbi) (page 140), the icbi

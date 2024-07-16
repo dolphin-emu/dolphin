@@ -114,7 +114,7 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   return true;
 }
 
-bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
+bool AsyncShaderCompiler::StartWorkerThreads(const u32 num_worker_threads)
 {
   if (num_worker_threads == 0)
     return true;
@@ -146,7 +146,7 @@ bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
   return HasWorkerThreads();
 }
 
-bool AsyncShaderCompiler::ResizeWorkerThreads(u32 num_worker_threads)
+bool AsyncShaderCompiler::ResizeWorkerThreads(const u32 num_worker_threads)
 {
   if (m_worker_threads.size() == num_worker_threads)
     return true;

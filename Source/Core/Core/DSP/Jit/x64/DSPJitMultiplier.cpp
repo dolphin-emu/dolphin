@@ -64,7 +64,7 @@ void DSPEmitter::multiply_sub()
 // Returns s64 in EAX
 // In: RCX = s16 a, RAX = s16 b
 // Returns s64 in RAX
-void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
+void DSPEmitter::multiply_mulx(const u8 axh0, const u8 axh1)
 {
   //	s64 result;
 

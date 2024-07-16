@@ -24,7 +24,7 @@ struct Elt
 {
   bool IsZero() const
   {
-    return std::all_of(data.begin(), data.end(), [](u8 b) { return b == 0; });
+    return std::all_of(data.begin(), data.end(), [](const u8 b) { return b == 0; });
   }
 
   void MulX()

@@ -33,17 +33,17 @@ IRPassthrough::IRPassthrough(std::string name_, std::string ui_name_)
   AddInput(Translatability::Translate, _trans("Object 4 Size"));
 }
 
-ControlState IRPassthrough::GetObjectPositionX(size_t object_index) const
+ControlState IRPassthrough::GetObjectPositionX(const size_t object_index) const
 {
   return controls[object_index * 3 + 0]->GetState();
 }
 
-ControlState IRPassthrough::GetObjectPositionY(size_t object_index) const
+ControlState IRPassthrough::GetObjectPositionY(const size_t object_index) const
 {
   return controls[object_index * 3 + 1]->GetState();
 }
 
-ControlState IRPassthrough::GetObjectSize(size_t object_index) const
+ControlState IRPassthrough::GetObjectSize(const size_t object_index) const
 {
   return controls[object_index * 3 + 2]->GetState();
 }

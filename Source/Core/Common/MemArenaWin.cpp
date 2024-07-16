@@ -44,7 +44,7 @@ struct WindowsMemoryRegion
   size_t m_size;
   bool m_is_mapped;
 
-  WindowsMemoryRegion(u8* start, size_t size, bool is_mapped)
+  WindowsMemoryRegion(u8* start, const size_t size, const bool is_mapped)
       : m_start(start), m_size(size), m_is_mapped(is_mapped)
   {
   }
@@ -107,17 +107,17 @@ MemArena::~MemArena()
   ReleaseSHMSegment();
 }
 
-static DWORD GetHighDWORD(u64 value)
+static DWORD GetHighDWORD(const u64 value)
 {
   return static_cast<DWORD>(value >> 32);
 }
 
-static DWORD GetLowDWORD(u64 value)
+static DWORD GetLowDWORD(const u64 value)
 {
   return static_cast<DWORD>(value);
 }
 
-void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
+void MemArena::GrabSHMSegment(const size_t size, std::string_view base_name)
 {
   const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
   m_memory_handle =
@@ -133,14 +133,14 @@ void MemArena::ReleaseSHMSegment()
   m_memory_handle = nullptr;
 }
 
-void* MemArena::CreateView(s64 offset, size_t size)
+void* MemArena::CreateView(const s64 offset, const size_t size)
 {
   const u64 off = static_cast<u64>(offset);
   return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, GetHighDWORD(off), GetLowDWORD(off),
                          size, nullptr);
 }
 
-void MemArena::ReleaseView(void* view, size_t size)
+void MemArena::ReleaseView(const void* view, size_t size)
 {
   UnmapViewOfFile(view);
 }
@@ -209,7 +209,7 @@ void MemArena::ReleaseMemoryRegion()
   }
 }
 
-WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, size_t size)
+WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, const size_t size)
 {
   u8* const address = static_cast<u8*>(start_address);
   auto& regions = m_regions;
@@ -222,7 +222,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   // find closest region that is <= the given address by using upper bound and decrementing
   auto it = std::upper_bound(
       regions.begin(), regions.end(), address,
-      [](u8* addr, const WindowsMemoryRegion& region) { return addr < region.m_start; });
+      [](const u8* addr, const WindowsMemoryRegion& region) { return addr < region.m_start; });
   if (it == regions.begin())
   {
     // this should never happen, implies that the given address is before the start of the
@@ -320,7 +320,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   }
 }
 
-void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
+void* MemArena::MapInMemoryRegion(const s64 offset, const size_t size, void* base)
 {
   if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
@@ -351,7 +351,7 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
   return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
 }
 
-bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
+bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)
 {
   u8* const address = static_cast<u8*>(start_address);
   auto& regions = m_regions;
@@ -365,7 +365,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   // there should be a mapping that matches the request exactly, find it
   auto it = std::lower_bound(
       regions.begin(), regions.end(), address,
-      [](const WindowsMemoryRegion& region, u8* addr) { return region.m_start < addr; });
+      [](const WindowsMemoryRegion& region, const u8* addr) { return region.m_start < addr; });
   if (it == regions.end() || it->m_start != address || it->m_size != size)
   {
     // didn't find it, we were given bogus input
@@ -422,7 +422,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   return true;
 }
 
-void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
+void MemArena::UnmapFromMemoryRegion(void* view, const size_t size)
 {
   if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
@@ -452,7 +452,7 @@ LazyMemoryRegion::~LazyMemoryRegion()
   Release();
 }
 
-void* LazyMemoryRegion::Create(size_t size)
+void* LazyMemoryRegion::Create(const size_t size)
 {
   ASSERT(!m_memory);
 
@@ -593,7 +593,7 @@ void LazyMemoryRegion::Release()
   }
 }
 
-void LazyMemoryRegion::MakeMemoryBlockWritable(size_t block_index)
+void LazyMemoryRegion::MakeMemoryBlockWritable(const size_t block_index)
 {
   u8* const memory = static_cast<u8*>(m_memory);
 

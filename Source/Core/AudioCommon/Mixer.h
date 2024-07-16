@@ -65,7 +65,7 @@ private:
   class MixerFifo final
   {
   public:
-    MixerFifo(Mixer* mixer, unsigned sample_rate_divisor, bool little_endian)
+    MixerFifo(Mixer* mixer, const unsigned sample_rate_divisor, const bool little_endian)
         : m_mixer(mixer), m_input_sample_rate_divisor(sample_rate_divisor),
           m_little_endian(little_endian)
     {

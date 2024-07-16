@@ -24,7 +24,7 @@ constexpr float PosScale(T val, float scale)
 }
 
 template <>
-constexpr float PosScale(float val, [[maybe_unused]] float scale)
+constexpr float PosScale(const float val, [[maybe_unused]] float scale)
 {
   return val;
 }
@@ -118,9 +118,9 @@ constexpr Table s_table_read_position = {
 };
 }  // Anonymous namespace
 
-TPipelineFunction VertexLoader_Position::GetFunction(VertexComponentFormat type,
-                                                     ComponentFormat format,
-                                                     CoordComponentCount elements)
+TPipelineFunction VertexLoader_Position::GetFunction(const VertexComponentFormat type,
+                                                     const ComponentFormat format,
+                                                     const CoordComponentCount elements)
 {
   return s_table_read_position[type][format][elements];
 }

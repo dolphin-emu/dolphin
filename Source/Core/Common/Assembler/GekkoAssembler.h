@@ -13,7 +13,7 @@ namespace Common::GekkoAssembler
 {
 struct CodeBlock
 {
-  CodeBlock(u32 address) : block_address(address) {}
+  CodeBlock(const u32 address) : block_address(address) {}
 
   void PushBigEndian(u32 val);
 

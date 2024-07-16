@@ -61,13 +61,13 @@ public:
   virtual ButtonData GetCurrentlyPressedButtons() = 0;
 
 protected:
-  void InterruptDataInputCallback(const u8* data, u32 size)
+  void InterruptDataInputCallback(const u8* data, const u32 size)
   {
     InterruptCallback((HID_TYPE_DATA << 4) | HID_PARAM_INPUT, data,
                       size);
   }
 
-  void InterruptCallback(u8 hid_type, const u8* data, u32 size)
+  void InterruptCallback(const u8 hid_type, const u8* data, const u32 size)
   {
     m_callback(hid_type, data, size);
   }
@@ -81,7 +81,7 @@ private:
 template <typename T>
 struct TypedInputData
 {
-  TypedInputData(InputReportID _rpt_id) : report_id(_rpt_id) {}
+  TypedInputData(const InputReportID _rpt_id) : report_id(_rpt_id) {}
 
   InputReportID report_id;
   T payload = {};

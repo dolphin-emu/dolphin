@@ -29,7 +29,7 @@
 template <>
 struct fmt::formatter<DSP::DSPAssembler::LocationContext>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DSP::DSPAssembler::LocationContext& loc, FormatContext& ctx) const
   {
@@ -474,7 +474,7 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const DSPOPCTemplate* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
+const DSPOPCTemplate* DSPAssembler::FindOpcode(std::string name, const size_t par_count, const OpcodeType type)
 {
   if (name[0] == 'C' && name[1] == 'W')
     return &cw;
@@ -511,7 +511,7 @@ static u16 get_mask_shifted_down(u16 mask)
   return mask;
 }
 
-bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count,
+bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, const size_t count,
                                 OpcodeType type)
 {
   for (size_t i = 0; i < count; i++)
@@ -726,7 +726,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
 }
 
 // Merge opcode with params.
-void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_count, u16* outbuf)
+void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, const param_t* par, const u32 par_count, u16* outbuf)
 {
   outbuf[m_cur_addr] |= opc->opcode;
   for (u32 i = 0; i < par_count; i++)
@@ -746,7 +746,7 @@ void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_co
   }
 }
 
-void DSPAssembler::InitPass(int pass)
+void DSPAssembler::InitPass(const int pass)
 {
   m_failed = false;
   if (pass == 1)

@@ -41,7 +41,7 @@ bool DiscScrubber::SetupScrub(const Volume& disc)
   return success;
 }
 
-bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const
+bool DiscScrubber::CanBlockBeScrubbed(const u64 offset) const
 {
   if (!m_is_scrubbing)
     return false;
@@ -50,7 +50,7 @@ bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const
   return cluster_index >= m_free_table.size() || m_free_table[cluster_index];
 }
 
-void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
+void DiscScrubber::MarkAsUsed(const u64 offset, const u64 size)
 {
   u64 current_offset = Common::AlignDown(offset, CLUSTER_SIZE);
   const u64 end_offset = offset + size;
@@ -64,7 +64,7 @@ void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
   }
 }
 
-void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
+void DiscScrubber::MarkAsUsedE(const u64 partition_data_offset, const u64 offset, const u64 size)
 {
   if (partition_data_offset == 0)
   {
@@ -90,7 +90,7 @@ void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 }
 
 // Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
-u64 DiscScrubber::ToClusterOffset(u64 offset) const
+u64 DiscScrubber::ToClusterOffset(const u64 offset) const
 {
   if (m_has_wii_hashes)
     return offset / 0x7c00 * CLUSTER_SIZE;
@@ -99,7 +99,7 @@ u64 DiscScrubber::ToClusterOffset(u64 offset) const
 }
 
 // Helper functions for reading the BE volume
-bool DiscScrubber::ReadFromVolume(const Volume& disc, u64 offset, u32& buffer,
+bool DiscScrubber::ReadFromVolume(const Volume& disc, const u64 offset, u32& buffer,
                                   const Partition& partition)
 {
   std::optional<u32> value = disc.ReadSwapped<u32>(offset, partition);
@@ -108,7 +108,7 @@ bool DiscScrubber::ReadFromVolume(const Volume& disc, u64 offset, u32& buffer,
   return value.has_value();
 }
 
-bool DiscScrubber::ReadFromVolume(const Volume& disc, u64 offset, u64& buffer,
+bool DiscScrubber::ReadFromVolume(const Volume& disc, const u64 offset, u64& buffer,
                                   const Partition& partition)
 {
   std::optional<u64> value = disc.ReadSwappedAndShifted(offset, partition);
@@ -220,7 +220,7 @@ bool DiscScrubber::ParsePartitionData(const Volume& disc, const Partition& parti
   return true;
 }
 
-void DiscScrubber::ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory)
+void DiscScrubber::ParseFileSystemData(const u64 partition_data_offset, const FileInfo& directory)
 {
   for (const FileInfo& file_info : directory)
   {

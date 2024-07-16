@@ -29,7 +29,7 @@ Microsoft::WRL::ComPtr<ITaskbarList3> taskbar_list;
 std::thread ui_thread;
 Common::Event window_created_event;
 
-int GetWindowHeight(HWND hwnd)
+int GetWindowHeight(const HWND hwnd)
 {
   RECT rect;
   GetWindowRect(hwnd, &rect);
@@ -37,7 +37,7 @@ int GetWindowHeight(HWND hwnd)
   return rect.bottom - rect.top;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT uMsg, const WPARAM wParam, const LPARAM lParam)
 {
   switch (uMsg)
   {
@@ -139,7 +139,7 @@ bool InitWindow()
   return true;
 }
 
-void SetTotalMarquee(bool marquee)
+void SetTotalMarquee(const bool marquee)
 {
   SetWindowLong(total_progressbar_handle, GWL_STYLE,
                 PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
@@ -156,7 +156,7 @@ void ResetTotalProgress()
   SetCurrentMarquee(true);
 }
 
-void SetTotalProgress(int current, int total)
+void SetTotalProgress(const int current, const int total)
 {
   SendMessage(total_progressbar_handle, PBM_SETRANGE32, 0, total);
   SendMessage(total_progressbar_handle, PBM_SETPOS, current, 0);
@@ -166,7 +166,7 @@ void SetTotalProgress(int current, int total)
   }
 }
 
-void SetCurrentMarquee(bool marquee)
+void SetCurrentMarquee(const bool marquee)
 {
   SetWindowLong(current_progressbar_handle, GWL_STYLE,
                 PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
@@ -195,7 +195,7 @@ void Error(const std::string& text)
   }
 }
 
-void SetCurrentProgress(int current, int total)
+void SetCurrentProgress(const int current, const int total)
 {
   SendMessage(current_progressbar_handle, PBM_SETRANGE32, 0, total);
   SendMessage(current_progressbar_handle, PBM_SETPOS, current, 0);
@@ -285,12 +285,12 @@ void LaunchApplication(std::string path)
   }
 }
 
-void Sleep(int sleep)
+void Sleep(const int sleep)
 {
   ::Sleep(sleep * 1000);
 }
 
-void WaitForPID(u32 pid)
+void WaitForPID(const u32 pid)
 {
   HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
   if (parent_handle)
@@ -300,7 +300,7 @@ void WaitForPID(u32 pid)
   }
 }
 
-void SetVisible(bool visible)
+void SetVisible(const bool visible)
 {
   ShowWindow(window_handle, visible ? SW_SHOW : SW_HIDE);
 }

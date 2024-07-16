@@ -11,7 +11,7 @@ namespace AudioCommon
 constexpr size_t STEREO_CHANNELS = 2;
 constexpr size_t SURROUND_CHANNELS = 6;
 
-SurroundDecoder::SurroundDecoder(u32 sample_rate, u32 frame_block_size)
+SurroundDecoder::SurroundDecoder(const u32 sample_rate, const u32 frame_block_size)
     : m_sample_rate(sample_rate), m_frame_block_size(frame_block_size)
 {
   m_fsdecoder = std::make_unique<DPL2FSDecoder>();

@@ -28,7 +28,7 @@ static constexpr int BLOCK_SIZE = 2;
 struct SlopeContext
 {
   SlopeContext(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-               s32 x0_, s32 y0_, s32 x_off, s32 y_off)
+               const s32 x0_, const s32 y0_, const s32 x_off, const s32 y_off)
       : x0(x0_), y0(y0_)
   {
     // adjust a little less than 0.5
@@ -55,7 +55,7 @@ struct SlopeContext
 struct Slope
 {
   Slope() = default;
-  Slope(float f0_, float f1, float f2, const SlopeContext& ctx) : f0(f0_)
+  Slope(const float f0_, const float f1, const float f2, const SlopeContext& ctx) : f0(f0_)
   {
     float delta_20 = f2 - f0_;
     float delta_10 = f1 - f0_;
@@ -88,7 +88,7 @@ struct Slope
   float xOff = 0.0f;
   float yOff = 0.0f;
 
-  float GetValue(s32 x, s32 y) const
+  float GetValue(const s32 x, const s32 y) const
   {
     float dx = xOff + (float)(x - x0);
     float dy = yOff + (float)(y - y0);
@@ -120,7 +120,7 @@ void ScissorChanged()
 
 // Returns approximation of log2(f) in s28.4
 // results are close enough to use for LOD
-static s32 FixedLog2(float f)
+static s32 FixedLog2(const float f)
 {
   u32 x;
   std::memcpy(&x, &f, sizeof(u32));
@@ -131,7 +131,7 @@ static s32 FixedLog2(float f)
   return logInt + logFract;
 }
 
-static inline int iround(float x)
+static inline int iround(const float x)
 {
   int t = (int)x;
   if ((x - t) >= 0.5)
@@ -145,7 +145,7 @@ void SetTevKonstColors()
   tev.SetKonstColors();
 }
 
-static void Draw(s32 x, s32 y, s32 xi, s32 yi)
+static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
 {
   INCSTAT(g_stats.this_frame.rasterized_pixels);
 
@@ -207,7 +207,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   tev.Draw();
 }
 
-static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
+static inline void CalculateLOD(s32* lodp, bool* linear, const u32 texmap, const u32 texcoord)
 {
   auto texUnit = bpmem.tex.GetUnit(texmap);
 
@@ -258,7 +258,7 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   *lodp = lod;
 }
 
-static void BuildBlock(s32 blockX, s32 blockY)
+static void BuildBlock(const s32 blockX, const s32 blockY)
 {
   for (s32 yi = 0; yi < BLOCK_SIZE; yi++)
   {
@@ -309,7 +309,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 }
 
 void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
-                  const OutputVertexData* v2, s32 x_off, s32 y_off)
+                  const OutputVertexData* v2, const s32 x_off, const s32 y_off)
 {
   if (!bpmem.genMode.zfreeze)
   {

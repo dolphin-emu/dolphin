@@ -198,7 +198,7 @@ extern std::unique_ptr<DXContext> g_dx_context;
 // Unlike the version in Common, this variant also knows to call GetDeviceRemovedReason if needed.
 struct DX12HRWrap
 {
-  constexpr explicit DX12HRWrap(HRESULT hr) : m_hr(hr) {}
+  constexpr explicit DX12HRWrap(const HRESULT hr) : m_hr(hr) {}
   const HRESULT m_hr;
 };
 
@@ -207,7 +207,7 @@ struct DX12HRWrap
 template <>
 struct fmt::formatter<DX12::DX12HRWrap>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DX12::DX12HRWrap& hr, FormatContext& ctx) const
   {

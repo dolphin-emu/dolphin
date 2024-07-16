@@ -54,7 +54,7 @@ static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
                          const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe,
                          bool stereo);
 
-ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& host_config,
+ShaderCode GenerateGeometryShaderCode(const APIType api_type, const ShaderHostConfig& host_config,
                                       const geometry_shader_uid_data* uid_data)
 {
   ShaderCode out;
@@ -315,7 +315,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
 static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
                        const geometry_shader_uid_data* uid_data, const char* vertex,
-                       APIType api_type, bool wireframe, bool stereo, bool first_vertex)
+                       const APIType api_type, const bool wireframe, const bool stereo, const bool first_vertex)
 {
   if (wireframe && first_vertex)
     out.Write("\tif (i == 0) first = {};\n", vertex);
@@ -361,8 +361,8 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
 }
 
 static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
-                         const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe,
-                         bool stereo)
+                         const geometry_shader_uid_data* uid_data, const APIType api_type, const bool wireframe,
+                         const bool stereo)
 {
   if (wireframe)
     EmitVertex(out, host_config, uid_data, "first", api_type, wireframe, stereo);

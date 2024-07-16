@@ -220,7 +220,7 @@ void Drums::DoState(PointerWrap& p)
   p.Do(m_pad_remaining_frames);
 }
 
-ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)
+ControllerEmu::ControlGroup* Drums::GetGroup(const DrumsGroup group)
 {
   switch (group)
   {

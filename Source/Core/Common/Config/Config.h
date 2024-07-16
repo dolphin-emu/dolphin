@@ -55,7 +55,7 @@ LayerType GetActiveLayerForConfig(const Location&);
 std::optional<std::string> GetAsString(const Location&);
 
 template <typename T>
-T Get(LayerType layer, const Info<T>& info)
+T Get(const LayerType layer, const Info<T>& info)
 {
   if (layer == LayerType::Meta)
     return Get(info);
@@ -102,7 +102,7 @@ LayerType GetActiveLayerForConfig(const Info<T>& info)
 }
 
 template <typename T>
-void Set(LayerType layer, const Info<T>& info, const std::common_type_t<T>& value)
+void Set(const LayerType layer, const Info<T>& info, const std::common_type_t<T>& value)
 {
   if (GetLayer(layer)->Set(info, value))
     OnConfigChanged();
@@ -130,7 +130,7 @@ void SetBaseOrCurrent(const Info<T>& info, const std::common_type_t<T>& value)
 }
 
 template <typename T>
-void DeleteKey(LayerType layer, const Info<T>& info)
+void DeleteKey(const LayerType layer, const Info<T>& info)
 {
   if (GetLayer(layer)->DeleteKey(info.GetLocation()))
     OnConfigChanged();

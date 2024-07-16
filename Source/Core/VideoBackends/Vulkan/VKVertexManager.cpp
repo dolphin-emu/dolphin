@@ -29,7 +29,7 @@
 
 namespace Vulkan
 {
-static VkBufferView CreateTexelBufferView(VkBuffer buffer, VkFormat vk_format)
+static VkBufferView CreateTexelBufferView(const VkBuffer buffer, const VkFormat vk_format)
 {
   // Create a view of the whole buffer, we'll offset our texel load into it
   VkBufferViewCreateInfo view_info = {
@@ -141,7 +141,7 @@ void VertexManager::DestroyTexelBufferViews()
   }
 }
 
-void VertexManager::ResetBuffer(u32 vertex_stride)
+void VertexManager::ResetBuffer(const u32 vertex_stride)
 {
   // Attempt to allocate from buffers
   bool has_vbuffer_allocation =
@@ -173,7 +173,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_index_generator.Start(reinterpret_cast<u16*>(m_index_stream_buffer->GetCurrentHostPointer()));
 }
 
-void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride, const u32 num_indices,
                                  u32* out_base_vertex, u32* out_base_index)
 {
   const u32 vertex_data_size = num_vertices * vertex_stride;
@@ -370,7 +370,7 @@ void VertexManager::UploadAllConstants()
   pixel_shader_manager.dirty = false;
 }
 
-void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
+void VertexManager::UploadUtilityUniforms(const void* data, const u32 data_size)
 {
   InvalidateConstants();
   if (!m_uniform_stream_buffer->ReserveMemory(data_size,
@@ -387,7 +387,7 @@ void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
                                       u32* out_offset)
 {
   if (data_size > m_texel_stream_buffer->GetCurrentSize())
@@ -414,9 +414,9 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   return true;
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                      u32* out_offset, const void* palette_data, u32 palette_size,
-                                      TexelBufferFormat palette_format, u32* out_palette_offset)
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
+                                      u32* out_offset, const void* palette_data, const u32 palette_size,
+                                      const TexelBufferFormat palette_format, u32* out_palette_offset)
 {
   const u32 elem_size = GetTexelBufferElementSize(format);
   const u32 palette_elem_size = GetTexelBufferElementSize(palette_format);

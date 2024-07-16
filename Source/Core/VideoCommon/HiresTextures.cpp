@@ -194,7 +194,7 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_in
   }
 }
 
-HiresTexture::HiresTexture(bool has_arbitrary_mipmaps,
+HiresTexture::HiresTexture(const bool has_arbitrary_mipmaps,
                            std::shared_ptr<VideoCommon::GameTextureAsset> asset)
     : m_has_arbitrary_mipmaps(has_arbitrary_mipmaps), m_game_texture(std::move(asset))
 {

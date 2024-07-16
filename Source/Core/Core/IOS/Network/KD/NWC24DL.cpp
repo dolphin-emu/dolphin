@@ -85,13 +85,13 @@ void NWC24Dl::WriteDlList() const
     ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 DL list file");
 }
 
-bool NWC24Dl::DoesEntryExist(u16 entry_index) const
+bool NWC24Dl::DoesEntryExist(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   return m_data.entries[entry_index].low_title_id != 0;
 }
 
-std::string NWC24Dl::GetDownloadURL(u16 entry_index, std::optional<u8> subtask_id) const
+std::string NWC24Dl::GetDownloadURL(const u16 entry_index, const std::optional<u8> subtask_id) const
 {
   ASSERT(!IsDisabled());
   std::string url(m_data.entries[entry_index].dl_url);
@@ -106,7 +106,7 @@ std::string NWC24Dl::GetDownloadURL(u16 entry_index, std::optional<u8> subtask_i
   return url;
 }
 
-std::string NWC24Dl::GetVFFContentName(u16 entry_index, std::optional<u8> subtask_id) const
+std::string NWC24Dl::GetVFFContentName(const u16 entry_index, const std::optional<u8> subtask_id) const
 {
   ASSERT(!IsDisabled());
   std::string content(m_data.entries[entry_index].filename);
@@ -121,7 +121,7 @@ std::string NWC24Dl::GetVFFContentName(u16 entry_index, std::optional<u8> subtas
   return content;
 }
 
-std::string NWC24Dl::GetVFFPath(u16 entry_index) const
+std::string NWC24Dl::GetVFFPath(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   const u32 lower_title_id = Common::swap32(m_data.entries[entry_index].low_title_id);
@@ -130,7 +130,7 @@ std::string NWC24Dl::GetVFFPath(u16 entry_index) const
   return fmt::format("/title/{0:08x}/{1:08x}/data/wc24dl.vff", lower_title_id, high_title_id);
 }
 
-std::optional<WC24PubkMod> NWC24Dl::GetWC24PubkMod(u16 entry_index) const
+std::optional<WC24PubkMod> NWC24Dl::GetWC24PubkMod(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   WC24PubkMod pubk_mod;
@@ -150,26 +150,26 @@ std::optional<WC24PubkMod> NWC24Dl::GetWC24PubkMod(u16 entry_index) const
   return pubk_mod;
 }
 
-bool NWC24Dl::IsEncrypted(u16 entry_index) const
+bool NWC24Dl::IsEncrypted(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   return !!Common::ExtractBit(Common::swap32(m_data.entries[entry_index].flags), 3);
 }
 
-bool NWC24Dl::IsRSASigned(u16 entry_index) const
+bool NWC24Dl::IsRSASigned(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   return !Common::ExtractBit(Common::swap32(m_data.entries[entry_index].flags), 2);
 }
 
-bool NWC24Dl::SkipSchedulerDownload(u16 entry_index) const
+bool NWC24Dl::SkipSchedulerDownload(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   // Some entries can be set to not be downloaded by the scheduler.
   return !!Common::ExtractBit(Common::swap32(m_data.entries[entry_index].flags), 5);
 }
 
-bool NWC24Dl::HasSubtask(u16 entry_index) const
+bool NWC24Dl::HasSubtask(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   switch (m_data.entries[entry_index].subtask_type)
@@ -184,26 +184,26 @@ bool NWC24Dl::HasSubtask(u16 entry_index) const
   }
 }
 
-bool NWC24Dl::IsSubtaskDownloadDisabled(u16 entry_index) const
+bool NWC24Dl::IsSubtaskDownloadDisabled(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   return !!Common::ExtractBit(Common::swap16(m_data.entries[entry_index].subtask_flags), 9);
 }
 
-bool NWC24Dl::IsValidSubtask(u16 entry_index, u8 subtask_id) const
+bool NWC24Dl::IsValidSubtask(const u16 entry_index, const u8 subtask_id) const
 {
   ASSERT(!IsDisabled());
   return !!Common::ExtractBit(m_data.entries[entry_index].subtask_bitmask, subtask_id);
 }
 
-u64 NWC24Dl::GetNextDownloadTime(u16 record_index) const
+u64 NWC24Dl::GetNextDownloadTime(const u16 record_index) const
 {
   ASSERT(!IsDisabled());
   // Timestamps are stored as a UNIX timestamp but in minutes. We want seconds.
   return Common::swap32(m_data.records[record_index].next_dl_timestamp) * SECONDS_PER_MINUTE;
 }
 
-u64 NWC24Dl::GetRetryTime(u16 entry_index) const
+u64 NWC24Dl::GetRetryTime(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   const u64 retry_time = Common::swap16(m_data.entries[entry_index].retry_frequency);
@@ -214,13 +214,13 @@ u64 NWC24Dl::GetRetryTime(u16 entry_index) const
   return retry_time * SECONDS_PER_MINUTE;
 }
 
-u64 NWC24Dl::GetDownloadMargin(u16 entry_index) const
+u64 NWC24Dl::GetDownloadMargin(const u16 entry_index) const
 {
   ASSERT(!IsDisabled());
   return Common::swap16(m_data.entries[entry_index].dl_margin) * SECONDS_PER_MINUTE;
 }
 
-void NWC24Dl::SetNextDownloadTime(u16 record_index, u64 value, std::optional<u8> subtask_id)
+void NWC24Dl::SetNextDownloadTime(const u16 record_index, const u64 value, const std::optional<u8> subtask_id)
 {
   ASSERT(!IsDisabled());
   if (subtask_id)
@@ -233,7 +233,7 @@ void NWC24Dl::SetNextDownloadTime(u16 record_index, u64 value, std::optional<u8>
       Common::swap32(static_cast<u32>(value / SECONDS_PER_MINUTE));
 }
 
-u64 NWC24Dl::GetLastSubtaskDownloadTime(u16 entry_index, u8 subtask_id) const
+u64 NWC24Dl::GetLastSubtaskDownloadTime(const u16 entry_index, const u8 subtask_id) const
 {
   ASSERT(!IsDisabled());
   return Common::swap32(m_data.entries[entry_index].subtask_timestamps[subtask_id]) *
@@ -247,7 +247,7 @@ u32 NWC24Dl::Magic() const
   return Common::swap32(m_data.header.magic);
 }
 
-void NWC24Dl::SetMagic(u32 magic)
+void NWC24Dl::SetMagic(const u32 magic)
 {
   ASSERT(!IsDisabled());
   m_data.header.magic = Common::swap32(magic);
@@ -259,7 +259,7 @@ u32 NWC24Dl::Version() const
   return Common::swap32(m_data.header.version);
 }
 
-void NWC24Dl::SetVersion(u32 version)
+void NWC24Dl::SetVersion(const u32 version)
 {
   ASSERT(!IsDisabled());
   m_data.header.version = Common::swap32(version);

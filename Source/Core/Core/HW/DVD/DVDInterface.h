@@ -195,9 +195,9 @@ private:
                      ReplyType reply_type);
 
   static void AutoChangeDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void FinishExecutingCommandCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void EjectDiscCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
+  static void InsertDiscCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
+  static void FinishExecutingCommandCallback(const Core::System& system, u64 userdata, s64 cycles_late);
 
   // DI Status Register
   union UDISR
@@ -228,7 +228,7 @@ private:
     BitField<3, 29, u32> reserved;
 
     UDICVR() = default;
-    explicit UDICVR(u32 hex) : Hex{hex} {}
+    explicit UDICVR(const u32 hex) : Hex{hex} {}
   };
 
   // DI DMA Control Register
@@ -252,7 +252,7 @@ private:
     BitField<8, 24, u32> reserved;
 
     UDICFG() = default;
-    explicit UDICFG(u32 hex) : Hex{hex} {}
+    explicit UDICFG(const u32 hex) : Hex{hex} {}
   };
 
   // Hardware registers

@@ -951,7 +951,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   return 0;
 }
 
-int SkylanderUSB::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
+int SkylanderUSB::SubmitTransfer(const std::unique_ptr<BulkMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Bulk: length={} endpoint={}", m_vid, m_pid,
                 m_active_interface, cmd->length, cmd->endpoint);
@@ -1016,7 +1016,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   return 0;
 }
 
-int SkylanderUSB::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
+int SkylanderUSB::SubmitTransfer(const std::unique_ptr<IsoMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Isochronous: length={} endpoint={} num_packets={}",
                 m_vid, m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
@@ -1024,8 +1024,8 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 }
 
 void SkylanderUSB::ScheduleTransfer(std::unique_ptr<TransferCommand> command,
-                                    const std::array<u8, 64>& data, s32 expected_count,
-                                    u64 expected_time_us)
+                                    const std::array<u8, 64>& data, const s32 expected_count,
+                                    const u64 expected_time_us)
 {
   command->FillBuffer(data.data(), expected_count);
   command->ScheduleTransferCompletion(expected_count, expected_time_us);
@@ -1103,7 +1103,7 @@ void SkylanderPortal::UpdateStatus()
 // 0x01 = left and right
 // 0x02 = left
 // 0x03 = trap
-void SkylanderPortal::SetLEDs(u8 side, u8 red, u8 green, u8 blue)
+void SkylanderPortal::SetLEDs(const u8 side, const u8 red, const u8 green, const u8 blue)
 {
   std::lock_guard lock(sky_mutex);
   if (side == 0x00)
@@ -1171,7 +1171,7 @@ std::array<u8, 64> SkylanderPortal::GetStatus()
   return interrupt_response;
 }
 
-void SkylanderPortal::QueryBlock(u8 sky_num, u8 block, u8* reply_buf)
+void SkylanderPortal::QueryBlock(const u8 sky_num, const u8 block, u8* reply_buf)
 {
   if (!IsSkylanderNumberValid(sky_num) || !IsBlockNumberValid(block))
     return;
@@ -1193,7 +1193,7 @@ void SkylanderPortal::QueryBlock(u8 sky_num, u8 block, u8* reply_buf)
   }
 }
 
-void SkylanderPortal::WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf)
+void SkylanderPortal::WriteBlock(const u8 sky_num, const u8 block, const u8* to_write_buf, u8* reply_buf)
 {
   if (!IsSkylanderNumberValid(sky_num) || !IsBlockNumberValid(block))
     return;
@@ -1217,7 +1217,7 @@ void SkylanderPortal::WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u
   }
 }
 
-bool SkylanderPortal::RemoveSkylander(u8 sky_num)
+bool SkylanderPortal::RemoveSkylander(const u8 sky_num)
 {
   if (!IsSkylanderNumberValid(sky_num))
     return false;
@@ -1290,12 +1290,12 @@ u8 SkylanderPortal::LoadSkylander(std::unique_ptr<SkylanderFigure> figure)
   return found_slot;
 }
 
-bool SkylanderPortal::IsSkylanderNumberValid(u8 sky_num)
+bool SkylanderPortal::IsSkylanderNumberValid(const u8 sky_num)
 {
   return sky_num < MAX_SKYLANDERS;
 }
 
-bool SkylanderPortal::IsBlockNumberValid(u8 block)
+bool SkylanderPortal::IsBlockNumberValid(const u8 block)
 {
   return block < 64;
 }
@@ -1311,12 +1311,12 @@ std::pair<u16, u16> SkylanderPortal::CalculateIDs(const std::array<u8, 0x40 * 0x
   return std::make_pair(m_sky_id, m_sky_var);
 }
 
-Skylander* SkylanderPortal::GetSkylander(u8 slot)
+Skylander* SkylanderPortal::GetSkylander(const u8 slot)
 {
   return &skylanders[slot];
 }
 
-Type NormalizeSkylanderType(Type type)
+Type NormalizeSkylanderType(const Type type)
 {
   switch (type)
   {

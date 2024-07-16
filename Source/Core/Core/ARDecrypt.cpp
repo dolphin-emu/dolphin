@@ -215,13 +215,13 @@ static void getcode(const u32* src, u32* addr, u32* val)
   *val = Common::swap32(src[1]);
 }
 
-static void setcode(u32* dst, u32 addr, u32 val)
+static void setcode(u32* dst, const u32 addr, const u32 val)
 {
   dst[0] = Common::swap32(addr);
   dst[1] = Common::swap32(val);
 }
 
-static u16 gencrc16(const u32* codes, u16 size)
+static u16 gencrc16(const u32* codes, const u16 size)
 {
   u16 ret = 0;
 
@@ -239,7 +239,7 @@ static u16 gencrc16(const u32* codes, u16 size)
   return ret;
 }
 
-static u8 verifycode(const u32* codes, u16 size)
+static u8 verifycode(const u32* codes, const u16 size)
 {
   u16 tmp = gencrc16(codes, size);
   return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
@@ -348,7 +348,7 @@ static bool getbitstring(u32* ctrl, u32* out, u8 len)
   return true;
 }
 
-static bool batchdecrypt(u32* codes, u16 size)
+static bool batchdecrypt(u32* codes, const u16 size)
 {
   u32* ptr = codes;
   std::array<u32, 4> tmparray{};
@@ -392,7 +392,7 @@ static bool batchdecrypt(u32* codes, u16 size)
   // Unfinished (so says Parasyte :p )
 }
 
-static int GetVal(const char* flt, char chr)
+static int GetVal(const char* flt, const char chr)
 {
   int ret = (int)(strchr(flt, chr) - flt);
   switch (ret)

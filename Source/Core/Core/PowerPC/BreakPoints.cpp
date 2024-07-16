@@ -117,12 +117,12 @@ void BreakPoints::Add(TBreakPoint bp)
   m_breakpoints.emplace_back(std::move(bp));
 }
 
-void BreakPoints::Add(u32 address)
+void BreakPoints::Add(const u32 address)
 {
   Add(address, true, false, std::nullopt);
 }
 
-void BreakPoints::Add(u32 address, bool break_on_hit, bool log_on_hit,
+void BreakPoints::Add(u32 address, const bool break_on_hit, const bool log_on_hit,
                       std::optional<Expression> condition)
 {
   // Check for existing breakpoint, and overwrite with new info.
@@ -364,7 +364,7 @@ TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
   return &*iter;
 }
 
-bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
+bool MemChecks::OverlapsMemcheck(const u32 address, const u32 length) const
 {
   if (!HasAny())
     return false;
@@ -380,7 +380,7 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc)
+bool TMemCheck::Action(Core::System& system, const u64 value, const u32 addr, const bool write, const size_t size, const u32 pc)
 {
   if (!is_enabled)
     return false;

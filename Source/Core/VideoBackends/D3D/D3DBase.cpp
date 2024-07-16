@@ -37,7 +37,7 @@ constexpr std::array<D3D_FEATURE_LEVEL, 3> s_supported_feature_levels{
     D3D_FEATURE_LEVEL_10_0,
 };
 
-bool Create(u32 adapter_index, bool enable_debug_layer)
+bool Create(const u32 adapter_index, const bool enable_debug_layer)
 {
   PFN_D3D11_CREATE_DEVICE d3d11_create_device;
   if (!s_d3d11_library.Open("d3d11.dll") ||
@@ -168,7 +168,7 @@ void Destroy()
   s_d3d11_library.Close();
 }
 
-std::vector<u32> GetAAModes(u32 adapter_index)
+std::vector<u32> GetAAModes(const u32 adapter_index)
 {
   // Use temporary device if we don't have one already.
   Common::DynamicLibrary temp_lib;
@@ -220,7 +220,7 @@ std::vector<u32> GetAAModes(u32 adapter_index)
   return aa_modes;
 }
 
-bool SupportsTextureFormat(DXGI_FORMAT format)
+bool SupportsTextureFormat(const DXGI_FORMAT format)
 {
   UINT support;
   if (FAILED(device->CheckFormatSupport(format, &support)))
@@ -229,7 +229,7 @@ bool SupportsTextureFormat(DXGI_FORMAT format)
   return (support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
 }
 
-bool SupportsLogicOp(u32 adapter_index)
+bool SupportsLogicOp(const u32 adapter_index)
 {
   // Use temporary device if we don't have one already.
   Common::DynamicLibrary temp_lib;

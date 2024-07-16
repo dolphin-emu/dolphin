@@ -44,7 +44,7 @@ public:
   }
 
   template <typename T, size_t N>
-  Gen::OpArg MConst(const T (&value)[N], size_t index = 0)
+  Gen::OpArg MConst(const T (&value)[N], const size_t index = 0)
   {
     return Gen::M(m_const_pool.GetConstant(&value, sizeof(T), N, index));
   }

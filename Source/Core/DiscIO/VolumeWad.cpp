@@ -65,7 +65,7 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
   Read(m_cert_chain_offset, m_cert_chain_size, m_cert_chain.data());
 }
 
-bool VolumeWAD::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
+bool VolumeWAD::Read(const u64 offset, const u64 length, u8* buffer, const Partition& partition) const
 {
   if (partition != PARTITION_NONE)
     return false;
@@ -118,7 +118,7 @@ const std::vector<u8>& VolumeWAD::GetCertificateChain(const Partition& partition
   return m_cert_chain;
 }
 
-std::vector<u8> VolumeWAD::GetContent(u16 index) const
+std::vector<u8> VolumeWAD::GetContent(const u16 index) const
 {
   u64 offset = m_data_offset;
   for (const IOS::ES::Content& content : m_tmd.GetContents())
@@ -176,7 +176,7 @@ IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
     return m_ticket;
 
   const std::vector<u8> sig = m_ticket.GetSignatureData();
-  if (!std::all_of(sig.cbegin(), sig.cend(), [](u8 a) { return a == 0; }))
+  if (!std::all_of(sig.cbegin(), sig.cend(), [](const u8 a) { return a == 0; }))
   {
     // This does not look like a typical "invalid common key index" ticket, so let's assume
     // the index is correct. This saves some time when reading properly signed titles.

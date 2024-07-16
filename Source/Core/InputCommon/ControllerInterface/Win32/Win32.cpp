@@ -40,8 +40,8 @@ public:
 }  // namespace ciface::Win32
 
 _Pre_satisfies_(EventDataSize >= sizeof(CM_NOTIFY_EVENT_DATA)) static DWORD CALLBACK
-    OnDevicesChanged(_In_ HCMNOTIFICATION hNotify, _In_opt_ PVOID Context,
-                     _In_ CM_NOTIFY_ACTION Action,
+    OnDevicesChanged(_In_ HCMNOTIFICATION hNotify, _In_opt_ const PVOID Context,
+                     _In_ const CM_NOTIFY_ACTION Action,
                      _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData,
                      _In_ DWORD EventDataSize)
 {

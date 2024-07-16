@@ -72,7 +72,7 @@ public:
   /// @param view Pointer returned by CreateView().
   /// @param size Size passed to the corresponding CreateView() call.
   ///
-  void ReleaseView(void* view, size_t size);
+  void ReleaseView(const void* view, size_t size);
 
   ///
   /// Reserve the singular 'virtual' memory region handled by this MemArena. This is used to create
@@ -167,7 +167,7 @@ public:
   ///
   /// @param offset The offset into the memory region that should be made writable if it isn't.
   ///
-  void EnsureMemoryPageWritable(size_t offset)
+  void EnsureMemoryPageWritable(const size_t offset)
   {
 #ifdef _WIN32
     const size_t block_index = offset / BLOCK_SIZE;

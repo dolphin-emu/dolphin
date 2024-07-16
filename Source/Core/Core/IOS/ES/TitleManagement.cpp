@@ -52,8 +52,8 @@ void ESCore::TitleImportExportContext::DoState(PointerWrap& p)
 }
 
 ReturnCode ESCore::ImportTicket(const std::vector<u8>& ticket_bytes,
-                                const std::vector<u8>& cert_chain, TicketImportType type,
-                                VerifySignature verify_signature)
+                                const std::vector<u8>& cert_chain, const TicketImportType type,
+                                const VerifySignature verify_signature)
 {
   ES::TicketReader ticket{ticket_bytes};
   if (!ticket.IsValid())
@@ -112,7 +112,7 @@ IPCReply ESDevice::ImportTicket(const IOCtlVRequest& request)
 constexpr std::array<u8, 16> NULL_KEY{};
 
 // Used for exporting titles and importing them back (ImportTmd and ExportTitleInit).
-static ReturnCode InitBackupKey(u64 tid, u32 title_flags, IOSC& iosc, IOSC::Handle* key)
+static ReturnCode InitBackupKey(const u64 tid, const u32 title_flags, IOSC& iosc, IOSC::Handle* key)
 {
   // Some versions of IOS have a bug that causes it to use a zeroed key instead of the PRNG key.
   // When Nintendo decided to fix it, they added checks to keep using the zeroed key only in
@@ -142,7 +142,7 @@ static void ResetTitleImportContext(ESCore::Context* context, IOSC& iosc)
 }
 
 ReturnCode ESCore::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes,
-                             u64 caller_title_id, u32 caller_title_flags)
+                             const u64 caller_title_id, const u32 caller_title_flags)
 {
   INFO_LOG_FMT(IOS_ES, "ImportTmd");
 
@@ -224,7 +224,7 @@ static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& 
 
 ReturnCode ESCore::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                                    const std::vector<u8>& cert_chain,
-                                   VerifySignature verify_signature)
+                                   const VerifySignature verify_signature)
 {
   INFO_LOG_FMT(IOS_ES, "ImportTitleInit");
   ResetTitleImportContext(&context, m_ios.GetIOSC());
@@ -295,7 +295,7 @@ IPCReply ESDevice::ImportTitleInit(Context& context, const IOCtlVRequest& reques
   return IPCReply(m_core.ImportTitleInit(context, tmd, certs));
 }
 
-ReturnCode ESCore::ImportContentBegin(Context& context, u64 title_id, u32 content_id)
+ReturnCode ESCore::ImportContentBegin(Context& context, const u64 title_id, const u32 content_id)
 {
   if (context.title_import_export.content.valid)
   {
@@ -351,8 +351,8 @@ IPCReply ESDevice::ImportContentBegin(Context& context, const IOCtlVRequest& req
   return IPCReply(m_core.ImportContentBegin(context, title_id, content_id));
 }
 
-ReturnCode ESCore::ImportContentData(Context& context, u32 content_fd, const u8* data,
-                                     u32 data_size)
+ReturnCode ESCore::ImportContentData(Context& context, const u32 content_fd, const u8* data,
+                                     const u32 data_size)
 {
   INFO_LOG_FMT(IOS_ES, "ImportContentData: content fd {:08x}, size {}", content_fd, data_size);
   context.title_import_export.content.buffer.insert(
@@ -379,12 +379,12 @@ static bool CheckIfContentHashMatches(const std::vector<u8>& content, const ES::
   return Common::SHA1::CalculateDigest(content.data(), info.size) == info.sha1;
 }
 
-static std::string GetImportContentPath(u64 title_id, u32 content_id)
+static std::string GetImportContentPath(const u64 title_id, u32 content_id)
 {
   return fmt::format("{}/content/{:08x}.app", Common::GetImportTitlePath(title_id), content_id);
 }
 
-ReturnCode ESCore::ImportContentEnd(Context& context, u32 content_fd)
+ReturnCode ESCore::ImportContentEnd(Context& context, const u32 content_fd)
 {
   INFO_LOG_FMT(IOS_ES, "ImportContentEnd: content fd {:08x}", content_fd);
 
@@ -547,13 +547,13 @@ IPCReply ESDevice::ImportTitleCancel(Context& context, const IOCtlVRequest& requ
   return IPCReply(m_core.ImportTitleCancel(context));
 }
 
-static bool CanDeleteTitle(u64 title_id)
+static bool CanDeleteTitle(const u64 title_id)
 {
   // IOS only allows deleting non-system titles (or a system title higher than 00000001-00000101).
   return static_cast<u32>(title_id >> 32) != 0x00000001 || static_cast<u32>(title_id) > 0x101;
 }
 
-ReturnCode ESCore::DeleteTitle(u64 title_id)
+ReturnCode ESCore::DeleteTitle(const u64 title_id)
 {
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
@@ -634,7 +634,7 @@ IPCReply ESDevice::DeleteTicket(const IOCtlVRequest& request)
       memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView))));
 }
 
-ReturnCode ESCore::DeleteTitleContent(u64 title_id) const
+ReturnCode ESCore::DeleteTitleContent(const u64 title_id) const
 {
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
@@ -663,7 +663,7 @@ IPCReply ESDevice::DeleteTitleContent(const IOCtlVRequest& request)
   return IPCReply(m_core.DeleteTitleContent(memory.Read_U64(request.in_vectors[0].address)));
 }
 
-ReturnCode ESCore::DeleteContent(u64 title_id, u32 content_id) const
+ReturnCode ESCore::DeleteContent(const u64 title_id, u32 content_id) const
 {
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
@@ -695,8 +695,8 @@ IPCReply ESDevice::DeleteContent(const IOCtlVRequest& request)
                                        memory.Read_U32(request.in_vectors[1].address)));
 }
 
-ReturnCode ESCore::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size,
-                                   u64 caller_title_id, u32 caller_title_flags)
+ReturnCode ESCore::ExportTitleInit(Context& context, const u64 title_id, u8* tmd_bytes, const u32 tmd_size,
+                                   const u64 caller_title_id, const u32 caller_title_flags)
 {
   // No concurrent title import/export is allowed.
   if (context.title_import_export.valid)
@@ -741,7 +741,7 @@ IPCReply ESDevice::ExportTitleInit(Context& context, const IOCtlVRequest& reques
                                          m_core.m_title_context.tmd.GetTitleFlags()));
 }
 
-ReturnCode ESCore::ExportContentBegin(Context& context, u64 title_id, u32 content_id)
+ReturnCode ESCore::ExportContentBegin(Context& context, const u64 title_id, const u32 content_id)
 {
   context.title_import_export.content = {};
   if (!context.title_import_export.valid ||
@@ -787,7 +787,7 @@ IPCReply ESDevice::ExportContentBegin(Context& context, const IOCtlVRequest& req
   return IPCReply(m_core.ExportContentBegin(context, title_id, content_id));
 }
 
-ReturnCode ESCore::ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size)
+ReturnCode ESCore::ExportContentData(Context& context, const u32 content_fd, u8* data, const u32 data_size)
 {
   if (!context.title_import_export.valid || !context.title_import_export.content.valid || !data ||
       data_size == 0)
@@ -839,7 +839,7 @@ IPCReply ESDevice::ExportContentData(Context& context, const IOCtlVRequest& requ
   return IPCReply(m_core.ExportContentData(context, content_fd, data, bytes_to_read));
 }
 
-ReturnCode ESCore::ExportContentEnd(Context& context, u32 content_fd)
+ReturnCode ESCore::ExportContentEnd(const Context& context, const u32 content_fd)
 {
   if (!context.title_import_export.valid || !context.title_import_export.content.valid)
     return ES_EINVAL;
@@ -878,7 +878,7 @@ ReturnCode ESCore::DeleteSharedContent(const std::array<u8, 20>& sha1) const
 
   // Check whether the shared content is used by a system title.
   const std::vector<u64> titles = GetInstalledTitles();
-  const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&](u64 id) {
+  const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&](const u64 id) {
     if (!IsTitleType(id, ES::TitleType::System))
       return false;
 

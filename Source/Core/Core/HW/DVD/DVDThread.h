@@ -95,7 +95,7 @@ private:
                          const DiscIO::Partition& partition, ReplyType reply_type,
                          s64 ticks_until_completion);
 
-  static void GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late);
+  static void GlobalFinishRead(const Core::System& system, u64 id, s64 cycles_late);
   void FinishRead(u64 id, s64 cycles_late);
 
   void DVDThreadMain();

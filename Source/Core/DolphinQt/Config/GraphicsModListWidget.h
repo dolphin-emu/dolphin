@@ -50,7 +50,7 @@ private:
 
   void RefreshModList();
   void ModSelectionChanged();
-  void ModItemChanged(QListWidgetItem* item);
+  void ModItemChanged(const QListWidgetItem* item);
 
   void OnModChanged(const std::optional<std::string>& absolute_path);
 

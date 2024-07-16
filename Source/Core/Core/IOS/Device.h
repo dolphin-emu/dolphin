@@ -83,7 +83,7 @@ struct Request
   u32 address = 0;
   IPCCommandType command = IPC_CMD_OPEN;
   u32 fd = 0;
-  Request(Core::System& system, u32 address);
+  Request(const Core::System& system, u32 address);
   virtual ~Request() = default;
 };
 
@@ -138,7 +138,7 @@ struct IOCtlRequest final : Request
   IOCtlRequest(Core::System& system, u32 address);
   void Log(std::string_view description, Common::Log::LogType type = Common::Log::LogType::IOS,
            Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
-  void Dump(Core::System& system, const std::string& description,
+  void Dump(const Core::System& system, const std::string& description,
             Common::Log::LogType type = Common::Log::LogType::IOS,
             Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
   void DumpUnknown(Core::System& system, const std::string& description,
@@ -168,7 +168,7 @@ struct IOCtlVRequest final : Request
 
   IOCtlVRequest(Core::System& system, u32 address);
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
-  void Dump(Core::System& system, std::string_view description,
+  void Dump(const Core::System& system, std::string_view description,
             Common::Log::LogType type = Common::Log::LogType::IOS,
             Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
   void DumpUnknown(Core::System& system, const std::string& description,
@@ -230,7 +230,7 @@ class EmulationDevice : public Device
 {
 public:
   EmulationDevice(EmulationKernel& ios, const std::string& device_name,
-                  DeviceType type = DeviceType::Static)
+                  const DeviceType type = DeviceType::Static)
       : Device(ios, device_name, type)
   {
   }

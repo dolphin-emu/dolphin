@@ -2505,7 +2505,7 @@ struct hci_filter
   uint32_t mask[8]; /* 256 bits */
 };
 
-static __inline void hci_filter_set(uint8_t bit, struct hci_filter* filter)
+static __inline void hci_filter_set(const uint8_t bit, struct hci_filter* filter)
 {
   uint8_t off = bit - 1;
 
@@ -2513,7 +2513,7 @@ static __inline void hci_filter_set(uint8_t bit, struct hci_filter* filter)
   filter->mask[off] |= (1 << ((bit - 1) & 0x1f));
 }
 
-static __inline void hci_filter_clr(uint8_t bit, struct hci_filter* filter)
+static __inline void hci_filter_clr(const uint8_t bit, struct hci_filter* filter)
 {
   uint8_t off = bit - 1;
 
@@ -2521,7 +2521,7 @@ static __inline void hci_filter_clr(uint8_t bit, struct hci_filter* filter)
   filter->mask[off] &= ~(1 << ((bit - 1) & 0x1f));
 }
 
-static __inline int hci_filter_test(uint8_t bit, const struct hci_filter* filter)
+static __inline int hci_filter_test(const uint8_t bit, const struct hci_filter* filter)
 {
   uint8_t off = bit - 1;
 

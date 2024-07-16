@@ -294,7 +294,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
 #endif
 }
 
-std::string CreateSecretFromIPAddress(const std::string& ip_address, int port)
+std::string CreateSecretFromIPAddress(const std::string& ip_address, const int port)
 {
   const std::string port_string = std::to_string(port);
   std::string secret;
@@ -316,7 +316,7 @@ void Shutdown()
 #endif
 }
 
-void SetDiscordPresenceEnabled(bool enabled)
+void SetDiscordPresenceEnabled(const bool enabled)
 {
   if (Get(Config::MAIN_USE_DISCORD_PRESENCE) == enabled)
     return;

@@ -32,7 +32,7 @@ using ChunkVariant = std::variant<InstChunk, ByteChunk, PadChunk>;
 
 struct IRBlock
 {
-  explicit IRBlock(u32 address) : block_address(address) {}
+  explicit IRBlock(const u32 address) : block_address(address) {}
 
   u32 BlockEndAddress() const;
 

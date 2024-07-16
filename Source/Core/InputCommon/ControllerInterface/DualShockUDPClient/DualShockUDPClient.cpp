@@ -66,7 +66,7 @@ private:
   class AnalogInput : public Input
   {
   public:
-    AnalogInput(const char* name, const T& input, ControlState range, ControlState offset = 0)
+    AnalogInput(const char* name, const T& input, const ControlState range, const ControlState offset = 0)
         : m_name(name), m_input(input), m_range(range), m_offset(offset)
     {
     }
@@ -172,7 +172,7 @@ constexpr u32 SERVER_ASKED_PADS = 4;
 
 struct Server
 {
-  Server(std::string description, std::string address, u16 port)
+  Server(std::string description, std::string address, const u16 port)
       : m_description{std::move(description)}, m_address{std::move(address)}, m_port{port}
   {
   }
@@ -516,8 +516,8 @@ InputBackend::~InputBackend()
   StopHotplugThread();
 }
 
-Device::Device(std::string name, int index, std::string server_address, u16 server_port,
-               u32 client_uid)
+Device::Device(std::string name, const int index, std::string server_address, const u16 server_port,
+               const u32 client_uid)
     : m_name{std::move(name)}, m_index{index}, m_server_address{std::move(server_address)},
       m_server_port{server_port}, m_client_uid(client_uid)
 {

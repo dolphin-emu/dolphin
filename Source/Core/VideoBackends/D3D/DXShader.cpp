@@ -9,8 +9,8 @@
 
 namespace DX11
 {
-DXShader::DXShader(ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader,
-                   std::string_view name)
+DXShader::DXShader(const ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader,
+                   const std::string_view name)
     : Shader(stage, std::move(bytecode)), m_shader(shader), m_name(name)
 {
   if (!m_name.empty())
@@ -46,7 +46,7 @@ ID3D11ComputeShader* DXShader::GetD3DComputeShader() const
   return static_cast<ID3D11ComputeShader*>(m_shader.Get());
 }
 
-std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, BinaryData bytecode,
+std::unique_ptr<DXShader> DXShader::CreateFromBytecode(const ShaderStage stage, BinaryData bytecode,
                                                        std::string_view name)
 {
   switch (stage)

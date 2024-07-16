@@ -29,7 +29,7 @@ void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>
 template <>
 struct fmt::formatter<UberShader::vertex_ubershader_uid_data>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UberShader::vertex_ubershader_uid_data& uid, FormatContext& ctx) const
   {

@@ -146,7 +146,7 @@ public:
     }
   }
 
-  void OnItemChanged(QTableWidgetItem* item)
+  void OnItemChanged(const QTableWidgetItem* item)
   {
     QString text = item->text();
     MemoryViewWidget::Type type =

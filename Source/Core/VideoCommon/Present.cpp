@@ -28,13 +28,13 @@ std::unique_ptr<VideoCommon::Presenter> g_presenter;
 namespace VideoCommon
 {
 // Stretches the native/internal analog resolution aspect ratio from ~4:3 to ~16:9
-static float SourceAspectRatioToWidescreen(float source_aspect)
+static float SourceAspectRatioToWidescreen(const float source_aspect)
 {
   return source_aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-static std::tuple<int, int> FindClosestIntegerResolution(float width, float height,
-                                                         float aspect_ratio)
+static std::tuple<int, int> FindClosestIntegerResolution(const float width, const float height,
+                                                         const float aspect_ratio)
 {
   // We can't round both the x and y resolution as that might generate an aspect ratio
   // further away from the target one, we also can't either ceil or floor both sides,
@@ -66,7 +66,7 @@ static std::tuple<int, int> FindClosestIntegerResolution(float width, float heig
   return std::make_tuple(int_width, int_height);
 }
 
-static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_height)
+static void TryToSnapToXFBSize(int& width, int& height, const int xfb_width, const int xfb_height)
 {
   // Screen is blanking (e.g. game booting up), nothing to do here
   if (xfb_width == 0 || xfb_height == 0)
@@ -95,7 +95,7 @@ static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_h
 Presenter::Presenter()
 {
   m_config_changed =
-      ConfigChangedEvent::Register([this](u32 bits) { ConfigChanged(bits); }, "Presenter");
+      ConfigChangedEvent::Register([this](const u32 bits) { ConfigChanged(bits); }, "Presenter");
 }
 
 Presenter::~Presenter()
@@ -128,7 +128,7 @@ bool Presenter::Initialize()
   return true;
 }
 
-bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+bool Presenter::FetchXFB(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height, const u64 ticks)
 {
   ReleaseXFBContentLock();
   u64 old_xfb_id = m_last_xfb_id;
@@ -157,7 +157,7 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
   return old_xfb_id == m_last_xfb_id;
 }
 
-void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+void Presenter::ViSwap(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height, const u64 ticks)
 {
   bool is_duplicate = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
@@ -205,7 +205,7 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
   }
 }
 
-void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+void Presenter::ImmediateSwap(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height, const u64 ticks)
 {
   FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
@@ -223,7 +223,7 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   AfterPresentEvent::Trigger(present_info);
 }
 
-void Presenter::ProcessFrameDumping(u64 ticks) const
+void Presenter::ProcessFrameDumping(const u64 ticks) const
 {
   if (g_frame_dumper->IsFrameDumping() && m_xfb_entry)
   {
@@ -288,7 +288,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
   }
 }
 
-void Presenter::SetBackbuffer(int backbuffer_width, int backbuffer_height)
+void Presenter::SetBackbuffer(const int backbuffer_width, const int backbuffer_height)
 {
   const bool is_first = m_backbuffer_width == 0 && m_backbuffer_height == 0;
   const bool size_changed =
@@ -300,7 +300,7 @@ void Presenter::SetBackbuffer(int backbuffer_width, int backbuffer_height)
   OnBackbufferSet(size_changed, is_first);
 }
 
-void Presenter::SetBackbuffer(SurfaceInfo info)
+void Presenter::SetBackbuffer(const SurfaceInfo info)
 {
   const bool is_first = m_backbuffer_width == 0 && m_backbuffer_height == 0;
   const bool size_changed =
@@ -315,7 +315,7 @@ void Presenter::SetBackbuffer(SurfaceInfo info)
   OnBackbufferSet(size_changed, is_first);
 }
 
-void Presenter::OnBackbufferSet(bool size_changed, bool is_first_set)
+void Presenter::OnBackbufferSet(const bool size_changed, const bool is_first_set)
 {
   UpdateDrawRectangle();
 
@@ -332,7 +332,7 @@ void Presenter::OnBackbufferSet(bool size_changed, bool is_first_set)
   }
 }
 
-void Presenter::ConfigChanged(u32 changed_bits)
+void Presenter::ConfigChanged(const u32 changed_bits)
 {
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
@@ -395,7 +395,7 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
   return std::make_tuple(left_rc, right_rc);
 }
 
-float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
+float Presenter::CalculateDrawAspectRatio(const bool allow_stretch) const
 {
   auto aspect_mode = g_ActiveConfig.aspect_mode;
 
@@ -435,8 +435,8 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
 }
 
 void Presenter::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
-                                            MathUtil::Rectangle<int>* source_rect, int fb_width,
-                                            int fb_height)
+                                            MathUtil::Rectangle<int>* source_rect, const int fb_width,
+                                            const int fb_height)
 {
   const int orig_target_width = target_rect->GetWidth();
   const int orig_target_height = target_rect->GetHeight();
@@ -520,7 +520,7 @@ u32 Presenter::AutoIntegralScale() const
                   static_cast<u32>(Get(Config::GFX_MAX_EFB_SCALE)));
 }
 
-void Presenter::SetSuggestedWindowSize(int width, int height)
+void Presenter::SetSuggestedWindowSize(const int width, const int height)
 {
   // While trying to guess the best window resolution, we can't allow it to use the
   // "AspectMode::Stretch" setting because that would self influence the output result,
@@ -540,7 +540,7 @@ void Presenter::SetSuggestedWindowSize(int width, int height)
 
 // Crop to exact forced aspect ratios if enabled and not AspectMode::Stretch.
 std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float height,
-                                                            bool allow_stretch) const
+                                                            const bool allow_stretch) const
 {
   auto aspect_mode = g_ActiveConfig.aspect_mode;
 
@@ -699,7 +699,7 @@ void Presenter::UpdateDrawRectangle()
 }
 
 std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, const int height,
-                                                              bool allow_stretch) const
+                                                              const bool allow_stretch) const
 {
   // Scale either the width or height depending the content aspect ratio.
   // This way we preserve as much resolution as possible when scaling.
@@ -714,7 +714,7 @@ std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, c
 }
 
 std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
-                                                          bool allow_stretch) const
+                                                          const bool allow_stretch) const
 {
   // Protect against zero width and height, a minimum of 1 will do
   width = std::max(width, 1);
@@ -860,19 +860,19 @@ void Presenter::SetKeyMap(const DolphinKeyMap& key_map)
     m_onscreen_ui->SetKeyMap(key_map);
 }
 
-void Presenter::SetKey(u32 key, bool is_down, const char* chars)
+void Presenter::SetKey(const u32 key, const bool is_down, const char* chars)
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetKey(key, is_down, chars);
 }
 
-void Presenter::SetMousePos(float x, float y)
+void Presenter::SetMousePos(const float x, const float y)
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetMousePos(x, y);
 }
 
-void Presenter::SetMousePress(u32 button_mask)
+void Presenter::SetMousePress(const u32 button_mask)
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetMousePress(button_mask);

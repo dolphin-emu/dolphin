@@ -20,7 +20,7 @@
 
 namespace TextureSampler
 {
-static inline void WrapCoord(int* coordp, WrapMode wrap_mode, int image_size)
+static inline void WrapCoord(int* coordp, const WrapMode wrap_mode, const int image_size)
 {
   int coord = *coordp;
   switch (wrap_mode)
@@ -54,7 +54,7 @@ static inline void WrapCoord(int* coordp, WrapMode wrap_mode, int image_size)
   *coordp = coord;
 }
 
-static inline void SetTexel(const u8* inTexel, u32* outTexel, u32 fract)
+static inline void SetTexel(const u8* inTexel, u32* outTexel, const u32 fract)
 {
   outTexel[0] = inTexel[0] * fract;
   outTexel[1] = inTexel[1] * fract;
@@ -62,7 +62,7 @@ static inline void SetTexel(const u8* inTexel, u32* outTexel, u32 fract)
   outTexel[3] = inTexel[3] * fract;
 }
 
-static inline void AddTexel(const u8* inTexel, u32* outTexel, u32 fract)
+static inline void AddTexel(const u8* inTexel, u32* outTexel, const u32 fract)
 {
   outTexel[0] += inTexel[0] * fract;
   outTexel[1] += inTexel[1] * fract;
@@ -70,7 +70,7 @@ static inline void AddTexel(const u8* inTexel, u32* outTexel, u32 fract)
   outTexel[3] += inTexel[3] * fract;
 }
 
-void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
+void Sample(const s32 s, const s32 t, const s32 lod, const bool linear, const u8 texmap, u8* sample)
 {
   int baseMip = 0;
   bool mipLinear = false;

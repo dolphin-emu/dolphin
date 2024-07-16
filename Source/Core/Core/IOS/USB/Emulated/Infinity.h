@@ -98,7 +98,7 @@ public:
   void QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_buf, u8 sequence);
   void WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf, std::array<u8, 32>& reply_buf,
                   u8 sequence);
-  void DescrambleAndSeed(u8* buf, u8 sequence, std::array<u8, 32>& reply_buf);
+  void DescrambleAndSeed(const u8* buf, u8 sequence, std::array<u8, 32>& reply_buf);
   void GetNextAndScramble(u8 sequence, std::array<u8, 32>& reply_buf);
   void RemoveFigure(FigureUIPosition position);
   // Returns Infinity Figure name based on data from in_file param

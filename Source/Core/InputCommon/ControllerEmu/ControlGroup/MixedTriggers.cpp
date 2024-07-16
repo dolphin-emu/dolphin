@@ -32,7 +32,7 @@ MixedTriggers::MixedTriggers(const std::string& name_)
 }
 
 void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog,
-                             bool adjusted) const
+                             const bool adjusted) const
 {
   const ControlState threshold = GetThreshold();
   ControlState deadzone = GetDeadzone();
@@ -65,7 +65,7 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
 }
 
 void MixedTriggers::GetState(u16* digital, const u16* bitmasks, ControlState* analog,
-                             const InputOverrideFunction& override_func, bool adjusted) const
+                             const InputOverrideFunction& override_func, const bool adjusted) const
 {
   if (!override_func)
     return GetState(digital, bitmasks, analog, adjusted);

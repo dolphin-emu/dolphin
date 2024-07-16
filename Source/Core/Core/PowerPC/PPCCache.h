@@ -63,10 +63,10 @@ struct Cache
   void Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len, bool locked);
   void Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u32 len, bool locked);
 
-  void Init(Memory::MemoryManager& memory);
+  void Init(const Memory::MemoryManager& memory);
   void Reset();
 
-  void DoState(Memory::MemoryManager& memory, PointerWrap& p);
+  void DoState(const Memory::MemoryManager& memory, PointerWrap& p);
 };
 
 struct InstructionCache : public Cache
@@ -78,7 +78,7 @@ struct InstructionCache : public Cache
   InstructionCache() = default;
   ~InstructionCache();
   u32 ReadInstruction(Memory::MemoryManager& memory, PowerPCState& ppc_state, u32 addr);
-  void Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface, u32 addr);
+  void Invalidate(const Memory::MemoryManager& memory, JitInterface& jit_interface, u32 addr);
   void Init(Memory::MemoryManager& memory);
   void Reset(JitInterface& jit_interface);
   void RefreshConfig();

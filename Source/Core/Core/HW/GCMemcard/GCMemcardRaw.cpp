@@ -35,8 +35,8 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
-                       u16 size_mbits)
+MemoryCard::MemoryCard(const std::string& filename, const ExpansionInterface::Slot card_slot,
+                       const u16 size_mbits)
     : MemoryCardBase(card_slot, size_mbits), m_filename(filename)
 {
   File::IOFile file(m_filename, "rb");
@@ -167,7 +167,7 @@ void MemoryCard::MakeDirty()
   m_dirty.Set();
 }
 
-s32 MemoryCard::Read(u32 src_address, s32 length, u8* dest_address)
+s32 MemoryCard::Read(const u32 src_address, const s32 length, u8* dest_address)
 {
   if (!IsAddressInBounds(src_address, length))
   {
@@ -179,7 +179,7 @@ s32 MemoryCard::Read(u32 src_address, s32 length, u8* dest_address)
   return length;
 }
 
-s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
+s32 MemoryCard::Write(const u32 dest_address, const s32 length, const u8* src_address)
 {
   if (!IsAddressInBounds(dest_address, length))
   {
@@ -196,7 +196,7 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
   return length;
 }
 
-void MemoryCard::ClearBlock(u32 address)
+void MemoryCard::ClearBlock(const u32 address)
 {
   if (address & (Memcard::BLOCK_SIZE - 1) || !IsAddressInBounds(address, Memcard::BLOCK_SIZE))
   {

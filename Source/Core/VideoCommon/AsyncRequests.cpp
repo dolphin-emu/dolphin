@@ -77,7 +77,7 @@ void AsyncRequests::PullEventsInternal()
   }
 }
 
-void AsyncRequests::PushEvent(const Event& event, bool blocking)
+void AsyncRequests::PushEvent(const Event& event, const bool blocking)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -109,7 +109,7 @@ void AsyncRequests::WaitForEmptyQueue()
   m_cond.wait(lock, [this] { return m_queue.empty(); });
 }
 
-void AsyncRequests::SetEnable(bool enable)
+void AsyncRequests::SetEnable(const bool enable)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_enable = enable;
@@ -178,7 +178,7 @@ void AsyncRequests::HandleEvent(const Event& e)
   }
 }
 
-void AsyncRequests::SetPassthrough(bool enable)
+void AsyncRequests::SetPassthrough(const bool enable)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_passthrough = enable;

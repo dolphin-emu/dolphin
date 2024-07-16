@@ -86,7 +86,7 @@ static bool IsHostGPULoggingEnabled()
 }
 
 // Helper method to determine whether to enable the debug utils extension.
-static bool ShouldEnableDebugUtils(bool enable_validation_layers)
+static bool ShouldEnableDebugUtils(const bool enable_validation_layers)
 {
   // Enable debug utils if the Host GPU log option is checked, or validation layers are enabled.
   // The only issue here is that if Host GPU is not checked when the instance is created, the debug

@@ -23,7 +23,7 @@ enum class RoundingMode
   TowardsNegativeInfinity = 0b11
 };
 
-void SetFI(PowerPC::PowerPCState& ppc_state, u32 FI)
+void SetFI(PowerPC::PowerPCState& ppc_state, const u32 FI)
 {
   if (FI != 0)
   {
@@ -504,7 +504,7 @@ void Interpreter::fresx(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const double b = ppc_state.ps[inst.FB].PS0AsDouble();
 
-  const auto compute_result = [&ppc_state, inst](double value) {
+  const auto compute_result = [&ppc_state, inst](const double value) {
     const double result = Common::ApproximateReciprocal(value);
     ppc_state.ps[inst.FD].Fill(result);
     ppc_state.UpdateFPRFSingle(float(result));
@@ -543,7 +543,7 @@ void Interpreter::frsqrtex(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const double b = ppc_state.ps[inst.FB].PS0AsDouble();
 
-  const auto compute_result = [&ppc_state, inst](double value) {
+  const auto compute_result = [&ppc_state, inst](const double value) {
     const double result = Common::ApproximateReciprocalSquareRoot(value);
     ppc_state.ps[inst.FD].SetPS0(result);
     ppc_state.UpdateFPRFDouble(result);

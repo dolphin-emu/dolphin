@@ -133,12 +133,12 @@ enum
 
 static bool s_use_compression = true;
 
-void EnableCompression(bool compression)
+void EnableCompression(const bool compression)
 {
   s_use_compression = compression;
 }
 
-static void DoState(Core::System& system, PointerWrap& p)
+static void DoState(const Core::System& system, PointerWrap& p)
 {
   bool is_wii = system.IsWii() || system.IsMIOS();
   const bool is_wii_currently = is_wii;
@@ -281,7 +281,7 @@ static double GetSystemTimeAsDouble()
   return std::chrono::duration_cast<std::chrono::duration<double>>(since_double_time_epoch).count();
 }
 
-static std::string SystemTimeAsDoubleToString(double time)
+static std::string SystemTimeAsDoubleToString(const double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
   const time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
@@ -318,7 +318,7 @@ static bool CompareTimestamp(const SlotWithTimestamp& lhs, const SlotWithTimesta
   return lhs.timestamp < rhs.timestamp;
 }
 
-static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f)
+static void CompressBufferToFile(const u8* raw_buffer, const u64 size, File::IOFile& f)
 {
   u64 total_bytes_compressed = 0;
 
@@ -350,7 +350,7 @@ static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f
   }
 }
 
-static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t uncompressed_size)
+static void CreateExtendedHeader(StateExtendedHeader& extended_header, const size_t uncompressed_size)
 {
   StateExtendedBaseHeader& base_header = extended_header.base_header;
   base_header.header_version = EXTENDED_HEADER_VERSION;
@@ -362,7 +362,7 @@ static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t un
   // If more fields are added to StateExtendedHeader, set them here.
 }
 
-static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
+static void WriteHeadersToFile(const size_t uncompressed_size, File::IOFile& f)
 {
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.legacy_header.game_id,
@@ -384,7 +384,7 @@ static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
   // If StateExtendedHeader is amended to include more than the base, add WriteBytes() calls here.
 }
 
-static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args& save_args)
+static void CompressAndDumpState(const Core::System& system, const CompressAndDumpState_args& save_args)
 {
   const u8* const buffer_data = save_args.buffer_vector.data();
   const size_t buffer_size = save_args.buffer_vector.size();
@@ -470,7 +470,7 @@ static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args
   Host_UpdateMainFrame();
 }
 
-void SaveAs(Core::System& system, const std::string& filename, bool wait)
+void SaveAs(Core::System& system, const std::string& filename, const bool wait)
 {
   std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
   if (!lk)
@@ -586,7 +586,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
 }
 
 static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
-                                    bool get_version_header = true)
+                                    const bool get_version_header = true)
 {
   if (!f.IsOpen())
   {
@@ -643,7 +643,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   return ReadStateHeaderFromFile(header, f, get_version_header);
 }
 
-std::string GetInfoStringOfSlot(int slot, bool translate)
+std::string GetInfoStringOfSlot(const int slot, const bool translate)
 {
   std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
@@ -656,7 +656,7 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   return SystemTimeAsDoubleToString(header.legacy_header.time);
 }
 
-u64 GetUnixTimeOfSlot(int slot)
+u64 GetUnixTimeOfSlot(const int slot)
 {
   StateHeader header;
   if (!ReadHeader(MakeStateFilename(slot), header))
@@ -667,7 +667,7 @@ u64 GetUnixTimeOfSlot(int slot)
          (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
-static bool DecompressLZ4(std::vector<u8>& raw_buffer, u64 size, File::IOFile& f)
+static bool DecompressLZ4(std::vector<u8>& raw_buffer, const u64 size, File::IOFile& f)
 {
   raw_buffer.resize(size);
 
@@ -975,17 +975,17 @@ static std::string MakeStateFilename(int number)
                      SConfig::GetInstance().GetGameID(), number);
 }
 
-void Save(Core::System& system, int slot, bool wait)
+void Save(Core::System& system, const int slot, const bool wait)
 {
   SaveAs(system, MakeStateFilename(slot), wait);
 }
 
-void Load(Core::System& system, int slot)
+void Load(Core::System& system, const int slot)
 {
   LoadAs(system, MakeStateFilename(slot));
 }
 
-void LoadLastSaved(Core::System& system, int i)
+void LoadLastSaved(Core::System& system, const int i)
 {
   if (i <= 0)
   {

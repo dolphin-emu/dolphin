@@ -23,13 +23,13 @@ namespace IOS::HLE
 {
 using namespace IOS::HLE::FS;
 
-static IPCReply GetFSReply(s32 return_value, SystemTimers::TimeBaseTick extra_tb_ticks = {})
+static IPCReply GetFSReply(const s32 return_value, const SystemTimers::TimeBaseTick extra_tb_ticks = {})
 {
   return IPCReply{return_value, IPC_OVERHEAD_TICKS + extra_tb_ticks};
 }
 
 /// Duration of a superblock write (in timebase ticks).
-constexpr SystemTimers::TimeBaseTick GetSuperblockWriteTbTicks(int ios_version)
+constexpr SystemTimers::TimeBaseTick GetSuperblockWriteTbTicks(const int ios_version)
 {
   if (ios_version == 28 || ios_version == 80)
     return 3350000_tbticks;
@@ -41,7 +41,7 @@ constexpr SystemTimers::TimeBaseTick GetSuperblockWriteTbTicks(int ios_version)
 }
 
 /// Duration of a file cluster write (in timebase ticks).
-constexpr SystemTimers::TimeBaseTick GetClusterWriteTbTicks(int ios_version)
+constexpr SystemTimers::TimeBaseTick GetClusterWriteTbTicks(const int ios_version)
 {
   // Based on the time it takes to write two clusters (0x8000 bytes), divided by two.
   if (ios_version < 28)
@@ -51,7 +51,7 @@ constexpr SystemTimers::TimeBaseTick GetClusterWriteTbTicks(int ios_version)
 }
 
 /// Duration of a file cluster read (in timebase ticks).
-constexpr SystemTimers::TimeBaseTick GetClusterReadTbTicks(int ios_version)
+constexpr SystemTimers::TimeBaseTick GetClusterReadTbTicks(const int ios_version)
 {
   if (ios_version == 28 || ios_version == 80)
     return 125000_tbticks;
@@ -62,7 +62,7 @@ constexpr SystemTimers::TimeBaseTick GetClusterReadTbTicks(int ios_version)
   return 115000_tbticks;
 }
 
-constexpr SystemTimers::TimeBaseTick GetFSModuleMemcpyTbTicks(int ios_version, u64 copy_size)
+constexpr SystemTimers::TimeBaseTick GetFSModuleMemcpyTbTicks(const int ios_version, const u64 copy_size)
 {
   // FS handles cached read/writes by doing a simple memcpy on an internal buffer.
   // The following equations were obtained by doing cached reads with various read sizes
@@ -113,7 +113,7 @@ void FSDevice::DoState(PointerWrap& p)
 }
 
 template <typename... Args>
-static void LogResult(ResultCode code, fmt::format_string<Args...> format, Args&&... args)
+static void LogResult(const ResultCode code, fmt::format_string<Args...> format, Args&&... args)
 {
   const std::string command = fmt::format(format, std::forward<Args>(args)...);
   const auto type =
@@ -141,7 +141,7 @@ enum class FileLookupMode
 // further when a directory doesn't exist). However for the sake of simplicity we assume that the
 // entire lookup succeeds because otherwise we'd need to check whether every path component exists.
 static SystemTimers::TimeBaseTick EstimateFileLookupTicks(const std::string& path,
-                                                          FileLookupMode mode)
+                                                          const FileLookupMode mode)
 {
   const size_t number_of_path_components = std::count(path.cbegin(), path.cend(), '/');
   if (number_of_path_components == 0)
@@ -161,7 +161,7 @@ static SystemTimers::TimeBaseTick EstimateFileLookupTicks(const std::string& pat
 ///
 /// A superblock flush takes a very large amount of time, so other delays are ignored
 /// to simplify the implementation as they are insignificant.
-static IPCReply GetReplyForSuperblockOperation(int ios_version, ResultCode result)
+static IPCReply GetReplyForSuperblockOperation(const int ios_version, const ResultCode result)
 {
   const auto ticks =
       result == ResultCode::Success ? GetSuperblockWriteTbTicks(ios_version) : 0_tbticks;
@@ -170,7 +170,7 @@ static IPCReply GetReplyForSuperblockOperation(int ios_version, ResultCode resul
 
 std::optional<IPCReply> FSDevice::Open(const OpenRequest& request)
 {
-  return MakeIPCReply([&](Ticks t) {
+  return MakeIPCReply([&](const Ticks t) {
     return m_core
         .Open(request.uid, request.gid, request.path, static_cast<Mode>(request.flags & 3),
               request.fd, t)
@@ -178,8 +178,8 @@ std::optional<IPCReply> FSDevice::Open(const OpenRequest& request)
   });
 }
 
-FSCore::ScopedFd FSCore::Open(Uid uid, Gid gid, const std::string& path, Mode mode,
-                              std::optional<u32> ipc_fd, Ticks ticks)
+FSCore::ScopedFd FSCore::Open(const Uid uid, const Gid gid, const std::string& path, const Mode mode,
+                              const std::optional<u32> ipc_fd, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -209,12 +209,12 @@ FSCore::ScopedFd FSCore::Open(Uid uid, Gid gid, const std::string& path, Mode mo
   return {this, static_cast<s64>(fd), ticks};
 }
 
-std::optional<IPCReply> FSDevice::Close(u32 fd)
+std::optional<IPCReply> FSDevice::Close(const u32 fd)
 {
-  return MakeIPCReply([&](Ticks t) { return m_core.Close(static_cast<u64>(fd), t); });
+  return MakeIPCReply([&](const Ticks t) { return m_core.Close(static_cast<u64>(fd), t); });
 }
 
-s32 FSCore::Close(u64 fd, Ticks ticks)
+s32 FSCore::Close(const u64 fd, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -243,7 +243,7 @@ s32 FSCore::Close(u64 fd, Ticks ticks)
   return IPC_SUCCESS;
 }
 
-u64 FSCore::SimulatePopulateFileCache(u64 fd, u32 offset, u32 file_size)
+u64 FSCore::SimulatePopulateFileCache(u64 fd, const u32 offset, const u32 file_size)
 {
   if (HasCacheForFile(fd, offset))
     return 0;
@@ -267,8 +267,8 @@ u64 FSCore::SimulateFlushFileCache()
 }
 
 // Simulate parts of the FS read/write logic to estimate ticks for file operations correctly.
-u64 FSCore::EstimateTicksForReadWrite(const Handle& handle, u64 fd, IPCCommandType command,
-                                      u32 size)
+u64 FSCore::EstimateTicksForReadWrite(const Handle& handle, const u64 fd, const IPCCommandType command,
+                                      const u32 size)
 {
   u64 ticks = 0;
 
@@ -315,7 +315,7 @@ u64 FSCore::EstimateTicksForReadWrite(const Handle& handle, u64 fd, IPCCommandTy
   return ticks;
 }
 
-bool FSCore::HasCacheForFile(u64 fd, u32 offset) const
+bool FSCore::HasCacheForFile(const u64 fd, const u32 offset) const
 {
   const u16 chain_index = static_cast<u16>(offset / CLUSTER_DATA_SIZE);
   return m_cache_fd == fd && m_cache_chain_index == chain_index;
@@ -323,7 +323,7 @@ bool FSCore::HasCacheForFile(u64 fd, u32 offset) const
 
 std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
 {
-  return MakeIPCReply([&](Ticks t) {
+  return MakeIPCReply([&](const Ticks t) {
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
     return m_core.Read(request.fd, memory.GetPointerForRange(request.buffer, request.size),
@@ -331,7 +331,7 @@ std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
   });
 }
 
-s32 FSCore::Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr, Ticks ticks)
+s32 FSCore::Read(const u64 fd, u8* data, u32 size, const std::optional<u32> ipc_buffer_addr, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -354,7 +354,7 @@ s32 FSCore::Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr,
 
 std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
 {
-  return MakeIPCReply([&](Ticks t) {
+  return MakeIPCReply([&](const Ticks t) {
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
     return m_core.Write(request.fd, memory.GetPointerForRange(request.buffer, request.size),
@@ -362,7 +362,7 @@ std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
   });
 }
 
-s32 FSCore::Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr, Ticks ticks)
+s32 FSCore::Write(const u64 fd, const u8* data, u32 size, const std::optional<u32> ipc_buffer_addr, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -385,12 +385,12 @@ s32 FSCore::Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffe
 
 std::optional<IPCReply> FSDevice::Seek(const SeekRequest& request)
 {
-  return MakeIPCReply([&](Ticks t) {
+  return MakeIPCReply([&](const Ticks t) {
     return m_core.Seek(request.fd, request.offset, FS::SeekMode(request.mode), t);
   });
 }
 
-s32 FSCore::Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
+s32 FSCore::Seek(const u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -638,7 +638,7 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
-ResultCode FSCore::DeleteFile(Uid uid, Gid gid, const std::string& path, Ticks ticks)
+ResultCode FSCore::DeleteFile(const Uid uid, const Gid gid, const std::string& path, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -657,13 +657,13 @@ IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
   auto& memory = system.GetMemory();
 
   const std::string path = memory.GetString(request.buffer_in, 64);
-  return MakeIPCReply([&](Ticks ticks) {
+  return MakeIPCReply([&](const Ticks ticks) {
     return ConvertResult(m_core.DeleteFile(handle.uid, handle.gid, path, ticks));
   });
 }
 
-ResultCode FSCore::RenameFile(Uid uid, Gid gid, const std::string& old_path,
-                                  const std::string& new_path, Ticks ticks)
+ResultCode FSCore::RenameFile(const Uid uid, const Gid gid, const std::string& old_path,
+                              const std::string& new_path, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -683,13 +683,13 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
 
   const std::string old_path = memory.GetString(request.buffer_in, 64);
   const std::string new_path = memory.GetString(request.buffer_in + 64, 64);
-  return MakeIPCReply([&](Ticks ticks) {
+  return MakeIPCReply([&](const Ticks ticks) {
     return ConvertResult(m_core.RenameFile(handle.uid, handle.gid, old_path, new_path, ticks));
   });
 }
 
-ResultCode FSCore::CreateFile(Uid uid, Gid gid, const std::string& path,
-                                  FileAttribute attribute, Modes modes, Ticks ticks)
+ResultCode FSCore::CreateFile(const Uid uid, const Gid gid, const std::string& path,
+                              const FileAttribute attribute, const Modes modes, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -727,7 +727,7 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
   if (request.buffer_out_size < 8)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  return MakeIPCReply([&](Ticks ticks) {
+  return MakeIPCReply([&](const Ticks ticks) {
     const Result<FileStatus> status = m_core.GetFileStatus(request.fd, ticks);
     if (!status)
       return ConvertResult(status.Error());
@@ -743,7 +743,7 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
   });
 }
 
-Result<FileStatus> FSCore::GetFileStatus(u64 fd, Ticks ticks)
+Result<FileStatus> FSCore::GetFileStatus(const u64 fd, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
   const auto& handle = m_fd_map[fd];

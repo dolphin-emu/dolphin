@@ -22,8 +22,8 @@ WiiEncryptionCache::WiiEncryptionCache(BlobReader* blob) : m_blob(blob)
 WiiEncryptionCache::~WiiEncryptionCache() = default;
 
 const std::array<u8, VolumeWii::GROUP_TOTAL_SIZE>*
-WiiEncryptionCache::EncryptGroup(u64 offset, u64 partition_data_offset,
-                                 u64 partition_data_decrypted_size, const Key& key,
+WiiEncryptionCache::EncryptGroup(u64 offset, const u64 partition_data_offset,
+                                 const u64 partition_data_decrypted_size, const Key& key,
                                  const HashExceptionCallback& hash_exception_callback)
 {
   // Only allocate memory if this function actually ends up getting called
@@ -65,8 +65,8 @@ WiiEncryptionCache::EncryptGroup(u64 offset, u64 partition_data_offset,
   return m_cache.get();
 }
 
-bool WiiEncryptionCache::EncryptGroups(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset,
-                                       u64 partition_data_decrypted_size, const Key& key,
+bool WiiEncryptionCache::EncryptGroups(u64 offset, u64 size, u8* out_ptr, const u64 partition_data_offset,
+                                       const u64 partition_data_decrypted_size, const Key& key,
                                        const HashExceptionCallback& hash_exception_callback)
 {
   while (size > 0)

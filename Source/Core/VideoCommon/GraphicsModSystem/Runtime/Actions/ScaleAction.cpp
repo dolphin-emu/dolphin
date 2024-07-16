@@ -26,7 +26,7 @@ std::unique_ptr<ScaleAction> ScaleAction::Create(const picojson::value& json_dat
   return std::make_unique<ScaleAction>(scale);
 }
 
-ScaleAction::ScaleAction(Common::Vec3 scale) : m_scale(scale)
+ScaleAction::ScaleAction(const Common::Vec3 scale) : m_scale(scale)
 {
 }
 

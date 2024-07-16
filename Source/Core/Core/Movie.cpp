@@ -268,7 +268,7 @@ void MovieManager::SetPolledDevice()
 }
 
 // NOTE: Host Thread
-void MovieManager::SetReadOnly(bool bEnabled)
+void MovieManager::SetReadOnly(const bool bEnabled)
 {
   if (m_read_only != bEnabled)
     Core::DisplayMessage(bEnabled ? "Read-only mode." : "Read+Write mode.", 1000);
@@ -346,7 +346,7 @@ u64 MovieManager::GetTotalLagCount() const
   return m_total_lag_count;
 }
 
-void MovieManager::SetClearSave(bool enabled)
+void MovieManager::SetClearSave(const bool enabled)
 {
   m_clear_save = enabled;
 }
@@ -369,27 +369,27 @@ void MovieManager::SignalDiscChange(const std::string& new_path)
   }
 }
 
-void MovieManager::SetReset(bool reset)
+void MovieManager::SetReset(const bool reset)
 {
   m_reset = reset;
 }
 
-bool MovieManager::IsUsingPad(int controller) const
+bool MovieManager::IsUsingPad(const int controller) const
 {
   return m_controllers[controller] != ControllerType::None;
 }
 
-bool MovieManager::IsUsingBongo(int controller) const
+bool MovieManager::IsUsingBongo(const int controller) const
 {
   return ((m_bongos & (1 << controller)) != 0);
 }
 
-bool MovieManager::IsUsingGBA(int controller) const
+bool MovieManager::IsUsingGBA(const int controller) const
 {
   return m_controllers[controller] == ControllerType::GBA;
 }
 
-bool MovieManager::IsUsingWiimote(int wiimote) const
+bool MovieManager::IsUsingWiimote(const int wiimote) const
 {
   return m_wiimotes[wiimote];
 }
@@ -404,7 +404,7 @@ bool MovieManager::IsStartingFromClearSave() const
   return m_clear_save;
 }
 
-bool MovieManager::IsUsingMemcard(ExpansionInterface::Slot slot) const
+bool MovieManager::IsUsingMemcard(const ExpansionInterface::Slot slot) const
 {
   switch (slot)
   {
@@ -471,7 +471,7 @@ void MovieManager::ChangePads()
 }
 
 // NOTE: Host / Emu Threads
-void MovieManager::ChangeWiiPads(bool instantly)
+void MovieManager::ChangeWiiPads(const bool instantly)
 {
   WiimoteEnabledArray wiimotes{};
 
@@ -581,7 +581,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
   return true;
 }
 
-static std::string Analog2DToString(u32 x, u32 y, const std::string& prefix, u32 range = 255)
+static std::string Analog2DToString(u32 x, u32 y, const std::string& prefix, const u32 range = 255)
 {
   const u32 center = range / 2 + 1;
 
@@ -609,7 +609,7 @@ static std::string Analog2DToString(u32 x, u32 y, const std::string& prefix, u32
   return fmt::format("{}:{},{}", prefix, x, y);
 }
 
-static std::string Analog1DToString(u32 v, const std::string& prefix, u32 range = 255)
+static std::string Analog1DToString(u32 v, const std::string& prefix, const u32 range = 255)
 {
   if (v == 0)
     return "";
@@ -801,7 +801,7 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
 }
 
 // NOTE: CPU Thread
-void MovieManager::CheckPadStatus(const GCPadStatus* PadStatus, int controllerID)
+void MovieManager::CheckPadStatus(const GCPadStatus* PadStatus, const int controllerID)
 {
   m_pad_state.A = ((PadStatus->button & PAD_BUTTON_A) != 0);
   m_pad_state.B = ((PadStatus->button & PAD_BUTTON_B) != 0);
@@ -844,7 +844,7 @@ void MovieManager::CheckPadStatus(const GCPadStatus* PadStatus, int controllerID
 }
 
 // NOTE: CPU Thread
-void MovieManager::RecordInput(const GCPadStatus* PadStatus, int controllerID)
+void MovieManager::RecordInput(const GCPadStatus* PadStatus, const int controllerID)
 {
   if (!IsRecordingInput() || !IsUsingPad(controllerID))
     return;
@@ -857,8 +857,8 @@ void MovieManager::RecordInput(const GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void MovieManager::CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt,
-                                      ExtensionNumber ext, const EncryptionKey& key)
+void MovieManager::CheckWiimoteStatus(const int wiimote, const DataReportBuilder& rpt,
+                                      const ExtensionNumber ext, const EncryptionKey& key)
 {
   {
     std::string display_str = GenerateWiiInputDisplayString(wiimote, rpt, ext, key);
@@ -871,7 +871,7 @@ void MovieManager::CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt,
     RecordWiimote(wiimote, rpt.GetDataPtr(), rpt.GetDataSize());
 }
 
-void MovieManager::RecordWiimote(int wiimote, const u8* data, u8 size)
+void MovieManager::RecordWiimote(const int wiimote, const u8* data, const u8 size)
 {
   if (!IsRecordingInput() || !IsUsingWiimote(wiimote))
     return;
@@ -1183,7 +1183,7 @@ void MovieManager::CheckInputEnd()
 }
 
 // NOTE: CPU Thread
-void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
+void MovieManager::PlayController(GCPadStatus* PadStatus, const int controllerID)
 {
   // Correct playback is entirely dependent on the emulator polling the controllers
   // in the same order done during recording
@@ -1275,7 +1275,7 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-bool MovieManager::PlayWiimote(int wiimote, DataReportBuilder& rpt,
+bool MovieManager::PlayWiimote(const int wiimote, DataReportBuilder& rpt,
                                ExtensionNumber ext, const EncryptionKey& key)
 {
   if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || m_temp_input.empty())
@@ -1325,7 +1325,7 @@ bool MovieManager::PlayWiimote(int wiimote, DataReportBuilder& rpt,
 }
 
 // NOTE: Host / EmuThread / CPU Thread
-void MovieManager::EndPlayInput(bool cont)
+void MovieManager::EndPlayInput(const bool cont)
 {
   if (cont)
   {
@@ -1456,10 +1456,10 @@ void MovieManager::GetSettings()
   }
   else
   {
-    const auto raw_memcard_exists = [](ExpansionInterface::Slot card_slot) {
+    const auto raw_memcard_exists = [](const ExpansionInterface::Slot card_slot) {
       return File::Exists(Config::GetMemcardPath(card_slot, SConfig::GetInstance().m_region));
     };
-    const auto gci_folder_has_saves = [this](ExpansionInterface::Slot card_slot) {
+    const auto gci_folder_has_saves = [this](const ExpansionInterface::Slot card_slot) {
       const auto [path, migrate] = ExpansionInterface::CEXIMemoryCard::GetGCIFolderPath(
           card_slot, ExpansionInterface::AllowMovieFolder::No, *this);
       const u64 number_of_saves = File::ScanDirectoryTree(path, false).size;

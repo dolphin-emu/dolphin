@@ -546,7 +546,7 @@ void InhibitScreenSaver(bool inhibit)
 #endif
 }
 
-std::string FormatSize(u64 bytes, int decimals)
+std::string FormatSize(const u64 bytes, int decimals)
 {
   // i18n: The symbol for the unit "bytes"
   const char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),

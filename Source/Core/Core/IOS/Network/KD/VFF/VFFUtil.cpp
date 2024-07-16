@@ -25,7 +25,7 @@
 
 #include "Core/IOS/Uids.h"
 
-static DRESULT read_vff_header(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
+static DRESULT read_vff_header(const IOS::HLE::FS::FileHandle* vff, FATFS* fs)
 {
   struct IOS::HLE::NWC24::VFFHeader header;
   if (!vff->Read(&header, 1))
@@ -118,8 +118,8 @@ static FRESULT vff_mount(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
   return FR_OK;
 }
 
-static DRESULT vff_read(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, BYTE* buff, LBA_t sector,
-                        UINT count)
+static DRESULT vff_read(const IOS::HLE::FS::FileHandle* vff, BYTE pdrv, BYTE* buff, const LBA_t sector,
+                        const UINT count)
 {
   // We cannot read or write data to the 0th sector in a VFF.
   if (sector == 0)
@@ -145,8 +145,8 @@ static DRESULT vff_read(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, BYTE* buff, LB
   return RES_OK;
 }
 
-static DRESULT vff_write(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, const BYTE* buff, LBA_t sector,
-                         UINT count)
+static DRESULT vff_write(const IOS::HLE::FS::FileHandle* vff, BYTE pdrv, const BYTE* buff, const LBA_t sector,
+                         const UINT count)
 {
   if (sector == 0)
   {
@@ -172,7 +172,7 @@ static DRESULT vff_write(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, const BYTE* b
   return RES_OK;
 }
 
-static DRESULT vff_ioctl(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, BYTE cmd, void* buff)
+static DRESULT vff_ioctl(const IOS::HLE::FS::FileHandle* vff, BYTE pdrv, const BYTE cmd, void* buff)
 {
   switch (cmd)
   {
@@ -189,7 +189,7 @@ static DRESULT vff_ioctl(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, BYTE cmd, voi
 
 namespace IOS::HLE::NWC24
 {
-static ErrorCode WriteFile(const std::string& filename, std::span<const u8> tmp_buffer)
+static ErrorCode WriteFile(const std::string& filename, const std::span<const u8> tmp_buffer)
 {
   FIL dst{};
   const auto open_error_code = f_open(&dst, filename.c_str(), FA_CREATE_ALWAYS | FA_WRITE);
@@ -284,24 +284,24 @@ namespace
 class VffFatFsCallbacks : public Common::FatFsCallbacks
 {
 public:
-  int DiskRead(u8 pdrv, u8* buff, u32 sector, unsigned int count) override
+  int DiskRead(const u8 pdrv, u8* buff, const u32 sector, const unsigned int count) override
   {
     return vff_read(m_vff, pdrv, buff, sector, count);
   }
 
-  int DiskWrite(u8 pdrv, const u8* buff, u32 sector, unsigned int count) override
+  int DiskWrite(const u8 pdrv, const u8* buff, const u32 sector, const unsigned int count) override
   {
     return vff_write(m_vff, pdrv, buff, sector, count);
   }
 
-  int DiskIOCtl(u8 pdrv, u8 cmd, void* buff) override { return vff_ioctl(m_vff, pdrv, cmd, buff); }
+  int DiskIOCtl(const u8 pdrv, const u8 cmd, void* buff) override { return vff_ioctl(m_vff, pdrv, cmd, buff); }
 
   FS::FileHandle* m_vff = nullptr;
 };
 }  // namespace
 
 ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
-                     const std::shared_ptr<FS::FileSystem>& fs, std::span<const u8> data)
+                     const std::shared_ptr<FS::FileSystem>& fs, const std::span<const u8> data)
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;

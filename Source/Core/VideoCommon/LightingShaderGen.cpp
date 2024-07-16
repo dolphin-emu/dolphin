@@ -11,7 +11,7 @@
 #include "VideoCommon/XFMemory.h"
 
 static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_data, int index,
-                                int litchan_index, bool alpha)
+                                const int litchan_index, const bool alpha)
 {
   const char* swizzle = alpha ? "a" : "rgb";
   const char* swizzle_components = (alpha) ? "" : "3";
@@ -176,7 +176,7 @@ void GetLightingShaderUid(LightingUidData& uid_data)
   }
 }
 
-void GenerateCustomLightingHeaderDetails(ShaderCode* out, u32 enablelighting, u32 light_mask)
+void GenerateCustomLightingHeaderDetails(ShaderCode* out, const u32 enablelighting, const u32 light_mask)
 {
   u32 light_count = 0;
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
@@ -215,8 +215,8 @@ void GenerateCustomLightingHeaderDetails(ShaderCode* out, u32 enablelighting, u3
 }
 
 static void GenerateLighting(ShaderCode* out, const LightingUidData& uid_data, int index,
-                             int litchan_index, u32 channel_index, u32 custom_light_index,
-                             bool alpha)
+                             const int litchan_index, u32 channel_index, u32 custom_light_index,
+                             const bool alpha)
 {
   const auto attnfunc =
       static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);

@@ -50,7 +50,7 @@ FileLogger::FileLogger() = default;
 
 FileLogger::~FileLogger() = default;
 
-void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
+void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, const u64 offset)
 {
   // Do nothing if the log isn't selected
   if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::FILEMON,

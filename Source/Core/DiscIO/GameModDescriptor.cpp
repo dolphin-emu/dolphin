@@ -95,7 +95,7 @@ static GameModDescriptorRiivolution ParseRiivolutionObject(const std::string& js
 }
 
 std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view json,
-                                                              std::string_view json_path)
+                                                              const std::string_view json_path)
 {
   std::string json_directory;
   SplitPath(json_path, &json_directory, nullptr, nullptr);
@@ -184,7 +184,7 @@ WriteGameModDescriptorRiivolution(const GameModDescriptorRiivolution& riivolutio
   return json_riivolution;
 }
 
-std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, bool pretty)
+std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, const bool pretty)
 {
   picojson::object json_root;
   json_root["type"] = picojson::value("dolphin-game-mod-descriptor");
@@ -206,7 +206,7 @@ std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, bo
 }
 
 bool WriteGameModDescriptorFile(const std::string& filename, const GameModDescriptor& descriptor,
-                                bool pretty)
+                                const bool pretty)
 {
   auto json = WriteGameModDescriptorString(descriptor, pretty);
   if (json.empty())

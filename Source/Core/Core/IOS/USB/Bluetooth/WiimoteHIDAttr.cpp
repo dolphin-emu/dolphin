@@ -63,7 +63,7 @@ constexpr u8 packet4_0x10001[] = {
     0x06, 0x00, 0x09, 0x02, 0x04, 0x28, 0x01, 0x09, 0x02, 0x05, 0x09, 0x00, 0x02, 0x00,
 };
 
-const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size)
+const u8* GetAttribPacket(const u32 serviceHandle, const u32 cont, u32& _size)
 {
   if (serviceHandle == 0x10000)
   {

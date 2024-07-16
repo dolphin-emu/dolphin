@@ -34,17 +34,17 @@ SamplerCache::~SamplerCache()
   glDeleteSamplers(1, &m_linear_sampler);
 }
 
-void SamplerCache::BindNearestSampler(int stage)
+void SamplerCache::BindNearestSampler(const int stage)
 {
   glBindSampler(stage, m_point_sampler);
 }
 
-void SamplerCache::BindLinearSampler(int stage)
+void SamplerCache::BindLinearSampler(const int stage)
 {
   glBindSampler(stage, m_linear_sampler);
 }
 
-void SamplerCache::SetSamplerState(u32 stage, const SamplerState& state)
+void SamplerCache::SetSamplerState(const u32 stage, const SamplerState& state)
 {
   if (m_active_samplers[stage].first == state && m_active_samplers[stage].second != 0)
     return;
@@ -63,12 +63,12 @@ void SamplerCache::SetSamplerState(u32 stage, const SamplerState& state)
   glBindSampler(stage, it->second);
 }
 
-void SamplerCache::InvalidateBinding(u32 stage)
+void SamplerCache::InvalidateBinding(const u32 stage)
 {
   m_active_samplers[stage].second = 0;
 }
 
-void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
+void SamplerCache::SetParameters(const GLuint sampler_id, const SamplerState& params)
 {
   GLenum min_filter;
   GLenum mag_filter = (params.tm0.mag_filter == FilterMode::Near) ? GL_NEAREST : GL_LINEAR;

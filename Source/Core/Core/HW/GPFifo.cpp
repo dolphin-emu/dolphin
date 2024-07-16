@@ -38,7 +38,7 @@ size_t GPFifoManager::GetGatherPipeCount()
   return m_system.GetPPCState().gather_pipe_ptr - m_gather_pipe;
 }
 
-void GPFifoManager::SetGatherPipeCount(size_t size)
+void GPFifoManager::SetGatherPipeCount(const size_t size)
 {
   m_system.GetPPCState().gather_pipe_ptr = m_gather_pipe + size;
 }

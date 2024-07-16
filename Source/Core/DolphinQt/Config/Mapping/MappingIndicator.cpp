@@ -106,7 +106,7 @@ QPen MappingIndicator::GetDeadZonePen() const
   return QPen(GetDeadZoneColor(), 0);
 }
 
-QBrush MappingIndicator::GetDeadZoneBrush(QPainter& painter) const
+QBrush MappingIndicator::GetDeadZoneBrush(const QPainter& painter) const
 {
   QBrush brush{GetDeadZoneColor(), Qt::FDiagPattern};
   brush.setTransform(painter.transform().inverted());
@@ -238,7 +238,7 @@ bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::Calibration
 }
 
 // Used to test for a miscalibrated stick so the user can be informed.
-bool IsPointOutsideCalibration(Common::DVec2 point, ControllerEmu::ReshapableInput& input)
+bool IsPointOutsideCalibration(Common::DVec2 point, const ControllerEmu::ReshapableInput& input)
 {
   const auto center = input.GetCenter();
   const double current_radius = (point - center).Length();

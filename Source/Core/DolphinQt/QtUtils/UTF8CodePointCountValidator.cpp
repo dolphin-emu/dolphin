@@ -5,7 +5,7 @@
 
 #include "Common/StringUtil.h"
 
-UTF8CodePointCountValidator::UTF8CodePointCountValidator(std::size_t max_count, QObject* parent)
+UTF8CodePointCountValidator::UTF8CodePointCountValidator(const std::size_t max_count, QObject* parent)
     : QValidator(parent), m_max_count(max_count)
 {
 }

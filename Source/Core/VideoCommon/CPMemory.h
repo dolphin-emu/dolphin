@@ -87,7 +87,7 @@ struct fmt::formatter<CPArray> : EnumFormatter<CPArray::XF_D>
   constexpr formatter() : EnumFormatter(names) {}
 };
 // Intended for offsetting from Color0/TexCoord0
-constexpr CPArray operator+(CPArray array, u8 offset)
+constexpr CPArray operator+(CPArray array, const u8 offset)
 {
   return static_cast<CPArray>(static_cast<u8>(array) + offset);
 }
@@ -110,7 +110,7 @@ struct fmt::formatter<VertexComponentFormat> : EnumFormatter<VertexComponentForm
   constexpr formatter() : EnumFormatter({"Not present", "Direct", "8-bit index", "16-bit index"}) {}
 };
 
-constexpr bool IsIndexed(VertexComponentFormat format)
+constexpr bool IsIndexed(const VertexComponentFormat format)
 {
   return format == VertexComponentFormat::Index8 || format == VertexComponentFormat::Index16;
 }
@@ -139,7 +139,7 @@ struct fmt::formatter<ComponentFormat> : EnumFormatter<ComponentFormat::Float>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-constexpr u32 GetElementSize(ComponentFormat format)
+constexpr u32 GetElementSize(const ComponentFormat format)
 {
   switch (format)
   {
@@ -269,7 +269,7 @@ struct TVtxDesc
 template <>
 struct fmt::formatter<TVtxDesc::Low>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TVtxDesc::Low& desc, FormatContext& ctx) const
   {
@@ -299,7 +299,7 @@ struct fmt::formatter<TVtxDesc::Low>
 template <>
 struct fmt::formatter<TVtxDesc::High>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TVtxDesc::High& desc, FormatContext& ctx) const
   {
@@ -319,7 +319,7 @@ struct fmt::formatter<TVtxDesc::High>
 template <>
 struct fmt::formatter<TVtxDesc>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TVtxDesc& desc, FormatContext& ctx) const
   {
@@ -354,7 +354,7 @@ union UVAT_group0
 template <>
 struct fmt::formatter<UVAT_group0>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UVAT_group0& g0, FormatContext& ctx) const
   {
@@ -411,7 +411,7 @@ union UVAT_group1
 template <>
 struct fmt::formatter<UVAT_group1>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UVAT_group1& g1, FormatContext& ctx) const
   {
@@ -457,7 +457,7 @@ union UVAT_group2
 template <>
 struct fmt::formatter<UVAT_group2>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UVAT_group2& g2, FormatContext& ctx) const
   {
@@ -486,7 +486,7 @@ struct VAT
   UVAT_group1 g1;
   UVAT_group2 g2;
 
-  constexpr ColorComponentCount GetColorElements(size_t idx) const
+  constexpr ColorComponentCount GetColorElements(const size_t idx) const
   {
     switch (idx)
     {
@@ -499,7 +499,7 @@ struct VAT
       return ColorComponentCount::RGB;
     }
   }
-  constexpr ColorFormat GetColorFormat(size_t idx) const
+  constexpr ColorFormat GetColorFormat(const size_t idx) const
   {
     switch (idx)
     {
@@ -512,7 +512,7 @@ struct VAT
       return ColorFormat::RGB565;
     }
   }
-  constexpr TexComponentCount GetTexElements(size_t idx) const
+  constexpr TexComponentCount GetTexElements(const size_t idx) const
   {
     switch (idx)
     {
@@ -537,7 +537,7 @@ struct VAT
       return TexComponentCount::S;
     }
   }
-  constexpr ComponentFormat GetTexFormat(size_t idx) const
+  constexpr ComponentFormat GetTexFormat(const size_t idx) const
   {
     switch (idx)
     {
@@ -562,7 +562,7 @@ struct VAT
       return ComponentFormat::UByte;
     }
   }
-  constexpr u8 GetTexFrac(size_t idx) const
+  constexpr u8 GetTexFrac(const size_t idx) const
   {
     switch (idx)
     {
@@ -587,7 +587,7 @@ struct VAT
       return 0;
     }
   }
-  void SetTexElements(size_t idx, TexComponentCount value)
+  void SetTexElements(const size_t idx, const TexComponentCount value)
   {
     switch (idx)
     {
@@ -619,7 +619,7 @@ struct VAT
       PanicAlertFmt("Invalid tex coord index {}", idx);
     }
   }
-  void SetTexFormat(size_t idx, ComponentFormat value)
+  void SetTexFormat(const size_t idx, const ComponentFormat value)
   {
     switch (idx)
     {
@@ -651,7 +651,7 @@ struct VAT
       PanicAlertFmt("Invalid tex coord index {}", idx);
     }
   }
-  void SetTexFrac(size_t idx, u8 value)
+  void SetTexFrac(const size_t idx, const u8 value)
   {
     switch (idx)
     {
@@ -687,7 +687,7 @@ struct VAT
 template <>
 struct fmt::formatter<VAT>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const VAT& vat, FormatContext& ctx) const
   {
@@ -708,7 +708,7 @@ union TMatrixIndexA
 template <>
 struct fmt::formatter<TMatrixIndexA>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TMatrixIndexA& m, FormatContext& ctx) const
   {
@@ -729,7 +729,7 @@ union TMatrixIndexB
 template <>
 struct fmt::formatter<TMatrixIndexB>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TMatrixIndexB& m, FormatContext& ctx) const
   {

@@ -64,7 +64,7 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
              90, 1, 180);
 }
 
-Force::ReshapeData Force::GetReshapableState(bool adjusted) const
+Force::ReshapeData Force::GetReshapableState(const bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -76,7 +76,7 @@ Force::ReshapeData Force::GetReshapableState(bool adjusted) const
   return Reshape(x, y);
 }
 
-Force::StateData Force::GetState(bool adjusted) const
+Force::StateData Force::GetState(const bool adjusted) const
 {
   const auto state = GetReshapableState(adjusted);
   ControlState z = controls[4]->GetState() - controls[5]->GetState();
@@ -122,7 +122,7 @@ ControlState Force::GetDefaultInputRadiusAtAngle(double) const
   return 1.0;
 }
 
-Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
+Shake::Shake(const std::string& name_, const ControlState default_intensity_scale)
     : ControlGroup(name_, name_, GroupType::Shake)
 {
   // i18n: Refers to a 3D axis (used when mapping motion controls)
@@ -156,7 +156,7 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
              6, 1, 20);
 }
 
-Shake::StateData Shake::GetState(bool adjusted) const
+Shake::StateData Shake::GetState(const bool adjusted) const
 {
   const float x = controls[0]->GetState();
   const float y = controls[1]->GetState();

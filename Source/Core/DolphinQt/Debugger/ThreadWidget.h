@@ -43,7 +43,7 @@ private:
   QGroupBox* CreateThreadContextGroup();
   QGroupBox* CreateThreadCallstackGroup();
 
-  void ShowContextMenu(QTableWidget* table);
+  void ShowContextMenu(const QTableWidget* table);
 
   void Update();
   void UpdateThreadContext(const Common::Debug::PartialContext& context);

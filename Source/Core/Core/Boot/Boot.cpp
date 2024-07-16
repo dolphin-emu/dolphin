@@ -105,7 +105,7 @@ BootSessionData::BootSessionData()
 }
 
 BootSessionData::BootSessionData(std::optional<std::string> savestate_path,
-                                 DeleteSavestateAfterBoot delete_savestate)
+                                 const DeleteSavestateAfterBoot delete_savestate)
     : m_savestate_path(std::move(savestate_path)), m_delete_savestate(delete_savestate)
 {
 }
@@ -127,7 +127,7 @@ DeleteSavestateAfterBoot BootSessionData::GetDeleteSavestate() const
 }
 
 void BootSessionData::SetSavestateData(std::optional<std::string> savestate_path,
-                                       DeleteSavestateAfterBoot delete_savestate)
+                                       const DeleteSavestateAfterBoot delete_savestate)
 {
   m_savestate_path = std::move(savestate_path);
   m_delete_savestate = delete_savestate;
@@ -301,13 +301,13 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   return {};
 }
 
-BootParameters::IPL::IPL(DiscIO::Region region_) : region(region_)
+BootParameters::IPL::IPL(const DiscIO::Region region_) : region(region_)
 {
   const std::string directory = Config::GetDirectoryForRegion(region);
   path = Config::GetBootROMPath(directory);
 }
 
-BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
+BootParameters::IPL::IPL(const DiscIO::Region region_, Disc&& disc_) : IPL(region_)
 {
   disc = std::move(disc_);
 }
@@ -324,8 +324,8 @@ static const DiscIO::VolumeDisc* SetDisc(DVD::DVDInterface& dvd_interface,
   return pointer;
 }
 
-bool CBoot::DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
-                    u32 output_address, u32 length, const DiscIO::Partition& partition)
+bool CBoot::DVDRead(const Core::System& system, const DiscIO::VolumeDisc& disc, const u64 dvd_offset,
+                    const u32 output_address, const u32 length, const DiscIO::Partition& partition)
 {
   std::vector<u8> buffer(length);
   if (!disc.Read(dvd_offset, length, buffer.data(), partition))
@@ -336,7 +336,7 @@ bool CBoot::DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dv
   return true;
 }
 
-bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, u32 output_address)
+bool CBoot::DVDReadDiscID(const Core::System& system, const DiscIO::VolumeDisc& disc, const u32 output_address)
 {
   std::array<u8, 0x20> buffer;
   if (!disc.Read(0, buffer.size(), buffer.data(), DiscIO::PARTITION_NONE))
@@ -387,7 +387,7 @@ bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& 
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
-bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
+bool CBoot::Load_BS2(const Core::System& system, const std::string& boot_rom_filename)
 {
   // CRC32 hashes of the IPL file, obtained from Redump
   constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
@@ -490,7 +490,7 @@ static void SetDefaultDisc(DVD::DVDInterface& dvd_interface)
     SetDisc(dvd_interface, DiscIO::CreateDisc(default_iso));
 }
 
-static void CopyDefaultExceptionHandlers(Core::System& system)
+static void CopyDefaultExceptionHandlers(const Core::System& system)
 {
   constexpr u32 EXCEPTION_HANDLER_ADDRESSES[] = {0x00000100, 0x00000200, 0x00000300, 0x00000400,
                                                  0x00000500, 0x00000600, 0x00000700, 0x00000800,

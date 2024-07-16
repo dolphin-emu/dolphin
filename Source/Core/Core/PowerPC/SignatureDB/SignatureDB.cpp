@@ -28,7 +28,7 @@ SignatureDB::HandlerType GetHandlerType(const std::string& file_path)
   return SignatureDB::HandlerType::DSY;
 }
 
-std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(SignatureDB::HandlerType handler)
+std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(const SignatureDB::HandlerType handler)
 {
   switch (handler)
   {
@@ -43,7 +43,7 @@ std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(SignatureDB::Handl
 }
 }  // Anonymous namespace
 
-SignatureDB::SignatureDB(HandlerType handler) : m_handler(CreateFormatHandler(handler))
+SignatureDB::SignatureDB(const HandlerType handler) : m_handler(CreateFormatHandler(handler))
 {
 }
 
@@ -81,14 +81,14 @@ void SignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
   m_handler->Apply(guard, func_db);
 }
 
-bool SignatureDB::Add(const Core::CPUThreadGuard& guard, u32 start_addr, u32 size,
+bool SignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 start_addr, const u32 size,
                       const std::string& name)
 {
   return m_handler->Add(guard, start_addr, size, name);
 }
 
 // Adds a known function to the hash database
-bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
+bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 startAddr, const u32 size,
                           const std::string& name)
 {
   u32 hash = ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
@@ -160,8 +160,8 @@ void HashSignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& 
   }
 }
 
-u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 offsetStart,
-                                         u32 offsetEnd)
+u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, const u32 offsetStart,
+                                         const u32 offsetEnd)
 {
   u32 sum = 0;
   for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)

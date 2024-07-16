@@ -46,7 +46,7 @@ bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
 }
 
 // return true if a code exists
-bool GeckoCode::Exist(u32 address, u32 data) const
+bool GeckoCode::Exist(const u32 address, const u32 data) const
 {
   return std::find_if(codes.begin(), codes.end(), [&](const Code& code) {
            return code.address == address && code.data == data;

@@ -13,7 +13,7 @@ CEXIAD16::CEXIAD16(Core::System& system) : IEXIDevice(system)
 {
 }
 
-void CEXIAD16::SetCS(int cs)
+void CEXIAD16::SetCS(const int cs)
 {
   if (cs)
     m_position = 0;

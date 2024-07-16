@@ -7,7 +7,7 @@
 
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
-ModalMessageBox::ModalMessageBox(QWidget* parent, Qt::WindowModality modality)
+ModalMessageBox::ModalMessageBox(const QWidget* parent, Qt::WindowModality modality)
     : QMessageBox(parent != nullptr ? parent->window() : nullptr)
 {
   setWindowModality(modality);

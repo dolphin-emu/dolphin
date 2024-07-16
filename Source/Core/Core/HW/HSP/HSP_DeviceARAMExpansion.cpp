@@ -14,7 +14,7 @@
 
 namespace HSP
 {
-CHSPDevice_ARAMExpansion::CHSPDevice_ARAMExpansion(HSPDeviceType device) : IHSPDevice(device)
+CHSPDevice_ARAMExpansion::CHSPDevice_ARAMExpansion(const HSPDeviceType device) : IHSPDevice(device)
 {
   m_size = MathUtil::NextPowerOf2(Get(Config::MAIN_ARAM_EXPANSION_SIZE));
   m_mask = m_size - 1;
@@ -27,14 +27,14 @@ CHSPDevice_ARAMExpansion::~CHSPDevice_ARAMExpansion()
   m_ptr = nullptr;
 }
 
-u64 CHSPDevice_ARAMExpansion::Read(u32 address)
+u64 CHSPDevice_ARAMExpansion::Read(const u32 address)
 {
   u64 value;
   std::memcpy(&value, &m_ptr[address & m_mask], sizeof(value));
   return Common::swap64(value);
 }
 
-void CHSPDevice_ARAMExpansion::Write(u32 address, u64 value)
+void CHSPDevice_ARAMExpansion::Write(const u32 address, u64 value)
 {
   value = Common::swap64(value);
   std::memcpy(&m_ptr[address & m_mask], &value, sizeof(value));

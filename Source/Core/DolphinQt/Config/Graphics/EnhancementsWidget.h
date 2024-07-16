@@ -22,7 +22,7 @@ class EnhancementsWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit EnhancementsWidget(GraphicsWindow* parent);
+  explicit EnhancementsWidget(const GraphicsWindow* parent);
 
 private:
   void LoadSettings();

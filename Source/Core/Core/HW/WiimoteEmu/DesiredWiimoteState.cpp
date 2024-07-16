@@ -131,7 +131,7 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
 
 template <typename T>
 static bool DeserializeExtensionState(DesiredWiimoteState* state,
-                                      const SerializedWiimoteState& serialized, size_t offset)
+                                      const SerializedWiimoteState& serialized, const size_t offset)
 {
   if (serialized.length < offset + sizeof(T))
     return false;

@@ -92,13 +92,13 @@ public:
     }
     // 5-bit values (0-31)
     auto GetLeftTrigger() const { return TriggerRawValue(lt1 | lt2 << 3); }
-    void SetLeftTrigger(TriggerType value)
+    void SetLeftTrigger(const TriggerType value)
     {
       lt1 = value & 0b111;
       lt2 = (value >> 3) & 0b11;
     }
     auto GetRightTrigger() const { return TriggerRawValue(rt); }
-    void SetRightTrigger(TriggerType value) { rt = value; }
+    void SetRightTrigger(const TriggerType value) { rt = value; }
 
     u16 GetButtons() const
     {
@@ -106,7 +106,7 @@ public:
       return ~bt.hex;
     }
 
-    void SetButtons(u16 value)
+    void SetButtons(const u16 value)
     {
       // 0 == pressed.
       bt.hex = ~value;

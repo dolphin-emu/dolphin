@@ -30,7 +30,7 @@ class VolumeWAD;
 struct Partition final
 {
   constexpr Partition() = default;
-  constexpr explicit Partition(u64 offset_) : offset(offset_) {}
+  constexpr explicit Partition(const u64 offset_) : offset(offset_) {}
   constexpr bool operator==(const Partition& other) const { return offset == other.offset; }
   constexpr bool operator!=(const Partition& other) const { return !(*this == other); }
   constexpr bool operator<(const Partition& other) const { return offset < other.offset; }
@@ -49,14 +49,14 @@ public:
   virtual ~Volume() {}
   virtual bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const = 0;
   template <typename T>
-  std::optional<T> ReadSwapped(u64 offset, const Partition& partition) const
+  std::optional<T> ReadSwapped(const u64 offset, const Partition& partition) const
   {
     T temp;
     if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), partition))
       return std::nullopt;
     return Common::FromBigEndian(temp);
   }
-  std::optional<u64> ReadSwappedAndShifted(u64 offset, const Partition& partition) const
+  std::optional<u64> ReadSwappedAndShifted(const u64 offset, const Partition& partition) const
   {
     const std::optional<u32> temp = ReadSwapped<u32>(offset, partition);
     if (!temp)
@@ -94,7 +94,7 @@ public:
   virtual IOS::ES::TicketReader GetTicketWithFixedCommonKey() const { return {}; }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
-  virtual u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
+  virtual u64 PartitionOffsetToRawOffset(const u64 offset, const Partition& partition) const
   {
     return offset;
   }

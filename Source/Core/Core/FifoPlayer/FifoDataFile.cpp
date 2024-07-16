@@ -89,7 +89,7 @@ bool FifoDataFile::HasBrokenEFBCopies() const
   return m_Version < 2;
 }
 
-void FifoDataFile::SetIsWii(bool isWii)
+void FifoDataFile::SetIsWii(const bool isWii)
 {
   SetFlag(FLAG_IS_WII, isWii);
 }
@@ -202,7 +202,7 @@ bool FifoDataFile::Save(const std::string& filename)
   return true;
 }
 
-std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bool flagsOnly)
+std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, const bool flagsOnly)
 {
   File::IOFile file;
   file.Open(filename, "rb");
@@ -345,13 +345,13 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   return dataFile;
 }
 
-void FifoDataFile::PadFile(size_t numBytes, File::IOFile& file)
+void FifoDataFile::PadFile(const size_t numBytes, File::IOFile& file)
 {
   for (size_t i = 0; i < numBytes; ++i)
     fputc(0, file.GetHandle());
 }
 
-void FifoDataFile::SetFlag(u32 flag, bool set)
+void FifoDataFile::SetFlag(const u32 flag, const bool set)
 {
   if (set)
     m_Flags |= flag;
@@ -359,7 +359,7 @@ void FifoDataFile::SetFlag(u32 flag, bool set)
     m_Flags &= ~flag;
 }
 
-bool FifoDataFile::GetFlag(u32 flag) const
+bool FifoDataFile::GetFlag(const u32 flag) const
 {
   return !!(m_Flags & flag);
 }
@@ -395,7 +395,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
   return updateListOffset;
 }
 
-void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates,
+void FifoDataFile::ReadMemoryUpdates(const u64 fileOffset, const u32 numUpdates,
                                      std::vector<MemoryUpdate>& memUpdates, File::IOFile& file)
 {
   memUpdates.resize(numUpdates);

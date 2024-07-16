@@ -8,7 +8,7 @@
 
 namespace Common::ENet
 {
-void WakeupThread(ENetHost* host)
+void WakeupThread(const ENetHost* host)
 {
   // Send ourselves a spurious message.  This is hackier than it should be.
   // comex reported this as https://github.com/lsalzman/enet/issues/23, so
@@ -26,7 +26,7 @@ void WakeupThread(ENetHost* host)
   enet_socket_send(host->socket, &address, &buf, 1);
 }
 
-int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event)
+int ENET_CALLBACK InterceptCallback(const ENetHost* host, ENetEvent* event)
 {
   // wakeup packet received
   if (host->receivedDataLength == 1 && host->receivedData[0] == 0)

@@ -10,7 +10,7 @@
 
 namespace DSP
 {
-u16 SDSP::ReadIMEM(u16 address) const
+u16 SDSP::ReadIMEM(const u16 address) const
 {
   switch (address >> 12)
   {
@@ -26,7 +26,7 @@ u16 SDSP::ReadIMEM(u16 address) const
   }
 }
 
-u16 SDSP::ReadDMEM(u16 address)
+u16 SDSP::ReadDMEM(const u16 address)
 {
   switch (address >> 12)
   {
@@ -46,7 +46,7 @@ u16 SDSP::ReadDMEM(u16 address)
   }
 }
 
-void SDSP::WriteDMEM(u16 address, u16 value)
+void SDSP::WriteDMEM(const u16 address, const u16 value)
 {
   switch (address >> 12)
   {

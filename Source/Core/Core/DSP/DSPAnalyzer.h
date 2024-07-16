@@ -44,25 +44,25 @@ public:
   void Analyze(const SDSP& dsp);
 
   // Whether or not the given address indicates the start of an instruction.
-  [[nodiscard]] bool IsStartOfInstruction(u16 address) const
+  [[nodiscard]] bool IsStartOfInstruction(const u16 address) const
   {
     return (GetCodeFlags(address) & CODE_START_OF_INST) != 0;
   }
 
   // Whether or not the address indicates an idle skip location.
-  [[nodiscard]] bool IsIdleSkip(u16 address) const
+  [[nodiscard]] bool IsIdleSkip(const u16 address) const
   {
     return (GetCodeFlags(address) & CODE_IDLE_SKIP) != 0;
   }
 
   // Whether or not the address indicates the start of a loop.
-  [[nodiscard]] bool IsLoopStart(u16 address) const
+  [[nodiscard]] bool IsLoopStart(const u16 address) const
   {
     return (GetCodeFlags(address) & CODE_LOOP_START) != 0;
   }
 
   // Whether or not the address indicates the end of a loop.
-  [[nodiscard]] bool IsLoopEnd(u16 address) const
+  [[nodiscard]] bool IsLoopEnd(const u16 address) const
   {
     return (GetCodeFlags(address) & CODE_LOOP_END) != 0;
   }
@@ -78,7 +78,7 @@ public:
   }
 
   // Whether or not the address describes instructions that potentially raise exceptions.
-  [[nodiscard]] bool IsCheckExceptions(u16 address) const
+  [[nodiscard]] bool IsCheckExceptions(const u16 address) const
   {
     return (GetCodeFlags(address) & CODE_CHECK_EXC) != 0;
   }
@@ -111,7 +111,7 @@ private:
   void FindIdleSkips(const SDSP& dsp, u16 start_addr, u16 end_addr);
 
   // Retrieves the flags set during analysis for code in memory.
-  [[nodiscard]] u8 GetCodeFlags(u16 address) const { return m_code_flags[address]; }
+  [[nodiscard]] u8 GetCodeFlags(const u16 address) const { return m_code_flags[address]; }
 
   // Holds data about all instructions in RAM.
   std::array<u8, 65536> m_code_flags{};

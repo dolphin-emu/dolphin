@@ -70,7 +70,7 @@ DiscIO::Language GameFile::GetConfigLanguage() const
   return SConfig::GetInstance().GetLanguageAdjustedForRegion(IsWii(m_platform), m_region);
 }
 
-const std::string& GameFile::Lookup(DiscIO::Language language,
+const std::string& GameFile::Lookup(const DiscIO::Language language,
                                     const std::map<DiscIO::Language, std::string>& strings)
 {
   auto end = strings.end();
@@ -503,7 +503,7 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
   return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
 }
 
-const std::string& GameFile::GetName(Variant variant) const
+const std::string& GameFile::GetName(const Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_name.empty())
     return m_custom_name;
@@ -516,7 +516,7 @@ const std::string& GameFile::GetName(Variant variant) const
   return m_file_name;
 }
 
-const std::string& GameFile::GetMaker(Variant variant) const
+const std::string& GameFile::GetMaker(const Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_maker.empty())
     return m_custom_maker;
@@ -532,7 +532,7 @@ const std::string& GameFile::GetMaker(Variant variant) const
   return EMPTY_STRING;
 }
 
-const std::string& GameFile::GetDescription(Variant variant) const
+const std::string& GameFile::GetDescription(const Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_description.empty())
     return m_custom_description;
@@ -649,13 +649,13 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   return name + " (" + ss.str() + ")";
 }
 
-static Common::SHA1::Digest GetHash(u32 value)
+static Common::SHA1::Digest GetHash(const u32 value)
 {
   auto data = Common::BitCastToArray<u8>(value);
   return Common::SHA1::CalculateDigest(data);
 }
 
-static Common::SHA1::Digest GetHash(std::string_view str)
+static Common::SHA1::Digest GetHash(const std::string_view str)
 {
   return Common::SHA1::CalculateDigest(str);
 }

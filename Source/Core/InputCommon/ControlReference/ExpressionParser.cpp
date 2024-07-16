@@ -74,11 +74,11 @@ private:
 
 static HotkeySuppressions s_hotkey_suppressions;
 
-Token::Token(TokenType type_) : type(type_)
+Token::Token(const TokenType type_) : type(type_)
 {
 }
 
-Token::Token(TokenType type_, std::string data_) : type(type_), data(std::move(data_))
+Token::Token(const TokenType type_, std::string data_) : type(type_), data(std::move(data_))
 {
 }
 
@@ -94,7 +94,7 @@ Lexer::Lexer(std::string expr_) : expr(std::move(expr_))
 
 std::string Lexer::FetchDelimString(char delim)
 {
-  const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
+  const std::string result = FetchCharsWhile([delim](const char c) { return c != delim; });
   if (it != expr.end())
     ++it;
   return result;
@@ -102,7 +102,7 @@ std::string Lexer::FetchDelimString(char delim)
 
 std::string Lexer::FetchWordChars()
 {
-  return FetchCharsWhile([](char c) {
+  return FetchCharsWhile([](const char c) {
     return std::isalpha(c, std::locale::classic()) || std::isdigit(c, std::locale::classic()) ||
            c == '_';
   });
@@ -123,16 +123,16 @@ Token Lexer::GetFullyQualifiedControl()
   return Token(TOK_CONTROL, FetchDelimString('`'));
 }
 
-Token Lexer::GetBareword(char first_char)
+Token Lexer::GetBareword(const char first_char)
 {
   return Token(TOK_BAREWORD, first_char + FetchWordChars());
 }
 
-Token Lexer::GetRealLiteral(char first_char)
+Token Lexer::GetRealLiteral(const char first_char)
 {
   std::string value;
   value += first_char;
-  value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
+  value += FetchCharsWhile([](const char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
 
   static const std::regex re(R"(\d+(\.\d+)?)");
   if (std::regex_match(value, re))
@@ -270,7 +270,7 @@ public:
 
     return std::max(0.0, m_input->GetState());
   }
-  void SetValue(ControlState value) override
+  void SetValue(const ControlState value) override
   {
     if (m_output)
       m_output->SetState(value);
@@ -301,7 +301,7 @@ bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
   auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
 
   // We need to ignore L_Ctrl R_Ctrl when supplied Ctrl and vice-versa.
-  const auto is_same_modifier = [](Device::Input* i1, Device::Input* i2) {
+  const auto is_same_modifier = [](const Device::Input* i1, const Device::Input* i2) {
     return i1 && i2 && (i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1));
   };
 
@@ -338,7 +338,7 @@ public:
   std::unique_ptr<Expression> lhs;
   std::unique_ptr<Expression> rhs;
 
-  BinaryExpression(TokenType op_, std::unique_ptr<Expression>&& lhs_,
+  BinaryExpression(const TokenType op_, std::unique_ptr<Expression>&& lhs_,
                    std::unique_ptr<Expression>&& rhs_)
       : op(op_), lhs(std::move(lhs_)), rhs(std::move(rhs_))
   {
@@ -396,7 +396,7 @@ public:
     }
   }
 
-  void SetValue(ControlState value) override
+  void SetValue(const ControlState value) override
   {
     // Don't do anything special with the op we have.
     // Treat "A & B" the same as "A | B".
@@ -438,7 +438,7 @@ protected:
 class LiteralReal : public LiteralExpression
 {
 public:
-  explicit LiteralReal(ControlState value) : m_value(value) {}
+  explicit LiteralReal(const ControlState value) : m_value(value) {}
 
   ControlState GetValue() const override { return m_value; }
 
@@ -464,7 +464,7 @@ public:
 
   ControlState GetValue() const override { return m_variable_ptr ? *m_variable_ptr : 0; }
 
-  void SetValue(ControlState value) override
+  void SetValue(const ControlState value) override
   {
     if (m_variable_ptr)
       *m_variable_ptr = value;
@@ -555,7 +555,7 @@ public:
   }
 
 private:
-  void EnableSuppression(bool force = false) const
+  void EnableSuppression(const bool force = false) const
   {
     if (!m_suppressor || force)
       m_suppressor = s_hotkey_suppressions.MakeSuppressor(&m_modifiers, &m_final_input);
@@ -581,7 +581,7 @@ public:
   }
 
   ControlState GetValue() const override { return GetActiveChild()->GetValue(); }
-  void SetValue(ControlState value) override { GetActiveChild()->SetValue(value); }
+  void SetValue(const ControlState value) override { GetActiveChild()->SetValue(value); }
 
   int CountNumControls() const override { return GetActiveChild()->CountNumControls(); }
   void UpdateReferences(ControlEnvironment& env) override
@@ -707,7 +707,7 @@ private:
 
   Token Peek() { return *m_it; }
 
-  bool Expects(TokenType type)
+  bool Expects(const TokenType type)
   {
     Token tok = Chew();
     return tok.type == type;
@@ -844,7 +844,7 @@ private:
     }
   }
 
-  static int BinaryOperatorPrecedence(TokenType type)
+  static int BinaryOperatorPrecedence(const TokenType type)
   {
     switch (type)
     {
@@ -874,7 +874,7 @@ private:
     }
   }
 
-  ParseResult ParseBinary(int precedence = 999)
+  ParseResult ParseBinary(const int precedence = 999)
   {
     ParseResult lhs = ParseAtom(Chew());
 

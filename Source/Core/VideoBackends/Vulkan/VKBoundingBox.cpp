@@ -37,7 +37,7 @@ bool VKBoundingBox::Initialize()
   return true;
 }
 
-std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
+std::vector<BBoxType> VKBoundingBox::Read(const u32 index, const u32 length)
 {
   // Can't be done within a render pass.
   StateTracker::GetInstance()->EndRenderPass();
@@ -77,7 +77,7 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void VKBoundingBox::Write(u32 index, std::span<const BBoxType> values)
+void VKBoundingBox::Write(const u32 index, const std::span<const BBoxType> values)
 {
   // We can't issue vkCmdUpdateBuffer within a render pass.
   // However, the writes must be serialized, so we can't put it in the init buffer.

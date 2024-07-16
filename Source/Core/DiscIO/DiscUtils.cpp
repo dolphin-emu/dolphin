@@ -19,7 +19,7 @@
 
 namespace DiscIO
 {
-std::string NameForPartitionType(u32 partition_type, bool include_prefix)
+std::string NameForPartitionType(u32 partition_type, const bool include_prefix)
 {
   switch (partition_type)
   {
@@ -40,7 +40,7 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
                                       static_cast<char>((partition_type >> 8) & 0xFF),
                                       static_cast<char>(partition_type & 0xFF)};
     if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(),
-                    [](char c) { return std::isalnum(c, std::locale::classic()); }))
+                    [](const char c) { return std::isalnum(c, std::locale::classic()); }))
     {
       return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }
@@ -75,7 +75,7 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
   return dol_offset;
 }
 
-std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset)
+std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, const u64 dol_offset)
 {
   if (!IsDisc(volume.GetVolumeType()))
     return std::nullopt;
@@ -198,7 +198,7 @@ u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition
   return biggest_offset;
 }
 
-bool IsGCZBlockSizeLegacyCompatible(int block_size, u64 file_size)
+bool IsGCZBlockSizeLegacyCompatible(const int block_size, const u64 file_size)
 {
   // In order for versions of Dolphin prior to 5.0-11893 to be able to convert a GCZ file
   // to ISO without messing up the final part of the file in some way, the file size
@@ -207,7 +207,7 @@ bool IsGCZBlockSizeLegacyCompatible(int block_size, u64 file_size)
   return file_size % block_size == 0 && file_size % (block_size * 32) != 0;
 }
 
-bool IsDiscImageBlockSizeValid(int block_size, BlobType format)
+bool IsDiscImageBlockSizeValid(const int block_size, const BlobType format)
 {
   switch (format)
   {

@@ -76,8 +76,8 @@ bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::v
 }
 
 static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
-                             const picojson::value& json_value, std::string_view code_name,
-                             std::string_view type, ShaderProperty::Value* value)
+                             const picojson::value& json_value, const std::string_view code_name,
+                             const std::string_view type, ShaderProperty::Value* value)
 {
   if (type == "int")
   {
@@ -314,7 +314,7 @@ void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
                             json_property.emplace("type", "samplercube");
                             json_property.emplace("default", default_value.value);
                           },
-                          [&](s32 default_value) {
+                          [&](const s32 default_value) {
                             json_property.emplace("type", "int");
                             json_property.emplace("default", static_cast<double>(default_value));
                           },
@@ -330,7 +330,7 @@ void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
                             json_property.emplace("type", "int4");
                             json_property.emplace("default", ToJsonArray(default_value));
                           },
-                          [&](float default_value) {
+                          [&](const float default_value) {
                             json_property.emplace("type", "float");
                             json_property.emplace("default", static_cast<double>(default_value));
                           },
@@ -374,7 +374,7 @@ std::span<const std::string_view> ShaderProperty::GetValueTypeNames()
   return values;
 }
 
-ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(std::string_view name)
+ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(const std::string_view name)
 {
   if (name == "sampler2d")
   {

@@ -262,7 +262,7 @@ public:
   void eieio(UGeckoInstruction inst);
 
 private:
-  void CompileInstruction(PPCAnalyst::CodeOp& op);
+  void CompileInstruction(const PPCAnalyst::CodeOp& op);
 
   bool HandleFunctionHooking(u32 address);
 

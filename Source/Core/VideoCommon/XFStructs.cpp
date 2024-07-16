@@ -22,14 +22,14 @@
 #include "VideoCommon/XFMemory.h"
 #include "VideoCommon/XFStateManager.h"
 
-static void XFMemWritten(XFStateManager& xf_state_manager, u32 transferSize, u32 baseAddress)
+static void XFMemWritten(XFStateManager& xf_state_manager, const u32 transferSize, const u32 baseAddress)
 {
   g_vertex_manager->Flush();
   xf_state_manager.InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager, u32 address,
-                         u32 value)
+static void XFRegWritten(const Core::System& system, XFStateManager& xf_state_manager, const u32 address,
+                         const u32 value)
 {
   if (address >= XFMEM_REGISTERS_START && address < XFMEM_REGISTERS_END)
   {
@@ -198,7 +198,7 @@ static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager,
   }
 }
 
-void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
+void LoadXFReg(u16 base_address, const u8 transfer_size, const u8* data)
 {
   if (base_address > XFMEM_REGISTERS_END)
   {
@@ -256,7 +256,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
 }
 
 // TODO - verify that it is correct. Seems to work, though.
-void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
+void LoadIndexedXF(const CPArray array, const u32 index, const u16 address, const u8 size)
 {
   // load stuff from array to address in xf mem
 
@@ -295,7 +295,7 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
   }
 }
 
-void PreprocessIndexedXF(CPArray array, u32 index, u16 address, u8 size)
+void PreprocessIndexedXF(const CPArray array, const u32 index, u16 address, const u8 size)
 {
   const size_t buf_size = size * sizeof(u32);
 
@@ -540,7 +540,7 @@ std::string GetXFMemName(u32 address)
   }
 }
 
-std::string GetXFMemDescription(u32 address, u32 value)
+std::string GetXFMemDescription(const u32 address, u32 value)
 {
   if ((address >= XFMEM_POSMATRICES && address < XFMEM_POSMATRICES_END) ||
       (address >= XFMEM_NORMALMATRICES && address < XFMEM_NORMALMATRICES_END) ||
@@ -571,7 +571,7 @@ std::string GetXFMemDescription(u32 address, u32 value)
   }
 }
 
-std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 transfer_size,
+std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, const u8 transfer_size,
                                                       const u8* data)
 {
   if (base_address > XFMEM_REGISTERS_END)

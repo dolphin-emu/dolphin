@@ -68,17 +68,17 @@ public:
     u16 GetAccelZ() const { return az << 2 | bt.acc_z_lsb; }
     auto GetAccel() const { return AccelData{AccelType{GetAccelX(), GetAccelY(), GetAccelZ()}}; }
 
-    void SetAccelX(u16 val)
+    void SetAccelX(const u16 val)
     {
       ax = val >> 2;
       bt.acc_x_lsb = val & 0b11;
     }
-    void SetAccelY(u16 val)
+    void SetAccelY(const u16 val)
     {
       ay = val >> 2;
       bt.acc_y_lsb = val & 0b11;
     }
-    void SetAccelZ(u16 val)
+    void SetAccelZ(const u16 val)
     {
       az = val >> 2;
       bt.acc_z_lsb = val & 0b11;
@@ -95,7 +95,7 @@ public:
       // 0 == pressed.
       return ~bt.hex & (BUTTON_C | BUTTON_Z);
     }
-    void SetButtons(u8 value)
+    void SetButtons(const u8 value)
     {
       // 0 == pressed.
       bt.hex |= (BUTTON_C | BUTTON_Z);

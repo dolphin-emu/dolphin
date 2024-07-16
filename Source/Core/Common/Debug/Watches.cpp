@@ -11,7 +11,7 @@
 
 namespace Common::Debug
 {
-Watch::Watch(u32 address_, std::string name_, State is_enabled_)
+Watch::Watch(const u32 address_, std::string name_, const State is_enabled_)
     : address(address_), name(std::move(name_)), is_enabled(is_enabled_)
 {
 }
@@ -31,7 +31,7 @@ std::size_t Watches::SetWatch(u32 address, std::string name)
   return size;
 }
 
-const Watch& Watches::GetWatch(std::size_t index) const
+const Watch& Watches::GetWatch(const std::size_t index) const
 {
   return m_watches.at(index);
 }
@@ -46,33 +46,33 @@ void Watches::UnsetWatch(u32 address)
   std::erase_if(m_watches, [address](const auto& watch) { return watch.address == address; });
 }
 
-void Watches::UpdateWatch(std::size_t index, u32 address, std::string name)
+void Watches::UpdateWatch(const std::size_t index, const u32 address, std::string name)
 {
   m_watches[index].address = address;
   m_watches[index].name = std::move(name);
 }
 
-void Watches::UpdateWatchAddress(std::size_t index, u32 address)
+void Watches::UpdateWatchAddress(const std::size_t index, const u32 address)
 {
   m_watches[index].address = address;
 }
 
-void Watches::UpdateWatchName(std::size_t index, std::string name)
+void Watches::UpdateWatchName(const std::size_t index, std::string name)
 {
   m_watches[index].name = std::move(name);
 }
 
-void Watches::UpdateWatchLockedState(std::size_t index, bool locked)
+void Watches::UpdateWatchLockedState(const std::size_t index, const bool locked)
 {
   m_watches[index].locked = locked;
 }
 
-void Watches::EnableWatch(std::size_t index)
+void Watches::EnableWatch(const std::size_t index)
 {
   m_watches[index].is_enabled = Watch::State::Enabled;
 }
 
-void Watches::DisableWatch(std::size_t index)
+void Watches::DisableWatch(const std::size_t index)
 {
   m_watches[index].is_enabled = Watch::State::Disabled;
 }
@@ -84,7 +84,7 @@ bool Watches::HasEnabledWatch(u32 address) const
   });
 }
 
-void Watches::RemoveWatch(std::size_t index)
+void Watches::RemoveWatch(const std::size_t index)
 {
   m_watches.erase(m_watches.begin() + index);
 }

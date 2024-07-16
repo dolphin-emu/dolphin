@@ -40,7 +40,7 @@ enum
 
 };
 
-IPCReply GetVersion(Core::System& system, const IOCtlVRequest& request)
+IPCReply GetVersion(const Core::System& system, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
   {
@@ -56,7 +56,7 @@ IPCReply GetVersion(Core::System& system, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply GetCPUSpeed(Core::System& system, const IOCtlVRequest& request)
+IPCReply GetCPUSpeed(const Core::System& system, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
   {
@@ -79,7 +79,7 @@ IPCReply GetCPUSpeed(Core::System& system, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply GetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
+IPCReply GetSpeedLimit(const Core::System& system, const IOCtlVRequest& request)
 {
   // get current speed limit
   if (!request.HasNumberOfValidVectors(0, 1))
@@ -100,7 +100,7 @@ IPCReply GetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
+IPCReply SetSpeedLimit(const Core::System& system, const IOCtlVRequest& request)
 {
   // set current speed limit
   if (!request.HasNumberOfValidVectors(1, 0))
@@ -120,7 +120,7 @@ IPCReply SetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply GetRealProductCode(Core::System& system, const IOCtlVRequest& request)
+IPCReply GetRealProductCode(const Core::System& system, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
   {
@@ -151,7 +151,7 @@ IPCReply GetRealProductCode(Core::System& system, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SetDiscordClient(Core::System& system, const IOCtlVRequest& request)
+IPCReply SetDiscordClient(const Core::System& system, const IOCtlVRequest& request)
 {
   if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return IPCReply(IPC_EACCES);
@@ -168,7 +168,7 @@ IPCReply SetDiscordClient(Core::System& system, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SetDiscordPresence(Core::System& system, const IOCtlVRequest& request)
+IPCReply SetDiscordPresence(const Core::System& system, const IOCtlVRequest& request)
 {
   if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return IPCReply(IPC_EACCES);

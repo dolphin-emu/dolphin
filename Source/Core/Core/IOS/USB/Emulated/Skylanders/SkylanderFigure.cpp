@@ -81,7 +81,7 @@ void SkylanderFigure::GenerateIncompleteHashIn(u8* dest) const
 
   memcpy(dest, hash_in.data(), 0x56);
 }
-void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
+void SkylanderFigure::Encrypt(const std::span<const u8, FIGURE_SIZE> input)
 {
   std::array<u8, 0x56> hash_in = {};
 
@@ -128,8 +128,8 @@ SkylanderFigure::SkylanderFigure(File::IOFile file)
   m_sky_file.Seek(0, File::SeekOrigin::Begin);
   m_sky_file.ReadBytes(m_data.data(), m_data.size());
 }
-bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
-                             std::optional<std::array<u8, 4>> requested_nuid)
+bool SkylanderFigure::Create(const u16 sky_id, const u16 sky_var,
+                             const std::optional<std::array<u8, 4>> requested_nuid)
 {
   if (!m_sky_file)
   {
@@ -174,7 +174,7 @@ void SkylanderFigure::Save()
   m_sky_file.WriteBytes(m_data.data(), FIGURE_SIZE);
 }
 
-void SkylanderFigure::GetBlock(u8 index, u8* dest) const
+void SkylanderFigure::GetBlock(const u8 index, u8* dest) const
 {
   memcpy(dest, m_data.data() + (index * BLOCK_SIZE), BLOCK_SIZE);
 }
@@ -250,7 +250,7 @@ FigureData SkylanderFigure::GetData() const
 
   return figure_data;
 }
-void SkylanderFigure::SetData(FigureData* figure_data)
+void SkylanderFigure::SetData(const FigureData* figure_data)
 {
   std::array<u8, FIGURE_SIZE> decrypted = {};
 
@@ -412,7 +412,7 @@ void SkylanderFigure::Close()
 {
   m_sky_file.Close();
 }
-void SkylanderFigure::SetBlock(u8 block, const u8* buf)
+void SkylanderFigure::SetBlock(const u8 block, const u8* buf)
 {
   memcpy(m_data.data() + (block * BLOCK_SIZE), buf, BLOCK_SIZE);
 }

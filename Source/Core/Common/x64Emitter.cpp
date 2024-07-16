@@ -100,14 +100,14 @@ enum class FloatOp
   Invalid = -1,
 };
 
-void XEmitter::SetCodePtr(u8* ptr, u8* end, bool write_failed)
+void XEmitter::SetCodePtr(u8* ptr, u8* end, const bool write_failed)
 {
   code = ptr;
   m_code_end = end;
   m_write_failed = write_failed;
 }
 
-void XEmitter::Write8(u8 value)
+void XEmitter::Write8(const u8 value)
 {
   if (code >= m_code_end)
   {
@@ -119,7 +119,7 @@ void XEmitter::Write8(u8 value)
   *code++ = value;
 }
 
-void XEmitter::Write16(u16 value)
+void XEmitter::Write16(const u16 value)
 {
   if (code + sizeof(u16) > m_code_end)
   {
@@ -132,7 +132,7 @@ void XEmitter::Write16(u16 value)
   code += sizeof(u16);
 }
 
-void XEmitter::Write32(u32 value)
+void XEmitter::Write32(const u32 value)
 {
   if (code + sizeof(u32) > m_code_end)
   {
@@ -145,7 +145,7 @@ void XEmitter::Write32(u32 value)
   code += sizeof(u32);
 }
 
-void XEmitter::Write64(u64 value)
+void XEmitter::Write64(const u64 value)
 {
   if (code + sizeof(u64) > m_code_end)
   {
@@ -158,7 +158,7 @@ void XEmitter::Write64(u64 value)
   code += sizeof(u64);
 }
 
-void XEmitter::ReserveCodeSpace(int bytes)
+void XEmitter::ReserveCodeSpace(const int bytes)
 {
   if (code + bytes > m_code_end)
   {
@@ -171,7 +171,7 @@ void XEmitter::ReserveCodeSpace(int bytes)
     *code++ = 0xCC;
 }
 
-u8* XEmitter::AlignCodeTo(size_t alignment)
+u8* XEmitter::AlignCodeTo(const size_t alignment)
 {
   ASSERT_MSG(DYNA_REC, alignment != 0 && (alignment & (alignment - 1)) == 0,
              "Alignment must be power of two");
@@ -204,17 +204,17 @@ void XEmitter::CheckFlags()
   ASSERT_MSG(DYNA_REC, !flags_locked, "Attempt to modify flags while flags locked!");
 }
 
-void XEmitter::WriteModRM(int mod, int reg, int rm)
+void XEmitter::WriteModRM(const int mod, const int reg, const int rm)
 {
   Write8((u8)((mod << 6) | ((reg & 7) << 3) | (rm & 7)));
 }
 
-void XEmitter::WriteSIB(int scale, int index, int base)
+void XEmitter::WriteSIB(const int scale, const int index, const int base)
 {
   Write8((u8)((scale << 6) | ((index & 7) << 3) | (base & 7)));
 }
 
-void OpArg::WriteREX(XEmitter* emit, int opBits, int bits, int customOp) const
+void OpArg::WriteREX(XEmitter* emit, const int opBits, const int bits, int customOp) const
 {
   if (customOp == -1)
     customOp = operandReg;
@@ -243,8 +243,8 @@ void OpArg::WriteREX(XEmitter* emit, int opBits, int bits, int customOp) const
   }
 }
 
-void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm,
-                     int W) const
+void OpArg::WriteVEX(XEmitter* emit, const X64Reg regOp1, const X64Reg regOp2, const int L, const int pp, const int mmmmm,
+                     const int W) const
 {
   int R = !(regOp1 & 8);
   int X = !(indexReg & 8);
@@ -269,8 +269,8 @@ void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp
   }
 }
 
-void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
-                      bool warn_64bit_offset) const
+void OpArg::WriteRest(XEmitter* emit, const int extraBytes, X64Reg _operandReg,
+                      const bool warn_64bit_offset) const
 {
   if (_operandReg == INVALID_REG)
     _operandReg = (X64Reg)this->operandReg;
@@ -517,7 +517,7 @@ FixupBranch XEmitter::J(const Jump jump)
   return branch;
 }
 
-FixupBranch XEmitter::J_CC(CCFlags conditionCode, const Jump jump)
+FixupBranch XEmitter::J_CC(const CCFlags conditionCode, const Jump jump)
 {
   FixupBranch branch;
   const bool is_near_jump = jump == Jump::Near;
@@ -545,7 +545,7 @@ FixupBranch XEmitter::J_CC(CCFlags conditionCode, const Jump jump)
   return branch;
 }
 
-void XEmitter::J_CC(CCFlags conditionCode, const u8* addr)
+void XEmitter::J_CC(const CCFlags conditionCode, const u8* addr)
 {
   u64 fn = (u64)addr;
   s64 distance = (s64)(fn - ((u64)code + 2));
@@ -780,7 +780,7 @@ void XEmitter::SFENCE()
   Write8(0xF8);
 }
 
-void XEmitter::WriteSimple1Byte(int bits, u8 byte, X64Reg reg)
+void XEmitter::WriteSimple1Byte(const int bits, const u8 byte, const X64Reg reg)
 {
   if (bits == 16)
     Write8(0x66);
@@ -788,7 +788,7 @@ void XEmitter::WriteSimple1Byte(int bits, u8 byte, X64Reg reg)
   Write8(byte + ((int)reg & 7));
 }
 
-void XEmitter::WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg)
+void XEmitter::WriteSimple2Byte(const int bits, const u8 byte1, const u8 byte2, const X64Reg reg)
 {
   if (bits == 16)
     Write8(0x66);
@@ -797,7 +797,7 @@ void XEmitter::WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg)
   Write8(byte2 + ((int)reg & 7));
 }
 
-void XEmitter::CWD(int bits)
+void XEmitter::CWD(const int bits)
 {
   if (bits == 16)
     Write8(0x66);
@@ -805,7 +805,7 @@ void XEmitter::CWD(int bits)
   Write8(0x99);
 }
 
-void XEmitter::CBW(int bits)
+void XEmitter::CBW(const int bits)
 {
   if (bits == 8)
     Write8(0x66);
@@ -816,16 +816,16 @@ void XEmitter::CBW(int bits)
 // Simple opcodes
 
 // push/pop do not need wide to be 64-bit
-void XEmitter::PUSH(X64Reg reg)
+void XEmitter::PUSH(const X64Reg reg)
 {
   WriteSimple1Byte(32, 0x50, reg);
 }
-void XEmitter::POP(X64Reg reg)
+void XEmitter::POP(const X64Reg reg)
 {
   WriteSimple1Byte(32, 0x58, reg);
 }
 
-void XEmitter::PUSH(int bits, const OpArg& reg)
+void XEmitter::PUSH(const int bits, const OpArg& reg)
 {
   if (reg.IsSimpleReg())
     PUSH(reg.GetSimpleReg());
@@ -869,7 +869,7 @@ void XEmitter::POP(int /*bits*/, const OpArg& reg)
     ASSERT_MSG(DYNA_REC, 0, "POP - Unsupported encoding");
 }
 
-void XEmitter::BSWAP(int bits, X64Reg reg)
+void XEmitter::BSWAP(const int bits, const X64Reg reg)
 {
   if (bits >= 32)
   {
@@ -907,7 +907,7 @@ void XEmitter::PREFETCH(PrefetchLevel level, OpArg arg)
   arg.WriteRest(this);
 }
 
-void XEmitter::SETcc(CCFlags flag, OpArg dest)
+void XEmitter::SETcc(const CCFlags flag, OpArg dest)
 {
   ASSERT_MSG(DYNA_REC, !dest.IsImm(), "SETcc - Imm argument");
   dest.operandReg = 0;
@@ -917,7 +917,7 @@ void XEmitter::SETcc(CCFlags flag, OpArg dest)
   dest.WriteRest(this);
 }
 
-void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
+void XEmitter::CMOVcc(const int bits, const X64Reg dest, OpArg src, const CCFlags flag)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "CMOVcc - Imm argument");
   ASSERT_MSG(DYNA_REC, bits != 8, "CMOVcc - 8 bits unsupported");
@@ -930,7 +930,7 @@ void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
   src.WriteRest(this);
 }
 
-void XEmitter::WriteMulDivType(int bits, OpArg src, int ext)
+void XEmitter::WriteMulDivType(const int bits, OpArg src, const int ext)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "WriteMulDivType - Imm argument");
   CheckFlags();
@@ -949,32 +949,32 @@ void XEmitter::WriteMulDivType(int bits, OpArg src, int ext)
   src.WriteRest(this);
 }
 
-void XEmitter::MUL(int bits, const OpArg& src)
+void XEmitter::MUL(const int bits, const OpArg& src)
 {
   WriteMulDivType(bits, src, 4);
 }
-void XEmitter::DIV(int bits, const OpArg& src)
+void XEmitter::DIV(const int bits, const OpArg& src)
 {
   WriteMulDivType(bits, src, 6);
 }
-void XEmitter::IMUL(int bits, const OpArg& src)
+void XEmitter::IMUL(const int bits, const OpArg& src)
 {
   WriteMulDivType(bits, src, 5);
 }
-void XEmitter::IDIV(int bits, const OpArg& src)
+void XEmitter::IDIV(const int bits, const OpArg& src)
 {
   WriteMulDivType(bits, src, 7);
 }
-void XEmitter::NEG(int bits, const OpArg& src)
+void XEmitter::NEG(const int bits, const OpArg& src)
 {
   WriteMulDivType(bits, src, 3);
 }
-void XEmitter::NOT(int bits, const OpArg& src)
+void XEmitter::NOT(const int bits, const OpArg& src)
 {
   WriteMulDivType(bits, src, 2);
 }
 
-void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep)
+void XEmitter::WriteBitSearchType(const int bits, const X64Reg dest, OpArg src, const u8 byte2, const bool rep)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "WriteBitSearchType - Imm argument");
   CheckFlags();
@@ -989,30 +989,30 @@ void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bo
   src.WriteRest(this);
 }
 
-void XEmitter::MOVNTI(int bits, const OpArg& dest, X64Reg src)
+void XEmitter::MOVNTI(const int bits, const OpArg& dest, const X64Reg src)
 {
   if (bits <= 16)
     ASSERT_MSG(DYNA_REC, 0, "MOVNTI - bits<=16");
   WriteBitSearchType(bits, src, dest, 0xC3);
 }
 
-void XEmitter::BSF(int bits, X64Reg dest, const OpArg& src)
+void XEmitter::BSF(const int bits, const X64Reg dest, const OpArg& src)
 {
   WriteBitSearchType(bits, dest, src, 0xBC);
 }  // Bottom bit to top bit
-void XEmitter::BSR(int bits, X64Reg dest, const OpArg& src)
+void XEmitter::BSR(const int bits, const X64Reg dest, const OpArg& src)
 {
   WriteBitSearchType(bits, dest, src, 0xBD);
 }  // Top bit to bottom bit
 
-void XEmitter::TZCNT(int bits, X64Reg dest, const OpArg& src)
+void XEmitter::TZCNT(const int bits, const X64Reg dest, const OpArg& src)
 {
   CheckFlags();
   if (!cpu_info.bBMI1)
     PanicAlertFmt("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
   WriteBitSearchType(bits, dest, src, 0xBC, true);
 }
-void XEmitter::LZCNT(int bits, X64Reg dest, const OpArg& src)
+void XEmitter::LZCNT(const int bits, const X64Reg dest, const OpArg& src)
 {
   CheckFlags();
   if (!cpu_info.bLZCNT)
@@ -1020,7 +1020,7 @@ void XEmitter::LZCNT(int bits, X64Reg dest, const OpArg& src)
   WriteBitSearchType(bits, dest, src, 0xBD, true);
 }
 
-void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
+void XEmitter::MOVSX(const int dbits, const int sbits, const X64Reg dest, OpArg src)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "MOVSX - Imm argument");
   if (dbits == sbits)
@@ -1053,7 +1053,7 @@ void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
   src.WriteRest(this);
 }
 
-void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
+void XEmitter::MOVZX(const int dbits, const int sbits, const X64Reg dest, OpArg src)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "MOVZX - Imm argument");
   if (dbits == sbits)
@@ -1087,7 +1087,7 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
   src.WriteRest(this);
 }
 
-void XEmitter::WriteMOVBE(int bits, u8 op, X64Reg reg, const OpArg& arg)
+void XEmitter::WriteMOVBE(const int bits, const u8 op, const X64Reg reg, const OpArg& arg)
 {
   ASSERT_MSG(DYNA_REC, cpu_info.bMOVBE, "Generating MOVBE on a system that does not support it.");
   if (bits == 8)
@@ -1104,16 +1104,16 @@ void XEmitter::WriteMOVBE(int bits, u8 op, X64Reg reg, const OpArg& arg)
   Write8(op);
   arg.WriteRest(this, 0, reg);
 }
-void XEmitter::MOVBE(int bits, X64Reg dest, const OpArg& src)
+void XEmitter::MOVBE(const int bits, const X64Reg dest, const OpArg& src)
 {
   WriteMOVBE(bits, 0xF0, dest, src);
 }
-void XEmitter::MOVBE(int bits, const OpArg& dest, X64Reg src)
+void XEmitter::MOVBE(const int bits, const OpArg& dest, const X64Reg src)
 {
   WriteMOVBE(bits, 0xF1, src, dest);
 }
 
-void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend, MovInfo* info)
+void XEmitter::LoadAndSwap(const int size, const X64Reg dst, const OpArg& src, const bool sign_extend, MovInfo* info)
 {
   if (info)
   {
@@ -1156,7 +1156,7 @@ void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_ext
   }
 }
 
-void XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src, MovInfo* info)
+void XEmitter::SwapAndStore(const int size, const OpArg& dst, const X64Reg src, MovInfo* info)
 {
   if (cpu_info.bMOVBE)
   {
@@ -1180,7 +1180,7 @@ void XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src, MovInfo* inf
   }
 }
 
-void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
+void XEmitter::LEA(const int bits, const X64Reg dest, OpArg src)
 {
   ASSERT_MSG(DYNA_REC, !src.IsImm(), "LEA - Imm argument");
   src.operandReg = (u8)dest;
@@ -1192,7 +1192,7 @@ void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
 }
 
 // shift can be either imm8 or cl
-void XEmitter::WriteShift(int bits, OpArg dest, const OpArg& shift, int ext)
+void XEmitter::WriteShift(const int bits, OpArg dest, const OpArg& shift, const int ext)
 {
   CheckFlags();
   bool writeImm = false;
@@ -1234,37 +1234,37 @@ void XEmitter::WriteShift(int bits, OpArg dest, const OpArg& shift, int ext)
 
 // large rotates and shift are slower on Intel than AMD
 // Intel likes to rotate by 1, and the op is smaller too
-void XEmitter::ROL(int bits, const OpArg& dest, const OpArg& shift)
+void XEmitter::ROL(const int bits, const OpArg& dest, const OpArg& shift)
 {
   WriteShift(bits, dest, shift, 0);
 }
-void XEmitter::ROR(int bits, const OpArg& dest, const OpArg& shift)
+void XEmitter::ROR(const int bits, const OpArg& dest, const OpArg& shift)
 {
   WriteShift(bits, dest, shift, 1);
 }
-void XEmitter::RCL(int bits, const OpArg& dest, const OpArg& shift)
+void XEmitter::RCL(const int bits, const OpArg& dest, const OpArg& shift)
 {
   WriteShift(bits, dest, shift, 2);
 }
-void XEmitter::RCR(int bits, const OpArg& dest, const OpArg& shift)
+void XEmitter::RCR(const int bits, const OpArg& dest, const OpArg& shift)
 {
   WriteShift(bits, dest, shift, 3);
 }
-void XEmitter::SHL(int bits, const OpArg& dest, const OpArg& shift)
+void XEmitter::SHL(const int bits, const OpArg& dest, const OpArg& shift)
 {
   WriteShift(bits, dest, shift, 4);
 }
-void XEmitter::SHR(int bits, const OpArg& dest, const OpArg& shift)
+void XEmitter::SHR(const int bits, const OpArg& dest, const OpArg& shift)
 {
   WriteShift(bits, dest, shift, 5);
 }
-void XEmitter::SAR(int bits, const OpArg& dest, const OpArg& shift)
+void XEmitter::SAR(const int bits, const OpArg& dest, const OpArg& shift)
 {
   WriteShift(bits, dest, shift, 7);
 }
 
 // index can be either imm8 or register, don't use memory destination because it's slow
-void XEmitter::WriteBitTest(int bits, const OpArg& dest, const OpArg& index, int ext)
+void XEmitter::WriteBitTest(const int bits, const OpArg& dest, const OpArg& index, int ext)
 {
   CheckFlags();
   if (dest.IsImm())
@@ -1295,25 +1295,25 @@ void XEmitter::WriteBitTest(int bits, const OpArg& dest, const OpArg& index, int
   }
 }
 
-void XEmitter::BT(int bits, const OpArg& dest, const OpArg& index)
+void XEmitter::BT(const int bits, const OpArg& dest, const OpArg& index)
 {
   WriteBitTest(bits, dest, index, 4);
 }
-void XEmitter::BTS(int bits, const OpArg& dest, const OpArg& index)
+void XEmitter::BTS(const int bits, const OpArg& dest, const OpArg& index)
 {
   WriteBitTest(bits, dest, index, 5);
 }
-void XEmitter::BTR(int bits, const OpArg& dest, const OpArg& index)
+void XEmitter::BTR(const int bits, const OpArg& dest, const OpArg& index)
 {
   WriteBitTest(bits, dest, index, 6);
 }
-void XEmitter::BTC(int bits, const OpArg& dest, const OpArg& index)
+void XEmitter::BTC(const int bits, const OpArg& dest, const OpArg& index)
 {
   WriteBitTest(bits, dest, index, 7);
 }
 
 // shift can be either imm8 or cl
-void XEmitter::SHRD(int bits, const OpArg& dest, const OpArg& src, const OpArg& shift)
+void XEmitter::SHRD(const int bits, const OpArg& dest, const OpArg& src, const OpArg& shift)
 {
   CheckFlags();
   if (dest.IsImm())
@@ -1348,7 +1348,7 @@ void XEmitter::SHRD(int bits, const OpArg& dest, const OpArg& src, const OpArg& 
   }
 }
 
-void XEmitter::SHLD(int bits, const OpArg& dest, const OpArg& src, const OpArg& shift)
+void XEmitter::SHLD(const int bits, const OpArg& dest, const OpArg& src, const OpArg& shift)
 {
   CheckFlags();
   if (dest.IsImm())
@@ -1383,7 +1383,7 @@ void XEmitter::SHLD(int bits, const OpArg& dest, const OpArg& src, const OpArg& 
   }
 }
 
-void OpArg::WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg _operandReg, int bits)
+void OpArg::WriteSingleByteOp(XEmitter* emit, const u8 op, const X64Reg _operandReg, const int bits)
 {
   if (bits == 16)
     emit->Write8(0x66);
@@ -1395,8 +1395,8 @@ void OpArg::WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg _operandReg, int bit
 }
 
 // operand can either be immediate or register
-void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand,
-                          int bits) const
+void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const OpArg& operand,
+                          const int bits) const
 {
   X64Reg _operandReg;
   if (IsImm())
@@ -1556,7 +1556,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
   }
 }
 
-void XEmitter::WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg& a2)
+void XEmitter::WriteNormalOp(const int bits, const NormalOp op, const OpArg& a1, const OpArg& a2)
 {
   if (a1.IsImm())
   {
@@ -1583,42 +1583,42 @@ void XEmitter::WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg
   }
 }
 
-void XEmitter::ADD(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::ADD(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::ADD, a1, a2);
 }
-void XEmitter::ADC(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::ADC(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::ADC, a1, a2);
 }
-void XEmitter::SUB(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::SUB(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::SUB, a1, a2);
 }
-void XEmitter::SBB(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::SBB(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::SBB, a1, a2);
 }
-void XEmitter::AND(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::AND(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::AND, a1, a2);
 }
-void XEmitter::OR(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::OR(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::OR, a1, a2);
 }
-void XEmitter::XOR(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::XOR(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::XOR, a1, a2);
 }
-void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::MOV(const int bits, const OpArg& a1, const OpArg& a2)
 {
   if (bits == 64 && a1.IsSimpleReg() &&
       ((a2.scale == SCALE_IMM64 && a2.offset == static_cast<u32>(a2.offset)) ||
@@ -1631,21 +1631,21 @@ void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
     ERROR_LOG_FMT(DYNA_REC, "Redundant MOV @ {} - bug in JIT?", fmt::ptr(code));
   WriteNormalOp(bits, NormalOp::MOV, a1, a2);
 }
-void XEmitter::TEST(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::TEST(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::TEST, a1, a2);
 }
-void XEmitter::CMP(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::CMP(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   WriteNormalOp(bits, NormalOp::CMP, a1, a2);
 }
-void XEmitter::XCHG(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::XCHG(const int bits, const OpArg& a1, const OpArg& a2)
 {
   WriteNormalOp(bits, NormalOp::XCHG, a1, a2);
 }
-void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
+void XEmitter::CMP_or_TEST(const int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   if (a1.IsSimpleReg() && a2.IsZero())  // turn 'CMP reg, 0' into shorter 'TEST reg, reg'
@@ -1658,7 +1658,7 @@ void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
   }
 }
 
-void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
+void XEmitter::MOV_sum(const int bits, const X64Reg dest, const OpArg& a1, const OpArg& a2)
 {
   // This stomps on flags, so ensure they aren't locked
   DEBUG_ASSERT(!flags_locked);
@@ -1728,7 +1728,7 @@ void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
   ADD(bits, R(dest), a2);
 }
 
-void XEmitter::IMUL(int bits, X64Reg regOp, const OpArg& a1, const OpArg& a2)
+void XEmitter::IMUL(const int bits, const X64Reg regOp, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
   if (bits == 8)
@@ -1780,7 +1780,7 @@ void XEmitter::IMUL(int bits, X64Reg regOp, const OpArg& a1, const OpArg& a2)
   }
 }
 
-void XEmitter::IMUL(int bits, X64Reg regOp, const OpArg& a)
+void XEmitter::IMUL(const int bits, const X64Reg regOp, const OpArg& a)
 {
   CheckFlags();
   if (bits == 8)
@@ -1803,7 +1803,7 @@ void XEmitter::IMUL(int bits, X64Reg regOp, const OpArg& a)
   a.WriteRest(this, 0, regOp);
 }
 
-void XEmitter::WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes)
+void XEmitter::WriteSSEOp(const u8 opPrefix, const u16 op, const X64Reg regOp, OpArg arg, const int extrabytes)
 {
   if (opPrefix)
     Write8(opPrefix);
@@ -1816,7 +1816,7 @@ void XEmitter::WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extr
   arg.WriteRest(this, extrabytes);
 }
 
-static int GetVEXmmmmm(u16 op)
+static int GetVEXmmmmm(const u16 op)
 {
   // Currently, only 0x38 and 0x3A are used as secondary escape byte.
   if ((op >> 8) == 0x3A)
@@ -1827,7 +1827,7 @@ static int GetVEXmmmmm(u16 op)
     return 1;
 }
 
-static int GetVEXpp(u8 opPrefix)
+static int GetVEXpp(const u8 opPrefix)
 {
   if (opPrefix == 0x66)
     return 1;
@@ -1839,8 +1839,8 @@ static int GetVEXpp(u8 opPrefix)
     return 0;
 }
 
-void XEmitter::WriteVEXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
-                          int W, int extrabytes)
+void XEmitter::WriteVEXOp(const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg,
+                          const int W, const int extrabytes)
 {
   int mmmmm = GetVEXmmmmm(op);
   int pp = GetVEXpp(opPrefix);
@@ -1850,30 +1850,30 @@ void XEmitter::WriteVEXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, con
   arg.WriteRest(this, extrabytes, regOp1);
 }
 
-void XEmitter::WriteVEXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
-                           X64Reg regOp3, int W)
+void XEmitter::WriteVEXOp4(const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg,
+                           const X64Reg regOp3, const int W)
 {
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, 1);
   Write8((u8)regOp3 << 4);
 }
 
-void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
-                          int W, int extrabytes)
+void XEmitter::WriteAVXOp(const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg,
+                          const int W, const int extrabytes)
 {
   if (!cpu_info.bAVX)
     PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, extrabytes);
 }
 
-void XEmitter::WriteAVXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
-                           X64Reg regOp3, int W)
+void XEmitter::WriteAVXOp4(const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg,
+                           const X64Reg regOp3, const int W)
 {
   if (!cpu_info.bAVX)
     PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
   WriteVEXOp4(opPrefix, op, regOp1, regOp2, arg, regOp3, W);
 }
 
-void XEmitter::WriteFMA3Op(u8 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg, int W)
+void XEmitter::WriteFMA3Op(const u8 op, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg, const int W)
 {
   if (!cpu_info.bFMA)
   {
@@ -1883,8 +1883,8 @@ void XEmitter::WriteFMA3Op(u8 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg
   WriteVEXOp(0x66, 0x3800 | op, regOp1, regOp2, arg, W);
 }
 
-void XEmitter::WriteFMA4Op(u8 op, X64Reg dest, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
-                           int W)
+void XEmitter::WriteFMA4Op(const u8 op, const X64Reg dest, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg,
+                           const int W)
 {
   if (!cpu_info.bFMA4)
   {
@@ -1894,8 +1894,8 @@ void XEmitter::WriteFMA4Op(u8 op, X64Reg dest, X64Reg regOp1, X64Reg regOp2, con
   WriteVEXOp4(0x66, 0x3A00 | op, dest, regOp1, arg, regOp2, W);
 }
 
-void XEmitter::WriteBMIOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2,
-                          const OpArg& arg, int extrabytes)
+void XEmitter::WriteBMIOp(const int size, const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2,
+                          const OpArg& arg, const int extrabytes)
 {
   if (arg.IsImm())
     PanicAlertFmt("BMI1/2 instructions don't support immediate operands.");
@@ -1905,8 +1905,8 @@ void XEmitter::WriteBMIOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg r
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, extrabytes);
 }
 
-void XEmitter::WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2,
-                           const OpArg& arg, int extrabytes)
+void XEmitter::WriteBMI1Op(const int size, const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2,
+                           const OpArg& arg, const int extrabytes)
 {
   CheckFlags();
   if (!cpu_info.bBMI1)
@@ -1914,24 +1914,24 @@ void XEmitter::WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg 
   WriteBMIOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
 }
 
-void XEmitter::WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2,
-                           const OpArg& arg, int extrabytes)
+void XEmitter::WriteBMI2Op(const int size, const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2,
+                           const OpArg& arg, const int extrabytes)
 {
   if (!cpu_info.bBMI2)
     PanicAlertFmt("Trying to use BMI2 on a system that doesn't support it. Bad programmer.");
   WriteBMIOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
 }
 
-void XEmitter::MOVD_xmm(X64Reg dest, const OpArg& arg)
+void XEmitter::MOVD_xmm(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x6E, dest, arg, 0);
 }
-void XEmitter::MOVD_xmm(const OpArg& arg, X64Reg src)
+void XEmitter::MOVD_xmm(const OpArg& arg, const X64Reg src)
 {
   WriteSSEOp(0x66, 0x7E, src, arg, 0);
 }
 
-void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg)
+void XEmitter::MOVQ_xmm(const X64Reg dest, OpArg arg)
 {
   // Alternate encoding
   // This does not display correctly in MSVC's debugger, it thinks it's a MOVD
@@ -1943,7 +1943,7 @@ void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg)
   arg.WriteRest(this, 0);
 }
 
-void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src)
+void XEmitter::MOVQ_xmm(OpArg arg, const X64Reg src)
 {
   if (src > 7 || arg.IsSimpleReg())
   {
@@ -1967,7 +1967,7 @@ void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src)
   }
 }
 
-void XEmitter::WriteMXCSR(OpArg arg, int ext)
+void XEmitter::WriteMXCSR(OpArg arg, const int ext)
 {
   if (arg.IsImm() || arg.IsSimpleReg())
     ASSERT_MSG(DYNA_REC, 0, "MXCSR - invalid operand");
@@ -1988,233 +1988,233 @@ void XEmitter::LDMXCSR(const OpArg& memloc)
   WriteMXCSR(memloc, 2);
 }
 
-void XEmitter::MOVNTDQ(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVNTDQ(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x66, sseMOVNTDQ, regOp, arg);
 }
-void XEmitter::MOVNTPS(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVNTPS(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x00, sseMOVNTP, regOp, arg);
 }
-void XEmitter::MOVNTPD(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVNTPD(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x66, sseMOVNTP, regOp, arg);
 }
 
-void XEmitter::ADDSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::ADDSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseADD, regOp, arg);
 }
-void XEmitter::ADDSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::ADDSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseADD, regOp, arg);
 }
-void XEmitter::SUBSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::SUBSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseSUB, regOp, arg);
 }
-void XEmitter::SUBSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::SUBSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseSUB, regOp, arg);
 }
-void XEmitter::CMPSS(X64Reg regOp, const OpArg& arg, u8 compare)
+void XEmitter::CMPSS(const X64Reg regOp, const OpArg& arg, const u8 compare)
 {
   WriteSSEOp(0xF3, sseCMP, regOp, arg, 1);
   Write8(compare);
 }
-void XEmitter::CMPSD(X64Reg regOp, const OpArg& arg, u8 compare)
+void XEmitter::CMPSD(const X64Reg regOp, const OpArg& arg, const u8 compare)
 {
   WriteSSEOp(0xF2, sseCMP, regOp, arg, 1);
   Write8(compare);
 }
-void XEmitter::MULSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MULSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseMUL, regOp, arg);
 }
-void XEmitter::MULSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MULSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseMUL, regOp, arg);
 }
-void XEmitter::DIVSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::DIVSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseDIV, regOp, arg);
 }
-void XEmitter::DIVSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::DIVSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseDIV, regOp, arg);
 }
-void XEmitter::MINSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MINSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseMIN, regOp, arg);
 }
-void XEmitter::MINSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MINSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseMIN, regOp, arg);
 }
-void XEmitter::MAXSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MAXSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseMAX, regOp, arg);
 }
-void XEmitter::MAXSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MAXSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseMAX, regOp, arg);
 }
-void XEmitter::SQRTSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::SQRTSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseSQRT, regOp, arg);
 }
-void XEmitter::SQRTSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::SQRTSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseSQRT, regOp, arg);
 }
-void XEmitter::RCPSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::RCPSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseRCP, regOp, arg);
 }
-void XEmitter::RSQRTSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::RSQRTSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseRSQRT, regOp, arg);
 }
 
-void XEmitter::ADDPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::ADDPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseADD, regOp, arg);
 }
-void XEmitter::ADDPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::ADDPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseADD, regOp, arg);
 }
-void XEmitter::SUBPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::SUBPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseSUB, regOp, arg);
 }
-void XEmitter::SUBPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::SUBPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseSUB, regOp, arg);
 }
-void XEmitter::CMPPS(X64Reg regOp, const OpArg& arg, u8 compare)
+void XEmitter::CMPPS(const X64Reg regOp, const OpArg& arg, const u8 compare)
 {
   WriteSSEOp(0x00, sseCMP, regOp, arg, 1);
   Write8(compare);
 }
-void XEmitter::CMPPD(X64Reg regOp, const OpArg& arg, u8 compare)
+void XEmitter::CMPPD(const X64Reg regOp, const OpArg& arg, const u8 compare)
 {
   WriteSSEOp(0x66, sseCMP, regOp, arg, 1);
   Write8(compare);
 }
-void XEmitter::ANDPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::ANDPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseAND, regOp, arg);
 }
-void XEmitter::ANDPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::ANDPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseAND, regOp, arg);
 }
-void XEmitter::ANDNPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::ANDNPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseANDN, regOp, arg);
 }
-void XEmitter::ANDNPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::ANDNPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseANDN, regOp, arg);
 }
-void XEmitter::ORPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::ORPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseOR, regOp, arg);
 }
-void XEmitter::ORPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::ORPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseOR, regOp, arg);
 }
-void XEmitter::XORPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::XORPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseXOR, regOp, arg);
 }
-void XEmitter::XORPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::XORPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseXOR, regOp, arg);
 }
-void XEmitter::MULPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MULPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseMUL, regOp, arg);
 }
-void XEmitter::MULPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MULPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseMUL, regOp, arg);
 }
-void XEmitter::DIVPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::DIVPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseDIV, regOp, arg);
 }
-void XEmitter::DIVPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::DIVPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseDIV, regOp, arg);
 }
-void XEmitter::MINPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MINPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseMIN, regOp, arg);
 }
-void XEmitter::MINPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MINPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseMIN, regOp, arg);
 }
-void XEmitter::MAXPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MAXPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseMAX, regOp, arg);
 }
-void XEmitter::MAXPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MAXPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseMAX, regOp, arg);
 }
-void XEmitter::SQRTPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::SQRTPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseSQRT, regOp, arg);
 }
-void XEmitter::SQRTPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::SQRTPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseSQRT, regOp, arg);
 }
-void XEmitter::RCPPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::RCPPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseRCP, regOp, arg);
 }
-void XEmitter::RSQRTPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::RSQRTPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseRSQRT, regOp, arg);
 }
-void XEmitter::SHUFPS(X64Reg regOp, const OpArg& arg, u8 shuffle)
+void XEmitter::SHUFPS(const X64Reg regOp, const OpArg& arg, const u8 shuffle)
 {
   WriteSSEOp(0x00, sseSHUF, regOp, arg, 1);
   Write8(shuffle);
 }
-void XEmitter::SHUFPD(X64Reg regOp, const OpArg& arg, u8 shuffle)
+void XEmitter::SHUFPD(const X64Reg regOp, const OpArg& arg, const u8 shuffle)
 {
   WriteSSEOp(0x66, sseSHUF, regOp, arg, 1);
   Write8(shuffle);
 }
 
-void XEmitter::COMISS(X64Reg regOp, const OpArg& arg)
+void XEmitter::COMISS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseCOMIS, regOp, arg);
 }  // weird that these should be packed
-void XEmitter::COMISD(X64Reg regOp, const OpArg& arg)
+void XEmitter::COMISD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseCOMIS, regOp, arg);
 }  // ordered
-void XEmitter::UCOMISS(X64Reg regOp, const OpArg& arg)
+void XEmitter::UCOMISS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseUCOMIS, regOp, arg);
 }  // unordered
-void XEmitter::UCOMISD(X64Reg regOp, const OpArg& arg)
+void XEmitter::UCOMISD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseUCOMIS, regOp, arg);
 }
 
-void XEmitter::MOVAPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVAPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseMOVAPfromRM, regOp, arg);
 }
-void XEmitter::MOVAPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVAPD(const X64Reg regOp, const OpArg& arg)
 {
   // Prefer MOVAPS to MOVAPD as there is no reason to use MOVAPD over MOVAPS:
   // - They have equivalent functionality.
@@ -2222,216 +2222,216 @@ void XEmitter::MOVAPD(X64Reg regOp, const OpArg& arg)
   // - MOVAPD is one byte longer than MOVAPS.
   MOVAPS(regOp, arg);
 }
-void XEmitter::MOVAPS(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVAPS(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x00, sseMOVAPtoRM, regOp, arg);
 }
-void XEmitter::MOVAPD(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVAPD(const OpArg& arg, const X64Reg regOp)
 {
   MOVAPS(arg, regOp);
 }
 
-void XEmitter::MOVUPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVUPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseMOVUPfromRM, regOp, arg);
 }
-void XEmitter::MOVUPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVUPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseMOVUPfromRM, regOp, arg);
 }
-void XEmitter::MOVUPS(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVUPS(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x00, sseMOVUPtoRM, regOp, arg);
 }
-void XEmitter::MOVUPD(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVUPD(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x66, sseMOVUPtoRM, regOp, arg);
 }
 
-void XEmitter::MOVDQA(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVDQA(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseMOVDQfromRM, regOp, arg);
 }
-void XEmitter::MOVDQA(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVDQA(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x66, sseMOVDQtoRM, regOp, arg);
 }
-void XEmitter::MOVDQU(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVDQU(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseMOVDQfromRM, regOp, arg);
 }
-void XEmitter::MOVDQU(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVDQU(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0xF3, sseMOVDQtoRM, regOp, arg);
 }
 
-void XEmitter::MOVSS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVSS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, sseMOVUPfromRM, regOp, arg);
 }
-void XEmitter::MOVSD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVSD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseMOVUPfromRM, regOp, arg);
 }
-void XEmitter::MOVSS(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVSS(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0xF3, sseMOVUPtoRM, regOp, arg);
 }
-void XEmitter::MOVSD(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVSD(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0xF2, sseMOVUPtoRM, regOp, arg);
 }
 
-void XEmitter::MOVLPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVLPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseMOVLPfromRM, regOp, arg);
 }
-void XEmitter::MOVLPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVLPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseMOVLPfromRM, regOp, arg);
 }
-void XEmitter::MOVLPS(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVLPS(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x00, sseMOVLPtoRM, regOp, arg);
 }
-void XEmitter::MOVLPD(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVLPD(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x66, sseMOVLPtoRM, regOp, arg);
 }
 
-void XEmitter::MOVHPS(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVHPS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, sseMOVHPfromRM, regOp, arg);
 }
-void XEmitter::MOVHPD(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVHPD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, sseMOVHPfromRM, regOp, arg);
 }
-void XEmitter::MOVHPS(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVHPS(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x00, sseMOVHPtoRM, regOp, arg);
 }
-void XEmitter::MOVHPD(const OpArg& arg, X64Reg regOp)
+void XEmitter::MOVHPD(const OpArg& arg, const X64Reg regOp)
 {
   WriteSSEOp(0x66, sseMOVHPtoRM, regOp, arg);
 }
 
-void XEmitter::MOVHLPS(X64Reg regOp1, X64Reg regOp2)
+void XEmitter::MOVHLPS(const X64Reg regOp1, const X64Reg regOp2)
 {
   WriteSSEOp(0x00, sseMOVHLPS, regOp1, R(regOp2));
 }
-void XEmitter::MOVLHPS(X64Reg regOp1, X64Reg regOp2)
+void XEmitter::MOVLHPS(const X64Reg regOp1, const X64Reg regOp2)
 {
   WriteSSEOp(0x00, sseMOVLHPS, regOp1, R(regOp2));
 }
 
-void XEmitter::CVTPS2PD(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTPS2PD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, 0x5A, regOp, arg);
 }
-void XEmitter::CVTPD2PS(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTPD2PS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x5A, regOp, arg);
 }
 
-void XEmitter::CVTSD2SS(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTSD2SS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, 0x5A, regOp, arg);
 }
-void XEmitter::CVTSS2SD(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTSS2SD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, 0x5A, regOp, arg);
 }
-void XEmitter::CVTSD2SI(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTSD2SI(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, 0x2D, regOp, arg);
 }
-void XEmitter::CVTSS2SI(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTSS2SI(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, 0x2D, regOp, arg);
 }
-void XEmitter::CVTSI2SD(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTSI2SD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, 0x2A, regOp, arg);
 }
-void XEmitter::CVTSI2SS(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTSI2SS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, 0x2A, regOp, arg);
 }
 
-void XEmitter::CVTDQ2PD(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTDQ2PD(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, 0xE6, regOp, arg);
 }
-void XEmitter::CVTDQ2PS(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTDQ2PS(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x00, 0x5B, regOp, arg);
 }
-void XEmitter::CVTPD2DQ(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTPD2DQ(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, 0xE6, regOp, arg);
 }
-void XEmitter::CVTPS2DQ(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTPS2DQ(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x5B, regOp, arg);
 }
 
-void XEmitter::CVTTSD2SI(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTTSD2SI(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF2, 0x2C, regOp, arg);
 }
-void XEmitter::CVTTSS2SI(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTTSS2SI(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, 0x2C, regOp, arg);
 }
-void XEmitter::CVTTPS2DQ(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTTPS2DQ(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0xF3, 0x5B, regOp, arg);
 }
-void XEmitter::CVTTPD2DQ(X64Reg regOp, const OpArg& arg)
+void XEmitter::CVTTPD2DQ(const X64Reg regOp, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xE6, regOp, arg);
 }
 
-void XEmitter::MASKMOVDQU(X64Reg dest, X64Reg src)
+void XEmitter::MASKMOVDQU(const X64Reg dest, const X64Reg src)
 {
   WriteSSEOp(0x66, sseMASKMOVDQU, dest, R(src));
 }
 
-void XEmitter::MOVMSKPS(X64Reg dest, const OpArg& arg)
+void XEmitter::MOVMSKPS(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x00, 0x50, dest, arg);
 }
-void XEmitter::MOVMSKPD(X64Reg dest, const OpArg& arg)
+void XEmitter::MOVMSKPD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x50, dest, arg);
 }
 
-void XEmitter::LDDQU(X64Reg dest, const OpArg& arg)
+void XEmitter::LDDQU(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0xF2, sseLDDQU, dest, arg);
 }  // For integer data only
 
-void XEmitter::UNPCKLPS(X64Reg dest, const OpArg& arg)
+void XEmitter::UNPCKLPS(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x00, 0x14, dest, arg);
 }
-void XEmitter::UNPCKHPS(X64Reg dest, const OpArg& arg)
+void XEmitter::UNPCKHPS(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x00, 0x15, dest, arg);
 }
-void XEmitter::UNPCKLPD(X64Reg dest, const OpArg& arg)
+void XEmitter::UNPCKLPD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x14, dest, arg);
 }
-void XEmitter::UNPCKHPD(X64Reg dest, const OpArg& arg)
+void XEmitter::UNPCKHPD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x15, dest, arg);
 }
 
 // Pretty much every x86 CPU nowadays supports SSE3,
 // but the SSE2 fallbacks are easy.
-void XEmitter::MOVSLDUP(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVSLDUP(const X64Reg regOp, const OpArg& arg)
 {
   if (cpu_info.bSSE3)
   {
@@ -2444,7 +2444,7 @@ void XEmitter::MOVSLDUP(X64Reg regOp, const OpArg& arg)
     UNPCKLPS(regOp, R(regOp));
   }
 }
-void XEmitter::MOVSHDUP(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVSHDUP(const X64Reg regOp, const OpArg& arg)
 {
   if (cpu_info.bSSE3)
   {
@@ -2457,7 +2457,7 @@ void XEmitter::MOVSHDUP(X64Reg regOp, const OpArg& arg)
     UNPCKHPS(regOp, R(regOp));
   }
 }
-void XEmitter::MOVDDUP(X64Reg regOp, const OpArg& arg)
+void XEmitter::MOVDDUP(const X64Reg regOp, const OpArg& arg)
 {
   if (cpu_info.bSSE3)
   {
@@ -2480,91 +2480,91 @@ void XEmitter::MOVDDUP(X64Reg regOp, const OpArg& arg)
 // There are a few more left
 
 // Also some integer instructions are missing
-void XEmitter::PACKSSDW(X64Reg dest, const OpArg& arg)
+void XEmitter::PACKSSDW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x6B, dest, arg);
 }
-void XEmitter::PACKSSWB(X64Reg dest, const OpArg& arg)
+void XEmitter::PACKSSWB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x63, dest, arg);
 }
-void XEmitter::PACKUSWB(X64Reg dest, const OpArg& arg)
+void XEmitter::PACKUSWB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x67, dest, arg);
 }
 
-void XEmitter::PUNPCKLBW(X64Reg dest, const OpArg& arg)
+void XEmitter::PUNPCKLBW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x60, dest, arg);
 }
-void XEmitter::PUNPCKLWD(X64Reg dest, const OpArg& arg)
+void XEmitter::PUNPCKLWD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x61, dest, arg);
 }
-void XEmitter::PUNPCKLDQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PUNPCKLDQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x62, dest, arg);
 }
-void XEmitter::PUNPCKLQDQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PUNPCKLQDQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x6C, dest, arg);
 }
 
-void XEmitter::PSRLW(X64Reg reg, int shift)
+void XEmitter::PSRLW(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x71, (X64Reg)2, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSRLD(X64Reg reg, int shift)
+void XEmitter::PSRLD(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x72, (X64Reg)2, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSRLQ(X64Reg reg, int shift)
+void XEmitter::PSRLQ(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)2, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSRLQ(X64Reg reg, const OpArg& arg)
+void XEmitter::PSRLQ(const X64Reg reg, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xd3, reg, arg);
 }
 
-void XEmitter::PSRLDQ(X64Reg reg, int shift)
+void XEmitter::PSRLDQ(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)3, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLW(X64Reg reg, int shift)
+void XEmitter::PSLLW(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x71, (X64Reg)6, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLD(X64Reg reg, int shift)
+void XEmitter::PSLLD(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x72, (X64Reg)6, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLQ(X64Reg reg, int shift)
+void XEmitter::PSLLQ(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)6, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLDQ(X64Reg reg, int shift)
+void XEmitter::PSLLDQ(const X64Reg reg, const int shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)7, R(reg));
   Write8(shift);
 }
 
 // WARNING not REX compatible
-void XEmitter::PSRAW(X64Reg reg, int shift)
+void XEmitter::PSRAW(const X64Reg reg, const int shift)
 {
   if (reg > 7)
     PanicAlertFmt("The PSRAW-emitter does not support regs above 7");
@@ -2576,7 +2576,7 @@ void XEmitter::PSRAW(X64Reg reg, int shift)
 }
 
 // WARNING not REX compatible
-void XEmitter::PSRAD(X64Reg reg, int shift)
+void XEmitter::PSRAD(const X64Reg reg, const int shift)
 {
   if (reg > 7)
     PanicAlertFmt("The PSRAD-emitter does not support regs above 7");
@@ -2587,685 +2587,685 @@ void XEmitter::PSRAD(X64Reg reg, int shift)
   Write8(shift);
 }
 
-void XEmitter::WriteSSSE3Op(u8 opPrefix, u16 op, X64Reg regOp, const OpArg& arg, int extrabytes)
+void XEmitter::WriteSSSE3Op(const u8 opPrefix, const u16 op, const X64Reg regOp, const OpArg& arg, const int extrabytes)
 {
   if (!cpu_info.bSSSE3)
     PanicAlertFmt("Trying to use SSSE3 on a system that doesn't support it. Bad programmer.");
   WriteSSEOp(opPrefix, op, regOp, arg, extrabytes);
 }
 
-void XEmitter::WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, const OpArg& arg, int extrabytes)
+void XEmitter::WriteSSE41Op(const u8 opPrefix, const u16 op, const X64Reg regOp, const OpArg& arg, const int extrabytes)
 {
   if (!cpu_info.bSSE4_1)
     PanicAlertFmt("Trying to use SSE4.1 on a system that doesn't support it. Bad programmer.");
   WriteSSEOp(opPrefix, op, regOp, arg, extrabytes);
 }
 
-void XEmitter::PSHUFB(X64Reg dest, const OpArg& arg)
+void XEmitter::PSHUFB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSSE3Op(0x66, 0x3800, dest, arg);
 }
-void XEmitter::PTEST(X64Reg dest, const OpArg& arg)
+void XEmitter::PTEST(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3817, dest, arg);
 }
-void XEmitter::PACKUSDW(X64Reg dest, const OpArg& arg)
+void XEmitter::PACKUSDW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x382b, dest, arg);
 }
 
-void XEmitter::PMOVSXBW(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVSXBW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3820, dest, arg);
 }
-void XEmitter::PMOVSXBD(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVSXBD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3821, dest, arg);
 }
-void XEmitter::PMOVSXBQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVSXBQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3822, dest, arg);
 }
-void XEmitter::PMOVSXWD(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVSXWD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3823, dest, arg);
 }
-void XEmitter::PMOVSXWQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVSXWQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3824, dest, arg);
 }
-void XEmitter::PMOVSXDQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVSXDQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3825, dest, arg);
 }
-void XEmitter::PMOVZXBW(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVZXBW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3830, dest, arg);
 }
-void XEmitter::PMOVZXBD(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVZXBD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3831, dest, arg);
 }
-void XEmitter::PMOVZXBQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVZXBQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3832, dest, arg);
 }
-void XEmitter::PMOVZXWD(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVZXWD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3833, dest, arg);
 }
-void XEmitter::PMOVZXWQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVZXWQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3834, dest, arg);
 }
-void XEmitter::PMOVZXDQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVZXDQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3835, dest, arg);
 }
 
-void XEmitter::PBLENDVB(X64Reg dest, const OpArg& arg)
+void XEmitter::PBLENDVB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3810, dest, arg);
 }
-void XEmitter::BLENDVPS(X64Reg dest, const OpArg& arg)
+void XEmitter::BLENDVPS(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3814, dest, arg);
 }
-void XEmitter::BLENDVPD(X64Reg dest, const OpArg& arg)
+void XEmitter::BLENDVPD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSE41Op(0x66, 0x3815, dest, arg);
 }
-void XEmitter::BLENDPS(X64Reg dest, const OpArg& arg, u8 blend)
+void XEmitter::BLENDPS(const X64Reg dest, const OpArg& arg, const u8 blend)
 {
   WriteSSE41Op(0x66, 0x3A0C, dest, arg, 1);
   Write8(blend);
 }
-void XEmitter::BLENDPD(X64Reg dest, const OpArg& arg, u8 blend)
+void XEmitter::BLENDPD(const X64Reg dest, const OpArg& arg, const u8 blend)
 {
   WriteSSE41Op(0x66, 0x3A0D, dest, arg, 1);
   Write8(blend);
 }
 
-void XEmitter::PAND(X64Reg dest, const OpArg& arg)
+void XEmitter::PAND(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xDB, dest, arg);
 }
-void XEmitter::PANDN(X64Reg dest, const OpArg& arg)
+void XEmitter::PANDN(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xDF, dest, arg);
 }
-void XEmitter::PXOR(X64Reg dest, const OpArg& arg)
+void XEmitter::PXOR(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xEF, dest, arg);
 }
-void XEmitter::POR(X64Reg dest, const OpArg& arg)
+void XEmitter::POR(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xEB, dest, arg);
 }
 
-void XEmitter::PADDB(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xFC, dest, arg);
 }
-void XEmitter::PADDW(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xFD, dest, arg);
 }
-void XEmitter::PADDD(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xFE, dest, arg);
 }
-void XEmitter::PADDQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xD4, dest, arg);
 }
 
-void XEmitter::PADDSB(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDSB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xEC, dest, arg);
 }
-void XEmitter::PADDSW(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDSW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xED, dest, arg);
 }
-void XEmitter::PADDUSB(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDUSB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xDC, dest, arg);
 }
-void XEmitter::PADDUSW(X64Reg dest, const OpArg& arg)
+void XEmitter::PADDUSW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xDD, dest, arg);
 }
 
-void XEmitter::PSUBB(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xF8, dest, arg);
 }
-void XEmitter::PSUBW(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xF9, dest, arg);
 }
-void XEmitter::PSUBD(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xFA, dest, arg);
 }
-void XEmitter::PSUBQ(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBQ(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xFB, dest, arg);
 }
 
-void XEmitter::PSUBSB(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBSB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xE8, dest, arg);
 }
-void XEmitter::PSUBSW(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBSW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xE9, dest, arg);
 }
-void XEmitter::PSUBUSB(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBUSB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xD8, dest, arg);
 }
-void XEmitter::PSUBUSW(X64Reg dest, const OpArg& arg)
+void XEmitter::PSUBUSW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xD9, dest, arg);
 }
 
-void XEmitter::PAVGB(X64Reg dest, const OpArg& arg)
+void XEmitter::PAVGB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xE0, dest, arg);
 }
-void XEmitter::PAVGW(X64Reg dest, const OpArg& arg)
+void XEmitter::PAVGW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xE3, dest, arg);
 }
 
-void XEmitter::PCMPEQB(X64Reg dest, const OpArg& arg)
+void XEmitter::PCMPEQB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x74, dest, arg);
 }
-void XEmitter::PCMPEQW(X64Reg dest, const OpArg& arg)
+void XEmitter::PCMPEQW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x75, dest, arg);
 }
-void XEmitter::PCMPEQD(X64Reg dest, const OpArg& arg)
+void XEmitter::PCMPEQD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x76, dest, arg);
 }
 
-void XEmitter::PCMPGTB(X64Reg dest, const OpArg& arg)
+void XEmitter::PCMPGTB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x64, dest, arg);
 }
-void XEmitter::PCMPGTW(X64Reg dest, const OpArg& arg)
+void XEmitter::PCMPGTW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x65, dest, arg);
 }
-void XEmitter::PCMPGTD(X64Reg dest, const OpArg& arg)
+void XEmitter::PCMPGTD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0x66, dest, arg);
 }
 
-void XEmitter::PEXTRW(X64Reg dest, const OpArg& arg, u8 subreg)
+void XEmitter::PEXTRW(const X64Reg dest, const OpArg& arg, const u8 subreg)
 {
   WriteSSEOp(0x66, 0xC5, dest, arg);
   Write8(subreg);
 }
-void XEmitter::PINSRW(X64Reg dest, const OpArg& arg, u8 subreg)
+void XEmitter::PINSRW(const X64Reg dest, const OpArg& arg, const u8 subreg)
 {
   WriteSSEOp(0x66, 0xC4, dest, arg);
   Write8(subreg);
 }
-void XEmitter::PINSRD(X64Reg dest, const OpArg& arg, u8 subreg)
+void XEmitter::PINSRD(const X64Reg dest, const OpArg& arg, const u8 subreg)
 {
   WriteSSE41Op(0x66, 0x3A22, dest, arg);
   Write8(subreg);
 }
 
-void XEmitter::PMADDWD(X64Reg dest, const OpArg& arg)
+void XEmitter::PMADDWD(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xF5, dest, arg);
 }
-void XEmitter::PSADBW(X64Reg dest, const OpArg& arg)
+void XEmitter::PSADBW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xF6, dest, arg);
 }
 
-void XEmitter::PMAXSW(X64Reg dest, const OpArg& arg)
+void XEmitter::PMAXSW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xEE, dest, arg);
 }
-void XEmitter::PMAXUB(X64Reg dest, const OpArg& arg)
+void XEmitter::PMAXUB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xDE, dest, arg);
 }
-void XEmitter::PMINSW(X64Reg dest, const OpArg& arg)
+void XEmitter::PMINSW(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xEA, dest, arg);
 }
-void XEmitter::PMINUB(X64Reg dest, const OpArg& arg)
+void XEmitter::PMINUB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xDA, dest, arg);
 }
 
-void XEmitter::PMOVMSKB(X64Reg dest, const OpArg& arg)
+void XEmitter::PMOVMSKB(const X64Reg dest, const OpArg& arg)
 {
   WriteSSEOp(0x66, 0xD7, dest, arg);
 }
-void XEmitter::PSHUFD(X64Reg regOp, const OpArg& arg, u8 shuffle)
+void XEmitter::PSHUFD(const X64Reg regOp, const OpArg& arg, const u8 shuffle)
 {
   WriteSSEOp(0x66, 0x70, regOp, arg, 1);
   Write8(shuffle);
 }
-void XEmitter::PSHUFLW(X64Reg regOp, const OpArg& arg, u8 shuffle)
+void XEmitter::PSHUFLW(const X64Reg regOp, const OpArg& arg, const u8 shuffle)
 {
   WriteSSEOp(0xF2, 0x70, regOp, arg, 1);
   Write8(shuffle);
 }
-void XEmitter::PSHUFHW(X64Reg regOp, const OpArg& arg, u8 shuffle)
+void XEmitter::PSHUFHW(const X64Reg regOp, const OpArg& arg, const u8 shuffle)
 {
   WriteSSEOp(0xF3, 0x70, regOp, arg, 1);
   Write8(shuffle);
 }
 
 // VEX
-void XEmitter::VADDSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VADDSS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF3, sseADD, regOp1, regOp2, arg);
 }
-void XEmitter::VSUBSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VSUBSS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF3, sseSUB, regOp1, regOp2, arg);
 }
-void XEmitter::VMULSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VMULSS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF3, sseMUL, regOp1, regOp2, arg);
 }
-void XEmitter::VDIVSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VDIVSS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF3, sseDIV, regOp1, regOp2, arg);
 }
-void XEmitter::VADDPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VADDPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseADD, regOp1, regOp2, arg);
 }
-void XEmitter::VSUBPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VSUBPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseSUB, regOp1, regOp2, arg);
 }
-void XEmitter::VMULPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VMULPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseMUL, regOp1, regOp2, arg);
 }
-void XEmitter::VDIVPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VDIVPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseDIV, regOp1, regOp2, arg);
 }
-void XEmitter::VADDSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VADDSD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF2, sseADD, regOp1, regOp2, arg);
 }
-void XEmitter::VSUBSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VSUBSD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF2, sseSUB, regOp1, regOp2, arg);
 }
-void XEmitter::VMULSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VMULSD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF2, sseMUL, regOp1, regOp2, arg);
 }
-void XEmitter::VDIVSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VDIVSD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF2, sseDIV, regOp1, regOp2, arg);
 }
-void XEmitter::VADDPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VADDPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseADD, regOp1, regOp2, arg);
 }
-void XEmitter::VSUBPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VSUBPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseSUB, regOp1, regOp2, arg);
 }
-void XEmitter::VMULPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VMULPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseMUL, regOp1, regOp2, arg);
 }
-void XEmitter::VDIVPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VDIVPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseDIV, regOp1, regOp2, arg);
 }
-void XEmitter::VSQRTSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VSQRTSD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0xF2, sseSQRT, regOp1, regOp2, arg);
 }
-void XEmitter::VCMPPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 compare)
+void XEmitter::VCMPPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg, const u8 compare)
 {
   WriteAVXOp(0x66, sseCMP, regOp1, regOp2, arg, 0, 1);
   Write8(compare);
 }
-void XEmitter::VSHUFPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 shuffle)
+void XEmitter::VSHUFPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg, const u8 shuffle)
 {
   WriteAVXOp(0x00, sseSHUF, regOp1, regOp2, arg, 0, 1);
   Write8(shuffle);
 }
-void XEmitter::VSHUFPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 shuffle)
+void XEmitter::VSHUFPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg, const u8 shuffle)
 {
   WriteAVXOp(0x66, sseSHUF, regOp1, regOp2, arg, 0, 1);
   Write8(shuffle);
 }
-void XEmitter::VUNPCKLPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VUNPCKLPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, 0x14, regOp1, regOp2, arg);
 }
-void XEmitter::VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VUNPCKLPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0x14, regOp1, regOp2, arg);
 }
-void XEmitter::VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VUNPCKHPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0x15, regOp1, regOp2, arg);
 }
-void XEmitter::VBLENDVPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, X64Reg regOp3)
+void XEmitter::VBLENDVPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg, const X64Reg regOp3)
 {
   WriteAVXOp4(0x66, 0x3A4B, regOp1, regOp2, arg, regOp3);
 }
-void XEmitter::VBLENDPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 blend)
+void XEmitter::VBLENDPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg, const u8 blend)
 {
   WriteAVXOp(0x66, 0x3A0C, regOp1, regOp2, arg, 0, 1);
   Write8(blend);
 }
-void XEmitter::VBLENDPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 blend)
+void XEmitter::VBLENDPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg, const u8 blend)
 {
   WriteAVXOp(0x66, 0x3A0D, regOp1, regOp2, arg, 0, 1);
   Write8(blend);
 }
 
-void XEmitter::VANDPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VANDPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseAND, regOp1, regOp2, arg);
 }
-void XEmitter::VANDPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VANDPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseAND, regOp1, regOp2, arg);
 }
-void XEmitter::VANDNPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VANDNPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseANDN, regOp1, regOp2, arg);
 }
-void XEmitter::VANDNPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VANDNPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseANDN, regOp1, regOp2, arg);
 }
-void XEmitter::VORPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VORPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseOR, regOp1, regOp2, arg);
 }
-void XEmitter::VORPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VORPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseOR, regOp1, regOp2, arg);
 }
-void XEmitter::VXORPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VXORPS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x00, sseXOR, regOp1, regOp2, arg);
 }
-void XEmitter::VXORPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VXORPD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, sseXOR, regOp1, regOp2, arg);
 }
 
-void XEmitter::VPAND(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VPAND(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0xDB, regOp1, regOp2, arg);
 }
-void XEmitter::VPANDN(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VPANDN(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0xDF, regOp1, regOp2, arg);
 }
-void XEmitter::VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VPOR(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0xEB, regOp1, regOp2, arg);
 }
-void XEmitter::VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VPXOR(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0xEF, regOp1, regOp2, arg);
 }
 
-void XEmitter::VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD132PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x98, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADD213PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD213PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA8, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADD231PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD231PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB8, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADD132PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD132PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x98, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADD213PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD213PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA8, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADD231PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD231PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB8, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADD132SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD132SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x99, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADD213SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD213SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA9, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADD231SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD231SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB9, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADD132SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD132SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x99, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADD213SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD213SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA9, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADD231SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADD231SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB9, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUB132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB132PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9A, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUB213PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB213PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAA, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUB231PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB231PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBA, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUB132PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB132PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9A, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUB213PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB213PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAA, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUB231PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB231PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBA, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUB132SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB132SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9B, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUB213SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB213SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAB, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUB231SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB231SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBB, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUB132SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB132SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9B, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUB213SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB213SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAB, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUB231SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUB231SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBB, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD132PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9C, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMADD213PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD213PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAC, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMADD231PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD231PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBC, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMADD132PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD132PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9C, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMADD213PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD213PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAC, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMADD231PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD231PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBC, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMADD132SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD132SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9D, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMADD213SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD213SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAD, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMADD231SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD231SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBD, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMADD132SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD132SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9D, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMADD213SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD213SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAD, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMADD231SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMADD231SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBD, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMSUB132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB132PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9E, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMSUB213PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB213PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAE, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMSUB231PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB231PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBE, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMSUB132PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB132PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9E, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMSUB213PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB213PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAE, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMSUB231PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB231PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBE, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMSUB132SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB132SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9F, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMSUB213SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB213SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAF, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMSUB231SS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB231SS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBF, regOp1, regOp2, arg);
 }
-void XEmitter::VFNMSUB132SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB132SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x9F, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMSUB213SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB213SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xAF, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFNMSUB231SD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFNMSUB231SD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xBF, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADDSUB132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADDSUB132PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x96, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADDSUB213PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADDSUB213PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA6, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADDSUB231PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADDSUB231PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB6, regOp1, regOp2, arg);
 }
-void XEmitter::VFMADDSUB132PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADDSUB132PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x96, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADDSUB213PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADDSUB213PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA6, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMADDSUB231PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMADDSUB231PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB6, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUBADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUBADD132PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x97, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUBADD213PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUBADD213PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA7, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUBADD231PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUBADD231PS(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB7, regOp1, regOp2, arg);
 }
-void XEmitter::VFMSUBADD132PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUBADD132PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0x97, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUBADD213PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUBADD213PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xA7, regOp1, regOp2, arg, 1);
 }
-void XEmitter::VFMSUBADD231PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::VFMSUBADD231PD(const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteFMA3Op(0xB7, regOp1, regOp2, arg, 1);
 }
@@ -3302,57 +3302,57 @@ FMA4(VFNMSUBSS, 0x7E)
 FMA4(VFNMSUBSD, 0x7F)
 #undef FMA4
 
-void XEmitter::SARX(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)
+void XEmitter::SARX(const int bits, const X64Reg regOp1, const OpArg& arg, const X64Reg regOp2)
 {
   WriteBMI2Op(bits, 0xF3, 0x38F7, regOp1, regOp2, arg);
 }
-void XEmitter::SHLX(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)
+void XEmitter::SHLX(const int bits, const X64Reg regOp1, const OpArg& arg, const X64Reg regOp2)
 {
   WriteBMI2Op(bits, 0x66, 0x38F7, regOp1, regOp2, arg);
 }
-void XEmitter::SHRX(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)
+void XEmitter::SHRX(const int bits, const X64Reg regOp1, const OpArg& arg, const X64Reg regOp2)
 {
   WriteBMI2Op(bits, 0xF2, 0x38F7, regOp1, regOp2, arg);
 }
-void XEmitter::RORX(int bits, X64Reg regOp, const OpArg& arg, u8 rotate)
+void XEmitter::RORX(const int bits, const X64Reg regOp, const OpArg& arg, const u8 rotate)
 {
   WriteBMI2Op(bits, 0xF2, 0x3AF0, regOp, INVALID_REG, arg, 1);
   Write8(rotate);
 }
-void XEmitter::PEXT(int bits, X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::PEXT(const int bits, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteBMI2Op(bits, 0xF3, 0x38F5, regOp1, regOp2, arg);
 }
-void XEmitter::PDEP(int bits, X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::PDEP(const int bits, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteBMI2Op(bits, 0xF2, 0x38F5, regOp1, regOp2, arg);
 }
-void XEmitter::MULX(int bits, X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::MULX(const int bits, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteBMI2Op(bits, 0xF2, 0x38F6, regOp2, regOp1, arg);
 }
-void XEmitter::BZHI(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)
+void XEmitter::BZHI(const int bits, const X64Reg regOp1, const OpArg& arg, const X64Reg regOp2)
 {
   CheckFlags();
   WriteBMI2Op(bits, 0x00, 0x38F5, regOp1, regOp2, arg);
 }
-void XEmitter::BLSR(int bits, X64Reg regOp, const OpArg& arg)
+void XEmitter::BLSR(const int bits, const X64Reg regOp, const OpArg& arg)
 {
   WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x1, regOp, arg);
 }
-void XEmitter::BLSMSK(int bits, X64Reg regOp, const OpArg& arg)
+void XEmitter::BLSMSK(const int bits, const X64Reg regOp, const OpArg& arg)
 {
   WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x2, regOp, arg);
 }
-void XEmitter::BLSI(int bits, X64Reg regOp, const OpArg& arg)
+void XEmitter::BLSI(const int bits, const X64Reg regOp, const OpArg& arg)
 {
   WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x3, regOp, arg);
 }
-void XEmitter::BEXTR(int bits, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)
+void XEmitter::BEXTR(const int bits, const X64Reg regOp1, const OpArg& arg, const X64Reg regOp2)
 {
   WriteBMI1Op(bits, 0x00, 0x38F7, regOp1, regOp2, arg);
 }
-void XEmitter::ANDN(int bits, X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+void XEmitter::ANDN(const int bits, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg)
 {
   WriteBMI1Op(bits, 0x00, 0x38F2, regOp1, regOp2, arg);
 }

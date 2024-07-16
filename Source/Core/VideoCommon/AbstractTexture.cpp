@@ -19,7 +19,7 @@ void AbstractTexture::FinishedRendering()
 {
 }
 
-bool AbstractTexture::Save(const std::string& filename, unsigned int level, int compression) const
+bool AbstractTexture::Save(const std::string& filename, const unsigned int level, const int compression) const
 {
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
@@ -58,7 +58,7 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
                          static_cast<int>(readback_texture->GetMappedStride()), compression);
 }
 
-bool AbstractTexture::IsCompressedFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsCompressedFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -73,7 +73,7 @@ bool AbstractTexture::IsCompressedFormat(AbstractTextureFormat format)
   }
 }
 
-bool AbstractTexture::IsDepthFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsDepthFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -88,13 +88,13 @@ bool AbstractTexture::IsDepthFormat(AbstractTextureFormat format)
   }
 }
 
-bool AbstractTexture::IsStencilFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsStencilFormat(const AbstractTextureFormat format)
 {
   return format == AbstractTextureFormat::D24_S8 || format == AbstractTextureFormat::D32F_S8;
 }
 
-bool AbstractTexture::IsCompatibleDepthAndColorFormats(AbstractTextureFormat depth_format,
-                                                       AbstractTextureFormat color_format)
+bool AbstractTexture::IsCompatibleDepthAndColorFormats(const AbstractTextureFormat depth_format,
+                                                       const AbstractTextureFormat color_format)
 {
   switch (depth_format)
   {
@@ -109,7 +109,7 @@ bool AbstractTexture::IsCompatibleDepthAndColorFormats(AbstractTextureFormat dep
   }
 }
 
-u32 AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
+u32 AbstractTexture::CalculateStrideForFormat(const AbstractTextureFormat format, const u32 row_length)
 {
   switch (format)
   {
@@ -138,7 +138,7 @@ u32 AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 
   }
 }
 
-u32 AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
+u32 AbstractTexture::GetTexelSizeForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -167,7 +167,7 @@ u32 AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
   }
 }
 
-u32 AbstractTexture::GetBlockSizeForFormat(AbstractTextureFormat format)
+u32 AbstractTexture::GetBlockSizeForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {

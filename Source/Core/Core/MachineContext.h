@@ -249,7 +249,7 @@ typedef mcontext_t SContext;
 #if _M_X86_64
 #include <stddef.h>
 #define CTX_PC CTX_RIP
-static inline u64* ContextRN(SContext* ctx, int n)
+static inline u64* ContextRN(SContext* ctx, const int n)
 {
   static const u8 offsets[] = {
       offsetof(SContext, CTX_RAX), offsetof(SContext, CTX_RCX), offsetof(SContext, CTX_RDX),

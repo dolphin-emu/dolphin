@@ -56,7 +56,7 @@ static u64 xgetbv(u32 index)
 
 constexpr u32 XCR_XFEATURE_ENABLED_MASK = _XCR_XFEATURE_ENABLED_MASK;
 
-static u64 xgetbv(u32 index)
+static u64 xgetbv(const u32 index)
 {
   return _xgetbv(index);
 }
@@ -92,7 +92,7 @@ struct CPUIDResult
 };
 static_assert(sizeof(CPUIDResult) == sizeof(u32) * 4);
 
-static inline CPUIDResult cpuid(int function_id, int subfunction_id = 0)
+static inline CPUIDResult cpuid(const int function_id, const int subfunction_id = 0)
 {
   CPUIDResult info;
   __cpuidex((int*)&info, function_id, subfunction_id);

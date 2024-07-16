@@ -145,7 +145,7 @@ OpenALStream::~OpenALStream()
   palcCloseDevice(device);
 }
 
-void OpenALStream::SetVolume(int volume)
+void OpenALStream::SetVolume(const int volume)
 {
   m_volume = (float)volume / 100.0f;
 
@@ -153,7 +153,7 @@ void OpenALStream::SetVolume(int volume)
     palSourcef(m_source, AL_GAIN, m_volume);
 }
 
-bool OpenALStream::SetRunning(bool running)
+bool OpenALStream::SetRunning(const bool running)
 {
   if (running)
   {

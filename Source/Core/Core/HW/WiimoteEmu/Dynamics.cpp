@@ -25,7 +25,7 @@ namespace
 // Used to smoothly adjust acceleration and come to complete stops at precise positions.
 // Based on equations for motion with constant jerk.
 // s = s0 + v0 t + a0 t^2 / 2 + j t^3 / 6
-double CalculateStopDistance(double velocity, double acceleration, double max_jerk)
+double CalculateStopDistance(const double velocity, const double acceleration, const double max_jerk)
 {
   // Math below expects velocity to be non-negative.
   const auto velocity_flip = (velocity < 0 ? -1 : 1);
@@ -49,7 +49,7 @@ double CalculateStopDistance(double velocity, double acceleration, double max_je
   return (d_0 + d_1) * velocity_flip;
 }
 
-double CalculateStopDistance(double velocity, double max_accel)
+double CalculateStopDistance(const double velocity, const double max_accel)
 {
   return velocity * velocity / (2 * std::copysign(max_accel, velocity));
 }
@@ -59,7 +59,7 @@ double CalculateStopDistance(double velocity, double max_accel)
 namespace WiimoteEmu
 {
 Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
-                                       const Common::Vec3& accelerometer, float accel_weight,
+                                       const Common::Vec3& accelerometer, const float accel_weight,
                                        const Common::Vec3& accelerometer_normal)
 {
   const auto gyro_vec = gyroscope * accelerometer_normal;
@@ -80,8 +80,8 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
   }
 }
 
-void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_group,
-                  float time_elapsed)
+void EmulateShake(PositionalState* state, const ControllerEmu::Shake* const shake_group,
+                  const float time_elapsed)
 {
   auto target_position = shake_group->GetState() * float(shake_group->GetIntensity() / 2);
   for (std::size_t i = 0; i != target_position.data.size(); ++i)
@@ -108,7 +108,7 @@ void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_grou
   ApproachPositionWithJerk(state, target_position, jerk, time_elapsed);
 }
 
-void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, float time_elapsed)
+void EmulateTilt(RotationalState* state, const ControllerEmu::Tilt* const tilt_group, const float time_elapsed)
 {
   const auto target = tilt_group->GetState();
 
@@ -131,7 +131,7 @@ void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, 
   ApproachAngleWithAccel(state, target_angle, max_accel, time_elapsed);
 }
 
-void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)
+void EmulateSwing(MotionState* state, const ControllerEmu::Force* swing_group, const float time_elapsed)
 {
   const auto input_state = swing_group->GetState();
   const float max_distance = swing_group->GetMaxDistance();
@@ -209,7 +209,7 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
   }
 }
 
-WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g, u16 one_g)
+WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, const u16 zero_g, const u16 one_g)
 {
   const auto scaled_accel = accel * (one_g - zero_g) / float(GRAVITY_ACCELERATION);
 
@@ -223,7 +223,7 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
 }
 
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
-                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed)
+                  const ControllerEmu::InputOverrideFunction& override_func, const float time_elapsed)
 {
   const auto cursor = ir_group->GetState(true, override_func);
 
@@ -272,7 +272,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 }
 
 void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_target,
-                            float max_accel, float time_elapsed)
+                            const float max_accel, const float time_elapsed)
 {
   const auto stop_distance =
       Common::Vec3(CalculateStopDistance(state->angular_velocity.x, max_accel),
@@ -304,9 +304,9 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
   }
 }
 
-void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
-                      ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
-                      ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
+void EmulateIMUCursor(IMUCursorState* state, const ControllerEmu::IMUCursor* imu_ir_group,
+                      const ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
+                      ControllerEmu::IMUGyroscope* imu_gyroscope_group, const float time_elapsed)
 {
   const auto ang_vel = imu_gyroscope_group->GetState();
 
@@ -348,7 +348,7 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
 }
 
 void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,
-                              const Common::Vec3& max_jerk, float time_elapsed)
+                              const Common::Vec3& max_jerk, const float time_elapsed)
 {
   const auto stop_distance =
       Common::Vec3(CalculateStopDistance(state->velocity.x, state->acceleration.x, max_jerk.x),

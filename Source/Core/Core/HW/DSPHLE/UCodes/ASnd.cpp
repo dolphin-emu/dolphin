@@ -68,7 +68,7 @@ bool ASndUCode::UseNewFlagMasks() const
          m_crc == HASH_2024_PAD;
 }
 
-ASndUCode::ASndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+ASndUCode::ASndUCode(DSPHLE* dsphle, const u32 crc) : UCodeInterface(dsphle, crc)
 {
 }
 
@@ -86,7 +86,7 @@ void ASndUCode::Update()
   }
 }
 
-void ASndUCode::HandleMail(u32 mail)
+void ASndUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)
   {

@@ -22,7 +22,7 @@
 constexpr int SLIDER_TICK_COUNT = 100;
 
 // Escape ampersands and simplify the text for a short preview
-static QString RefToDisplayString(ControlReference* ref)
+static QString RefToDisplayString(const ControlReference* ref)
 {
   const bool expression_valid =
       ref->GetParseStatus() != ciface::ExpressionParser::ParseStatus::SyntaxError;

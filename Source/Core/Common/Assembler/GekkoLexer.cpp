@@ -13,18 +13,18 @@ namespace Common::GekkoAssembler::detail
 {
 namespace
 {
-constexpr bool IsOctal(char c)
+constexpr bool IsOctal(const char c)
 {
   return c >= '0' && c <= '7';
 }
 
-constexpr bool IsBinary(char c)
+constexpr bool IsBinary(const char c)
 {
   return c == '0' || c == '1';
 }
 
 template <typename T>
-constexpr T ConvertNib(char c)
+constexpr T ConvertNib(const char c)
 {
   if (c >= 'a' && c <= 'f')
   {
@@ -37,7 +37,7 @@ constexpr T ConvertNib(char c)
   return static_cast<T>(c - '0');
 }
 
-constexpr TokenType SingleCharToken(char ch)
+constexpr TokenType SingleCharToken(const char ch)
 {
   switch (ch)
   {
@@ -82,7 +82,7 @@ constexpr TokenType SingleCharToken(char ch)
 
 // Convert a string literal into its raw-data form
 template <typename Cont>
-void ConvertStringLiteral(std::string_view literal, std::back_insert_iterator<Cont> out_it)
+void ConvertStringLiteral(const std::string_view literal, std::back_insert_iterator<Cont> out_it)
 {
   for (size_t i = 1; i < literal.size() - 1;)
   {
@@ -164,12 +164,12 @@ void ConvertStringLiteral(std::string_view literal, std::back_insert_iterator<Co
 }
 
 template <typename T>
-std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
+std::optional<T> EvalIntegral(const TokenType tp, std::string_view val)
 {
-  constexpr auto hex_step = [](T acc, char c) { return acc << 4 | ConvertNib<T>(c); };
-  constexpr auto dec_step = [](T acc, char c) { return acc * 10 + (c - '0'); };
-  constexpr auto oct_step = [](T acc, char c) { return acc << 3 | (c - '0'); };
-  constexpr auto bin_step = [](T acc, char c) { return acc << 1 | (c - '0'); };
+  constexpr auto hex_step = [](T acc, const char c) { return acc << 4 | ConvertNib<T>(c); };
+  constexpr auto dec_step = [](T acc, const char c) { return acc * 10 + (c - '0'); };
+  constexpr auto oct_step = [](T acc, const char c) { return acc << 3 | (c - '0'); };
+  constexpr auto bin_step = [](T acc, const char c) { return acc << 1 | (c - '0'); };
 
   switch (tp)
   {
@@ -207,12 +207,12 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
 }
 }  // namespace
 
-void ConvertStringLiteral(std::string_view literal, std::vector<u8>* out_vec)
+void ConvertStringLiteral(const std::string_view literal, std::vector<u8>* out_vec)
 {
   ConvertStringLiteral(literal, std::back_inserter(*out_vec));
 }
 
-std::string_view TokenTypeToStr(TokenType tp)
+std::string_view TokenTypeToStr(const TokenType tp)
 {
   switch (tp)
   {
@@ -385,13 +385,13 @@ std::string_view Lexer::CurrentLine() const
   return m_lex_string.substr(begin_index, end_index - begin_index);
 }
 
-void Lexer::SetIdentifierMatchRule(IdentifierMatchRule set)
+void Lexer::SetIdentifierMatchRule(const IdentifierMatchRule set)
 {
   FeedbackTokens();
   m_match_rule = set;
 }
 
-const Tagged<CursorPosition, AssemblerToken>& Lexer::LookaheadTagRef(size_t num_fwd) const
+const Tagged<CursorPosition, AssemblerToken>& Lexer::LookaheadTagRef(const size_t num_fwd) const
 {
   while (m_lexed_tokens.size() < num_fwd)
   {
@@ -542,7 +542,7 @@ void Lexer::FeedbackTokens() const
   m_lexed_tokens.clear();
 }
 
-bool Lexer::IdentifierHeadExtra(char h) const
+bool Lexer::IdentifierHeadExtra(const char h) const
 {
   switch (m_match_rule)
   {
@@ -555,7 +555,7 @@ bool Lexer::IdentifierHeadExtra(char h) const
   return false;
 }
 
-bool Lexer::IdentifierExtra(char c) const
+bool Lexer::IdentifierExtra(const char c) const
 {
   switch (m_match_rule)
   {
@@ -635,7 +635,7 @@ TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invali
 TokenType Lexer::ClassifyAlnum() const
 {
   const std::string_view alnum = m_lex_string.substr(m_pos.index, m_scan_pos.index - m_pos.index);
-  constexpr auto valid_regnum = [](std::string_view rn) {
+  constexpr auto valid_regnum = [](const std::string_view rn) {
     if (rn.length() == 1 && std::isdigit(rn[0]))
     {
       return true;

@@ -13,7 +13,7 @@
 class VertexLoader_Color
 {
 public:
-  static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ColorFormat format)
+  static DOLPHIN_FORCE_INLINE u32 GetSize(const VertexComponentFormat type, const ColorFormat format)
   {
     if (format > ColorFormat::RGBA8888)
     {

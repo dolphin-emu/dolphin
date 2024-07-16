@@ -46,7 +46,7 @@ void Timer::Start()
   m_running = true;
 }
 
-void Timer::StartWithOffset(u64 offset)
+void Timer::StartWithOffset(const u64 offset)
 {
   Start();
   m_start_ms -= offset;

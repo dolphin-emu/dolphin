@@ -34,7 +34,7 @@
 
 namespace VideoCommon
 {
-bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
+bool OnScreenUI::Initialize(const u32 width, const u32 height, const float scale)
 {
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
 
@@ -180,13 +180,13 @@ bool OnScreenUI::RecompileImGuiPipeline()
   return true;
 }
 
-void OnScreenUI::BeginImGuiFrame(u32 width, u32 height)
+void OnScreenUI::BeginImGuiFrame(const u32 width, const u32 height)
 {
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
   BeginImGuiFrameUnlocked(width, height);
 }
 
-void OnScreenUI::BeginImGuiFrameUnlocked(u32 width, u32 height)
+void OnScreenUI::BeginImGuiFrameUnlocked(const u32 width, const u32 height)
 {
   m_backbuffer_width = width;
   m_backbuffer_height = height;
@@ -416,7 +416,7 @@ std::unique_lock<std::mutex> OnScreenUI::GetImGuiLock()
   return std::unique_lock<std::mutex>(m_imgui_mutex);
 }
 
-void OnScreenUI::SetScale(float backbuffer_scale)
+void OnScreenUI::SetScale(const float backbuffer_scale)
 {
   ImGui::GetIO().DisplayFramebufferScale.x = backbuffer_scale;
   ImGui::GetIO().DisplayFramebufferScale.y = backbuffer_scale;
@@ -457,7 +457,7 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
   }
 }
 
-void OnScreenUI::SetKey(u32 key, bool is_down, const char* chars)
+void OnScreenUI::SetKey(const u32 key, const bool is_down, const char* chars)
 {
   auto lock = GetImGuiLock();
   if (auto iter = m_dolphin_to_imgui_map.find(key); iter != m_dolphin_to_imgui_map.end())
@@ -467,14 +467,14 @@ void OnScreenUI::SetKey(u32 key, bool is_down, const char* chars)
     ImGui::GetIO().AddInputCharactersUTF8(chars);
 }
 
-void OnScreenUI::SetMousePos(float x, float y)
+void OnScreenUI::SetMousePos(const float x, const float y)
 {
   auto lock = GetImGuiLock();
 
   ImGui::GetIO().AddMousePosEvent(x, y);
 }
 
-void OnScreenUI::SetMousePress(u32 button_mask)
+void OnScreenUI::SetMousePress(const u32 button_mask)
 {
   auto lock = GetImGuiLock();
 

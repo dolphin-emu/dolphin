@@ -65,7 +65,7 @@ union UDSPControl
     u16 DSPInit : 1;      // DSPInit() writes to this flag
     u16 pad : 4;
   };
-  UDSPControl(u16 hex = 0) : Hex(hex) {}
+  UDSPControl(const u16 hex = 0) : Hex(hex) {}
 };
 
 class DSPManager
@@ -103,9 +103,9 @@ public:
 
 private:
   void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate);
-  static void GlobalGenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cyclesLate);
+  static void GlobalGenerateDSPInterrupt(const Core::System& system, u64 DSPIntType, s64 cyclesLate);
   void CompleteARAM(u64 userdata, s64 cyclesLate);
-  static void GlobalCompleteARAM(Core::System& system, u64 userdata, s64 cyclesLate);
+  static void GlobalCompleteARAM(const Core::System& system, u64 userdata, s64 cyclesLate);
   void UpdateInterrupts();
   void Do_ARAM_DMA();
 

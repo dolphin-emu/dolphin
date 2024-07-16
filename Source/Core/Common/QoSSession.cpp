@@ -13,7 +13,7 @@
 namespace Common
 {
 #if defined(_WIN32)
-QoSSession::QoSSession(ENetPeer* peer, int tos_val) : m_peer(peer)
+QoSSession::QoSSession(ENetPeer* peer, const int tos_val) : m_peer(peer)
 {
   QOS_VERSION ver = {1, 0};
 

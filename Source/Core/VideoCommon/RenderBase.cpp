@@ -36,12 +36,12 @@ std::unique_ptr<Renderer> g_renderer;
 
 Renderer::~Renderer() = default;
 
-void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
+void Renderer::ReinterpretPixelData(const EFBReinterpretType convtype)
 {
   g_framebuffer_manager->ReinterpretPixelData(convtype);
 }
 
-u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
+u32 Renderer::AccessEFB(const EFBAccessType type, const u32 x, const u32 y, u32 poke_data)
 {
   if (type == EFBAccessType::PeekColor)
   {
@@ -112,7 +112,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   }
 }
 
-void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
+void Renderer::PokeEFB(const EFBAccessType type, const EfbPokeData* points, const size_t num_points)
 {
   if (type == EFBAccessType::PokeColor)
   {

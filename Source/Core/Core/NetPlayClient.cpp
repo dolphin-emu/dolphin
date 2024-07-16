@@ -1709,7 +1709,7 @@ void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus
 }
 
 // called from ---CPU--- thread
-void NetPlayClient::AddWiimoteStateToPacket(int in_game_pad,
+void NetPlayClient::AddWiimoteStateToPacket(const int in_game_pad,
                                             const WiimoteEmu::SerializedWiimoteState& state,
                                             sf::Packet& packet)
 {
@@ -2399,7 +2399,7 @@ bool NetPlayClient::LocalPlayerHasControllerMapped() const
   return PlayerHasControllerMapped(m_local_player->pid);
 }
 
-bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
+bool NetPlayClient::IsFirstInGamePad(const int ingame_pad) const
 {
   return std::none_of(m_pad_map.begin(), m_pad_map.begin() + ingame_pad,
                       [](auto mapping) { return mapping > 0; });
@@ -2423,7 +2423,7 @@ int NetPlayClient::NumLocalWiimotes() const
   return CountLocalPads(m_wiimote_map, m_local_player->pid);
 }
 
-static int InGameToLocal(int ingame_pad, const PadMappingArray& pad_map, PlayerId local_player_pid)
+static int InGameToLocal(const int ingame_pad, const PadMappingArray& pad_map, const PlayerId local_player_pid)
 {
   // not our pad
   if (pad_map[ingame_pad] != local_player_pid)
@@ -2441,7 +2441,7 @@ static int InGameToLocal(int ingame_pad, const PadMappingArray& pad_map, PlayerI
   return local_pad;
 }
 
-static int LocalToInGame(int local_pad, const PadMappingArray& pad_map, PlayerId local_player_pid)
+static int LocalToInGame(const int local_pad, const PadMappingArray& pad_map, const PlayerId local_player_pid)
 {
   // Figure out which in-game pad maps to which local pad.
   // The logic we have here is that the local slots always
@@ -2460,22 +2460,22 @@ static int LocalToInGame(int local_pad, const PadMappingArray& pad_map, PlayerId
   return ingame_pad;
 }
 
-int NetPlayClient::InGamePadToLocalPad(int ingame_pad) const
+int NetPlayClient::InGamePadToLocalPad(const int ingame_pad) const
 {
   return InGameToLocal(ingame_pad, m_pad_map, m_local_player->pid);
 }
 
-int NetPlayClient::LocalPadToInGamePad(int local_pad) const
+int NetPlayClient::LocalPadToInGamePad(const int local_pad) const
 {
   return LocalToInGame(local_pad, m_pad_map, m_local_player->pid);
 }
 
-int NetPlayClient::InGameWiimoteToLocalWiimote(int ingame_wiimote) const
+int NetPlayClient::InGameWiimoteToLocalWiimote(const int ingame_wiimote) const
 {
   return InGameToLocal(ingame_wiimote, m_wiimote_map, m_local_player->pid);
 }
 
-int NetPlayClient::LocalWiimoteToInGameWiimote(int local_wiimote) const
+int NetPlayClient::LocalWiimoteToInGameWiimote(const int local_wiimote) const
 {
   return LocalToInGame(local_wiimote, m_wiimote_map, m_local_player->pid);
 }
@@ -2601,7 +2601,7 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
   if (m_game_digest_thread.joinable())
     m_game_digest_thread.join();
   m_game_digest_thread = std::thread([this, file]() {
-    std::string sum = SHA1Sum(file, [&](int progress) {
+    std::string sum = SHA1Sum(file, [&](const int progress) {
       sf::Packet packet;
       packet << MessageID::GameDigestProgress;
       packet << progress;
@@ -2651,7 +2651,7 @@ SyncIdentifier NetPlayClient::GetSDCardIdentifier()
   return SyncIdentifier{{}, "sd", {}, {}, {}, {}};
 }
 
-std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
+std::string GetPlayerMappingString(const PlayerId pid, const PadMappingArray& pad_map,
                                    const GBAConfigArray& gba_config,
                                    const PadMappingArray& wiimote_map)
 {
@@ -2682,7 +2682,7 @@ bool IsNetPlayRunning()
   return netplay_client != nullptr;
 }
 
-void SetSIPollBatching(bool state)
+void SetSIPollBatching(const bool state)
 {
   s_si_poll_batching = state;
 }
@@ -2693,7 +2693,7 @@ void SendPowerButtonEvent()
   netplay_client->SendPowerButtonEvent();
 }
 
-std::string GetGBASavePath(int pad_num)
+std::string GetGBASavePath(const int pad_num)
 {
   std::lock_guard lk(crit_netplay_client);
 
@@ -2713,7 +2713,7 @@ std::string GetGBASavePath(int pad_num)
   return fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, pad_num + 1);
 }
 
-PadDetails GetPadDetails(int pad_num)
+PadDetails GetPadDetails(const int pad_num)
 {
   std::lock_guard lk(crit_netplay_client);
 
@@ -2773,7 +2773,7 @@ void NetPlay_Disable()
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int pad_num, GCPadStatus* status)
+bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(const int pad_num, GCPadStatus* status)
 {
   std::lock_guard lk(NetPlay::crit_netplay_client);
 
@@ -2793,7 +2793,7 @@ bool NetPlay::NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataB
   return false;
 }
 
-unsigned int NetPlay::NetPlay_GetLocalWiimoteForSlot(unsigned int slot)
+unsigned int NetPlay::NetPlay_GetLocalWiimoteForSlot(const unsigned int slot)
 {
   if (slot >= std::tuple_size_v<PadMappingArray>)
     return slot;
@@ -2846,7 +2846,7 @@ u64 ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime()
 
 // called from ---CPU--- thread
 // return the local pad num that should rumble given a ingame pad num
-int SerialInterface::CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
+int SerialInterface::CSIDevice_GCController::NetPlay_InGamePadToLocalPad(const int numPAD)
 {
   std::lock_guard lk(NetPlay::crit_netplay_client);
 

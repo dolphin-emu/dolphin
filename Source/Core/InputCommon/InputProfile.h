@@ -37,12 +37,12 @@ private:
                     int& profile_index, int controller_index);
   void CycleProfileForGame(CycleDirection cycle_direction, InputConfig* device_configuration,
                            int& profile_index, const std::string& setting, int controller_index);
-  std::vector<std::string> GetProfilesForDevice(InputConfig* device_configuration);
+  std::vector<std::string> GetProfilesForDevice(const InputConfig* device_configuration);
   std::string GetProfile(CycleDirection cycle_direction, int& profile_index,
                          const std::vector<std::string>& profiles);
   std::vector<std::string> GetMatchingProfilesFromSetting(const std::string& setting,
                                                           const std::vector<std::string>& profiles,
-                                                          InputConfig* device_configuration);
+                                                          const InputConfig* device_configuration);
   void UpdateToProfile(const std::string& profile_filename,
                        ControllerEmu::EmulatedController* controller,
                        InputConfig* device_configuration);

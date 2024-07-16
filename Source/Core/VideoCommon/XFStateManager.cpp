@@ -51,7 +51,7 @@ void XFStateManager::DoState(PointerWrap& p)
   }
 }
 
-void XFStateManager::InvalidateXFRange(int start, int end)
+void XFStateManager::InvalidateXFRange(const int start, const int end)
 {
   if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 &&
        (u32)start < (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 + 12) ||
@@ -169,7 +169,7 @@ void XFStateManager::InvalidateXFRange(int start, int end)
   }
 }
 
-void XFStateManager::SetTexMatrixChangedA(u32 Value)
+void XFStateManager::SetTexMatrixChangedA(const u32 Value)
 {
   if (g_main_cp_state.matrix_index_a.Hex != Value)
   {
@@ -186,7 +186,7 @@ void XFStateManager::ResetTexMatrixAChange()
   m_tex_matrices_changed[0] = false;
 }
 
-void XFStateManager::SetTexMatrixChangedB(u32 Value)
+void XFStateManager::SetTexMatrixChangedB(const u32 Value)
 {
   if (g_main_cp_state.matrix_index_b.Hex != Value)
   {
@@ -253,7 +253,7 @@ void XFStateManager::ResetLightsChanged()
   m_minmax_lights_changed.fill(-1);
 }
 
-void XFStateManager::SetMaterialColorChanged(int index)
+void XFStateManager::SetMaterialColorChanged(const int index)
 {
   m_materials_changed[index] = true;
 }

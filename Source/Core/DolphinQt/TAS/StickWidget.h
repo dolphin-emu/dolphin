@@ -25,7 +25,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
-  void handleMouseEvent(QMouseEvent* event);
+  void handleMouseEvent(const QMouseEvent* event);
 
 private:
   u16 m_max_x;

@@ -26,7 +26,7 @@ constexpr float TCScale(T val, float scale)
 }
 
 template <>
-constexpr float TCScale(float val, [[maybe_unused]] float scale)
+constexpr float TCScale(const float val, [[maybe_unused]] float scale)
 {
   return val;
 }
@@ -107,9 +107,9 @@ constexpr Table s_table_read_tex_coord = {
 };
 }  // Anonymous namespace
 
-TPipelineFunction VertexLoader_TextCoord::GetFunction(VertexComponentFormat type,
-                                                      ComponentFormat format,
-                                                      TexComponentCount elements)
+TPipelineFunction VertexLoader_TextCoord::GetFunction(const VertexComponentFormat type,
+                                                      const ComponentFormat format,
+                                                      const TexComponentCount elements)
 {
   return s_table_read_tex_coord[type][format][elements];
 }

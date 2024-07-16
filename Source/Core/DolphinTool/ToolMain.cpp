@@ -30,7 +30,7 @@ static void PrintUsage()
 #define main app_main
 #endif
 
-int main(int argc, char* argv[])
+int main(const int argc, char* argv[])
 {
   Core::DeclareAsHostThread();
 

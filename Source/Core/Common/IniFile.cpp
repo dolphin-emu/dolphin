@@ -53,7 +53,7 @@ void IniFile::Section::Set(const std::string& key, std::string new_value)
     keys_order.push_back(key);
 }
 
-bool IniFile::Section::Get(std::string_view key, std::string* value,
+bool IniFile::Section::Get(const std::string_view key, std::string* value,
                            const std::string& default_value) const
 {
   const auto it = values.find(key);
@@ -73,12 +73,12 @@ bool IniFile::Section::Get(std::string_view key, std::string* value,
   return false;
 }
 
-bool IniFile::Section::Exists(std::string_view key) const
+bool IniFile::Section::Exists(const std::string_view key) const
 {
   return values.find(key) != values.end();
 }
 
-bool IniFile::Section::Delete(std::string_view key)
+bool IniFile::Section::Delete(const std::string_view key)
 {
   const auto it = values.find(key);
   if (it == values.end())
@@ -126,7 +126,7 @@ IniFile::IniFile() = default;
 
 IniFile::~IniFile() = default;
 
-const IniFile::Section* IniFile::GetSection(std::string_view section_name) const
+const IniFile::Section* IniFile::GetSection(const std::string_view section_name) const
 {
   for (const Section& sect : sections)
   {
@@ -137,7 +137,7 @@ const IniFile::Section* IniFile::GetSection(std::string_view section_name) const
   return nullptr;
 }
 
-IniFile::Section* IniFile::GetSection(std::string_view section_name)
+IniFile::Section* IniFile::GetSection(const std::string_view section_name)
 {
   for (Section& sect : sections)
   {
@@ -148,7 +148,7 @@ IniFile::Section* IniFile::GetSection(std::string_view section_name)
   return nullptr;
 }
 
-IniFile::Section* IniFile::GetOrCreateSection(std::string_view section_name)
+IniFile::Section* IniFile::GetOrCreateSection(const std::string_view section_name)
 {
   Section* section = GetSection(section_name);
   if (!section)
@@ -159,7 +159,7 @@ IniFile::Section* IniFile::GetOrCreateSection(std::string_view section_name)
   return section;
 }
 
-bool IniFile::DeleteSection(std::string_view section_name)
+bool IniFile::DeleteSection(const std::string_view section_name)
 {
   Section* s = GetSection(section_name);
   if (!s)
@@ -177,12 +177,12 @@ bool IniFile::DeleteSection(std::string_view section_name)
   return false;
 }
 
-bool IniFile::Exists(std::string_view section_name) const
+bool IniFile::Exists(const std::string_view section_name) const
 {
   return GetSection(section_name) != nullptr;
 }
 
-bool IniFile::Exists(std::string_view section_name, std::string_view key) const
+bool IniFile::Exists(const std::string_view section_name, const std::string_view key) const
 {
   const Section* section = GetSection(section_name);
   if (!section)
@@ -191,13 +191,13 @@ bool IniFile::Exists(std::string_view section_name, std::string_view key) const
   return section->Exists(key);
 }
 
-void IniFile::SetLines(std::string_view section_name, std::vector<std::string> lines)
+void IniFile::SetLines(const std::string_view section_name, std::vector<std::string> lines)
 {
   Section* section = GetOrCreateSection(section_name);
   section->SetLines(std::move(lines));
 }
 
-bool IniFile::DeleteKey(std::string_view section_name, std::string_view key)
+bool IniFile::DeleteKey(const std::string_view section_name, const std::string_view key)
 {
   Section* section = GetSection(section_name);
   if (!section)
@@ -206,7 +206,7 @@ bool IniFile::DeleteKey(std::string_view section_name, std::string_view key)
 }
 
 // Return a list of all keys in a section
-bool IniFile::GetKeys(std::string_view section_name, std::vector<std::string>* keys) const
+bool IniFile::GetKeys(const std::string_view section_name, std::vector<std::string>* keys) const
 {
   const Section* section = GetSection(section_name);
   if (!section)
@@ -218,7 +218,7 @@ bool IniFile::GetKeys(std::string_view section_name, std::vector<std::string>* k
 }
 
 // Return a list of all lines in a section
-bool IniFile::GetLines(std::string_view section_name, std::vector<std::string>* lines,
+bool IniFile::GetLines(const std::string_view section_name, std::vector<std::string>* lines,
                        const bool remove_comments) const
 {
   lines->clear();
@@ -235,7 +235,7 @@ void IniFile::SortSections()
   sections.sort();
 }
 
-bool IniFile::Load(const std::string& filename, bool keep_current_data)
+bool IniFile::Load(const std::string& filename, const bool keep_current_data)
 {
   if (!keep_current_data)
     sections.clear();

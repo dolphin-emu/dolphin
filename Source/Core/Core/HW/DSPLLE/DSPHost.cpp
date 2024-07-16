@@ -27,31 +27,31 @@
 
 namespace DSP::Host
 {
-u8 ReadHostMemory(u32 addr)
+u8 ReadHostMemory(const u32 addr)
 {
   return Core::System::GetInstance().GetDSP().ReadARAM(addr);
 }
 
-void WriteHostMemory(u8 value, u32 addr)
+void WriteHostMemory(const u8 value, const u32 addr)
 {
   Core::System::GetInstance().GetDSP().WriteARAM(value, addr);
 }
 
-void DMAToDSP(u16* dst, u32 addr, u32 size)
+void DMAToDSP(u16* dst, const u32 addr, const u32 size)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyFromEmuSwapped(dst, addr, size);
 }
 
-void DMAFromDSP(const u16* src, u32 addr, u32 size)
+void DMAFromDSP(const u16* src, const u32 addr, const u32 size)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyToEmuSwapped(addr, src, size);
 }
 
-void OSD_AddMessage(std::string str, u32 ms)
+void OSD_AddMessage(std::string str, const u32 ms)
 {
   OSD::AddMessage(std::move(str), ms);
 }
@@ -72,14 +72,14 @@ void InterruptRequest()
   Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
 }
 
-void CodeLoaded(DSPCore& dsp, u32 addr, size_t size)
+void CodeLoaded(DSPCore& dsp, const u32 addr, const size_t size)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   CodeLoaded(dsp, memory.GetPointerForRange(addr, size), size);
 }
 
-void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
+void CodeLoaded(DSPCore& dsp, const u8* ptr, const size_t size)
 {
   auto& state = dsp.DSPState();
   const u32 iram_crc = Common::HashEctor(ptr, size);

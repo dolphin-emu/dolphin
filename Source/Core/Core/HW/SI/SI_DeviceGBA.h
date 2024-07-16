@@ -25,7 +25,7 @@ public:
 
   bool Connect();
   bool IsConnected();
-  void ClockSync(Core::System& system);
+  void ClockSync(const Core::System& system);
   void Send(const u8* si_buffer);
   int Receive(u8* si_buffer, u8 bytes);
   void Flush();

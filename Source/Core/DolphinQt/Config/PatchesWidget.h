@@ -41,7 +41,7 @@ private:
   void Update();
   void UpdateActions();
 
-  void OnItemChanged(QListWidgetItem*);
+  void OnItemChanged(const QListWidgetItem*);
   void OnAdd();
   void OnRemove();
   void OnEdit();

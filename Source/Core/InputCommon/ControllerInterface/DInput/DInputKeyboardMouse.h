@@ -38,7 +38,7 @@ private:
   class Key : public Input
   {
   public:
-    Key(u8 index, const BYTE& key) : m_key(key), m_index(index) {}
+    Key(const u8 index, const BYTE& key) : m_key(key), m_index(index) {}
     std::string GetName() const override;
     ControlState GetState() const override;
 
@@ -51,7 +51,7 @@ private:
   class Button : public Input
   {
   public:
-    Button(u8 index, const BYTE& button) : m_button(button), m_index(index) {}
+    Button(const u8 index, const BYTE& button) : m_button(button), m_index(index) {}
     std::string GetName() const override;
     ControlState GetState() const override;
 
@@ -64,7 +64,7 @@ private:
   class Axis : public Input
   {
   public:
-    Axis(u8 index, const LONG& axis, LONG range) : m_axis(axis), m_range(range), m_index(index) {}
+    Axis(const u8 index, const LONG& axis, const LONG range) : m_axis(axis), m_range(range), m_index(index) {}
     std::string GetName() const override;
     bool IsDetectable() const override { return false; }
     ControlState GetState() const override;
@@ -79,7 +79,7 @@ private:
   class Cursor : public Input
   {
   public:
-    Cursor(u8 index, const ControlState& axis, const bool positive)
+    Cursor(const u8 index, const ControlState& axis, const bool positive)
         : m_axis(axis), m_index(index), m_positive(positive)
     {
     }

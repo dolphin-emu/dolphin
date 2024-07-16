@@ -37,7 +37,7 @@ DXContext::~DXContext()
     CloseHandle(m_fence_event);
 }
 
-std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
+std::vector<u32> DXContext::GetAAModes(const u32 adapter_index)
 {
   // Use a temporary device if we aren't booting.
   Common::DynamicLibrary temp_lib;
@@ -86,7 +86,7 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
   return aa_modes;
 }
 
-bool DXContext::SupportsTextureFormat(DXGI_FORMAT format)
+bool DXContext::SupportsTextureFormat(const DXGI_FORMAT format)
 {
   constexpr u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_TEXTURECUBE |
                            D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;
@@ -97,7 +97,7 @@ bool DXContext::SupportsTextureFormat(DXGI_FORMAT format)
          (support.Support1 & required) == required;
 }
 
-bool DXContext::Create(u32 adapter_index, bool enable_debug_layer)
+bool DXContext::Create(const u32 adapter_index, const bool enable_debug_layer)
 {
   ASSERT(!g_dx_context);
   if (!s_d3d12_library.Open("d3d12.dll") ||
@@ -146,13 +146,13 @@ void DXContext::Destroy()
   D3DCommon::UnloadLibraries();
 }
 
-bool DXContext::CreateDXGIFactory(bool enable_debug_layer)
+bool DXContext::CreateDXGIFactory(const bool enable_debug_layer)
 {
   m_dxgi_factory = D3DCommon::CreateDXGIFactory(enable_debug_layer);
   return m_dxgi_factory != nullptr;
 }
 
-bool DXContext::CreateDevice(u32 adapter_index, bool enable_debug_layer)
+bool DXContext::CreateDevice(const u32 adapter_index, bool enable_debug_layer)
 {
   ComPtr<IDXGIAdapter> adapter;
   HRESULT hr = m_dxgi_factory->EnumAdapters(adapter_index, &adapter);
@@ -267,8 +267,8 @@ bool DXContext::CreateDescriptorHeaps()
   return true;
 }
 
-static void SetRootParamConstant(D3D12_ROOT_PARAMETER* rp, u32 shader_reg, u32 num_values,
-                                 D3D12_SHADER_VISIBILITY visibility)
+static void SetRootParamConstant(D3D12_ROOT_PARAMETER* rp, const u32 shader_reg, const u32 num_values,
+                                 const D3D12_SHADER_VISIBILITY visibility)
 {
   rp->ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
   rp->Constants.Num32BitValues = num_values;
@@ -277,8 +277,8 @@ static void SetRootParamConstant(D3D12_ROOT_PARAMETER* rp, u32 shader_reg, u32 n
   rp->ShaderVisibility = visibility;
 }
 
-static void SetRootParamCBV(D3D12_ROOT_PARAMETER* rp, u32 shader_reg,
-                            D3D12_SHADER_VISIBILITY visibility)
+static void SetRootParamCBV(D3D12_ROOT_PARAMETER* rp, const u32 shader_reg,
+                            const D3D12_SHADER_VISIBILITY visibility)
 {
   rp->ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
   rp->Descriptor.ShaderRegister = shader_reg;
@@ -287,8 +287,8 @@ static void SetRootParamCBV(D3D12_ROOT_PARAMETER* rp, u32 shader_reg,
 }
 
 static void SetRootParamTable(D3D12_ROOT_PARAMETER* rp, D3D12_DESCRIPTOR_RANGE* dr,
-                              D3D12_DESCRIPTOR_RANGE_TYPE rt, u32 start_shader_reg,
-                              u32 num_shader_regs, D3D12_SHADER_VISIBILITY visibility)
+                              const D3D12_DESCRIPTOR_RANGE_TYPE rt, const u32 start_shader_reg,
+                              const u32 num_shader_regs, const D3D12_SHADER_VISIBILITY visibility)
 {
   dr->RangeType = rt;
   dr->NumDescriptors = num_shader_regs;
@@ -303,7 +303,7 @@ static void SetRootParamTable(D3D12_ROOT_PARAMETER* rp, D3D12_DESCRIPTOR_RANGE* 
 }
 
 static bool BuildRootSignature(ID3D12Device* device, ID3D12RootSignature** sig_ptr,
-                               const D3D12_ROOT_PARAMETER* params, u32 num_params)
+                               const D3D12_ROOT_PARAMETER* params, const u32 num_params)
 {
   D3D12_ROOT_SIGNATURE_DESC desc = {};
   desc.pParameters = params;
@@ -497,7 +497,7 @@ void DXContext::MoveToNextCommandList()
   res.ready_fence_value = m_current_fence_value;
 }
 
-void DXContext::ExecuteCommandList(bool wait_for_completion)
+void DXContext::ExecuteCommandList(const bool wait_for_completion)
 {
   CommandListResources& res = m_command_lists[m_current_command_list];
 
@@ -553,7 +553,7 @@ void DXContext::DestroyPendingResources(CommandListResources& cmdlist)
   cmdlist.pending_resources.clear();
 }
 
-void DXContext::WaitForFence(u64 fence)
+void DXContext::WaitForFence(const u64 fence)
 {
   if (m_completed_fence_value >= fence)
     return;

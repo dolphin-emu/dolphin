@@ -86,7 +86,7 @@ std::optional<IPCReply> USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
+s32 USB_HIDv5::SubmitTransfer(const USBV5Device& device, USB::Device& host_device,
                               const IOCtlVRequest& ioctlv)
 {
   switch (ioctlv.request)
@@ -117,7 +117,7 @@ s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
   }
 }
 
-IPCReply USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_HIDv5::CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -144,7 +144,7 @@ IPCReply USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlRequest& requ
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_HIDv5::GetDeviceInfo(const USBV5Device& device, const IOCtlRequest& request)
 {
   if (request.buffer_out == 0 || request.buffer_out_size != 0x60)
     return IPCReply(IPC_EINVAL);

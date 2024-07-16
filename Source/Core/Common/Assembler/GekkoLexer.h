@@ -100,7 +100,7 @@ public:
   };
 
 public:
-  explicit Lexer(std::string_view str)
+  explicit Lexer(const std::string_view str)
       : m_lex_string(str), m_match_rule(IdentifierMatchRule::Typical)
   {
   }

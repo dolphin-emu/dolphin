@@ -15,13 +15,13 @@ enum class ProgramExceptionCause : u32
   Trap = 1 << (31 - 14),
 };
 
-inline void GenerateAlignmentException(PowerPC::PowerPCState& ppc_state, u32 address)
+inline void GenerateAlignmentException(PowerPC::PowerPCState& ppc_state, const u32 address)
 {
   ppc_state.Exceptions |= EXCEPTION_ALIGNMENT;
   ppc_state.spr[SPR_DAR] = address;
 }
 
-inline void GenerateDSIException(PowerPC::PowerPCState& ppc_state, u32 address)
+inline void GenerateDSIException(PowerPC::PowerPCState& ppc_state, const u32 address)
 {
   ppc_state.Exceptions |= EXCEPTION_DSI;
   ppc_state.spr[SPR_DAR] = address;

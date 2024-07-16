@@ -25,7 +25,7 @@ RegisterDisplay RegisterColumn::GetDisplay() const
   return m_display;
 }
 
-void RegisterColumn::SetDisplay(RegisterDisplay display)
+void RegisterColumn::SetDisplay(const RegisterDisplay display)
 {
   m_display = display;
   Update();

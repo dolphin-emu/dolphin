@@ -71,7 +71,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 namespace SystemTimers
 {
 // DSP/CPU timeslicing.
-void SystemTimersManager::DSPCallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::DSPCallback(const Core::System& system, u64 userdata, const s64 cycles_late)
 {
   // splits up the cycle budget in case lle is used
   // for hle, just gives all of the slice to hle
@@ -81,14 +81,14 @@ void SystemTimersManager::DSPCallback(Core::System& system, u64 userdata, s64 cy
                                        system.GetSystemTimers().m_event_type_dsp);
 }
 
-static int GetAudioDMACallbackPeriod(u32 cpu_core_clock, u32 aid_sample_rate_divisor)
+static int GetAudioDMACallbackPeriod(const u32 cpu_core_clock, const u32 aid_sample_rate_divisor)
 {
   // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
   return static_cast<u64>(cpu_core_clock) * aid_sample_rate_divisor /
          (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
 }
 
-void SystemTimersManager::AudioDMACallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::AudioDMACallback(const Core::System& system, u64 userdata, const s64 cycles_late)
 {
   system.GetDSP().UpdateAudioDMA();  // Push audio to speakers.
   auto& system_timers = system.GetSystemTimers();
@@ -98,8 +98,8 @@ void SystemTimersManager::AudioDMACallback(Core::System& system, u64 userdata, s
                                        system_timers.m_event_type_audio_dma);
 }
 
-void SystemTimersManager::IPC_HLE_UpdateCallback(Core::System& system, u64 userdata,
-                                                 s64 cycles_late)
+void SystemTimersManager::IPC_HLE_UpdateCallback(const Core::System& system, u64 userdata,
+                                                 const s64 cycles_late)
 {
   if (system.IsWii())
   {
@@ -110,7 +110,7 @@ void SystemTimersManager::IPC_HLE_UpdateCallback(Core::System& system, u64 userd
   }
 }
 
-void SystemTimersManager::GPUSleepCallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::GPUSleepCallback(const Core::System& system, u64 userdata, const s64 cycles_late)
 {
   auto& core_timing = system.GetCoreTiming();
   system.GetFifo().GpuMaySleep();
@@ -122,7 +122,7 @@ void SystemTimersManager::GPUSleepCallback(Core::System& system, u64 userdata, s
                             system_timers.m_event_type_gpu_sleeper);
 }
 
-void SystemTimersManager::PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::PerfTrackerCallback(Core::System& system, u64 userdata, const s64 cycles_late)
 {
   auto& core_timing = system.GetCoreTiming();
   g_perf_metrics.CountPerformanceMarker(system, cycles_late);
@@ -135,7 +135,7 @@ void SystemTimersManager::PerfTrackerCallback(Core::System& system, u64 userdata
                             system_timers.m_event_type_perf_tracker);
 }
 
-void SystemTimersManager::VICallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::VICallback(const Core::System& system, u64 userdata, const s64 cycles_late)
 {
   auto& core_timing = system.GetCoreTiming();
   auto& vi = system.GetVideoInterface();
@@ -144,14 +144,14 @@ void SystemTimersManager::VICallback(Core::System& system, u64 userdata, s64 cyc
                             system.GetSystemTimers().m_event_type_vi);
 }
 
-void SystemTimersManager::DecrementerCallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::DecrementerCallback(const Core::System& system, u64 userdata, s64 cycles_late)
 {
   auto& ppc_state = system.GetPPCState();
   ppc_state.spr[SPR_DEC] = 0xFFFFFFFF;
   ppc_state.Exceptions |= EXCEPTION_DECREMENTER;
 }
 
-void SystemTimersManager::PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::PatchEngineCallback(Core::System& system, const u64 userdata, const s64 cycles_late)
 {
   // We have 2 periods, a 1000 cycle error period and the VI period.
   // We have to carefully combine these together so that we stay on the VI period without drifting.
@@ -243,7 +243,7 @@ void SystemTimersManager::PreInit()
   ChangePPCClock(m_system.IsWii() ? Mode::Wii : Mode::GC);
 }
 
-void SystemTimersManager::ChangePPCClock(Mode mode)
+void SystemTimersManager::ChangePPCClock(const Mode mode)
 {
   const u32 previous_clock = m_cpu_core_clock;
   if (mode == Mode::Wii)

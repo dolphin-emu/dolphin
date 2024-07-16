@@ -41,7 +41,7 @@ signals:
 
 private:
   void OnSelectionChanged();
-  void OnItemChanged(QListWidgetItem* item);
+  void OnItemChanged(const QListWidgetItem* item);
   void OnListReordered();
   void OnContextMenuRequested();
 

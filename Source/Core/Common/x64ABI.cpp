@@ -10,7 +10,7 @@ using namespace Gen;
 
 // Shared code between Win64 and Unix64
 
-void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
+void XEmitter::ABI_CalculateFrameSize(const BitSet32 mask, size_t rsp_alignment, const size_t needed_frame_size,
                                       size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp)
 {
   size_t shadow = 0;
@@ -40,8 +40,8 @@ void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_
   *xmm_offsetp = subtraction - xmm_base_subtraction;
 }
 
-size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
-                                                 size_t needed_frame_size)
+size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, const size_t rsp_alignment,
+                                                 const size_t needed_frame_size)
 {
   mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
@@ -69,8 +69,8 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_align
   return shadow;
 }
 
-void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
-                                              size_t needed_frame_size)
+void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, const size_t rsp_alignment,
+                                              const size_t needed_frame_size)
 {
   mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
@@ -96,8 +96,8 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignmen
     POP(RBP);
 }
 
-void XEmitter::MOVTwo(int bits, X64Reg dst1, X64Reg src1, s32 offset1, X64Reg dst2,
-                      X64Reg src2)
+void XEmitter::MOVTwo(const int bits, const X64Reg dst1, const X64Reg src1, const s32 offset1, const X64Reg dst2,
+                      const X64Reg src2)
 {
   if (dst1 == src2 && dst2 == src1)
   {

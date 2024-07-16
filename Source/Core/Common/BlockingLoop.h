@@ -123,7 +123,7 @@ public:
   // The optional timeout parameter is a timeout for how periodically the payload should be called.
   // Use timeout = 0 to run without a timeout at all.
   template <class F>
-  void Run(F payload, int64_t timeout = 0)
+  void Run(F payload, const int64_t timeout = 0)
   {
     // Asserts that Prepare is called at least once before we enter the loop.
     // But a good implementation should call this before already.
@@ -200,7 +200,7 @@ public:
   // Quits the main loop.
   // By default, it will wait until the main loop quits.
   // Be careful to not use the blocking way within the payload of the Run() method.
-  void Stop(StopMode mode = StopMode::Block)
+  void Stop(const StopMode mode = StopMode::Block)
   {
     if (m_stopped.IsSet())
       return;

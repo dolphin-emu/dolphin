@@ -173,11 +173,11 @@ private:
     bool is_partition;
     u8 partition_data_index;
 
-    DataEntry(size_t index_)
+    DataEntry(const size_t index_)
         : index(static_cast<u32>(index_)), is_partition(false), partition_data_index(0)
     {
     }
-    DataEntry(size_t index_, size_t partition_data_index_)
+    DataEntry(const size_t index_, const size_t partition_data_index_)
         : index(static_cast<u32>(index_)), is_partition(true),
           partition_data_index(static_cast<u8>(partition_data_index_))
     {

@@ -31,7 +31,7 @@ WidescreenManager::WidescreenManager()
   }
 
   m_config_changed = ConfigChangedEvent::Register(
-      [this](u32 bits) {
+      [this](const u32 bits) {
         if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
         {
           std::optional<bool> is_game_widescreen = GetWidescreenOverride();

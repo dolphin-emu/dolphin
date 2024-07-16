@@ -114,7 +114,7 @@ void DSPEmitter::WriteBranchExit()
   m_gpr.FlushRegs(c, false);
 }
 
-void DSPEmitter::WriteBlockLink(u16 dest)
+void DSPEmitter::WriteBlockLink(const u16 dest)
 {
   // Jump directly to the called block if it has already been compiled.
   if (!(dest >= m_start_address && dest <= m_compile_pc))

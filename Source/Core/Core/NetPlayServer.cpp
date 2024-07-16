@@ -176,7 +176,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
   }
 }
 
-static PlayerId* PeerPlayerId(ENetPeer* peer)
+static PlayerId* PeerPlayerId(const ENetPeer* peer)
 {
   return static_cast<PlayerId*>(peer->data);
 }
@@ -601,7 +601,7 @@ void NetPlayServer::SetPadMapping(const PadMappingArray& mappings)
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, bool update_rom)
+void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, const bool update_rom)
 {
 #ifdef HAS_LIBMGBA
   m_gba_config = mappings;
@@ -666,7 +666,7 @@ void NetPlayServer::UpdateWiimoteMapping()
 }
 
 // called from ---GUI--- thread and ---NETPLAY--- thread
-void NetPlayServer::AdjustPadBufferSize(unsigned int size)
+void NetPlayServer::AdjustPadBufferSize(const unsigned int size)
 {
   std::lock_guard lkg(m_crit.game);
 
@@ -1058,14 +1058,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       // we have all records for this frame
 
-      if (!std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> pair) {
+      if (!std::all_of(timebases.begin(), timebases.end(), [&](const std::pair<PlayerId, u64> pair) {
             return pair.second == timebases[0].second;
           }))
       {
         int pid_to_blame = 0;
         for (auto pair : timebases)
         {
-          if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
+          if (std::all_of(timebases.begin(), timebases.end(), [&](const std::pair<PlayerId, u64> other) {
                 return other.first == pair.first || other.second != pair.second;
               }))
           {
@@ -1269,7 +1269,7 @@ void NetPlayServer::OnTraversalStateChanged()
   m_dialog->OnTraversalStateChanged(state);
 }
 
-void NetPlayServer::OnTtlDetermined(u8 ttl)
+void NetPlayServer::OnTtlDetermined(const u8 ttl)
 {
   m_dialog->OnTtlDetermined(ttl);
 }
@@ -2206,7 +2206,7 @@ void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 ch
   Common::ENet::SendPacket(socket, packet, channel_id);
 }
 
-void NetPlayServer::KickPlayer(PlayerId player)
+void NetPlayServer::KickPlayer(const PlayerId player)
 {
   for (auto& current_player : m_players)
   {

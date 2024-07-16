@@ -301,8 +301,8 @@ const FileSystem* VolumeWii::GetFileSystem(const Partition& partition) const
   return it != m_partitions.end() ? it->second.file_system->get() : nullptr;
 }
 
-u64 VolumeWii::OffsetInHashedPartitionToRawOffset(u64 offset, const Partition& partition,
-                                                  u64 partition_data_offset)
+u64 VolumeWii::OffsetInHashedPartitionToRawOffset(const u64 offset, const Partition& partition,
+                                                  const u64 partition_data_offset)
 {
   if (partition == PARTITION_NONE)
     return offset;
@@ -311,7 +311,7 @@ u64 VolumeWii::OffsetInHashedPartitionToRawOffset(u64 offset, const Partition& p
          (offset % BLOCK_DATA_SIZE);
 }
 
-u64 VolumeWii::PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
+u64 VolumeWii::PartitionOffsetToRawOffset(const u64 offset, const Partition& partition) const
 {
   auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
@@ -434,7 +434,7 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
   return Common::SHA1::CalculateDigest(h3_table) == contents[0].sha1;
 }
 
-bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
+bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_data,
                                     const Partition& partition) const
 {
   auto it = m_partitions.find(partition);
@@ -493,7 +493,7 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
   return true;
 }
 
-bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition) const
+bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const Partition& partition) const
 {
   auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
@@ -580,7 +580,7 @@ bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GR
 }
 
 bool VolumeWii::EncryptGroup(
-    u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
+    const u64 offset, const u64 partition_data_offset, const u64 partition_data_decrypted_size,
     const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
     std::array<u8, GROUP_TOTAL_SIZE>* out,
     const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>& hash_exception_callback)
@@ -589,7 +589,7 @@ bool VolumeWii::EncryptGroup(
   std::vector<HashBlock> unencrypted_hashes(BLOCKS_PER_GROUP);
 
   const bool success =
-      HashGroup(unencrypted_data.data(), unencrypted_hashes.data(), [&](size_t block) {
+      HashGroup(unencrypted_data.data(), unencrypted_hashes.data(), [&](const size_t block) {
         if (offset + (block + 1) * BLOCK_DATA_SIZE <= partition_data_decrypted_size)
         {
           if (!blob->ReadWiiDecrypted(offset + block * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE,
@@ -622,7 +622,7 @@ bool VolumeWii::EncryptGroup(
   {
     encryption_futures[i] = std::async(
         std::launch::async,
-        [&unencrypted_data, &unencrypted_hashes, &aes_context, &out](size_t start, size_t end) {
+        [&unencrypted_data, &unencrypted_hashes, &aes_context, &out](const size_t start, const size_t end) {
           for (size_t j = start; j < end; ++j)
           {
             u8* out_ptr = out->data() + j * BLOCK_TOTAL_SIZE;
@@ -643,12 +643,12 @@ bool VolumeWii::EncryptGroup(
   return true;
 }
 
-void VolumeWii::DecryptBlockHashes(const u8* in, HashBlock* out, Common::AES::Context* aes_context)
+void VolumeWii::DecryptBlockHashes(const u8* in, HashBlock* out, const Common::AES::Context* aes_context)
 {
   aes_context->CryptIvZero(in, reinterpret_cast<u8*>(out), sizeof(HashBlock));
 }
 
-void VolumeWii::DecryptBlockData(const u8* in, u8* out, Common::AES::Context* aes_context)
+void VolumeWii::DecryptBlockData(const u8* in, u8* out, const Common::AES::Context* aes_context)
 {
   aes_context->Crypt(&in[0x3d0], &in[sizeof(HashBlock)], out, BLOCK_DATA_SIZE);
 }

@@ -362,7 +362,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
     single_store_quantized[type] = GenQuantizedStoreRuntime(true, static_cast<EQuantizeType>(type));
 }
 
-const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType type)
+const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, const EQuantizeType type)
 {
   const void* start = GetCodePtr();
   const u8* load = AlignCode4();
@@ -394,7 +394,7 @@ void CommonAsmRoutines::GenQuantizedSingleLoads()
     single_load_quantized[type] = GenQuantizedLoadRuntime(true, static_cast<EQuantizeType>(type));
 }
 
-const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType type)
+const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, const EQuantizeType type)
 {
   const void* start = GetCodePtr();
   const u8* load = AlignCode4();
@@ -406,7 +406,7 @@ const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType 
   return load;
 }
 
-void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type, int quantize)
+void QuantizedMemoryRoutines::GenQuantizedStore(const bool single, const EQuantizeType type, const int quantize)
 {
   // In: one or two single floats in XMM0, if quantize is -1, a quantization factor in RSCRATCH2
 
@@ -543,7 +543,7 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
   SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, size, 0, QUANTIZED_REGS_TO_SAVE, flags);
 }
 
-void QuantizedMemoryRoutines::GenQuantizedStoreFloat(bool single, bool isInline)
+void QuantizedMemoryRoutines::GenQuantizedStoreFloat(const bool single, bool isInline)
 {
   if (single)
   {
@@ -566,7 +566,7 @@ void QuantizedMemoryRoutines::GenQuantizedStoreFloat(bool single, bool isInline)
   }
 }
 
-void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, int quantize)
+void QuantizedMemoryRoutines::GenQuantizedLoad(const bool single, const EQuantizeType type, const int quantize)
 {
   // Note that this method assumes that inline methods know the value of quantize ahead of
   // time. The methods generated AOT assume that the quantize flag is placed in RSCRATCH in
@@ -694,7 +694,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
   }
 }
 
-void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
+void QuantizedMemoryRoutines::GenQuantizedLoadFloat(const bool single, const bool isInline)
 {
   int size = single ? 32 : 64;
   bool extend = false;

@@ -58,7 +58,7 @@ public:
                     b->m_vertex_size, b->m_native_components, b->m_native_vtx_decl.stride);
     }
   }
-  int RunVertices(const u8* src, u8* dst, int count) override
+  int RunVertices(const u8* src, u8* dst, const int count) override
   {
     buffer_a.resize(count * a->m_native_vtx_decl.stride + 4);
     buffer_b.resize(count * b->m_native_vtx_decl.stride + 4);
@@ -112,7 +112,7 @@ public:
 
     // Some games (e.g. Donkey Kong Country Returns) have a few draws that contain NaN.
     // Since NaN != NaN, we need to compare the bits instead.
-    const auto bit_equal = [](float val_a, float val_b) {
+    const auto bit_equal = [](const float val_a, const float val_b) {
       return std::bit_cast<u32>(val_a) == std::bit_cast<u32>(val_b);
     };
 

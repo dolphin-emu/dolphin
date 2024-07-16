@@ -206,7 +206,7 @@ struct InputReportStatus
   {
     return battery * BATTERY_LEVEL_M / BATTERY_MAX + BATTERY_LEVEL_B;
   }
-  void SetEstimatedCharge(float charge)
+  void SetEstimatedCharge(const float charge)
   {
     battery = u8(std::lround((charge - BATTERY_LEVEL_B) / BATTERY_LEVEL_M * BATTERY_MAX));
   }
@@ -257,22 +257,22 @@ struct AccelCalibrationPoint
   u16 GetZ() const { return z2 << 2 | z1; }
   auto Get() const { return AccelType{GetX(), GetY(), GetZ()}; }
 
-  void SetX(u16 x)
+  void SetX(const u16 x)
   {
     x2 = x >> 2;
     x1 = x;
   }
-  void SetY(u16 y)
+  void SetY(const u16 y)
   {
     y2 = y >> 2;
     y1 = y;
   }
-  void SetZ(u16 z)
+  void SetZ(const u16 z)
   {
     z2 = z >> 2;
     z1 = z;
   }
-  void Set(AccelType accel)
+  void Set(const AccelType accel)
   {
     SetX(accel.x);
     SetY(accel.y);

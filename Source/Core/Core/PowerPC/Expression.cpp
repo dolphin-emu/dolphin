@@ -40,49 +40,49 @@ template <typename T>
 static void HostWrite(const Core::CPUThreadGuard& guard, T var, u32 address);
 
 template <>
-u8 HostRead(const Core::CPUThreadGuard& guard, u32 address)
+u8 HostRead(const Core::CPUThreadGuard& guard, const u32 address)
 {
   return PowerPC::MMU::HostRead_U8(guard, address);
 }
 
 template <>
-u16 HostRead(const Core::CPUThreadGuard& guard, u32 address)
+u16 HostRead(const Core::CPUThreadGuard& guard, const u32 address)
 {
   return PowerPC::MMU::HostRead_U16(guard, address);
 }
 
 template <>
-u32 HostRead(const Core::CPUThreadGuard& guard, u32 address)
+u32 HostRead(const Core::CPUThreadGuard& guard, const u32 address)
 {
   return PowerPC::MMU::HostRead_U32(guard, address);
 }
 
 template <>
-u64 HostRead(const Core::CPUThreadGuard& guard, u32 address)
+u64 HostRead(const Core::CPUThreadGuard& guard, const u32 address)
 {
   return PowerPC::MMU::HostRead_U64(guard, address);
 }
 
 template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u8 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, const u8 var, const u32 address)
 {
   PowerPC::MMU::HostWrite_U8(guard, var, address);
 }
 
 template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u16 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, const u16 var, const u32 address)
 {
   PowerPC::MMU::HostWrite_U16(guard, var, address);
 }
 
 template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u32 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
   PowerPC::MMU::HostWrite_U32(guard, var, address);
 }
 
 template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u64 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, const u64 var, const u32 address)
 {
   PowerPC::MMU::HostWrite_U64(guard, var, address);
 }
@@ -119,7 +119,7 @@ static double CastFunc(expr_func* f, vec_expr_t* args, void* c)
   return std::bit_cast<T>(static_cast<U>(expr_eval(&vec_nth(args, 0))));
 }
 
-static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
+static double CallstackFunc(expr_func* f, const vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 1)
     return 0;
@@ -168,7 +168,7 @@ static std::optional<std::string> ReadStringArg(const Core::CPUThreadGuard& guar
   return std::nullopt;
 }
 
-static double StreqFunc(expr_func* f, vec_expr_t* args, void* c)
+static double StreqFunc(expr_func* f, const vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 2)
     return 0;
@@ -227,7 +227,7 @@ void ExprVarListDeleter::operator()(expr_var_list* vars) const
   delete vars;
 }
 
-Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer vars)
+Expression::Expression(const std::string_view text, ExprPointer ex, ExprVarListPointer vars)
     : m_text(text), m_expr(std::move(ex)), m_vars(std::move(vars))
 {
   using LookupKV = std::pair<std::string_view, VarBinding>;
@@ -401,7 +401,7 @@ Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer
   }
 }
 
-std::optional<Expression> Expression::TryParse(std::string_view text)
+std::optional<Expression> Expression::TryParse(const std::string_view text)
 {
   ExprVarListPointer vars{new expr_var_list{}};
   ExprPointer ex{expr_create(text.data(), text.length(), vars.get(), g_expr_funcs.data())};
@@ -424,7 +424,7 @@ double Expression::Evaluate(Core::System& system) const
   return result;
 }
 
-void Expression::SynchronizeBindings(Core::System& system, SynchronizeDirection dir) const
+void Expression::SynchronizeBindings(const Core::System& system, const SynchronizeDirection dir) const
 {
   auto& ppc_state = system.GetPPCState();
   auto bind = m_binds.begin();

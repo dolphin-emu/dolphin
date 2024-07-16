@@ -24,7 +24,7 @@
 
 namespace Common
 {
-u32 HashAdler32(const u8* data, size_t len)
+u32 HashAdler32(const u8* data, const size_t len)
 {
   // Use fast implementation from zlib-ng
   return adler32_z(1, data, len);
@@ -32,7 +32,7 @@ u32 HashAdler32(const u8* data, size_t len)
 
 // Stupid hash - but can't go back now :)
 // Don't use for new things. At least it's reasonably fast.
-u32 HashEctor(const u8* data, size_t len)
+u32 HashEctor(const u8* data, const size_t len)
 {
   u32 crc = 0;
 
@@ -51,7 +51,7 @@ u32 HashEctor(const u8* data, size_t len)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-static u64 getblock(const u64* p, int i)
+static u64 getblock(const u64* p, const int i)
 {
   return p[i];
 }
@@ -96,7 +96,7 @@ static u64 fmix64(u64 k)
   return k;
 }
 
-static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
+static u64 GetMurmurHash3(const u8* src, const u32 len, u32 samples)
 {
   const u8* data = (const u8*)src;
   const int nblocks = len / 16;
@@ -321,7 +321,7 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 #if defined(_M_X86_64)
 
 FUNCTION_TARGET_SSE42
-static u64 GetHash64_SSE42_CRC32(const u8* src, u32 len, u32 samples)
+static u64 GetHash64_SSE42_CRC32(const u8* src, const u32 len, u32 samples)
 {
   u64 h[4] = {len, 0, 0, 0};
   u32 Step = (len / 8);
@@ -405,7 +405,7 @@ using TextureHashFunction = u64 (*)(const u8* src, u32 len, u32 samples);
 static u64 SetHash64Function(const u8* src, u32 len, u32 samples);
 static TextureHashFunction s_texture_hash_func = SetHash64Function;
 
-static u64 SetHash64Function(const u8* src, u32 len, u32 samples)
+static u64 SetHash64Function(const u8* src, const u32 len, const u32 samples)
 {
   if (cpu_info.bCRC32)
   {
@@ -422,7 +422,7 @@ static u64 SetHash64Function(const u8* src, u32 len, u32 samples)
   return s_texture_hash_func(src, len, samples);
 }
 
-u64 GetHash64(const u8* src, u32 len, u32 samples)
+u64 GetHash64(const u8* src, const u32 len, const u32 samples)
 {
   return s_texture_hash_func(src, len, samples);
 }
@@ -432,17 +432,17 @@ u32 StartCRC32()
   return crc32_z(0L, Z_NULL, 0);
 }
 
-u32 UpdateCRC32(u32 crc, const u8* data, size_t len)
+u32 UpdateCRC32(const u32 crc, const u8* data, const size_t len)
 {
   return crc32_z(crc, data, len);
 }
 
-u32 ComputeCRC32(const u8* data, size_t len)
+u32 ComputeCRC32(const u8* data, const size_t len)
 {
   return UpdateCRC32(StartCRC32(), data, len);
 }
 
-u32 ComputeCRC32(std::string_view data)
+u32 ComputeCRC32(const std::string_view data)
 {
   return ComputeCRC32(reinterpret_cast<const u8*>(data.data()), data.size());
 }

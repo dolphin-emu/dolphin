@@ -62,7 +62,7 @@ u32 SwapChain::GetSwapChainFlags() const
   return m_allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 }
 
-bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
+bool SwapChain::CreateSwapChain(const bool stereo, bool hdr)
 {
   RECT client_rc;
   if (GetClientRect(static_cast<HWND>(m_wsi.render_surface), &client_rc))
@@ -229,7 +229,7 @@ bool SwapChain::ResizeSwapChain()
   return CreateSwapChainBuffers();
 }
 
-void SwapChain::SetStereo(bool stereo)
+void SwapChain::SetStereo(const bool stereo)
 {
   if (m_stereo == stereo)
     return;
@@ -243,7 +243,7 @@ void SwapChain::SetStereo(bool stereo)
   }
 }
 
-void SwapChain::SetHDR(bool hdr)
+void SwapChain::SetHDR(const bool hdr)
 {
   if (m_hdr == hdr)
     return;
@@ -265,7 +265,7 @@ bool SwapChain::GetFullscreen() const
   return GetFullscreenState(m_swap_chain.Get());
 }
 
-void SwapChain::SetFullscreen(bool request)
+void SwapChain::SetFullscreen(const bool request)
 {
   m_swap_chain->SetFullscreenState(request, nullptr);
 }

@@ -124,7 +124,7 @@ void SHADER::SetProgramVariables()
   glUseProgram(CurrentProgram);
 }
 
-void SHADER::SetProgramBindings(bool is_compute)
+void SHADER::SetProgramBindings(const bool is_compute)
 {
   if (g_ogl_config.bSupportsExplicitLayoutInShader)
   {
@@ -283,7 +283,7 @@ void ProgramShaderCache::UploadConstants()
   }
 }
 
-void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
+void ProgramShaderCache::UploadConstants(const void* data, const u32 data_size)
 {
   // allocate and copy
   const u32 alloc_size = Common::AlignUp(data_size, s_ubo_align);
@@ -298,7 +298,7 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
 }
 
-bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view code)
+bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string_view code)
 {
   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
   // but not GLSL 4.3. Mesa is one example.
@@ -332,7 +332,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view c
   return true;
 }
 
-GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view code)
+GLuint ProgramShaderCache::CompileSingleShader(const GLenum type, std::string_view code)
 {
   const GLuint result = glCreateShader(type);
 
@@ -359,7 +359,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view cod
   return result;
 }
 
-bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code)
+bool ProgramShaderCache::CheckShaderCompileResult(const GLuint id, const GLenum type, const std::string_view code)
 {
   GLint compileStatus;
   glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
@@ -415,8 +415,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
   return true;
 }
 
-bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcode,
-                                                std::string_view pcode, std::string_view gcode)
+bool ProgramShaderCache::CheckProgramLinkResult(const GLuint id, const std::string_view vcode,
+                                                const std::string_view pcode, const std::string_view gcode)
 {
   GLint linkStatus;
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
@@ -543,7 +543,7 @@ void ProgramShaderCache::InvalidateVertexFormat()
   s_last_VAO = 0;
 }
 
-void ProgramShaderCache::InvalidateVertexFormatIfBound(GLuint vao)
+void ProgramShaderCache::InvalidateVertexFormatIfBound(const GLuint vao)
 {
   if (s_last_VAO == vao)
     s_last_VAO = 0;
@@ -559,7 +559,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
                                                         const OGLShader* geometry_shader,
                                                         const OGLShader* pixel_shader,
                                                         const void* cache_data,
-                                                        size_t cache_data_size)
+                                                        const size_t cache_data_size)
 {
   PipelineProgramKey key = {vertex_shader ? vertex_shader->GetID() : 0,
                             geometry_shader ? geometry_shader->GetID() : 0,

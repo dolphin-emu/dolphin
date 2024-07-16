@@ -18,7 +18,7 @@ const Info<WiimoteSource> WIIMOTE_4_SOURCE{{System::WiiPad, "Wiimote4", "Source"
 const Info<WiimoteSource> WIIMOTE_BB_SOURCE{{System::WiiPad, "BalanceBoard", "Source"},
                                             WiimoteSource::None};
 
-const Info<WiimoteSource>& GetInfoForWiimoteSource(int index)
+const Info<WiimoteSource>& GetInfoForWiimoteSource(const int index)
 {
   static const std::array<const Info<WiimoteSource>*, 5> infos{
       &WIIMOTE_1_SOURCE, &WIIMOTE_2_SOURCE,  &WIIMOTE_3_SOURCE,

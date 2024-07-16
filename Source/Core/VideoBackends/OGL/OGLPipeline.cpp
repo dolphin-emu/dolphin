@@ -12,7 +12,7 @@
 
 namespace OGL
 {
-static GLenum MapToGLPrimitive(PrimitiveType primitive_type)
+static GLenum MapToGLPrimitive(const PrimitiveType primitive_type)
 {
   switch (primitive_type)
   {
@@ -31,7 +31,7 @@ static GLenum MapToGLPrimitive(PrimitiveType primitive_type)
 OGLPipeline::OGLPipeline(const AbstractPipelineConfig& config, const GLVertexFormat* vertex_format,
                          const RasterizationState& rasterization_state,
                          const DepthState& depth_state, const BlendingState& blending_state,
-                         PipelineProgram* program, GLuint gl_primitive)
+                         PipelineProgram* program, const GLuint gl_primitive)
     : AbstractPipeline(config), m_vertex_format(vertex_format),
       m_rasterization_state(rasterization_state), m_depth_state(depth_state),
       m_blending_state(blending_state), m_program(program), m_gl_primitive(gl_primitive)
@@ -78,7 +78,7 @@ AbstractPipeline::CacheData OGLPipeline::GetCacheData() const
 }
 
 std::unique_ptr<OGLPipeline> OGLPipeline::Create(const AbstractPipelineConfig& config,
-                                                 const void* cache_data, size_t cache_data_size)
+                                                 const void* cache_data, const size_t cache_data_size)
 {
   PipelineProgram* program = ProgramShaderCache::GetPipelineProgram(
       static_cast<const GLVertexFormat*>(config.vertex_format),

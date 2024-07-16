@@ -40,7 +40,7 @@ TypeId operator|(TypeId l, TypeId r)
   return static_cast<TypeId>(static_cast<ut>(l) | static_cast<ut>(r));
 }
 
-void AppendBool(std::string* out, bool v)
+void AppendBool(std::string* out, const bool v)
 {
   out->push_back(v ? '\xFF' : '\x00');
 }
@@ -56,7 +56,7 @@ void AppendVarInt(std::string* out, u64 v)
   } while (v);
 }
 
-void AppendBytes(std::string* out, const u8* bytes, u32 length, bool encode_length = true)
+void AppendBytes(std::string* out, const u8* bytes, const u32 length, const bool encode_length = true)
 {
   if (encode_length)
   {
@@ -76,7 +76,7 @@ AnalyticsReportBuilder::AnalyticsReportBuilder()
   m_report.push_back(WIRE_FORMAT_VERSION);
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, std::string_view v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const std::string_view v)
 {
   AppendType(report, TypeId::STRING);
   AppendBytes(report, reinterpret_cast<const u8*>(v.data()), static_cast<u32>(v.size()));
@@ -91,31 +91,31 @@ void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const ch
   AppendSerializedValue(report, std::string_view(v));
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, bool v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const bool v)
 {
   AppendType(report, TypeId::BOOL);
   AppendBool(report, v);
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, u64 v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const u64 v)
 {
   AppendType(report, TypeId::UINT);
   AppendVarInt(report, v);
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, s64 v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const s64 v)
 {
   AppendType(report, TypeId::SINT);
   AppendBool(report, v >= 0);
   AppendVarInt(report, static_cast<u64>(std::abs(v)));
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, u32 v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const u32 v)
 {
   AppendSerializedValue(report, static_cast<u64>(v));
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, s32 v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const s32 v)
 {
   AppendSerializedValue(report, static_cast<s64>(v));
 }
@@ -196,7 +196,7 @@ void AnalyticsReporter::ThreadProc()
   }
 }
 
-void StdoutAnalyticsBackend::Send(std::string report)
+void StdoutAnalyticsBackend::Send(const std::string report)
 {
   printf("Analytics report sent:\n%s",
          HexDump(reinterpret_cast<const u8*>(report.data()), report.size()).c_str());
@@ -208,7 +208,7 @@ HttpAnalyticsBackend::HttpAnalyticsBackend(std::string endpoint) : m_endpoint(st
 
 HttpAnalyticsBackend::~HttpAnalyticsBackend() = default;
 
-void HttpAnalyticsBackend::Send(std::string report)
+void HttpAnalyticsBackend::Send(const std::string report)
 {
   if (m_http.IsValid())
     m_http.Post(m_endpoint, report);

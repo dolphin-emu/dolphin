@@ -71,7 +71,7 @@ void ForceFeedbackDevice::SignalUpdateThread()
   m_update_event.Set();
 }
 
-bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, int axis_count)
+bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, const int axis_count)
 {
   if (axis_count == 0)
     return false;
@@ -173,7 +173,7 @@ void ForceFeedbackDevice::TypedForce<P>::StopEffect()
 }
 
 template <>
-bool ForceFeedbackDevice::ForceConstant::UpdateParameters(int magnitude)
+bool ForceFeedbackDevice::ForceConstant::UpdateParameters(const int magnitude)
 {
   const auto old_magnitude = m_params.lMagnitude;
 
@@ -183,7 +183,7 @@ bool ForceFeedbackDevice::ForceConstant::UpdateParameters(int magnitude)
 }
 
 template <>
-bool ForceFeedbackDevice::ForceRamp::UpdateParameters(int magnitude)
+bool ForceFeedbackDevice::ForceRamp::UpdateParameters(const int magnitude)
 {
   const auto old_magnitude = m_params.lStart;
 
@@ -195,7 +195,7 @@ bool ForceFeedbackDevice::ForceRamp::UpdateParameters(int magnitude)
 }
 
 template <>
-bool ForceFeedbackDevice::ForcePeriodic::UpdateParameters(int magnitude)
+bool ForceFeedbackDevice::ForcePeriodic::UpdateParameters(const int magnitude)
 {
   const auto old_magnitude = m_params.dwMagnitude;
 
@@ -206,13 +206,13 @@ bool ForceFeedbackDevice::ForcePeriodic::UpdateParameters(int magnitude)
 
 template <typename P>
 ForceFeedbackDevice::TypedForce<P>::TypedForce(ForceFeedbackDevice* parent, const char* name,
-                                               LPDIRECTINPUTEFFECT effect, const P& params)
+                                               const LPDIRECTINPUTEFFECT effect, const P& params)
     : Force(parent, name, effect), m_params(params)
 {
 }
 
 template <typename P>
-void ForceFeedbackDevice::TypedForce<P>::UpdateEffect(int magnitude)
+void ForceFeedbackDevice::TypedForce<P>::UpdateEffect(const int magnitude)
 {
   if (UpdateParameters(magnitude))
   {
@@ -229,12 +229,12 @@ std::string ForceFeedbackDevice::Force::GetName() const
 }
 
 ForceFeedbackDevice::Force::Force(ForceFeedbackDevice* parent, const char* name,
-                                  LPDIRECTINPUTEFFECT effect)
+                                  const LPDIRECTINPUTEFFECT effect)
     : m_effect(effect), m_parent(*parent), m_name(name), m_desired_magnitude()
 {
 }
 
-void ForceFeedbackDevice::Force::SetState(ControlState state)
+void ForceFeedbackDevice::Force::SetState(const ControlState state)
 {
   const auto new_val = int(DI_FFNOMINALMAX * state);
 

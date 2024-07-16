@@ -69,7 +69,7 @@ public:
   const std::string& GetShader() const { return m_current_shader; }
   const std::string& GetShaderCode() const { return m_current_shader_code; }
   bool IsDirty() const { return m_any_options_dirty; }
-  void SetDirty(bool dirty) { m_any_options_dirty = dirty; }
+  void SetDirty(const bool dirty) { m_any_options_dirty = dirty; }
   bool HasOptions() const { return m_options.size() > 0; }
   const ConfigMap& GetOptions() const { return m_options; }
   ConfigMap& GetOptions() { return m_options; }

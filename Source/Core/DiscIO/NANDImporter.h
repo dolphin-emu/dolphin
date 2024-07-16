@@ -84,7 +84,7 @@ private:
 template <>
 struct fmt::formatter<DiscIO::NANDImporter::NANDFSTEntry>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DiscIO::NANDImporter::NANDFSTEntry& entry, FormatContext& ctx) const
   {

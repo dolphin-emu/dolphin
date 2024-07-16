@@ -14,46 +14,46 @@
 
 namespace AddressSpace
 {
-u16 Accessors::ReadU16(const Core::CPUThreadGuard& guard, u32 address) const
+u16 Accessors::ReadU16(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   u32 result = ReadU8(guard, address);
   result = result << 8 | ReadU8(guard, address + 1);
   return result;
 }
 
-void Accessors::WriteU16(const Core::CPUThreadGuard& guard, u32 address, u16 value)
+void Accessors::WriteU16(const Core::CPUThreadGuard& guard, const u32 address, const u16 value)
 {
   WriteU8(guard, address, value & 0xff);
   WriteU8(guard, address + 1, (value >> 8) & 0xff);
 }
 
-u32 Accessors::ReadU32(const Core::CPUThreadGuard& guard, u32 address) const
+u32 Accessors::ReadU32(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   u32 result = ReadU16(guard, address);
   result = result << 16 | ReadU16(guard, address + 2);
   return result;
 }
 
-void Accessors::WriteU32(const Core::CPUThreadGuard& guard, u32 address, u32 value)
+void Accessors::WriteU32(const Core::CPUThreadGuard& guard, const u32 address, const u32 value)
 {
   WriteU16(guard, address, value & 0xffff);
   WriteU16(guard, address + 2, (value >> 16) & 0xffff);
 }
 
-u64 Accessors::ReadU64(const Core::CPUThreadGuard& guard, u32 address) const
+u64 Accessors::ReadU64(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   u64 result = ReadU32(guard, address);
   result = result << 32 | ReadU32(guard, address + 4);
   return result;
 }
 
-void Accessors::WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 value)
+void Accessors::WriteU64(const Core::CPUThreadGuard& guard, const u32 address, const u64 value)
 {
   WriteU32(guard, address, value & 0xffffffff);
   WriteU32(guard, address + 4, (value >> 32) & 0xffffffff);
 }
 
-float Accessors::ReadF32(const Core::CPUThreadGuard& guard, u32 address) const
+float Accessors::ReadF32(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   return std::bit_cast<float>(ReadU32(guard, address));
 }
@@ -81,48 +81,48 @@ Accessors::~Accessors()
 
 struct EffectiveAddressSpaceAccessors : Accessors
 {
-  bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
+  bool IsValidAddress(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return PowerPC::MMU::HostIsRAMAddress(guard, address);
   }
-  u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
+  u8 ReadU8(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return PowerPC::MMU::HostRead_U8(guard, address);
   }
-  void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
+  void WriteU8(const Core::CPUThreadGuard& guard, const u32 address, const u8 value) override
   {
     PowerPC::MMU::HostWrite_U8(guard, value, address);
   }
-  u16 ReadU16(const Core::CPUThreadGuard& guard, u32 address) const override
+  u16 ReadU16(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return PowerPC::MMU::HostRead_U16(guard, address);
   }
-  void WriteU16(const Core::CPUThreadGuard& guard, u32 address, u16 value) override
+  void WriteU16(const Core::CPUThreadGuard& guard, const u32 address, const u16 value) override
   {
     PowerPC::MMU::HostWrite_U16(guard, value, address);
   }
-  u32 ReadU32(const Core::CPUThreadGuard& guard, u32 address) const override
+  u32 ReadU32(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return PowerPC::MMU::HostRead_U32(guard, address);
   }
-  void WriteU32(const Core::CPUThreadGuard& guard, u32 address, u32 value) override
+  void WriteU32(const Core::CPUThreadGuard& guard, const u32 address, const u32 value) override
   {
     PowerPC::MMU::HostWrite_U32(guard, value, address);
   }
-  u64 ReadU64(const Core::CPUThreadGuard& guard, u32 address) const override
+  u64 ReadU64(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return PowerPC::MMU::HostRead_U64(guard, address);
   }
-  void WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 value) override
+  void WriteU64(const Core::CPUThreadGuard& guard, const u32 address, const u64 value) override
   {
     PowerPC::MMU::HostWrite_U64(guard, value, address);
   }
-  float ReadF32(const Core::CPUThreadGuard& guard, u32 address) const override
+  float ReadF32(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return PowerPC::MMU::HostRead_F32(guard, address);
   };
 
-  bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
+  bool Matches(const Core::CPUThreadGuard& guard, const u32 haystack_start, const u8* needle_start,
                std::size_t needle_size) const
   {
     auto& system = guard.GetSystem();
@@ -169,9 +169,9 @@ struct EffectiveAddressSpaceAccessors : Accessors
     return (needle_size == 0);
   }
 
-  std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_start,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+  std::optional<u32> Search(const Core::CPUThreadGuard& guard, const u32 haystack_start,
+                            const u8* needle_start, const std::size_t needle_size,
+                            const bool forward) const override
   {
     u32 haystack_address = haystack_start;
     // For forward=true, search incrementally (step +1) until it wraps back to 0x00000000
@@ -206,17 +206,17 @@ struct EffectiveAddressSpaceAccessors : Accessors
 struct AuxiliaryAddressSpaceAccessors : Accessors
 {
   static constexpr u32 aram_base_address = 0;
-  bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
+  bool IsValidAddress(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return !guard.GetSystem().IsWii() && (address - aram_base_address) < GetSize();
   }
-  u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
+  u8 ReadU8(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     const u8* base = guard.GetSystem().GetDSP().GetARAMPtr();
     return base[address];
   }
 
-  void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
+  void WriteU8(const Core::CPUThreadGuard& guard, const u32 address, const u8 value) override
   {
     u8* base = guard.GetSystem().GetDSP().GetARAMPtr();
     base[address] = value;
@@ -229,9 +229,9 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
     return Core::System::GetInstance().GetDSP().GetARAMPtr() + GetSize();
   }
 
-  std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+  std::optional<u32> Search(const Core::CPUThreadGuard& guard, const u32 haystack_offset,
+                            const u8* needle_start, const std::size_t needle_size,
+                            const bool forward) const override
   {
     if (!IsValidAddress(guard, haystack_offset))
     {
@@ -275,17 +275,17 @@ struct AccessorMapping
 struct CompositeAddressSpaceAccessors : Accessors
 {
   CompositeAddressSpaceAccessors() = default;
-  CompositeAddressSpaceAccessors(std::initializer_list<AccessorMapping> accessors)
+  CompositeAddressSpaceAccessors(const std::initializer_list<AccessorMapping> accessors)
       : m_accessor_mappings(accessors.begin(), accessors.end())
   {
   }
 
-  bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
+  bool IsValidAddress(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return FindAppropriateAccessor(guard, address) != m_accessor_mappings.end();
   }
 
-  u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
+  u8 ReadU8(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     auto mapping = FindAppropriateAccessor(guard, address);
     if (mapping == m_accessor_mappings.end())
@@ -295,7 +295,7 @@ struct CompositeAddressSpaceAccessors : Accessors
     return mapping->accessors->ReadU8(guard, address - mapping->base);
   }
 
-  void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
+  void WriteU8(const Core::CPUThreadGuard& guard, const u32 address, const u8 value) override
   {
     auto mapping = FindAppropriateAccessor(guard, address);
     if (mapping == m_accessor_mappings.end())
@@ -305,9 +305,9 @@ struct CompositeAddressSpaceAccessors : Accessors
     return mapping->accessors->WriteU8(guard, address - mapping->base, value);
   }
 
-  std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+  std::optional<u32> Search(const Core::CPUThreadGuard& guard, const u32 haystack_offset,
+                            const u8* needle_start, const std::size_t needle_size,
+                            const bool forward) const override
   {
     for (const AccessorMapping& mapping : m_accessor_mappings)
     {
@@ -349,18 +349,18 @@ private:
 struct SmallBlockAccessors : Accessors
 {
   SmallBlockAccessors() = default;
-  SmallBlockAccessors(u8** alloc_base_, u32 size_) : alloc_base{alloc_base_}, size{size_} {}
+  SmallBlockAccessors(u8** alloc_base_, const u32 size_) : alloc_base{alloc_base_}, size{size_} {}
 
-  bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
+  bool IsValidAddress(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return (*alloc_base != nullptr) && (address < size);
   }
-  u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
+  u8 ReadU8(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
     return (*alloc_base)[address];
   }
 
-  void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
+  void WriteU8(const Core::CPUThreadGuard& guard, const u32 address, const u8 value) override
   {
     (*alloc_base)[address] = value;
   }
@@ -372,9 +372,9 @@ struct SmallBlockAccessors : Accessors
     return (*alloc_base == nullptr) ? nullptr : (*alloc_base + size);
   }
 
-  std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+  std::optional<u32> Search(const Core::CPUThreadGuard& guard, const u32 haystack_offset,
+                            const u8* needle_start, const std::size_t needle_size,
+                            const bool forward) const override
   {
     if (!IsValidAddress(guard, haystack_offset) ||
         !IsValidAddress(guard, haystack_offset + static_cast<u32>(needle_size) - 1))
@@ -430,7 +430,7 @@ static CompositeAddressSpaceAccessors s_physical_address_space_accessors_wii;
 static NullAccessors s_null_accessors;
 static bool s_initialized = false;
 
-Accessors* GetAccessors(Type address_space)
+Accessors* GetAccessors(const Type address_space)
 {
   if (!s_initialized)
     return &s_null_accessors;

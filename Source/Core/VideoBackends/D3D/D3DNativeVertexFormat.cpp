@@ -23,7 +23,7 @@ Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<D3DVertexFormat>(vtx_decl);
 }
 
-DXGI_FORMAT VarToD3D(ComponentFormat t, int size, bool integer)
+DXGI_FORMAT VarToD3D(const ComponentFormat t, const int size, const bool integer)
 {
   using FormatMap = Common::EnumMap<DXGI_FORMAT, ComponentFormat::InvalidFloat7>;
   static constexpr auto f = [](FormatMap a) { return a; };  // Deduction helper
@@ -148,7 +148,7 @@ D3DVertexFormat::~D3DVertexFormat()
     layout->Release();
 }
 
-ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size_t vs_bytecode_size)
+ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, const size_t vs_bytecode_size)
 {
   // CreateInputLayout requires a shader input, but it only looks at the signature of the shader,
   // so we don't need to recompute it if the shader changes.

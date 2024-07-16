@@ -119,7 +119,7 @@ private:
 
   struct Event
   {
-    Event(EventType type_, Request request_) : type(type_), request(request_) {}
+    Event(const EventType type_, Request request_) : type(type_), request(request_) {}
     EventType type;
     Request request;
   };

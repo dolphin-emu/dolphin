@@ -61,7 +61,7 @@ protected:
     ResetPointers();
   }
 
-  void CreateAndCheckSizes(size_t input_size, size_t output_size)
+  void CreateAndCheckSizes(const size_t input_size, const size_t output_size)
   {
     m_loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
     ASSERT_EQ(input_size, m_loader->m_vertex_size);
@@ -75,7 +75,7 @@ protected:
     m_src.Write<T, true>(val);
   }
 
-  void ExpectOut(float expected)
+  void ExpectOut(const float expected)
   {
     // Read unswapped.
     const float actual = m_dst.Read<float, false>();
@@ -86,7 +86,7 @@ protected:
       EXPECT_EQ(expected, actual);
   }
 
-  void RunVertices(int count, int expected_count = -1)
+  void RunVertices(const int count, int expected_count = -1)
   {
     if (expected_count == -1)
       expected_count = count;
@@ -605,7 +605,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
 
   CreateAndCheckSizes(2 * sizeof(float) + in_size, 2 * sizeof(float) + out_size);
 
-  auto input_with_expected_type = [&](float value) {
+  auto input_with_expected_type = [&](const float value) {
     switch (format)
     {
     case ComponentFormat::UByte:
@@ -629,7 +629,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
   };
 
-  auto create_normal = [&](int counter_base) {
+  auto create_normal = [&](const int counter_base) {
     if (addr == VertexComponentFormat::Direct)
     {
       input_with_expected_type(counter_base / 32.f);
@@ -647,7 +647,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
     // Do nothing for NotPresent
   };
-  auto create_tangent_and_binormal = [&](int counter_base) {
+  auto create_tangent_and_binormal = [&](const int counter_base) {
     if (IsIndexed(addr))
     {
       // With NormalIndex3, specifying the same index 3 times should give the same result

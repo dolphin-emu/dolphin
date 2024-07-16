@@ -101,7 +101,7 @@ bool GetRefs(MEGASignature* sig, std::istringstream* iss)
   return true;
 }
 
-bool Compare(const Core::CPUThreadGuard& guard, u32 address, u32 size, const MEGASignature& sig)
+bool Compare(const Core::CPUThreadGuard& guard, const u32 address, const u32 size, const MEGASignature& sig)
 {
   if (size != sig.code.size() * sizeof(u32))
     return false;

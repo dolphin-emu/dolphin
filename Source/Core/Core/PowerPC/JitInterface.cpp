@@ -42,13 +42,13 @@ void JitInterface::SetJit(std::unique_ptr<JitBase> jit)
   m_jit = std::move(jit);
 }
 
-void JitInterface::DoState(PointerWrap& p)
+void JitInterface::DoState(const PointerWrap& p)
 {
   if (m_jit && p.IsReadMode())
     m_jit->ClearCache();
 }
 
-CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
+CPUCoreBase* JitInterface::InitJitCore(const PowerPC::CPUCore core)
 {
   switch (core)
   {
@@ -183,7 +183,7 @@ void JitInterface::JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE*
 }
 
 std::variant<JitInterface::GetHostCodeError, JitInterface::GetHostCodeResult>
-JitInterface::GetHostCode(u32 address) const
+JitInterface::GetHostCode(const u32 address) const
 {
   if (!m_jit)
   {
@@ -224,7 +224,7 @@ JitInterface::GetHostCode(u32 address) const
   return result;
 }
 
-bool JitInterface::HandleFault(uintptr_t access_address, SContext* ctx)
+bool JitInterface::HandleFault(const uintptr_t access_address, SContext* ctx)
 {
   // Prevent nullptr dereference on a crash with no JIT present
   if (!m_jit)
@@ -257,19 +257,19 @@ void JitInterface::ClearSafe()
     m_jit->GetBlockCache()->Clear();
 }
 
-void JitInterface::InvalidateICache(u32 address, u32 size, bool forced)
+void JitInterface::InvalidateICache(const u32 address, const u32 size, const bool forced)
 {
   if (m_jit)
     m_jit->GetBlockCache()->InvalidateICache(address, size, forced);
 }
 
-void JitInterface::InvalidateICacheLine(u32 address)
+void JitInterface::InvalidateICacheLine(const u32 address)
 {
   if (m_jit)
     m_jit->GetBlockCache()->InvalidateICacheLine(address);
 }
 
-void JitInterface::InvalidateICacheLines(u32 address, u32 count)
+void JitInterface::InvalidateICacheLines(const u32 address, const u32 count)
 {
   // This corresponds to a PPC code loop that:
   // - calls some form of dcb* instruction on 'address'
@@ -285,17 +285,17 @@ void JitInterface::InvalidateICacheLines(u32 address, u32 count)
     InvalidateICache(address & ~0x1f, 32 * count, false);
 }
 
-void JitInterface::InvalidateICacheLineFromJIT(JitInterface& jit_interface, u32 address)
+void JitInterface::InvalidateICacheLineFromJIT(JitInterface& jit_interface, const u32 address)
 {
   jit_interface.InvalidateICacheLine(address);
 }
 
-void JitInterface::InvalidateICacheLinesFromJIT(JitInterface& jit_interface, u32 address, u32 count)
+void JitInterface::InvalidateICacheLinesFromJIT(JitInterface& jit_interface, const u32 address, const u32 count)
 {
   jit_interface.InvalidateICacheLines(address, count);
 }
 
-void JitInterface::CompileExceptionCheck(ExceptionType type)
+void JitInterface::CompileExceptionCheck(const ExceptionType type)
 {
   if (!m_jit)
     return;
@@ -338,7 +338,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
   }
 }
 
-void JitInterface::CompileExceptionCheckFromJIT(JitInterface& jit_interface, ExceptionType type)
+void JitInterface::CompileExceptionCheckFromJIT(JitInterface& jit_interface, const ExceptionType type)
 {
   jit_interface.CompileExceptionCheck(type);
 }

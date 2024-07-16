@@ -46,7 +46,7 @@ bool SupportsLogicOp(u32 adapter_index);
 // Unlike the version in Common, this variant also knows to call GetDeviceRemovedReason if needed.
 struct DX11HRWrap
 {
-  constexpr explicit DX11HRWrap(HRESULT hr) : m_hr(hr) {}
+  constexpr explicit DX11HRWrap(const HRESULT hr) : m_hr(hr) {}
   const HRESULT m_hr;
 };
 
@@ -55,7 +55,7 @@ struct DX11HRWrap
 template <>
 struct fmt::formatter<DX11::DX11HRWrap>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DX11::DX11HRWrap& hr, FormatContext& ctx) const
   {

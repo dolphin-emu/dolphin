@@ -124,7 +124,7 @@ static std::optional<u32> inet_pton(const char* src)
 }
 
 // Maps SOCKOPT level from Wii to native
-static s32 MapWiiSockOptLevelToNative(u32 level)
+static s32 MapWiiSockOptLevelToNative(const u32 level)
 {
   if (level == 0xFFFF)
     return SOL_SOCKET;
@@ -134,7 +134,7 @@ static s32 MapWiiSockOptLevelToNative(u32 level)
 }
 
 // Maps SOCKOPT optname from native to Wii
-static s32 MapWiiSockOptNameToNative(u32 optname)
+static s32 MapWiiSockOptNameToNative(const u32 optname)
 {
   switch (optname)
   {

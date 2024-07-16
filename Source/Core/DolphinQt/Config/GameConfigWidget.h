@@ -35,7 +35,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void SaveCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key,
+  void SaveCheckBox(const QCheckBox* checkbox, const std::string& section, const std::string& key,
                     bool reverse = false);
   void LoadCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key,
                     bool reverse = false);

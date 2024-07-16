@@ -165,7 +165,7 @@ void GraphicsModListWidget::ModSelectionChanged()
   OnModChanged(absolute_path);
 }
 
-void GraphicsModListWidget::ModItemChanged(QListWidgetItem* item)
+void GraphicsModListWidget::ModItemChanged(const QListWidgetItem* item)
 {
   const auto absolute_path = item->data(Qt::UserRole).toString();
   GraphicsModConfig* mod = m_mod_group.GetMod(absolute_path.toStdString());

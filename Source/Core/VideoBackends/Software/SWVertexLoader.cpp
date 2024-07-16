@@ -35,8 +35,8 @@ SWVertexLoader::SWVertexLoader() = default;
 
 SWVertexLoader::~SWVertexLoader() = default;
 
-DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
-                                                    u32 stride, bool cullall)
+DataReader SWVertexLoader::PrepareForAdditionalData(const OpcodeDecoder::Primitive primitive, const u32 count,
+                                                    const u32 stride, bool cullall)
 {
   // The software renderer needs cullall to be false for zfreeze to work
   return VertexManagerBase::PrepareForAdditionalData(primitive, count, stride, false);
@@ -123,7 +123,7 @@ static T ReadNormalized(I value)
 
 template <typename T, bool swap = false>
 static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& format,
-                                int base_component, int components, bool reverse)
+                                const int base_component, const int components, const bool reverse)
 {
   if (format.enable)
   {
@@ -167,7 +167,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
   }
 }
 
-static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
+static void ParseColorAttributes(InputVertexData* dst, const DataReader& src,
                                  const PortableVertexDeclaration& vdec)
 {
   const auto set_default_color = [](std::array<u8, 4>& color) {
@@ -197,7 +197,7 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
   }
 }
 
-void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int index)
+void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, const int index)
 {
   DataReader src(m_cpu_vertex_buffer.data(),
                  m_cpu_vertex_buffer.data() + m_cpu_vertex_buffer.size());

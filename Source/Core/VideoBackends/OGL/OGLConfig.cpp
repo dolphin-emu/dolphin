@@ -215,7 +215,7 @@ void InitDriverInfo()
                       std::string(srenderer));
 }
 
-bool PopulateConfig(GLContext* m_main_gl_context)
+bool PopulateConfig(const GLContext* m_main_gl_context)
 {
   bool bSuccess = true;
   bool supports_glsl_cache = false;

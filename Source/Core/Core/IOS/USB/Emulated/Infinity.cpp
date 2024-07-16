@@ -221,7 +221,7 @@ int InfinityUSB::SetAltSetting(u8 alt_setting)
   return 0;
 }
 
-int InfinityUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
+int InfinityUSB::SubmitTransfer(const std::unique_ptr<CtrlMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB,
                 "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={:02x} wValue={:04x}"
@@ -230,7 +230,7 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                 cmd->index, cmd->length);
   return 0;
 }
-int InfinityUSB::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
+int InfinityUSB::SubmitTransfer(const std::unique_ptr<BulkMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Bulk: length={:04x} endpoint={:02x}", m_vid, m_pid,
                 m_active_interface, cmd->length, cmd->endpoint);
@@ -404,7 +404,7 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   return 0;
 }
 
-int InfinityUSB::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
+int InfinityUSB::SubmitTransfer(const std::unique_ptr<IsoMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB,
                 "[{:04x}:{:04x} {}] Isochronous: length={:04x} endpoint={:02x} num_packets={:02x}",
@@ -413,7 +413,7 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 }
 
 void InfinityUSB::ScheduleTransfer(std::unique_ptr<TransferCommand> command,
-                                   const std::array<u8, 32>& data, u64 expected_time_us)
+                                   const std::array<u8, 32>& data, const u64 expected_time_us)
 {
   command->FillBuffer(data.data(), 32);
   command->ScheduleTransferCompletion(32, expected_time_us);
@@ -431,7 +431,7 @@ std::array<u8, 32> InfinityBase::PopAddedRemovedResponse()
   return response;
 }
 
-u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, int num_of_bytes) const
+u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, const int num_of_bytes) const
 {
   int checksum = 0;
   for (int i = 0; i < num_of_bytes; i++)
@@ -441,7 +441,7 @@ u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, int num_of_byt
   return (checksum & 0xFF);
 }
 
-void InfinityBase::GetBlankResponse(u8 sequence, std::array<u8, 32>& reply_buf)
+void InfinityBase::GetBlankResponse(const u8 sequence, std::array<u8, 32>& reply_buf)
 {
   reply_buf[0] = 0xaa;
   reply_buf[1] = 0x01;
@@ -449,7 +449,7 @@ void InfinityBase::GetBlankResponse(u8 sequence, std::array<u8, 32>& reply_buf)
   reply_buf[3] = GenerateChecksum(reply_buf, 3);
 }
 
-void InfinityBase::GetPresentFigures(u8 sequence, std::array<u8, 32>& reply_buf)
+void InfinityBase::GetPresentFigures(const u8 sequence, std::array<u8, 32>& reply_buf)
 {
   int x = 3;
   for (u8 i = 0; i < m_figures.size(); i++)
@@ -468,7 +468,7 @@ void InfinityBase::GetPresentFigures(u8 sequence, std::array<u8, 32>& reply_buf)
   reply_buf[x] = GenerateChecksum(reply_buf, x);
 }
 
-void InfinityBase::GetFigureIdentifier(u8 fig_num, u8 sequence, std::array<u8, 32>& reply_buf)
+void InfinityBase::GetFigureIdentifier(const u8 fig_num, const u8 sequence, std::array<u8, 32>& reply_buf)
 {
   std::lock_guard lock(m_infinity_mutex);
 
@@ -486,7 +486,7 @@ void InfinityBase::GetFigureIdentifier(u8 fig_num, u8 sequence, std::array<u8, 3
   reply_buf[11] = GenerateChecksum(reply_buf, 11);
 }
 
-void InfinityBase::QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_buf, u8 sequence)
+void InfinityBase::QueryBlock(const u8 fig_num, const u8 block, std::array<u8, 32>& reply_buf, const u8 sequence)
 {
   std::lock_guard lock(m_infinity_mutex);
 
@@ -512,8 +512,8 @@ void InfinityBase::QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_bu
   reply_buf[20] = GenerateChecksum(reply_buf, 20);
 }
 
-void InfinityBase::WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf,
-                              std::array<u8, 32>& reply_buf, u8 sequence)
+void InfinityBase::WriteBlock(const u8 fig_num, const u8 block, const u8* to_write_buf,
+                              std::array<u8, 32>& reply_buf, const u8 sequence)
 {
   std::lock_guard lock(m_infinity_mutex);
 
@@ -671,7 +671,7 @@ void InfinityBase::RemoveFigure(FigureUIPosition position)
   }
 }
 
-bool InfinityBase::CreateFigure(const std::string& file_path, u32 figure_num)
+bool InfinityBase::CreateFigure(const std::string& file_path, const u32 figure_num)
 {
   File::IOFile inf_file(file_path, "w+b");
   if (!inf_file)
@@ -740,7 +740,7 @@ std::span<const std::pair<const char*, const u32>> InfinityBase::GetFigureList()
   return list_infinity_figures;
 }
 
-std::string InfinityBase::FindFigure(u32 number) const
+std::string InfinityBase::FindFigure(const u32 number) const
 {
   for (auto it = list_infinity_figures.begin(); it != list_infinity_figures.end(); it++)
   {
@@ -752,7 +752,7 @@ std::string InfinityBase::FindFigure(u32 number) const
   return "Unknown Figure";
 }
 
-FigureBasePosition InfinityBase::DeriveFigurePosition(FigureUIPosition position)
+FigureBasePosition InfinityBase::DeriveFigurePosition(const FigureUIPosition position)
 {
   // In the added/removed response, position needs to be 1 for the hexagon, 2 for Player 1 and
   // Player 1's abilities, and 3 for Player 2 and Player 2's abilities. In the UI, positions 0, 1
@@ -784,7 +784,7 @@ FigureBasePosition InfinityBase::DeriveFigurePosition(FigureUIPosition position)
   }
 }
 
-InfinityFigure& InfinityBase::GetFigureByOrder(u8 order_added)
+InfinityFigure& InfinityBase::GetFigureByOrder(const u8 order_added)
 {
   for (u8 i = 0; i < m_figures.size(); i++)
   {
@@ -814,7 +814,7 @@ std::array<u8, 16> InfinityBase::GenerateInfinityFigureKey(const std::vector<u8>
   return key;
 }
 
-std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
+std::array<u8, 16> InfinityBase::GenerateBlankFigureData(const u32 figure_num)
 {
   std::array<u8, 16> figure_data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x01, 0xD1, 0x1F};
@@ -838,7 +838,7 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
   return figure_data;
 }
 
-void InfinityBase::DescrambleAndSeed(u8* buf, u8 sequence, std::array<u8, 32>& reply_buf)
+void InfinityBase::DescrambleAndSeed(const u8* buf, const u8 sequence, std::array<u8, 32>& reply_buf)
 {
   u64 value = u64(buf[4]) << 56 | u64(buf[5]) << 48 | u64(buf[6]) << 40 | u64(buf[7]) << 32 |
               u64(buf[8]) << 24 | u64(buf[9]) << 16 | u64(buf[10]) << 8 | u64(buf[11]);
@@ -847,7 +847,7 @@ void InfinityBase::DescrambleAndSeed(u8* buf, u8 sequence, std::array<u8, 32>& r
   GetBlankResponse(sequence, reply_buf);
 }
 
-void InfinityBase::GetNextAndScramble(u8 sequence, std::array<u8, 32>& reply_buf)
+void InfinityBase::GetNextAndScramble(const u8 sequence, std::array<u8, 32>& reply_buf)
 {
   u32 next_random = GetNext();
   u64 scrambled_next_random = Scramble(next_random, 0);
@@ -863,7 +863,7 @@ void InfinityBase::GetNextAndScramble(u8 sequence, std::array<u8, 32>& reply_buf
   reply_buf[11] = GenerateChecksum(reply_buf, 11);
 }
 
-void InfinityBase::GenerateSeed(u32 seed)
+void InfinityBase::GenerateSeed(const u32 seed)
 {
   m_random_a = 0xF1EA5EED;
   m_random_b = seed;

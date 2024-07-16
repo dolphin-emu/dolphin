@@ -34,12 +34,12 @@
 
 namespace DSP::HLE
 {
-constexpr bool ExramRead(u32 address)
+constexpr bool ExramRead(const u32 address)
 {
   return (address & 0x10000000) != 0;
 }
 
-u8 HLEMemory_Read_U8(Memory::MemoryManager& memory, u32 address)
+u8 HLEMemory_Read_U8(Memory::MemoryManager& memory, const u32 address)
 {
   if (ExramRead(address))
     return memory.GetEXRAM()[address & memory.GetExRamMask()];
@@ -47,7 +47,7 @@ u8 HLEMemory_Read_U8(Memory::MemoryManager& memory, u32 address)
   return memory.GetRAM()[address & memory.GetRamMask()];
 }
 
-void HLEMemory_Write_U8(Memory::MemoryManager& memory, u32 address, u8 value)
+void HLEMemory_Write_U8(Memory::MemoryManager& memory, const u32 address, const u8 value)
 {
   if (ExramRead(address))
     memory.GetEXRAM()[address & memory.GetExRamMask()] = value;
@@ -55,7 +55,7 @@ void HLEMemory_Write_U8(Memory::MemoryManager& memory, u32 address, u8 value)
     memory.GetRAM()[address & memory.GetRamMask()] = value;
 }
 
-u16 HLEMemory_Read_U16LE(Memory::MemoryManager& memory, u32 address)
+u16 HLEMemory_Read_U16LE(Memory::MemoryManager& memory, const u32 address)
 {
   u16 value;
 
@@ -67,12 +67,12 @@ u16 HLEMemory_Read_U16LE(Memory::MemoryManager& memory, u32 address)
   return value;
 }
 
-u16 HLEMemory_Read_U16(Memory::MemoryManager& memory, u32 address)
+u16 HLEMemory_Read_U16(Memory::MemoryManager& memory, const u32 address)
 {
   return Common::swap16(HLEMemory_Read_U16LE(memory, address));
 }
 
-void HLEMemory_Write_U16LE(Memory::MemoryManager& memory, u32 address, u16 value)
+void HLEMemory_Write_U16LE(Memory::MemoryManager& memory, const u32 address, const u16 value)
 {
   if (ExramRead(address))
     std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u16));
@@ -80,12 +80,12 @@ void HLEMemory_Write_U16LE(Memory::MemoryManager& memory, u32 address, u16 value
     std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u16));
 }
 
-void HLEMemory_Write_U16(Memory::MemoryManager& memory, u32 address, u16 value)
+void HLEMemory_Write_U16(Memory::MemoryManager& memory, const u32 address, const u16 value)
 {
   HLEMemory_Write_U16LE(memory, address, Common::swap16(value));
 }
 
-u32 HLEMemory_Read_U32LE(Memory::MemoryManager& memory, u32 address)
+u32 HLEMemory_Read_U32LE(Memory::MemoryManager& memory, const u32 address)
 {
   u32 value;
 
@@ -97,12 +97,12 @@ u32 HLEMemory_Read_U32LE(Memory::MemoryManager& memory, u32 address)
   return value;
 }
 
-u32 HLEMemory_Read_U32(Memory::MemoryManager& memory, u32 address)
+u32 HLEMemory_Read_U32(Memory::MemoryManager& memory, const u32 address)
 {
   return Common::swap32(HLEMemory_Read_U32LE(memory, address));
 }
 
-void HLEMemory_Write_U32LE(Memory::MemoryManager& memory, u32 address, u32 value)
+void HLEMemory_Write_U32LE(Memory::MemoryManager& memory, const u32 address, const u32 value)
 {
   if (ExramRead(address))
     std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u32));
@@ -110,12 +110,12 @@ void HLEMemory_Write_U32LE(Memory::MemoryManager& memory, u32 address, u32 value
     std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u32));
 }
 
-void HLEMemory_Write_U32(Memory::MemoryManager& memory, u32 address, u32 value)
+void HLEMemory_Write_U32(Memory::MemoryManager& memory, const u32 address, const u32 value)
 {
   HLEMemory_Write_U32LE(memory, address, Common::swap32(value));
 }
 
-void* HLEMemory_Get_Pointer(Memory::MemoryManager& memory, u32 address)
+void* HLEMemory_Get_Pointer(Memory::MemoryManager& memory, const u32 address)
 {
   if (ExramRead(address))
     return &memory.GetEXRAM()[address & memory.GetExRamMask()];
@@ -123,7 +123,7 @@ void* HLEMemory_Get_Pointer(Memory::MemoryManager& memory, u32 address)
   return &memory.GetRAM()[address & memory.GetRamMask()];
 }
 
-UCodeInterface::UCodeInterface(DSPHLE* dsphle, u32 crc)
+UCodeInterface::UCodeInterface(DSPHLE* dsphle, const u32 crc)
     : m_mail_handler(dsphle->AccessMailHandler()), m_dsphle(dsphle), m_crc(crc)
 {
 }
@@ -140,7 +140,7 @@ bool UCodeInterface::NeedsResumeMail()
   return false;
 }
 
-void UCodeInterface::PrepareBootUCode(u32 mail)
+void UCodeInterface::PrepareBootUCode(const u32 mail)
 {
   switch (m_next_ucode_steps)
   {
@@ -225,7 +225,7 @@ void UCodeInterface::DoStateShared(PointerWrap& p)
   p.Do(m_needs_resume_mail);
 }
 
-std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
+std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, const bool wii)
 {
   switch (crc)
   {

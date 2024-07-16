@@ -82,7 +82,7 @@ static unsigned int get_serial_id()
   return lo + (hi << 16);
 }
 
-static unsigned int get_sectors_per_cluster(u64 disk_size)
+static unsigned int get_sectors_per_cluster(const u64 disk_size)
 {
   u64 disk_MB = disk_size / (1024 * 1024);
 
@@ -101,7 +101,7 @@ static unsigned int get_sectors_per_cluster(u64 disk_size)
   return 32;
 }
 
-static unsigned int get_sectors_per_fat(u64 disk_size, u32 sectors_per_cluster)
+static unsigned int get_sectors_per_fat(u64 disk_size, const u32 sectors_per_cluster)
 {
   /* Weird computation from MS - see fatgen103.doc for details */
   disk_size -= RESERVED_SECTORS * BYTES_PER_SECTOR; /* Don't count 32 reserved sectors */
@@ -111,7 +111,7 @@ static unsigned int get_sectors_per_fat(u64 disk_size, u32 sectors_per_cluster)
   return static_cast<u32>((disk_size + (divider - 1)) / divider);
 }
 
-static void boot_sector_init(u8* boot, u8* info, u64 disk_size, const char* label)
+static void boot_sector_init(u8* boot, u8* info, const u64 disk_size, const char* label)
 {
   const u32 sectors_per_cluster = get_sectors_per_cluster(disk_size);
   const u32 sectors_per_fat = get_sectors_per_fat(disk_size, sectors_per_cluster);

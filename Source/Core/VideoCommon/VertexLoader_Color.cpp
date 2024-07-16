@@ -23,7 +23,7 @@ void Color_Read_Dummy(VertexLoader* loader)
 
 constexpr u32 alpha_mask = 0xFF000000;
 
-void SetCol(VertexLoader* loader, u32 val)
+void SetCol(VertexLoader* loader, const u32 val)
 {
   DataWrite(val);
   loader->m_colIndex++;
@@ -31,7 +31,7 @@ void SetCol(VertexLoader* loader, u32 val)
 
 // Color comes in format BARG in 16 bits
 // BARG -> AABBGGRR
-void SetCol4444(VertexLoader* loader, u16 val_)
+void SetCol4444(VertexLoader* loader, const u16 val_)
 {
   u32 col, val = val_;
   col = val & 0x00F0;           // col  = 000000R0;
@@ -44,7 +44,7 @@ void SetCol4444(VertexLoader* loader, u16 val_)
 
 // Color comes in format RGBA
 // RRRRRRGG GGGGBBBB BBAAAAAA
-void SetCol6666(VertexLoader* loader, u32 val)
+void SetCol6666(VertexLoader* loader, const u32 val)
 {
   u32 col = (val >> 16) & 0x000000FC;
   col |= (val >> 2) & 0x0000FC00;
@@ -56,7 +56,7 @@ void SetCol6666(VertexLoader* loader, u32 val)
 
 // Color comes in RGB
 // RRRRRGGG GGGBBBBB
-void SetCol565(VertexLoader* loader, u16 val_)
+void SetCol565(VertexLoader* loader, const u16 val_)
 {
   u32 col, val = val_;
   col = (val >> 8) & 0x0000F8;
@@ -197,7 +197,7 @@ constexpr Table s_table_read_color = {
 
 }  // Anonymous namespace
 
-TPipelineFunction VertexLoader_Color::GetFunction(VertexComponentFormat type, ColorFormat format)
+TPipelineFunction VertexLoader_Color::GetFunction(const VertexComponentFormat type, const ColorFormat format)
 {
   if (format > ColorFormat::RGBA8888)
   {

@@ -9,7 +9,7 @@
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoCommon/OpcodeDecoding.h"
 
-void SetupUnit::Init(OpcodeDecoder::Primitive primitive_type)
+void SetupUnit::Init(const OpcodeDecoder::Primitive primitive_type)
 {
   m_PrimType = primitive_type;
 

@@ -124,19 +124,19 @@ u32 WC24SendList::GetNumberOfMail() const
   return Common::swap32(m_data.header.number_of_mail);
 }
 
-u32 WC24SendList::GetEntryId(u32 entry_index) const
+u32 WC24SendList::GetEntryId(const u32 entry_index) const
 {
   ASSERT(!IsDisabled());
   return Common::swap32(m_data.entries[entry_index].id);
 }
 
-u32 WC24SendList::GetMailSize(u32 index) const
+u32 WC24SendList::GetMailSize(const u32 index) const
 {
   ASSERT(!IsDisabled());
   return Common::swap32(m_data.entries[index].msg_size);
 }
 
-ErrorCode WC24SendList::DeleteMessage(u32 index)
+ErrorCode WC24SendList::DeleteMessage(const u32 index)
 {
   ASSERT(!IsDisabled());
   ErrorCode error = DeleteFileFromVFF(SEND_BOX_PATH, GetMailPath(index), m_fs);
@@ -154,7 +154,7 @@ ErrorCode WC24SendList::DeleteMessage(u32 index)
   return WC24_OK;
 }
 
-std::string WC24SendList::GetMailPath(u32 index) const
+std::string WC24SendList::GetMailPath(const u32 index) const
 {
   return fmt::format("mb/s{:07d}.msg", GetEntryId(index));
 }

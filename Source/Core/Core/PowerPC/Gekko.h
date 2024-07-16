@@ -295,7 +295,7 @@ union UGeckoInstruction
 };
 
 // Used in implementations of rlwimi, rlwinm, and rlwnm
-inline u32 MakeRotationMask(u32 mb, u32 me)
+inline u32 MakeRotationMask(const u32 mb, const u32 me)
 {
   // first make 001111111111111 part
   const u32 begin = 0xFFFFFFFF >> mb;
@@ -339,7 +339,7 @@ union UGQR
   u32 Hex = 0;
 
   UGQR() = default;
-  explicit UGQR(u32 hex_) : Hex{hex_} {}
+  explicit UGQR(const u32 hex_) : Hex{hex_} {}
 };
 
 #define XER_CA_SHIFT 29
@@ -361,7 +361,7 @@ union UReg_XER
   u32 Hex = 0;
 
   UReg_XER() = default;
-  explicit UReg_XER(u32 hex_) : Hex{hex_} {}
+  explicit UReg_XER(const u32 hex_) : Hex{hex_} {}
 };
 
 // Machine State Register
@@ -501,25 +501,25 @@ union UReg_FPSCR
   UReg_FPSCR() = default;
   explicit UReg_FPSCR(u32 hex_) : Hex{hex_ & mask} {}
 
-  UReg_FPSCR& operator=(u32 value)
+  UReg_FPSCR& operator=(const u32 value)
   {
     Hex = value & mask;
     return *this;
   }
 
-  UReg_FPSCR& operator|=(u32 value)
+  UReg_FPSCR& operator|=(const u32 value)
   {
     Hex |= value & mask;
     return *this;
   }
 
-  UReg_FPSCR& operator&=(u32 value)
+  UReg_FPSCR& operator&=(const u32 value)
   {
     Hex &= value;
     return *this;
   }
 
-  UReg_FPSCR& operator^=(u32 value)
+  UReg_FPSCR& operator^=(const u32 value)
   {
     Hex ^= value & mask;
     return *this;
@@ -624,7 +624,7 @@ union UReg_SDR1
   u32 Hex = 0;
 
   UReg_SDR1() = default;
-  explicit UReg_SDR1(u32 hex_) : Hex{hex_} {}
+  explicit UReg_SDR1(const u32 hex_) : Hex{hex_} {}
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
@@ -669,7 +669,7 @@ union UReg_WPAR
   u32 Hex = 0;
 
   UReg_WPAR() = default;
-  explicit UReg_WPAR(u32 hex_) : Hex{hex_} {}
+  explicit UReg_WPAR(const u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Upper register
@@ -681,7 +681,7 @@ union UReg_DMAU
   u32 Hex = 0;
 
   UReg_DMAU() = default;
-  explicit UReg_DMAU(u32 hex_) : Hex{hex_} {}
+  explicit UReg_DMAU(const u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Lower (DMAL) register
@@ -696,7 +696,7 @@ union UReg_DMAL
   u32 Hex = 0;
 
   UReg_DMAL() = default;
-  explicit UReg_DMAL(u32 hex_) : Hex{hex_} {}
+  explicit UReg_DMAL(const u32 hex_) : Hex{hex_} {}
 };
 
 union UReg_BAT_Up
@@ -710,7 +710,7 @@ union UReg_BAT_Up
   u32 Hex = 0;
 
   UReg_BAT_Up() = default;
-  explicit UReg_BAT_Up(u32 hex_) : Hex{hex_} {}
+  explicit UReg_BAT_Up(const u32 hex_) : Hex{hex_} {}
 };
 
 union UReg_BAT_Lo
@@ -724,7 +724,7 @@ union UReg_BAT_Lo
   u32 Hex = 0;
 
   UReg_BAT_Lo() = default;
-  explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
+  explicit UReg_BAT_Lo(const u32 hex_) : Hex{hex_} {}
 };
 
 // Segment register
@@ -745,7 +745,7 @@ union UReg_SR
   u32 Hex = 0;
 
   UReg_SR() = default;
-  explicit UReg_SR(u32 hex_) : Hex{hex_} {}
+  explicit UReg_SR(const u32 hex_) : Hex{hex_} {}
 };
 
 union UReg_THRM12
@@ -761,7 +761,7 @@ union UReg_THRM12
   u32 Hex = 0;
 
   UReg_THRM12() = default;
-  explicit UReg_THRM12(u32 hex_) : Hex{hex_} {}
+  explicit UReg_THRM12(const u32 hex_) : Hex{hex_} {}
 };
 
 union UReg_THRM3
@@ -773,7 +773,7 @@ union UReg_THRM3
   u32 Hex = 0;
 
   UReg_THRM3() = default;
-  explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
+  explicit UReg_THRM3(const u32 hex_) : Hex{hex_} {}
 };
 
 union UPTE_Lo
@@ -786,7 +786,7 @@ union UPTE_Lo
   u32 Hex = 0;
 
   UPTE_Lo() = default;
-  explicit UPTE_Lo(u32 hex_) : Hex{hex_} {}
+  explicit UPTE_Lo(const u32 hex_) : Hex{hex_} {}
 };
 
 union UPTE_Hi
@@ -802,7 +802,7 @@ union UPTE_Hi
   u32 Hex = 0;
 
   UPTE_Hi() = default;
-  explicit UPTE_Hi(u32 hex_) : Hex{hex_} {}
+  explicit UPTE_Hi(const u32 hex_) : Hex{hex_} {}
 };
 
 //
@@ -934,11 +934,11 @@ enum CPUEmuFeatureFlags : u32
   FEATURE_FLAG_END_OF_ENUMERATION,
 };
 
-constexpr s32 SignExt16(s16 x)
+constexpr s32 SignExt16(const s16 x)
 {
   return (s32)x;
 }
-constexpr s32 SignExt26(u32 x)
+constexpr s32 SignExt26(const u32 x)
 {
   return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);
 }

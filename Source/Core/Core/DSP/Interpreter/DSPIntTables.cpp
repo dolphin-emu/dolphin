@@ -242,12 +242,12 @@ std::array<InterpreterFunction, 256> s_ext_op_table;
 bool s_tables_initialized = false;
 }  // Anonymous namespace
 
-InterpreterFunction GetOp(UDSPInstruction inst)
+InterpreterFunction GetOp(const UDSPInstruction inst)
 {
   return s_op_table[inst];
 }
 
-InterpreterFunction GetExtOp(UDSPInstruction inst)
+InterpreterFunction GetExtOp(const UDSPInstruction inst)
 {
   const bool has_seven_bit_extension = (inst >> 12) == 0x3;
 

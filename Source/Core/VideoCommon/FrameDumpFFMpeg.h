@@ -40,7 +40,7 @@ public:
   bool Start(int w, int h, u64 start_ticks);
   void AddFrame(const FrameData&);
   void Stop();
-  void DoState(PointerWrap&);
+  void DoState(const PointerWrap&);
   bool IsStarted() const;
   FrameState FetchState(u64 ticks, int frame_number) const;
 

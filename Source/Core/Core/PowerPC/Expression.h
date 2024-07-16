@@ -66,7 +66,7 @@ private:
 
   Expression(std::string_view text, ExprPointer ex, ExprVarListPointer vars);
 
-  void SynchronizeBindings(Core::System& system, SynchronizeDirection dir) const;
+  void SynchronizeBindings(const Core::System& system, SynchronizeDirection dir) const;
   void Reporting(const double result) const;
 
   std::string m_text;

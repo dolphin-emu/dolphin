@@ -19,7 +19,7 @@
 
 namespace ExpansionInterface
 {
-CEXIAgp::CEXIAgp(Core::System& system, Slot slot) : IEXIDevice(system)
+CEXIAgp::CEXIAgp(Core::System& system, const Slot slot) : IEXIDevice(system)
 {
   ASSERT(IsMemcardSlot(slot));
   m_slot = slot;
@@ -44,7 +44,7 @@ CEXIAgp::~CEXIAgp()
   SaveFileFromEEPROM(gbapath + ".sav");
 }
 
-void CEXIAgp::CRC8(const u8* data, u32 size)
+void CEXIAgp::CRC8(const u8* data, const u32 size)
 {
   for (u32 it = 0; it < size; it++)
   {
@@ -165,7 +165,7 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
   }
 }
 
-u32 CEXIAgp::ImmRead(u32 _uSize)
+u32 CEXIAgp::ImmRead(const u32 _uSize)
 {
   u32 uData = 0;
   u8 RomVal1, RomVal2, RomVal3, RomVal4;
@@ -261,7 +261,7 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
   return uData;
 }
 
-void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
+void CEXIAgp::ImmWrite(const u32 _uData, const u32 _uSize)
 {
   // 0x00 = Execute current command?
   if ((_uSize == 1) && ((_uData & 0xFF000000) == 0))

@@ -39,7 +39,7 @@ public:
   const DescriptorHandle& GetSRVDescriptor() const { return m_srv_descriptor; }
   const DescriptorHandle& GetUAVDescriptor() const { return m_uav_descriptor; }
   D3D12_RESOURCE_STATES GetState() const { return m_state; }
-  u32 CalcSubresource(u32 level, u32 layer) const { return level + layer * m_config.levels; }
+  u32 CalcSubresource(const u32 level, const u32 layer) const { return level + layer * m_config.levels; }
 
   void TransitionToState(D3D12_RESOURCE_STATES state) const;
 

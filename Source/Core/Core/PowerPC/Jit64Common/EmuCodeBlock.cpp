@@ -25,7 +25,7 @@ using namespace Gen;
 
 namespace
 {
-OpArg SwapImmediate(int access_size, const OpArg& reg_value)
+OpArg SwapImmediate(const int access_size, const OpArg& reg_value)
 {
   if (access_size == 32)
     return Imm32(Common::swap32(reg_value.Imm32()));
@@ -36,7 +36,7 @@ OpArg SwapImmediate(int access_size, const OpArg& reg_value)
   return Imm8(reg_value.Imm8());
 }
 
-OpArg FixImmediate(int access_size, OpArg arg)
+OpArg FixImmediate(const int access_size, OpArg arg)
 {
   if (arg.IsImm())
   {
@@ -92,7 +92,7 @@ void EmuCodeBlock::SwitchToNearCode()
   SetCodePtr(m_near_code, m_near_code_end, m_near_code_write_failed);
 }
 
-FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* bat_table)
+FixupBranch EmuCodeBlock::BATAddressLookup(const X64Reg addr, const X64Reg tmp, const void* bat_table)
 {
   MOV(64, R(tmp), ImmPtr(bat_table));
   SHR(32, R(addr), Imm8(PowerPC::BAT_INDEX_SHIFT));
@@ -102,7 +102,7 @@ FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* 
   return J_CC(CC_NC, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
-FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
+FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, const X64Reg reg_addr,
                                              BitSet32 registers_in_use)
 {
   registers_in_use[reg_addr] = true;
@@ -131,8 +131,8 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   return J_CC(CC_Z, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
-void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                       bool swap, MovInfo* info)
+void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, const X64Reg reg_addr, const int accessSize, const s32 offset,
+                                       const bool swap, MovInfo* info)
 {
   if (info)
   {
@@ -157,14 +157,14 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acc
   }
 }
 
-void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
-                                       s32 offset, bool swap, MovInfo* info)
+void EmuCodeBlock::UnsafeWriteRegToReg(const X64Reg reg_value, const X64Reg reg_addr, const int accessSize,
+                                       const s32 offset, const bool swap, MovInfo* info)
 {
   UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap, info);
 }
 
-bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset,
-                                   bool signExtend, MovInfo* info)
+bool EmuCodeBlock::UnsafeLoadToReg(const X64Reg reg_value, OpArg opAddress, const int accessSize, s32 offset,
+                                   const bool signExtend, MovInfo* info)
 {
   bool offsetAddedToAddress = false;
   OpArg memOperand;
@@ -209,15 +209,15 @@ template <typename T>
 class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 {
 public:
-  MMIOReadCodeGenerator(Core::System* system, X64CodeBlock* code, BitSet32 registers_in_use,
-                        X64Reg dst_reg, u32 address, bool sign_extend)
+  MMIOReadCodeGenerator(Core::System* system, X64CodeBlock* code, const BitSet32 registers_in_use,
+                        const X64Reg dst_reg, const u32 address, const bool sign_extend)
       : m_system(system), m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg),
         m_address(address), m_sign_extend(sign_extend)
   {
   }
 
   void VisitConstant(T value) override { LoadConstantToReg(8 * sizeof(T), value); }
-  void VisitDirect(const T* addr, u32 mask) override
+  void VisitDirect(const T* addr, const u32 mask) override
   {
     LoadAddrMaskToReg(8 * sizeof(T), addr, mask);
   }
@@ -230,7 +230,7 @@ private:
   // Generates code to load a constant to the destination register. In
   // practice it would be better to avoid using a register for this, but it
   // would require refactoring a lot of JIT code.
-  void LoadConstantToReg(int sbits, u32 value)
+  void LoadConstantToReg(const int sbits, u32 value)
   {
     if (m_sign_extend)
     {
@@ -242,7 +242,7 @@ private:
 
   // Generate the proper MOV instruction depending on whether the read should
   // be sign extended or zero extended.
-  void MoveOpArgToReg(int sbits, const OpArg& arg)
+  void MoveOpArgToReg(const int sbits, const OpArg& arg)
   {
     if (m_sign_extend)
       m_code->MOVSX(32, sbits, m_dst_reg, arg);
@@ -250,7 +250,7 @@ private:
       m_code->MOVZX(32, sbits, m_dst_reg, arg);
   }
 
-  void LoadAddrMaskToReg(int sbits, const void* ptr, u32 mask)
+  void LoadAddrMaskToReg(const int sbits, const void* ptr, const u32 mask)
   {
     m_code->MOV(64, R(RSCRATCH), ImmPtr(ptr));
     // If we do not need to mask, we can do the sign extend while loading
@@ -270,7 +270,7 @@ private:
     }
   }
 
-  void CallLambda(int sbits, const std::function<T(Core::System&, u32)>* lambda)
+  void CallLambda(const int sbits, const std::function<T(Core::System&, u32)>* lambda)
   {
     m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, 0);
     m_code->ABI_CallLambdaPC(lambda, m_system, m_address);
@@ -286,9 +286,9 @@ private:
   bool m_sign_extend;
 };
 
-void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, X64Reg reg_value,
-                                 BitSet32 registers_in_use, u32 address, int access_size,
-                                 bool sign_extend)
+void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, const X64Reg reg_value,
+                                 const BitSet32 registers_in_use, const u32 address, const int access_size,
+                                 const bool sign_extend)
 {
   switch (access_size)
   {
@@ -316,8 +316,8 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, X64Reg reg_value,
   }
 }
 
-void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const OpArg& opAddress, int accessSize,
-                                 s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
+void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress, const int accessSize,
+                                 const s32 offset, BitSet32 registersInUse, const bool signExtend, const int flags)
 {
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
@@ -437,8 +437,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const OpArg& opAddress, int a
   }
 }
 
-void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int accessSize,
-                                          BitSet32 registersInUse, bool signExtend)
+void EmuCodeBlock::SafeLoadToRegImmediate(const X64Reg reg_value, const u32 address, const int accessSize,
+                                          const BitSet32 registersInUse, const bool signExtend)
 {
   // If the address is known to be RAM, just load it directly.
   if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
@@ -491,8 +491,8 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   }
 }
 
-void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                     BitSet32 registersInUse, int flags)
+void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, const int accessSize, const s32 offset,
+                                     const BitSet32 registersInUse, const int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
@@ -618,19 +618,19 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   }
 }
 
-void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
-                                     s32 offset, BitSet32 registersInUse, int flags)
+void EmuCodeBlock::SafeWriteRegToReg(const X64Reg reg_value, const X64Reg reg_addr, const int accessSize,
+                                     const s32 offset, const BitSet32 registersInUse, const int flags)
 {
   SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
 }
 
-bool EmuCodeBlock::WriteClobbersRegValue(int accessSize, bool swap)
+bool EmuCodeBlock::WriteClobbersRegValue(const int accessSize, const bool swap)
 {
   return swap && !cpu_info.bMOVBE && accessSize > 8;
 }
 
-bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
-                                       BitSet32 registersInUse)
+bool EmuCodeBlock::WriteToConstAddress(const int accessSize, OpArg arg, const u32 address,
+                                       const BitSet32 registersInUse)
 {
   arg = FixImmediate(accessSize, arg);
 
@@ -687,7 +687,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
   }
 }
 
-void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address, bool swap)
+void EmuCodeBlock::WriteToConstRamAddress(const int accessSize, OpArg arg, const u32 address, const bool swap)
 {
   X64Reg reg;
   if (arg.IsImm())
@@ -715,7 +715,7 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address
     MOV(accessSize, MRegSum(RMEM, RSCRATCH2), R(reg));
 }
 
-void EmuCodeBlock::JitGetAndClearCAOV(bool oe)
+void EmuCodeBlock::JitGetAndClearCAOV(const bool oe)
 {
   if (oe)
     AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));  // XER.OV = 0
@@ -729,7 +729,7 @@ void EmuCodeBlock::JitSetCA()
 
 // Some testing shows CA is set roughly ~1/3 of the time (relative to clears), so
 // branchless calculation of CA is probably faster in general.
-void EmuCodeBlock::JitSetCAIf(CCFlags conditionCode)
+void EmuCodeBlock::JitSetCAIf(const CCFlags conditionCode)
 {
   SETcc(conditionCode, PPCSTATE(xer_ca));
 }
@@ -741,8 +741,8 @@ void EmuCodeBlock::JitClearCA()
 
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
-                          void (XEmitter::*sseOp)(X64Reg, const OpArg&), X64Reg regOp,
-                          const OpArg& arg1, const OpArg& arg2, bool packed, bool reversible)
+                          void (XEmitter::*sseOp)(X64Reg, const OpArg&), const X64Reg regOp,
+                          const OpArg& arg1, const OpArg& arg2, const bool packed, const bool reversible)
 {
   if (arg1.IsSimpleReg(regOp))
   {
@@ -798,8 +798,8 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, u8),
-                          void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8), X64Reg regOp,
-                          const OpArg& arg1, const OpArg& arg2, u8 imm)
+                          void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8), const X64Reg regOp,
+                          const OpArg& arg1, const OpArg& arg2, const u8 imm)
 {
   if (arg1.IsSimpleReg(regOp))
   {
@@ -839,7 +839,7 @@ alignas(16) static const u64 psRoundBit[2] = {0x8000000, 0x8000000};
 // a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
 // rounding to nearest as it does.
 // It needs a temp, so let the caller pass that in.
-void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg tmp)
+void EmuCodeBlock::Force25BitPrecision(const X64Reg output, const OpArg& input, const X64Reg tmp)
 {
   if (m_jit.jo.accurateSinglePrecision)
   {
@@ -869,7 +869,7 @@ alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffff
                                                                   0xfff7ffffffffffff);
 
 // Converting single->double is a bit easier because all single denormals are double normals.
-void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
+void EmuCodeBlock::ConvertSingleToDouble(const X64Reg dst, const X64Reg src, const bool src_is_gpr)
 {
   X64Reg gprsrc = src_is_gpr ? src : RSCRATCH;
   if (src_is_gpr)
@@ -913,7 +913,7 @@ alignas(16) static const u32 psFloatNoSign[4] = {~Common::FLOAT_SIGN, 0, 0, 0};
 // than for integers though, because there's 32 possible FPRF bit combinations but only 9 categories
 // of floating point values. Fortunately, PPCAnalyzer can optimize out a large portion of FPRF
 // calculations, so maybe this isn't quite that necessary.
-void EmuCodeBlock::SetFPRF(X64Reg xmm, bool single)
+void EmuCodeBlock::SetFPRF(const X64Reg xmm, const bool single)
 {
   const int input_size = single ? 32 : 64;
 

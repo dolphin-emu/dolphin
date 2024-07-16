@@ -110,7 +110,7 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
   return true;
 }
 
-bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
+bool DolReader::LoadIntoMemory(Core::System& system, const bool only_in_mem1) const
 {
   if (!m_is_valid)
     return false;
@@ -148,7 +148,7 @@ bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
 }
 
 // On a real console this would be done in the Espresso bootrom
-bool DolReader::LoadAncastIntoMemory(Core::System& system) const
+bool DolReader::LoadAncastIntoMemory(const Core::System& system) const
 {
   // The ancast image will always be in data section 0
   const auto& section = m_data_sections[0];

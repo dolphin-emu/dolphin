@@ -268,7 +268,7 @@ struct ReportInterleave2 : IncludeCore, IncludeIR<IRReportFormat::Full2, 3, 18, 
 #pragma warning(pop)
 #endif
 
-std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID rpt_id, u8* data_ptr)
+std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(const InputReportID rpt_id, u8* data_ptr)
 {
   std::unique_ptr<DataReportManipulator> ptr;
 
@@ -326,12 +326,12 @@ std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID r
   return ptr;
 }
 
-DataReportBuilder::DataReportBuilder(InputReportID rpt_id) : m_data(rpt_id)
+DataReportBuilder::DataReportBuilder(const InputReportID rpt_id) : m_data(rpt_id)
 {
   SetMode(rpt_id);
 }
 
-void DataReportBuilder::SetMode(InputReportID rpt_id)
+void DataReportBuilder::SetMode(const InputReportID rpt_id)
 {
   m_data.report_id = rpt_id;
   m_manip = MakeDataReportManipulator(rpt_id, GetDataPtr() + sizeof(m_data.report_id));
@@ -342,7 +342,7 @@ InputReportID DataReportBuilder::GetMode() const
   return m_data.report_id;
 }
 
-bool DataReportBuilder::IsValidMode(InputReportID mode)
+bool DataReportBuilder::IsValidMode(const InputReportID mode)
 {
   return (mode >= InputReportID::ReportCore && mode <= InputReportID::ReportCoreAccelIR10Ext6) ||
          (mode >= InputReportID::ReportExt21 && mode <= InputReportID::ReportInterleave2);

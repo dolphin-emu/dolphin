@@ -15,7 +15,7 @@ CEXIDummy::CEXIDummy(Core::System& system, const std::string& name)
 {
 }
 
-void CEXIDummy::ImmWrite(u32 data, u32 size)
+void CEXIDummy::ImmWrite(const u32 data, u32 size)
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI DUMMY {} ImmWrite: {:08x}", m_name, data);
 }
@@ -26,13 +26,13 @@ u32 CEXIDummy::ImmRead(u32 size)
   return 0;
 }
 
-void CEXIDummy::DMAWrite(u32 address, u32 size)
+void CEXIDummy::DMAWrite(const u32 address, const u32 size)
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI DUMMY {} DMAWrite: {:08x} bytes, from {:08x} to device",
                m_name, size, address);
 }
 
-void CEXIDummy::DMARead(u32 address, u32 size)
+void CEXIDummy::DMARead(const u32 address, const u32 size)
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI DUMMY {} DMARead:  {:08x} bytes, from device to {:08x}",
                m_name, size, address);

@@ -56,7 +56,7 @@ void BPInit()
 
 static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& xf_state_manager,
                       GeometryShaderManager& geometry_shader_manager, const BPCmd& bp,
-                      int cycles_into_future)
+                      const int cycles_into_future)
 {
   /*
   ----------------------------------------------------------------------------------------------------------------
@@ -784,7 +784,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 }
 
 // Call browser: OpcodeDecoding.cpp RunCallback::OnBP()
-void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
+void LoadBPReg(const u8 reg, const u32 value, const int cycles_into_future)
 {
   auto& system = Core::System::GetInstance();
 
@@ -802,7 +802,7 @@ void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
             system.GetGeometryShaderManager(), bp, cycles_into_future);
 }
 
-void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future)
+void LoadBPRegPreprocess(const u8 reg, const u32 value, const int cycles_into_future)
 {
   auto& system = Core::System::GetInstance();
 

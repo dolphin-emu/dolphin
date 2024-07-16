@@ -75,7 +75,7 @@ bool TryParse(const std::string& str, bool* output);
 template <typename T>
 requires(std::is_integral_v<T> ||
          (std::is_enum_v<T> && !detail::IsBooleanEnum<T>())) bool TryParse(const std::string& str,
-                                                                           T* output, int base = 0)
+                                                                           T* output, const int base = 0)
 {
   char* end_ptr = nullptr;
 
@@ -181,14 +181,14 @@ std::string HexDump(const u8* data, size_t size);
 namespace Common
 {
 template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
-std::from_chars_result FromChars(std::string_view sv, T& value, int base = 10)
+std::from_chars_result FromChars(const std::string_view sv, T& value, int base = 10)
 {
   const char* const first = sv.data();
   const char* const last = first + sv.size();
   return std::from_chars(first, last, value, base);
 }
 template <typename T, typename std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
-std::from_chars_result FromChars(std::string_view sv, T& value,
+std::from_chars_result FromChars(const std::string_view sv, T& value,
                                  std::chars_format fmt = std::chars_format::general)
 {
   const char* const first = sv.data();
@@ -232,12 +232,12 @@ std::u16string UTF8ToUTF16(std::string_view str);
 std::wstring UTF8ToWString(std::string_view str);
 
 #ifdef _UNICODE
-inline std::string TStrToUTF8(std::wstring_view str)
+inline std::string TStrToUTF8(const std::wstring_view str)
 {
   return WStringToUTF8(str);
 }
 
-inline std::wstring UTF8ToTStr(std::string_view str)
+inline std::wstring UTF8ToTStr(const std::string_view str)
 {
   return UTF8ToWString(str);
 }
@@ -263,7 +263,7 @@ namespace Common
 /// Returns whether a character is printable, i.e. whether 0x20 <= c <= 0x7e is true.
 /// Use this instead of calling std::isprint directly to ensure
 /// the C locale is being used and to avoid possibly undefined behaviour.
-inline bool IsPrintableCharacter(char c)
+inline bool IsPrintableCharacter(const char c)
 {
   return std::isprint(c, std::locale::classic());
 }
@@ -271,24 +271,24 @@ inline bool IsPrintableCharacter(char c)
 /// Returns whether a character is a letter, i.e. whether 'a' <= c <= 'z' || 'A' <= c <= 'Z'
 /// is true. Use this instead of calling std::isalpha directly to ensure
 /// the C locale is being used and to avoid possibly undefined behaviour.
-inline bool IsAlpha(char c)
+inline bool IsAlpha(const char c)
 {
   return std::isalpha(c, std::locale::classic());
 }
 
-inline char ToLower(char ch)
+inline char ToLower(const char ch)
 {
   return std::tolower(ch, std::locale::classic());
 }
 
-inline char ToUpper(char ch)
+inline char ToUpper(const char ch)
 {
   return std::toupper(ch, std::locale::classic());
 }
 
 // Thousand separator. Turns 12345678 into 12,345,678
 template <typename I>
-std::string ThousandSeparate(I value, int spaces = 0)
+std::string ThousandSeparate(I value, const int spaces = 0)
 {
 #ifdef _WIN32
   std::wostringstream stream;

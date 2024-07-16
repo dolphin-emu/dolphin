@@ -80,7 +80,7 @@ void PatchesWidget::ConnectWidgets()
   connect(m_edit_button, &QPushButton::clicked, this, &PatchesWidget::OnEdit);
 }
 
-void PatchesWidget::OnItemChanged(QListWidgetItem* item)
+void PatchesWidget::OnItemChanged(const QListWidgetItem* item)
 {
   m_patches[m_list->row(item)].enabled = (item->checkState() == Qt::Checked);
   SavePatches();

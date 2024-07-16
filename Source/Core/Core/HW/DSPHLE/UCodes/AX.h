@@ -127,7 +127,7 @@ protected:
 
   // Apply updates to a PB. Generic, used in AX GC and AX Wii.
   template <typename PBType>
-  void ApplyUpdatesForMs(int curr_ms, PBType& pb, u16* num_updates, u16* updates)
+  void ApplyUpdatesForMs(const int curr_ms, PBType& pb, u16* num_updates, u16* updates)
   {
     auto pb_mem = Common::BitCastToArray<u16>(pb);
 

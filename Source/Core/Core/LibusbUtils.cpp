@@ -115,7 +115,7 @@ int Context::GetDeviceList(GetDeviceListCallback callback) const
   return m_impl->GetDeviceList(std::move(callback));
 }
 
-std::pair<int, ConfigDescriptor> MakeConfigDescriptor(libusb_device* device, u8 config_num)
+std::pair<int, ConfigDescriptor> MakeConfigDescriptor(libusb_device* device, const u8 config_num)
 {
 #if defined(__LIBUSB__)
   libusb_config_descriptor* descriptor = nullptr;

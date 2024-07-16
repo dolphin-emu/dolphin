@@ -77,7 +77,7 @@ private:
   void ConfigChanged();
   void Update();
 
-  void OnDialogButtonPressed(QAbstractButton* button);
+  void OnDialogButtonPressed(const QAbstractButton* button);
   void OnDeviceChanged();
   void OnDetectButtonPressed();
   void OnTestButtonPressed();

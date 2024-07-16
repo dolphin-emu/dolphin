@@ -13,7 +13,7 @@ ConstantPool::ConstantPool() = default;
 
 ConstantPool::~ConstantPool() = default;
 
-void ConstantPool::Init(void* memory, size_t size)
+void ConstantPool::Init(void* memory, const size_t size)
 {
   m_region = memory;
   m_region_size = size;
@@ -36,8 +36,8 @@ void ConstantPool::Shutdown()
   m_const_info.clear();
 }
 
-const void* ConstantPool::GetConstant(const void* value, size_t element_size, size_t num_elements,
-                                      size_t index)
+const void* ConstantPool::GetConstant(const void* value, const size_t element_size, const size_t num_elements,
+                                      const size_t index)
 {
   const size_t value_size = element_size * num_elements;
   auto iter = m_const_info.find(value);

@@ -98,7 +98,7 @@ auto Device::GetParentMostInput(Input* child) const -> Input*
   return child;
 }
 
-Device::Input* Device::FindInput(std::string_view name) const
+Device::Input* Device::FindInput(const std::string_view name) const
 {
   for (Input* input : m_inputs)
   {
@@ -109,7 +109,7 @@ Device::Input* Device::FindInput(std::string_view name) const
   return nullptr;
 }
 
-Device::Output* Device::FindOutput(std::string_view name) const
+Device::Output* Device::FindOutput(const std::string_view name) const
 {
   for (Output* output : m_outputs)
   {
@@ -120,7 +120,7 @@ Device::Output* Device::FindOutput(std::string_view name) const
   return nullptr;
 }
 
-bool Device::Control::IsMatchingName(std::string_view name) const
+bool Device::Control::IsMatchingName(const std::string_view name) const
 {
   return GetName() == name;
 }
@@ -151,7 +151,7 @@ bool Device::FullAnalogSurface::IsHidden() const
   return m_low.IsHidden() && m_high.IsHidden();
 }
 
-bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
+bool Device::FullAnalogSurface::IsMatchingName(const std::string_view name) const
 {
   if (Control::IsMatchingName(name))
     return true;
@@ -301,7 +301,7 @@ std::string DeviceContainer::GetDefaultDeviceString() const
   return device_qualifier.ToString();
 }
 
-Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* def_dev) const
+Device::Input* DeviceContainer::FindInput(const std::string_view name, const Device* def_dev) const
 {
   if (def_dev)
   {
@@ -322,7 +322,7 @@ Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* d
   return nullptr;
 }
 
-Device::Output* DeviceContainer::FindOutput(std::string_view name, const Device* def_dev) const
+Device::Output* DeviceContainer::FindOutput(const std::string_view name, const Device* def_dev) const
 {
   return def_dev->FindOutput(name);
 }
@@ -339,9 +339,9 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
 // and also properly handles detection when using "FullAnalogSurface" inputs.
 // Multiple detections are returned until the various timeouts have been reached.
 auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings,
-                                  std::chrono::milliseconds initial_wait,
-                                  std::chrono::milliseconds confirmation_wait,
-                                  std::chrono::milliseconds maximum_wait) const
+                                  const std::chrono::milliseconds initial_wait,
+                                  const std::chrono::milliseconds confirmation_wait,
+                                  const std::chrono::milliseconds maximum_wait) const
     -> std::vector<InputDetection>
 {
   struct InputState

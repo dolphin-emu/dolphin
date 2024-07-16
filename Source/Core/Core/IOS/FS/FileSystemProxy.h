@@ -35,7 +35,7 @@ public:
   class ScopedFd
   {
   public:
-    ScopedFd(FSCore* fs, s64 fd, Ticks tick_tracker = {})
+    ScopedFd(FSCore* fs, const s64 fd, const Ticks tick_tracker = {})
         : m_fs{fs}, m_fd{fd}, m_tick_tracker{tick_tracker}
     {
     }
@@ -78,7 +78,7 @@ public:
                             FS::FileAttribute attribute, FS::Modes modes, Ticks ticks = {});
 
   template <typename T>
-  s32 Read(u64 fd, T* data, size_t count, Ticks ticks = {})
+  s32 Read(const u64 fd, T* data, const size_t count, const Ticks ticks = {})
   {
     return Read(fd, reinterpret_cast<u8*>(data), static_cast<u32>(sizeof(T) * count), {}, ticks);
   }

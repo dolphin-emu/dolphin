@@ -79,7 +79,7 @@ namespace
 {
 using RangeList = Common::SmallVector<ScissorRange, 9>;
 
-static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_dim)
+static RangeList ComputeScissorRanges(const int start, const int end, const int offset, const int efb_dim)
 {
   RangeList ranges;
 
@@ -106,8 +106,8 @@ ScissorResult::ScissorResult(const BPMemory& bpmemory, const XFMemory& xfmemory)
                                 xfmemory.viewport.yOrig + xfmemory.viewport.ht))
 {
 }
-ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> viewport_x,
-                             std::pair<float, float> viewport_y)
+ScissorResult::ScissorResult(const BPMemory& bpmemory, const std::pair<float, float> viewport_x,
+                             const std::pair<float, float> viewport_y)
     : scissor_tl{.hex = bpmemory.scissorTL.hex}, scissor_br{.hex = bpmemory.scissorBR.hex},
       scissor_off{.hex = bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
       viewport_right(viewport_x.second), viewport_top(viewport_y.first),

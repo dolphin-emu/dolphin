@@ -105,7 +105,7 @@ void TransformNormal(const InputVertexData* src, OutputVertexData* dst)
   dst->normal[0].Normalize();
 }
 
-static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
+static void TransformTexCoordRegular(const TexMtxInfo& texinfo, const int coordNum,
                                      const InputVertexData* srcVertex, OutputVertexData* dstVertex)
 {
   Vec3 src;
@@ -197,14 +197,14 @@ struct LightPointer
   Vec3 dir;
 };
 
-static inline void AddScaledIntegerColor(const u8* src, float scale, Vec3& dst)
+static inline void AddScaledIntegerColor(const u8* src, const float scale, Vec3& dst)
 {
   dst.x += src[1] * scale;
   dst.y += src[2] * scale;
   dst.z += src[3] * scale;
 }
 
-static inline float SafeDivide(float n, float d)
+static inline float SafeDivide(const float n, const float d)
 {
   return (d == 0) ? (n > 0 ? 1 : 0) : n / d;
 }
@@ -257,7 +257,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   return attn;
 }
 
-static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan,
+static void LightColor(const Vec3& pos, const Vec3& normal, const u8 lightNum, const LitChannel& chan,
                        Vec3& lightCol)
 {
   const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
@@ -283,7 +283,7 @@ static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   }
 }
 
-static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan,
+static void LightAlpha(const Vec3& pos, const Vec3& normal, const u8 lightNum, const LitChannel& chan,
                        float& lightCol)
 {
   const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];

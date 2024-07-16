@@ -32,7 +32,7 @@ const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
   return m_buffer;
 }
 
-std::string SettingsHandler::GetValue(std::string_view key) const
+std::string SettingsHandler::GetValue(const std::string_view key) const
 {
   constexpr char delim[] = "\n";
   std::string toFind = std::string(delim).append(key).append("=");
@@ -82,7 +82,7 @@ void SettingsHandler::AddSetting(std::string_view key, std::string_view value)
   WriteLine(fmt::format("{}={}\r\n", key, value));
 }
 
-void SettingsHandler::WriteLine(std::string_view str)
+void SettingsHandler::WriteLine(const std::string_view str)
 {
   const u32 old_position = m_position;
   const u32 old_key = m_key;
@@ -106,7 +106,7 @@ void SettingsHandler::WriteLine(std::string_view str)
   }
 }
 
-void SettingsHandler::WriteByte(u8 b)
+void SettingsHandler::WriteByte(const u8 b)
 {
   if (m_position >= m_buffer.size())
     return;

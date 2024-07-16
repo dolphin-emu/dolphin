@@ -51,7 +51,7 @@ constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xA
                              0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
 
-void StorageDeleter::operator()(Storage* p) const
+void StorageDeleter::operator()(const Storage* p) const
 {
   delete p;
 }
@@ -61,7 +61,7 @@ namespace FS = IOS::HLE::FS;
 class NandStorage final : public Storage
 {
 public:
-  explicit NandStorage(FS::FileSystem* fs, u64 tid) : m_fs{fs}, m_tid{tid}
+  explicit NandStorage(FS::FileSystem* fs, const u64 tid) : m_fs{fs}, m_tid{tid}
   {
     m_data_dir = Common::GetTitleDataPath(tid);
     InitTitleUidAndGid();
@@ -242,7 +242,7 @@ private:
     m_gid = metadata->gid;
   }
 
-  static constexpr FS::Modes GetFsMode(u8 bin_mode)
+  static constexpr FS::Modes GetFsMode(const u8 bin_mode)
   {
     return {FS::Mode(bin_mode >> 4 & 3), FS::Mode(bin_mode >> 2 & 3), FS::Mode(bin_mode >> 0 & 3)};
   }
@@ -476,7 +476,7 @@ private:
   File::IOFile m_file;
 };
 
-StoragePointer MakeNandStorage(FS::FileSystem* fs, u64 tid)
+StoragePointer MakeNandStorage(FS::FileSystem* fs, const u64 tid)
 {
   return StoragePointer{new NandStorage{fs, tid}};
 }
@@ -566,7 +566,7 @@ CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_ov
   return Copy(data_bin.get(), nand.get());
 }
 
-static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
+static CopyResult Export(const u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
   const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
                                        static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
@@ -575,13 +575,13 @@ static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel
               MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
 }
 
-CopyResult Export(u64 tid, std::string_view export_path)
+CopyResult Export(const u64 tid, const std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   return Export(tid, export_path, &ios);
 }
 
-size_t ExportAll(std::string_view export_path)
+size_t ExportAll(const std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   size_t exported_save_count = 0;

@@ -28,13 +28,13 @@
 using namespace Gen;
 using namespace JitCommon;
 
-void Jit64::GenerateConstantOverflow(s64 val)
+void Jit64::GenerateConstantOverflow(const s64 val)
 {
   GenerateConstantOverflow(val > std::numeric_limits<s32>::max() ||
                            val < std::numeric_limits<s32>::min());
 }
 
-void Jit64::GenerateConstantOverflow(bool overflow)
+void Jit64::GenerateConstantOverflow(const bool overflow)
 {
   if (overflow)
   {
@@ -49,7 +49,7 @@ void Jit64::GenerateConstantOverflow(bool overflow)
 }
 
 // We could do overflow branchlessly, but unlike carry it seems to be quite a bit rarer.
-void Jit64::GenerateOverflow(CCFlags cond)
+void Jit64::GenerateOverflow(const CCFlags cond)
 {
   FixupBranch jno = J_CC(cond);
   // XER[OV/SO] = 1
@@ -68,7 +68,7 @@ void Jit64::GenerateOverflow(CCFlags cond)
   SetJumpTarget(exit);
 }
 
-void Jit64::FinalizeCarry(CCFlags cond)
+void Jit64::FinalizeCarry(const CCFlags cond)
 {
   js.carryFlag = CarryFlag::InPPCState;
   if (js.op->wantsCA)
@@ -102,7 +102,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
 }
 
 // Unconditional version
-void Jit64::FinalizeCarry(bool ca)
+void Jit64::FinalizeCarry(const bool ca)
 {
   js.carryFlag = CarryFlag::InPPCState;
   if (js.op->wantsCA)
@@ -127,7 +127,7 @@ void Jit64::FinalizeCarry(bool ca)
   }
 }
 
-void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
+void Jit64::FinalizeCarryOverflow(const bool oe, const bool inv)
 {
   if (oe)
   {
@@ -143,7 +143,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // branches, only EQ.
 // The flags from any instruction that may set OF (such as ADD/SUB) can not be used for
 // LT/GT either.
-void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
+void Jit64::ComputeRC(const preg_t preg, const bool needs_test, const bool needs_sext)
 {
   RCOpArg arg = gpr.Use(preg, RCMode::Read);
   RegCache::Realize(arg);
@@ -193,7 +193,7 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 
 // we can't do this optimization in the emitter because MOVZX and AND have different effects on
 // flags.
-void Jit64::AndWithMask(X64Reg reg, u32 mask)
+void Jit64::AndWithMask(const X64Reg reg, const u32 mask)
 {
   if (mask == 0xffffffff)
     return;
@@ -208,7 +208,7 @@ void Jit64::AndWithMask(X64Reg reg, u32 mask)
     AND(32, R(reg), Imm32(mask));
 }
 
-void Jit64::RotateLeft(int bits, X64Reg regOp, const OpArg& arg, u8 rotate)
+void Jit64::RotateLeft(const int bits, const X64Reg regOp, const OpArg& arg, const u8 rotate)
 {
   const bool is_same_reg = arg.IsSimpleReg(regOp);
 
@@ -230,28 +230,28 @@ void Jit64::RotateLeft(int bits, X64Reg regOp, const OpArg& arg, u8 rotate)
 }
 
 // Following static functions are used in conjunction with regimmop
-static u32 Add(u32 a, u32 b)
+static u32 Add(const u32 a, const u32 b)
 {
   return a + b;
 }
 
-static u32 Or(u32 a, u32 b)
+static u32 Or(const u32 a, const u32 b)
 {
   return a | b;
 }
 
-static u32 And(u32 a, u32 b)
+static u32 And(const u32 a, const u32 b)
 {
   return a & b;
 }
 
-static u32 Xor(u32 a, u32 b)
+static u32 Xor(const u32 a, const u32 b)
 {
   return a ^ b;
 }
 
-void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
-                     void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
+void Jit64::regimmop(const int d, const int a, const bool binary, const u32 value, const Operation doop,
+                     void (XEmitter::*op)(int, const OpArg&, const OpArg&), const bool Rc, bool carry)
 {
   bool needs_test = doop == Add;
   // Be careful; addic treats r0 as r0, but addi treats r0 as zero.
@@ -368,7 +368,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   }
 }
 
-bool Jit64::CheckMergedBranch(u32 crf) const
+bool Jit64::CheckMergedBranch(const u32 crf) const
 {
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
@@ -511,7 +511,7 @@ void Jit64::DoMergedBranchCondition()
   }
 }
 
-void Jit64::DoMergedBranchImmediate(s64 val)
+void Jit64::DoMergedBranchImmediate(const s64 val)
 {
   js.downcountAmount++;
   js.skipInstructions = 1;
@@ -1253,7 +1253,7 @@ void Jit64::subfx(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
+void Jit64::MultiplyImmediate(const u32 imm, const int a, const int d, const bool overflow)
 {
   RCOpArg Ra = gpr.Use(a, RCMode::Read);
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);

@@ -30,7 +30,7 @@ static void LoadVertexAttribute(ShaderCode& code, const ShaderHostConfig& host_c
                                 std::string_view name, std::string_view shader_type,
                                 std::string_view stored_type, std::string_view offset_name = {});
 
-ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config,
+ShaderCode GenVertexShader(const APIType api_type, const ShaderHostConfig& host_config,
                            const vertex_ubershader_uid_data* uid_data)
 {
   const bool msaa = host_config.msaa;

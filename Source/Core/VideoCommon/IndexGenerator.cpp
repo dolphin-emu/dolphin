@@ -17,7 +17,7 @@ namespace
 constexpr u16 s_primitive_restart = UINT16_MAX;
 
 template <bool pr>
-u16* WriteTriangle(u16* index_ptr, u32 index1, u32 index2, u32 index3)
+u16* WriteTriangle(u16* index_ptr, const u32 index1, const u32 index2, const u32 index3)
 {
   *index_ptr++ = index1;
   *index_ptr++ = index2;
@@ -28,7 +28,7 @@ u16* WriteTriangle(u16* index_ptr, u32 index1, u32 index2, u32 index3)
 }
 
 template <bool pr>
-u16* AddList(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddList(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   for (u32 i = 2; i < num_verts; i += 3)
   {
@@ -38,7 +38,7 @@ u16* AddList(u16* index_ptr, u32 num_verts, u32 index)
 }
 
 template <bool pr>
-u16* AddStrip(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddStrip(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   if constexpr (pr)
   {
@@ -81,7 +81,7 @@ u16* AddStrip(u16* index_ptr, u32 num_verts, u32 index)
  */
 
 template <bool pr>
-u16* AddFan(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddFan(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   u32 i = 2;
 
@@ -132,7 +132,7 @@ u16* AddFan(u16* index_ptr, u32 num_verts, u32 index)
  * ZWW do this for sun rays
  */
 template <bool pr>
-u16* AddQuads(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddQuads(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   u32 i = 3;
   for (; i < num_verts; i += 4)
@@ -162,13 +162,13 @@ u16* AddQuads(u16* index_ptr, u32 num_verts, u32 index)
 }
 
 template <bool pr>
-u16* AddQuads_nonstandard(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddQuads_nonstandard(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   WARN_LOG_FMT(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
   return AddQuads<pr>(index_ptr, num_verts, index);
 }
 
-u16* AddLineList(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddLineList(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   for (u32 i = 1; i < num_verts; i += 2)
   {
@@ -180,7 +180,7 @@ u16* AddLineList(u16* index_ptr, u32 num_verts, u32 index)
 
 // Shouldn't be used as strips as LineLists are much more common
 // so converting them to lists
-u16* AddLineStrip(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddLineStrip(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   for (u32 i = 1; i < num_verts; ++i)
   {
@@ -191,7 +191,7 @@ u16* AddLineStrip(u16* index_ptr, u32 num_verts, u32 index)
 }
 
 template <bool pr, bool linestrip>
-u16* AddLines_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddLines_VSExpand(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   // VS Expand uses (index >> 2) as the base vertex
   // Bit 0 indicates which side of the line (left/right for a vertical line)
@@ -223,7 +223,7 @@ u16* AddLines_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
   return index_ptr;
 }
 
-u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddPoints(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   for (u32 i = 0; i != num_verts; ++i)
   {
@@ -233,7 +233,7 @@ u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
 }
 
 template <bool pr>
-u16* AddPoints_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
+u16* AddPoints_VSExpand(u16* index_ptr, const u32 num_verts, const u32 index)
 {
   // VS Expand uses (index >> 2) as the base vertex
   // Bottom two bits indicate which of (TL, TR, BL, BR) this is
@@ -312,21 +312,21 @@ void IndexGenerator::Start(u16* index_ptr)
   m_base_index = 0;
 }
 
-void IndexGenerator::AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices)
+void IndexGenerator::AddIndices(const OpcodeDecoder::Primitive primitive, const u32 num_vertices)
 {
   m_index_buffer_current =
       m_primitive_table[primitive](m_index_buffer_current, num_vertices, m_base_index);
   m_base_index += num_vertices;
 }
 
-void IndexGenerator::AddExternalIndices(const u16* indices, u32 num_indices, u32 num_vertices)
+void IndexGenerator::AddExternalIndices(const u16* indices, const u32 num_indices, const u32 num_vertices)
 {
   std::memcpy(m_index_buffer_current, indices, sizeof(u16) * num_indices);
   m_index_buffer_current += num_indices;
   m_base_index += num_vertices;
 }
 
-u32 IndexGenerator::GetRemainingIndices(OpcodeDecoder::Primitive primitive) const
+u32 IndexGenerator::GetRemainingIndices(const OpcodeDecoder::Primitive primitive) const
 {
   u32 max_index = UINT16_MAX;
 

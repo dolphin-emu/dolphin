@@ -45,7 +45,7 @@ VolumeGC::~VolumeGC()
 {
 }
 
-bool VolumeGC::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
+bool VolumeGC::Read(const u64 offset, const u64 length, u8* buffer, const Partition& partition) const
 {
   if (partition != PARTITION_NONE)
     return false;

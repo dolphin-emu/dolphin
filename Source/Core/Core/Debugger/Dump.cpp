@@ -36,7 +36,7 @@ int CDump::GetNumberOfSteps()
   return (int)(m_size / STRUCTUR_SIZE);
 }
 
-u32 CDump::GetGPR(int _step, int _gpr)
+u32 CDump::GetGPR(const int _step, const int _gpr)
 {
   u32 offset = _step * STRUCTUR_SIZE;
 
@@ -46,7 +46,7 @@ u32 CDump::GetGPR(int _step, int _gpr)
   return Read32(offset + OFFSET_GPR + (_gpr * 4));
 }
 
-u32 CDump::GetPC(int _step)
+u32 CDump::GetPC(const int _step)
 {
   u32 offset = _step * STRUCTUR_SIZE;
 
@@ -56,7 +56,7 @@ u32 CDump::GetPC(int _step)
   return Read32(offset + OFFSET_PC);
 }
 
-u32 CDump::Read32(u32 _pos)
+u32 CDump::Read32(const u32 _pos)
 {
   u32 result = (m_pData[_pos + 0] << 24) | (m_pData[_pos + 1] << 16) | (m_pData[_pos + 2] << 8) |
                (m_pData[_pos + 3] << 0);

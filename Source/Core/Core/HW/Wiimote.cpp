@@ -33,12 +33,12 @@ namespace
 static std::array<std::atomic<WiimoteSource>, MAX_BBMOTES> s_wiimote_sources;
 static std::optional<Config::ConfigChangedCallbackID> s_config_callback_id = std::nullopt;
 
-WiimoteSource GetSource(unsigned int index)
+WiimoteSource GetSource(const unsigned int index)
 {
   return s_wiimote_sources[index];
 }
 
-void OnSourceChanged(unsigned int index, WiimoteSource source)
+void OnSourceChanged(const unsigned int index, const WiimoteSource source)
 {
   const WiimoteSource previous_source = s_wiimote_sources[index].exchange(source);
 
@@ -64,7 +64,7 @@ void RefreshConfig()
 
 namespace WiimoteCommon
 {
-void UpdateSource(unsigned int index)
+void UpdateSource(const unsigned int index)
 {
   const auto bluetooth = WiiUtils::GetBluetoothEmuDevice();
   if (bluetooth == nullptr)
@@ -73,7 +73,7 @@ void UpdateSource(unsigned int index)
   bluetooth->AccessWiimoteByIndex(index)->SetSource(GetHIDWiimoteSource(index));
 }
 
-HIDWiimote* GetHIDWiimoteSource(unsigned int index)
+HIDWiimote* GetHIDWiimoteSource(const unsigned int index)
 {
   HIDWiimote* hid_source = nullptr;
 
@@ -105,56 +105,56 @@ InputConfig* GetConfig()
   return &s_config;
 }
 
-ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group)
+ControllerEmu::ControlGroup* GetWiimoteGroup(const int number, const WiimoteEmu::WiimoteGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetWiimoteGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetNunchukGroup(int number, WiimoteEmu::NunchukGroup group)
+ControllerEmu::ControlGroup* GetNunchukGroup(const int number, const WiimoteEmu::NunchukGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetNunchukGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetClassicGroup(int number, WiimoteEmu::ClassicGroup group)
+ControllerEmu::ControlGroup* GetClassicGroup(const int number, const WiimoteEmu::ClassicGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetClassicGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetGuitarGroup(int number, WiimoteEmu::GuitarGroup group)
+ControllerEmu::ControlGroup* GetGuitarGroup(const int number, const WiimoteEmu::GuitarGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetGuitarGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetDrumsGroup(int number, WiimoteEmu::DrumsGroup group)
+ControllerEmu::ControlGroup* GetDrumsGroup(const int number, const WiimoteEmu::DrumsGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetDrumsGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::TurntableGroup group)
+ControllerEmu::ControlGroup* GetTurntableGroup(const int number, const WiimoteEmu::TurntableGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetTurntableGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTabletGroup group)
+ControllerEmu::ControlGroup* GetUDrawTabletGroup(const int number, const WiimoteEmu::UDrawTabletGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetUDrawTabletGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
-                                                    WiimoteEmu::DrawsomeTabletGroup group)
+ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(const int number,
+                                                    const WiimoteEmu::DrawsomeTabletGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetDrawsomeTabletGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group)
+ControllerEmu::ControlGroup* GetTaTaConGroup(const int number, const WiimoteEmu::TaTaConGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group)
+ControllerEmu::ControlGroup* GetShinkansenGroup(const int number, const WiimoteEmu::ShinkansenGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetShinkansenGroup(group);
@@ -175,7 +175,7 @@ void Shutdown()
   }
 }
 
-void Initialize(InitializeMode init_mode)
+void Initialize(const InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {

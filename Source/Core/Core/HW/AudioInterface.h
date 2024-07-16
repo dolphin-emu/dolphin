@@ -66,7 +66,7 @@ private:
   union AICR
   {
     AICR() = default;
-    explicit AICR(u32 hex_) : hex{hex_} {}
+    explicit AICR(const u32 hex_) : hex{hex_} {}
     struct
     {
       u32 PSTAT : 1;     // sample counter/playback enable
@@ -103,7 +103,7 @@ private:
   void SetAISSampleRate(SampleRate sample_rate);
 
   void Update(u64 userdata, s64 cycles_late);
-  static void GlobalUpdate(Core::System& system, u64 userdata, s64 cycles_late);
+  static void GlobalUpdate(const Core::System& system, u64 userdata, s64 cycles_late);
 
   // Registers
   AICR m_control;

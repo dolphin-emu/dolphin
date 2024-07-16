@@ -114,7 +114,7 @@ private:
   struct ExecutingCommandInfo
   {
     ExecutingCommandInfo() {}
-    ExecutingCommandInfo(u32 request_address) : m_request_address(request_address) {}
+    ExecutingCommandInfo(const u32 request_address) : m_request_address(request_address) {}
     u32 m_request_address = 0;
     bool m_copy_diimmbuf = false;
   };

@@ -487,7 +487,7 @@ void Jit64::DynaRunTable63(UGeckoInstruction inst)
   (this->*s_dyna_op_table63[inst.SUBOP10])(inst);
 }
 
-void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
+void Jit64::CompileInstruction(const PPCAnalyst::CodeOp& op)
 {
   (this->*s_dyna_op_table[op.inst.OPCD])(op.inst);
 

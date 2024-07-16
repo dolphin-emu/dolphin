@@ -202,7 +202,7 @@ void StateManager::ApplyTextures()
   }
 }
 
-u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
+u32 StateManager::UnsetTexture(const ID3D11ShaderResourceView* srv)
 {
   u32 mask = 0;
 
@@ -228,7 +228,7 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
   }
 }
 
-void StateManager::SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav)
+void StateManager::SetComputeUAV(const u32 index, ID3D11UnorderedAccessView* uav)
 {
   if (m_compute_images[index] == uav)
     return;

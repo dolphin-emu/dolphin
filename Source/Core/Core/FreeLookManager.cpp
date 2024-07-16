@@ -205,7 +205,7 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
 #endif
 }
 
-ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) const
+ControllerEmu::ControlGroup* FreeLookController::GetGroup(const FreeLookGroup group) const
 {
   switch (group)
   {
@@ -350,7 +350,7 @@ bool IsInitialized()
   return !s_config.ControllersNeedToBeCreated();
 }
 
-ControllerEmu::ControlGroup* GetInputGroup(int pad_num, FreeLookGroup group)
+ControllerEmu::ControlGroup* GetInputGroup(const int pad_num, const FreeLookGroup group)
 {
   return static_cast<FreeLookController*>(s_config.GetController(pad_num))->GetGroup(group);
 }

@@ -101,7 +101,7 @@ private:
     return {const_cast<TrieEntry*>(e_const), it};
   }
 
-  void Add(std::string_view key, const V& val)
+  void Add(const std::string_view key, const V& val)
   {
     auto&& [last_e, it] = TryFind(key);
     if (it != key.cend())

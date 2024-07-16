@@ -12,7 +12,7 @@
 extern const u8* g_video_buffer_read_ptr;
 extern u8* g_vertex_manager_write_ptr;
 
-DOLPHIN_FORCE_INLINE void DataSkip(u32 skip)
+DOLPHIN_FORCE_INLINE void DataSkip(const u32 skip)
 {
   g_video_buffer_read_ptr += skip;
 }
@@ -25,7 +25,7 @@ DOLPHIN_FORCE_INLINE void DataSkip()
 }
 
 template <typename T>
-DOLPHIN_FORCE_INLINE T DataPeek(int _uOffset, const u8* bufp = g_video_buffer_read_ptr)
+DOLPHIN_FORCE_INLINE T DataPeek(const int _uOffset, const u8* bufp = g_video_buffer_read_ptr)
 {
   T result;
   std::memcpy(&result, &bufp[_uOffset], sizeof(T));

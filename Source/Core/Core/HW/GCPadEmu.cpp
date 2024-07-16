@@ -101,7 +101,7 @@ InputConfig* GCPad::GetConfig() const
   return Pad::GetConfig();
 }
 
-ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
+ControllerEmu::ControlGroup* GCPad::GetGroup(const PadGroup group)
 {
   switch (group)
   {

@@ -133,7 +133,7 @@ bool IMUGyroscope::CanCalibrate() const
   return ControlReference::GetInputGate();
 }
 
-std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(bool update)
+std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(const bool update)
 {
   if (!AreInputsBound())
   {

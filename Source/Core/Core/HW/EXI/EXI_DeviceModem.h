@@ -93,27 +93,27 @@ private:
   void RunAllPendingATCommands();
   void AddATReply(const std::string& data);
 
-  static inline bool TransferIsResetCommand(u32 transfer_descriptor)
+  static inline bool TransferIsResetCommand(const u32 transfer_descriptor)
   {
     return transfer_descriptor == 0x80000000;
   }
 
-  static inline bool IsWriteTransfer(u32 transfer_descriptor)
+  static inline bool IsWriteTransfer(const u32 transfer_descriptor)
   {
     return transfer_descriptor & 0x40000000;
   }
 
-  static inline bool IsModemTransfer(u32 transfer_descriptor)
+  static inline bool IsModemTransfer(const u32 transfer_descriptor)
   {
     return transfer_descriptor & 0x20000000;
   }
 
-  static inline u16 GetModemTransferSize(u32 transfer_descriptor)
+  static inline u16 GetModemTransferSize(const u32 transfer_descriptor)
   {
     return (transfer_descriptor >> 8) & 0xFFFF;
   }
 
-  static inline u32 SetModemTransferSize(u32 transfer_descriptor, u16 new_size)
+  static inline u32 SetModemTransferSize(const u32 transfer_descriptor, const u16 new_size)
   {
     return (transfer_descriptor & 0xFF000000) | (new_size << 8);
   }

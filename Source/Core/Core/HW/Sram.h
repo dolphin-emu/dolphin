@@ -69,17 +69,17 @@ struct SramFlags
   bool oobe_done() const { return value & kOobeDone; }
   bool boot_to_menu() const { return value & kBootToMenu; }
   bool progressive_scan() const { return value & kProgressiveScan; }
-  void set_flag(bool enable, u8 flag)
+  void set_flag(const bool enable, const u8 flag)
   {
     if (enable)
       value |= flag;
     else
       value &= ~flag;
   }
-  void stereo(bool enable) { set_flag(enable, kStereo); }
-  void oobe_done(bool enable) { set_flag(enable, kOobeDone); }
-  void boot_to_menu(bool enable) { set_flag(enable, kBootToMenu); }
-  void progressive_scan(bool enable) { set_flag(enable, kProgressiveScan); }
+  void stereo(const bool enable) { set_flag(enable, kStereo); }
+  void oobe_done(const bool enable) { set_flag(enable, kOobeDone); }
+  void boot_to_menu(const bool enable) { set_flag(enable, kBootToMenu); }
+  void progressive_scan(const bool enable) { set_flag(enable, kProgressiveScan); }
   u8 value;
 };
 
@@ -127,7 +127,7 @@ struct Sram
   SramSettingsEx settings_ex{};
   // Allow access to this entire structure as a raw blob
   // Typical union-with-byte-array method can't be used here on GCC
-  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
+  u8& operator[](const size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
 };
 // TODO determine real full sram size for gc/wii
 static_assert(sizeof(Sram) == 0x44);

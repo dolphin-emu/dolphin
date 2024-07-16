@@ -25,7 +25,7 @@ constexpr auto SPURIOUS_TRIGGER_COMBO_THRESHOLD = std::chrono::milliseconds(150)
 std::string GetExpressionForControl(const std::string& control_name,
                                     const Core::DeviceQualifier& control_device,
                                     const Core::DeviceQualifier& default_device,
-                                    Quote quote)
+                                    const Quote quote)
 {
   std::string expr;
 
@@ -52,7 +52,7 @@ std::string GetExpressionForControl(const std::string& control_name,
 
 std::string
 BuildExpression(const std::vector<Core::DeviceContainer::InputDetection>& detections,
-                const Core::DeviceQualifier& default_device, Quote quote)
+                const Core::DeviceQualifier& default_device, const Quote quote)
 {
   std::vector<const Core::DeviceContainer::InputDetection*> pressed_inputs;
 

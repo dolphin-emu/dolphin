@@ -15,7 +15,7 @@ class SmallVector final
 {
 public:
   SmallVector() = default;
-  explicit SmallVector(size_t size) : m_size(size) {}
+  explicit SmallVector(const size_t size) : m_size(size) {}
 
   void push_back(const T& x) { m_array[m_size++] = x; }
   void push_back(T&& x) { m_array[m_size++] = std::move(x); }

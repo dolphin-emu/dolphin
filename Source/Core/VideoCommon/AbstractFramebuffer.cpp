@@ -8,9 +8,9 @@
 AbstractFramebuffer::AbstractFramebuffer(AbstractTexture* color_attachment,
                                          AbstractTexture* depth_attachment,
                                          std::vector<AbstractTexture*> additional_color_attachments,
-                                         AbstractTextureFormat color_format,
-                                         AbstractTextureFormat depth_format, u32 width, u32 height,
-                                         u32 layers, u32 samples)
+                                         const AbstractTextureFormat color_format,
+                                         const AbstractTextureFormat depth_format, const u32 width, const u32 height,
+                                         const u32 layers, const u32 samples)
     : m_color_attachment(color_attachment), m_depth_attachment(depth_attachment),
       m_additional_color_attachments(std::move(additional_color_attachments)),
       m_color_format(color_format), m_depth_format(depth_format), m_width(width), m_height(height),

@@ -9,7 +9,7 @@
 
 namespace ControllerEmu
 {
-Output::Output(Translatability translate_, std::string name_)
+Output::Output(const Translatability translate_, std::string name_)
     : Control(std::make_unique<OutputReference>(), translate_, std::move(name_))
 {
 }

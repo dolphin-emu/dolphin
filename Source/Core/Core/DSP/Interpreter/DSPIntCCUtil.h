@@ -11,23 +11,23 @@
 
 namespace DSP::Interpreter
 {
-constexpr bool isCarryAdd(u64 val, u64 result)
+constexpr bool isCarryAdd(const u64 val, const u64 result)
 {
   return val > result;
 }
 
-constexpr bool isCarrySubtract(u64 val, u64 result)
+constexpr bool isCarrySubtract(const u64 val, const u64 result)
 {
   return val >= result;
 }
 
-constexpr bool isOverflow(s64 val1, s64 val2, s64 res)
+constexpr bool isOverflow(const s64 val1, const s64 val2, const s64 res)
 {
   // val1 > 0 and val2 > 0 yet res < 0, or val1 < 0 and val2 < 0 yet res > 0.
   return ((val1 ^ res) & (val2 ^ res)) < 0;
 }
 
-constexpr bool isOverS32(s64 acc)
+constexpr bool isOverS32(const s64 acc)
 {
   return acc != static_cast<s32>(acc);
 }

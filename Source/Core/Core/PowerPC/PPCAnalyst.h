@@ -174,13 +174,13 @@ public:
   };
 
   // Option setting/getting
-  void SetOption(AnalystOption option) { m_options |= option; }
-  void ClearOption(AnalystOption option) { m_options &= ~(option); }
-  bool HasOption(AnalystOption option) const { return !!(m_options & option); }
-  void SetDebuggingEnabled(bool enabled) { m_is_debugging_enabled = enabled; }
-  void SetBranchFollowingEnabled(bool enabled) { m_enable_branch_following = enabled; }
-  void SetFloatExceptionsEnabled(bool enabled) { m_enable_float_exceptions = enabled; }
-  void SetDivByZeroExceptionsEnabled(bool enabled) { m_enable_div_by_zero_exceptions = enabled; }
+  void SetOption(const AnalystOption option) { m_options |= option; }
+  void ClearOption(const AnalystOption option) { m_options &= ~(option); }
+  bool HasOption(const AnalystOption option) const { return !!(m_options & option); }
+  void SetDebuggingEnabled(const bool enabled) { m_is_debugging_enabled = enabled; }
+  void SetBranchFollowingEnabled(const bool enabled) { m_enable_branch_following = enabled; }
+  void SetFloatExceptionsEnabled(const bool enabled) { m_enable_float_exceptions = enabled; }
+  void SetDivByZeroExceptionsEnabled(const bool enabled) { m_enable_div_by_zero_exceptions = enabled; }
   u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size) const;
 
 private:
@@ -195,8 +195,8 @@ private:
   void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
                                ReorderType type) const;
   void ReorderInstructions(u32 instructions, CodeOp* code) const;
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo) const;
-  bool IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const;
+  void SetInstructionStats(const CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo) const;
+  bool IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, size_t instructions) const;
 
   // Options
   u32 m_options = 0;

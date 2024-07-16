@@ -70,7 +70,7 @@ bool D3DBoundingBox::Initialize()
   return true;
 }
 
-std::vector<BBoxType> D3DBoundingBox::Read(u32 index, u32 length)
+std::vector<BBoxType> D3DBoundingBox::Read(const u32 index, const u32 length)
 {
   std::vector<BBoxType> values(length);
   D3D::context->CopyResource(m_staging_buffer.Get(), m_buffer.Get());
@@ -88,7 +88,7 @@ std::vector<BBoxType> D3DBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void D3DBoundingBox::Write(u32 index, std::span<const BBoxType> values)
+void D3DBoundingBox::Write(const u32 index, const std::span<const BBoxType> values)
 {
   D3D11_BOX box{index * sizeof(BBoxType),
                 0,

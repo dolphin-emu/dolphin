@@ -80,7 +80,7 @@ void StickWidget::mouseMoveEvent(QMouseEvent* event)
     handleMouseEvent(event);
 }
 
-void StickWidget::handleMouseEvent(QMouseEvent* event)
+void StickWidget::handleMouseEvent(const QMouseEvent* event)
 {
   u16 prev_x = m_x;
   u16 prev_y = m_y;

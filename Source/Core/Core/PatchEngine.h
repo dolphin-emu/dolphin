@@ -30,7 +30,7 @@ enum class PatchType
 struct PatchEntry
 {
   PatchEntry() = default;
-  PatchEntry(PatchType t, u32 addr, u32 value_) : type(t), address(addr), value(value_) {}
+  PatchEntry(const PatchType t, const u32 addr, const u32 value_) : type(t), address(addr), value(value_) {}
   PatchType type = PatchType::Patch8Bit;
   u32 address = 0;
   u32 value = 0;
@@ -63,7 +63,7 @@ bool ApplyFramePatches(Core::System& system);
 void Shutdown();
 void Reload();
 
-inline int GetPatchTypeCharLength(PatchType type)
+inline int GetPatchTypeCharLength(const PatchType type)
 {
   int size = 8;
   switch (type)

@@ -63,7 +63,7 @@ void SymbolDB::Index()
   }
 }
 
-Symbol* SymbolDB::GetSymbolFromName(std::string_view name)
+Symbol* SymbolDB::GetSymbolFromName(const std::string_view name)
 {
   for (auto& func : m_functions)
   {
@@ -74,7 +74,7 @@ Symbol* SymbolDB::GetSymbolFromName(std::string_view name)
   return nullptr;
 }
 
-std::vector<Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name)
+std::vector<Symbol*> SymbolDB::GetSymbolsFromName(const std::string_view name)
 {
   std::vector<Symbol*> symbols;
 
@@ -87,7 +87,7 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name)
   return symbols;
 }
 
-Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
+Symbol* SymbolDB::GetSymbolFromHash(const u32 hash)
 {
   auto iter = m_checksum_to_function.find(hash);
   if (iter == m_checksum_to_function.end())
@@ -96,7 +96,7 @@ Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
   return *iter->second.begin();
 }
 
-std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
+std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(const u32 hash)
 {
   const auto iter = m_checksum_to_function.find(hash);
 

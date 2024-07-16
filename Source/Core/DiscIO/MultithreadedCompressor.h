@@ -85,7 +85,7 @@ public:
       m_current_index -= m_threads;
   }
 
-  void SetError(ConversionResultCode result)
+  void SetError(const ConversionResultCode result)
   {
     ASSERT(result != ConversionResultCode::Success);
 

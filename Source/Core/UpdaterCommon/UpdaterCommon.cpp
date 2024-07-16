@@ -58,13 +58,13 @@ void LogToFile(const char* fmt, ...)
   va_end(args);
 }
 
-bool ProgressCallback(s64 total, s64 now, s64, s64)
+bool ProgressCallback(const s64 total, const s64 now, s64, s64)
 {
   UI::SetCurrentProgress(static_cast<int>(now), static_cast<int>(total));
   return true;
 }
 
-std::string HexEncode(const u8* buffer, size_t size)
+std::string HexEncode(const u8* buffer, const size_t size)
 {
   std::string out(size * 2, '\0');
 
@@ -77,12 +77,12 @@ std::string HexEncode(const u8* buffer, size_t size)
   return out;
 }
 
-bool HexDecode(const std::string& hex, u8* buffer, size_t size)
+bool HexDecode(const std::string& hex, u8* buffer, const size_t size)
 {
   if (hex.size() != size * 2)
     return false;
 
-  auto DecodeNibble = [](char c) -> std::optional<u8> {
+  auto DecodeNibble = [](const char c) -> std::optional<u8> {
     if (c >= '0' && c <= '9')
       return static_cast<u8>(c - '0');
     else if (c >= 'a' && c <= 'f')
@@ -613,7 +613,7 @@ struct Options
   std::optional<std::string> log_file;
 };
 
-std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
+std::optional<Options> ParseCommandLine(const std::vector<std::string>& args)
 {
   using optparse::OptionParser;
 

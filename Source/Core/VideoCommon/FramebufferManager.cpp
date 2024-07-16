@@ -150,14 +150,14 @@ static u32 CalculateEFBLayers()
   return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
 }
 
-TextureConfig FramebufferManager::GetEFBColorTextureConfig(u32 width, u32 height)
+TextureConfig FramebufferManager::GetEFBColorTextureConfig(const u32 width, const u32 height)
 {
   return TextureConfig(width, height, 1, CalculateEFBLayers(), g_ActiveConfig.iMultisamples,
                        GetEFBColorFormat(), AbstractTextureFlag_RenderTarget,
                        AbstractTextureType::Texture_2DArray);
 }
 
-TextureConfig FramebufferManager::GetEFBDepthTextureConfig(u32 width, u32 height)
+TextureConfig FramebufferManager::GetEFBDepthTextureConfig(const u32 width, const u32 height)
 {
   return TextureConfig(width, height, 1, CalculateEFBLayers(), g_ActiveConfig.iMultisamples,
                        GetEFBDepthFormat(), AbstractTextureFlag_RenderTarget,
@@ -190,22 +190,22 @@ unsigned int FramebufferManager::GetEFBScale() const
   return m_efb_scale;
 }
 
-int FramebufferManager::EFBToScaledX(int x) const
+int FramebufferManager::EFBToScaledX(const int x) const
 {
   return x * static_cast<int>(m_efb_scale);
 }
 
-int FramebufferManager::EFBToScaledY(int y) const
+int FramebufferManager::EFBToScaledY(const int y) const
 {
   return y * static_cast<int>(m_efb_scale);
 }
 
-float FramebufferManager::EFBToScaledXf(float x) const
+float FramebufferManager::EFBToScaledXf(const float x) const
 {
   return x * ((float)GetEFBWidth() / (float)EFB_WIDTH);
 }
 
-float FramebufferManager::EFBToScaledYf(float y) const
+float FramebufferManager::EFBToScaledYf(const float y) const
 {
   return y * ((float)GetEFBHeight() / (float)EFB_HEIGHT);
 }
@@ -350,7 +350,7 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
 }
 
 AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region,
-                                                            bool force_r32f)
+                                                            const bool force_r32f)
 {
   if (!IsEFBMultisampled() &&
       (!force_r32f || m_efb_depth_texture->GetFormat() == AbstractTextureFormat::D32F))
@@ -442,7 +442,7 @@ bool FramebufferManager::IsUsingTiledEFBCache() const
   return m_efb_cache_tile_size > 0;
 }
 
-bool FramebufferManager::IsEFBCacheTilePresent(bool depth, u32 x, u32 y, u32* tile_index) const
+bool FramebufferManager::IsEFBCacheTilePresent(const bool depth, const u32 x, const u32 y, u32* tile_index) const
 {
   const EFBCacheData& data = depth ? m_efb_depth_cache : m_efb_color_cache;
   if (!IsUsingTiledEFBCache())
@@ -458,7 +458,7 @@ bool FramebufferManager::IsEFBCacheTilePresent(bool depth, u32 x, u32 y, u32* ti
   return data.tiles[*tile_index].present;
 }
 
-MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(u32 tile_index) const
+MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(const u32 tile_index) const
 {
   if (!IsUsingTiledEFBCache())
     return MathUtil::Rectangle<int>(0, 0, EFB_WIDTH, EFB_HEIGHT);
@@ -472,7 +472,7 @@ MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(u32 tile_index)
       std::min(start_y + m_efb_cache_tile_size, static_cast<u32>(EFB_HEIGHT)));
 }
 
-u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
+u32 FramebufferManager::PeekEFBColor(const u32 x, u32 y)
 {
   // The y coordinate here assumes upper-left origin, but the readback texture is lower-left in GL.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -495,7 +495,7 @@ u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
   return value;
 }
 
-float FramebufferManager::PeekEFBDepth(u32 x, u32 y)
+float FramebufferManager::PeekEFBDepth(const u32 x, u32 y)
 {
   // The y coordinate here assumes upper-left origin, but the readback texture is lower-left in GL.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -518,7 +518,7 @@ float FramebufferManager::PeekEFBDepth(u32 x, u32 y)
   return value;
 }
 
-void FramebufferManager::SetEFBCacheTileSize(u32 size)
+void FramebufferManager::SetEFBCacheTileSize(const u32 size)
 {
   if (m_efb_cache_tile_size == size)
     return;
@@ -562,7 +562,7 @@ void FramebufferManager::RefreshPeekCache()
   }
 }
 
-void FramebufferManager::InvalidatePeekCache(bool forced)
+void FramebufferManager::InvalidatePeekCache(const bool forced)
 {
   if (forced || m_efb_color_cache.out_of_date)
   {
@@ -780,7 +780,7 @@ void FramebufferManager::DestroyReadbackFramebuffer()
   DestroyCache(m_efb_depth_cache);
 }
 
-void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async)
+void FramebufferManager::PopulateEFBCache(const bool depth, const u32 tile_index, const bool async)
 {
   FlushEFBPokes();
   g_vertex_manager->OnCPUEFBAccess();
@@ -853,8 +853,8 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
   data.tiles[tile_index].present = true;
 }
 
-void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color_enable,
-                                  bool alpha_enable, bool z_enable, u32 color, u32 z)
+void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, const bool color_enable,
+                                  bool alpha_enable, const bool z_enable, u32 color, const u32 z)
 {
   FlushEFBPokes();
   FlagPeekCacheAsOutOfDate();
@@ -937,13 +937,13 @@ void FramebufferManager::DestroyClearPipelines()
   }
 }
 
-AbstractPipeline* FramebufferManager::GetClearPipeline(bool colorEnable, bool alphaEnable,
-                                                       bool zEnable) const
+AbstractPipeline* FramebufferManager::GetClearPipeline(const bool colorEnable, const bool alphaEnable,
+                                                       const bool zEnable) const
 {
   return m_clear_pipelines[colorEnable][alphaEnable][zEnable].get();
 }
 
-void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
+void FramebufferManager::PokeEFBColor(const u32 x, u32 y, const u32 color)
 {
   // Flush if we exceeded the number of vertices per batch.
   if ((m_color_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
@@ -961,7 +961,7 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
     m_efb_color_cache.readback_texture->WriteTexel(x, y, &color);
 }
 
-void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
+void FramebufferManager::PokeEFBDepth(const u32 x, u32 y, const float depth)
 {
   // Flush if we exceeded the number of vertices per batch.
   if ((m_depth_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
@@ -979,8 +979,8 @@ void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
     m_efb_depth_cache.readback_texture->WriteTexel(x, y, &depth);
 }
 
-void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x,
-                                            u32 y, float z, u32 color)
+void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, const u32 x,
+                                            const u32 y, const float z, const u32 color)
 {
   const float cs_pixel_width = 1.0f / EFB_WIDTH * 2.0f;
   const float cs_pixel_height = 1.0f / EFB_HEIGHT * 2.0f;
@@ -1024,7 +1024,7 @@ void FramebufferManager::FlushEFBPokes()
   }
 }
 
-void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, u32 vertex_count,
+void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, const u32 vertex_count,
                                           const AbstractPipeline* pipeline)
 {
   // Copy to vertex buffer.

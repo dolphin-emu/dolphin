@@ -24,7 +24,7 @@ namespace WiiSave
 class Storage;
 struct StorageDeleter
 {
-  void operator()(Storage* p) const;
+  void operator()(const Storage* p) const;
 };
 
 using StoragePointer = std::unique_ptr<Storage, StorageDeleter>;

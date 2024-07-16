@@ -106,7 +106,7 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
                 ppc_inst);
 }
 
-bool Interpreter::HandleFunctionHooking(u32 address)
+bool Interpreter::HandleFunctionHooking(const u32 address)
 {
   const auto result =
       HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::Interpreter);

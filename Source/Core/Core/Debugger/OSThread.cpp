@@ -16,7 +16,7 @@ namespace Core::Debug
 //  - OSDumpContext
 //  - OSClearContext
 //  - OSExceptionVector
-void OSContext::Read(const CPUThreadGuard& guard, u32 addr)
+void OSContext::Read(const CPUThreadGuard& guard, const u32 addr)
 {
   for (std::size_t i = 0; i < gpr.size(); i++)
     gpr[i] = PowerPC::MMU::HostRead_U32(guard, addr + u32(i * sizeof(int)));
@@ -42,7 +42,7 @@ void OSContext::Read(const CPUThreadGuard& guard, u32 addr)
 //  - OSInitMutex
 //  - OSLockMutex
 //  - __OSUnlockAllMutex
-void OSMutex::Read(const CPUThreadGuard& guard, u32 addr)
+void OSMutex::Read(const CPUThreadGuard& guard, const u32 addr)
 {
   thread_queue.head = PowerPC::MMU::HostRead_U32(guard, addr);
   thread_queue.tail = PowerPC::MMU::HostRead_U32(guard, addr + 0x4);
@@ -64,7 +64,7 @@ void OSMutex::Read(const CPUThreadGuard& guard, u32 addr)
 //  - __OSThreadInit
 //  - OSSetThreadSpecific
 //  - SOInit (for errno)
-void OSThread::Read(const CPUThreadGuard& guard, u32 addr)
+void OSThread::Read(const CPUThreadGuard& guard, const u32 addr)
 {
   context.Read(guard, addr);
   state = PowerPC::MMU::HostRead_U16(guard, addr + 0x2c8);
@@ -101,7 +101,7 @@ bool OSThread::IsValid(const CPUThreadGuard& guard) const
          PowerPC::MMU::HostRead_U32(guard, stack_end) == STACK_MAGIC;
 }
 
-OSThreadView::OSThreadView(const CPUThreadGuard& guard, u32 addr)
+OSThreadView::OSThreadView(const CPUThreadGuard& guard, const u32 addr)
 {
   m_address = addr;
   m_thread.Read(guard, addr);

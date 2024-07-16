@@ -69,7 +69,7 @@ void Wiimote::EventUnlinked()
   Reset();
 }
 
-void Wiimote::InterruptDataOutput(const u8* data, u32 size)
+void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
 {
   if (size == 0)
   {
@@ -131,7 +131,7 @@ void Wiimote::InterruptDataOutput(const u8* data, u32 size)
   }
 }
 
-void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
+void Wiimote::SendAck(const OutputReportID rpt_id, const ErrorCode error_code)
 {
   TypedInputData<InputReportAck> rpt(InputReportID::Ack);
   auto& ack = rpt.payload;
@@ -144,7 +144,7 @@ void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
 }
 
 void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
-                                  bool desired_motion_plus)
+                                  const bool desired_motion_plus)
 {
   if (WIIMOTE_BALANCE_BOARD == m_index)
   {

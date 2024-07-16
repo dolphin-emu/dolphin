@@ -119,7 +119,7 @@ union UCPStatusReg
   };
   u16 Hex;
   UCPStatusReg() { Hex = 0; }
-  UCPStatusReg(u16 _hex) { Hex = _hex; }
+  UCPStatusReg(const u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Control Register
@@ -137,7 +137,7 @@ union UCPCtrlReg
   };
   u16 Hex;
   UCPCtrlReg() { Hex = 0; }
-  UCPCtrlReg(u16 _hex) { Hex = _hex; }
+  UCPCtrlReg(const u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Clear Register
@@ -152,10 +152,10 @@ union UCPClearReg
   };
   u16 Hex;
   UCPClearReg() { Hex = 0; }
-  UCPClearReg(u16 _hex) { Hex = _hex; }
+  UCPClearReg(const u16 _hex) { Hex = _hex; }
 };
 
-constexpr u32 GetPhysicalAddressMask(bool is_wii)
+constexpr u32 GetPhysicalAddressMask(const bool is_wii)
 {
   // Physical addresses in CP seem to ignore some of the upper bits (depending on platform)
   // This can be observed in CP MMIO registers by setting to 0xffffffff and then reading back.

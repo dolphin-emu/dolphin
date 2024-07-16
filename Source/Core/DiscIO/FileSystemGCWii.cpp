@@ -29,20 +29,20 @@ namespace DiscIO
 constexpr u32 FST_ENTRY_SIZE = 4 * 3;  // An FST entry consists of three 32-bit integers
 
 // Set everything manually.
-FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift, u32 index, u32 total_file_infos)
+FileInfoGCWii::FileInfoGCWii(const u8* fst, const u8 offset_shift, const u32 index, const u32 total_file_infos)
     : m_fst(fst), m_offset_shift(offset_shift), m_index(index), m_total_file_infos(total_file_infos)
 {
 }
 
 // For the root object only.
 // m_fst and m_index must be correctly set before GetSize() is called!
-FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift)
+FileInfoGCWii::FileInfoGCWii(const u8* fst, const u8 offset_shift)
     : m_fst(fst), m_offset_shift(offset_shift), m_index(0), m_total_file_infos(GetSize())
 {
 }
 
 // Copy data that is common to the whole file system.
-FileInfoGCWii::FileInfoGCWii(const FileInfoGCWii& file_info, u32 index)
+FileInfoGCWii::FileInfoGCWii(const FileInfoGCWii& file_info, const u32 index)
     : FileInfoGCWii(file_info.m_fst, file_info.m_offset_shift, index, file_info.m_total_file_infos)
 {
 }
@@ -124,7 +124,7 @@ std::string FileInfoGCWii::GetName() const
   return SHIFTJISToUTF8(reinterpret_cast<const char*>(m_fst + GetNameOffset()));
 }
 
-bool FileInfoGCWii::NameCaseInsensitiveEquals(std::string_view other) const
+bool FileInfoGCWii::NameCaseInsensitiveEquals(const std::string_view other) const
 {
   // For speed, this function avoids allocating new strings, except when we are comparing
   // non-ASCII characters with non-ASCII characters, which is a rare case.
@@ -146,7 +146,7 @@ bool FileInfoGCWii::NameCaseInsensitiveEquals(std::string_view other) const
       // other is in UTF-8 and this is in Shift-JIS, so we convert so that we can compare correctly
       const std::string this_utf8 = SHIFTJISToUTF8(this_ptr);
       return std::equal(this_utf8.cbegin(), this_utf8.cend(), other.cbegin() + i, other.cend(),
-                        [](char a, char b) { return Common::ToLower(a) == Common::ToLower(b); });
+                        [](const char a, const char b) { return Common::ToLower(a) == Common::ToLower(b); });
     }
     else if (Common::ToLower(*this_ptr) != Common::ToLower(*other_ptr))
     {
@@ -183,7 +183,7 @@ std::string FileInfoGCWii::GetPath() const
   }
 }
 
-bool FileInfoGCWii::IsValid(u64 fst_size, const FileInfoGCWii& parent_directory) const
+bool FileInfoGCWii::IsValid(const u64 fst_size, const FileInfoGCWii& parent_directory) const
 {
   if (GetNameOffset() >= fst_size)
   {
@@ -296,7 +296,7 @@ const FileInfo& FileSystemGCWii::GetRoot() const
   return m_root;
 }
 
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string_view path) const
 {
   if (!IsValid())
     return nullptr;
@@ -337,7 +337,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
   return nullptr;
 }
 
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const u64 disc_offset) const
 {
   if (!IsValid())
     return nullptr;

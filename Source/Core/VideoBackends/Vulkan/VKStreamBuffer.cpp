@@ -16,7 +16,7 @@
 
 namespace Vulkan
 {
-StreamBuffer::StreamBuffer(VkBufferUsageFlags usage, u32 size) : m_usage(usage), m_size(size)
+StreamBuffer::StreamBuffer(const VkBufferUsageFlags usage, const u32 size) : m_usage(usage), m_size(size)
 {
 }
 
@@ -88,7 +88,7 @@ bool StreamBuffer::AllocateBuffer()
   return true;
 }
 
-bool StreamBuffer::ReserveMemory(u32 num_bytes, u32 alignment)
+bool StreamBuffer::ReserveMemory(const u32 num_bytes, const u32 alignment)
 {
   const u32 required_bytes = num_bytes + alignment;
 
@@ -155,7 +155,7 @@ bool StreamBuffer::ReserveMemory(u32 num_bytes, u32 alignment)
   return false;
 }
 
-void StreamBuffer::CommitMemory(u32 final_num_bytes)
+void StreamBuffer::CommitMemory(const u32 final_num_bytes)
 {
   ASSERT((m_current_offset + final_num_bytes) <= m_size);
   ASSERT(final_num_bytes <= m_last_allocation_size);
@@ -204,7 +204,7 @@ void StreamBuffer::UpdateGPUPosition()
     m_tracked_fences.erase(start, end);
 }
 
-bool StreamBuffer::WaitForClearSpace(u32 num_bytes)
+bool StreamBuffer::WaitForClearSpace(const u32 num_bytes)
 {
   u32 new_offset = 0;
   u32 new_gpu_position = 0;

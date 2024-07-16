@@ -15,7 +15,7 @@
 
 namespace OGL
 {
-std::unique_ptr<PerfQueryBase> GetPerfQuery(bool is_gles)
+std::unique_ptr<PerfQueryBase> GetPerfQuery(const bool is_gles)
 {
   if (is_gles && GLExtensions::Supports("GL_NV_occlusion_query_samples"))
     return std::make_unique<PerfQueryGLESNV>();
@@ -30,12 +30,12 @@ PerfQuery::PerfQuery() : m_query_read_pos()
   ResetQuery();
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
+void PerfQuery::EnableQuery(const PerfQueryGroup group)
 {
   m_query->EnableQuery(group);
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup group)
+void PerfQuery::DisableQuery(const PerfQueryGroup group)
 {
   m_query->DisableQuery(group);
 }
@@ -58,7 +58,7 @@ void PerfQuery::ResetQuery()
     m_results[i].store(0, std::memory_order_relaxed);
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
+u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 {
   u32 result = 0;
 
@@ -84,7 +84,7 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 }
 
 // Implementations
-PerfQueryGL::PerfQueryGL(GLenum query_type) : m_query_type(query_type)
+PerfQueryGL::PerfQueryGL(const GLenum query_type) : m_query_type(query_type)
 {
   for (ActiveQuery& query : m_query_buffer)
     glGenQueries(1, &query.query_id);
@@ -96,7 +96,7 @@ PerfQueryGL::~PerfQueryGL()
     glDeleteQueries(1, &query.query_id);
 }
 
-void PerfQueryGL::EnableQuery(PerfQueryGroup group)
+void PerfQueryGL::EnableQuery(const PerfQueryGroup group)
 {
   u32 query_count = m_query_count.load(std::memory_order_relaxed);
 
@@ -125,7 +125,7 @@ void PerfQueryGL::EnableQuery(PerfQueryGroup group)
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
 }
-void PerfQueryGL::DisableQuery(PerfQueryGroup group)
+void PerfQueryGL::DisableQuery(const PerfQueryGroup group)
 {
   // stop query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
@@ -196,7 +196,7 @@ PerfQueryGLESNV::~PerfQueryGLESNV()
     glDeleteOcclusionQueriesNV(1, &query.query_id);
 }
 
-void PerfQueryGLESNV::EnableQuery(PerfQueryGroup group)
+void PerfQueryGLESNV::EnableQuery(const PerfQueryGroup group)
 {
   u32 query_count = m_query_count.load(std::memory_order_relaxed);
 
@@ -225,7 +225,7 @@ void PerfQueryGLESNV::EnableQuery(PerfQueryGroup group)
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
 }
-void PerfQueryGLESNV::DisableQuery(PerfQueryGroup group)
+void PerfQueryGLESNV::DisableQuery(const PerfQueryGroup group)
 {
   // stop query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)

@@ -34,7 +34,7 @@ constexpr const char* DETERMINISM_AUTO_STRING = "auto";
 constexpr const char* DETERMINISM_NONE_STRING = "none";
 constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
-static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
+static void PopulateTab(QTabWidget* tab, const std::string& path, const std::string& game_id,
                         u16 revision, bool read_only)
 {
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
@@ -233,7 +233,7 @@ void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& sect
   checkbox->setCheckState(Qt::PartiallyChecked);
 }
 
-void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& section,
+void GameConfigWidget::SaveCheckBox(const QCheckBox* checkbox, const std::string& section,
                                     const std::string& key, bool reverse)
 {
   // Delete any existing entries from the local gameini if checkbox is undetermined.

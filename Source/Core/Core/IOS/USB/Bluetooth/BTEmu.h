@@ -52,7 +52,7 @@ public:
   void SendACLPacket(const bdaddr_t& source, const u8* data, u32 size);
 
   // Returns true if controller is configured to see the connection request.
-  bool RemoteConnect(WiimoteDevice&);
+  bool RemoteConnect(const WiimoteDevice&);
   bool RemoteDisconnect(const bdaddr_t& address);
 
   WiimoteDevice* AccessWiimoteByIndex(std::size_t index);

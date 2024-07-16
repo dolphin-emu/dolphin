@@ -177,7 +177,7 @@ s32 CachedInterpreter::CheckBreakpoint(PowerPC::PowerPCState& ppc_state,
   return sizeof(AnyCallback) + sizeof(operands);
 }
 
-s32 CachedInterpreter::CheckIdle(PowerPC::PowerPCState& ppc_state,
+s32 CachedInterpreter::CheckIdle(const PowerPC::PowerPCState& ppc_state,
                                  const CheckIdleOperands& operands)
 {
   const auto& [core_timing, idle_pc] = operands;
@@ -186,7 +186,7 @@ s32 CachedInterpreter::CheckIdle(PowerPC::PowerPCState& ppc_state,
   return sizeof(AnyCallback) + sizeof(operands);
 }
 
-bool CachedInterpreter::HandleFunctionHooking(u32 address)
+bool CachedInterpreter::HandleFunctionHooking(const u32 address)
 {
   // CachedInterpreter inherits from JitBase and is considered a JIT by relevant code.
   // (see JitInterface and how m_mode is set within PowerPC.cpp)

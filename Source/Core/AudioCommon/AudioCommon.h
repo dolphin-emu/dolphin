@@ -29,7 +29,7 @@ DPL2Quality GetDefaultDPL2Quality();
 bool SupportsDPL2Decoder(std::string_view backend);
 bool SupportsLatencyControl(std::string_view backend);
 bool SupportsVolumeChanges(std::string_view backend);
-void UpdateSoundStream(Core::System& system);
+void UpdateSoundStream(const Core::System& system);
 void SetSoundStreamRunning(Core::System& system, bool running);
 void SendAIBuffer(Core::System& system, const short* samples, unsigned int num_samples);
 void StartAudioDump(Core::System& system);

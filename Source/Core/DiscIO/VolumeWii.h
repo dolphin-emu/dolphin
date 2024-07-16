@@ -106,8 +106,8 @@ public:
                            const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>&
                                hash_exception_callback = {});
 
-  static void DecryptBlockHashes(const u8* in, HashBlock* out, Common::AES::Context* aes_context);
-  static void DecryptBlockData(const u8* in, u8* out, Common::AES::Context* aes_context);
+  static void DecryptBlockHashes(const u8* in, HashBlock* out, const Common::AES::Context* aes_context);
+  static void DecryptBlockData(const u8* in, u8* out, const Common::AES::Context* aes_context);
 
 protected:
   u32 GetOffsetShift() const override { return 2; }

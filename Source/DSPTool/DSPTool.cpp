@@ -144,7 +144,7 @@ static bool PerformBinaryComparison(const std::string& lhs, const std::string& r
 }
 
 static void PrintResults(const std::string& input_name, const std::string& output_name,
-                         bool print_results_srhack, bool print_results_prodhack)
+                         const bool print_results_srhack, const bool print_results_prodhack)
 {
   std::string dumpfile;
 
@@ -271,8 +271,8 @@ static std::vector<std::string> GetAssemblerFiles(const std::string& source)
 }
 
 static bool PerformAssembly(const std::string& input_name, const std::string& output_name,
-                            const std::string& output_header_name, bool multiple, bool force,
-                            bool output_size)
+                            const std::string& output_header_name, const bool multiple, const bool force,
+                            const bool output_size)
 {
   if (input_name.empty())
   {
@@ -378,7 +378,7 @@ static bool IsHelpFlag(const std::string& argument)
 //   dsptool [-f] -h asdf.h asdf.txt
 // Print results from DSPSpy register dump
 //   dsptool -p dsp_dump0.bin
-int main(int argc, const char* argv[])
+int main(const int argc, const char* argv[])
 {
   if (argc == 1 || (argc == 2 && IsHelpFlag(argv[1])))
   {

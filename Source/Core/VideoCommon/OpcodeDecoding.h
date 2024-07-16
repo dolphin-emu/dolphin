@@ -119,7 +119,7 @@ namespace detail
 {
 // Main logic; split so that the main RunCommand can call OnCommand with the returned size.
 template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
-static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
+static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, const u32 available, T& callback)
 {
   if (available < 1)
     return 0;
@@ -260,7 +260,7 @@ DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
 }
 
 template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
-DOLPHIN_FORCE_INLINE u32 Run(const u8* data, u32 available, T& callback)
+DOLPHIN_FORCE_INLINE u32 Run(const u8* data, const u32 available, T& callback)
 {
   u32 size = 0;
   while (size < available)

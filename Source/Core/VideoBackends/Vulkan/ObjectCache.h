@@ -39,13 +39,13 @@ public:
   void Shutdown();
 
   // Descriptor set layout accessor. Used for allocating descriptor sets.
-  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT layout) const
+  VkDescriptorSetLayout GetDescriptorSetLayout(const DESCRIPTOR_SET_LAYOUT layout) const
   {
     return m_descriptor_set_layouts[layout];
   }
 
   // Pipeline layout accessor. Used to fill in required field in PipelineInfo.
-  VkPipelineLayout GetPipelineLayout(PIPELINE_LAYOUT layout) const
+  VkPipelineLayout GetPipelineLayout(const PIPELINE_LAYOUT layout) const
   {
     return m_pipeline_layouts[layout];
   }

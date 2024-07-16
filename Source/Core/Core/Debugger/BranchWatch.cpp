@@ -48,8 +48,8 @@ union USnapshotMetadata
   BitField<3, 4, Inspection, StorageType> inspection;
 
   USnapshotMetadata() : hex(0) {}
-  explicit USnapshotMetadata(bool is_virtual_, bool condition_, bool is_selected_,
-                             Inspection inspection_)
+  explicit USnapshotMetadata(const bool is_virtual_, const bool condition_, const bool is_selected_,
+                             const Inspection inspection_)
       : USnapshotMetadata()
   {
     is_virtual = is_virtual_;
@@ -69,7 +69,7 @@ void BranchWatch::Save(const CPUThreadGuard& guard, std::FILE* file) const
   if (file == nullptr)
     return;
 
-  const auto routine = [&](const Collection& collection, bool is_virtual, bool condition) {
+  const auto routine = [&](const Collection& collection, const bool is_virtual, const bool condition) {
     for (const Collection::value_type& kv : collection)
     {
       const auto iter = std::find_if(
@@ -136,7 +136,7 @@ void BranchWatch::IsolateHasExecuted(const CPUThreadGuard&)
   case Phase::Blacklist:
   {
     m_selection.reserve(GetCollectionSize() - m_blacklist_size);
-    const auto routine = [&](Collection& collection, bool is_virtual, bool condition) {
+    const auto routine = [&](Collection& collection, const bool is_virtual, const bool condition) {
       for (Collection::value_type& kv : collection)
       {
         if (kv.second.hits_snapshot == 0)
@@ -210,7 +210,7 @@ void BranchWatch::IsolateWasOverwritten(const CPUThreadGuard& guard)
     // This is a dirty hack of the assumptions that make the blacklist phase work. If the
     // hits_snapshot is non-zero while in the blacklist phase, that means it has been marked
     // for exclusion from the transition to the reduction phase.
-    const auto routine = [&](Collection& collection, PowerPC::RequestedAddressSpace address_space) {
+    const auto routine = [&](Collection& collection, const PowerPC::RequestedAddressSpace address_space) {
       for (Collection::value_type& kv : collection)
       {
         if (kv.second.hits_snapshot == 0)
@@ -256,7 +256,7 @@ void BranchWatch::IsolateNotOverwritten(const CPUThreadGuard& guard)
   case Phase::Blacklist:
   {
     // Same dirty hack with != rather than ==, see above for details
-    const auto routine = [&](Collection& collection, PowerPC::RequestedAddressSpace address_space) {
+    const auto routine = [&](Collection& collection, const PowerPC::RequestedAddressSpace address_space) {
       for (Collection::value_type& kv : collection)
         if (kv.second.hits_snapshot == 0)
         {
@@ -307,7 +307,7 @@ void BranchWatch::ClearSelectionInspection()
                 [](Selection::value_type& value) { value.inspection = {}; });
 }
 
-void BranchWatch::SetSelectedInspected(std::size_t idx, SelectionInspection inspection)
+void BranchWatch::SetSelectedInspected(const std::size_t idx, const SelectionInspection inspection)
 {
   m_selection[idx].inspection |= inspection;
 }

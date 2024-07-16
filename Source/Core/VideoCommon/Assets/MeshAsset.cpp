@@ -58,7 +58,7 @@ Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
   return matrix;
 }
 
-bool GLTFComponentTypeToAttributeFormat(int component_type, AttributeFormat* format)
+bool GLTFComponentTypeToAttributeFormat(const int component_type, AttributeFormat* format)
 {
   switch (component_type)
   {
@@ -113,7 +113,7 @@ bool GLTFComponentTypeToAttributeFormat(int component_type, AttributeFormat* for
   return true;
 }
 
-bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, u32 accessor_index,
+bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, const u32 accessor_index,
                                      MeshDataChunk* chunk)
 {
   const tinygltf::Accessor& accessor = model.accessors[accessor_index];
@@ -137,7 +137,7 @@ bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, u32 accessor_
   return true;
 }
 
-bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_index,
+bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, const u32 accessor_index,
                                  std::size_t* outbound_offset, MeshDataChunk* chunk)
 {
   const tinygltf::Accessor& accessor = model.accessors[accessor_index];
@@ -419,7 +419,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
   return true;
 }
 
-bool ReadGLTFNodes(std::string_view mesh_file, const tinygltf::Model& model,
+bool ReadGLTFNodes(const std::string_view mesh_file, const tinygltf::Model& model,
                    const tinygltf::Node& node, const Common::Matrix44& mat, MeshData* data)
 {
   if (node.mesh != -1)
@@ -452,7 +452,7 @@ bool ReadGLTFMaterials(std::string_view mesh_file, const tinygltf::Model& model,
   return true;
 }
 
-bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData* data)
+bool ReadGLTF(const std::string_view mesh_file, const tinygltf::Model& model, MeshData* data)
 {
   int scene_index = model.defaultScene;
   if (scene_index == -1)
@@ -512,7 +512,7 @@ void MeshData::ToJson(picojson::object& obj, const MeshData& data)
   obj.emplace("material_mapping", std::move(material_mapping));
 }
 
-bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
+bool MeshData::FromDolphinMesh(const std::span<const u8> raw_data, MeshData* data)
 {
   std::size_t offset = 0;
 
@@ -620,7 +620,7 @@ bool MeshData::ToDolphinMesh(File::IOFile* file_data, const MeshData& data)
   return true;
 }
 
-bool MeshData::FromGLTF(std::string_view gltf_file, MeshData* data)
+bool MeshData::FromGLTF(const std::string_view gltf_file, MeshData* data)
 {
   if (gltf_file.ends_with(".glb"))
   {

@@ -51,7 +51,7 @@ constexpr std::initializer_list<Slot> SLOTS = {Slot::A, Slot::B, Slot::SP1};
 constexpr auto MAX_SLOT = Slot::SP1;
 constexpr std::initializer_list<Slot> MEMCARD_SLOTS = {Slot::A, Slot::B};
 constexpr auto MAX_MEMCARD_SLOT = Slot::B;
-constexpr bool IsMemcardSlot(Slot slot)
+constexpr bool IsMemcardSlot(const Slot slot)
 {
   return slot == Slot::A || slot == Slot::B;
 }
@@ -89,8 +89,8 @@ public:
 private:
   void AddMemoryCard(Slot slot);
 
-  static void ChangeDeviceCallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void ChangeDeviceCallback(const Core::System& system, u64 userdata, s64 cycles_late);
+  static void UpdateInterruptsCallback(const Core::System& system, u64 userdata, s64 cycles_late);
 
   CoreTiming::EventType* m_event_type_change_device = nullptr;
   CoreTiming::EventType* m_event_type_update_interrupts = nullptr;

@@ -41,7 +41,7 @@ public:
     ASSERT(!mbedtls_sha1_starts_ret(&ctx));
   }
   ~ContextMbed() { mbedtls_sha1_free(&ctx); }
-  virtual void Update(const u8* msg, size_t len) override
+  virtual void Update(const u8* msg, const size_t len) override
   {
     ASSERT(!mbedtls_sha1_update_ret(&ctx, msg, len));
   }
@@ -142,8 +142,8 @@ template <typename ValueType, size_t Size>
 class CyclicArray
 {
 public:
-  inline ValueType operator[](size_t i) const { return data[i % Size]; }
-  inline ValueType& operator[](size_t i) { return data[i % Size]; }
+  inline ValueType operator[](const size_t i) const { return data[i % Size]; }
+  inline ValueType& operator[](const size_t i) { return data[i % Size]; }
   constexpr size_t size() { return Size; }
 
 private:
@@ -182,7 +182,7 @@ private:
   using WorkBlock = CyclicArray<XmmReg, 4>;
 
   ATTRIBUTE_TARGET("ssse3")
-  static inline __m128i byterev_16B(__m128i x)
+  static inline __m128i byterev_16B(const __m128i x)
   {
     return _mm_shuffle_epi8(x, _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
   }
@@ -379,7 +379,7 @@ std::unique_ptr<Context> CreateContext()
   return std::make_unique<ContextMbed>();
 }
 
-Digest CalculateDigest(const u8* msg, size_t len)
+Digest CalculateDigest(const u8* msg, const size_t len)
 {
   auto ctx = CreateContext();
   ctx->Update(msg, len);

@@ -122,7 +122,7 @@ Jit64::Jit64(Core::System& system) : JitBase(system), QuantizedMemoryRoutines(*t
 
 Jit64::~Jit64() = default;
 
-bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
+bool Jit64::HandleFault(const uintptr_t access_address, SContext* ctx)
 {
   const uintptr_t stack_guard = reinterpret_cast<uintptr_t>(m_stack_guard);
   // In the trap region?
@@ -390,7 +390,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   }
 }
 
-void Jit64::HLEFunction(u32 hook_index)
+void Jit64::HLEFunction(const u32 hook_index)
 {
   gpr.Flush();
   fpr.Flush();
@@ -465,7 +465,7 @@ bool Jit64::Cleanup()
   return did_something;
 }
 
-void Jit64::FakeBLCall(u32 after)
+void Jit64::FakeBLCall(const u32 after)
 {
   if (!m_enable_blr_optimization)
     return;
@@ -485,7 +485,7 @@ void Jit64::EmitUpdateMembase()
   MOV(64, R(RMEM), PPCSTATE(mem_ptr));
 }
 
-void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
+void Jit64::MSRUpdated(const OpArg& msr, const X64Reg scratch_reg)
 {
   ASSERT(!msr.IsSimpleReg(scratch_reg));
 
@@ -526,7 +526,7 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
   }
 }
 
-void Jit64::WriteExit(u32 destination, bool bl, u32 after)
+void Jit64::WriteExit(const u32 destination, bool bl, const u32 after)
 {
   if (!m_enable_blr_optimization)
     bl = false;
@@ -544,7 +544,7 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
   JustWriteExit(destination, bl, after);
 }
 
-void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
+void Jit64::JustWriteExit(const u32 destination, const bool bl, const u32 after)
 {
   // If nobody has taken care of this yet (this can be removed when all branches are done)
   JitBlock* b = js.curBlock;
@@ -583,7 +583,7 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
   b->linkData.push_back(linkData);
 }
 
-void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
+void Jit64::WriteExitDestInRSCRATCH(bool bl, const u32 after)
 {
   if (!m_enable_blr_optimization)
     bl = false;
@@ -646,7 +646,7 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   JMP(asm_routines.dispatcher, Jump::Near);
 }
 
-void Jit64::WriteIdleExit(u32 destination)
+void Jit64::WriteIdleExit(const u32 destination)
 {
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunction(CoreTiming::GlobalIdle);
@@ -729,12 +729,12 @@ void Jit64::Trace()
                 m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, fregs);
 }
 
-void Jit64::Jit(u32 em_address)
+void Jit64::Jit(const u32 em_address)
 {
   Jit(em_address, true);
 }
 
-void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
+void Jit64::Jit(const u32 em_address, const bool clear_cache_and_retry_on_failure)
 {
   CleanUpAfterStackFault();
 
@@ -865,7 +865,7 @@ bool Jit64::SetEmitterStateToFreeCodeRegion()
   return true;
 }
 
-bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool Jit64::DoJit(const u32 em_address, JitBlock* b, const u32 nextPC)
 {
   js.firstFPInstructionFound = false;
   js.isLastInstruction = false;
@@ -1262,7 +1262,7 @@ void Jit64::IntializeSpeculativeConstants()
   }
 }
 
-bool Jit64::HandleFunctionHooking(u32 address)
+bool Jit64::HandleFunctionHooking(const u32 address)
 {
   const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, CoreMode::JIT);
   if (!result)
@@ -1279,7 +1279,7 @@ bool Jit64::HandleFunctionHooking(u32 address)
   return true;
 }
 
-void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
+void LogGeneratedX86(const size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
                      const JitBlock* b)
 {
   for (size_t i = 0; i < size; i++)

@@ -117,7 +117,7 @@ static std::string GetPathForSystem(const std::string& system)
 }
 
 RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string& system,
-                                                               DownloadStatus old_status)
+                                                               const DownloadStatus old_status)
 {
   if (old_status == DownloadStatus::Success || old_status == DownloadStatus::SystemNotAvailable)
     return old_status;
@@ -359,8 +359,8 @@ RedumpVerifier::Result RedumpVerifier::Finish(const Hashes<std::vector<u8>>& has
 
 constexpr u64 DEFAULT_READ_SIZE = 0x20000;  // Arbitrary value
 
-VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
-                               Hashes<bool> hashes_to_calculate)
+VolumeVerifier::VolumeVerifier(const Volume& volume, const bool redump_verification,
+                               const Hashes<bool> hashes_to_calculate)
     : m_volume(volume), m_redump_verification(redump_verification),
       m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
@@ -473,7 +473,7 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
 
   if (ShouldHaveMasterpiecePartitions() &&
       types.cend() ==
-          std::find_if(types.cbegin(), types.cend(), [](u32 type) { return type >= 0xFF; }))
+          std::find_if(types.cbegin(), types.cend(), [](const u32 type) { return type >= 0xFF; }))
   {
     // i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
     // where you play demos of NES/SNES/N64 games. Official translations:
@@ -688,7 +688,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   return true;
 }
 
-std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
+std::string VolumeVerifier::GetPartitionName(const std::optional<u32> type) const
 {
   if (!type)
     return "???";
@@ -732,7 +732,7 @@ bool VolumeVerifier::ShouldHaveInstallPartition() const
                                                                      "SDQJGD"};
   const std::string& game_id = m_volume.GetGameID();
   return std::any_of(dragon_quest_x.cbegin(), dragon_quest_x.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+                     [&game_id](const std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldHaveMasterpiecePartitions() const
@@ -740,7 +740,7 @@ bool VolumeVerifier::ShouldHaveMasterpiecePartitions() const
   static constexpr std::array<std::string_view, 4> ssbb = {"RSBE01", "RSBJ01", "RSBK01", "RSBP01"};
   const std::string& game_id = m_volume.GetGameID();
   return std::any_of(ssbb.cbegin(), ssbb.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+                     [&game_id](const std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldBeDualLayer() const
@@ -1042,7 +1042,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   if (!m_volume.Read(offset, length, data.data(), partition))
     return;
 
-  if (std::any_of(data.cbegin(), data.cend(), [](u8 x) { return x != 0; }))
+  if (std::any_of(data.cbegin(), data.cend(), [](const u8 x) { return x != 0; }))
   {
     AddProblem(Severity::High,
                Common::GetStringT("Some padding data that should be zero is not zero. "
@@ -1470,7 +1470,7 @@ const VolumeVerifier::Result& VolumeVerifier::GetResult() const
   return m_result;
 }
 
-void VolumeVerifier::AddProblem(Severity severity, std::string text)
+void VolumeVerifier::AddProblem(const Severity severity, std::string text)
 {
   m_result.problems.emplace_back(Problem{severity, std::move(text)});
 }

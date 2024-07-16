@@ -29,7 +29,7 @@ namespace UICommon
 static constexpr u32 CACHE_REVISION = 25;  // Last changed in PR 12702
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
-                                          bool recursive_scan)
+                                          const bool recursive_scan)
 {
   static const std::vector<std::string> search_extensions = {
       ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia",
@@ -54,7 +54,7 @@ size_t GameFileCache::GetSize() const
   return m_cached_files.size();
 }
 
-void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
+void GameFileCache::Clear(const DeleteOnDisk delete_on_disk)
 {
   if (delete_on_disk != DeleteOnDisk::No)
     File::Delete(m_path);
@@ -83,7 +83,7 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
   return result;
 }
 
-bool GameFileCache::Update(std::span<const std::string> all_game_paths,
+bool GameFileCache::Update(const std::span<const std::string> all_game_paths,
                            const GameAddedToCacheFn& game_added_to_cache,
                            const GameRemovedFromCacheFn& game_removed_from_cache,
                            const std::atomic_bool& processing_halted)
@@ -216,7 +216,7 @@ bool GameFileCache::Save()
   return SyncCacheFile(true);
 }
 
-bool GameFileCache::SyncCacheFile(bool save)
+bool GameFileCache::SyncCacheFile(const bool save)
 {
   const char* open_mode = save ? "wb" : "rb";
   File::IOFile f(m_path, open_mode);
@@ -260,7 +260,7 @@ bool GameFileCache::SyncCacheFile(bool save)
   return success;
 }
 
-void GameFileCache::DoState(PointerWrap* p, u64 size)
+void GameFileCache::DoState(PointerWrap* p, const u64 size)
 {
   struct
   {

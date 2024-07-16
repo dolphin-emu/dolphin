@@ -111,7 +111,7 @@ void ARCodeWidget::ConnectWidgets()
   connect(m_code_remove, &QPushButton::clicked, this, &ARCodeWidget::OnCodeRemoveClicked);
 }
 
-void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
+void ARCodeWidget::OnItemChanged(const QListWidgetItem* item)
 {
   m_ar_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
 

@@ -177,7 +177,7 @@ void Classic::Reset()
   UpdateCalibrationDataChecksum(m_reg.calibration, CALIBRATION_CHECKSUM_BYTES);
 }
 
-ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)
+ControllerEmu::ControlGroup* Classic::GetGroup(const ClassicGroup group)
 {
   switch (group)
   {

@@ -168,7 +168,7 @@ void PlatformWin32::ProcessEvents()
   }
 }
 
-LRESULT PlatformWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
   PlatformWin32* platform = reinterpret_cast<PlatformWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
   switch (msg)

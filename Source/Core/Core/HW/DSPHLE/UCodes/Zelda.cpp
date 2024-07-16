@@ -175,7 +175,7 @@ void ZeldaUCode::DoState(PointerWrap& p)
   DoStateShared(p);
 }
 
-void ZeldaUCode::HandleMail(u32 mail)
+void ZeldaUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)  // evaluated first!
   {
@@ -294,7 +294,7 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
   }
 }
 
-void ZeldaUCode::HandleMailLight(u32 mail)
+void ZeldaUCode::HandleMailLight(const u32 mail)
 {
   bool add_command = true;
 
@@ -376,7 +376,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
   }
 }
 
-void ZeldaUCode::SetMailState(MailState new_state)
+void ZeldaUCode::SetMailState(const MailState new_state)
 {
   m_mail_current_state = new_state;
 }
@@ -394,7 +394,7 @@ u32 ZeldaUCode::Read32()
   return res;
 }
 
-void ZeldaUCode::Write32(u32 val)
+void ZeldaUCode::Write32(const u32 val)
 {
   m_cmd_buffer[m_write_offset] = val;
   m_write_offset = (m_write_offset + 1) % (sizeof(m_cmd_buffer) / sizeof(u32));
@@ -589,7 +589,7 @@ void ZeldaUCode::RunPendingCommands()
   }
 }
 
-void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
+void ZeldaUCode::SendCommandAck(const CommandAck ack_type, u16 sync_value)
 {
   if (m_flags & LIGHT_PROTOCOL)
   {
@@ -1030,7 +1030,7 @@ void ZeldaAudioRenderer::PrepareFrame()
   m_prepared = true;
 }
 
-void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
+void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
 {
   if (!m_reverb_pb_base_addr)
   {
@@ -1138,7 +1138,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
   }
 }
 
-ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
+ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(const u16 buffer_id)
 {
   switch (buffer_id)
   {
@@ -1173,7 +1173,7 @@ ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
   }
 }
 
-void ZeldaAudioRenderer::AddVoice(u16 voice_id)
+void ZeldaAudioRenderer::AddVoice(const u16 voice_id)
 {
   VPB vpb;
   FetchVPB(voice_id, &vpb);
@@ -1342,7 +1342,7 @@ void ZeldaAudioRenderer::FinalizeFrame()
   m_prepared = false;
 }
 
-void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
+void ZeldaAudioRenderer::FetchVPB(const u16 voice_id, VPB* vpb)
 {
   auto& memory = m_system.GetMemory();
   u16* vpb_words = (u16*)vpb;
@@ -1361,7 +1361,7 @@ void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
     vpb->Uncompress();
 }
 
-void ZeldaAudioRenderer::StoreVPB(u16 voice_id, VPB* vpb)
+void ZeldaAudioRenderer::StoreVPB(const u16 voice_id, VPB* vpb)
 {
   auto& memory = m_system.GetMemory();
   u16* vpb_words = (u16*)vpb;
@@ -1546,7 +1546,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
   vpb->current_pos_frac = pos & 0xFFF;
 }
 
-void* ZeldaAudioRenderer::GetARAMPtr(u32 offset) const
+void* ZeldaAudioRenderer::GetARAMPtr(const u32 offset) const
 {
   if (m_system.IsWii())
     return HLEMemory_Get_Pointer(m_system.GetMemory(), m_aram_base_addr + offset);
@@ -1720,7 +1720,7 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
   }
 }
 
-void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
+void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, const size_t block_count)
 {
   u32 addr = vpb->GetCurrentARAMAddr();
   u8* src = (u8*)GetARAMPtr(addr);
@@ -1776,7 +1776,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
   }
 }
 
-void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count)
+void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, const u16 requested_samples_count)
 {
   auto& memory = m_system.GetMemory();
   u32 addr = vpb->GetBaseAddress() + vpb->current_position_h * sizeof(u16);

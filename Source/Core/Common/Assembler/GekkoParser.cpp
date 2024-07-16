@@ -438,7 +438,7 @@ void ParseOperand(ParseState* state)
   state->plugin.OnOperandPost();
 }
 
-void ParseOperandList(ParseState* state, ParseAlg alg)
+void ParseOperandList(ParseState* state, const ParseAlg alg)
 {
   if (alg == ParseAlg::None)
   {
@@ -814,17 +814,17 @@ void ParseProgram(ParseState* state)
 }
 }  // namespace
 
-ParseState::ParseState(std::string_view input_str, ParsePlugin& p)
+ParseState::ParseState(const std::string_view input_str, ParsePlugin& p)
     : lexer(input_str), plugin(p), eof(false)
 {
 }
 
-bool ParseState::HasToken(TokenType tp) const
+bool ParseState::HasToken(const TokenType tp) const
 {
   return lexer.LookaheadType() == tp;
 }
 
-void ParseState::ParseToken(TokenType tp)
+void ParseState::ParseToken(const TokenType tp)
 {
   AssemblerToken tok = lexer.LookaheadRef();
   if (tok.token_type == tp)
@@ -859,7 +859,7 @@ void ParseState::EmitErrorHere(std::string&& message)
   }
 }
 
-void ParseWithPlugin(ParsePlugin* plugin, std::string_view input)
+void ParseWithPlugin(ParsePlugin* plugin, const std::string_view input)
 {
   ParseState parse_state = ParseState(input, *plugin);
   plugin->SetOwner(&parse_state);

@@ -24,7 +24,7 @@ struct CaseInsensitiveStringCompare
   {
     return std::lexicographical_compare(
         a.begin(), a.end(), b.begin(), b.end(),
-        [](char lhs, char rhs) { return ToLower(lhs) < ToLower(rhs); });
+        [](const char lhs, const char rhs) { return ToLower(lhs) < ToLower(rhs); });
   }
 
   static bool IsEqual(std::string_view a, std::string_view b)
@@ -32,7 +32,7 @@ struct CaseInsensitiveStringCompare
     if (a.size() != b.size())
       return false;
 
-    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char lhs, char rhs) {
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](const char lhs, const char rhs) {
       return ToLower(lhs) == ToLower(rhs);
     });
   }
@@ -72,7 +72,7 @@ public:
              const std::string& default_value = NULL_STRING) const;
 
     template <typename T>
-    bool Get(std::string_view key, T* value, const std::common_type_t<T>& default_value = {}) const
+    bool Get(const std::string_view key, T* value, const std::common_type_t<T>& default_value = {}) const
     {
       std::string temp;
       bool retval = Get(key, &temp);
@@ -123,7 +123,7 @@ public:
   bool Exists(std::string_view section_name, std::string_view key) const;
 
   template <typename T>
-  bool GetIfExists(std::string_view section_name, std::string_view key, T* value)
+  bool GetIfExists(const std::string_view section_name, std::string_view key, T* value)
   {
     if (Exists(section_name, key))
       return GetOrCreateSection(section_name)->Get(key, value);
@@ -132,7 +132,7 @@ public:
   }
 
   template <typename T>
-  bool GetIfExists(std::string_view section_name, std::string_view key, T* value, T default_value)
+  bool GetIfExists(const std::string_view section_name, std::string_view key, T* value, T default_value)
   {
     if (Exists(section_name, key))
       return GetOrCreateSection(section_name)->Get(key, value, default_value);

@@ -25,7 +25,7 @@
 
 namespace IOS::HLE
 {
-static ES::TMDReader FindTMD(FSCore& fs, const std::string& tmd_path, Ticks ticks)
+static ES::TMDReader FindTMD(FSCore& fs, const std::string& tmd_path, const Ticks ticks)
 {
   const auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read, {}, ticks);
   if (fd.Get() < 0)
@@ -38,18 +38,18 @@ static ES::TMDReader FindTMD(FSCore& fs, const std::string& tmd_path, Ticks tick
   return ES::TMDReader{std::move(tmd_bytes)};
 }
 
-ES::TMDReader ESCore::FindImportTMD(u64 title_id, Ticks ticks) const
+ES::TMDReader ESCore::FindImportTMD(const u64 title_id, const Ticks ticks) const
 {
   return FindTMD(m_ios.GetFSCore(), Common::GetImportTitlePath(title_id) + "/content/title.tmd",
                  ticks);
 }
 
-ES::TMDReader ESCore::FindInstalledTMD(u64 title_id, Ticks ticks) const
+ES::TMDReader ESCore::FindInstalledTMD(const u64 title_id, const Ticks ticks) const
 {
   return FindTMD(m_ios.GetFSCore(), Common::GetTMDFileName(title_id), ticks);
 }
 
-ES::TicketReader ESCore::FindSignedTicket(u64 title_id, std::optional<u8> desired_version) const
+ES::TicketReader ESCore::FindSignedTicket(const u64 title_id, const std::optional<u8> desired_version) const
 {
   std::string path = desired_version == 1 ? Common::GetV1TicketFileName(title_id) :
                                             Common::GetTicketFileName(title_id);
@@ -253,7 +253,7 @@ constexpr FS::Modes title_dir_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS
 constexpr FS::Modes content_dir_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None};
 constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
 
-bool ESCore::CreateTitleDirectories(u64 title_id, u16 group_id) const
+bool ESCore::CreateTitleDirectories(const u64 title_id, const u16 group_id) const
 {
   const auto fs = m_ios.GetFS();
 
@@ -369,7 +369,7 @@ bool ESCore::WriteImportTMD(const ES::TMDReader& tmd)
   return fs->Rename(PID_KERNEL, PID_KERNEL, tmd_path, dest) == FS::ResultCode::Success;
 }
 
-void ESCore::FinishStaleImport(u64 title_id)
+void ESCore::FinishStaleImport(const u64 title_id)
 {
   const auto fs = m_ios.GetFS();
   const auto import_tmd = FindImportTMD(title_id);
@@ -404,7 +404,7 @@ std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& conten
   return fmt::format("{}/{:08x}.app", Common::GetTitleContentPath(title_id), content.id);
 }
 
-s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks)
+s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, const Ticks ticks)
 {
   auto& fs = GetEmulationKernel().GetFSCore();
   const std::string tmp_path = "/tmp/" + PathToFileName(path);

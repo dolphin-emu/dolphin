@@ -24,7 +24,7 @@ namespace Common
 namespace
 {
 // Default non library dependent panic alert
-bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgType style)
+bool DefaultMsgHandler(const char* caption, const char* text, const bool yes_no, const MsgType style)
 {
 #ifdef _WIN32
   int window_style = MB_ICONINFORMATION;
@@ -54,7 +54,7 @@ StringTranslator s_str_translator = DefaultStringTranslator;
 bool s_alert_enabled = true;
 bool s_abort_on_panic_alert = false;
 
-const char* GetCaption(MsgType style)
+const char* GetCaption(const MsgType style)
 {
   static const std::string info_caption = GetStringT("Information");
   static const std::string ques_caption = GetStringT("Question");
@@ -79,24 +79,24 @@ const char* GetCaption(MsgType style)
 
 // Select which of these functions that are used for message boxes. If
 // Qt is enabled we will use QtMsgAlertHandler() that is defined in Main.cpp
-void RegisterMsgAlertHandler(MsgAlertHandler handler)
+void RegisterMsgAlertHandler(const MsgAlertHandler handler)
 {
   s_msg_handler = handler;
 }
 
 // Select translation function.
-void RegisterStringTranslator(StringTranslator translator)
+void RegisterStringTranslator(const StringTranslator translator)
 {
   s_str_translator = translator;
 }
 
 // enable/disable the alert handler
-void SetEnableAlert(bool enable)
+void SetEnableAlert(const bool enable)
 {
   s_alert_enabled = enable;
 }
 
-void SetAbortOnPanicAlert(bool should_abort)
+void SetAbortOnPanicAlert(const bool should_abort)
 {
   s_abort_on_panic_alert = should_abort;
 }
@@ -106,8 +106,8 @@ std::string GetStringT(const char* string)
   return s_str_translator(string);
 }
 
-static bool ShowMessageAlert(std::string_view text, bool yes_no, Log::LogType log_type,
-                             MsgType style, const char* file, int line)
+static bool ShowMessageAlert(const std::string_view text, const bool yes_no, const Log::LogType log_type,
+                             const MsgType style, const char* file, const int line)
 {
   const char* caption = GetCaption(style);
   // Directly call GenericLogFmt rather than using the normal log macros so that we can use the
@@ -133,8 +133,8 @@ static bool ShowMessageAlert(std::string_view text, bool yes_no, Log::LogType lo
 
 // This is the first stop for gui alerts where the log is updated and the
 // correct window is shown, when using fmt
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, Log::LogType log_type, const char* file,
-                     int line, fmt::string_view format, const fmt::format_args& args)
+bool MsgAlertFmtImpl(const bool yes_no, const MsgType style, const Log::LogType log_type, const char* file,
+                     const int line, const fmt::string_view format, const fmt::format_args& args)
 {
   const auto message = fmt::vformat(format, args);
 

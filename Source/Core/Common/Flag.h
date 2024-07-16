@@ -26,11 +26,11 @@ public:
   // Declared as explicit since we do not want "= true" to work on a flag
   // object - it should be made explicit that a flag is *not* a normal
   // variable.
-  explicit Flag(bool initial_value = false) : m_val(initial_value) {}
-  void Set(bool val = true) { m_val.store(val); }
+  explicit Flag(const bool initial_value = false) : m_val(initial_value) {}
+  void Set(const bool val = true) { m_val.store(val); }
   void Clear() { Set(false); }
   bool IsSet() const { return m_val.load(); }
-  bool TestAndSet(bool val = true)
+  bool TestAndSet(const bool val = true)
   {
     bool expected = !val;
     return m_val.compare_exchange_strong(expected, val);

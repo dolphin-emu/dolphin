@@ -15,7 +15,7 @@ class QPushButton;
 
 namespace MappingCommon
 {
-QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& device_container,
+QString DetectExpression(QPushButton* button, const ciface::Core::DeviceContainer& device_container,
                          const std::vector<std::string>& device_strings,
                          const ciface::Core::DeviceQualifier& default_device,
                          ciface::MappingCommon::Quote quote = ciface::MappingCommon::Quote::On);

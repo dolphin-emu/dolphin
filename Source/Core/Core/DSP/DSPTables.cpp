@@ -505,12 +505,12 @@ std::string pdname(u16 val)
   return fmt::format("0x{:04x}", val);
 }
 
-std::string pdregname(int val)
+std::string pdregname(const int val)
 {
   return regnames[val].name;
 }
 
-std::string pdregnamelong(int val)
+std::string pdregnamelong(const int val)
 {
   return regnames[val].description;
 }
@@ -530,7 +530,7 @@ auto FindByName(std::string_view name, const std::array<DSPOPCTemplate, N>& data
 }
 }  // Anonymous namespace
 
-const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode)
+const DSPOPCTemplate* FindOpInfoByOpcode(const UDSPInstruction opcode)
 {
   const auto iter = FindByOpcode(opcode, s_opcodes);
   if (iter == s_opcodes.cend())
@@ -539,7 +539,7 @@ const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode)
   return &*iter;
 }
 
-const DSPOPCTemplate* FindOpInfoByName(std::string_view name)
+const DSPOPCTemplate* FindOpInfoByName(const std::string_view name)
 {
   const auto iter = FindByName(name, s_opcodes);
   if (iter == s_opcodes.cend())
@@ -548,7 +548,7 @@ const DSPOPCTemplate* FindOpInfoByName(std::string_view name)
   return &*iter;
 }
 
-const DSPOPCTemplate* FindExtOpInfoByOpcode(UDSPInstruction opcode)
+const DSPOPCTemplate* FindExtOpInfoByOpcode(const UDSPInstruction opcode)
 {
   const auto iter = FindByOpcode(opcode, s_opcodes_ext);
   if (iter == s_opcodes_ext.cend())
@@ -557,7 +557,7 @@ const DSPOPCTemplate* FindExtOpInfoByOpcode(UDSPInstruction opcode)
   return &*iter;
 }
 
-const DSPOPCTemplate* FindExtOpInfoByName(std::string_view name)
+const DSPOPCTemplate* FindExtOpInfoByName(const std::string_view name)
 {
   const auto iter = FindByName(name, s_opcodes_ext);
   if (iter == s_opcodes_ext.cend())
@@ -566,12 +566,12 @@ const DSPOPCTemplate* FindExtOpInfoByName(std::string_view name)
   return &*iter;
 }
 
-const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst)
+const DSPOPCTemplate* GetOpTemplate(const UDSPInstruction inst)
 {
   return s_op_table[inst];
 }
 
-const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst)
+const DSPOPCTemplate* GetExtOpTemplate(const UDSPInstruction inst)
 {
   const bool has_seven_bit_extension = (inst >> 12) == 0x3;
 

@@ -18,12 +18,12 @@
 
 using namespace Gen;
 
-static OpArg CROffset(int field)
+static OpArg CROffset(const int field)
 {
   return PPCSTATE_CR(field);
 }
 
-void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
+void Jit64::GetCRFieldBit(const int field, const int bit, const X64Reg out, const bool negate)
 {
   switch (bit)
   {
@@ -52,7 +52,7 @@ void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
   }
 }
 
-void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
+void Jit64::SetCRFieldBit(const int field, const int bit, const X64Reg in)
 {
   MOV(64, R(RSCRATCH2), CROffset(field));
   MOVZX(32, 8, in, R(in));
@@ -93,7 +93,7 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
   MOV(64, CROffset(field), R(RSCRATCH2));
 }
 
-void Jit64::ClearCRFieldBit(int field, int bit)
+void Jit64::ClearCRFieldBit(const int field, const int bit)
 {
   switch (bit)
   {
@@ -120,7 +120,7 @@ void Jit64::ClearCRFieldBit(int field, int bit)
   // clearing.
 }
 
-void Jit64::SetCRFieldBit(int field, int bit)
+void Jit64::SetCRFieldBit(const int field, const int bit)
 {
   MOV(64, R(RSCRATCH), CROffset(field));
   if (bit != PowerPC::CR_GT_BIT)
@@ -150,7 +150,7 @@ void Jit64::SetCRFieldBit(int field, int bit)
   MOV(64, CROffset(field), R(RSCRATCH));
 }
 
-void Jit64::FixGTBeforeSettingCRFieldBit(X64Reg reg)
+void Jit64::FixGTBeforeSettingCRFieldBit(const X64Reg reg)
 {
   // GT is considered unset if the internal representation is <= 0, or in other words,
   // if the internal representation either has bit 63 set or has all bits set to zero.
@@ -162,7 +162,7 @@ void Jit64::FixGTBeforeSettingCRFieldBit(X64Reg reg)
   SetJumpTarget(dont_clear_gt);
 }
 
-FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
+FixupBranch Jit64::JumpIfCRFieldBit(const int field, const int bit, const bool jump_if_set)
 {
   switch (bit)
   {
@@ -191,7 +191,7 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 }
 
 // Could be done with one temp register, but with two temp registers it's faster
-void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
+void Jit64::UpdateFPExceptionSummary(const X64Reg fpscr, const X64Reg tmp1, const X64Reg tmp2)
 {
   // Kill dependency on tmp1 (not required for correctness, since SHL will shift out upper bytes)
   XOR(32, R(tmp1), R(tmp1));

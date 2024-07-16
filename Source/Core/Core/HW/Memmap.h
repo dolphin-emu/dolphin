@@ -132,7 +132,7 @@ public:
 
   // Templated functions for byteswapped copies.
   template <typename T>
-  void CopyFromEmuSwapped(T* data, u32 address, size_t size) const
+  void CopyFromEmuSwapped(T* data, const u32 address, const size_t size) const
   {
     const T* src = reinterpret_cast<T*>(GetPointerForRange(address, size));
 
@@ -144,7 +144,7 @@ public:
   }
 
   template <typename T>
-  void CopyToEmuSwapped(u32 address, const T* data, size_t size)
+  void CopyToEmuSwapped(const u32 address, const T* data, const size_t size)
   {
     T* dest = reinterpret_cast<T*>(GetPointerForRange(address, size));
 

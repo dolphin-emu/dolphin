@@ -217,7 +217,7 @@ void TextureData::ToJson(picojson::object* obj, const TextureData& data)
     break;
   };
 
-  auto wrap_mode_to_string = [](WrapMode mode) {
+  auto wrap_mode_to_string = [](const WrapMode mode) {
     switch (mode)
     {
     case WrapMode::Clamp:
@@ -230,7 +230,7 @@ void TextureData::ToJson(picojson::object* obj, const TextureData& data)
 
     return "";
   };
-  auto filter_mode_to_string = [](FilterMode mode) {
+  auto filter_mode_to_string = [](const FilterMode mode) {
     switch (mode)
     {
     case FilterMode::Linear:
@@ -268,7 +268,7 @@ CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary
   return loaded_info;
 }
 
-bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
+bool GameTextureAsset::Validate(const u32 native_width, const u32 native_height) const
 {
   std::lock_guard lk(m_data_lock);
 

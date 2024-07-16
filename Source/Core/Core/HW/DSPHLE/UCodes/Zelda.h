@@ -32,17 +32,17 @@ public:
   void AddVoice(u16 voice_id);
   void FinalizeFrame();
 
-  void SetFlags(u32 flags) { m_flags = flags; }
+  void SetFlags(const u32 flags) { m_flags = flags; }
   void SetSineTable(std::array<s16, 0x80>&& sine_table) { m_sine_table = sine_table; }
   void SetConstPatterns(std::array<s16, 0x100>&& patterns) { m_const_patterns = patterns; }
   void SetResamplingCoeffs(std::array<s16, 0x100>&& coeffs) { m_resampling_coeffs = coeffs; }
   void SetAfcCoeffs(std::array<s16, 0x20>&& coeffs) { m_afc_coeffs = coeffs; }
-  void SetVPBBaseAddress(u32 addr) { m_vpb_base_addr = addr; }
-  void SetReverbPBBaseAddress(u32 addr) { m_reverb_pb_base_addr = addr; }
-  void SetOutputVolume(u16 volume) { m_output_volume = volume; }
-  void SetOutputLeftBufferAddr(u32 addr) { m_output_lbuf_addr = addr; }
-  void SetOutputRightBufferAddr(u32 addr) { m_output_rbuf_addr = addr; }
-  void SetARAMBaseAddr(u32 addr) { m_aram_base_addr = addr; }
+  void SetVPBBaseAddress(const u32 addr) { m_vpb_base_addr = addr; }
+  void SetReverbPBBaseAddress(const u32 addr) { m_reverb_pb_base_addr = addr; }
+  void SetOutputVolume(const u16 volume) { m_output_volume = volume; }
+  void SetOutputLeftBufferAddr(const u32 addr) { m_output_lbuf_addr = addr; }
+  void SetOutputRightBufferAddr(const u32 addr) { m_output_rbuf_addr = addr; }
+  void SetARAMBaseAddr(const u32 addr) { m_aram_base_addr = addr; }
   void DoState(PointerWrap& p);
 
 private:
@@ -56,7 +56,7 @@ private:
   // Apply volume to a buffer. The volume is a fixed point integer, usually
   // 1.15 or 4.12 in the DAC UCode.
   template <size_t N, size_t B>
-  void ApplyVolumeInPlace(std::array<s16, N>* buf, u16 vol)
+  void ApplyVolumeInPlace(std::array<s16, N>* buf, const u16 vol)
   {
     for (size_t i = 0; i < N; ++i)
     {
@@ -67,12 +67,12 @@ private:
     }
   }
   template <size_t N>
-  void ApplyVolumeInPlace_1_15(std::array<s16, N>* buf, u16 vol)
+  void ApplyVolumeInPlace_1_15(std::array<s16, N>* buf, const u16 vol)
   {
     ApplyVolumeInPlace<N, 1>(buf, vol);
   }
   template <size_t N>
-  void ApplyVolumeInPlace_4_12(std::array<s16, N>* buf, u16 vol)
+  void ApplyVolumeInPlace_4_12(std::array<s16, N>* buf, const u16 vol)
   {
     ApplyVolumeInPlace<N, 4>(buf, vol);
   }
@@ -84,7 +84,7 @@ private:
   // we can do better here with very low risk. Why not? :)
   template <size_t N>
   s32 AddBuffersWithVolumeRamp(std::array<s16, N>* dst, const std::array<s16, N>& src, s32 vol,
-                               s32 step)
+                               const s32 step)
   {
     if (!vol && !step)
       return vol;
@@ -100,7 +100,7 @@ private:
 
   // Does not use std::array because it needs to be able to process partial
   // buffers. Volume is in 1.15 format.
-  void AddBuffersWithVolume(s16* dst, const s16* src, size_t count, u16 vol)
+  void AddBuffersWithVolume(s16* dst, const s16* src, size_t count, const u16 vol)
   {
     while (count--)
     {

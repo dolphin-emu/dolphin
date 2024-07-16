@@ -53,7 +53,7 @@ ConfigChangedCallbackID AddConfigChangedCallback(Config::ConfigChangedCallback f
   return callback_id;
 }
 
-void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
+void RemoveConfigChangedCallback(const ConfigChangedCallbackID callback_id)
 {
   for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
   {

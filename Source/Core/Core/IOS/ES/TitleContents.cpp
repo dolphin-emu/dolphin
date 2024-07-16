@@ -14,7 +14,7 @@
 
 namespace IOS::HLE
 {
-s32 ESCore::OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid, Ticks ticks)
+s32 ESCore::OpenContent(const ES::TMDReader& tmd, const u16 content_index, const u32 uid, const Ticks ticks)
 {
   const u64 title_id = tmd.GetTitleId();
 
@@ -47,9 +47,9 @@ s32 ESCore::OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid, Ti
   return FS_EFDEXHAUSTED;
 }
 
-IPCReply ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::OpenContent(const u32 uid, const IOCtlVRequest& request)
 {
-  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](Ticks ticks) -> s32 {
+  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(3, 0) || request.in_vectors[0].size != sizeof(u64) ||
         request.in_vectors[1].size != sizeof(ES::TicketView) ||
         request.in_vectors[2].size != sizeof(u32))
@@ -71,7 +71,7 @@ IPCReply ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
   });
 }
 
-IPCReply ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& request)
+IPCReply ESDevice::OpenActiveTitleContent(const u32 caller_uid, const IOCtlVRequest& request)
 {
   return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
@@ -94,7 +94,7 @@ IPCReply ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& r
   });
 }
 
-s32 ESCore::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid, Ticks ticks)
+s32 ESCore::ReadContent(const u32 cfd, u8* buffer, const u32 size, const u32 uid, const Ticks ticks)
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
@@ -108,9 +108,9 @@ s32 ESCore::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid, Ticks ticks)
   return m_ios.GetFSCore().Read(entry.m_fd, buffer, size, {}, ticks);
 }
 
-IPCReply ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::ReadContent(const u32 uid, const IOCtlVRequest& request)
 {
-  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](Ticks ticks) -> s32 {
+  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
@@ -126,7 +126,7 @@ IPCReply ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
   });
 }
 
-s32 ESCore::CloseContent(u32 cfd, u32 uid, Ticks ticks)
+s32 ESCore::CloseContent(const u32 cfd, const u32 uid, const Ticks ticks)
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
@@ -143,9 +143,9 @@ s32 ESCore::CloseContent(u32 cfd, u32 uid, Ticks ticks)
   return IPC_SUCCESS;
 }
 
-IPCReply ESDevice::CloseContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::CloseContent(const u32 uid, const IOCtlVRequest& request)
 {
-  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](Ticks ticks) -> s32 {
+  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
@@ -156,7 +156,7 @@ IPCReply ESDevice::CloseContent(u32 uid, const IOCtlVRequest& request)
   });
 }
 
-s32 ESCore::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid, Ticks ticks)
+s32 ESCore::SeekContent(const u32 cfd, const u32 offset, SeekMode mode, const u32 uid, const Ticks ticks)
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
@@ -170,9 +170,9 @@ s32 ESCore::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid, Ticks ticks
   return m_ios.GetFSCore().Seek(entry.m_fd, offset, static_cast<FS::SeekMode>(mode), ticks);
 }
 
-IPCReply ESDevice::SeekContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::SeekContent(const u32 uid, const IOCtlVRequest& request)
 {
-  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](Ticks ticks) -> s32 {
+  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(3, 0))
       return ES_EINVAL;
 

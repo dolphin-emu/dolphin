@@ -77,9 +77,9 @@ protected:
   USBV5Device* GetUSBV5Device(u32 in_buffer);
 
   std::optional<IPCReply> GetDeviceChange(const IOCtlRequest& request);
-  IPCReply SetAlternateSetting(USBV5Device& device, const IOCtlRequest& request);
+  IPCReply SetAlternateSetting(const USBV5Device& device, const IOCtlRequest& request);
   IPCReply Shutdown(const IOCtlRequest& request);
-  IPCReply SuspendResume(USBV5Device& device, const IOCtlRequest& request);
+  IPCReply SuspendResume(const USBV5Device& device, const IOCtlRequest& request);
 
   using Handler = std::function<std::optional<IPCReply>(USBV5Device&)>;
   std::optional<IPCReply> HandleDeviceIOCtl(const IOCtlRequest& request, Handler handler);

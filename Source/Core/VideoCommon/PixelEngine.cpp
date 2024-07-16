@@ -75,7 +75,7 @@ void PixelEngineManager::Init()
       m_system.GetCoreTiming().RegisterEvent("SetTokenFinish", SetTokenFinish_OnMainThread_Static);
 }
 
-void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   // Directly mapped registers.
   struct
@@ -123,7 +123,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // Control register
   mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_control.hex),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& pe = system.GetPixelEngine();
 
                    UPECtrlReg tmpCtrl{.hex = val};
@@ -150,7 +150,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (int i = 0; i < 4; ++i)
   {
     mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
-                   MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
+                   MMIO::ComplexRead<u16>([i](const Core::System& system, u32) {
                      g_bounding_box->Disable(system.GetPixelShaderManager());
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
@@ -171,8 +171,8 @@ void PixelEngineManager::UpdateInterrupts()
                                    m_signal_finish_interrupt && m_control.pe_finish_enable);
 }
 
-void PixelEngineManager::SetTokenFinish_OnMainThread_Static(Core::System& system, u64 userdata,
-                                                            s64 cycles_late)
+void PixelEngineManager::SetTokenFinish_OnMainThread_Static(const Core::System& system, const u64 userdata,
+                                                            const s64 cycles_late)
 {
   system.GetPixelEngine().SetTokenFinish_OnMainThread(userdata, cycles_late);
 }
@@ -204,7 +204,7 @@ void PixelEngineManager::SetTokenFinish_OnMainThread(u64 userdata, s64 cycles_la
 // Raise the event handler above on the CPU thread.
 // m_token_finish_mutex must be locked.
 // THIS IS EXECUTED FROM VIDEO THREAD
-void PixelEngineManager::RaiseEvent(int cycles_into_future)
+void PixelEngineManager::RaiseEvent(const int cycles_into_future)
 {
   if (m_event_raised)
     return;
@@ -226,7 +226,7 @@ void PixelEngineManager::RaiseEvent(int cycles_into_future)
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void PixelEngineManager::SetToken(const u16 token, const bool interrupt, int cycles_into_future)
+void PixelEngineManager::SetToken(const u16 token, const bool interrupt, const int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: {:04x})", token);
 
@@ -240,7 +240,7 @@ void PixelEngineManager::SetToken(const u16 token, const bool interrupt, int cyc
 
 // SetFinish
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
-void PixelEngineManager::SetFinish(int cycles_into_future)
+void PixelEngineManager::SetFinish(const int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Set Finish");
 

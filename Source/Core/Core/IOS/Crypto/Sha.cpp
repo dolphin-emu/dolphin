@@ -43,7 +43,7 @@ static void ConvertContext(const mbedtls_sha1_context& src, ShaDevice::ShaContex
   std::copy(std::begin(src.state), std::end(src.state), std::begin(dest->states));
 }
 
-ReturnCode ShaDevice::ProcessShaCommand(ShaIoctlv command, const IOCtlVRequest& request)
+ReturnCode ShaDevice::ProcessShaCommand(const ShaIoctlv command, const IOCtlVRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();

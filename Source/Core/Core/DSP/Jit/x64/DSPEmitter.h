@@ -197,8 +197,8 @@ private:
   // within the class itself to allow access to member variables.
   static void CompileCurrent(DSPEmitter& emitter);
 
-  static u16 ReadIFXRegisterHelper(DSPEmitter& emitter, u16 address);
-  static void WriteIFXRegisterHelper(DSPEmitter& emitter, u16 address, u16 value);
+  static u16 ReadIFXRegisterHelper(const DSPEmitter& emitter, u16 address);
+  static void WriteIFXRegisterHelper(const DSPEmitter& emitter, u16 address, u16 value);
 
   void EmitInstruction(UDSPInstruction inst);
   void ClearIRAMandDSPJITCodespaceReset();
@@ -249,11 +249,11 @@ private:
   void Update_SR_Register64(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
   void UpdateSR64AddSub(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch,
                         bool subtract);
-  void UpdateSR64Add(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch)
+  void UpdateSR64Add(const Gen::X64Reg val1, const Gen::X64Reg val2, const Gen::X64Reg result, const Gen::X64Reg scratch)
   {
     UpdateSR64AddSub(val1, val2, result, scratch, false);
   }
-  void UpdateSR64Sub(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch)
+  void UpdateSR64Sub(const Gen::X64Reg val1, const Gen::X64Reg val2, const Gen::X64Reg result, const Gen::X64Reg scratch)
   {
     UpdateSR64AddSub(val1, val2, result, scratch, true);
   }

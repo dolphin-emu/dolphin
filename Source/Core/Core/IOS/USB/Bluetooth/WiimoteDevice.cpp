@@ -35,21 +35,21 @@ class CBigEndianBuffer
 {
 public:
   explicit CBigEndianBuffer(u8* buffer) : m_buffer(buffer) {}
-  u8 Read8(u32 offset) const { return m_buffer[offset]; }
-  u16 Read16(u32 offset) const { return Common::swap16(&m_buffer[offset]); }
-  u32 Read32(u32 offset) const { return Common::swap32(&m_buffer[offset]); }
-  void Write8(u32 offset, u8 data) { m_buffer[offset] = data; }
-  void Write16(u32 offset, u16 data)
+  u8 Read8(const u32 offset) const { return m_buffer[offset]; }
+  u16 Read16(const u32 offset) const { return Common::swap16(&m_buffer[offset]); }
+  u32 Read32(const u32 offset) const { return Common::swap32(&m_buffer[offset]); }
+  void Write8(const u32 offset, const u8 data) { m_buffer[offset] = data; }
+  void Write16(const u32 offset, const u16 data)
   {
     const u16 swapped = Common::swap16(data);
     std::memcpy(&m_buffer[offset], &swapped, sizeof(u16));
   }
-  void Write32(u32 offset, u32 data)
+  void Write32(const u32 offset, const u32 data)
   {
     const u32 swapped = Common::swap32(data);
     std::memcpy(&m_buffer[offset], &swapped, sizeof(u32));
   }
-  u8* GetPointer(u32 offset) { return &m_buffer[offset]; }
+  u8* GetPointer(const u32 offset) { return &m_buffer[offset]; }
 
 private:
   u8* m_buffer;
@@ -57,7 +57,7 @@ private:
 
 constexpr int CONNECTION_MESSAGE_TIME = 3000;
 
-WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, bdaddr_t bd, unsigned int hid_source_number)
+WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, const bdaddr_t bd, const unsigned int hid_source_number)
     : m_host(host), m_bd(bd),
       m_name(GetNumber() == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 
@@ -137,7 +137,7 @@ bool WiimoteDevice::IsPageScanEnabled() const
   return !IsConnected() && IsSourceValid();
 }
 
-void WiimoteDevice::SetBasebandState(BasebandState new_state)
+void WiimoteDevice::SetBasebandState(const BasebandState new_state)
 {
   // Prevent button press from immediately causing connection attempts.
   m_connection_request_counter = Wiimote::UPDATE_FREQ;
@@ -159,7 +159,7 @@ void WiimoteDevice::SetBasebandState(BasebandState new_state)
     m_hid_source->EventUnlinked();
 }
 
-const WiimoteDevice::SChannel* WiimoteDevice::FindChannelWithPSM(u16 psm) const
+const WiimoteDevice::SChannel* WiimoteDevice::FindChannelWithPSM(const u16 psm) const
 {
   for (auto& [cid, channel] : m_channels)
   {
@@ -170,7 +170,7 @@ const WiimoteDevice::SChannel* WiimoteDevice::FindChannelWithPSM(u16 psm) const
   return nullptr;
 }
 
-WiimoteDevice::SChannel* WiimoteDevice::FindChannelWithPSM(u16 psm)
+WiimoteDevice::SChannel* WiimoteDevice::FindChannelWithPSM(const u16 psm)
 {
   for (auto& [cid, channel] : m_channels)
   {
@@ -194,7 +194,7 @@ u16 WiimoteDevice::GenerateChannelID() const
   return cid;
 }
 
-bool WiimoteDevice::LinkChannel(u16 psm)
+bool WiimoteDevice::LinkChannel(const u16 psm)
 {
   const auto* const channel = FindChannelWithPSM(psm);
 
@@ -218,7 +218,7 @@ bool WiimoteDevice::IsConnected() const
   return m_baseband_state == BasebandState::Complete;
 }
 
-void WiimoteDevice::Activate(bool connect)
+void WiimoteDevice::Activate(const bool connect)
 {
   if (connect && m_baseband_state == BasebandState::Inactive)
   {
@@ -379,7 +379,7 @@ WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
   return NextUpdateInputCall::None;
 }
 
-void WiimoteDevice::UpdateInput(NextUpdateInputCall next_call,
+void WiimoteDevice::UpdateInput(const NextUpdateInputCall next_call,
                                 const WiimoteEmu::DesiredWiimoteState& wiimote_state)
 {
   switch (next_call)
@@ -397,7 +397,7 @@ void WiimoteDevice::UpdateInput(NextUpdateInputCall next_call,
 }
 
 // This function receives L2CAP commands from the CPU
-void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
+void WiimoteDevice::ExecuteL2capCmd(u8* ptr, const u32 size)
 {
   l2cap_hdr_t* header = (l2cap_hdr_t*)ptr;
   u8* data = ptr + sizeof(l2cap_hdr_t);
@@ -522,7 +522,7 @@ void WiimoteDevice::SignalChannel(u8* data, u32 size)
   }
 }
 
-void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
+void WiimoteDevice::ReceiveConnectionReq(const u8 ident, u8* data, u32 size)
 {
   l2cap_con_req_cp* command_connection_req = (l2cap_con_req_cp*)data;
 
@@ -567,7 +567,7 @@ void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
   SendCommandToACL(ident, L2CAP_CONNECT_RSP, sizeof(l2cap_con_rsp_cp), (u8*)&rsp);
 }
 
-void WiimoteDevice::ReceiveConnectionResponse(u8 ident, u8* data, u32 size)
+void WiimoteDevice::ReceiveConnectionResponse(u8 ident, u8* data, const u32 size)
 {
   l2cap_con_rsp_cp* rsp = (l2cap_con_rsp_cp*)data;
 
@@ -587,7 +587,7 @@ void WiimoteDevice::ReceiveConnectionResponse(u8 ident, u8* data, u32 size)
   channel.remote_cid = rsp->dcid;
 }
 
-void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
+void WiimoteDevice::ReceiveConfigurationReq(const u8 ident, u8* data, const u32 size)
 {
   u32 offset = 0;
   l2cap_cfg_req_cp* command_config_req = (l2cap_cfg_req_cp*)data;
@@ -676,7 +676,7 @@ void WiimoteDevice::ReceiveConfigurationResponse(u8 ident, u8* data, u32 size)
   m_channels[rsp->scid].state = SChannel::State::Complete;
 }
 
-void WiimoteDevice::ReceiveDisconnectionReq(u8 ident, u8* data, u32 size)
+void WiimoteDevice::ReceiveDisconnectionReq(const u8 ident, u8* data, u32 size)
 {
   l2cap_discon_req_cp* command_disconnection_req = (l2cap_discon_req_cp*)data;
 
@@ -697,7 +697,7 @@ void WiimoteDevice::ReceiveDisconnectionReq(u8 ident, u8* data, u32 size)
   SendCommandToACL(ident, L2CAP_DISCONNECT_RSP, sizeof(l2cap_discon_req_cp), (u8*)&rsp);
 }
 
-void WiimoteDevice::SendConnectionRequest(u16 psm)
+void WiimoteDevice::SendConnectionRequest(const u16 psm)
 {
   DEBUG_ASSERT(FindChannelWithPSM(psm) == nullptr);
 
@@ -718,7 +718,7 @@ void WiimoteDevice::SendConnectionRequest(u16 psm)
   SendCommandToACL(L2CAP_CONNECT_REQ, L2CAP_CONNECT_REQ, sizeof(l2cap_con_req_cp), (u8*)&cr);
 }
 
-void WiimoteDevice::SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_out)
+void WiimoteDevice::SendConfigurationRequest(const u16 cid, const u16 mtu, const u16 flush_time_out)
 {
   u8 buffer[1024];
   int offset = 0;
@@ -765,7 +765,7 @@ constexpr u8 SDP_UINT32 = 0x0A;
 constexpr u8 SDP_SEQ8 = 0x35;
 [[maybe_unused]] constexpr u8 SDP_SEQ16 = 0x36;
 
-void WiimoteDevice::SDPSendServiceSearchResponse(u16 cid, u16 transaction_id,
+void WiimoteDevice::SDPSendServiceSearchResponse(const u16 cid, const u16 transaction_id,
                                                  u8* service_search_pattern,
                                                  u16 maximum_service_record_count)
 {
@@ -860,7 +860,7 @@ static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
   return attrib_offset;
 }
 
-void WiimoteDevice::SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id, u32 service_handle,
+void WiimoteDevice::SDPSendServiceAttributeResponse(const u16 cid, const u16 transaction_id, const u32 service_handle,
                                                     u16 start_attr_id, u16 end_attr_id,
                                                     u16 maximum_attribute_byte_count,
                                                     u8* continuation_state)
@@ -897,7 +897,7 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id,
   m_host->SendACLPacket(GetBD(), data_frame, header->length + sizeof(l2cap_hdr_t));
 }
 
-void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
+void WiimoteDevice::HandleSDP(const u16 cid, u8* data, const u32 size)
 {
   CBigEndianBuffer buffer(data);
 
@@ -950,7 +950,7 @@ void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
   }
 }
 
-void WiimoteDevice::SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* command_data)
+void WiimoteDevice::SendCommandToACL(const u8 ident, const u8 code, const u8 command_length, const u8* command_data)
 {
   u8 data_frame[1024];
   u32 offset = 0;
@@ -975,7 +975,7 @@ void WiimoteDevice::SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* c
   m_host->SendACLPacket(GetBD(), data_frame, header->length + sizeof(l2cap_hdr_t));
 }
 
-void WiimoteDevice::InterruptDataInputCallback(u8 hid_type, const u8* data, u32 size)
+void WiimoteDevice::InterruptDataInputCallback(const u8 hid_type, const u8* data, const u32 size)
 {
   const auto* const channel = FindChannelWithPSM(L2CAP_PSM_HID_INTR);
 

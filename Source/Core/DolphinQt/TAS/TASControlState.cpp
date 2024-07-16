@@ -16,7 +16,7 @@ int TASControlState::GetValue() const
       .value;
 }
 
-bool TASControlState::OnControllerValueChanged(int new_value)
+bool TASControlState::OnControllerValueChanged(const int new_value)
 {
   const State cpu_thread_state = m_cpu_thread_state.load(std::memory_order_relaxed);
 
@@ -32,7 +32,7 @@ bool TASControlState::OnControllerValueChanged(int new_value)
   return true;
 }
 
-void TASControlState::OnUIValueChanged(int new_value)
+void TASControlState::OnUIValueChanged(const int new_value)
 {
   const State ui_thread_state = m_ui_thread_state.load(std::memory_order_relaxed);
 

@@ -60,7 +60,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void vuzp12q_f32(Vector& a, Vector& b)
 #endif
 #ifdef USE_SSE
 template <int i>
-ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector vector_broadcast(Vector v)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector vector_broadcast(const Vector v)
 {
   return _mm_shuffle_ps(v, v, _MM_SHUFFLE(i, i, i, i));
 }
@@ -655,7 +655,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static bool CullTriangle(const CPUCull::Transfo
 
 template <OpcodeDecoder::Primitive Primitive, CullMode Mode>
 ATTR_TARGET static bool AreAllVerticesCulled(const CPUCull::TransformedVertex* transformed,
-                                             int count)
+                                             const int count)
 {
   switch (Primitive)
   {

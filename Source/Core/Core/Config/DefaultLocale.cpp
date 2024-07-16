@@ -38,7 +38,7 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
   // Special handling of Chinese due to its two writing systems
   if (split_locale[0] == "zh")
   {
-    const auto locale_contains = [&split_locale](std::string_view str) {
+    const auto locale_contains = [&split_locale](const std::string_view str) {
       return std::find(split_locale.cbegin(), split_locale.cend(), str) != split_locale.cend();
     };
 
@@ -79,7 +79,7 @@ static DiscIO::Language ComputeDefaultLanguage()
 
 static std::optional<std::string> TryParseCountryCode(const std::string& locale)
 {
-  const auto is_upper = [](char c) { return std::isupper(c, std::locale::classic()); };
+  const auto is_upper = [](const char c) { return std::isupper(c, std::locale::classic()); };
 
   for (const std::string& part : SplitString(locale, '-'))
   {

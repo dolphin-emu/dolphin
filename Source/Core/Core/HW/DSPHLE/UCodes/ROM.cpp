@@ -23,7 +23,7 @@
 
 namespace DSP::HLE
 {
-ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
+ROMUCode::ROMUCode(DSPHLE* dsphle, const u32 crc)
     : UCodeInterface(dsphle, crc), m_current_ucode(), m_boot_task_num_steps(0), m_next_parameter(0)
 {
   INFO_LOG_FMT(DSPHLE, "UCode_Rom - initialized");
@@ -38,7 +38,7 @@ void ROMUCode::Update()
 {
 }
 
-void ROMUCode::HandleMail(u32 mail)
+void ROMUCode::HandleMail(const u32 mail)
 {
   if (m_next_parameter == 0)
   {

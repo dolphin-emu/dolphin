@@ -243,7 +243,7 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
 }
 
 static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
-                               std::span<const std::size_t> memory_patch_indices)
+                               const std::span<const std::size_t> memory_patch_indices)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
@@ -283,13 +283,13 @@ static bool IsStackValid(const Core::CPUThreadGuard& guard)
          0 != PowerPC::MMU::HostRead_Instruction(guard, address);
 }
 
-void AddMemoryPatch(std::size_t index)
+void AddMemoryPatch(const std::size_t index)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
   s_on_frame_memory.push_back(index);
 }
 
-void RemoveMemoryPatch(std::size_t index)
+void RemoveMemoryPatch(const std::size_t index)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
   std::erase(s_on_frame_memory, index);

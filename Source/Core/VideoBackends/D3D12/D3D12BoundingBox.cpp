@@ -26,7 +26,7 @@ bool D3D12BoundingBox::Initialize()
   return true;
 }
 
-std::vector<BBoxType> D3D12BoundingBox::Read(u32 index, u32 length)
+std::vector<BBoxType> D3D12BoundingBox::Read(const u32 index, const u32 length)
 {
   // Copy from GPU->CPU buffer, and wait for the GPU to finish the copy.
   ResourceBarrier(g_dx_context->GetCommandList(), m_gpu_buffer.Get(),
@@ -56,7 +56,7 @@ std::vector<BBoxType> D3D12BoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void D3D12BoundingBox::Write(u32 index, std::span<const BBoxType> values)
+void D3D12BoundingBox::Write(const u32 index, const std::span<const BBoxType> values)
 {
   const u32 copy_size = static_cast<u32>(values.size() * sizeof(BBoxType));
   if (!m_upload_buffer.ReserveMemory(copy_size, sizeof(BBoxType)))

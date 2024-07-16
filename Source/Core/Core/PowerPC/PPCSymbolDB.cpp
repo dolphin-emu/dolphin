@@ -48,8 +48,8 @@ Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 
   return ptr;
 }
 
-void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                                 const std::string& name, Common::Symbol::Type type)
+void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, const u32 size,
+                                 const std::string& name, const Common::Symbol::Type type)
 {
   auto iter = m_functions.find(startAddr);
   if (iter != m_functions.end())
@@ -87,7 +87,7 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
   }
 }
 
-Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
+Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(const u32 addr)
 {
   auto it = m_functions.lower_bound(addr);
 
@@ -108,7 +108,7 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   return nullptr;
 }
 
-std::string_view PPCSymbolDB::GetDescription(u32 addr)
+std::string_view PPCSymbolDB::GetDescription(const u32 addr)
 {
   if (const Common::Symbol* const symbol = GetSymbolFromAddr(addr))
     return symbol->name;
@@ -146,7 +146,7 @@ void PPCSymbolDB::FillInCallers()
   }
 }
 
-void PPCSymbolDB::PrintCalls(u32 funcAddr) const
+void PPCSymbolDB::PrintCalls(const u32 funcAddr) const
 {
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
@@ -167,7 +167,7 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
   }
 }
 
-void PPCSymbolDB::PrintCallers(u32 funcAddr) const
+void PPCSymbolDB::PrintCallers(const u32 funcAddr) const
 {
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
@@ -185,7 +185,7 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
   }
 }
 
-void PPCSymbolDB::LogFunctionCall(u32 addr)
+void PPCSymbolDB::LogFunctionCall(const u32 addr)
 {
   auto iter = m_functions.find(addr);
   if (iter == m_functions.end())

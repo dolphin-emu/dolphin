@@ -9,7 +9,7 @@
 
 namespace HSP
 {
-CHSPDevice_Null::CHSPDevice_Null(HSPDeviceType device) : IHSPDevice(device)
+CHSPDevice_Null::CHSPDevice_Null(const HSPDeviceType device) : IHSPDevice(device)
 {
 }
 

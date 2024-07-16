@@ -25,7 +25,7 @@ SplitPlainFileReader::SplitPlainFileReader(std::vector<SingleFile> files)
     m_size += f.size;
 }
 
-std::unique_ptr<SplitPlainFileReader> SplitPlainFileReader::Create(std::string_view first_file_path)
+std::unique_ptr<SplitPlainFileReader> SplitPlainFileReader::Create(const std::string_view first_file_path)
 {
   constexpr std::string_view part0_iso = ".part0.iso";
   if (!first_file_path.ends_with(part0_iso))
@@ -67,7 +67,7 @@ std::unique_ptr<BlobReader> SplitPlainFileReader::CopyReader() const
   return std::unique_ptr<SplitPlainFileReader>(new SplitPlainFileReader(std::move(new_files)));
 }
 
-bool SplitPlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
+bool SplitPlainFileReader::Read(const u64 offset, const u64 nbytes, u8* out_ptr)
 {
   if (offset >= m_size)
     return false;

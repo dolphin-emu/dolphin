@@ -33,7 +33,7 @@ static const s32 yamaha_difflookup[] = {1,  3,  5,  7,  9,  11,  13,  15,
 static const s32 yamaha_indexscale[] = {230, 230, 230, 230, 307, 409, 512, 614,
                                         230, 230, 230, 230, 307, 409, 512, 614};
 
-static s16 av_clip16(s32 a)
+static s16 av_clip16(const s32 a)
 {
   if ((a + 32768) & ~65535)
     return (a >> 31) ^ 32767;
@@ -41,7 +41,7 @@ static s16 av_clip16(s32 a)
     return a;
 }
 
-static s32 av_clip(s32 a, s32 amin, s32 amax)
+static s32 av_clip(const s32 a, const s32 amin, const s32 amax)
 {
   if (a < amin)
     return amin;
@@ -51,7 +51,7 @@ static s32 av_clip(s32 a, s32 amin, s32 amax)
     return a;
 }
 
-static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
+static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, const u8 nibble)
 {
   s.predictor += (s.step * yamaha_difflookup[nibble]) / 8;
   s.predictor = av_clip16(s.predictor);
@@ -190,12 +190,12 @@ void SpeakerLogic::DoState(PointerWrap& p)
   p.Do(reg_data);
 }
 
-void SpeakerLogic::SetSpeakerEnabled(bool enabled)
+void SpeakerLogic::SetSpeakerEnabled(const bool enabled)
 {
   m_speaker_enabled = enabled;
 }
 
-int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+int SpeakerLogic::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)
 {
   if (I2C_ADDR != slave_addr)
     return 0;
@@ -203,7 +203,7 @@ int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   return RawRead(&reg_data, addr, count, data_out);
 }
 
-int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int SpeakerLogic::BusWrite(const u8 slave_addr, const u8 addr, const int count, const u8* data_in)
 {
   if (I2C_ADDR != slave_addr)
     return 0;

@@ -33,7 +33,7 @@ public:
   bool Start(const std::string& filename, u32 sample_rate_divisor);
   void Stop();
 
-  void SetSkipSilence(bool skip) { skip_silence = skip; }
+  void SetSkipSilence(const bool skip) { skip_silence = skip; }
   // big endian
   void AddStereoSamplesBE(const short* sample_data, u32 count, u32 sample_rate_divisor,
                           int l_volume, int r_volume);

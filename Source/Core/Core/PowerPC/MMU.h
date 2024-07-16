@@ -43,10 +43,10 @@ struct ReadResult
   // the actual value that was read
   T value;
 
-  ReadResult(bool translated_, T&& value_) : translated(translated_), value(std::forward<T>(value_))
+  ReadResult(const bool translated_, T&& value_) : translated(translated_), value(std::forward<T>(value_))
   {
   }
-  ReadResult(bool translated_, const T& value_) : translated(translated_), value(value_) {}
+  ReadResult(const bool translated_, const T& value_) : translated(translated_), value(value_) {}
 };
 
 struct WriteResult
@@ -55,7 +55,7 @@ struct WriteResult
   // address was treated as physical)
   bool translated;
 
-  explicit WriteResult(bool translated_) : translated(translated_) {}
+  explicit WriteResult(const bool translated_) : translated(translated_) {}
 };
 
 constexpr int BAT_INDEX_SHIFT = 17;
@@ -90,8 +90,8 @@ struct TranslateResult
   u32 address = 0;
 
   TranslateResult() = default;
-  explicit TranslateResult(u32 address_) : valid(true), address(address_) {}
-  TranslateResult(bool from_bat_, u32 address_)
+  explicit TranslateResult(const u32 address_) : valid(true), address(address_) {}
+  TranslateResult(const bool from_bat_, const u32 address_)
       : valid(true), translated(true), from_bat(from_bat_), address(address_)
   {
   }
@@ -271,7 +271,7 @@ private:
     TranslateAddressResultEnum result;
     bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
 
-    TranslateAddressResult(TranslateAddressResultEnum result_, u32 address_, bool wi_ = false)
+    TranslateAddressResult(const TranslateAddressResultEnum result_, const u32 address_, const bool wi_ = false)
         : address(address_), result(result_), wi(wi_)
     {
     }
@@ -288,7 +288,7 @@ private:
     u32 Hex = 0;
 
     EffectiveAddress() = default;
-    explicit EffectiveAddress(u32 address) : Hex{address} {}
+    explicit EffectiveAddress(const u32 address) : Hex{address} {}
   };
 
   template <const XCheckTLBFlag flag>
@@ -310,7 +310,9 @@ private:
   template <XCheckTLBFlag flag, bool never_translate = false>
   void WriteToHardware(u32 em_address, const u32 data, const u32 size);
   template <XCheckTLBFlag flag>
-  bool IsRAMAddress(u32 address, bool translate);
+  bool IsTranslatedRAMAddress(u32 address);
+  template <XCheckTLBFlag flag>
+  bool IsRAMAddress(u32 address) const;
 
   template <typename T>
   static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& guard,

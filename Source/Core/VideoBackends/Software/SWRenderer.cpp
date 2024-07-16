@@ -18,7 +18,7 @@
 
 namespace SW
 {
-u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
+u32 SWRenderer::AccessEFB(const EFBAccessType type, const u32 x, const u32 y, u32 InputData)
 {
   u32 value = 0;
 

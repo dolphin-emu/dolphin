@@ -204,7 +204,7 @@ static void MoveToBackupIfExists(const std::string& path)
   }
 }
 
-void InitializeWiiRoot(bool use_temporary)
+void InitializeWiiRoot(const bool use_temporary)
 {
   ASSERT(!s_wii_root_initialized);
 
@@ -266,7 +266,7 @@ void BackupWiiSettings()
   BackupFile("/shared2/sys/SYSCONF");
 }
 
-void RestoreWiiSettings(RestoreReason reason)
+void RestoreWiiSettings(const RestoreReason reason)
 {
   RestoreFile(Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING);
 

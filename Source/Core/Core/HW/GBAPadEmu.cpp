@@ -50,7 +50,7 @@ InputConfig* GBAPad::GetConfig() const
   return Pad::GetGBAConfig();
 }
 
-ControllerEmu::ControlGroup* GBAPad::GetGroup(GBAPadGroup group) const
+ControllerEmu::ControlGroup* GBAPad::GetGroup(const GBAPadGroup group) const
 {
   switch (group)
   {
@@ -82,7 +82,7 @@ GCPadStatus GBAPad::GetInput()
   return pad;
 }
 
-void GBAPad::SetReset(bool reset)
+void GBAPad::SetReset(const bool reset)
 {
   const auto lock = GetStateLock();
   m_reset_pending = reset;

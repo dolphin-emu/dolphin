@@ -24,7 +24,7 @@ static bool TexFmt_Overlay_Center = false;
 // STATE_TO_SAVE
 alignas(16) std::array<u8, TMEM_SIZE> s_tex_mem;
 
-int TexDecoder_GetTexelSizeInNibbles(TextureFormat format)
+int TexDecoder_GetTexelSizeInNibbles(const TextureFormat format)
 {
   switch (format)
   {
@@ -58,12 +58,12 @@ int TexDecoder_GetTexelSizeInNibbles(TextureFormat format)
   }
 }
 
-int TexDecoder_GetTextureSizeInBytes(int width, int height, TextureFormat format)
+int TexDecoder_GetTextureSizeInBytes(const int width, const int height, const TextureFormat format)
 {
   return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
-int TexDecoder_GetBlockWidthInTexels(TextureFormat format)
+int TexDecoder_GetBlockWidthInTexels(const TextureFormat format)
 {
   switch (format)
   {
@@ -97,7 +97,7 @@ int TexDecoder_GetBlockWidthInTexels(TextureFormat format)
   }
 }
 
-int TexDecoder_GetBlockHeightInTexels(TextureFormat format)
+int TexDecoder_GetBlockHeightInTexels(const TextureFormat format)
 {
   switch (format)
   {
@@ -131,7 +131,7 @@ int TexDecoder_GetBlockHeightInTexels(TextureFormat format)
   }
 }
 
-int TexDecoder_GetEFBCopyBlockWidthInTexels(EFBCopyFormat format)
+int TexDecoder_GetEFBCopyBlockWidthInTexels(const EFBCopyFormat format)
 {
   switch (format)
   {
@@ -165,7 +165,7 @@ int TexDecoder_GetEFBCopyBlockWidthInTexels(EFBCopyFormat format)
   }
 }
 
-int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format)
+int TexDecoder_GetEFBCopyBlockHeightInTexels(const EFBCopyFormat format)
 {
   switch (format)
   {
@@ -200,7 +200,7 @@ int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format)
 }
 
 // returns bytes
-int TexDecoder_GetPaletteSize(TextureFormat format)
+int TexDecoder_GetPaletteSize(const TextureFormat format)
 {
   switch (format)
   {
@@ -250,13 +250,13 @@ TextureFormat TexDecoder_GetEFBCopyBaseFormat(EFBCopyFormat format)
   }
 }
 
-void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
+void TexDecoder_SetTexFmtOverlayOptions(const bool enable, const bool center)
 {
   TexFmt_Overlay_Enable = enable;
   TexFmt_Overlay_Center = center;
 }
 
-static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat texformat)
+static void TexDecoder_DrawOverlay(u8* dst, const int width, const int height, const TextureFormat texformat)
 {
   int w = std::min(width, 40);
   int h = std::min(height, 10);
@@ -298,8 +298,8 @@ static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat
   }
 }
 
-void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFormat texformat,
-                       const u8* tlut, TLUTFormat tlutfmt)
+void TexDecoder_Decode(u8* dst, const u8* src, const int width, const int height, const TextureFormat texformat,
+                       const u8* tlut, const TLUTFormat tlutfmt)
 {
   _TexDecoder_DecodeImpl((u32*)dst, src, width, height, texformat, tlut, tlutfmt);
 
@@ -307,14 +307,14 @@ void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFor
     TexDecoder_DrawOverlay(dst, width, height, texformat);
 }
 
-static inline u32 DecodePixel_IA8(u16 val)
+static inline u32 DecodePixel_IA8(const u16 val)
 {
   int a = val & 0xFF;
   int i = val >> 8;
   return i | (i << 8) | (i << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_RGB565(u16 val)
+static inline u32 DecodePixel_RGB565(const u16 val)
 {
   int r, g, b, a;
   r = Convert5To8((val >> 11) & 0x1f);
@@ -324,7 +324,7 @@ static inline u32 DecodePixel_RGB565(u16 val)
   return r | (g << 8) | (b << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_RGB5A3(u16 val)
+static inline u32 DecodePixel_RGB5A3(const u16 val)
 {
   int r, g, b, a;
   if ((val & 0x8000))
@@ -344,7 +344,7 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
   return r | (g << 8) | (b << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_Paletted(u16 pixel, TLUTFormat tlutfmt)
+static inline u32 DecodePixel_Paletted(const u16 pixel, const TLUTFormat tlutfmt)
 {
   switch (tlutfmt)
   {
@@ -640,8 +640,8 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
   }
 }
 
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, std::span<const u8> src_ar,
-                                         std::span<const u8> src_gb, int s, int t, int imageWidth)
+void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const std::span<const u8> src_ar,
+                                         const std::span<const u8> src_gb, const int s, const int t, const int imageWidth)
 {
   u16 sBlk = s >> 2;
   u16 tBlk = t >> 2;
@@ -662,8 +662,8 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, std::span<const u8> src_ar,
   dst[2] = Common::SafeSpanRead<u8>(src_gb, offset_gb + 1);  // B
 }
 
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
-                                         int imageWidth)
+void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, const int s, const int t,
+                                         const int imageWidth)
 {
   u16 sBlk = s >> 2;
   u16 tBlk = t >> 2;
@@ -686,8 +686,8 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* sr
   dst[2] = val_addr_gb[1];  // B
 }
 
-void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
-                                    int height)
+void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, const int width,
+                                    const int height)
 {
   // TODO for someone who cares: Make this less slow!
   for (int y = 0; y < height; ++y)
@@ -700,7 +700,7 @@ void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb,
   }
 }
 
-void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride)
+void TexDecoder_DecodeXFB(u8* dst, const u8* src, const u32 width, const u32 height, const u32 stride)
 {
   const u8* src_ptr = src;
   u8* dst_ptr = dst;

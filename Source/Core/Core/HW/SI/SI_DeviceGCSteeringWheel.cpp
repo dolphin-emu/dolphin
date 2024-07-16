@@ -14,13 +14,13 @@
 
 namespace SerialInterface
 {
-CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(Core::System& system, SIDevices device,
-                                                     int device_number)
+CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(Core::System& system, const SIDevices device,
+                                                     const int device_number)
     : CSIDevice_GCController(system, device, device_number)
 {
 }
 
-int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
+int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, const int request_length)
 {
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
@@ -98,7 +98,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
+void CSIDevice_GCSteeringWheel::SendCommand(const u32 command, const u8 poll)
 {
   UCommand wheel_command(command);
 

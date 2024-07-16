@@ -108,7 +108,7 @@ void ThreadWidget::ConnectWidgets()
           [this] { ShowContextMenu(m_callstack_table); });
 }
 
-void ThreadWidget::ShowContextMenu(QTableWidget* table)
+void ThreadWidget::ShowContextMenu(const QTableWidget* table)
 {
   const auto* item = static_cast<QTableWidgetItem*>(table->currentItem());
   if (item == nullptr)

@@ -372,7 +372,7 @@ void WatchWidget::ShowContextMenu()
   menu->exec(QCursor::pos());
 }
 
-void WatchWidget::OnItemChanged(QTableWidgetItem* item)
+void WatchWidget::OnItemChanged(const QTableWidgetItem* item)
 {
   if (m_updating || item->data(Qt::UserRole).isNull())
     return;

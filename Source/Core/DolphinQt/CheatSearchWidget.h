@@ -66,7 +66,7 @@ private:
   void OnNextScanClicked();
   void OnRefreshClicked();
   void OnResetClicked();
-  void OnAddressTableItemChanged(QTableWidgetItem* item);
+  void OnAddressTableItemChanged(const QTableWidgetItem* item);
   void OnAddressTableContextMenu();
   void OnValueSourceChanged();
   void OnDisplayHexCheckboxStateChanged();

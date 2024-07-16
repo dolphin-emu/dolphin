@@ -24,7 +24,7 @@ namespace Common
 {
 struct SCall
 {
-  SCall(u32 a, u32 b) : function(a), call_address(b) {}
+  SCall(const u32 a, const u32 b) : function(a), call_address(b) {}
   u32 function;
   u32 call_address;
 };

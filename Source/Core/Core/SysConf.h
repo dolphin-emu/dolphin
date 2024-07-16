@@ -82,13 +82,13 @@ public:
 
   // Intended for use with the non array types.
   template <typename T>
-  T GetData(std::string_view key, T default_value) const
+  T GetData(const std::string_view key, T default_value) const
   {
     const Entry* entry = GetEntry(key);
     return entry ? entry->GetData(default_value) : default_value;
   }
   template <typename T>
-  void SetData(std::string_view key, Entry::Type type, T value)
+  void SetData(const std::string_view key, const Entry::Type type, T value)
   {
     GetOrAddEntry(key, type)->SetData(value);
   }

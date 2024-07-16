@@ -32,7 +32,7 @@ public:
     return fmt::format("RelativeMouse {}{}", char('X' + m_index), (m_scale > 0) ? '+' : '-');
   }
 
-  RelativeMouseAxis(u8 index, bool positive, const RelativeMouseState* state)
+  RelativeMouseAxis(const u8 index, const bool positive, const RelativeMouseState* state)
       : m_state(*state), m_index(index), m_scale(positive * 2 - 1)
   {
   }
@@ -60,7 +60,7 @@ static const struct
 static bool s_keyboard_mouse_exists;
 static HWND s_hwnd;
 
-void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
+void InitKeyboardMouse(IDirectInput8* const idi8, const HWND hwnd)
 {
   if (s_keyboard_mouse_exists)
     return;
@@ -96,7 +96,7 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
     mo_device->Release();
 }
 
-void SetKeyboardMouseWindow(HWND hwnd)
+void SetKeyboardMouseWindow(const HWND hwnd)
 {
   s_hwnd = hwnd;
 }

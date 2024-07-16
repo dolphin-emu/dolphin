@@ -107,9 +107,9 @@ private:
   void SendHCIResetCommand();
   void SendHCIDeleteLinkKeyCommand();
   bool SendHCIStoreLinkKeyCommand();
-  void FakeVendorCommandReply(USB::V0IntrMessage& ctrl);
-  void FakeReadBufferSizeReply(USB::V0IntrMessage& ctrl);
-  void FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, const u8* payload, u8 size);
+  void FakeVendorCommandReply(const USB::V0IntrMessage& ctrl);
+  void FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl);
+  void FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload, u8 size);
   void FakeSyncButtonPressedEvent(USB::V0IntrMessage& ctrl);
   void FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl);
 

@@ -192,7 +192,7 @@ bool AchievementManager::IsGameLoaded() const
   return game_info && game_info->id != 0;
 }
 
-void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
+void AchievementManager::SetBackgroundExecutionAllowed(const bool allowed)
 {
   m_background_execution_allowed = allowed;
 
@@ -463,8 +463,8 @@ const AchievementManager::Badge& AchievementManager::GetGameBadge() const
   return m_game_badge.data.empty() ? m_default_game_badge : m_game_badge;
 }
 
-const AchievementManager::Badge& AchievementManager::GetAchievementBadge(AchievementId id,
-                                                                         bool locked) const
+const AchievementManager::Badge& AchievementManager::GetAchievementBadge(const AchievementId id,
+                                                                         const bool locked) const
 {
   auto& badge_list = locked ? m_locked_badges : m_unlocked_badges;
   auto itr = badge_list.find(id);
@@ -474,7 +474,7 @@ const AchievementManager::Badge& AchievementManager::GetAchievementBadge(Achieve
 }
 
 const AchievementManager::LeaderboardStatus*
-AchievementManager::GetLeaderboardInfo(AchievementId leaderboard_id)
+AchievementManager::GetLeaderboardInfo(const AchievementId leaderboard_id)
 {
   if (const auto leaderboard_iter = m_leaderboard_map.find(leaderboard_id);
       leaderboard_iter != m_leaderboard_map.end())
@@ -637,7 +637,7 @@ void* AchievementManager::FilereaderOpenByVolume(const char* path_utf8)
   return state.release();
 }
 
-void AchievementManager::FilereaderSeek(void* file_handle, int64_t offset, int origin)
+void AchievementManager::FilereaderSeek(void* file_handle, const int64_t offset, const int origin)
 {
   switch (origin)
   {
@@ -658,7 +658,7 @@ int64_t AchievementManager::FilereaderTell(void* file_handle)
   return static_cast<FilereaderState*>(file_handle)->position;
 }
 
-size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes)
+size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, const size_t requested_bytes)
 {
   FilereaderState* filereader_state = static_cast<FilereaderState*>(file_handle);
   bool success = (filereader_state->volume->Read(filereader_state->position, requested_bytes,
@@ -726,7 +726,7 @@ void AchievementManager::LoadDefaultBadges()
   }
 }
 
-void AchievementManager::LoginCallback(int result, const char* error_message, rc_client_t* client,
+void AchievementManager::LoginCallback(const int result, const char* error_message, rc_client_t* client,
                                        void* userdata)
 {
   if (result != RC_OK)
@@ -772,7 +772,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   GetInstance().FetchPlayerBadge();
 }
 
-void AchievementManager::FetchBoardInfo(AchievementId leaderboard_id)
+void AchievementManager::FetchBoardInfo(const AchievementId leaderboard_id)
 {
   u32* callback_data_1 = new u32(leaderboard_id);
   u32* callback_data_2 = new u32(leaderboard_id);
@@ -782,8 +782,8 @@ void AchievementManager::FetchBoardInfo(AchievementId leaderboard_id)
       m_client, leaderboard_id, 4, LeaderboardEntriesCallback, callback_data_2);
 }
 
-void AchievementManager::LeaderboardEntriesCallback(int result, const char* error_message,
-                                                    rc_client_leaderboard_entry_list_t* list,
+void AchievementManager::LeaderboardEntriesCallback(const int result, const char* error_message,
+                                                    const rc_client_leaderboard_entry_list_t* list,
                                                     rc_client_t* client, void* userdata)
 {
   u32* leaderboard_id = reinterpret_cast<u32*>(userdata);
@@ -810,7 +810,7 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
   GetInstance().m_update_callback({.leaderboards = {*leaderboard_id}});
 }
 
-void AchievementManager::LoadGameCallback(int result, const char* error_message,
+void AchievementManager::LoadGameCallback(const int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
   GetInstance().m_loading_volume.reset(nullptr);
@@ -858,7 +858,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   rc_client_destroy_leaderboard_list(leaderboard_list);
 }
 
-void AchievementManager::ChangeMediaCallback(int result, const char* error_message,
+void AchievementManager::ChangeMediaCallback(const int result, const char* error_message,
                                              rc_client_t* client, void* userdata)
 {
   GetInstance().m_loading_volume.reset(nullptr);
@@ -1019,7 +1019,7 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,
-                                                  rc_client_t* client)
+                                                  const rc_client_t* client)
 {
   auto* user_info = rc_client_get_user_info(client);
   auto* game_info = rc_client_get_game_info(client);
@@ -1099,7 +1099,7 @@ void AchievementManager::Request(const rc_api_request_t* request,
 // to rc_client at construction, and in the Load Game callback, after the verification has been
 // complete, I call rc_client_set_read_memory_function to switch to the usual MemoryPeeker for all
 // future synchronous calls.
-u32 AchievementManager::MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+u32 AchievementManager::MemoryVerifier(const u32 address, u8* buffer, const u32 num_bytes, rc_client_t* client)
 {
   auto& system = Core::System::GetInstance();
   u32 ram_size = system.GetMemory().GetRamSizeReal();
@@ -1108,7 +1108,7 @@ u32 AchievementManager::MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, r
   return std::min(ram_size - address, num_bytes);
 }
 
-u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+u32 AchievementManager::MemoryPeeker(const u32 address, u8* buffer, const u32 num_bytes, rc_client_t* client)
 {
   if (buffer == nullptr)
     return 0u;

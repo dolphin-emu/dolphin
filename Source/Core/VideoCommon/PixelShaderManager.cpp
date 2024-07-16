@@ -175,7 +175,7 @@ void PixelShaderManager::SetConstants()
   }
 }
 
-void PixelShaderManager::SetTevColor(int index, int component, s32 value)
+void PixelShaderManager::SetTevColor(const int index, const int component, const s32 value)
 {
   auto& c = constants.colors[index];
   c[component] = value;
@@ -184,7 +184,7 @@ void PixelShaderManager::SetTevColor(int index, int component, s32 value)
   PRIM_LOG("tev color{}: {} {} {} {}", index, c[0], c[1], c[2], c[3]);
 }
 
-void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
+void PixelShaderManager::SetTevKonstColor(const int index, const int component, const s32 value)
 {
   auto& c = constants.kcolors[index];
   c[component] = value;
@@ -204,7 +204,7 @@ void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
   PRIM_LOG("tev konst color{}: {} {} {} {}", index, c[0], c[1], c[2], c[3]);
 }
 
-void PixelShaderManager::SetTevOrder(int index, u32 order)
+void PixelShaderManager::SetTevOrder(const int index, const u32 order)
 {
   if (constants.pack2[index][0] != order)
   {
@@ -213,7 +213,7 @@ void PixelShaderManager::SetTevOrder(int index, u32 order)
   }
 }
 
-void PixelShaderManager::SetTevKSel(int index, u32 ksel)
+void PixelShaderManager::SetTevKSel(const int index, const u32 ksel)
 {
   if (constants.pack2[index][1] != ksel)
   {
@@ -222,7 +222,7 @@ void PixelShaderManager::SetTevKSel(int index, u32 ksel)
   }
 }
 
-void PixelShaderManager::SetTevCombiner(int index, int alpha, u32 combiner)
+void PixelShaderManager::SetTevCombiner(const int index, const int alpha, const u32 combiner)
 {
   if (constants.pack1[index][alpha] != combiner)
   {
@@ -264,7 +264,7 @@ void PixelShaderManager::SetDestAlphaChanged()
   m_dest_alpha_dirty = true;
 }
 
-void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
+void PixelShaderManager::SetTexDims(const int texmapid, const u32 width, const u32 height)
 {
   // TODO: move this check out to callee. There we could just call this function on texture changes
   // or better, use textureSize() in glsl
@@ -275,7 +275,7 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
   constants.texdims[texmapid][1] = height;
 }
 
-void PixelShaderManager::SetSamplerState(int texmapid, u32 tm0, u32 tm1)
+void PixelShaderManager::SetSamplerState(const int texmapid, const u32 tm0, const u32 tm1)
 {
   if (constants.pack2[texmapid][2] != tm0 || constants.pack2[texmapid][3] != tm1)
     dirty = true;
@@ -297,14 +297,14 @@ void PixelShaderManager::SetViewportChanged()
       true;  // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
-void PixelShaderManager::SetEfbScaleChanged(float scalex, float scaley)
+void PixelShaderManager::SetEfbScaleChanged(const float scalex, const float scaley)
 {
   constants.efbscale[0] = 1.0f / scalex;
   constants.efbscale[1] = 1.0f / scaley;
   dirty = true;
 }
 
-void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0)
+void PixelShaderManager::SetZSlope(const float dfdx, const float dfdy, const float f0)
 {
   constants.zslope[0] = dfdx;
   constants.zslope[1] = dfdy;
@@ -312,7 +312,7 @@ void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0)
   dirty = true;
 }
 
-void PixelShaderManager::SetIndTexScaleChanged(bool high)
+void PixelShaderManager::SetIndTexScaleChanged(const bool high)
 {
   constants.indtexscale[high][0] = bpmem.texscale[high].ss0;
   constants.indtexscale[high][1] = bpmem.texscale[high].ts0;
@@ -321,7 +321,7 @@ void PixelShaderManager::SetIndTexScaleChanged(bool high)
   dirty = true;
 }
 
-void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
+void PixelShaderManager::SetIndMatrixChanged(const int matrixidx)
 {
   const u8 scale = bpmem.indmtx[matrixidx].GetScale();
 
@@ -378,7 +378,7 @@ void PixelShaderManager::SetZTextureOpChanged()
   dirty = true;
 }
 
-void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
+void PixelShaderManager::SetTexCoordChanged(const u8 texmapid)
 {
   TCoordInfo& tc = bpmem.texcoords[texmapid];
   constants.texdims[texmapid][2] = tc.s.scale_minus_1 + 1;
@@ -516,7 +516,7 @@ void PixelShaderManager::SetBlendModeChanged()
   m_dest_alpha_dirty = true;
 }
 
-void PixelShaderManager::SetBoundingBoxActive(bool active)
+void PixelShaderManager::SetBoundingBoxActive(const bool active)
 {
   const bool enable = active && g_ActiveConfig.bBBoxEnable;
   if (enable == (constants.bounding_box != 0))

@@ -73,7 +73,7 @@ static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state st
 }
 
 long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                           void* /*output_buffer*/, long nframes)
+                           void* /*output_buffer*/, const long nframes)
 {
   CEXIMic* mic = static_cast<CEXIMic*>(user_data);
 
@@ -196,7 +196,7 @@ void CEXIMic::StreamReadOne()
 
 u8 const CEXIMic::exi_id[] = {0, 0x0a, 0, 0, 0};
 
-CEXIMic::CEXIMic(Core::System& system, int index)
+CEXIMic::CEXIMic(Core::System& system, const int index)
     : IEXIDevice(system), slot(index)
 #ifdef _WIN32
       ,
@@ -254,7 +254,7 @@ bool CEXIMic::IsPresent() const
   return true;
 }
 
-void CEXIMic::SetCS(int cs)
+void CEXIMic::SetCS(const int cs)
 {
   if (cs)  // not-selected to selected
     m_position = 0;

@@ -196,7 +196,7 @@ void GeckoCodeWidget::OnSelectionChanged()
     m_code_view->append(QString::fromStdString(c.original_line));
 }
 
-void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
+void GeckoCodeWidget::OnItemChanged(const QListWidgetItem* item)
 {
   const int index = item->data(Qt::UserRole).toInt();
   m_gecko_codes[index].enabled = (item->checkState() == Qt::Checked);

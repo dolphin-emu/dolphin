@@ -78,7 +78,7 @@ static std::vector<WiimotePoolEntry> s_wiimote_pool;
 static WiimoteScanner s_wiimote_scanner;
 
 // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
-static void TryToFillWiimoteSlot(u32 index)
+static void TryToFillWiimoteSlot(const u32 index)
 {
   std::lock_guard lk(g_wiimotes_mutex);
 
@@ -212,7 +212,7 @@ void Wiimote::WriteReport(Report rpt)
 }
 
 // to be called from CPU thread
-void Wiimote::QueueReport(OutputReportID rpt_id, const void* data, unsigned int size)
+void Wiimote::QueueReport(OutputReportID rpt_id, const void* data, const unsigned int size)
 {
   auto const queue_data = static_cast<const u8*>(data);
 
@@ -439,7 +439,7 @@ bool Wiimote::GetNextReport(Report* report)
 }
 
 // Returns the next report that should be sent
-Report& Wiimote::ProcessReadQueue(bool repeat_last_data_report)
+Report& Wiimote::ProcessReadQueue(const bool repeat_last_data_report)
 {
   // If we're not repeating data reports or had a non-data report, any old report is irrelevant.
   if (!repeat_last_data_report || !IsDataReport(m_last_input_report))
@@ -461,7 +461,7 @@ u8 Wiimote::GetWiimoteDeviceIndex() const
   return m_bt_device_index;
 }
 
-void Wiimote::SetWiimoteDeviceIndex(u8 index)
+void Wiimote::SetWiimoteDeviceIndex(const u8 index)
 {
   m_bt_device_index = index;
 }
@@ -604,7 +604,7 @@ void WiimoteScanner::StopThread()
   }
 }
 
-void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
+void WiimoteScanner::SetScanMode(const WiimoteScanMode scan_mode)
 {
   m_scan_mode.store(scan_mode);
   m_scan_mode_changed_or_population_event.Set();
@@ -780,7 +780,7 @@ void WiimoteScanner::ThreadFunc()
   NOTICE_LOG_FMT(WIIMOTE, "Wiimote scanning thread has stopped.");
 }
 
-bool Wiimote::Connect(int index)
+bool Wiimote::Connect(const int index)
 {
   m_index = index;
 
@@ -860,7 +860,7 @@ int Wiimote::GetIndex() const
 }
 
 // config dialog calls this when some settings change
-void Initialize(::Wiimote::InitializeMode init_mode)
+void Initialize(const ::Wiimote::InitializeMode init_mode)
 {
   if (!s_real_wiimotes_initialized)
   {
@@ -932,7 +932,7 @@ void Pause()
 }
 
 // Called from the Wiimote scanner thread (or UI thread on source change)
-static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int i)
+static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, const unsigned int i)
 {
   if (Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::Real || g_wiimotes[i])
     return false;
@@ -969,7 +969,7 @@ static void TryToConnectBalanceBoard(std::unique_ptr<Wiimote> wm)
   NOTICE_LOG_FMT(WIIMOTE, "No open slot for real balance board.");
 }
 
-static void HandleWiimoteDisconnect(int index)
+static void HandleWiimoteDisconnect(const int index)
 {
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
   // The Wii Remote object must exist through the call to UpdateSource
@@ -1003,7 +1003,7 @@ bool IsNewWiimote(const std::string& identifier)
   return s_known_ids.count(identifier) == 0;
 }
 
-void HandleWiimoteSourceChange(unsigned int index)
+void HandleWiimoteSourceChange(const unsigned int index)
 {
   std::lock_guard wm_lk(g_wiimotes_mutex);
 

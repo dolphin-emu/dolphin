@@ -39,7 +39,7 @@ inline void UpdateFPExceptionSummary(PowerPC::PowerPCState& ppc_state)
   CheckFPExceptions(ppc_state);
 }
 
-inline void SetFPException(PowerPC::PowerPCState& ppc_state, u32 mask)
+inline void SetFPException(PowerPC::PowerPCState& ppc_state, const u32 mask)
 {
   if ((ppc_state.fpscr.Hex & mask) != mask)
   {
@@ -50,7 +50,7 @@ inline void SetFPException(PowerPC::PowerPCState& ppc_state, u32 mask)
   UpdateFPExceptionSummary(ppc_state);
 }
 
-inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
+inline float ForceSingle(const UReg_FPSCR& fpscr, const double value)
 {
   if (fpscr.NI)
   {
@@ -88,7 +88,7 @@ inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
   return d;
 }
 
-inline double Force25Bit(double d)
+inline double Force25Bit(const double d)
 {
   u64 integral = std::bit_cast<u64>(d);
 
@@ -97,7 +97,7 @@ inline double Force25Bit(double d)
   return std::bit_cast<double>(integral);
 }
 
-inline double MakeQuiet(double d)
+inline double MakeQuiet(const double d)
 {
   const u64 integral = std::bit_cast<u64>(d) | Common::DOUBLE_QBIT;
 
@@ -111,7 +111,7 @@ struct FPResult
 {
   bool HasNoInvalidExceptions() const { return (exception & FPSCR_VX_ANY) == 0; }
 
-  void SetException(PowerPC::PowerPCState& ppc_state, FPSCRExceptionFlag flag)
+  void SetException(PowerPC::PowerPCState& ppc_state, const FPSCRExceptionFlag flag)
   {
     exception = flag;
     SetFPException(ppc_state, flag);
@@ -121,7 +121,7 @@ struct FPResult
   FPSCRExceptionFlag exception{};
 };
 
-inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a * b};
 
@@ -153,7 +153,7 @@ inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, double a, double b)
   return result;
 }
 
-inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a / b};
 
@@ -195,7 +195,7 @@ inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, double a, double b)
   return result;
 }
 
-inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a + b};
 
@@ -228,7 +228,7 @@ inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, double a, double b)
   return result;
 }
 
-inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
+inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, const double a, const double b)
 {
   FPResult result{a - b};
 
@@ -264,7 +264,7 @@ inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, const double a, const double c, const double b)
 {
   FPResult result{std::fma(a, c, b)};
 
@@ -302,7 +302,7 @@ inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, do
   return result;
 }
 
-inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, const double a, const double c, const double b)
 {
   FPResult result{std::fma(a, c, -b)};
 
@@ -341,7 +341,7 @@ inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, do
 }
 
 // used by stfsXX instructions and ps_rsqrte
-inline u32 ConvertToSingle(u64 x)
+inline u32 ConvertToSingle(const u64 x)
 {
   const u32 exp = u32((x >> 52) & 0x7ff);
 
@@ -365,7 +365,7 @@ inline u32 ConvertToSingle(u64 x)
 }
 
 // used by psq_stXX operations.
-inline u32 ConvertToSingleFTZ(u64 x)
+inline u32 ConvertToSingleFTZ(const u64 x)
 {
   const u32 exp = u32((x >> 52) & 0x7ff);
 
@@ -379,7 +379,7 @@ inline u32 ConvertToSingleFTZ(u64 x)
   }
 }
 
-inline u64 ConvertToDouble(u32 value)
+inline u64 ConvertToDouble(const u32 value)
 {
   // This is a little-endian re-implementation of the algorithm described in
   // the PowerPC Programming Environments Manual for loading single

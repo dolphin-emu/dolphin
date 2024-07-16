@@ -18,7 +18,7 @@
 const u8* g_video_buffer_read_ptr;
 u8* g_vertex_manager_write_ptr;
 
-static void PosMtx_ReadDirect_UByte(VertexLoader* loader)
+static void PosMtx_ReadDirect_UByte(const VertexLoader* loader)
 {
   u32 posmtx = DataRead<u8>() & 0x3f;
   if (loader->m_remaining < 3)
@@ -248,12 +248,12 @@ void VertexLoader::CompileVertexTranslator()
   m_native_vtx_decl.stride = nat_offset;
 }
 
-void VertexLoader::WriteCall(TPipelineFunction func)
+void VertexLoader::WriteCall(const TPipelineFunction func)
 {
   m_PipelineStages.push_back(func);
 }
 
-int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
+int VertexLoader::RunVertices(const u8* src, u8* dst, const int count)
 {
   g_vertex_manager_write_ptr = dst;
   g_video_buffer_read_ptr = src;

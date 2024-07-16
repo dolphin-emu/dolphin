@@ -63,7 +63,7 @@ std::optional<IPCReply> OH0Device::Open(const OpenRequest& request)
   return IPCReply(return_code);
 }
 
-std::optional<IPCReply> OH0Device::Close(u32 fd)
+std::optional<IPCReply> OH0Device::Close(const u32 fd)
 {
   m_oh0->DeviceClose(m_device_id);
   return Device::Close(fd);

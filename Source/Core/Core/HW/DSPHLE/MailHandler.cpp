@@ -19,7 +19,7 @@ CMailHandler::~CMailHandler()
 {
 }
 
-void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
+void CMailHandler::PushMail(u32 mail, const bool interrupt, const int cycles_into_future)
 {
   if (interrupt)
   {
@@ -79,7 +79,7 @@ bool CMailHandler::HasPending() const
   return !m_pending_mails.empty();
 }
 
-void CMailHandler::SetHalted(bool halt)
+void CMailHandler::SetHalted(const bool halt)
 {
   m_halted = halt;
 }

@@ -31,7 +31,7 @@ enum class Mode
   Unknown6 = 6,
 };
 
-constexpr bool IsValidMode(Mode mode)
+constexpr bool IsValidMode(const Mode mode)
 {
   return mode >= Mode::DSCommunications && mode <= Mode::Unknown6;
 }

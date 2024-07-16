@@ -45,18 +45,18 @@ int CurrentThreadId()
 
 #ifdef _WIN32
 
-void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
+void SetThreadAffinity(const std::thread::native_handle_type thread, const u32 mask)
 {
   SetThreadAffinityMask(thread, mask);
 }
 
-void SetCurrentThreadAffinity(u32 mask)
+void SetCurrentThreadAffinity(const u32 mask)
 {
   SetThreadAffinityMask(GetCurrentThread(), mask);
 }
 
 // Supporting functions
-void SleepCurrentThread(int ms)
+void SleepCurrentThread(const int ms)
 {
   Sleep(ms);
 }

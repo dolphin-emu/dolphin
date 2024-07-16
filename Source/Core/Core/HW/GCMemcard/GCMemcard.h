@@ -140,7 +140,7 @@ constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
 // each palette entry is 16 bits in RGB5A3 format
 constexpr u32 MEMORY_CARD_CI8_PALETTE_ENTRIES = 256;
 
-constexpr u32 MbitToFreeBlocks(u16 size_mb)
+constexpr u32 MbitToFreeBlocks(const u16 size_mb)
 {
   return size_mb * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
 }

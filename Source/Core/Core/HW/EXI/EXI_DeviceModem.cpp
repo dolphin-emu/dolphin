@@ -27,7 +27,7 @@
 namespace ExpansionInterface
 {
 
-CEXIModem::CEXIModem(Core::System& system, ModemDeviceType type) : IEXIDevice(system)
+CEXIModem::CEXIModem(Core::System& system, const ModemDeviceType type) : IEXIDevice(system)
 {
   switch (type)
   {
@@ -105,7 +105,7 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
   }
 }
 
-void CEXIModem::DMAWrite(u32 addr, u32 size)
+void CEXIModem::DMAWrite(const u32 addr, const u32 size)
 {
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
@@ -131,7 +131,7 @@ void CEXIModem::DMAWrite(u32 addr, u32 size)
   }
 }
 
-u32 CEXIModem::ImmRead(u32 size)
+u32 CEXIModem::ImmRead(const u32 size)
 {
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
@@ -173,7 +173,7 @@ u32 CEXIModem::ImmRead(u32 size)
   }
 }
 
-void CEXIModem::DMARead(u32 addr, u32 size)
+void CEXIModem::DMARead(const u32 addr, const u32 size)
 {
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
@@ -239,7 +239,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
           SetModemTransferSize(m_transfer_descriptor, bytes_requested_after_read);
 }
 
-void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
+void CEXIModem::HandleWriteModemTransfer(const void* data, const u32 size)
 {
   const u16 bytes_expected = GetModemTransferSize(m_transfer_descriptor);
   if (size > bytes_expected)
@@ -296,7 +296,7 @@ u16 CEXIModem::GetRxThreshold() const
   return (m_regs[RX_THRESHOLD_HIGH] << 8) | m_regs[RX_THRESHOLD_LOW];
 }
 
-void CEXIModem::SetInterruptFlag(u8 what, bool enabled, bool from_cpu)
+void CEXIModem::SetInterruptFlag(const u8 what, const bool enabled, const bool from_cpu)
 {
   if (enabled)
   {
@@ -310,7 +310,7 @@ void CEXIModem::SetInterruptFlag(u8 what, bool enabled, bool from_cpu)
       from_cpu ? CoreTiming::FromThread::CPU : CoreTiming::FromThread::NON_CPU, 0);
 }
 
-void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
+void CEXIModem::OnReceiveBufferSizeChangedLocked(const bool from_cpu)
 {
   // The caller is expected to hold m_receive_buffer_lock when calling this.
   const u16 bytes_available =

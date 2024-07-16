@@ -58,7 +58,7 @@ public:
   {
   public:
     constexpr Iterator(const Iterator& other) : m_val(other.m_val), m_bit(other.m_bit) {}
-    constexpr Iterator(IntTy val, int bit) : m_val(val), m_bit(bit) {}
+    constexpr Iterator(IntTy val, const int bit) : m_val(val), m_bit(bit) {}
     Iterator& operator=(Iterator other)
     {
       new (this) Iterator(other);
@@ -95,7 +95,7 @@ public:
 
   constexpr BitSet() = default;
   constexpr explicit BitSet(IntTy val) : m_val(val) {}
-  constexpr BitSet(std::initializer_list<int> init)
+  constexpr BitSet(const std::initializer_list<int> init)
   {
     for (int bit : init)
       m_val |= IntTy{1} << bit;

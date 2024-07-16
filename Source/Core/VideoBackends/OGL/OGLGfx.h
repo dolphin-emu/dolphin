@@ -78,7 +78,7 @@ public:
   bool IsGLES() const;
 
   // Invalidates a cached texture binding. Required for texel buffers when they borrow the units.
-  void InvalidateTextureBinding(u32 index) { m_bound_textures[index] = nullptr; }
+  void InvalidateTextureBinding(const u32 index) { m_bound_textures[index] = nullptr; }
 
   // The shared framebuffer exists for copying textures when extensions are not available. It is
   // slower, but the only way to do these things otherwise.

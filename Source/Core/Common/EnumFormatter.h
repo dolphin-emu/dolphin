@@ -49,7 +49,7 @@ class EnumFormatter
   static_assert(std::is_enum_v<T>);
 
 public:
-  constexpr auto parse(fmt::format_parse_context& ctx)
+  constexpr auto parse(const fmt::format_parse_context& ctx)
   {
     auto it = ctx.begin(), end = ctx.end();
     // 'u' for user display, 's' for shader generation, 'n' for name only

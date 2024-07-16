@@ -14,7 +14,7 @@ namespace DSP
 {
 struct LabelMap::Label
 {
-  Label(std::string lbl, s32 address, LabelType ltype)
+  Label(std::string lbl, const s32 address, const LabelType ltype)
       : name(std::move(lbl)), addr(address), type(ltype)
   {
   }
@@ -72,7 +72,7 @@ void LabelMap::DeleteLabel(std::string_view label)
   labels.erase(iter);
 }
 
-std::optional<u16> LabelMap::GetLabelValue(std::string_view name, LabelType type) const
+std::optional<u16> LabelMap::GetLabelValue(std::string_view name, const LabelType type) const
 {
   for (const auto& label : labels)
   {

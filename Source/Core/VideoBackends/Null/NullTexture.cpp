@@ -25,7 +25,7 @@ void NullTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u
 {
 }
 
-NullStagingTexture::NullStagingTexture(StagingTextureType type, const TextureConfig& config)
+NullStagingTexture::NullStagingTexture(const StagingTextureType type, const TextureConfig& config)
     : AbstractStagingTexture(type, config)
 {
   m_texture_buf.resize(m_texel_size * config.width * config.height);
@@ -67,9 +67,9 @@ void NullStagingTexture::Flush()
 NullFramebuffer::NullFramebuffer(AbstractTexture* color_attachment,
                                  AbstractTexture* depth_attachment,
                                  std::vector<AbstractTexture*> additional_color_attachments,
-                                 AbstractTextureFormat color_format,
-                                 AbstractTextureFormat depth_format, u32 width, u32 height,
-                                 u32 layers, u32 samples)
+                                 const AbstractTextureFormat color_format,
+                                 const AbstractTextureFormat depth_format, const u32 width, const u32 height,
+                                 const u32 layers, const u32 samples)
     : AbstractFramebuffer(color_attachment, depth_attachment,
                           std::move(additional_color_attachments), color_format, depth_format,
                           width, height, layers, samples)

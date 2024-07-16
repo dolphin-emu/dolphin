@@ -88,7 +88,7 @@ void VideoInterfaceManager::DoState(PointerWrap& p)
 }
 
 // Executed after Init, before game boot
-void VideoInterfaceManager::Preset(bool _bNTSC)
+void VideoInterfaceManager::Preset(const bool _bNTSC)
 {
   // NOTE: Make sure all registers are set to the correct initial state. The
   //	variables are not going to start zeroed if another game has been run
@@ -175,7 +175,7 @@ void VideoInterfaceManager::Init()
   Preset(true);
 }
 
-void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   struct MappedVar
   {
@@ -254,7 +254,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (auto& mapped_var : update_params_on_read_vars)
   {
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::ComplexWrite<u16>([mapped_var](Core::System& system, u32, u16 val) {
+                   MMIO::ComplexWrite<u16>([mapped_var](const Core::System& system, u32, const u16 val) {
                      *mapped_var.ptr = val;
                      system.GetVideoInterface().UpdateParameters();
                    }));
@@ -262,28 +262,28 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // XFB related MMIOs that require special handling on writes.
   mmio->Register(base | VI_FB_LEFT_TOP_HI, MMIO::DirectRead<u16>(&m_xfb_info_top.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_info_top.Hi = val;
                    if (vi.m_xfb_info_top.CLRPOFF)
                      vi.m_xfb_info_top.POFF = 0;
                  }));
   mmio->Register(base | VI_FB_LEFT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_xfb_info_bottom.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_info_bottom.Hi = val;
                    if (vi.m_xfb_info_bottom.CLRPOFF)
                      vi.m_xfb_info_bottom.POFF = 0;
                  }));
   mmio->Register(base | VI_FB_RIGHT_TOP_HI, MMIO::DirectRead<u16>(&m_xfb_3d_info_top.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_3d_info_top.Hi = val;
                    if (vi.m_xfb_3d_info_top.CLRPOFF)
                      vi.m_xfb_3d_info_top.POFF = 0;
                  }));
   mmio->Register(base | VI_FB_RIGHT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_xfb_3d_info_bottom.Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_xfb_3d_info_bottom.Hi = val;
                    if (vi.m_xfb_3d_info_bottom.CLRPOFF)
@@ -292,17 +292,17 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // MMIOs with unimplemented writes that trigger warnings.
   mmio->Register(
-      base | VI_VERTICAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
+      base | VI_VERTICAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
         auto& vi = system.GetVideoInterface();
         return 1 + (vi.m_half_line_count) / 2;
       }),
-      MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+      MMIO::ComplexWrite<u16>([](Core::System& system, u32, const u16 val) {
         WARN_LOG_FMT(
             VIDEOINTERFACE,
             "Changing vertical beam position to {:#06x} - not documented or implemented yet", val);
       }));
   mmio->Register(
-      base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
+      base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
         auto& vi = system.GetVideoInterface();
         u16 value = static_cast<u16>(
             1 + vi.m_h_timing_0.HLW *
@@ -310,7 +310,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                     (vi.GetTicksPerHalfLine()));
         return std::clamp<u16>(value, 1, vi.m_h_timing_0.HLW * 2);
       }),
-      MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+      MMIO::ComplexWrite<u16>([](Core::System& system, u32, const u16 val) {
         WARN_LOG_FMT(
             VIDEOINTERFACE,
             "Changing horizontal beam position to {:#06x} - not documented or implemented yet",
@@ -320,27 +320,27 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // The following MMIOs are interrupts related and update interrupt status
   // on writes.
   mmio->Register(base | VI_PRERETRACE_HI, MMIO::DirectRead<u16>(&m_interrupt_register[0].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[0].Hi = val;
                    vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_POSTRETRACE_HI, MMIO::DirectRead<u16>(&m_interrupt_register[1].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[1].Hi = val;
                    vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_DISPLAY_INTERRUPT_2_HI,
                  MMIO::DirectRead<u16>(&m_interrupt_register[2].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[2].Hi = val;
                    vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_DISPLAY_INTERRUPT_3_HI,
                  MMIO::DirectRead<u16>(&m_interrupt_register[3].Hi),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_interrupt_register[3].Hi = val;
                    vi.UpdateInterrupts();
@@ -348,21 +348,21 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // Unknown anti-aliasing related MMIO register: puts a warning on log and
   // needs to shift/mask when reading/writing.
-  mmio->Register(base | VI_UNK_AA_REG_HI, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
+  mmio->Register(base | VI_UNK_AA_REG_HI, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
                    auto& vi = system.GetVideoInterface();
                    return vi.m_unknown_aa_register >> 16;
                  }),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_unknown_aa_register =
                        (vi.m_unknown_aa_register & 0x0000FFFF) | ((u32)val << 16);
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (hi)");
                  }));
-  mmio->Register(base | VI_UNK_AA_REG_LO, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
+  mmio->Register(base | VI_UNK_AA_REG_LO, MMIO::ComplexRead<u16>([](const Core::System& system, u32) {
                    auto& vi = system.GetVideoInterface();
                    return vi.m_unknown_aa_register & 0xFFFF;
                  }),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
                    vi.m_unknown_aa_register = (vi.m_unknown_aa_register & 0xFFFF0000) | val;
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (lo)");
@@ -371,7 +371,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Control register writes only updates some select bits, and additional
   // processing needs to be done if a reset is requested.
   mmio->Register(base | VI_CONTROL_REGISTER, MMIO::DirectRead<u16>(&m_display_control_register.Hex),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& vi = system.GetVideoInterface();
 
                    UVIDisplayControlRegister tmpConfig(val);
@@ -731,7 +731,7 @@ u32 VideoInterfaceManager::GetTicksPerField() const
   return GetTicksPerEvenField();
 }
 
-void VideoInterfaceManager::LogField(FieldType field, u32 xfb_address) const
+void VideoInterfaceManager::LogField(FieldType field, const u32 xfb_address) const
 {
   static constexpr std::array<const char*, 2> field_type_names{{"Odd", "Even"}};
 
@@ -755,7 +755,7 @@ void VideoInterfaceManager::LogField(FieldType field, u32 xfb_address) const
                 GetTicksPerOddField());
 }
 
-void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
+void VideoInterfaceManager::OutputField(const FieldType field, const u64 ticks)
 {
   // Could we fit a second line of data in the stride?
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
@@ -822,7 +822,7 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
     g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
-void VideoInterfaceManager::BeginField(FieldType field, u64 ticks)
+void VideoInterfaceManager::BeginField(const FieldType field, const u64 ticks)
 {
   // Outputting the frame at the beginning of scanout reduces latency. This assumes the game isn't
   // going to change the VI registers while a frame is scanning out.
@@ -830,7 +830,7 @@ void VideoInterfaceManager::BeginField(FieldType field, u64 ticks)
     OutputField(field, ticks);
 }
 
-void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
+void VideoInterfaceManager::EndField(const FieldType field, const u64 ticks)
 {
   // If the game does change VI registers while a frame is scanning out, we can defer output
   // until the end so the last register values are used. This still isn't accurate, but it does
@@ -846,7 +846,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 
 // Purpose: Send VI interrupt when triggered
 // Run when: When a frame is scanned (progressive/interlace)
-void VideoInterfaceManager::Update(u64 ticks)
+void VideoInterfaceManager::Update(const u64 ticks)
 {
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
@@ -939,7 +939,7 @@ void VideoInterfaceManager::Update(u64 ticks)
 }
 
 // Create a fake VI mode for a fifolog
-void VideoInterfaceManager::FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride,
+void VideoInterfaceManager::FakeVIUpdate(const u32 xfb_address, const u32 fb_width, u32 fb_stride,
                                          u32 fb_height)
 {
   bool interlaced = fb_height > 480 / 2;

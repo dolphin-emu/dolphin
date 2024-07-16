@@ -42,7 +42,7 @@ bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& tex
   return true;
 }
 
-std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u16 op1, u16 op2)
+std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, const u16 op1, const u16 op2)
 {
   std::string buf;
 
@@ -147,7 +147,7 @@ bool DSPDisassembler::DisassembleOpcode(const std::vector<u16>& code, u16* pc, s
   return DisassembleOpcode(code.data(), code.size(), pc, dest);
 }
 
-bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, size_t binbuf_size, u16* pc,
+bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, const size_t binbuf_size, u16* pc,
                                         std::string& dest)
 {
   const u16 wrapped_pc = (*pc & 0x7fff);

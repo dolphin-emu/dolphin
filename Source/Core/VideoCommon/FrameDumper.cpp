@@ -41,8 +41,8 @@ FrameDumper::~FrameDumper()
 
 void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
                                    const MathUtil::Rectangle<int>& src_rect,
-                                   const MathUtil::Rectangle<int>& target_rect, u64 ticks,
-                                   int frame_number)
+                                   const MathUtil::Rectangle<int>& target_rect, const u64 ticks,
+                                   const int frame_number)
 {
   int source_width = src_rect.GetWidth();
   int source_height = src_rect.GetHeight();
@@ -71,7 +71,7 @@ void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
   m_frame_dump_needs_flush = true;
 }
 
-bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
+bool FrameDumper::CheckFrameDumpRenderTexture(const u32 target_width, const u32 target_height)
 {
   // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
   // Or, resize texture if it isn't large enough to accommodate the current frame.
@@ -99,7 +99,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
   return true;
 }
 
-bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height)
+bool FrameDumper::CheckFrameDumpReadbackTexture(const u32 target_width, const u32 target_height)
 {
   std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_texture;
   if (rbtex && rbtex->GetWidth() == target_width && rbtex->GetHeight() == target_height)
@@ -169,7 +169,7 @@ void FrameDumper::ShutdownFrameDumping()
   m_frame_dump_output_texture.reset();
 }
 
-void FrameDumper::DumpFrameData(const u8* data, int w, int h, int stride)
+void FrameDumper::DumpFrameData(const u8* data, const int w, const int h, const int stride)
 {
   m_frame_dump_data = FrameData{data, w, h, stride, m_last_frame_state};
 
@@ -364,7 +364,7 @@ int FrameDumper::GetRequiredResolutionLeastCommonMultiple() const
   return 1;
 }
 
-void FrameDumper::DoState(PointerWrap& p)
+void FrameDumper::DoState(const PointerWrap& p)
 {
 #ifdef HAVE_FFMPEG
   m_ffmpeg_dump.DoState(p);

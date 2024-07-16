@@ -60,7 +60,7 @@ const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, fals
 const Info<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"}, 80};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
-const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
+const Info<std::string>& GetInfoForMemcardPath(const ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
   static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
@@ -72,7 +72,7 @@ const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
 }
 const Info<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const Info<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
-const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
+const Info<std::string>& GetInfoForAGPCartPath(const ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
   static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
@@ -84,7 +84,7 @@ const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
 }
 const Info<std::string> MAIN_GCI_FOLDER_A_PATH{{System::Main, "Core", "GCIFolderAPath"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH{{System::Main, "Core", "GCIFolderBPath"}, ""};
-const Info<std::string>& GetInfoForGCIPath(ExpansionInterface::Slot slot)
+const Info<std::string>& GetInfoForGCIPath(const ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
   static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
@@ -98,7 +98,7 @@ const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
-const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot)
+const Info<std::string>& GetInfoForGCIPathOverride(const ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
   static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
@@ -118,7 +118,7 @@ const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core",
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
     {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
 
-const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(const ExpansionInterface::Slot slot)
 {
   static constexpr Common::EnumMap<const Info<ExpansionInterface::EXIDeviceType>*,
                                    ExpansionInterface::MAX_SLOT>
@@ -143,7 +143,7 @@ const Info<std::string> MAIN_MODEM_TAPSERVER_DESTINATION{
     {System::Main, "Core", "MODEM_TAPSERVER_DESTINATION"}, "/tmp/dolphin-modem-tap"};
 const Info<std::string> MAIN_BBA_BUILTIN_IP{{System::Main, "Core", "BBA_BUILTIN_IP"}, ""};
 
-const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
+const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(const int channel)
 {
   static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
       Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"},
@@ -158,7 +158,7 @@ const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
   return infos[channel];
 }
 
-const Info<bool>& GetInfoForAdapterRumble(int channel)
+const Info<bool>& GetInfoForAdapterRumble(const int channel)
 {
   static const std::array<const Info<bool>, 4> infos{
       Info<bool>{{System::Main, "Core", "AdapterRumble0"}, true},
@@ -169,7 +169,7 @@ const Info<bool>& GetInfoForAdapterRumble(int channel)
   return infos[channel];
 }
 
-const Info<bool>& GetInfoForSimulateKonga(int channel)
+const Info<bool>& GetInfoForSimulateKonga(const int channel)
 {
   static const std::array<const Info<bool>, 4> infos{
       Info<bool>{{System::Main, "Core", "SimulateKonga0"}, false},
@@ -574,7 +574,7 @@ const Info<bool> MAIN_EMULATE_INFINITY_BASE{
 
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
-DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
+DiscIO::Region ToGameCubeRegion(const DiscIO::Region region)
 {
   if (region != DiscIO::Region::NTSC_K)
     return region;
@@ -584,7 +584,7 @@ DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
   return DiscIO::Region::NTSC_J;
 }
 
-const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle style)
+const char* GetDirectoryForRegion(DiscIO::Region region, const RegionDirectoryStyle style)
 {
   if (region == DiscIO::Region::Unknown)
     region = ToGameCubeRegion(Get(MAIN_FALLBACK_REGION));
@@ -620,14 +620,14 @@ std::string GetBootROMPath(const std::string& region_directory)
   return path;
 }
 
-std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region,
-                           u16 size_mb)
+std::string GetMemcardPath(const ExpansionInterface::Slot slot, const std::optional<DiscIO::Region> region,
+                           const u16 size_mb)
 {
   return GetMemcardPath(Get(GetInfoForMemcardPath(slot)), slot, region, size_mb);
 }
 
-std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
-                           std::optional<DiscIO::Region> region, u16 size_mb)
+std::string GetMemcardPath(std::string configured_filename, const ExpansionInterface::Slot slot,
+                           const std::optional<DiscIO::Region> region, const u16 size_mb)
 {
   const std::string blocks_string = size_mb < Memcard::MBIT_SIZE_MEMORY_CARD_2043 ?
                                         fmt::format(".{}", Memcard::MbitToFreeBlocks(size_mb)) :
@@ -682,18 +682,18 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
                      blocks_string, ext);
 }
 
-bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot)
+bool IsDefaultMemcardPathConfigured(const ExpansionInterface::Slot slot)
 {
   return Get(GetInfoForMemcardPath(slot)).empty();
 }
 
-std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region)
+std::string GetGCIFolderPath(const ExpansionInterface::Slot slot, const std::optional<DiscIO::Region> region)
 {
   return GetGCIFolderPath(Get(GetInfoForGCIPath(slot)), slot, region);
 }
 
-std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
-                             std::optional<DiscIO::Region> region)
+std::string GetGCIFolderPath(std::string configured_folder, const ExpansionInterface::Slot slot,
+                             const std::optional<DiscIO::Region> region)
 {
   if (configured_folder.empty())
   {
@@ -742,7 +742,7 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
                                                    RegionDirectoryStyle::Modern));
 }
 
-bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
+bool IsDefaultGCIFolderPathConfigured(const ExpansionInterface::Slot slot)
 {
   return Get(GetInfoForGCIPath(slot)).empty();
 }

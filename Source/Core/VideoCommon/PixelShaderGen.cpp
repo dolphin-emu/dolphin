@@ -328,7 +328,7 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
-void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
+void ClearUnusedPixelShaderUidBits(const APIType api_type, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid)
 {
   pixel_shader_uid_data* const uid_data = uid->GetUidData();
@@ -345,7 +345,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
-                                  const ShaderHostConfig& host_config, bool bounding_box,
+                                  const ShaderHostConfig& host_config, const bool bounding_box,
                                   const CustomPixelShaderContents& custom_details)
 {
   // dot product for integer vectors
@@ -761,7 +761,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   }
 }
 
-void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_stages, bool per_pixel_lighting,
+void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_stages, const bool per_pixel_lighting,
                                  const pixel_shader_uid_data* uid_data)
 {
   out->Write("\tCustomShaderData custom_data;\n");
@@ -1356,7 +1356,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo, bool has_custom_shaders)
+                       APIType api_type, bool stereo, const bool has_custom_shaders)
 {
   using Common::EnumMap;
 
@@ -1804,8 +1804,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   }
 }
 
-static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
-                            bool clamp, TevScale scale)
+static void WriteTevRegular(ShaderCode& out, std::string_view components, const TevBias bias, const TevOp op,
+                            bool clamp, const TevScale scale)
 {
   static constexpr Common::EnumMap<const char*, TevScale::Divide2> tev_scale_table_left{
       "",       // Scale1
@@ -1872,15 +1872,15 @@ constexpr Common::EnumMap<const char*, AlphaTestOp::Xnor> tev_alpha_funclogic_ta
     " == "   // xnor
 };
 
-static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
-                           bool per_pixel_depth, bool use_dual_source)
+static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, const APIType api_type,
+                           const bool per_pixel_depth, bool use_dual_source)
 {
   static constexpr std::array<std::string_view, 2> alpha_ref{
       I_ALPHA ".r",
       I_ALPHA ".g",
   };
 
-  const auto write_alpha_func = [&out](CompareMode mode, std::string_view ref) {
+  const auto write_alpha_func = [&out](const CompareMode mode, std::string_view ref) {
     const bool has_no_arguments = mode == CompareMode::Never || mode == CompareMode::Always;
     if (has_no_arguments)
       out.Write("{}", tev_alpha_funcs_table[mode]);
@@ -2068,7 +2068,7 @@ static void WriteLogicOpBlend(ShaderCode& out, const pixel_shader_uid_data* uid_
 }
 
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
-                       bool use_dual_source)
+                       const bool use_dual_source)
 {
   // Some backends require the shader outputs be uint when writing to a uint render target for logic
   // op.

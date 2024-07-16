@@ -83,8 +83,8 @@ private:
 
   void RegisterEvents();
   void RunSIBuffer(u64 user_data, s64 cycles_late);
-  static void GlobalRunSIBuffer(Core::System& system, u64 user_data, s64 cycles_late);
-  static void ChangeDeviceCallback(Core::System& system, u64 user_data, s64 cycles_late);
+  static void GlobalRunSIBuffer(const Core::System& system, u64 user_data, s64 cycles_late);
+  static void ChangeDeviceCallback(const Core::System& system, u64 user_data, s64 cycles_late);
   template <int device_number>
   static void DeviceEventCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 

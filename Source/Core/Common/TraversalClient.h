@@ -74,7 +74,7 @@ private:
   };
   void HandleServerPacket(TraversalPacket* packet);
   // called from NetHost
-  bool TestPacket(u8* data, size_t size, ENetAddress* from);
+  bool TestPacket(u8* data, size_t size, const ENetAddress* from);
   void ResendPacket(OutgoingTraversalPacketInfo* info);
   TraversalRequestId SendTraversalPacket(const TraversalPacket& packet);
   void OnFailure(FailureReason reason);

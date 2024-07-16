@@ -78,7 +78,7 @@ template <typename T>
 class DirectHandlingMethod : public ReadHandlingMethod<T>, public WriteHandlingMethod<T>
 {
 public:
-  DirectHandlingMethod(T* addr, u32 mask) : addr_(addr), mask_(mask) {}
+  DirectHandlingMethod(T* addr, const u32 mask) : addr_(addr), mask_(mask) {}
   virtual ~DirectHandlingMethod() = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
@@ -251,14 +251,14 @@ WriteHandlingMethod<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 lo
 }
 
 template <typename T>
-ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
+ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, const u32 larger_addr, u32 shift)
 {
   typedef typename LargerAccessSize<T>::value LT;
 
   ReadHandler<LT>* large = &mmio->GetHandlerForRead<LT>(larger_addr);
 
   // TODO(delroth): optimize
-  return ComplexRead<T>([large, shift](Core::System& system, u32 addr) {
+  return ComplexRead<T>([large, shift](Core::System& system, const u32 addr) {
     return large->Read(system, addr & ~(sizeof(LT) - 1)) >> shift;
   });
 }

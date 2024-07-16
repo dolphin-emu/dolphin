@@ -99,7 +99,7 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
   return filename;
 }
 
-void WriteIsNanHeader(ShaderCode& out, APIType api_type)
+void WriteIsNanHeader(ShaderCode& out, const APIType api_type)
 {
   if (api_type == APIType::D3D)
   {
@@ -141,9 +141,9 @@ void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
   }
 }
 
-static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string_view qualifier,
+static void DefineOutputMember(ShaderCode& object, const APIType api_type, std::string_view qualifier,
                                std::string_view type, std::string_view name, int var_index,
-                               ShaderStage stage, std::string_view semantic = {},
+                               const ShaderStage stage, std::string_view semantic = {},
                                int semantic_index = -1)
 {
   object.Write("\t{} {} {}", qualifier, type, name);
@@ -162,9 +162,9 @@ static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string
   object.Write(";\n");
 }
 
-void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
-                             const ShaderHostConfig& host_config, std::string_view qualifier,
-                             ShaderStage stage)
+void GenerateVSOutputMembers(ShaderCode& object, const APIType api_type, const u32 texgens,
+                             const ShaderHostConfig& host_config, const std::string_view qualifier,
+                             const ShaderStage stage)
 {
   // SPIRV-Cross names all semantics as "TEXCOORD"
   // Unfortunately Geometry shaders (which also uses this function)
@@ -243,7 +243,7 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
   }
 }
 
-void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
+void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, const u32 texgens,
                            const ShaderHostConfig& host_config)
 {
   object.Write("\t{}.pos = {}.pos;\n", a, b);
@@ -269,8 +269,8 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
   }
 }
 
-void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::string_view indent1,
-                        std::string_view pos_a, std::string_view pos_b, std::string_view sign)
+void GenerateLineOffset(ShaderCode& object, const std::string_view indent0, const std::string_view indent1,
+                        const std::string_view pos_a, const std::string_view pos_b, const std::string_view sign)
 {
   // GameCube/Wii's line drawing algorithm is a little quirky. It does not
   // use the correct line caps. Instead, the line caps are vertical or
@@ -292,7 +292,7 @@ void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::strin
                fmt::arg("pos_a", pos_a), fmt::arg("pos_b", pos_b), fmt::arg("sign", sign));
 }
 
-void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 texgens)
+void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, const u32 texgens)
 {
   std::string indent1 = std::string(indent) + "  ";
   object.Write("{0}other_pos = float4(dot(" I_PROJECTION "[0], other_pos), dot(" I_PROJECTION
@@ -318,7 +318,7 @@ void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 te
   }
 }
 
-void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 texgens)
+void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, const u32 texgens)
 {
   object.Write(
       "{0}float2 expand_sign = float2(is_right ? 1.0f : -1.0f, is_bottom ? -1.0f : 1.0f);\n"
@@ -341,7 +341,7 @@ void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 t
   }
 }
 
-const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interface_block, bool in)
+const char* GetInterpolationQualifier(const bool msaa, const bool ssaa, const bool in_glsl_interface_block, const bool in)
 {
   if (!msaa)
     return "";

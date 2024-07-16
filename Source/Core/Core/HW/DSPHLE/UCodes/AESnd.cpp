@@ -81,7 +81,7 @@ bool AESndUCode::UseNewFlagMasks() const
          m_crc == HASH_2022_PAD || m_crc == HASH_2023;
 }
 
-AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc)
+AESndUCode::AESndUCode(DSPHLE* dsphle, const u32 crc)
     : UCodeInterface(dsphle, crc), m_accelerator(dsphle->GetSystem().GetDSP())
 {
 }
@@ -100,7 +100,7 @@ void AESndUCode::Update()
   }
 }
 
-void AESndUCode::HandleMail(u32 mail)
+void AESndUCode::HandleMail(const u32 mail)
 {
   if (m_upload_setup_in_progress)
   {
@@ -254,19 +254,19 @@ void AESndAccelerator::OnEndException()
   SetPredScale(GetPredScale());
 }
 
-u8 AESndAccelerator::ReadMemory(u32 address)
+u8 AESndAccelerator::ReadMemory(const u32 address)
 {
   return m_dsp.ReadARAM(address);
 }
 
-void AESndAccelerator::WriteMemory(u32 address, u8 value)
+void AESndAccelerator::WriteMemory(const u32 address, const u8 value)
 {
   m_dsp.WriteARAM(value, address);
 }
 
 static constexpr std::array<s16, 16> ACCELERATOR_COEFS = {};  // all zeros
 
-void AESndUCode::SetUpAccelerator(u16 format, [[maybe_unused]] u16 gain)
+void AESndUCode::SetUpAccelerator(const u16 format, [[maybe_unused]] u16 gain)
 {
   // setup_accl
   m_accelerator.SetSampleFormat(format);

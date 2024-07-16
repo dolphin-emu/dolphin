@@ -37,7 +37,7 @@ public:
   JitInterface& operator=(JitInterface&&) = delete;
   ~JitInterface();
 
-  void DoState(PointerWrap& p);
+  void DoState(const PointerWrap& p);
 
   CPUCoreBase* InitJitCore(PowerPC::CPUCore core);
   CPUCoreBase* GetCore() const;

@@ -144,9 +144,9 @@ public:
   bool IsWii() const { return m_is_wii; }
   bool IsBranchWatchIgnoreApploader() { return m_branch_watch_ignore_apploader; }
 
-  void SetIsMIOS(bool is_mios) { m_is_mios = is_mios; }
-  void SetIsWii(bool is_wii) { m_is_wii = is_wii; }
-  void SetIsBranchWatchIgnoreApploader(bool enable) { m_branch_watch_ignore_apploader = enable; }
+  void SetIsMIOS(const bool is_mios) { m_is_mios = is_mios; }
+  void SetIsWii(const bool is_wii) { m_is_wii = is_wii; }
+  void SetIsBranchWatchIgnoreApploader(const bool enable) { m_branch_watch_ignore_apploader = enable; }
 
   SoundStream* GetSoundStream() const;
   void SetSoundStream(std::unique_ptr<SoundStream> sound_stream);

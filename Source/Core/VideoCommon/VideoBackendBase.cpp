@@ -97,8 +97,8 @@ void VideoBackendBase::Video_ExitLoop()
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                       u64 ticks)
+void VideoBackendBase::Video_OutputXFB(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height,
+                                       const u64 ticks)
 {
   if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {
@@ -151,7 +151,7 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data
   }
 }
 
-u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
+u32 VideoBackendBase::Video_GetQueryResult(const PerfQueryType type)
 {
   if (!g_perf_query->ShouldEmulate())
   {
@@ -171,7 +171,7 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
   return g_perf_query->GetQueryResult(type);
 }
 
-u16 VideoBackendBase::Video_GetBoundingBox(int index)
+u16 VideoBackendBase::Video_GetBoundingBox(const int index)
 {
   DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::READS_BOUNDING_BOX);
 

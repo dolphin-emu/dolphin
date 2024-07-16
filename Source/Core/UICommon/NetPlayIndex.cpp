@@ -210,12 +210,12 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
   return true;
 }
 
-void NetPlayIndex::SetInGame(bool in_game)
+void NetPlayIndex::SetInGame(const bool in_game)
 {
   m_in_game = in_game;
 }
 
-void NetPlayIndex::SetPlayerCount(int player_count)
+void NetPlayIndex::SetPlayerCount(const int player_count)
 {
   m_player_count = player_count;
 }
@@ -256,7 +256,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayIndex::GetRegions()
 // It isn't very secure but is preferable to adding another dependency on mbedtls
 // The encrypted data is encoded as nibbles with the character 'A' as the base offset
 
-bool NetPlaySession::EncryptID(std::string_view password)
+bool NetPlaySession::EncryptID(const std::string_view password)
 {
   if (password.empty())
     return false;
@@ -284,7 +284,7 @@ bool NetPlaySession::EncryptID(std::string_view password)
   return true;
 }
 
-std::optional<std::string> NetPlaySession::DecryptID(std::string_view password) const
+std::optional<std::string> NetPlaySession::DecryptID(const std::string_view password) const
 {
   if (password.empty())
     return {};

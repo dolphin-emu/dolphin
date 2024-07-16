@@ -78,7 +78,7 @@ std::vector<u64> WC24FriendList::GetUnconfirmedFriends() const
   return friends;
 }
 
-u64 WC24FriendList::ConvertEmailToFriendCode(std::string_view email)
+u64 WC24FriendList::ConvertEmailToFriendCode(const std::string_view email)
 {
   u32 upper = 0x80;
   u32 lower{};

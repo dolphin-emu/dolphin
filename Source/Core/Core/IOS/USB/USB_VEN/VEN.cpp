@@ -115,7 +115,7 @@ s32 USB_VEN::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
   }
 }
 
-IPCReply USB_VEN::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_VEN::CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -127,7 +127,7 @@ IPCReply USB_VEN::CancelEndpoint(USBV5Device& device, const IOCtlRequest& reques
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_VEN::GetDeviceInfo(const USBV5Device& device, const IOCtlRequest& request)
 {
   if (request.buffer_out == 0 || request.buffer_out_size != 0xc0)
     return IPCReply(IPC_EINVAL);

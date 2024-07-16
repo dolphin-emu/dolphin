@@ -94,7 +94,7 @@ static bool OpenVulkanLibrary(bool force_system_library)
 #endif
 }
 
-bool LoadVulkanLibrary(bool force_system_library)
+bool LoadVulkanLibrary(const bool force_system_library)
 {
   if (!s_vulkan_module.IsOpen() && !OpenVulkanLibrary(force_system_library))
     return false;
@@ -120,10 +120,10 @@ void UnloadVulkanLibrary()
     ResetVulkanLibraryFunctionPointers();
 }
 
-bool LoadVulkanInstanceFunctions(VkInstance instance)
+bool LoadVulkanInstanceFunctions(const VkInstance instance)
 {
   bool required_functions_missing = false;
-  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required) {
+  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, const bool is_required) {
     *func_ptr = vkGetInstanceProcAddr(instance, name);
     if (!(*func_ptr) && is_required)
     {
@@ -140,10 +140,10 @@ bool LoadVulkanInstanceFunctions(VkInstance instance)
   return !required_functions_missing;
 }
 
-bool LoadVulkanDeviceFunctions(VkDevice device)
+bool LoadVulkanDeviceFunctions(const VkDevice device)
 {
   bool required_functions_missing = false;
-  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required) {
+  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, const bool is_required) {
     *func_ptr = vkGetDeviceProcAddr(device, name);
     if (!(*func_ptr) && is_required)
     {
@@ -160,7 +160,7 @@ bool LoadVulkanDeviceFunctions(VkDevice device)
   return !required_functions_missing;
 }
 
-const char* VkResultToString(VkResult res)
+const char* VkResultToString(const VkResult res)
 {
   switch (res)
   {
@@ -241,7 +241,7 @@ const char* VkResultToString(VkResult res)
   }
 }
 
-void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, VkResult res,
+void LogVulkanResult(const Common::Log::LogLevel level, const char* func_name, const VkResult res,
                      const char* msg)
 {
   GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "({}) {} ({}: {})", func_name, msg,

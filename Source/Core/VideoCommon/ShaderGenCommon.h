@@ -128,8 +128,8 @@ protected:
 class ShaderConstantProfile : public ShaderGeneratorInterface
 {
 public:
-  ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
-  void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
+  ShaderConstantProfile(const int num_constants) { constant_usage.resize(num_constants); }
+  void SetConstantsUsed(const unsigned int first_index, const unsigned int last_index)
   {
     for (unsigned int i = first_index; i < last_index + 1; ++i)
       constant_usage[i] = true;
@@ -230,7 +230,7 @@ std::string BitfieldExtract(std::string_view source)
 
 template <auto last_member>
 void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
-                 const Common::EnumMap<std::string_view, last_member>& values, int indent,
+                 const Common::EnumMap<std::string_view, last_member>& values, const int indent,
                  bool break_)
 {
   using enum_type = decltype(last_member);
@@ -238,7 +238,7 @@ void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
   // Generate a tree of if statements recursively
   // std::function must be used because auto won't capture before initialization and thus can't be
   // used recursively
-  std::function<void(u32, u32, u32)> BuildTree = [&](u32 cur_indent, u32 low, u32 high) {
+  std::function<void(u32, u32, u32)> BuildTree = [&](u32 cur_indent, u32 low, const u32 high) {
     // Each generated statement is for low <= x < high
     if (high == low + 1)
     {

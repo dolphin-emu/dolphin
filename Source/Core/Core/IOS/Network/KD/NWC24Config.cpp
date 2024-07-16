@@ -132,7 +132,7 @@ u32 NWC24Config::Magic() const
   return Common::swap32(m_data.magic);
 }
 
-void NWC24Config::SetMagic(u32 magic)
+void NWC24Config::SetMagic(const u32 magic)
 {
   m_data.magic = Common::swap32(magic);
 }
@@ -142,7 +142,7 @@ u32 NWC24Config::Version() const
   return Common::swap32(m_data.version);
 }
 
-void NWC24Config::SetVersion(u32 version)
+void NWC24Config::SetVersion(const u32 version)
 {
   m_data.version = Common::swap32(version);
 }
@@ -152,7 +152,7 @@ u32 NWC24Config::IdGen() const
   return Common::swap32(m_data.id_generation);
 }
 
-void NWC24Config::SetIdGen(u32 id_generation)
+void NWC24Config::SetIdGen(const u32 id_generation)
 {
   m_data.id_generation = Common::swap32(id_generation);
 }
@@ -171,7 +171,7 @@ u32 NWC24Config::Checksum() const
   return Common::swap32(m_data.checksum);
 }
 
-void NWC24Config::SetChecksum(u32 checksum)
+void NWC24Config::SetChecksum(const u32 checksum)
 {
   m_data.checksum = Common::swap32(checksum);
 }
@@ -191,7 +191,7 @@ u32 NWC24Config::EnableBooting() const
   return Common::swap32(m_data.enable_booting);
 }
 
-void NWC24Config::SetEnableBooting(u32 enable_booting)
+void NWC24Config::SetEnableBooting(const u32 enable_booting)
 {
   m_data.enable_booting = Common::swap32(enable_booting);
 }
@@ -201,7 +201,7 @@ u64 NWC24Config::Id() const
   return Common::swap64(m_data.nwc24_id);
 }
 
-void NWC24Config::SetId(u64 nwc24_id)
+void NWC24Config::SetId(const u64 nwc24_id)
 {
   m_data.nwc24_id = Common::swap64(nwc24_id);
 }
@@ -235,13 +235,13 @@ std::string NWC24Config::GetAccountURL() const
   return {m_data.http_urls[0], size};
 }
 
-void NWC24Config::SetMailCheckID(std::string_view mlchkid)
+void NWC24Config::SetMailCheckID(const std::string_view mlchkid)
 {
   std::strncpy(m_data.mlchkid, mlchkid.data(), std::size(m_data.mlchkid));
   m_data.mlchkid[MAX_MLCHKID_LENGTH - 1] = '\0';
 }
 
-void NWC24Config::SetPassword(std::string_view password)
+void NWC24Config::SetPassword(const std::string_view password)
 {
   std::strncpy(m_data.paswd, password.data(), std::size(m_data.paswd));
   m_data.paswd[MAX_PASSWORD_LENGTH - 1] = '\0';

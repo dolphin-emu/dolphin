@@ -34,7 +34,7 @@ void BoundingBox::Flush()
 
   m_is_valid = false;
 
-  if (std::none_of(m_dirty.begin(), m_dirty.end(), [](bool dirty) { return dirty; }))
+  if (std::none_of(m_dirty.begin(), m_dirty.end(), [](const bool dirty) { return dirty; }))
     return;
 
   // TODO: Does this make any difference over just writing all the values?
@@ -72,7 +72,7 @@ void BoundingBox::Readback()
   m_is_valid = true;
 }
 
-u16 BoundingBox::Get(u32 index)
+u16 BoundingBox::Get(const u32 index)
 {
   ASSERT(index < NUM_BBOX_VALUES);
 
@@ -85,7 +85,7 @@ u16 BoundingBox::Get(u32 index)
   return static_cast<u16>(m_values[index]);
 }
 
-void BoundingBox::Set(u32 index, u16 value)
+void BoundingBox::Set(const u32 index, const u16 value)
 {
   ASSERT(index < NUM_BBOX_VALUES);
 

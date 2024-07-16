@@ -66,7 +66,7 @@ private:
   }
 
   ControlState GetValue() const override { return 1.0 - GetArg(0).GetValue(); }
-  void SetValue(ControlState value) override { GetArg(0).SetValue(1.0 - value); }
+  void SetValue(const ControlState value) override { GetArg(0).SetValue(1.0 - value); }
 };
 
 // usage: abs(expression)
@@ -667,7 +667,7 @@ private:
   mutable Clock::time_point m_release_time = Clock::now();
 };
 
-std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name)
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(const std::string_view name)
 {
   if (name == "not")
     return std::make_unique<NotExpression>();
@@ -747,12 +747,12 @@ FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args
   return ValidateArguments(m_args);
 }
 
-Expression& FunctionExpression::GetArg(u32 number)
+Expression& FunctionExpression::GetArg(const u32 number)
 {
   return *m_args[number];
 }
 
-const Expression& FunctionExpression::GetArg(u32 number) const
+const Expression& FunctionExpression::GetArg(const u32 number) const
 {
   return *m_args[number];
 }

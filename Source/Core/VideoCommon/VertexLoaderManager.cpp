@@ -155,8 +155,8 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   std::memset(static_cast<void*>(&new_decl), 0, sizeof(new_decl));
   new_decl.stride = decl.stride;
 
-  auto MakeDummyAttribute = [](AttributeFormat& attr, ComponentFormat type, int components,
-                               bool integer) {
+  auto MakeDummyAttribute = [](AttributeFormat& attr, const ComponentFormat type, const int components,
+                               const bool integer) {
     attr.type = type;
     attr.components = components;
     attr.offset = 0;
@@ -207,7 +207,7 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
 namespace detail
 {
 template <bool IsPreprocess>
-VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
+VertexLoaderBase* GetOrCreateLoader(const int vtx_attr_group)
 {
   constexpr CPState* state = IsPreprocess ? &g_preprocess_cp_state : &g_main_cp_state;
   constexpr BitSet8& attr_dirty = IsPreprocess ? g_preprocess_vat_dirty : g_main_vat_dirty;
@@ -248,7 +248,7 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
 
 }  // namespace detail
 
-static void CheckCPConfiguration(int vtx_attr_group)
+static void CheckCPConfiguration(const int vtx_attr_group)
 {
   // Validate that the XF input configuration matches the CP configuration
   u32 num_cp_colors = std::count_if(
@@ -376,7 +376,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
 }
 
 template <bool IsPreprocess>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src)
+int RunVertices(const int vtx_attr_group, const OpcodeDecoder::Primitive primitive, int count, const u8* src)
 {
   if (count == 0) [[unlikely]]
     return 0;

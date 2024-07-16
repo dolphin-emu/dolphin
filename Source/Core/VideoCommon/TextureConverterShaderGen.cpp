@@ -12,8 +12,8 @@
 
 namespace TextureConversionShaderGen
 {
-TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
-                         bool scale_by_half, float gamma_rcp,
+TCShaderUid GetShaderUid(EFBCopyFormat dst_format, const bool is_depth_copy, const bool is_intensity,
+                         const bool scale_by_half, const float gamma_rcp,
                          const std::array<u32, 3>& filter_coefficients)
 {
   TCShaderUid out;
@@ -64,7 +64,7 @@ static void WriteHeader(APIType api_type, ShaderCode& out)
             "}};\n");
 }
 
-ShaderCode GenerateVertexShader(APIType api_type)
+ShaderCode GenerateVertexShader(const APIType api_type)
 {
   ShaderCode out;
   WriteHeader(api_type, out);
@@ -96,7 +96,7 @@ ShaderCode GenerateVertexShader(APIType api_type)
   return out;
 }
 
-ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
+ShaderCode GeneratePixelShader(const APIType api_type, const UidData* uid_data)
 {
   const bool mono_depth = uid_data->is_depth_copy && g_ActiveConfig.bStereoEFBMonoDepth;
 

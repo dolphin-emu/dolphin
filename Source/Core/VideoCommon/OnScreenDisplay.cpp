@@ -37,7 +37,7 @@ static std::atomic<int> s_obscured_pixels_top = 0;
 struct Message
 {
   Message() = default;
-  Message(std::string text_, u32 duration_, u32 color_,
+  Message(std::string text_, const u32 duration_, const u32 color_,
           const VideoCommon::CustomTextureData::ArraySlice::Level* icon_ = nullptr)
       : text(std::move(text_)), duration(duration_), color(color_), icon(icon_)
   {
@@ -64,7 +64,7 @@ static ImVec4 ARGBToImVec4(const u32 argb)
                 static_cast<float>((argb >> 24) & 0xFF) / 255.0f);
 }
 
-static float DrawMessage(int index, Message& msg, const ImVec2& position, int time_left)
+static float DrawMessage(int index, Message& msg, const ImVec2& position, const int time_left)
 {
   // We have to provide a window name, and these shouldn't be duplicated.
   // So instead, we generate a name based on the number of messages drawn.
@@ -130,7 +130,7 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
   return window_height;
 }
 
-void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
+void AddTypedMessage(MessageType type, std::string message, const u32 ms, const u32 argb,
                      const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
 {
   std::lock_guard lock{s_messages_mutex};
@@ -145,7 +145,7 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
   s_messages.emplace(type, Message(std::move(message), ms, argb, std::move(icon)));
 }
 
-void AddMessage(std::string message, u32 ms, u32 argb,
+void AddMessage(std::string message, const u32 ms, const u32 argb,
                 const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
 {
   std::lock_guard lock{s_messages_mutex};
@@ -196,12 +196,12 @@ void ClearMessages()
   s_messages.clear();
 }
 
-void SetObscuredPixelsLeft(int width)
+void SetObscuredPixelsLeft(const int width)
 {
   s_obscured_pixels_left = width;
 }
 
-void SetObscuredPixelsTop(int height)
+void SetObscuredPixelsTop(const int height)
 {
   s_obscured_pixels_top = height;
 }

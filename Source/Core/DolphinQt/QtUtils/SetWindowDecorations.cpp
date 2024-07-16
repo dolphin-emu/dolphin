@@ -11,7 +11,7 @@
 #include <dwmapi.h>
 #endif
 
-void SetQWidgetWindowDecorations(QWidget* widget)
+void SetQWidgetWindowDecorations(const QWidget* widget)
 {
 #ifdef _WIN32
   if (!Settings::Instance().IsThemeDark())

@@ -11,7 +11,7 @@
 
 namespace Config
 {
-ConfigLayerLoader::ConfigLayerLoader(LayerType layer) : m_layer(layer)
+ConfigLayerLoader::ConfigLayerLoader(const LayerType layer) : m_layer(layer)
 {
 }
 
@@ -22,7 +22,7 @@ LayerType ConfigLayerLoader::GetLayer() const
   return m_layer;
 }
 
-Layer::Layer(LayerType type) : m_layer(type)
+Layer::Layer(const LayerType type) : m_layer(type)
 {
 }
 
@@ -66,13 +66,13 @@ void Layer::DeleteAllKeys()
   }
 }
 
-Section Layer::GetSection(System system, const std::string& section)
+Section Layer::GetSection(const System system, const std::string& section)
 {
   return Section{m_map.lower_bound(Location{system, section, ""}),
                  m_map.lower_bound(Location{system, section + '\001', ""})};
 }
 
-ConstSection Layer::GetSection(System system, const std::string& section) const
+ConstSection Layer::GetSection(const System system, const std::string& section) const
 {
   return ConstSection{m_map.lower_bound(Location{system, section, ""}),
                       m_map.lower_bound(Location{system, section + '\001', ""})};

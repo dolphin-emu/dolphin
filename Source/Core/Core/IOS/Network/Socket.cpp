@@ -45,7 +45,7 @@ namespace IOS::HLE
 //  - EINPROGRESS: connect, bind
 //  - WSAEWOULDBLOCK: send(to), recv(from), accept, connect
 // On Windows is_rw is used to correct the return value for connect
-static s32 TranslateErrorCode(s32 native_error, bool is_rw)
+static s32 TranslateErrorCode(const s32 native_error, const bool is_rw)
 {
   switch (native_error)
   {
@@ -93,7 +93,7 @@ WiiSockMan::WiiSockMan(EmulationKernel& ios) : m_ios(ios)
 WiiSockMan::~WiiSockMan() = default;
 
 // Don't use string! (see https://github.com/dolphin-emu/dolphin/pull/3143)
-s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
+s32 WiiSockMan::GetNetErrorCode(const s32 ret, const std::string_view caller, const bool is_rw)
 {
 #ifdef _WIN32
   s32 error_code = WSAGetLastError();
@@ -135,7 +135,7 @@ WiiSocket::~WiiSocket()
   }
 }
 
-void WiiSocket::SetFd(s32 s)
+void WiiSocket::SetFd(const s32 s)
 {
   if (fd >= 0)
     (void)CloseFd();
@@ -155,12 +155,12 @@ void WiiSocket::SetFd(s32 s)
 #endif
 }
 
-void WiiSocket::SetWiiFd(s32 s)
+void WiiSocket::SetWiiFd(const s32 s)
 {
   wii_fd = s;
 }
 
-s32 WiiSocket::Shutdown(u32 how)
+s32 WiiSocket::Shutdown(const u32 how)
 {
   if (how > 2)
     return -SO_EINVAL;
@@ -233,7 +233,7 @@ s32 WiiSocket::CloseFd()
   return ReturnValue;
 }
 
-s32 WiiSocket::FCntl(u32 cmd, u32 arg)
+s32 WiiSocket::FCntl(const u32 cmd, const u32 arg)
 {
 #ifndef F_GETFL
 #define F_GETFL 3
@@ -731,7 +731,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
   }
 }
 
-void WiiSocket::UpdateConnectingState(s32 connect_rv)
+void WiiSocket::UpdateConnectingState(const s32 connect_rv)
 {
   if (connect_rv == -SO_EAGAIN || connect_rv == -SO_EALREADY || connect_rv == -SO_EINPROGRESS)
   {
@@ -851,21 +851,21 @@ void WiiSocket::ResetTimeout()
   timeout.reset();
 }
 
-void WiiSocket::DoSock(Request request, NET_IOCTL type)
+void WiiSocket::DoSock(Request request, const NET_IOCTL type)
 {
   sockop so = {request, false};
   so.net_type = type;
   pending_sockops.push_back(so);
 }
 
-void WiiSocket::DoSock(Request request, SSL_IOCTL type)
+void WiiSocket::DoSock(Request request, const SSL_IOCTL type)
 {
   sockop so = {request, true};
   so.ssl_type = type;
   pending_sockops.push_back(so);
 }
 
-s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
+s32 WiiSockMan::AddSocket(s32 fd, const bool is_rw)
 {
   const char* caller = is_rw ? "SO_ACCEPT" : "NewSocket";
 
@@ -925,13 +925,13 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
   return wii_fd;
 }
 
-bool WiiSockMan::IsSocketBlocking(s32 wii_fd) const
+bool WiiSockMan::IsSocketBlocking(const s32 wii_fd) const
 {
   const auto it = WiiSockets.find(wii_fd);
   return it != WiiSockets.end() && !it->second.nonBlock;
 }
 
-s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
+s32 WiiSockMan::NewSocket(s32 af, const s32 type, const s32 protocol)
 {
   if (af == 2)
   {
@@ -962,14 +962,14 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
   return AddSocket(fd, false);
 }
 
-s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
+s32 WiiSockMan::GetHostSocket(const s32 wii_fd) const
 {
   if (WiiSockets.count(wii_fd) > 0)
     return WiiSockets.at(wii_fd).fd;
   return -EBADF;
 }
 
-s32 WiiSockMan::ShutdownSocket(s32 wii_fd, u32 how)
+s32 WiiSockMan::ShutdownSocket(const s32 wii_fd, const u32 how)
 {
   auto socket_entry = WiiSockets.find(wii_fd);
   if (socket_entry != WiiSockets.end())
@@ -977,7 +977,7 @@ s32 WiiSockMan::ShutdownSocket(s32 wii_fd, u32 how)
   return -SO_EBADF;
 }
 
-s32 WiiSockMan::DeleteSocket(s32 wii_fd)
+s32 WiiSockMan::DeleteSocket(const s32 wii_fd)
 {
   s32 ReturnValue = -SO_EBADF;
   auto socket_entry = WiiSockets.find(wii_fd);
@@ -989,7 +989,7 @@ s32 WiiSockMan::DeleteSocket(s32 wii_fd)
   return ReturnValue;
 }
 
-void WiiSockMan::EnqueueIPCReply(const Request& request, s32 return_value) const
+void WiiSockMan::EnqueueIPCReply(const Request& request, const s32 return_value) const
 {
   m_ios.EnqueueIPCReply(request, return_value);
 }
@@ -1124,7 +1124,7 @@ void WiiSockMan::UpdatePollCommands()
   });
 }
 
-sockaddr_in WiiSockMan::ToNativeAddrIn(WiiSockAddrIn from)
+sockaddr_in WiiSockMan::ToNativeAddrIn(const WiiSockAddrIn from)
 {
   sockaddr_in result;
 
@@ -1135,7 +1135,7 @@ sockaddr_in WiiSockMan::ToNativeAddrIn(WiiSockAddrIn from)
   return result;
 }
 
-s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
+s32 WiiSockMan::ConvertEvents(const s32 events, const ConvertDirection dir)
 {
   constexpr struct
   {
@@ -1172,7 +1172,7 @@ s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
   return converted_events;
 }
 
-WiiSockAddrIn WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, socklen_t addrlen)
+WiiSockAddrIn WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, const socklen_t addrlen)
 {
   WiiSockAddrIn result;
 
@@ -1212,14 +1212,14 @@ void WiiSockMan::AddPollCommand(const PollCommand& cmd)
   pending_polls.push_back(cmd);
 }
 
-void WiiSockMan::UpdateWantDeterminism(bool want)
+void WiiSockMan::UpdateWantDeterminism(const bool want)
 {
   // If we switched into movie recording, kill existing sockets.
   if (want)
     Clean();
 }
 
-void WiiSocket::Abort(sockop* op, s32 value) const
+void WiiSocket::Abort(sockop* op, const s32 value) const
 {
   op->is_aborted = true;
   m_socket_manager.EnqueueIPCReply(op->request, value);

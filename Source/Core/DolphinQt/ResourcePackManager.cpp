@@ -165,7 +165,7 @@ void ResourcePackManager::RepopulateTable()
 }
 
 // Revert the indicies as to be more intuitive for users
-int ResourcePackManager::GetResourcePackIndex(QTableWidgetItem* item) const
+int ResourcePackManager::GetResourcePackIndex(const QTableWidgetItem* item) const
 {
   return m_table_widget->rowCount() - 1 - item->row();
 }
@@ -329,7 +329,7 @@ void ResourcePackManager::SelectionChanged()
   m_priority_up_button->setEnabled(has_selection && items[0]->row() != 0);
 }
 
-void ResourcePackManager::ItemDoubleClicked(QTableWidgetItem* item)
+void ResourcePackManager::ItemDoubleClicked(const QTableWidgetItem* item)
 {
   auto item_data = item->data(Qt::UserRole);
 

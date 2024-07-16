@@ -100,7 +100,7 @@ void DolphinAnalytics::GenerateNewIdentity()
   Config::Save();
 }
 
-std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
+std::string DolphinAnalytics::MakeUniqueId(const std::string_view data) const
 {
   const auto input = std::string{m_unique_id}.append(data);
   const auto digest = Common::SHA1::CalculateDigest(input);
@@ -114,7 +114,7 @@ std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
   return out;
 }
 
-void DolphinAnalytics::ReportDolphinStart(std::string_view ui_type)
+void DolphinAnalytics::ReportDolphinStart(const std::string_view ui_type)
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
   builder.AddData("type", "dolphin-start");

@@ -77,7 +77,7 @@ void IRWidget::mouseMoveEvent(QMouseEvent* event)
     handleMouseEvent(event);
 }
 
-void IRWidget::handleMouseEvent(QMouseEvent* event)
+void IRWidget::handleMouseEvent(const QMouseEvent* event)
 {
   u16 prev_x = m_x;
   u16 prev_y = m_y;

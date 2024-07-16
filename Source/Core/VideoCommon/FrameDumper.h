@@ -35,7 +35,7 @@ public:
   bool IsFrameDumping() const;
   int GetRequiredResolutionLeastCommonMultiple() const;
 
-  void DoState(PointerWrap& p);
+  void DoState(const PointerWrap& p);
 
 private:
   // NOTE: The methods below are called on the framedumping thread.

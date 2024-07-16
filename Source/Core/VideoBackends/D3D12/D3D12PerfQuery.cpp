@@ -50,7 +50,7 @@ bool PerfQuery::Initialize()
   return true;
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
+void PerfQuery::EnableQuery(const PerfQueryGroup group)
 {
   // Block if there are no free slots.
   // Otherwise, try to keep half of them available.
@@ -80,7 +80,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup group)
+void PerfQuery::DisableQuery(const PerfQueryGroup group)
 {
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
@@ -109,7 +109,7 @@ void PerfQuery::ResetQuery()
   }
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
+u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 {
   u32 result = 0;
   if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
@@ -153,7 +153,7 @@ void PerfQuery::ResolveQueries()
   ResolveQueries(m_unresolved_queries);
 }
 
-void PerfQuery::ResolveQueries(u32 query_count)
+void PerfQuery::ResolveQueries(const u32 query_count)
 {
   DEBUG_ASSERT(m_unresolved_queries >= query_count &&
                (m_query_resolve_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
@@ -174,7 +174,7 @@ void PerfQuery::ResolveQueries(u32 query_count)
   m_unresolved_queries -= query_count;
 }
 
-void PerfQuery::ReadbackQueries(bool blocking)
+void PerfQuery::ReadbackQueries(const bool blocking)
 {
   u64 completed_fence_counter = g_dx_context->GetCompletedFenceValue();
 
@@ -214,7 +214,7 @@ void PerfQuery::ReadbackQueries(bool blocking)
     AccumulateQueriesFromBuffer(readback_count);
 }
 
-void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
+void PerfQuery::AccumulateQueriesFromBuffer(const u32 query_count)
 {
   // Should be at maximum query_count queries pending.
   ASSERT(query_count <= m_query_count.load(std::memory_order_relaxed) &&
@@ -261,7 +261,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
   m_query_count.fetch_sub(query_count, std::memory_order_relaxed);
 }
 
-void PerfQuery::PartialFlush(bool resolve, bool blocking)
+void PerfQuery::PartialFlush(const bool resolve, const bool blocking)
 {
   // Submit a command buffer if there are unresolved queries (to write them to the buffer).
   if (resolve && m_unresolved_queries > 0)

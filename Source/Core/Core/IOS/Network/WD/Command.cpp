@@ -26,7 +26,7 @@ constexpr u16 LegalChannelMask =      0b0111'1111'1111'1110u;
 constexpr u16 LegalNitroChannelMask = 0b0011'1111'1111'1110u;
 // clang-format on
 
-u16 SelectWifiChannel(u16 enabled_channels_mask, u16 current_channel)
+u16 SelectWifiChannel(const u16 enabled_channels_mask, const u16 current_channel)
 {
   const Common::BitSet<u16> enabled_channels{enabled_channels_mask & LegalChannelMask};
   u16 next_channel = current_channel;
@@ -40,7 +40,7 @@ u16 SelectWifiChannel(u16 enabled_channels_mask, u16 current_channel)
   return u16(enabled_channels[next_channel]);
 }
 
-u16 MakeNitroAllowedChannelMask(u16 enabled_channels_mask, u16 nitro_mask)
+u16 MakeNitroAllowedChannelMask(const u16 enabled_channels_mask, u16 nitro_mask)
 {
   nitro_mask &= LegalNitroChannelMask;
   // TODO: WD's version of this function has some complicated logic to determine the actual mask.
@@ -48,7 +48,7 @@ u16 MakeNitroAllowedChannelMask(u16 enabled_channels_mask, u16 nitro_mask)
 }
 }  // namespace
 
-NetWDCommandDevice::Status NetWDCommandDevice::GetTargetStatusForMode(WD::Mode mode)
+NetWDCommandDevice::Status NetWDCommandDevice::GetTargetStatusForMode(const WD::Mode mode)
 {
   switch (mode)
   {
@@ -214,7 +214,7 @@ std::optional<IPCReply> NetWDCommandDevice::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-std::optional<IPCReply> NetWDCommandDevice::Close(u32 fd)
+std::optional<IPCReply> NetWDCommandDevice::Close(const u32 fd)
 {
   if (m_ipc_owner_fd < 0 || fd != u32(m_ipc_owner_fd))
   {

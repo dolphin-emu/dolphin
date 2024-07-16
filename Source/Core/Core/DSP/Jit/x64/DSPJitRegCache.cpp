@@ -25,7 +25,7 @@ constexpr std::array<X64Reg, 15> s_allocation_order = {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
-static OpArg GetRegisterPointer(size_t reg)
+static OpArg GetRegisterPointer(const size_t reg)
 {
   switch (reg)
   {
@@ -223,7 +223,7 @@ void DSPJitRegCache::Drop()
   m_is_merged = true;
 }
 
-void DSPJitRegCache::FlushRegs(DSPJitRegCache& cache, bool emit)
+void DSPJitRegCache::FlushRegs(DSPJitRegCache& cache, const bool emit)
 {
   cache.m_is_merged = true;
 
@@ -403,7 +403,7 @@ void DSPJitRegCache::FlushRegs()
   m_use_ctr = 0;
 }
 
-void DSPJitRegCache::LoadRegs(bool emit)
+void DSPJitRegCache::LoadRegs(const bool emit)
 {
   for (size_t i = 0; i < m_regs.size(); i++)
   {
@@ -501,12 +501,12 @@ void DSPJitRegCache::PopRegs()
   }
 }
 
-X64Reg DSPJitRegCache::MakeABICallSafe(X64Reg reg)
+X64Reg DSPJitRegCache::MakeABICallSafe(const X64Reg reg)
 {
   return reg;
 }
 
-void DSPJitRegCache::MovToHostReg(size_t reg, X64Reg host_reg, bool load)
+void DSPJitRegCache::MovToHostReg(const size_t reg, const X64Reg host_reg, const bool load)
 {
   ASSERT_MSG(DSPLLE, reg < m_regs.size(), "bad register name {}", reg);
   ASSERT_MSG(DSPLLE, m_regs[reg].parentReg == DSP_REG_NONE, "register {} is proxy for {}", reg,
@@ -549,7 +549,7 @@ void DSPJitRegCache::MovToHostReg(size_t reg, X64Reg host_reg, bool load)
   }
 }
 
-void DSPJitRegCache::MovToHostReg(size_t reg, bool load)
+void DSPJitRegCache::MovToHostReg(const size_t reg, const bool load)
 {
   ASSERT_MSG(DSPLLE, reg < m_regs.size(), "bad register name {}", reg);
   ASSERT_MSG(DSPLLE, m_regs[reg].parentReg == DSP_REG_NONE, "register {} is proxy for {}", reg,
@@ -579,7 +579,7 @@ void DSPJitRegCache::MovToHostReg(size_t reg, bool load)
   MovToHostReg(reg, tmp, load);
 }
 
-void DSPJitRegCache::RotateHostReg(size_t reg, int shift, bool emit)
+void DSPJitRegCache::RotateHostReg(const size_t reg, const int shift, const bool emit)
 {
   ASSERT_MSG(DSPLLE, reg < m_regs.size(), "bad register name {}", reg);
   ASSERT_MSG(DSPLLE, m_regs[reg].parentReg == DSP_REG_NONE, "register {} is proxy for {}", reg,
@@ -620,7 +620,7 @@ void DSPJitRegCache::RotateHostReg(size_t reg, int shift, bool emit)
   m_regs[reg].shift = shift;
 }
 
-void DSPJitRegCache::MovToMemory(size_t reg)
+void DSPJitRegCache::MovToMemory(const size_t reg)
 {
   ASSERT_MSG(DSPLLE, reg < m_regs.size(), "bad register name {}", reg);
   ASSERT_MSG(DSPLLE, m_regs[reg].parentReg == DSP_REG_NONE, "register {} is proxy for {}", reg,
@@ -685,7 +685,7 @@ void DSPJitRegCache::MovToMemory(size_t reg)
   m_regs[reg].loc = tmp;
 }
 
-OpArg DSPJitRegCache::GetReg(int reg, bool load)
+OpArg DSPJitRegCache::GetReg(const int reg, bool load)
 {
   int real_reg;
   int shift;
@@ -742,7 +742,7 @@ OpArg DSPJitRegCache::GetReg(int reg, bool load)
   return oparg;
 }
 
-void DSPJitRegCache::PutReg(int reg, bool dirty)
+void DSPJitRegCache::PutReg(const int reg, const bool dirty)
 {
   int real_reg = reg;
   if (m_regs[reg].parentReg != DSP_REG_NONE)
@@ -857,7 +857,7 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
   }
 }
 
-void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, RegisterExtension extend)
+void DSPJitRegCache::ReadReg(const int sreg, const X64Reg host_dreg, const RegisterExtension extend)
 {
   const OpArg reg = GetReg(sreg);
 
@@ -901,7 +901,7 @@ void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, RegisterExtension exten
   PutReg(sreg, false);
 }
 
-void DSPJitRegCache::WriteReg(int dreg, OpArg arg)
+void DSPJitRegCache::WriteReg(const int dreg, OpArg arg)
 {
   const OpArg reg = GetReg(dreg, false);
   if (arg.IsImm())
@@ -979,7 +979,7 @@ X64Reg DSPJitRegCache::SpillXReg()
   return INVALID_REG;
 }
 
-void DSPJitRegCache::SpillXReg(X64Reg reg)
+void DSPJitRegCache::SpillXReg(const X64Reg reg)
 {
   if (m_xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED)
   {
@@ -1033,7 +1033,7 @@ X64Reg DSPJitRegCache::GetFreeXReg()
   return reg;
 }
 
-void DSPJitRegCache::GetXReg(X64Reg reg)
+void DSPJitRegCache::GetXReg(const X64Reg reg)
 {
   if (m_xregs[reg].guest_reg == DSP_REG_STATIC)
   {
@@ -1049,7 +1049,7 @@ void DSPJitRegCache::GetXReg(X64Reg reg)
   m_xregs[reg].guest_reg = DSP_REG_USED;
 }
 
-void DSPJitRegCache::PutXReg(X64Reg reg)
+void DSPJitRegCache::PutXReg(const X64Reg reg)
 {
   if (m_xregs[reg].guest_reg == DSP_REG_STATIC)
   {

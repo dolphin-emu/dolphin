@@ -46,7 +46,7 @@ const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 // We have a special exception here for FIFO writes: these are handled via a
 // different mechanism and should not go through the normal MMIO access
 // interface.
-inline bool IsMMIOAddress(u32 address, bool is_wii)
+inline bool IsMMIOAddress(const u32 address, const bool is_wii)
 {
   if (address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
     return false;  // WG Pipe
@@ -66,7 +66,7 @@ inline bool IsMMIOAddress(u32 address, bool is_wii)
 // from a very simple formula: (block_id << 16) | lower_16_bits(address).
 //
 // The block ID can easily be computed by simply checking bit 24 (CC vs. CD).
-inline u32 UniqueID(u32 address)
+inline u32 UniqueID(const u32 address)
 {
   DEBUG_ASSERT_MSG(MEMMAP,
                    ((address & 0xFFFF0000) == 0x0C000000) ||
@@ -109,13 +109,13 @@ public:
   // Example usages can be found in just about any HW/ module in Dolphin's
   // codebase.
   template <typename Unit>
-  void RegisterRead(u32 addr, ReadHandlingMethod<Unit>* read)
+  void RegisterRead(const u32 addr, ReadHandlingMethod<Unit>* read)
   {
     GetHandlerForRead<Unit>(addr).ResetMethod(read);
   }
 
   template <typename Unit>
-  void RegisterWrite(u32 addr, WriteHandlingMethod<Unit>* write)
+  void RegisterWrite(const u32 addr, WriteHandlingMethod<Unit>* write)
   {
     GetHandlerForWrite<Unit>(addr).ResetMethod(write);
   }
@@ -151,13 +151,13 @@ public:
   // address than the current value of that register. For example, this is
   // what could be used to implement fast MMIO accesses in Dolphin's JIT.
   template <typename Unit>
-  ReadHandler<Unit>& GetHandlerForRead(u32 addr)
+  ReadHandler<Unit>& GetHandlerForRead(const u32 addr)
   {
     return GetReadHandler<Unit>(UniqueID(addr) / sizeof(Unit));
   }
 
   template <typename Unit>
-  WriteHandler<Unit>& GetHandlerForWrite(u32 addr)
+  WriteHandler<Unit>& GetHandlerForWrite(const u32 addr)
   {
     return GetWriteHandler<Unit>(UniqueID(addr) / sizeof(Unit));
   }

@@ -15,19 +15,19 @@
 
 namespace ControllerEmu
 {
-ControlGroup::ControlGroup(std::string name_, const GroupType type_, DefaultValue default_value_)
+ControlGroup::ControlGroup(std::string name_, const GroupType type_, const DefaultValue default_value_)
     : name(name_), ui_name(std::move(name_)), type(type_), default_value(default_value_)
 {
 }
 
 ControlGroup::ControlGroup(std::string name_, std::string ui_name_, const GroupType type_,
-                           DefaultValue default_value_)
+                           const DefaultValue default_value_)
     : name(std::move(name_)), ui_name(std::move(ui_name_)), type(type_),
       default_value(default_value_)
 {
 }
 
-void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, double max_virtual_notch_deg)
+void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, const double max_virtual_notch_deg)
 {
   AddSetting(value,
              {_trans("Virtual Notches"),
@@ -37,7 +37,7 @@ void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, double ma
              0, 0, max_virtual_notch_deg);
 }
 
-void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone)
+void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, const double maximum_deadzone)
 {
   AddSetting(value,
              {_trans("Dead Zone"),
@@ -148,7 +148,7 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
   }
 }
 
-void ControlGroup::SetControlExpression(int index, const std::string& expression)
+void ControlGroup::SetControlExpression(const int index, const std::string& expression)
 {
   controls.at(index)->control_ref->SetExpression(expression);
 }

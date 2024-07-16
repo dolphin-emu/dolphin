@@ -63,7 +63,7 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
 }
 
-Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted) const
+Cursor::ReshapeData Cursor::GetReshapableState(const bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -75,7 +75,7 @@ Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted) const
   return Reshape(x, y, 0.0);
 }
 
-ControlState Cursor::GetGateRadiusAtAngle(double ang) const
+ControlState Cursor::GetGateRadiusAtAngle(const double ang) const
 {
   return SquareStickGate(1.0).GetRadiusAtAngle(ang);
 }
@@ -102,7 +102,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted,
   return state;
 }
 
-Cursor::StateData Cursor::UpdateState(ReshapeData input)
+Cursor::StateData Cursor::UpdateState(const ReshapeData input)
 {
   // TODO: Using system time is ugly.
   // Kill this after state is moved into wiimote rather than this class.
@@ -181,7 +181,7 @@ ControlState Cursor::GetVerticalOffset() const
   return m_vertical_offset_setting.GetValue() / 100;
 }
 
-void Cursor::SetRelativeInput(bool value)
+void Cursor::SetRelativeInput(const bool value)
 {
   m_relative_setting.SetValue(value);
 }

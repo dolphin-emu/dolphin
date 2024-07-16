@@ -75,7 +75,7 @@ void Analyzer::Reset()
   m_code_flags.fill(0);
 }
 
-void Analyzer::AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
+void Analyzer::AnalyzeRange(const SDSP& dsp, const u16 start_addr, const u16 end_addr)
 {
   // First we run an extremely simplified version of a disassembler to find
   // where all instructions start.
@@ -87,7 +87,7 @@ void Analyzer::AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
   INFO_LOG_FMT(DSPLLE, "Finished analysis.");
 }
 
-void Analyzer::FindInstructionStarts(const SDSP& dsp, u16 start_addr, u16 end_addr)
+void Analyzer::FindInstructionStarts(const SDSP& dsp, const u16 start_addr, const u16 end_addr)
 {
   // This may not be 100% accurate in case of jump tables!
   // It could get desynced, which would be bad. We'll see if that's an issue.
@@ -146,7 +146,7 @@ void Analyzer::FindInstructionStarts(const SDSP& dsp, u16 start_addr, u16 end_ad
   }
 }
 
-void Analyzer::FindIdleSkips(const SDSP& dsp, u16 start_addr, u16 end_addr)
+void Analyzer::FindIdleSkips(const SDSP& dsp, const u16 start_addr, const u16 end_addr)
 {
   for (size_t s = 0; s < NUM_IDLE_SIGS; s++)
   {

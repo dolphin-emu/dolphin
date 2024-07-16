@@ -150,7 +150,7 @@ bool GetIsThrottlerTempDisabled()
   return s_is_throttler_temp_disabled;
 }
 
-void SetIsThrottlerTempDisabled(bool disable)
+void SetIsThrottlerTempDisabled(const bool disable)
 {
   s_is_throttler_temp_disabled = disable;
 }
@@ -182,13 +182,13 @@ void OnFrameEnd(System& system)
 // Display messages and return values
 
 // Formatted stop message
-std::string StopMessage(bool main_thread, std::string_view message)
+std::string StopMessage(const bool main_thread, std::string_view message)
 {
   return fmt::format("Stop [{} {}]\t{}", main_thread ? "Main Thread" : "Video Thread",
                      Common::CurrentThreadId(), message);
 }
 
-void DisplayMessage(std::string message, int time_in_ms)
+void DisplayMessage(std::string message, const int time_in_ms)
 {
   if (!IsRunningOrStarting(System::GetInstance()))
     return;
@@ -362,7 +362,7 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
 static void CpuThread(System& system, const std::optional<std::string>& savestate_path,
-                      bool delete_savestate)
+                      const bool delete_savestate)
 {
   DeclareAsCPUThread();
 
@@ -440,7 +440,7 @@ static void CpuThread(System& system, const std::optional<std::string>& savestat
   }
 }
 
-static void FifoPlayerThread(System& system, const std::optional<std::string>& savestate_path,
+static void FifoPlayerThread(const System& system, const std::optional<std::string>& savestate_path,
                              bool delete_savestate)
 {
   DeclareAsCPUThread();
@@ -693,8 +693,8 @@ static void EmuThread(System& system, std::unique_ptr<BootParameters> boot,
 
 // Set or get the running state
 
-void SetState(System& system, State state, bool report_state_change,
-              bool initial_execution_state)
+void SetState(System& system, const State state, const bool report_state_change,
+              const bool initial_execution_state)
 {
   // State cannot be controlled until the CPU Thread is operational
   if (s_state.load() != State::Running)
@@ -733,7 +733,7 @@ void SetState(System& system, State state, bool report_state_change,
     CallOnStateChangedCallbacks(GetState(system));
 }
 
-State GetState(System& system)
+State GetState(const System& system)
 {
   const State state = s_state.load();
   if (state == State::Running && system.GetCPU().IsStepping())
@@ -789,7 +789,7 @@ void SaveScreenShot(std::string_view name)
   g_frame_dumper->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
 }
 
-static bool PauseAndLock(System& system, bool do_lock, bool unpause_on_unlock)
+static bool PauseAndLock(System& system, const bool do_lock, const bool unpause_on_unlock)
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
 
@@ -828,7 +828,7 @@ static bool PauseAndLock(System& system, bool do_lock, bool unpause_on_unlock)
   return was_unpaused;
 }
 
-void RunOnCPUThread(System& system, std::function<void()> function, bool wait_for_completion)
+void RunOnCPUThread(System& system, std::function<void()> function, const bool wait_for_completion)
 {
   // If the CPU thread is not running, assume there is no active CPU thread we can race against.
   if (!IsRunning(system) || IsCPUThread())
@@ -871,7 +871,7 @@ void RunOnCPUThread(System& system, std::function<void()> function, bool wait_fo
 
 // Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
 // frame is presented to the host screen
-void Callback_FramePresented(double actual_emulation_speed)
+void Callback_FramePresented(const double actual_emulation_speed)
 {
   g_perf_metrics.CountFrame();
 
@@ -902,7 +902,7 @@ void Callback_NewField(System& system)
   AchievementManager::GetInstance().DoFrame();
 }
 
-void UpdateTitle(System& system)
+void UpdateTitle(const System& system)
 {
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
@@ -960,7 +960,7 @@ bool RemoveOnStateChangedCallback(int* handle)
   return false;
 }
 
-void CallOnStateChangedCallbacks(State state)
+void CallOnStateChangedCallbacks(const State state)
 {
   for (const StateChangedCallbackFunc& on_state_changed_callback : s_on_state_changed_callbacks)
   {
@@ -969,7 +969,7 @@ void CallOnStateChangedCallbacks(State state)
   }
 }
 
-void UpdateWantDeterminism(System& system, bool initial)
+void UpdateWantDeterminism(System& system, const bool initial)
 {
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
@@ -993,7 +993,7 @@ void UpdateWantDeterminism(System& system, bool initial)
   }
 }
 
-void QueueHostJob(std::function<void(System&)> job, bool run_during_stop)
+void QueueHostJob(std::function<void(System&)> job, const bool run_during_stop)
 {
   if (!job)
     return;
@@ -1055,7 +1055,7 @@ void DoFrameStep(System& system)
   }
 }
 
-void UpdateInputGate(bool require_focus, bool require_full_focus)
+void UpdateInputGate(const bool require_focus, const bool require_full_focus)
 {
   // If the user accepts background input, controls should pass even if an on screen interface is on
   const bool focus_passes =

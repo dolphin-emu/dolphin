@@ -45,7 +45,7 @@ constexpr u64 REGION_SELECT_CHANNEL_NTSC_J = 0x0001000848414c4a;
 
 constexpr u64 REGION_SELECT_CHANNEL_PAL = 0x0001000848414c50;
 
-constexpr u64 IOS(u32 major_version)
+constexpr u64 IOS(const u32 major_version)
 {
   return 0x0000000100000000 | major_version;
 }

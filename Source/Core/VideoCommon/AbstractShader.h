@@ -20,7 +20,7 @@ enum class ShaderStage
 class AbstractShader
 {
 public:
-  explicit AbstractShader(ShaderStage stage) : m_stage(stage) {}
+  explicit AbstractShader(const ShaderStage stage) : m_stage(stage) {}
   virtual ~AbstractShader() = default;
 
   ShaderStage GetStage() const { return m_stage; }

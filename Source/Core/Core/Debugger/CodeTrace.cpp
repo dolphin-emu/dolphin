@@ -16,13 +16,13 @@
 
 namespace
 {
-bool IsInstructionLoadStore(std::string_view ins)
+bool IsInstructionLoadStore(const std::string_view ins)
 {
   return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
          ins.starts_with("psq_l") || ins.starts_with("psq_s");
 }
 
-u32 GetMemoryTargetSize(std::string_view instr)
+u32 GetMemoryTargetSize(const std::string_view instr)
 {
   // Word-size operations are taken as the default, check the others.
   auto op = instr.substr(0, 4);
@@ -222,7 +222,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool 
   return results;
 }
 
-HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
+HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first_hit)
 {
   // Tracks the original value that is in the targeted register or memory through loads, stores,
   // register moves, and value changes. Also finds when it is used. ps operations are not fully
@@ -268,7 +268,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
   // Checks if the intstruction is a type that needs special handling.
   const auto CompareInstruction = [](std::string_view instruction, const auto& type_compare) {
     return std::any_of(type_compare.begin(), type_compare.end(),
-                       [&instruction](std::string_view s) { return instruction.starts_with(s); });
+                       [&instruction](const std::string_view s) { return instruction.starts_with(s); });
   };
 
   // Exclusions from updating tracking logic. mt operations are too complex and specialized.

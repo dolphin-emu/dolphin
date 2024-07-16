@@ -14,8 +14,8 @@
 
 namespace Vulkan
 {
-StagingBuffer::StagingBuffer(STAGING_BUFFER_TYPE type, VkBuffer buffer, VmaAllocation alloc,
-                             VkDeviceSize size, char* map_ptr)
+StagingBuffer::StagingBuffer(const STAGING_BUFFER_TYPE type, const VkBuffer buffer, const VmaAllocation alloc,
+                             const VkDeviceSize size, char* map_ptr)
     : m_type(type), m_buffer(buffer), m_alloc(alloc), m_size(size), m_map_pointer(map_ptr)
 {
 }
@@ -29,11 +29,11 @@ StagingBuffer::~StagingBuffer()
   g_command_buffer_mgr->DeferBufferDestruction(m_buffer, m_alloc);
 }
 
-void StagingBuffer::BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
-                                        VkAccessFlags src_access_mask,
-                                        VkAccessFlags dst_access_mask, VkDeviceSize offset,
-                                        VkDeviceSize size, VkPipelineStageFlags src_stage_mask,
-                                        VkPipelineStageFlags dst_stage_mask)
+void StagingBuffer::BufferMemoryBarrier(const VkCommandBuffer command_buffer, const VkBuffer buffer,
+                                        const VkAccessFlags src_access_mask,
+                                        const VkAccessFlags dst_access_mask, const VkDeviceSize offset,
+                                        const VkDeviceSize size, const VkPipelineStageFlags src_stage_mask,
+                                        const VkPipelineStageFlags dst_stage_mask)
 {
   VkBufferMemoryBarrier buffer_info = {
       VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,  // VkStructureType    sType
@@ -62,48 +62,48 @@ void StagingBuffer::Unmap()
   // The staging buffer is permanently mapped and VMA handles the unmapping for us
 }
 
-void StagingBuffer::FlushCPUCache(VkDeviceSize offset, VkDeviceSize size)
+void StagingBuffer::FlushCPUCache(const VkDeviceSize offset, const VkDeviceSize size)
 {
   // vmaFlushAllocation checks whether the allocation uses a coherent memory type internally
   vmaFlushAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, offset, size);
 }
 
-void StagingBuffer::InvalidateGPUCache(VkCommandBuffer command_buffer,
-                                       VkAccessFlagBits dest_access_flags,
-                                       VkPipelineStageFlagBits dest_pipeline_stage,
-                                       VkDeviceSize offset, VkDeviceSize size)
+void StagingBuffer::InvalidateGPUCache(const VkCommandBuffer command_buffer,
+                                       const VkAccessFlagBits dest_access_flags,
+                                       const VkPipelineStageFlagBits dest_pipeline_stage,
+                                       const VkDeviceSize offset, const VkDeviceSize size)
 {
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_HOST_WRITE_BIT, dest_access_flags, offset,
                       size, VK_PIPELINE_STAGE_HOST_BIT, dest_pipeline_stage);
 }
 
-void StagingBuffer::PrepareForGPUWrite(VkCommandBuffer command_buffer,
-                                       VkAccessFlagBits dst_access_flags,
-                                       VkPipelineStageFlagBits dst_pipeline_stage,
-                                       VkDeviceSize offset, VkDeviceSize size)
+void StagingBuffer::PrepareForGPUWrite(const VkCommandBuffer command_buffer,
+                                       const VkAccessFlagBits dst_access_flags,
+                                       const VkPipelineStageFlagBits dst_pipeline_stage,
+                                       const VkDeviceSize offset, const VkDeviceSize size)
 {
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_MEMORY_WRITE_BIT, dst_access_flags,
                       offset, size, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, dst_pipeline_stage);
 }
 
-void StagingBuffer::FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits src_access_flags,
-                                  VkPipelineStageFlagBits src_pipeline_stage, VkDeviceSize offset,
-                                  VkDeviceSize size)
+void StagingBuffer::FlushGPUCache(const VkCommandBuffer command_buffer, const VkAccessFlagBits src_access_flags,
+                                  const VkPipelineStageFlagBits src_pipeline_stage, const VkDeviceSize offset,
+                                  const VkDeviceSize size)
 {
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, src_access_flags, VK_ACCESS_HOST_READ_BIT, offset,
                       size, src_pipeline_stage, VK_PIPELINE_STAGE_HOST_BIT);
 }
 
-void StagingBuffer::InvalidateCPUCache(VkDeviceSize offset, VkDeviceSize size)
+void StagingBuffer::InvalidateCPUCache(const VkDeviceSize offset, const VkDeviceSize size)
 {
   // vmaInvalidateAllocation checks whether the allocation uses a coherent memory type internally
   vmaInvalidateAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, offset, size);
 }
 
-void StagingBuffer::Read(VkDeviceSize offset, void* data, size_t size, bool invalidate_caches)
+void StagingBuffer::Read(const VkDeviceSize offset, void* data, const size_t size, const bool invalidate_caches)
 {
   ASSERT((offset + size) <= m_size);
   if (invalidate_caches)
@@ -112,8 +112,8 @@ void StagingBuffer::Read(VkDeviceSize offset, void* data, size_t size, bool inva
   memcpy(data, m_map_pointer + offset, size);
 }
 
-void StagingBuffer::Write(VkDeviceSize offset, const void* data, size_t size,
-                          bool invalidate_caches)
+void StagingBuffer::Write(const VkDeviceSize offset, const void* data, const size_t size,
+                          const bool invalidate_caches)
 {
   ASSERT((offset + size) <= m_size);
 
@@ -122,8 +122,8 @@ void StagingBuffer::Write(VkDeviceSize offset, const void* data, size_t size,
     FlushCPUCache(offset, size);
 }
 
-bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
-                                   VkBufferUsageFlags usage, VkBuffer* out_buffer,
+bool StagingBuffer::AllocateBuffer(const STAGING_BUFFER_TYPE type, const VkDeviceSize size,
+                                   const VkBufferUsageFlags usage, VkBuffer* out_buffer,
                                    VmaAllocation* out_alloc, char** out_map_ptr)
 {
   VkBufferCreateInfo buffer_create_info = {
@@ -194,7 +194,7 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
 }
 
 std::unique_ptr<StagingBuffer> StagingBuffer::Create(STAGING_BUFFER_TYPE type, VkDeviceSize size,
-                                                     VkBufferUsageFlags usage)
+                                                     const VkBufferUsageFlags usage)
 {
   VkBuffer buffer;
   VmaAllocation alloc;

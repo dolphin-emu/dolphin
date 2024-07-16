@@ -80,7 +80,7 @@ std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
 }
 
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
-u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
+u64 CompressedBlobReader::GetBlockCompressedSize(const u64 block_num) const
 {
   u64 start = m_block_pointers[block_num];
   if (block_num < m_header.num_blocks - 1)
@@ -92,7 +92,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
   return 0;
 }
 
-bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
+bool CompressedBlobReader::GetBlock(const u64 block_num, u8* out_ptr)
 {
   bool uncompressed = false;
   u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
@@ -199,7 +199,7 @@ static ConversionResultCode SetUpCompressThreadState(CompressThreadState* state)
 }
 
 static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
-                                                   CompressParameters parameters, int block_size,
+                                                   CompressParameters parameters, const int block_size,
                                                    std::vector<u32>* hashes, int* num_stored,
                                                    int* num_compressed)
 {
@@ -244,7 +244,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
 }
 
 static ConversionResultCode Output(OutputParameters parameters, File::IOFile* outfile,
-                                   u64* position, std::vector<u64>* offsets, int progress_monitor,
+                                   u64* position, std::vector<u64>* offsets, const int progress_monitor,
                                    u32 num_blocks, CompressCB callback)
 {
   u64 offset = *position;
@@ -275,7 +275,7 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
 };
 
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, u32 sub_type, int block_size,
+                  const std::string& outfile_path, const u32 sub_type, const int block_size,
                   CompressCB callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);

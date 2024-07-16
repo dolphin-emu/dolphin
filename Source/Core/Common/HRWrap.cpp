@@ -5,7 +5,7 @@
 
 namespace Common
 {
-std::string GetHResultMessage(HRESULT hr)
+std::string GetHResultMessage(const HRESULT hr)
 {
   auto err = winrt::hresult_error(hr);
   return to_string(err.message());

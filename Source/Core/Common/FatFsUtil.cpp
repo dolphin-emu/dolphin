@@ -39,7 +39,7 @@ static Common::FatFsCallbacks* s_callbacks;
 
 namespace
 {
-int SDCardDiskRead(File::IOFile* image, u8 pdrv, u8* buff, u32 sector, unsigned int count)
+int SDCardDiskRead(File::IOFile* image, u8 pdrv, u8* buff, const u32 sector, const unsigned int count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
   if (!image->Seek(offset, File::SeekOrigin::Begin))
@@ -58,7 +58,7 @@ int SDCardDiskRead(File::IOFile* image, u8 pdrv, u8* buff, u32 sector, unsigned 
   return RES_OK;
 }
 
-int SDCardDiskWrite(File::IOFile* image, u8 pdrv, const u8* buff, u32 sector, unsigned int count)
+int SDCardDiskWrite(File::IOFile* image, u8 pdrv, const u8* buff, const u32 sector, const unsigned int count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
   if (!image->Seek(offset, File::SeekOrigin::Begin))
@@ -77,7 +77,7 @@ int SDCardDiskWrite(File::IOFile* image, u8 pdrv, const u8* buff, u32 sector, un
   return RES_OK;
 }
 
-int SDCardDiskIOCtl(File::IOFile* image, u8 pdrv, u8 cmd, void* buff)
+int SDCardDiskIOCtl(const File::IOFile* image, u8 pdrv, const u8 cmd, void* buff)
 {
   switch (cmd)
   {
@@ -139,17 +139,17 @@ namespace
 class SDCardFatFsCallbacks : public Common::FatFsCallbacks
 {
 public:
-  int DiskRead(u8 pdrv, u8* buff, u32 sector, unsigned int count) override
+  int DiskRead(const u8 pdrv, u8* buff, const u32 sector, const unsigned int count) override
   {
     return SDCardDiskRead(m_image, pdrv, buff, sector, count);
   }
 
-  int DiskWrite(u8 pdrv, const u8* buff, u32 sector, unsigned int count) override
+  int DiskWrite(const u8 pdrv, const u8* buff, const u32 sector, const unsigned int count) override
   {
     return SDCardDiskWrite(m_image, pdrv, buff, sector, count);
   }
 
-  int DiskIOCtl(u8 pdrv, u8 cmd, void* buff) override
+  int DiskIOCtl(const u8 pdrv, const u8 cmd, void* buff) override
   {
     return SDCardDiskIOCtl(m_image, pdrv, cmd, buff);
   }
@@ -167,27 +167,27 @@ public:
 };
 }  // namespace
 
-extern "C" DSTATUS disk_status(BYTE pdrv)
+extern "C" DSTATUS disk_status(const BYTE pdrv)
 {
   return static_cast<DSTATUS>(s_callbacks->DiskStatus(pdrv));
 }
 
-extern "C" DSTATUS disk_initialize(BYTE pdrv)
+extern "C" DSTATUS disk_initialize(const BYTE pdrv)
 {
   return static_cast<DSTATUS>(s_callbacks->DiskInitialize(pdrv));
 }
 
-extern "C" DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
+extern "C" DRESULT disk_read(const BYTE pdrv, BYTE* buff, const LBA_t sector, const UINT count)
 {
   return static_cast<DRESULT>(s_callbacks->DiskRead(pdrv, buff, sector, count));
 }
 
-extern "C" DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
+extern "C" DRESULT disk_write(const BYTE pdrv, const BYTE* buff, const LBA_t sector, const UINT count)
 {
   return static_cast<DRESULT>(s_callbacks->DiskWrite(pdrv, buff, sector, count));
 }
 
-extern "C" DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
+extern "C" DRESULT disk_ioctl(const BYTE pdrv, const BYTE cmd, void* buff)
 {
   return static_cast<DRESULT>(s_callbacks->DiskIOCtl(pdrv, cmd, buff));
 }
@@ -236,7 +236,7 @@ extern "C" int ff_del_syncobj(FF_SYNC_t sobj)
 }
 #endif
 
-static const char* FatFsErrorToString(FRESULT error_code)
+static const char* FatFsErrorToString(const FRESULT error_code)
 {
   // These are taken from the comment next to each value in ff.h
   switch (error_code)
@@ -288,12 +288,12 @@ static const char* FatFsErrorToString(FRESULT error_code)
 
 namespace Common
 {
-static constexpr u64 MebibytesToBytes(u64 mebibytes)
+static constexpr u64 MebibytesToBytes(const u64 mebibytes)
 {
   return mebibytes * 1024 * 1024;
 }
 
-static constexpr u64 GibibytesToBytes(u64 gibibytes)
+static constexpr u64 GibibytesToBytes(const u64 gibibytes)
 {
   return gibibytes * 1024 * 1024 * 1024;
 }
@@ -355,7 +355,7 @@ static u64 GetSize(const File::FSTEntry& entry)
   return size;
 }
 
-static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& entry, bool is_root,
+static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& entry, const bool is_root,
                  std::vector<u8>& tmp_buffer)
 {
   if (cancelled())
@@ -607,7 +607,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
 }
 
 static bool Unpack(const std::function<bool()>& cancelled, const std::string path,
-                   bool is_directory, const char* name, std::vector<u8>& tmp_buffer)
+                   const bool is_directory, const char* name, std::vector<u8>& tmp_buffer)
 {
   if (cancelled())
     return false;
@@ -729,7 +729,7 @@ static bool Unpack(const std::function<bool()>& cancelled, const std::string pat
     const bool is_path_traversal_attack =
         (childname.find("\\") != std::string_view::npos) ||
         (childname.find('/') != std::string_view::npos) ||
-        std::all_of(childname.begin(), childname.end(), [](char c) { return c == '.'; });
+        std::all_of(childname.begin(), childname.end(), [](const char c) { return c == '.'; });
     if (is_path_traversal_attack)
     {
       ERROR_LOG_FMT(

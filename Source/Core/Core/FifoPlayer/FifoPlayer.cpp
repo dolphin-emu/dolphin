@@ -129,7 +129,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
   }
 }
 
-void FifoPlaybackAnalyzer::OnBP(u8 command, u32 value)
+void FifoPlaybackAnalyzer::OnBP(const u8 command, u32 value)
 {
   if (command == BPMEM_TRIGGER_EFB_COPY)
     m_is_copy = true;
@@ -350,7 +350,7 @@ u32 FifoPlayer::GetMaxObjectCount() const
   return result;
 }
 
-u32 FifoPlayer::GetFrameObjectCount(u32 frame) const
+u32 FifoPlayer::GetFrameObjectCount(const u32 frame) const
 {
   if (frame < m_FrameInfo.size())
   {
@@ -503,7 +503,7 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
   std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
 }
 
-void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
+void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
 {
   u32 written = start;
   u32 lastBurstEnd = end - 1;
@@ -700,12 +700,12 @@ void FifoPlayer::LoadTextureMemory()
   std::memcpy(s_tex_mem.data(), m_File->GetTexMem(), FifoDataFile::TEX_MEM_SIZE);
 }
 
-void FifoPlayer::WriteCP(u32 address, u16 value)
+void FifoPlayer::WriteCP(const u32 address, const u16 value)
 {
   m_system.GetMMU().Write_U16(value, 0xCC000000 | address);
 }
 
-void FifoPlayer::WritePI(u32 address, u32 value)
+void FifoPlayer::WritePI(const u32 address, const u32 value)
 {
   m_system.GetMMU().Write_U32(value, 0xCC003000 | address);
 }
@@ -736,7 +736,7 @@ void FifoPlayer::WaitForGPUInactive()
   }
 }
 
-void FifoPlayer::LoadBPReg(u8 reg, u32 value)
+void FifoPlayer::LoadBPReg(const u8 reg, const u32 value)
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -747,7 +747,7 @@ void FifoPlayer::LoadBPReg(u8 reg, u32 value)
   gpfifo.Write32(cmd);
 }
 
-void FifoPlayer::LoadCPReg(u8 reg, u32 value)
+void FifoPlayer::LoadCPReg(const u8 reg, const u32 value)
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -756,7 +756,7 @@ void FifoPlayer::LoadCPReg(u8 reg, u32 value)
   gpfifo.Write32(value);
 }
 
-void FifoPlayer::LoadXFReg(u16 reg, u32 value)
+void FifoPlayer::LoadXFReg(const u16 reg, const u32 value)
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -765,7 +765,7 @@ void FifoPlayer::LoadXFReg(u16 reg, u32 value)
   gpfifo.Write32(value);
 }
 
-void FifoPlayer::LoadXFMem16(u16 address, const u32* data)
+void FifoPlayer::LoadXFMem16(const u16 address, const u32* data)
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -776,7 +776,7 @@ void FifoPlayer::LoadXFMem16(u16 address, const u32* data)
     gpfifo.Write32(data[i]);
 }
 
-bool FifoPlayer::ShouldLoadBP(u8 address)
+bool FifoPlayer::ShouldLoadBP(const u8 address)
 {
   switch (address)
   {
@@ -793,7 +793,7 @@ bool FifoPlayer::ShouldLoadBP(u8 address)
   }
 }
 
-bool FifoPlayer::ShouldLoadXF(u8 reg)
+bool FifoPlayer::ShouldLoadXF(const u8 reg)
 {
   // Ignore unknown addresses
   u16 address = reg + 0x1000;

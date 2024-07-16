@@ -29,7 +29,7 @@ namespace OGL
 {
 VideoConfig g_ogl_config;
 
-static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+static void APIENTRY ErrorCallback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity,
                                    GLsizei length, const char* message, const void* userParam)
 {
   const char* s_source;
@@ -109,16 +109,16 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
 }
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-static void APIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+static void APIENTRY DepthRangef(const GLfloat neardepth, const GLfloat fardepth)
 {
   glDepthRange(neardepth, fardepth);
 }
-static void APIENTRY ClearDepthf(GLfloat depthval)
+static void APIENTRY ClearDepthf(const GLfloat depthval)
 {
   glClearDepth(depthval);
 }
 
-OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale)
+OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, const float backbuffer_scale)
     : m_main_gl_context(std::move(main_gl_context)),
       m_current_rasterization_state(RenderState::GetInvalidRasterizationState()),
       m_current_depth_state(RenderState::GetInvalidDepthState()),
@@ -215,7 +215,7 @@ std::unique_ptr<AbstractTexture> OGLGfx::CreateTexture(const TextureConfig& conf
   return std::make_unique<OGLTexture>(config, name);
 }
 
-std::unique_ptr<AbstractStagingTexture> OGLGfx::CreateStagingTexture(StagingTextureType type,
+std::unique_ptr<AbstractStagingTexture> OGLGfx::CreateStagingTexture(const StagingTextureType type,
                                                                      const TextureConfig& config)
 {
   return OGLStagingTexture::Create(type, config);
@@ -231,7 +231,7 @@ OGLGfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* de
 }
 
 std::unique_ptr<AbstractShader>
-OGLGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+OGLGfx::CreateShaderFromSource(const ShaderStage stage, const std::string_view source, const std::string_view name)
 {
   return OGLShader::CreateFromSource(stage, source, name);
 }
@@ -245,7 +245,7 @@ OGLGfx::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t lengt
 
 std::unique_ptr<AbstractPipeline> OGLGfx::CreatePipeline(const AbstractPipelineConfig& config,
                                                          const void* cache_data,
-                                                         size_t cache_data_length)
+                                                         const size_t cache_data_length)
 {
   return OGLPipeline::Create(config, cache_data, cache_data_length);
 }
@@ -255,8 +255,8 @@ void OGLGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-void OGLGfx::SetViewport(float x, float y, float width, float height, float near_depth,
-                         float far_depth)
+void OGLGfx::SetViewport(const float x, const float y, const float width, const float height, const float near_depth,
+                         const float far_depth)
 {
   if (g_ogl_config.bSupportViewportFloat)
   {
@@ -264,20 +264,20 @@ void OGLGfx::SetViewport(float x, float y, float width, float height, float near
   }
   else
   {
-    auto iceilf = [](float f) { return static_cast<GLint>(std::ceil(f)); };
+    auto iceilf = [](const float f) { return static_cast<GLint>(std::ceil(f)); };
     glViewport(iceilf(x), iceilf(y), iceilf(width), iceilf(height));
   }
 
   glDepthRangef(near_depth, far_depth);
 }
 
-void OGLGfx::Draw(u32 base_vertex, u32 num_vertices)
+void OGLGfx::Draw(const u32 base_vertex, const u32 num_vertices)
 {
   glDrawArrays(static_cast<const OGLPipeline*>(m_current_pipeline)->GetGLPrimitive(), base_vertex,
                num_vertices);
 }
 
-void OGLGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+void OGLGfx::DrawIndexed(const u32 base_index, const u32 num_indices, const u32 base_vertex)
 {
   if (g_ogl_config.bSupportsGLBaseVertex)
   {
@@ -293,7 +293,7 @@ void OGLGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 }
 
 void OGLGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
-                                   u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
+                                   u32 groupsize_z, const u32 groups_x, const u32 groups_y, const u32 groups_z)
 {
   glUseProgram(static_cast<const OGLShader*>(shader)->GetGLComputeProgramID());
   glDispatchCompute(groups_x, groups_y, groups_z);
@@ -342,7 +342,7 @@ void OGLGfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 }
 
 void OGLGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
-                                    float depth_value)
+                                    const float depth_value)
 {
   SetFramebuffer(framebuffer);
 
@@ -373,8 +373,8 @@ void OGLGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const Clea
     glDepthMask(m_current_depth_state.updateenable);
 }
 
-void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
-                         bool alphaEnable, bool zEnable, u32 color, u32 z)
+void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, const bool colorEnable,
+                         const bool alphaEnable, const bool zEnable, const u32 color, const u32 z)
 {
   u32 clear_mask = 0;
   if (colorEnable || alphaEnable)
@@ -433,7 +433,7 @@ void OGLGfx::PresentBackbuffer()
   m_main_gl_context->Swap();
 }
 
-void OGLGfx::OnConfigChanged(u32 bits)
+void OGLGfx::OnConfigChanged(const u32 bits)
 {
   AbstractGfx::OnConfigChanged(bits);
 
@@ -637,7 +637,7 @@ void OGLGfx::SetPipeline(const AbstractPipeline* pipeline)
   m_current_pipeline = pipeline;
 }
 
-void OGLGfx::SetTexture(u32 index, const AbstractTexture* texture)
+void OGLGfx::SetTexture(const u32 index, const AbstractTexture* texture)
 {
   const OGLTexture* gl_texture = static_cast<const OGLTexture*>(texture);
   if (m_bound_textures[index] == gl_texture)
@@ -651,12 +651,12 @@ void OGLGfx::SetTexture(u32 index, const AbstractTexture* texture)
   m_bound_textures[index] = gl_texture;
 }
 
-void OGLGfx::SetSamplerState(u32 index, const SamplerState& state)
+void OGLGfx::SetSamplerState(const u32 index, const SamplerState& state)
 {
   g_sampler_cache->SetSamplerState(index, state);
 }
 
-void OGLGfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
+void OGLGfx::SetComputeImageTexture(const u32 index, AbstractTexture* texture, const bool read, const bool write)
 {
   if (m_bound_image_textures[index] == texture)
     return;

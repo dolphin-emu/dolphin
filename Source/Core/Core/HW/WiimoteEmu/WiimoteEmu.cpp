@@ -333,7 +333,7 @@ InputConfig* Wiimote::GetConfig() const
   return ::Wiimote::GetConfig();
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(const WiimoteGroup group) const
 {
   switch (group)
   {
@@ -371,58 +371,58 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
   }
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(const NunchukGroup group) const
 {
   return static_cast<Nunchuk*>(m_attachments->GetAttachmentList()[NUNCHUK].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(const ClassicGroup group) const
 {
   return static_cast<Classic*>(m_attachments->GetAttachmentList()[CLASSIC].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(const GuitarGroup group) const
 {
   return static_cast<Guitar*>(m_attachments->GetAttachmentList()[GUITAR].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(const DrumsGroup group) const
 {
   return static_cast<Drums*>(m_attachments->GetAttachmentList()[DRUMS].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(const TurntableGroup group) const
 {
   return static_cast<Turntable*>(
              m_attachments->GetAttachmentList()[TURNTABLE].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(const UDrawTabletGroup group) const
 {
   return static_cast<UDrawTablet*>(
              m_attachments->GetAttachmentList()[UDRAW_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(const DrawsomeTabletGroup group) const
 {
   return static_cast<DrawsomeTablet*>(
              m_attachments->GetAttachmentList()[DRAWSOME_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(const TaTaConGroup group) const
 {
   return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[TATACON].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) const
+ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(const ShinkansenGroup group) const
 {
   return static_cast<Shinkansen*>(
              m_attachments->GetAttachmentList()[SHINKANSEN].get())
@@ -453,7 +453,7 @@ void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
 }
 
 static std::array<CameraPoint, CameraLogic::NUM_POINTS>
-GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
+GetPassthroughCameraPoints(const ControllerEmu::IRPassthrough* ir_passthrough)
 {
   std::array<CameraPoint, CameraLogic::NUM_POINTS> camera_points;
   for (size_t i = 0; i < camera_points.size(); ++i)
@@ -480,7 +480,7 @@ GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
 }
 
 void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
-                                       SensorBarState sensor_bar_state)
+                                       const SensorBarState sensor_bar_state)
 {
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
@@ -538,14 +538,14 @@ u8 Wiimote::GetWiimoteDeviceIndex() const
   return m_bt_device_index;
 }
 
-void Wiimote::SetWiimoteDeviceIndex(u8 index)
+void Wiimote::SetWiimoteDeviceIndex(const u8 index)
 {
   m_bt_device_index = index;
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
 void Wiimote::PrepareInput(DesiredWiimoteState* target_state,
-                           SensorBarState sensor_bar_state)
+                           const SensorBarState sensor_bar_state)
 {
   const auto lock = GetStateLock();
   BuildDesiredWiimoteState(target_state, sensor_bar_state);
@@ -844,7 +844,7 @@ bool Wiimote::IsUpright() const
   return m_upright_setting.GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 }
 
-void Wiimote::SetRumble(bool on)
+void Wiimote::SetRumble(const bool on)
 {
   const auto lock = GetStateLock();
   m_rumble->controls.front()->control_ref->State(on);
@@ -865,7 +865,7 @@ void Wiimote::StepDynamics()
                    1.f / ::Wiimote::UPDATE_FREQ);
 }
 
-Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
+Common::Vec3 Wiimote::GetAcceleration(const Common::Vec3 extra_acceleration) const
 {
   Common::Vec3 accel = GetOrientation() * GetTransformation().Transform(
                                               m_swing_state.acceleration + extra_acceleration, 0);
@@ -876,7 +876,7 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
   return accel;
 }
 
-Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) const
+Common::Vec3 Wiimote::GetAngularVelocity(const Common::Vec3 extra_angular_velocity) const
 {
   return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
                              m_point_state.angular_velocity + extra_angular_velocity);
@@ -902,7 +902,7 @@ Common::Quaternion Wiimote::GetOrientation() const
 }
 
 std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                                                  std::optional<Common::Vec3> optional_vec) const
+                                                  const std::optional<Common::Vec3> optional_vec) const
 {
   bool has_value = optional_vec.has_value();
   Common::Vec3 vec = has_value ? *optional_vec : Common::Vec3{};
@@ -935,7 +935,7 @@ std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGr
 }
 
 Common::Vec3 Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                                   Common::Vec3 vec) const
+                                   const Common::Vec3 vec) const
 {
   return OverrideVec3(control_group, vec, m_input_override_function);
 }

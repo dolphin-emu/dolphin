@@ -622,7 +622,7 @@ void DSPEmitter::ldaxnm(const UDSPInstruction opc)
 
 // Push value from address in g_dsp.r[sreg] into EBX and stores the
 // destinationindex in storeIndex
-void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg)
+void DSPEmitter::pushExtValueFromMem(const u16 dreg, const u16 sreg)
 {
   //	u16 addr = g_dsp.r[addr];
 
@@ -638,7 +638,7 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg)
   m_store_index = dreg;
 }
 
-void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg)
+void DSPEmitter::pushExtValueFromMem2(const u16 dreg, const u16 sreg)
 {
   //	u16 addr = g_dsp.r[addr];
 

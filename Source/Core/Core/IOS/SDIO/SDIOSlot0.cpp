@@ -116,7 +116,7 @@ std::optional<IPCReply> SDIOSlot0Device::Open(const OpenRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-std::optional<IPCReply> SDIOSlot0Device::Close(u32 fd)
+std::optional<IPCReply> SDIOSlot0Device::Close(const u32 fd)
 {
   m_card.Close();
   m_block_length = 0;
@@ -169,8 +169,8 @@ std::optional<IPCReply> SDIOSlot0Device::IOCtlV(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 buffer_in_size,
-                                    u32 rw_buffer, u32 rw_buffer_size, u32 buffer_out,
+s32 SDIOSlot0Device::ExecuteCommand(const Request& request, const u32 buffer_in, u32 buffer_in_size,
+                                    u32 rw_buffer, const u32 rw_buffer_size, const u32 buffer_out,
                                     u32 buffer_out_size)
 {
   // The game will send us a SendCMD with this information. To be able to read and write
@@ -680,7 +680,7 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv2() const
   }};
 }
 
-u64 SDIOSlot0Device::GetAddressFromRequest(u32 arg) const
+u64 SDIOSlot0Device::GetAddressFromRequest(const u32 arg) const
 {
   u64 address(arg);
   if (m_status & CARD_SDHC)

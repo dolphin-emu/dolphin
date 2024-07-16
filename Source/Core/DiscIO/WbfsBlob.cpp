@@ -149,7 +149,7 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   return true;
 }
 
-File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
+File::IOFile& WbfsFileReader::SeekToCluster(const u64 offset, u64* available)
 {
   u64 base_cluster = (offset >> m_header.wbfs_sector_shift);
   if (base_cluster < m_blocks_per_disc)

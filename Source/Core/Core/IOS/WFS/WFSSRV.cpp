@@ -426,7 +426,7 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
   return "/" + JoinStrings(normalized_components, "/");
 }
 
-WFSSRVDevice::FileDescriptor* WFSSRVDevice::FindFileDescriptor(u16 fd)
+WFSSRVDevice::FileDescriptor* WFSSRVDevice::FindFileDescriptor(const u16 fd)
 {
   if (fd >= m_fds.size() || !m_fds[fd].in_use)
   {
@@ -448,7 +448,7 @@ u16 WFSSRVDevice::GetNewFileDescriptor()
   return static_cast<u16>(m_fds.size() - 1);
 }
 
-void WFSSRVDevice::ReleaseFileDescriptor(u16 fd)
+void WFSSRVDevice::ReleaseFileDescriptor(const u16 fd)
 {
   FileDescriptor* fd_obj = FindFileDescriptor(fd);
   if (!fd_obj)

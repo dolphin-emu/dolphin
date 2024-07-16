@@ -18,7 +18,7 @@ enum class WindowSystemType
 struct WindowSystemInfo
 {
   WindowSystemInfo() = default;
-  WindowSystemInfo(WindowSystemType type_, void* display_connection_, void* render_window_,
+  WindowSystemInfo(const WindowSystemType type_, void* display_connection_, void* render_window_,
                    void* render_surface_)
       : type(type_), display_connection(display_connection_), render_window(render_window_),
         render_surface(render_surface_)

@@ -15,7 +15,7 @@
 
 namespace Vulkan
 {
-CommandBufferManager::CommandBufferManager(bool use_threaded_submission)
+CommandBufferManager::CommandBufferManager(const bool use_threaded_submission)
     : m_use_threaded_submission(use_threaded_submission)
 {
 }
@@ -143,7 +143,7 @@ void CommandBufferManager::DestroyCommandBuffers()
   vkDestroySemaphore(device, m_present_semaphore, nullptr);
 }
 
-VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_sets)
+VkDescriptorPool CommandBufferManager::CreateDescriptorPool(const u32 max_descriptor_sets)
 {
   /*
    * Worst case descriptor counts according to the descriptor layout created in ObjectCache.cpp:
@@ -221,7 +221,7 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 
 bool CommandBufferManager::CreateSubmitThread()
 {
-  m_submit_thread.Reset("VK submission thread", [this](PendingCommandBufferSubmit submit) {
+  m_submit_thread.Reset("VK submission thread", [this](const PendingCommandBufferSubmit submit) {
     SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
                         submit.present_image_index);
     CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
@@ -239,7 +239,7 @@ void CommandBufferManager::WaitForWorkerThreadIdle()
   m_submit_thread.WaitForCompletion();
 }
 
-void CommandBufferManager::WaitForFenceCounter(u64 fence_counter)
+void CommandBufferManager::WaitForFenceCounter(const u64 fence_counter)
 {
   if (m_completed_fence_counter >= fence_counter)
     return;
@@ -258,7 +258,7 @@ void CommandBufferManager::WaitForFenceCounter(u64 fence_counter)
   WaitForCommandBufferCompletion(index);
 }
 
-void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
+void CommandBufferManager::WaitForCommandBufferCompletion(const u32 index)
 {
   CmdBufferResources& resources = m_command_buffers[index];
 
@@ -299,10 +299,10 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
   m_completed_fence_counter = now_completed_counter;
 }
 
-void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
-                                               bool wait_for_completion,
-                                               VkSwapchainKHR present_swap_chain,
-                                               uint32_t present_image_index)
+void CommandBufferManager::SubmitCommandBuffer(const bool submit_on_worker_thread,
+                                               const bool wait_for_completion,
+                                               const VkSwapchainKHR present_swap_chain,
+                                               const uint32_t present_image_index)
 {
   // End the current command buffer.
   CmdBufferResources& resources = GetCurrentCmdBufferResources();
@@ -380,7 +380,7 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   BeginCommandBuffer();
 }
 
-void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
+void CommandBufferManager::SubmitCommandBuffer(const u32 command_buffer_index,
                                                VkSwapchainKHR present_swap_chain,
                                                u32 present_image_index)
 {

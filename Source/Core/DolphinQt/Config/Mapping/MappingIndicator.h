@@ -38,7 +38,7 @@ public:
   QColor GetAdjustedInputColor() const;
   QColor GetDeadZoneColor() const;
   QPen GetDeadZonePen() const;
-  QBrush GetDeadZoneBrush(QPainter&) const;
+  QBrush GetDeadZoneBrush(const QPainter&) const;
   QColor GetTextColor() const;
   QColor GetAltTextColor() const;
   void AdjustGateColor(QColor*);

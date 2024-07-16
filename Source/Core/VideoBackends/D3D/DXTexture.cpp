@@ -17,7 +17,7 @@
 namespace DX11
 {
 DXTexture::DXTexture(const TextureConfig& config, ComPtr<ID3D11Texture2D> texture,
-                     std::string_view name)
+                     const std::string_view name)
     : AbstractTexture(config), m_texture(std::move(texture)), m_name(name)
 {
   if (!m_name.empty())
@@ -33,7 +33,7 @@ DXTexture::~DXTexture()
     D3D::stateman->ApplyTextures();
 }
 
-std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::string_view name)
+std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, const std::string_view name)
 {
   // Use typeless to create the texture when it's a render target, so we can alias it with an
   // integer format (for EFB).
@@ -148,9 +148,9 @@ bool DXTexture::CreateUAV()
 }
 
 void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                         u32 dst_layer, u32 dst_level)
+                                         const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                         const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                         const u32 dst_layer, const u32 dst_level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
@@ -171,7 +171,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 }
 
 void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                                   u32 layer, u32 level)
+                                   const u32 layer, const u32 level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
   DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
@@ -185,8 +185,8 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
       D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false));
 }
 
-void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size, u32 layer)
+void DXTexture::Load(const u32 level, u32 width, u32 height, const u32 row_length, const u8* buffer,
+                     size_t buffer_size, const u32 layer)
 {
   size_t src_pitch = CalculateStrideForFormat(m_config.format, row_length);
   D3D::context->UpdateSubresource(m_texture.Get(),
@@ -194,7 +194,7 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
                                   buffer, static_cast<UINT>(src_pitch), 0);
 }
 
-DXStagingTexture::DXStagingTexture(StagingTextureType type, const TextureConfig& config,
+DXStagingTexture::DXStagingTexture(const StagingTextureType type, const TextureConfig& config,
                                    ComPtr<ID3D11Texture2D> tex)
     : AbstractStagingTexture(type, config), m_tex(std::move(tex))
 {
@@ -206,7 +206,7 @@ DXStagingTexture::~DXStagingTexture()
     DXStagingTexture::Unmap();
 }
 
-std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType type,
+std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(const StagingTextureType type,
                                                            const TextureConfig& config)
 {
   D3D11_USAGE usage;
@@ -240,8 +240,8 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
 }
 
 void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                       const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+                                       const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                       const u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
@@ -275,8 +275,8 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
 }
 
 void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                                     u32 dst_level)
+                                     const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
+                                     const u32 dst_level)
 {
   ASSERT(m_type == StagingTextureType::Upload);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
@@ -349,8 +349,8 @@ void DXStagingTexture::Flush()
 
 DXFramebuffer::DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
                              std::vector<AbstractTexture*> additional_color_attachments,
-                             AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
-                             u32 width, u32 height, u32 layers, u32 samples,
+                             const AbstractTextureFormat color_format, const AbstractTextureFormat depth_format,
+                             const u32 width, const u32 height, const u32 layers, const u32 samples,
                              ComPtr<ID3D11RenderTargetView> rtv,
                              ComPtr<ID3D11RenderTargetView> integer_rtv,
                              ComPtr<ID3D11DepthStencilView> dsv,
@@ -403,7 +403,7 @@ void DXFramebuffer::Unbind()
   }
 }
 
-void DXFramebuffer::Clear(const ClearColor& color_value, float depth_value)
+void DXFramebuffer::Clear(const ClearColor& color_value, const float depth_value)
 {
   if (GetDepthFormat() != AbstractTextureFormat::Undefined)
   {

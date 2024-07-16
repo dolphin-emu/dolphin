@@ -89,7 +89,7 @@ CPState::CPState(const u32* memory) : CPState()
   }
 }
 
-void CPState::LoadCPReg(u8 sub_cmd, u32 value)
+void CPState::LoadCPReg(const u8 sub_cmd, const u32 value)
 {
   switch (sub_cmd & CP_COMMAND_MASK)
   {

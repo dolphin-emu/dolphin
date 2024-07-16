@@ -88,7 +88,7 @@ union AXBuffers
 };
 
 // Determines if this version of the UCode has a PBLowPassFilter in its AXPB layout.
-bool HasLpf(u32 crc)
+bool HasLpf(const u32 crc)
 {
   switch (crc)
   {
@@ -100,7 +100,7 @@ bool HasLpf(u32 crc)
 }
 
 // Read a PB from MRAM/ARAM
-void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
+void ReadPB(const Memory::MemoryManager& memory, const u32 addr, PB_TYPE& pb, const u32 crc)
 {
   if (HasLpf(crc))
   {
@@ -124,7 +124,7 @@ void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
 }
 
 // Write a PB back to MRAM/ARAM
-void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc)
+void WritePB(Memory::MemoryManager& memory, const u32 addr, const PB_TYPE& pb, const u32 crc)
 {
   if (HasLpf(crc))
   {
@@ -189,9 +189,9 @@ protected:
     }
   }
 
-  u8 ReadMemory(u32 address) override { return m_dsp.ReadARAM(address); }
+  u8 ReadMemory(const u32 address) override { return m_dsp.ReadARAM(address); }
 
-  void WriteMemory(u32 address, u8 value) override { m_dsp.WriteARAM(value, address); }
+  void WriteMemory(const u32 address, const u8 value) override { m_dsp.WriteARAM(value, address); }
 
 private:
   DSPManager& m_dsp;
@@ -238,8 +238,8 @@ u16 AcceleratorGetSample(HLEAccelerator* accelerator)
 // We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
 // avoids discontinuities in the audio stream, especially with very low ratios
 // which interpolate a lot of values between two "real" samples.
-u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count, s16* last_samples,
-                  u32 curr_pos, u32 ratio, int srctype, const s16* coeffs)
+u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, const u32 count, s16* last_samples,
+                  u32 curr_pos, const u32 ratio, const int srctype, const s16* coeffs)
 {
   int read_samples_count = 0;
 
@@ -352,7 +352,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
 // Read <count> input samples from ARAM, decoding and converting rate
 // if required.
-void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16 count,
+void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, const u16 count,
                      const s16* coeffs)
 {
   AcceleratorSetup(accelerator, &pb);
@@ -373,7 +373,7 @@ void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
+void MixAdd(int* out, const s16* input, const u32 count, VolumeData* vd, s16* dpop, const bool ramp)
 {
   u16& volume = vd->volume;
   u16 volume_delta = vd->volume_delta;
@@ -400,7 +400,7 @@ void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bo
 
 // Execute a low pass filter on the samples using one history value. Returns
 // the new history value.
-s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
+s16 LowPassFilter(s16* samples, const u32 count, s16 yn1, const u16 a0, const u16 b0)
 {
   for (u32 i = 0; i < count; ++i)
     yn1 = samples[i] = (a0 * (s32)samples[i] + b0 * (s32)yn1) >> 15;
@@ -410,7 +410,7 @@ s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
 void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, u16 count,
-                  AXMixControl mctrl, const s16* coeffs)
+                  const AXMixControl mctrl, const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
   if (pb.running != 1)

@@ -38,7 +38,7 @@ static void AddToSyncHash(Common::SHA1::Context* context, const T& data)
   context->Update(reinterpret_cast<const u8*>(&data), sizeof(data));
 }
 
-void Volume::ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
+void Volume::ReadAndAddToSyncHash(Common::SHA1::Context* context, const u64 offset, const u64 length,
                                   const Partition& partition) const
 {
   std::vector<u8> buffer(length);

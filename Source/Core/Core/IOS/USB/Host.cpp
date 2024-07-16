@@ -183,7 +183,7 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 }
 
 void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
-                                 bool always_add_hooks)
+                                 const bool always_add_hooks)
 {
   if (Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
@@ -199,7 +199,7 @@ void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& 
 }
 
 void USBHost::CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
-                                DeviceChangeHooks& hooks, bool always_add_hooks)
+                                DeviceChangeHooks& hooks, const bool always_add_hooks)
 {
   if (ShouldAddDevice(*device))
   {
@@ -257,7 +257,7 @@ void USBHost::ScanThread::Stop()
   m_host->DispatchHooks(hooks);
 }
 
-std::optional<IPCReply> USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
+std::optional<IPCReply> USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, const u32 request,
                                                 std::function<s32()> submit) const
 {
   if (!device)

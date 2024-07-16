@@ -63,7 +63,7 @@ constexpr std::array<Hook, 23> os_patches{{
 }};
 // clang-format on
 
-void Patch(Core::System& system, u32 addr, std::string_view func_name)
+void Patch(const Core::System& system, const u32 addr, const std::string_view func_name)
 {
   auto& ppc_state = system.GetPPCState();
   auto& memory = system.GetMemory();
@@ -106,7 +106,7 @@ void PatchFixedFunctions(Core::System& system)
   Patch(system, Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
 }
 
-void PatchFunctions(Core::System& system)
+void PatchFunctions(const Core::System& system)
 {
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
@@ -171,20 +171,20 @@ void Execute(const Core::CPUThreadGuard& guard, u32 current_pc, u32 hook_index)
   }
 }
 
-void ExecuteFromJIT(u32 current_pc, u32 hook_index, Core::System& system)
+void ExecuteFromJIT(const u32 current_pc, const u32 hook_index, Core::System& system)
 {
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(system);
   Execute(guard, current_pc, hook_index);
 }
 
-u32 GetHookByAddress(u32 address)
+u32 GetHookByAddress(const u32 address)
 {
   auto iter = s_hooked_addresses.find(address);
   return (iter != s_hooked_addresses.end()) ? iter->second : 0;
 }
 
-u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, u32 address)
+u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, const u32 address)
 {
   const u32 index = GetHookByAddress(address);
   // Fixed hooks use a fixed address and don't patch the whole function
@@ -195,18 +195,18 @@ u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, u32 address)
   return (symbol && symbol->address == address) ? index : 0;
 }
 
-HookType GetHookTypeByIndex(u32 index)
+HookType GetHookTypeByIndex(const u32 index)
 {
   return os_patches[index].type;
 }
 
-HookFlag GetHookFlagsByIndex(u32 index)
+HookFlag GetHookFlagsByIndex(const u32 index)
 {
   return os_patches[index].flags;
 }
 
-TryReplaceFunctionResult TryReplaceFunction(PPCSymbolDB& ppc_symbol_db, u32 address,
-                                            PowerPC::CoreMode mode)
+TryReplaceFunctionResult TryReplaceFunction(PPCSymbolDB& ppc_symbol_db, const u32 address,
+                                            const PowerPC::CoreMode mode)
 {
   const u32 hook_index = GetHookByFunctionAddress(ppc_symbol_db, address);
   if (hook_index == 0)
@@ -223,13 +223,13 @@ TryReplaceFunctionResult TryReplaceFunction(PPCSymbolDB& ppc_symbol_db, u32 addr
   return {type, hook_index};
 }
 
-bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode)
+bool IsEnabled(const HookFlag flag, const PowerPC::CoreMode mode)
 {
   return flag != HookFlag::Debug || Config::IsDebuggingEnabled() ||
          mode == PowerPC::CoreMode::Interpreter;
 }
 
-u32 UnPatch(Core::System& system, std::string_view patch_name)
+u32 UnPatch(const Core::System& system, const std::string_view patch_name)
 {
   const auto patch = std::find_if(std::begin(os_patches), std::end(os_patches),
                                   [&](const Hook& p) { return patch_name == p.name; });
@@ -277,7 +277,7 @@ u32 UnPatch(Core::System& system, std::string_view patch_name)
   return 0;
 }
 
-u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr)
+u32 UnpatchRange(const Core::System& system, const u32 start_addr, const u32 end_addr)
 {
   auto& ppc_state = system.GetPPCState();
   auto& memory = system.GetMemory();

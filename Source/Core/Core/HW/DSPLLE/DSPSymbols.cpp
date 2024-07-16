@@ -20,7 +20,7 @@ static std::map<int, u16> line_to_addr;
 static std::vector<std::string> lines;
 static int line_counter = 0;
 
-int Addr2Line(u16 address)  // -1 for not found
+int Addr2Line(const u16 address)  // -1 for not found
 {
   std::map<u16, int>::iterator iter = addr_to_line.find(address);
   if (iter != addr_to_line.end())
@@ -29,7 +29,7 @@ int Addr2Line(u16 address)  // -1 for not found
     return -1;
 }
 
-int Line2Addr(int line)  // -1 for not found
+int Line2Addr(const int line)  // -1 for not found
 {
   std::map<int, u16>::iterator iter = line_to_addr.find(line);
   if (iter != line_to_addr.end())
@@ -38,7 +38,7 @@ int Line2Addr(int line)  // -1 for not found
     return -1;
 }
 
-const char* GetLineText(int line)
+const char* GetLineText(const int line)
 {
   if (line >= 0 && line < (int)lines.size())
   {
@@ -50,7 +50,7 @@ const char* GetLineText(int line)
   }
 }
 
-void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr)
+void AutoDisassembly(const SDSP& dsp, const u16 start_addr, const u16 end_addr)
 {
   AssemblerSettings settings;
   settings.show_pc = true;

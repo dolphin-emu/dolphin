@@ -34,7 +34,7 @@ alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
 // if it's going to be clobbered in a future instruction before being read, we can just
 // not calculate it.
-void Jit64::SetFPRFIfNeeded(const OpArg& input, bool single)
+void Jit64::SetFPRFIfNeeded(const OpArg& input, const bool single)
 {
   // As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
   // FPRF is fast enough in JIT that we might as well just enable it for every float instruction
@@ -51,7 +51,7 @@ void Jit64::SetFPRFIfNeeded(const OpArg& input, bool single)
   SetFPRF(xmm, single);
 }
 
-void Jit64::FinalizeSingleResult(X64Reg output, const OpArg& input, bool packed, bool duplicate)
+void Jit64::FinalizeSingleResult(const X64Reg output, const OpArg& input, const bool packed, const bool duplicate)
 {
   // Most games don't need these. Zelda requires it though - some platforms get stuck without them.
   if (jo.accurateSinglePrecision)
@@ -85,7 +85,7 @@ void Jit64::FinalizeSingleResult(X64Reg output, const OpArg& input, bool packed,
   }
 }
 
-void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
+void Jit64::FinalizeDoubleResult(const X64Reg output, const OpArg& input)
 {
   if (!input.IsSimpleReg(output))
     MOVSD(output, input);

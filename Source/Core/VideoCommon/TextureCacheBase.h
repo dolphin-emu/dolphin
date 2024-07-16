@@ -49,8 +49,8 @@ static constexpr int FRAMECOUNT_INVALID = 0;
 
 struct TextureAndTLUTFormat
 {
-  TextureAndTLUTFormat(TextureFormat texfmt_ = TextureFormat::I4,
-                       TLUTFormat tlutfmt_ = TLUTFormat::IA8)
+  TextureAndTLUTFormat(const TextureFormat texfmt_ = TextureFormat::I4,
+                       const TLUTFormat tlutfmt_ = TLUTFormat::IA8)
       : texfmt(texfmt_), tlutfmt(tlutfmt_)
   {
   }
@@ -70,9 +70,9 @@ struct TextureAndTLUTFormat
 
 struct EFBCopyParams
 {
-  EFBCopyParams(PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_, bool yuv_,
-                bool all_copy_filter_coefs_needed_, bool copy_filter_can_overflow_,
-                bool apply_gamma_)
+  EFBCopyParams(const PixelFormat efb_format_, const EFBCopyFormat copy_format_, const bool depth_, const bool yuv_,
+                const bool all_copy_filter_coefs_needed_, const bool copy_filter_can_overflow_,
+                const bool apply_gamma_)
       : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
         all_copy_filter_coefs_needed(all_copy_filter_coefs_needed_),
         copy_filter_can_overflow(copy_filter_can_overflow_), apply_gamma(apply_gamma_)
@@ -100,7 +100,7 @@ struct EFBCopyParams
 template <>
 struct fmt::formatter<EFBCopyParams>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const EFBCopyParams& uid, FormatContext& ctx) const
   {
@@ -176,8 +176,8 @@ struct TCacheEntry
 
   ~TCacheEntry();
 
-  void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format,
-                            bool force_safe_hashing)
+  void SetGeneralParameters(const u32 _addr, const u32 _size, const TextureAndTLUTFormat _format,
+                            const bool force_safe_hashing)
   {
     addr = _addr;
     size_in_bytes = _size;
@@ -185,8 +185,8 @@ struct TCacheEntry
     should_force_safe_hashing = force_safe_hashing;
   }
 
-  void SetDimensions(unsigned int _native_width, unsigned int _native_height,
-                     unsigned int _native_levels)
+  void SetDimensions(const unsigned int _native_width, const unsigned int _native_height,
+                     const unsigned int _native_levels)
   {
     native_width = _native_width;
     native_height = _native_height;
@@ -194,7 +194,7 @@ struct TCacheEntry
     memory_stride = _native_width;
   }
 
-  void SetHashes(u64 _base_hash, u64 _hash)
+  void SetHashes(const u64 _base_hash, const u64 _hash)
   {
     base_hash = _base_hash;
     hash = _hash;
@@ -291,7 +291,7 @@ public:
                                  bool clamp_bottom,
                                  const CopyFilterCoefficients::Values& filter_coefficients);
 
-  void ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_width, u32 new_height);
+  void ScaleTextureCacheEntryTo(const RcTcacheEntry& entry, u32 new_width, u32 new_height);
 
   // Flushes all pending EFB copies to emulated RAM.
   void FlushEFBCopies();
@@ -300,7 +300,7 @@ public:
   void FlushStaleBinds();
 
   // Texture Serialization
-  void SerializeTexture(AbstractTexture* tex, const TextureConfig& config, PointerWrap& p);
+  void SerializeTexture(const AbstractTexture* tex, const TextureConfig& config, PointerWrap& p);
   std::optional<TexPoolEntry> DeserializeTexture(PointerWrap& p);
 
   // Save States
@@ -319,7 +319,7 @@ protected:
   // width, height are the size of the image in pixels.
   // aligned_width, aligned_height are the size of the image in pixels, aligned to the block size.
   // row_stride is the number of bytes for a row of blocks, not pixels.
-  bool DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, const u8* data, u32 data_size,
+  bool DecodeTextureOnGPU(const RcTcacheEntry& entry, u32 dst_level, const u8* data, u32 data_size,
                           TextureFormat format, u32 width, u32 height, u32 aligned_width,
                           u32 aligned_height, u32 row_stride, const u8* palette,
                           TLUTFormat palette_format);
@@ -360,7 +360,7 @@ private:
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
-  RcTcacheEntry ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette, TLUTFormat tlutfmt);
+  RcTcacheEntry ApplyPaletteToEntry(const RcTcacheEntry& entry, const u8* palette, TLUTFormat tlutfmt);
 
   RcTcacheEntry ReinterpretEntry(const RcTcacheEntry& existing_entry, TextureFormat new_format);
 
@@ -373,7 +373,7 @@ private:
   RcTcacheEntry AllocateCacheEntry(const TextureConfig& config);
   std::optional<TexPoolEntry> AllocateTexture(const TextureConfig& config);
   TexPool::iterator FindMatchingTextureFromPool(const TextureConfig& config);
-  TexAddrCache::iterator GetTexCacheIter(TCacheEntry* entry);
+  TexAddrCache::iterator GetTexCacheIter(const TCacheEntry* entry);
 
   // Return all possible overlapping textures. As addr+size of the textures is not
   // indexed, this may return false positives.

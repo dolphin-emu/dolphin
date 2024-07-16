@@ -97,7 +97,7 @@ union UVIVerticalTimingRegister
   };
 
   UVIVerticalTimingRegister() = default;
-  explicit UVIVerticalTimingRegister(u16 hex) : Hex{hex} {}
+  explicit UVIVerticalTimingRegister(const u16 hex) : Hex{hex} {}
 };
 
 union UVIDisplayControlRegister
@@ -117,7 +117,7 @@ union UVIDisplayControlRegister
   };
 
   UVIDisplayControlRegister() = default;
-  explicit UVIDisplayControlRegister(u16 hex) : Hex{hex} {}
+  explicit UVIDisplayControlRegister(const u16 hex) : Hex{hex} {}
 };
 
 union UVIHorizontalTiming0
@@ -267,7 +267,7 @@ union UVIHorizontalScaling
   };
 
   UVIHorizontalScaling() = default;
-  explicit UVIHorizontalScaling(u16 hex) : Hex{hex} {}
+  explicit UVIHorizontalScaling(const u16 hex) : Hex{hex} {}
 };
 
 // Used for tables 0-2

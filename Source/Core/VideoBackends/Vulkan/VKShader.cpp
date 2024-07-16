@@ -14,8 +14,8 @@
 
 namespace Vulkan
 {
-VKShader::VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
-                   std::string_view name)
+VKShader::VKShader(const ShaderStage stage, std::vector<u32> spv, const VkShaderModule mod,
+                   const std::string_view name)
     : AbstractShader(stage), m_spv(std::move(spv)), m_module(mod),
       m_compute_pipeline(VK_NULL_HANDLE), m_name(name)
 {
@@ -30,7 +30,7 @@ VKShader::VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
   }
 }
 
-VKShader::VKShader(std::vector<u32> spv, VkPipeline compute_pipeline, std::string_view name)
+VKShader::VKShader(std::vector<u32> spv, const VkPipeline compute_pipeline, const std::string_view name)
     : AbstractShader(ShaderStage::Compute), m_spv(std::move(spv)), m_module(VK_NULL_HANDLE),
       m_compute_pipeline(compute_pipeline), m_name(name)
 {
@@ -107,8 +107,8 @@ CreateShaderObject(ShaderStage stage, ShaderCompiler::SPIRVCodeVector spv, std::
   return std::make_unique<VKShader>(std::move(spv), pipeline, name);
 }
 
-std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::string_view source,
-                                                     std::string_view name)
+std::unique_ptr<VKShader> VKShader::CreateFromSource(const ShaderStage stage, const std::string_view source,
+                                                     const std::string_view name)
 {
   std::optional<ShaderCompiler::SPIRVCodeVector> spv;
   switch (stage)
@@ -135,8 +135,8 @@ std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::str
   return CreateShaderObject(stage, std::move(*spv), name);
 }
 
-std::unique_ptr<VKShader> VKShader::CreateFromBinary(ShaderStage stage, const void* data,
-                                                     size_t length, std::string_view name)
+std::unique_ptr<VKShader> VKShader::CreateFromBinary(const ShaderStage stage, const void* data,
+                                                     const size_t length, const std::string_view name)
 {
   const size_t size_in_words = Common::AlignUp(length, sizeof(ShaderCompiler::SPIRVCodeType)) /
                                sizeof(ShaderCompiler::SPIRVCodeType);

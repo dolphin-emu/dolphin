@@ -8,7 +8,7 @@
 
 namespace Common
 {
-u32 ClassifyDouble(double dvalue)
+u32 ClassifyDouble(const double dvalue)
 {
   const u64 ivalue = std::bit_cast<u64>(dvalue);
   const u64 sign = ivalue & DOUBLE_SIGN;
@@ -40,7 +40,7 @@ u32 ClassifyDouble(double dvalue)
   return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 }
 
-u32 ClassifyFloat(float fvalue)
+u32 ClassifyFloat(const float fvalue)
 {
   const u32 ivalue = std::bit_cast<u32>(fvalue);
   const u32 sign = ivalue & FLOAT_SIGN;
@@ -83,7 +83,7 @@ const std::array<BaseAndDec, 32> frsqrte_expected = {{
     {0x20c1000, -0x35e}, {0x1f12000, -0x332}, {0x1d79000, -0x30a}, {0x1bf4000, -0x2e6},
 }};
 
-double ApproximateReciprocalSquareRoot(double val)
+double ApproximateReciprocalSquareRoot(const double val)
 {
   s64 integral = std::bit_cast<s64>(val);
   s64 mantissa = integral & ((1LL << 52) - 1);
@@ -149,7 +149,7 @@ const std::array<BaseAndDec, 32> fres_expected = {{
 }};
 
 // Used by fres and ps_res.
-double ApproximateReciprocal(double val)
+double ApproximateReciprocal(const double val)
 {
   s64 integral = std::bit_cast<s64>(val);
   const s64 mantissa = integral & ((1LL << 52) - 1);

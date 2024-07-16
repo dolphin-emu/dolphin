@@ -81,7 +81,7 @@ static ENetAddress MakeENetAddress(const TraversalInetAddress& address)
   return eaddr;
 }
 
-void TraversalClient::ConnectToClient(std::string_view host)
+void TraversalClient::ConnectToClient(const std::string_view host)
 {
   if (host.size() > sizeof(TraversalHostId))
   {
@@ -95,7 +95,7 @@ void TraversalClient::ConnectToClient(std::string_view host)
   m_PendingConnect = true;
 }
 
-bool TraversalClient::TestPacket(u8* data, size_t size, ENetAddress* from)
+bool TraversalClient::TestPacket(u8* data, const size_t size, const ENetAddress* from)
 {
   if (from->host == m_ServerAddress.host && from->port == m_ServerAddress.port)
   {
@@ -235,7 +235,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
   }
 }
 
-void TraversalClient::OnFailure(FailureReason reason)
+void TraversalClient::OnFailure(const FailureReason reason)
 {
   m_State = State::Failure;
   m_FailureReason = reason;

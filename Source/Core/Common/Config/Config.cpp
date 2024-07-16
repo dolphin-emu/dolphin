@@ -42,7 +42,7 @@ void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
   AddLayerInternal(std::make_shared<Layer>(std::move(loader)));
 }
 
-std::shared_ptr<Layer> GetLayer(LayerType layer)
+std::shared_ptr<Layer> GetLayer(const LayerType layer)
 {
   ReadLock lock(s_layers_rw_lock);
 
@@ -55,7 +55,7 @@ std::shared_ptr<Layer> GetLayer(LayerType layer)
   return result;
 }
 
-void RemoveLayer(LayerType layer)
+void RemoveLayer(const LayerType layer)
 {
   {
     WriteLock lock(s_layers_rw_lock);
@@ -73,7 +73,7 @@ ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func)
   return callback_id;
 }
 
-void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
+void RemoveConfigChangedCallback(const ConfigChangedCallbackID callback_id)
 {
   for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
   {
@@ -161,7 +161,7 @@ static const std::map<System, std::string> system_to_name = {
     {System::GameSettingsOnly, "GameSettingsOnly"},
     {System::Achievements, "Achievements"}};
 
-const std::string& GetSystemName(System system)
+const std::string& GetSystemName(const System system)
 {
   return system_to_name.at(system);
 }
@@ -176,7 +176,7 @@ std::optional<System> GetSystemFromName(const std::string& name)
   return {};
 }
 
-const std::string& GetLayerName(LayerType layer)
+const std::string& GetLayerName(const LayerType layer)
 {
   static const std::map<LayerType, std::string> layer_to_name = {
       {LayerType::Base, "Base"},

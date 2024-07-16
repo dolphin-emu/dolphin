@@ -45,7 +45,7 @@ struct fmt::formatter<ShaderAttrib> : EnumFormatter<ShaderAttrib::TexCoord7>
   constexpr formatter() : EnumFormatter(names) {}
 };
 // Intended for offsetting from Color0/TexCoord0
-constexpr ShaderAttrib operator+(ShaderAttrib attrib, int offset)
+constexpr ShaderAttrib operator+(ShaderAttrib attrib, const int offset)
 {
   return static_cast<ShaderAttrib>(static_cast<u8>(attrib) + offset);
 }

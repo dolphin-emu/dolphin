@@ -145,7 +145,7 @@ bool WantsDeterminism();
 // [NOT THREADSAFE] For use by Host only
 void SetState(System& system, State state, bool report_state_change = true,
               bool initial_execution_state = false);
-State GetState(System& system);
+State GetState(const System& system);
 
 void SaveScreenShot();
 void SaveScreenShot(std::string_view name);
@@ -190,6 +190,6 @@ void DoFrameStep(System& system);
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
-void UpdateTitle(System& system);
+void UpdateTitle(const System& system);
 
 }  // namespace Core

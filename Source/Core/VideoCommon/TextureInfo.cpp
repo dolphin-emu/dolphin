@@ -17,7 +17,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
 
-TextureInfo TextureInfo::FromStage(u32 stage)
+TextureInfo TextureInfo::FromStage(const u32 stage)
 {
   const auto tex = bpmem.tex.GetUnit(stage);
 
@@ -288,7 +288,7 @@ u32 TextureInfo::GetLevelCount() const
   return static_cast<u32>(m_mip_levels.size()) + 1;
 }
 
-const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(u32 level) const
+const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(const u32 level) const
 {
   if (level < m_mip_levels.size())
     return &m_mip_levels[level];
@@ -296,7 +296,7 @@ const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(u32 level) const
   return nullptr;
 }
 
-TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_tmem,
+TextureInfo::MipLevel::MipLevel(const u32 level, const TextureInfo& parent, const bool from_tmem,
                                 std::span<const u8>* src_data, std::span<const u8>* tmem_even,
                                 std::span<const u8>* tmem_odd)
 {

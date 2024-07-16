@@ -154,7 +154,7 @@ u32* GekkoDisassembler::m_iaddr = nullptr;
 std::string GekkoDisassembler::m_opcode;
 std::string GekkoDisassembler::m_operands;
 
-static u32 HelperRotateMask(int r, int mb, int me)
+static u32 HelperRotateMask(const int r, const int mb, const int me)
 {
   // first make 001111111111111 part
   unsigned int begin = 0xFFFFFFFF >> mb;
@@ -192,7 +192,7 @@ static std::string psq_offs(u32 val)
   return fmt::format("0x{:04X}", val);
 }
 
-static std::string spr_name(int i)
+static std::string spr_name(const int i)
 {
   switch (i)
   {
@@ -345,12 +345,12 @@ static std::string spr_name(int i)
   return std::to_string(i);
 }
 
-static u32 swapda(u32 w)
+static u32 swapda(const u32 w)
 {
   return ((w & 0xfc00ffff) | ((w & PPCAMASK) << 5) | ((w & PPCDMASK) >> 5));
 }
 
-static u32 swapab(u32 w)
+static u32 swapab(const u32 w)
 {
   return ((w & 0xffe007ff) | ((w & PPCBMASK) << 5) | ((w & PPCAMASK) >> 5));
 }
@@ -375,7 +375,7 @@ void GekkoDisassembler::ill(u32 in)
 // Type 1: S-mode, A,S,imm
 // Type 2: S/D register is ignored (trap,cmpi)
 // Type 3: A register is ignored (li)
-std::string GekkoDisassembler::imm(u32 in, int uimm, int type, bool hex)
+std::string GekkoDisassembler::imm(const u32 in, const int uimm, const int type, const bool hex)
 {
   int i = (int)(in & 0xffff);
 
@@ -410,12 +410,12 @@ std::string GekkoDisassembler::imm(u32 in, int uimm, int type, bool hex)
   }
 }
 
-std::string GekkoDisassembler::ra_rb(u32 in)
+std::string GekkoDisassembler::ra_rb(const u32 in)
 {
   return fmt::format("{}, {}", regnames[PPCGETA(in)], regnames[PPCGETB(in)]);
 }
 
-std::string GekkoDisassembler::rd_ra_rb(u32 in, int mask)
+std::string GekkoDisassembler::rd_ra_rb(const u32 in, const int mask)
 {
   std::string result;
 
@@ -438,12 +438,12 @@ std::string GekkoDisassembler::rd_ra_rb(u32 in, int mask)
   return result;
 }
 
-std::string GekkoDisassembler::fd_ra_rb(u32 in)
+std::string GekkoDisassembler::fd_ra_rb(const u32 in)
 {
   return fmt::format("f{}, {}, {}", PPCGETD(in), regnames[PPCGETA(in)], regnames[PPCGETB(in)]);
 }
 
-void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
+void GekkoDisassembler::trapi(const u32 in, const unsigned char dmode)
 {
   const char* cnd = trap_condition[PPCGETD(in)];
 
@@ -459,7 +459,7 @@ void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
   m_operands += imm(in, 0, 2, false);
 }
 
-void GekkoDisassembler::cmpi(u32 in, int uimm)
+void GekkoDisassembler::cmpi(const u32 in, const int uimm)
 {
   int i = (int)PPCGETL(in);
 
@@ -505,7 +505,7 @@ void GekkoDisassembler::addi(u32 in, std::string_view ext)
 }
 
 // Build a branch instr. and return number of chars written to operand.
-size_t GekkoDisassembler::branch(u32 in, std::string_view bname, int aform, int bdisp)
+size_t GekkoDisassembler::branch(const u32 in, std::string_view bname, const int aform, const int bdisp)
 {
   int bo = (int)PPCGETD(in);
   int bi = (int)PPCGETA(in);
@@ -556,7 +556,7 @@ size_t GekkoDisassembler::branch(u32 in, std::string_view bname, int aform, int 
   return m_operands.length();
 }
 
-void GekkoDisassembler::bc(u32 in)
+void GekkoDisassembler::bc(const u32 in)
 {
   unsigned int d = (int)(in & 0xfffc);
 
@@ -571,7 +571,7 @@ void GekkoDisassembler::bc(u32 in)
     m_operands = fmt::format("{} ->0x{:08X}", m_operands, *m_iaddr + d);
 }
 
-void GekkoDisassembler::bli(u32 in)
+void GekkoDisassembler::bli(const u32 in)
 {
   unsigned int d = (unsigned int)(in & 0x3fffffc);
 
@@ -586,7 +586,7 @@ void GekkoDisassembler::bli(u32 in)
     m_operands = fmt::format("->0x{:08X}", *m_iaddr + d);
 }
 
-void GekkoDisassembler::mcrf(u32 in, std::string_view suffix)
+void GekkoDisassembler::mcrf(const u32 in, std::string_view suffix)
 {
   if ((in & 0x0063f801) == 0)
   {
@@ -599,7 +599,7 @@ void GekkoDisassembler::mcrf(u32 in, std::string_view suffix)
   }
 }
 
-void GekkoDisassembler::crop(u32 in, std::string_view n1, std::string_view n2)
+void GekkoDisassembler::crop(const u32 in, std::string_view n1, std::string_view n2)
 {
   int crd = (int)PPCGETD(in);
   int cra = (int)PPCGETA(in);
@@ -619,7 +619,7 @@ void GekkoDisassembler::crop(u32 in, std::string_view n1, std::string_view n2)
   }
 }
 
-void GekkoDisassembler::nooper(u32 in, std::string_view name)
+void GekkoDisassembler::nooper(const u32 in, const std::string_view name)
 {
   if (in & (PPCDMASK | PPCAMASK | PPCBMASK | 1))
   {
@@ -631,7 +631,7 @@ void GekkoDisassembler::nooper(u32 in, std::string_view name)
   }
 }
 
-void GekkoDisassembler::rlw(u32 in, std::string_view name, int i)
+void GekkoDisassembler::rlw(const u32 in, std::string_view name, const int i)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -644,13 +644,13 @@ void GekkoDisassembler::rlw(u32 in, std::string_view name, int i)
                            bsh, mb, me, HelperRotateMask(bsh, mb, me));
 }
 
-void GekkoDisassembler::ori(u32 in, std::string_view name)
+void GekkoDisassembler::ori(const u32 in, const std::string_view name)
 {
   m_opcode = name;
   m_operands = imm(in, 1, 1, true);
 }
 
-void GekkoDisassembler::rld(u32 in, std::string_view name, int i)
+void GekkoDisassembler::rld(const u32 in, std::string_view name, const int i)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -661,7 +661,7 @@ void GekkoDisassembler::rld(u32 in, std::string_view name, int i)
   m_operands = fmt::format("{}, {}, {}{}, {}", regnames[a], regnames[s], regsel[i], bsh, m);
 }
 
-void GekkoDisassembler::cmp(u32 in)
+void GekkoDisassembler::cmp(const u32 in)
 {
   int i = (int)PPCGETL(in);
 
@@ -681,7 +681,7 @@ void GekkoDisassembler::cmp(u32 in)
   }
 }
 
-void GekkoDisassembler::trap(u32 in, unsigned char dmode)
+void GekkoDisassembler::trap(const u32 in, const unsigned char dmode)
 {
   int to = (int)PPCGETD(in);
   const char* cnd = trap_condition[to];
@@ -713,8 +713,8 @@ void GekkoDisassembler::trap(u32 in, unsigned char dmode)
 }
 
 // Standard instruction: xxxx rD,rA,rB
-void GekkoDisassembler::dab(u32 in, std::string_view name, int mask, int smode, int chkoe,
-                            int chkrc)
+void GekkoDisassembler::dab(u32 in, std::string_view name, const int mask, const int smode, const int chkoe,
+                            const int chkrc)
 {
   if (chkrc >= 0 && ((in & 1) != (unsigned int)chkrc))
   {
@@ -733,7 +733,7 @@ void GekkoDisassembler::dab(u32 in, std::string_view name, int mask, int smode, 
 }
 
 // Last operand is no register: xxxx rD,rA,NB
-void GekkoDisassembler::rrn(u32 in, std::string_view name, int smode, int chkoe, int chkrc)
+void GekkoDisassembler::rrn(u32 in, std::string_view name, const int smode, const int chkoe, const int chkrc)
 {
   if (chkrc >= 0 && ((in & 1) != (unsigned int)chkrc))
   {
@@ -752,7 +752,7 @@ void GekkoDisassembler::rrn(u32 in, std::string_view name, int smode, int chkoe,
   }
 }
 
-void GekkoDisassembler::mtcr(u32 in)
+void GekkoDisassembler::mtcr(const u32 in)
 {
   int s = (int)PPCGETD(in);
   int crm = (int)(in & 0x000ff000) >> 12;
@@ -772,7 +772,7 @@ void GekkoDisassembler::mtcr(u32 in)
   }
 }
 
-void GekkoDisassembler::msr(u32 in, int smode)
+void GekkoDisassembler::msr(const u32 in, const int smode)
 {
   int s = (int)PPCGETD(in);
   int sr = (int)(in & 0x000f0000) >> 16;
@@ -792,7 +792,7 @@ void GekkoDisassembler::msr(u32 in, int smode)
   }
 }
 
-void GekkoDisassembler::mspr(u32 in, int smode)
+void GekkoDisassembler::mspr(const u32 in, const int smode)
 {
   int d = (int)PPCGETD(in);
   int spr = (int)((PPCGETB(in) << 5) + PPCGETA(in));
@@ -841,7 +841,7 @@ void GekkoDisassembler::mspr(u32 in, int smode)
   }
 }
 
-void GekkoDisassembler::mtb(u32 in)
+void GekkoDisassembler::mtb(const u32 in)
 {
   int d = (int)PPCGETD(in);
   int tbr = (int)((PPCGETB(in) << 5) + PPCGETA(in));
@@ -874,7 +874,7 @@ void GekkoDisassembler::mtb(u32 in)
   }
 }
 
-void GekkoDisassembler::sradi(u32 in)
+void GekkoDisassembler::sradi(const u32 in)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -884,7 +884,7 @@ void GekkoDisassembler::sradi(u32 in)
   m_operands = fmt::format("{}, {}, {}", regnames[a], regnames[s], bsh);
 }
 
-void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg)
+void GekkoDisassembler::ldst(const u32 in, const std::string_view name, char reg)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -903,7 +903,7 @@ void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg)
 }
 
 // Standard floating point instruction: xxxx fD,fA,fC,fB
-void GekkoDisassembler::fdabc(u32 in, std::string_view name, int mask)
+void GekkoDisassembler::fdabc(const u32 in, std::string_view name, const int mask)
 {
   int err = 0;
 
@@ -929,20 +929,20 @@ void GekkoDisassembler::fdabc(u32 in, std::string_view name, int mask)
     ill(in);
 }
 
-void GekkoDisassembler::fmr(u32 in)
+void GekkoDisassembler::fmr(const u32 in)
 {
   m_opcode = fmt::format("fmr{}", rcsel[in & 1]);
   m_operands = fmt::format("f{}, f{}", PPCGETD(in), PPCGETB(in));
 }
 
 // Indexed float instruction: xxxx fD,rA,rB
-void GekkoDisassembler::fdab(u32 in, std::string_view name)
+void GekkoDisassembler::fdab(const u32 in, const std::string_view name)
 {
   m_opcode = name;
   m_operands = fd_ra_rb(in);
 }
 
-void GekkoDisassembler::fcmp(u32 in, char c)
+void GekkoDisassembler::fcmp(const u32 in, char c)
 {
   if (in & 0x00600001)
   {
@@ -955,7 +955,7 @@ void GekkoDisassembler::fcmp(u32 in, char c)
   }
 }
 
-void GekkoDisassembler::mtfsb(u32 in, int n)
+void GekkoDisassembler::mtfsb(const u32 in, int n)
 {
   if (in & (PPCAMASK | PPCBMASK))
   {
@@ -1019,7 +1019,7 @@ void GekkoDisassembler::mtfsb(u32 in, int n)
 #define IX ((inst >> 7) & 0x7)
 #define WX ((inst >> 10) & 0x1)
 
-void GekkoDisassembler::ps(u32 inst)
+void GekkoDisassembler::ps(const u32 inst)
 {
   switch ((inst >> 1) & 0x1F)
   {
@@ -1188,7 +1188,7 @@ void GekkoDisassembler::ps(u32 inst)
   m_operands = "---";
 }
 
-void GekkoDisassembler::ps_mem(u32 inst)
+void GekkoDisassembler::ps_mem(const u32 inst)
 {
   switch (PPCGETIDX(inst))
   {
@@ -1217,7 +1217,7 @@ void GekkoDisassembler::ps_mem(u32 inst)
 
 // Disassemble PPC instruction and return a pointer to the next
 // instruction, or nullptr if an error occurred.
-u32* GekkoDisassembler::DoDisassembly(bool big_endian)
+u32* GekkoDisassembler::DoDisassembly(const bool big_endian)
 {
   u32 in = *m_instr;
 
@@ -2274,8 +2274,8 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 }
 
 // simplified interface
-std::string GekkoDisassembler::Disassemble(u32 opcode, u32 current_instruction_address,
-                                           bool big_endian)
+std::string GekkoDisassembler::Disassemble(const u32 opcode, const u32 current_instruction_address,
+                                           const bool big_endian)
 {
   u32 opc = opcode;
   u32 addr = current_instruction_address;
@@ -2294,7 +2294,7 @@ constexpr std::array<const char*, 32> gpr_names{
     "r22", "r23",      "r24",        "r25", "r26", "r27", "r28", "r29", "r30", "r31",
 };
 
-const char* GekkoDisassembler::GetGPRName(u32 index)
+const char* GekkoDisassembler::GetGPRName(const u32 index)
 {
   if (index < gpr_names.size())
     return gpr_names[index];
@@ -2308,7 +2308,7 @@ constexpr std::array<const char*, 32> fpr_names{
     "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
 };
 
-const char* GekkoDisassembler::GetFPRName(u32 index)
+const char* GekkoDisassembler::GetFPRName(const u32 index)
 {
   if (index < fpr_names.size())
     return fpr_names[index];

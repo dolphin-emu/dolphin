@@ -18,7 +18,7 @@ public:
   struct StateData
   {
     StateData() = default;
-    explicit StateData(std::size_t trigger_count) : data(trigger_count) {}
+    explicit StateData(const std::size_t trigger_count) : data(trigger_count) {}
 
     std::vector<ControlState> data;
   };

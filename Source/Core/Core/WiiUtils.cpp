@@ -51,7 +51,7 @@
 namespace WiiUtils
 {
 static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
-                      IOS::HLE::ESCore::VerifySignature verify_signature)
+                      const IOS::HLE::ESCore::VerifySignature verify_signature)
 {
   if (!wad.GetTicket().IsValid() || !wad.GetTMD().IsValid())
   {
@@ -142,7 +142,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   return true;
 }
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType install_type)
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, const InstallType install_type)
 {
   if (!wad.GetTMD().IsValid())
     return false;
@@ -206,13 +206,13 @@ bool InstallWAD(const std::string& wad_path)
   return InstallWAD(ios, *wad, InstallType::Permanent);
 }
 
-bool UninstallTitle(u64 title_id)
+bool UninstallTitle(const u64 title_id)
 {
   IOS::HLE::Kernel ios;
   return ios.GetESCore().DeleteTitleContent(title_id) == IOS::HLE::IPC_SUCCESS;
 }
 
-bool IsTitleInstalled(u64 title_id)
+bool IsTitleInstalled(const u64 title_id)
 {
   IOS::HLE::Kernel ios;
   const auto entries = ios.GetFS()->ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
@@ -227,14 +227,14 @@ bool IsTitleInstalled(u64 title_id)
                      [](const std::string& file) { return file != "title.tmd"; });
 }
 
-bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, u64 title_id)
+bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, const u64 title_id)
 {
   const auto entries = fs.ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
   return entries && std::any_of(entries->begin(), entries->end(),
                                 [](const std::string& file) { return file == "title.tmd"; });
 }
 
-IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
+IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, const u64 title_id)
 {
   auto file = fs.OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
                           "/title/00000001/00000002/data/tmds.sys", IOS::HLE::FS::Mode::Read);
@@ -268,7 +268,7 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
   }
 }
 
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESCore& es, u64 title_id)
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESCore& es, const u64 title_id)
 {
   if (IsTMDImported(fs, title_id))
     return true;
@@ -766,7 +766,7 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
   return UpdateFromManifest("__update.inf");
 }
 
-UpdateResult DiscSystemUpdater::UpdateFromManifest(std::string_view manifest_name)
+UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string_view manifest_name)
 {
   const DiscIO::FileSystem* disc_fs = m_volume->GetFileSystem(m_partition);
   if (!disc_fs)
@@ -822,8 +822,8 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(std::string_view manifest_nam
   return updates_installed == 0 ? UpdateResult::AlreadyUpToDate : UpdateResult::Succeeded;
 }
 
-UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
-                                             const TitleInfo& title, std::string_view path)
+UpdateResult DiscSystemUpdater::ProcessEntry(const u32 type, const std::bitset<32> attrs,
+                                             const TitleInfo& title, const std::string_view path)
 {
   // Skip any unknown type and boot2 updates (for now).
   if (type != 2 && type != 3 && type != 6 && type != 7)

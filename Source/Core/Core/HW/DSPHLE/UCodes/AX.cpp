@@ -27,11 +27,11 @@
 
 namespace DSP::HLE
 {
-AXUCode::AXUCode(DSPHLE* dsphle, u32 crc, bool dummy) : UCodeInterface(dsphle, crc)
+AXUCode::AXUCode(DSPHLE* dsphle, const u32 crc, bool dummy) : UCodeInterface(dsphle, crc)
 {
 }
 
-AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc, false)
+AXUCode::AXUCode(DSPHLE* dsphle, const u32 crc) : AXUCode(dsphle, crc, false)
 {
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 
@@ -52,7 +52,7 @@ void AXUCode::InitializeShared()
   LoadResamplingCoefficients(false, 0);
 }
 
-bool AXUCode::LoadResamplingCoefficients(bool require_same_checksum, u32 desired_checksum)
+bool AXUCode::LoadResamplingCoefficients(const bool require_same_checksum, const u32 desired_checksum)
 {
   constexpr size_t raw_coeffs_size = 0x800 * 2;
   m_coeffs_checksum = std::nullopt;
@@ -292,7 +292,7 @@ void AXUCode::HandleCommandList()
   }
 }
 
-AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
+AXMixControl AXUCode::ConvertMixerControl(const u32 mixer_control)
 {
   u32 ret = 0;
 
@@ -370,7 +370,7 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
   return (AXMixControl)ret;
 }
 
-void AXUCode::SetupProcessing(u32 init_addr)
+void AXUCode::SetupProcessing(const u32 init_addr)
 {
   const std::array<BufferDesc, 9> buffers = {{
       {m_samples_main_left, 32},
@@ -386,7 +386,7 @@ void AXUCode::SetupProcessing(u32 init_addr)
   InitMixingBuffers<5 /*ms*/>(init_addr, buffers);
 }
 
-void AXUCode::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb)
+void AXUCode::DownloadAndMixWithVolume(const u32 addr, const u16 vol_main, const u16 vol_auxa, const u16 vol_auxb)
 {
   int* buffers_main[3] = {m_samples_main_left, m_samples_main_right, m_samples_main_surround};
   int* buffers_auxa[3] = {m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround};
@@ -450,7 +450,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
   }
 }
 
-void AXUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
+void AXUCode::MixAUXSamples(const int aux_id, const u32 write_addr, const u32 read_addr)
 {
   int* buffers[3] = {nullptr};
 
@@ -490,7 +490,7 @@ void AXUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
     sample += (int)Common::swap32(*ptr++);
 }
 
-void AXUCode::UploadLRS(u32 dst_addr)
+void AXUCode::UploadLRS(const u32 dst_addr)
 {
   int buffers[3][5 * 32];
 
@@ -504,7 +504,7 @@ void AXUCode::UploadLRS(u32 dst_addr)
          sizeof(buffers));
 }
 
-void AXUCode::SetMainLR(u32 src_addr)
+void AXUCode::SetMainLR(const u32 src_addr)
 {
   int* ptr = (int*)HLEMemory_Get_Pointer(m_dsphle->GetSystem().GetMemory(), src_addr);
   for (u32 i = 0; i < 5 * 32; ++i)
@@ -516,7 +516,7 @@ void AXUCode::SetMainLR(u32 src_addr)
   }
 }
 
-void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u32 millis)
+void AXUCode::RunCompressor(const u16 threshold, const u16 release_frames, const u32 table_addr, const u32 millis)
 {
   // check for L/R samples exceeding the threshold
   bool triggered = false;
@@ -563,7 +563,7 @@ void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u
   }
 }
 
-void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
+void AXUCode::OutputSamples(const u32 lr_addr, const u32 surround_addr)
 {
   int surround_buffer[5 * 32];
 
@@ -588,7 +588,7 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
   memcpy(HLEMemory_Get_Pointer(memory, lr_addr), buffer, sizeof(buffer));
 }
 
-void AXUCode::MixAUXBLR(u32 ul_addr, u32 dl_addr)
+void AXUCode::MixAUXBLR(const u32 ul_addr, const u32 dl_addr)
 {
   // Upload AUXB L/R
   auto& memory = m_dsphle->GetSystem().GetMemory();
@@ -614,7 +614,7 @@ void AXUCode::MixAUXBLR(u32 ul_addr, u32 dl_addr)
   }
 }
 
-void AXUCode::SetOppositeLR(u32 src_addr)
+void AXUCode::SetOppositeLR(const u32 src_addr)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   int* ptr = (int*)HLEMemory_Get_Pointer(memory, src_addr);
@@ -627,8 +627,8 @@ void AXUCode::SetOppositeLR(u32 src_addr)
   }
 }
 
-void AXUCode::SendAUXAndMix(u32 auxa_lrs_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl,
-                            u32 auxb_l_dl, u32 auxb_r_dl)
+void AXUCode::SendAUXAndMix(const u32 auxa_lrs_up, const u32 auxb_s_up, const u32 main_l_dl, const u32 main_r_dl,
+                            const u32 auxb_l_dl, const u32 auxb_r_dl)
 {
   // Buffers to upload first
   const std::array<const int*, 3> up_buffers{
@@ -748,7 +748,7 @@ void AXUCode::HandleMail(u32 mail)
   }
 }
 
-void AXUCode::CopyCmdList(u32 addr, u16 size)
+void AXUCode::CopyCmdList(u32 addr, const u16 size)
 {
   if (size >= std::size(m_cmdlist))
   {

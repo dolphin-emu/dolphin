@@ -99,9 +99,9 @@ private:
   void SetResetButton(bool set);
 
   // ID and callback for scheduling reset button presses/releases
-  static void ToggleResetButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void IOSNotifyResetButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
-  static void IOSNotifyPowerButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+  static void ToggleResetButtonCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
+  static void IOSNotifyResetButtonCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
+  static void IOSNotifyPowerButtonCallback(const Core::System& system, u64 userdata, s64 cyclesLate);
 
   CoreTiming::EventType* m_event_type_toggle_reset_button = nullptr;
   CoreTiming::EventType* m_event_type_ios_notify_reset_button = nullptr;

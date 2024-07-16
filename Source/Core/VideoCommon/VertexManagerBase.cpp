@@ -133,20 +133,20 @@ u32 VertexManagerBase::GetRemainingSize() const
   return static_cast<u32>(m_end_buffer_pointer - m_cur_buffer_pointer);
 }
 
-void VertexManagerBase::AddIndices(Primitive primitive, u32 num_vertices)
+void VertexManagerBase::AddIndices(const Primitive primitive, const u32 num_vertices)
 {
   m_index_generator.AddIndices(primitive, num_vertices);
 }
 
-bool VertexManagerBase::AreAllVerticesCulled(VertexLoaderBase* loader,
-                                             Primitive primitive, const u8* src,
-                                             u32 count)
+bool VertexManagerBase::AreAllVerticesCulled(const VertexLoaderBase* loader,
+                                             const Primitive primitive, const u8* src,
+                                             const u32 count)
 {
   return m_cpu_cull.AreAllVerticesCulled(loader, primitive, src, count);
 }
 
-DataReader VertexManagerBase::PrepareForAdditionalData(Primitive primitive,
-                                                       u32 count, u32 stride, bool cullall)
+DataReader VertexManagerBase::PrepareForAdditionalData(const Primitive primitive,
+                                                       const u32 count, const u32 stride, const bool cullall)
 {
   // Flush all EFB pokes. Since the buffer is shared, we can't draw pokes+primitives concurrently.
   g_framebuffer_manager->FlushEFBPokes();
@@ -219,7 +219,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(Primitive primitive,
   return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
 }
 
-DataReader VertexManagerBase::DisableCullAll(u32 stride)
+DataReader VertexManagerBase::DisableCullAll(const u32 stride)
 {
   if (m_cull_all)
   {
@@ -229,12 +229,12 @@ DataReader VertexManagerBase::DisableCullAll(u32 stride)
   return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
 }
 
-void VertexManagerBase::FlushData(u32 count, u32 stride)
+void VertexManagerBase::FlushData(const u32 count, const u32 stride)
 {
   m_cur_buffer_pointer += count * stride;
 }
 
-u32 VertexManagerBase::GetRemainingIndices(Primitive primitive) const
+u32 VertexManagerBase::GetRemainingIndices(const Primitive primitive) const
 {
   const u32 index_len = MAXIBUFFERSIZE - m_index_generator.GetIndexLen();
 
@@ -344,7 +344,7 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
   *out_base_index = 0;
 }
 
-void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
+void VertexManagerBase::DrawCurrentBatch(const u32 base_index, const u32 num_indices, const u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
   if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable &&
@@ -375,8 +375,8 @@ void VertexManagerBase::UploadUtilityUniforms(const void* uniforms, u32 uniforms
 {
 }
 
-void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_stride,
-                                              u32 num_vertices, const u16* indices, u32 num_indices,
+void VertexManagerBase::UploadUtilityVertices(const void* vertices, const u32 vertex_stride,
+                                              const u32 num_vertices, const u16* indices, const u32 num_indices,
                                               u32* out_base_vertex, u32* out_base_index)
 {
   // The GX vertex list should be flushed before any utility draws occur.
@@ -397,7 +397,7 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
   CommitBuffer(num_vertices, vertex_stride, num_indices, out_base_vertex, out_base_index);
 }
 
-u32 VertexManagerBase::GetTexelBufferElementSize(TexelBufferFormat buffer_format)
+u32 VertexManagerBase::GetTexelBufferElementSize(const TexelBufferFormat buffer_format)
 {
   // R8 - 1, R16 - 2, RGBA8 - 4, R32G32 - 8
   return 1u << static_cast<u32>(buffer_format);
@@ -703,7 +703,7 @@ void VertexManagerBase::DoState(PointerWrap& p)
   p.Do(VertexLoaderManager::binormal_cache);
 }
 
-void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
+void VertexManagerBase::CalculateZSlope(const NativeVertexFormat* format)
 {
   float out[12];
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
@@ -769,7 +769,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   m_zslope.dirty = true;
 }
 
-void VertexManagerBase::CalculateBinormals(NativeVertexFormat* format)
+void VertexManagerBase::CalculateBinormals(const NativeVertexFormat* format)
 {
   const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 
@@ -1072,7 +1072,7 @@ void VertexManagerBase::NotifyCustomShaderCacheOfHostChange(const ShaderHostConf
 void VertexManagerBase::RenderDrawCall(
     PixelShaderManager& pixel_shader_manager, GeometryShaderManager& geometry_shader_manager,
     const CustomPixelShaderContents& custom_pixel_shader_contents,
-    std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
+    const std::span<u8> custom_pixel_shader_uniforms, const PrimitiveType primitive_type,
     const AbstractPipeline* current_pipeline)
 {
   // Now we can upload uniforms, as nothing else will override them.

@@ -53,7 +53,7 @@ public:
 
   bool IsValid() const { return m_logfile.good(); }
   bool IsEnabled() const { return m_enable; }
-  void SetEnable(bool enable) { m_enable = enable; }
+  void SetEnable(const bool enable) { m_enable = enable; }
 
 private:
   std::mutex m_log_lock;
@@ -61,8 +61,8 @@ private:
   bool m_enable;
 };
 
-void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
-                       fmt::string_view format, const fmt::format_args& args)
+void GenericLogFmtImpl(const LogLevel level, const LogType type, const char* file, const int line,
+                       const fmt::string_view format, const fmt::format_args& args)
 {
   auto* instance = LogManager::GetInstance();
   if (instance == nullptr)
@@ -198,7 +198,7 @@ void LogManager::SaveSettings()
   Config::Save();
 }
 
-void LogManager::Log(LogLevel level, LogType type, const char* file, int line, const char* message)
+void LogManager::Log(const LogLevel level, const LogType type, const char* file, const int line, const char* message)
 {
   if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
@@ -218,7 +218,7 @@ std::string LogManager::GetTimestamp()
   return fmt::format("{:%M:%S}:{:03}", now_s, (now_ms - now_s).count());
 }
 
-void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
+void LogManager::LogWithFullPath(LogLevel level, const LogType type, const char* file, int line,
                                  const char* message)
 {
   const std::string msg =
@@ -237,17 +237,17 @@ LogLevel LogManager::GetLogLevel() const
   return m_level;
 }
 
-void LogManager::SetLogLevel(LogLevel level)
+void LogManager::SetLogLevel(const LogLevel level)
 {
   m_level = std::clamp(level, LogLevel::LNOTICE, MAX_LOGLEVEL);
 }
 
-void LogManager::SetEnable(LogType type, bool enable)
+void LogManager::SetEnable(const LogType type, const bool enable)
 {
   m_log[type].m_enable = enable;
 }
 
-bool LogManager::IsEnabled(LogType type, LogLevel level) const
+bool LogManager::IsEnabled(const LogType type, const LogLevel level) const
 {
   return m_log[type].m_enable && GetLogLevel() >= level;
 }
@@ -262,27 +262,27 @@ std::map<std::string, std::string> LogManager::GetLogTypes()
   return log_types;
 }
 
-const char* LogManager::GetShortName(LogType type) const
+const char* LogManager::GetShortName(const LogType type) const
 {
   return m_log[type].m_short_name;
 }
 
-const char* LogManager::GetFullName(LogType type) const
+const char* LogManager::GetFullName(const LogType type) const
 {
   return m_log[type].m_full_name;
 }
 
-void LogManager::RegisterListener(LogListener::LISTENER id, LogListener* listener)
+void LogManager::RegisterListener(const LogListener::LISTENER id, LogListener* listener)
 {
   m_listeners[id] = listener;
 }
 
-void LogManager::EnableListener(LogListener::LISTENER id, bool enable)
+void LogManager::EnableListener(const LogListener::LISTENER id, const bool enable)
 {
   m_listener_ids[id] = enable;
 }
 
-bool LogManager::IsListenerEnabled(LogListener::LISTENER id) const
+bool LogManager::IsListenerEnabled(const LogListener::LISTENER id) const
 {
   return m_listener_ids[id];
 }

@@ -31,7 +31,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent) : m_block_save(false)
+EnhancementsWidget::EnhancementsWidget(const GraphicsWindow* parent) : m_block_save(false)
 {
   CreateWidgets();
   LoadSettings();

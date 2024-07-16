@@ -511,7 +511,7 @@ class PipelineCacheReadCallback : public Common::LinearDiskCacheReader<u32, u8>
 {
 public:
   PipelineCacheReadCallback(std::vector<u8>* data) : m_data(data) {}
-  void Read(const u32& key, const u8* value, u32 value_size) override
+  void Read(const u32& key, const u8* value, const u32 value_size) override
   {
     m_data->resize(value_size);
     if (value_size > 0)
@@ -605,7 +605,7 @@ struct VK_PIPELINE_CACHE_HEADER
 static_assert(std::is_trivially_copyable<VK_PIPELINE_CACHE_HEADER>::value,
               "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
 
-bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
+bool ObjectCache::ValidatePipelineCache(const u8* data, const size_t data_length)
 {
   if (data_length < sizeof(VK_PIPELINE_CACHE_HEADER))
   {

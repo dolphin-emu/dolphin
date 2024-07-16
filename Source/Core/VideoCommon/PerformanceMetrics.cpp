@@ -36,13 +36,13 @@ void PerformanceMetrics::CountVBlank()
   m_vps_counter.Count();
 }
 
-void PerformanceMetrics::CountThrottleSleep(DT sleep)
+void PerformanceMetrics::CountThrottleSleep(const DT sleep)
 {
   std::unique_lock lock(m_time_lock);
   m_time_sleeping += sleep;
 }
 
-void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
+void PerformanceMetrics::CountPerformanceMarker(const Core::System& system, const s64 cyclesLate)
 {
   std::unique_lock lock(m_time_lock);
   m_speed_counter.Count();

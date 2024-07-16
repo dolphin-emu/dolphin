@@ -97,7 +97,7 @@ bool StateTracker::Initialize()
   return true;
 }
 
-void StateTracker::SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset, u32 size)
+void StateTracker::SetVertexBuffer(const VkBuffer buffer, const VkDeviceSize offset, const u32 size)
 {
   if (m_vertex_buffer != buffer || m_vertex_buffer_offset != offset)
   {
@@ -116,7 +116,7 @@ void StateTracker::SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset, u32 siz
   }
 }
 
-void StateTracker::SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type)
+void StateTracker::SetIndexBuffer(const VkBuffer buffer, const VkDeviceSize offset, const VkIndexType type)
 {
   if (m_index_buffer == buffer && m_index_buffer_offset == offset && m_index_type == type)
     return;
@@ -158,7 +158,7 @@ void StateTracker::SetComputeShader(const VKShader* shader)
   m_dirty_flags |= DIRTY_FLAG_COMPUTE_SHADER;
 }
 
-void StateTracker::SetGXUniformBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size)
+void StateTracker::SetGXUniformBuffer(const u32 index, const VkBuffer buffer, const u32 offset, const u32 size)
 {
   auto& binding = m_bindings.gx_ubo_bindings[index];
   if (binding.buffer != buffer || binding.range != size)
@@ -175,7 +175,7 @@ void StateTracker::SetGXUniformBuffer(u32 index, VkBuffer buffer, u32 offset, u3
   }
 }
 
-void StateTracker::SetUtilityUniformBuffer(VkBuffer buffer, u32 offset, u32 size)
+void StateTracker::SetUtilityUniformBuffer(const VkBuffer buffer, const u32 offset, const u32 size)
 {
   auto& binding = m_bindings.utility_ubo_binding;
   if (binding.buffer != buffer || binding.range != size)
@@ -192,7 +192,7 @@ void StateTracker::SetUtilityUniformBuffer(VkBuffer buffer, u32 offset, u32 size
   }
 }
 
-void StateTracker::SetTexture(u32 index, VkImageView view)
+void StateTracker::SetTexture(const u32 index, const VkImageView view)
 {
   if (m_bindings.samplers[index].imageView == view)
     return;
@@ -203,7 +203,7 @@ void StateTracker::SetTexture(u32 index, VkImageView view)
       DIRTY_FLAG_GX_SAMPLERS | DIRTY_FLAG_UTILITY_BINDINGS | DIRTY_FLAG_COMPUTE_BINDINGS;
 }
 
-void StateTracker::SetSampler(u32 index, VkSampler sampler)
+void StateTracker::SetSampler(const u32 index, const VkSampler sampler)
 {
   if (m_bindings.samplers[index].sampler == sampler)
     return;
@@ -213,7 +213,7 @@ void StateTracker::SetSampler(u32 index, VkSampler sampler)
       DIRTY_FLAG_GX_SAMPLERS | DIRTY_FLAG_UTILITY_BINDINGS | DIRTY_FLAG_COMPUTE_BINDINGS;
 }
 
-void StateTracker::SetSSBO(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+void StateTracker::SetSSBO(const VkBuffer buffer, const VkDeviceSize offset, const VkDeviceSize range)
 {
   if (m_bindings.ssbo.buffer == buffer && m_bindings.ssbo.offset == offset &&
       m_bindings.ssbo.range == range)
@@ -227,7 +227,7 @@ void StateTracker::SetSSBO(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize ra
   m_dirty_flags |= DIRTY_FLAG_GX_SSBO;
 }
 
-void StateTracker::SetTexelBuffer(u32 index, VkBufferView view)
+void StateTracker::SetTexelBuffer(const u32 index, const VkBufferView view)
 {
   if (m_bindings.texel_buffers[index] == view)
     return;
@@ -236,7 +236,7 @@ void StateTracker::SetTexelBuffer(u32 index, VkBufferView view)
   m_dirty_flags |= DIRTY_FLAG_UTILITY_BINDINGS | DIRTY_FLAG_COMPUTE_BINDINGS;
 }
 
-void StateTracker::SetImageTexture(u32 index, VkImageView view)
+void StateTracker::SetImageTexture(const u32 index, const VkImageView view)
 {
   if (m_bindings.image_textures[index].imageView == view)
     return;
@@ -246,7 +246,7 @@ void StateTracker::SetImageTexture(u32 index, VkImageView view)
   m_dirty_flags |= DIRTY_FLAG_COMPUTE_BINDINGS;
 }
 
-void StateTracker::UnbindTexture(VkImageView view)
+void StateTracker::UnbindTexture(const VkImageView view)
 {
   for (VkDescriptorImageInfo& it : m_bindings.samplers)
   {
@@ -331,7 +331,7 @@ void StateTracker::EndRenderPass()
 }
 
 void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue* clear_values,
-                                        u32 num_clear_values)
+                                        const u32 num_clear_values)
 {
   ASSERT(!InRenderPass());
 
@@ -433,7 +433,7 @@ bool StateTracker::BindCompute()
   return true;
 }
 
-bool StateTracker::IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const
+bool StateTracker::IsWithinRenderArea(const s32 x, const s32 y, const u32 width, const u32 height) const
 {
   // Check that the viewport does not lie outside the render area.
   // If it does, we need to switch to a normal load/store render pass.

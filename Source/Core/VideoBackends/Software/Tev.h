@@ -13,16 +13,16 @@ class Tev
   struct TevColor
   {
     constexpr TevColor() = default;
-    constexpr explicit TevColor(s16 a_, s16 b_, s16 g_, s16 r_) : a(a_), b(b_), g(g_), r(r_) {}
+    constexpr explicit TevColor(const s16 a_, const s16 b_, const s16 g_, const s16 r_) : a(a_), b(b_), g(g_), r(r_) {}
 
     s16 a = 0;
     s16 b = 0;
     s16 g = 0;
     s16 r = 0;
 
-    constexpr static TevColor All(s16 value) { return TevColor(value, value, value, value); }
+    constexpr static TevColor All(const s16 value) { return TevColor(value, value, value, value); }
 
-    constexpr s16& operator[](int index)
+    constexpr s16& operator[](const int index)
     {
       switch (index)
       {

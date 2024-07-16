@@ -67,7 +67,7 @@ CoreTiming::EventType* s_finish_init_event;
 CoreTiming::EventType* s_reload_ios_for_ppc_launch_event;
 CoreTiming::EventType* s_bootstrap_ppc_for_launch_event;
 
-constexpr SystemTimers::TimeBaseTick GetESBootTicks(u32 ios_version)
+constexpr SystemTimers::TimeBaseTick GetESBootTicks(const u32 ios_version)
 {
   if (ios_version < 28)
     return 22'000'000_tbticks;
@@ -130,15 +130,15 @@ ESDevice::~ESDevice() = default;
 void ESDevice::InitializeEmulationState(CoreTiming::CoreTimingManager& core_timing)
 {
   s_finish_init_event =
-      core_timing.RegisterEvent("IOS-ESFinishInit", [](Core::System& system_, u64, s64) {
+      core_timing.RegisterEvent("IOS-ESFinishInit", [](const Core::System& system_, u64, s64) {
         system_.GetIOS()->GetESDevice()->FinishInit();
       });
   s_reload_ios_for_ppc_launch_event = core_timing.RegisterEvent(
-      "IOS-ESReloadIOSForPPCLaunch", [](Core::System& system_, u64 ios_id, s64) {
+      "IOS-ESReloadIOSForPPCLaunch", [](const Core::System& system_, const u64 ios_id, s64) {
         system_.GetIOS()->GetESDevice()->LaunchTitle(ios_id, HangPPC::Yes);
       });
   s_bootstrap_ppc_for_launch_event =
-      core_timing.RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](Core::System& system_, u64, s64) {
+      core_timing.RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](const Core::System& system_, u64, s64) {
         system_.GetIOS()->GetESDevice()->BootstrapPPC();
       });
 }
@@ -189,7 +189,7 @@ void TitleContext::DoState(PointerWrap& p)
 }
 
 void TitleContext::Update(const ES::TMDReader& tmd_, const ES::TicketReader& ticket_,
-                          DiscIO::Platform platform)
+                          const DiscIO::Platform platform)
 {
   if (!tmd_.IsValid() || !ticket_.IsValid())
   {
@@ -292,7 +292,7 @@ static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, const u32 call
   return ES_EINVAL;
 }
 
-IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::SetUID(const u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return IPCReply(ES_EINVAL);
@@ -322,7 +322,7 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-bool ESDevice::LaunchTitle(u64 title_id, HangPPC hang_ppc)
+bool ESDevice::LaunchTitle(const u64 title_id, const HangPPC hang_ppc)
 {
   m_core.m_title_context.Clear();
   INFO_LOG_FMT(IOS_ES, "ES_Launch: Title context changed: (none)");
@@ -350,7 +350,7 @@ bool ESDevice::LaunchTitle(u64 title_id, HangPPC hang_ppc)
   return LaunchPPCTitle(title_id);
 }
 
-bool ESDevice::LaunchIOS(u64 ios_title_id, HangPPC hang_ppc)
+bool ESDevice::LaunchIOS(const u64 ios_title_id, const HangPPC hang_ppc)
 {
   // A real Wii goes through several steps before getting to MIOS.
   //
@@ -389,7 +389,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id, HangPPC hang_ppc)
   return GetEmulationKernel().BootIOS(ios_title_id, hang_ppc);
 }
 
-s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks)
+s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, const Ticks ticks)
 {
   GetEmulationKernel().GetFSCore().DeleteFile(PID_KERNEL, PID_KERNEL, SPACE_FILE_PATH, ticks);
 
@@ -402,7 +402,7 @@ s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks)
   return WriteSystemFile(LAUNCH_FILE_PATH, launch_data, ticks);
 }
 
-bool ESDevice::LaunchPPCTitle(u64 title_id)
+bool ESDevice::LaunchPPCTitle(const u64 title_id)
 {
   u64 ticks = 0;
 
@@ -550,7 +550,7 @@ std::optional<IPCReply> ESDevice::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-std::optional<IPCReply> ESDevice::Close(u32 fd)
+std::optional<IPCReply> ESDevice::Close(const u32 fd)
 {
   auto context = FindActiveContext(fd);
   if (context == m_contexts.end())
@@ -1010,7 +1010,7 @@ bool ESCore::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
   return title_identifier && (title_identifier & ~permitted_title_mask) == permitted_title_id;
 }
 
-bool ESCore::IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert) const
+bool ESCore::IsIssuerCorrect(const VerifyContainerType type, const ES::CertReader& issuer_cert) const
 {
   switch (type)
   {
@@ -1065,7 +1065,7 @@ ReturnCode ESCore::WriteNewCertToStore(const ES::CertReader& cert)
   return IPC_SUCCESS;
 }
 
-ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+ReturnCode ESCore::VerifyContainer(const VerifyContainerType type, const VerifyMode mode,
                                    const ES::SignedBlobReader& signed_blob,
                                    const std::vector<u8>& cert_chain, u32* issuer_handle_out)
 {
@@ -1162,9 +1162,9 @@ ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   return ret;
 }
 
-ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+ReturnCode ESCore::VerifyContainer(const VerifyContainerType type, const VerifyMode mode,
                                    const ES::CertReader& cert, const std::vector<u8>& cert_chain,
-                                   u32 certificate_iosc_handle)
+                                   const u32 certificate_iosc_handle)
 {
   IOSC::Handle issuer_handle;
   ReturnCode ret = VerifyContainer(type, mode, cert, cert_chain, &issuer_handle);

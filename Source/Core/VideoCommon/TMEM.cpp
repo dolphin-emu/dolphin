@@ -102,7 +102,7 @@ static std::array<TextureUnitState, 8> s_unit;
 // On TMEM configuration changed:
 // 1. invalidate stage.
 
-void ConfigurationChanged(TexUnitAddress bp_addr, u32 config)
+void ConfigurationChanged(const TexUnitAddress bp_addr, const u32 config)
 {
   TextureUnitState& unit_state = s_unit[bp_addr.GetUnitID()];
 
@@ -157,7 +157,7 @@ void Invalidate([[maybe_unused]] u32 param)
 // 2. if texture size is small enough to fit in region mark as cached.
 //    otherwise, mark as valid
 
-void Bind(u32 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
+void Bind(const u32 unit, const int width, const int height, const bool is_mipmapped, const bool is_32_bit)
 {
   TextureUnitState& unit_state = s_unit[unit];
 
@@ -201,7 +201,7 @@ void Bind(u32 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
   unit_state.state = fits ? TextureUnitState::State::CACHED : TextureUnitState::State::VALID;
 }
 
-static u32 CalculateUnitSize(TextureUnitState::BankConfig bank_config)
+static u32 CalculateUnitSize(const TextureUnitState::BankConfig bank_config)
 {
   u32 width = bank_config.width;
   u32 height = bank_config.height;
@@ -246,7 +246,7 @@ bool TextureUnitState::Overlaps(const TextureUnitState& other) const
 }
 
 // Scans though active texture units checks for overlaps.
-void FinalizeBinds(BitSet32 used_textures)
+void FinalizeBinds(const BitSet32 used_textures)
 {
   for (u32 i : used_textures)
   {
@@ -267,12 +267,12 @@ void FinalizeBinds(BitSet32 used_textures)
   }
 }
 
-bool IsCached(u32 unit)
+bool IsCached(const u32 unit)
 {
   return s_unit[unit].state == TextureUnitState::State::CACHED;
 }
 
-bool IsValid(u32 unit)
+bool IsValid(const u32 unit)
 {
   return s_unit[unit].state != TextureUnitState::State::INVALID;
 }

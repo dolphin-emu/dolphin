@@ -26,7 +26,7 @@ namespace AudioCommon
 constexpr int AUDIO_VOLUME_MIN = 0;
 constexpr int AUDIO_VOLUME_MAX = 100;
 
-static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view backend)
+static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(const std::string_view backend)
 {
   if (backend == BACKEND_CUBEB)
     return std::make_unique<CubebStream>();
@@ -133,7 +133,7 @@ std::vector<std::string> GetSoundBackends()
   return backends;
 }
 
-bool SupportsDPL2Decoder(std::string_view backend)
+bool SupportsDPL2Decoder(const std::string_view backend)
 {
 #ifndef __APPLE__
   if (backend == BACKEND_OPENAL)
@@ -146,12 +146,12 @@ bool SupportsDPL2Decoder(std::string_view backend)
   return false;
 }
 
-bool SupportsLatencyControl(std::string_view backend)
+bool SupportsLatencyControl(const std::string_view backend)
 {
   return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
-bool SupportsVolumeChanges(std::string_view backend)
+bool SupportsVolumeChanges(const std::string_view backend)
 {
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
@@ -159,7 +159,7 @@ bool SupportsVolumeChanges(std::string_view backend)
   return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
-void UpdateSoundStream(Core::System& system)
+void UpdateSoundStream(const Core::System& system)
 {
   SoundStream* sound_stream = system.GetSoundStream();
 
@@ -170,7 +170,7 @@ void UpdateSoundStream(Core::System& system)
   }
 }
 
-void SetSoundStreamRunning(Core::System& system, bool running)
+void SetSoundStreamRunning(Core::System& system, const bool running)
 {
   SoundStream* sound_stream = system.GetSoundStream();
 
@@ -189,7 +189,7 @@ void SetSoundStreamRunning(Core::System& system, bool running)
     ERROR_LOG_FMT(AUDIO, "Error stopping stream.");
 }
 
-void SendAIBuffer(Core::System& system, const short* samples, unsigned int num_samples)
+void SendAIBuffer(Core::System& system, const short* samples, const unsigned int num_samples)
 {
   SoundStream* sound_stream = system.GetSoundStream();
 
@@ -240,7 +240,7 @@ void StopAudioDump(Core::System& system)
   system.SetAudioDumpStarted(false);
 }
 
-void IncreaseVolume(Core::System& system, unsigned short offset)
+void IncreaseVolume(Core::System& system, const unsigned short offset)
 {
   SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
   int currentVolume = Get(Config::MAIN_AUDIO_VOLUME);
@@ -251,7 +251,7 @@ void IncreaseVolume(Core::System& system, unsigned short offset)
   UpdateSoundStream(system);
 }
 
-void DecreaseVolume(Core::System& system, unsigned short offset)
+void DecreaseVolume(Core::System& system, const unsigned short offset)
 {
   SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
   int currentVolume = Get(Config::MAIN_AUDIO_VOLUME);

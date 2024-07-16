@@ -176,8 +176,8 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
   }
 }
 
-bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func,
-                       u32 max_size)
+bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, const u32 start_addr, Common::Symbol& func,
+                       const u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
@@ -386,7 +386,7 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
   }
 }
 
-void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
+void FindFunctions(const Core::CPUThreadGuard& guard, const u32 startAddr, const u32 endAddr,
                    PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
@@ -474,8 +474,8 @@ static bool isCror(const CodeOp& a)
   return a.inst.OPCD == 19 && a.inst.SUBOP10 == 449;
 }
 
-void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
-                                          ReorderType type) const
+void PPCAnalyzer::ReorderInstructionsCore(const u32 instructions, CodeOp* code, const bool reverse,
+                                          const ReorderType type) const
 {
   // Instruction Reordering Pass
   // Carry pass: bubble carry-using instructions as close to each other as possible, so we can avoid
@@ -548,7 +548,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
   }
 }
 
-void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
+void PPCAnalyzer::ReorderInstructions(const u32 instructions, CodeOp* code) const
 {
   // For carry, bubble instructions *towards* each other; one direction often isn't enough
   // to get pairs like addc/adde next to each other.
@@ -569,7 +569,7 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
     ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
+void PPCAnalyzer::SetInstructionStats(const CodeBlock* block, CodeOp* code,
                                       const GekkoOPInfo* opinfo) const
 {
   bool first_fpu_instruction = false;
@@ -731,7 +731,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   }
 }
 
-bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const
+bool PPCAnalyzer::IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, const size_t instructions) const
 {
   // Very basic algorithm to detect busy wait loops:
   //   * It loops to itself and does not contain any other branches.

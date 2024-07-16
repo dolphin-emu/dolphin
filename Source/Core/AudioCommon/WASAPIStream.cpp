@@ -54,7 +54,7 @@ bool WASAPIStream::IsValid()
   return true;
 }
 
-static bool HandleWinAPI(std::string_view message, HRESULT result)
+static bool HandleWinAPI(const std::string_view message, const HRESULT result)
 {
   if (FAILED(result))
   {

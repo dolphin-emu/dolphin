@@ -18,7 +18,7 @@
 
 constexpr size_t SYSCONF_SIZE = 0x4000;
 
-static size_t GetNonArrayEntrySize(SysConf::Entry::Type type)
+static size_t GetNonArrayEntrySize(const SysConf::Entry::Type type)
 {
   switch (type)
   {
@@ -210,13 +210,13 @@ bool SysConf::Save() const
   return result == IOS::HLE::FS::ResultCode::Success;
 }
 
-SysConf::Entry::Entry(Type type_, std::string name_) : type(type_), name(std::move(name_))
+SysConf::Entry::Entry(const Type type_, std::string name_) : type(type_), name(std::move(name_))
 {
   if (type != SmallArray && type != BigArray)
     bytes.resize(GetNonArrayEntrySize(type));
 }
 
-SysConf::Entry::Entry(Type type_, std::string name_, std::vector<u8> bytes_)
+SysConf::Entry::Entry(const Type type_, std::string name_, std::vector<u8> bytes_)
     : type(type_), name(std::move(name_)), bytes(std::move(bytes_))
 {
 }
@@ -240,7 +240,7 @@ const SysConf::Entry* SysConf::GetEntry(std::string_view key) const
   return iterator != m_entries.end() ? &*iterator : nullptr;
 }
 
-SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)
+SysConf::Entry* SysConf::GetOrAddEntry(const std::string_view key, Entry::Type type)
 {
   if (Entry* entry = GetEntry(key))
     return entry;

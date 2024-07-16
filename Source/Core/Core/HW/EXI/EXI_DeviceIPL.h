@@ -26,7 +26,7 @@ public:
   static constexpr u32 UNIX_EPOCH = 0;         // 1970-01-01 00:00:00
   static constexpr u32 GC_EPOCH = 0x386D4380;  // 2000-01-01 00:00:00
 
-  static u32 GetEmulatedTime(Core::System& system, u32 epoch);
+  static u32 GetEmulatedTime(const Core::System& system, u32 epoch);
   static u64 NetPlay_GetEmulatedTime();
 
   static void Descrambler(u8* data, u32 size);

@@ -59,7 +59,7 @@ static HANDLE WINAPI HeapCreateLow4GB(_In_ DWORD flOptions, _In_ SIZE_T dwInitia
   return RtlCreateHeap(0, low_heap, 0, 0, nullptr, nullptr);
 }
 
-static bool ModifyProtectedRegion(void* address, size_t size, std::function<void()> func)
+static bool ModifyProtectedRegion(void* address, const size_t size, std::function<void()> func)
 {
   DWORD old_protect;
   if (!VirtualProtect(address, size, PAGE_READWRITE, &old_protect))
@@ -74,14 +74,14 @@ static bool ModifyProtectedRegion(void* address, size_t size, std::function<void
 class ImportPatcher
 {
 public:
-  ImportPatcher(uintptr_t module_base) : base(module_base)
+  ImportPatcher(const uintptr_t module_base) : base(module_base)
   {
     auto mz = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
     auto pe = reinterpret_cast<PIMAGE_NT_HEADERS>(base + mz->e_lfanew);
     directories = pe->OptionalHeader.DataDirectory;
   }
   template <typename T>
-  T GetRva(uint32_t rva)
+  T GetRva(const uint32_t rva)
   {
     return reinterpret_cast<T>(base + rva);
   }

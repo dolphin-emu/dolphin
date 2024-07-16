@@ -19,8 +19,8 @@
 
 namespace Vulkan
 {
-VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline,
-                       VkPipelineLayout pipeline_layout, AbstractPipelineUsage usage)
+VKPipeline::VKPipeline(const AbstractPipelineConfig& config, const VkPipeline pipeline,
+                       const VkPipelineLayout pipeline_layout, const AbstractPipelineUsage usage)
     : AbstractPipeline(config), m_pipeline(pipeline), m_pipeline_layout(pipeline_layout),
       m_usage(usage)
 {
@@ -31,7 +31,7 @@ VKPipeline::~VKPipeline()
   vkDestroyPipeline(g_vulkan_context->GetDevice(), m_pipeline, nullptr);
 }
 
-static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
+static bool IsStripPrimitiveTopology(const VkPrimitiveTopology topology)
 {
   return topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP ||
          topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ||
@@ -206,7 +206,7 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 static VkPipelineColorBlendStateCreateInfo
 GetVulkanColorBlendState(const BlendingState& state,
                          const VkPipelineColorBlendAttachmentState* attachments,
-                         uint32_t num_attachments)
+                         const uint32_t num_attachments)
 {
   static constexpr std::array<VkLogicOp, 16> vk_logic_ops = {
       {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,

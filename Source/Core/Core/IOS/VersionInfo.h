@@ -67,7 +67,7 @@ constexpr Feature operator|(Feature lhs, Feature rhs)
   return static_cast<Feature>(static_cast<int>(lhs) | static_cast<int>(rhs));
 }
 
-constexpr Feature& operator|=(Feature& lhs, Feature rhs)
+constexpr Feature& operator|=(Feature& lhs, const Feature rhs)
 {
   lhs = lhs | rhs;
   return lhs;

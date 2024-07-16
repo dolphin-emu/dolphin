@@ -43,7 +43,7 @@ bool PerfQuery::Initialize()
   return true;
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
+void PerfQuery::EnableQuery(const PerfQueryGroup group)
 {
   // Block if there are no free slots.
   // Otherwise, try to keep half of them available.
@@ -73,7 +73,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup group)
+void PerfQuery::DisableQuery(const PerfQueryGroup group)
 {
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
@@ -102,7 +102,7 @@ void PerfQuery::ResetQuery()
   std::memset(m_query_buffer.data(), 0, sizeof(ActiveQuery) * m_query_buffer.size());
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
+u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 {
   u32 result = 0;
   if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
@@ -189,7 +189,7 @@ void PerfQuery::ReadbackQueries()
     ReadbackQueries(readback_count);
 }
 
-void PerfQuery::ReadbackQueries(u32 query_count)
+void PerfQuery::ReadbackQueries(const u32 query_count)
 {
   // Should be at maximum query_count queries pending.
   ASSERT(query_count <= m_query_count.load(std::memory_order_relaxed) &&
@@ -232,7 +232,7 @@ void PerfQuery::ReadbackQueries(u32 query_count)
   m_query_count.fetch_sub(query_count, std::memory_order_relaxed);
 }
 
-void PerfQuery::PartialFlush(bool blocking)
+void PerfQuery::PartialFlush(const bool blocking)
 {
   // Submit a command buffer in the background if the front query is not bound to one.
   if (blocking || m_query_buffer[m_query_readback_pos].fence_counter ==

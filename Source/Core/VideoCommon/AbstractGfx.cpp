@@ -19,7 +19,7 @@ std::unique_ptr<AbstractGfx> g_gfx;
 AbstractGfx::AbstractGfx()
 {
   m_config_changed =
-      ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "AbstractGfx");
+      ConfigChangedEvent::Register([this](const u32 bits) { OnConfigChanged(bits); }, "AbstractGfx");
 }
 
 bool AbstractGfx::IsHeadless() const
@@ -55,8 +55,8 @@ void AbstractGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
   m_current_framebuffer = framebuffer;
 }
 
-void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
-                              bool alphaEnable, bool zEnable, u32 color, u32 z)
+void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, const bool colorEnable,
+                              const bool alphaEnable, const bool zEnable, const u32 color, const u32 z)
 {
   // This is a generic fallback for any ClearRegion operations that backends don't support.
   // It simply draws a Quad.
@@ -86,8 +86,8 @@ void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool co
   EndUtilityDrawing();
 }
 
-void AbstractGfx::SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth,
-                                        float max_depth)
+void AbstractGfx::SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, const float min_depth,
+                                        const float max_depth)
 {
   SetViewport(static_cast<float>(rect.left), static_cast<float>(rect.top),
               static_cast<float>(rect.GetWidth()), static_cast<float>(rect.GetHeight()), min_depth,
@@ -146,7 +146,7 @@ AbstractGfx::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
 
 MathUtil::Rectangle<int>
 AbstractGfx::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect, u32 fb_width,
-                                         u32 fb_height) const
+                                         const u32 fb_height) const
 {
   MathUtil::Rectangle<int> ret = rect;
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -162,7 +162,7 @@ std::unique_ptr<VideoCommon::AsyncShaderCompiler> AbstractGfx::CreateAsyncShader
   return std::make_unique<VideoCommon::AsyncShaderCompiler>();
 }
 
-void AbstractGfx::OnConfigChanged(u32 changed_bits)
+void AbstractGfx::OnConfigChanged(const u32 changed_bits)
 {
   // If there's any shader changes, wait for the GPU to finish before destroying anything.
   if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))

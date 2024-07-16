@@ -64,7 +64,7 @@ private:
   CPState m_cpmem;
 };
 
-void FifoRecorder::FifoRecordAnalyzer::OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size)
+void FifoRecorder::FifoRecordAnalyzer::OnIndexedLoad(const CPArray array, const u32 index, u16 address, const u8 size)
 {
   const u32 load_address = m_cpmem.array_bases[array] + m_cpmem.array_strides[array] * index;
 
@@ -79,7 +79,7 @@ void FifoRecorder::FifoRecordAnalyzer::OnIndexedLoad(CPArray array, u32 index, u
 #include "VideoCommon/VertexLoader_TextCoord.h"
 
 void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primitive primitive,
-                                                          u8 vat, u32 vertex_size, u16 num_vertices,
+                                                          const u8 vat, const u32 vertex_size, const u16 num_vertices,
                                                           const u8* vertex_data)
 {
   const auto& vtx_desc = m_cpmem.vtx_desc;
@@ -165,8 +165,8 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
 
 // If a component is indexed, the array it indexes into for data must be saved.
 void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(
-    CPArray array_index, VertexComponentFormat array_type, u32 component_offset, u32 component_size,
-    u32 vertex_size, u16 num_vertices, const u8* vertex_data, u32 byte_offset)
+    const CPArray array_index, const VertexComponentFormat array_type, const u32 component_offset, const u32 component_size,
+    const u32 vertex_size, const u16 num_vertices, const u8* vertex_data, const u32 byte_offset)
 {
   // Skip if not indexed array
   if (!IsIndexed(array_type))
@@ -218,7 +218,7 @@ FifoRecorder::FifoRecorder(Core::System& system) : m_system(system)
 
 FifoRecorder::~FifoRecorder() = default;
 
-void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
+void FifoRecorder::StartRecording(const s32 numFrames, CallbackFunc finishedCb)
 {
   std::lock_guard lk(m_mutex);
 
@@ -310,7 +310,7 @@ FifoDataFile* FifoRecorder::GetRecordedFile() const
   return m_File.get();
 }
 
-void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
+void FifoRecorder::WriteGPCommand(const u8* data, const u32 size)
 {
   if (!m_SkipNextData)
   {
@@ -354,7 +354,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
   m_SkipNextData = m_SkipFutureData;
 }
 
-void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, bool dynamicUpdate)
+void FifoRecorder::UseMemory(const u32 address, const u32 size, const MemoryUpdate::Type type, const bool dynamicUpdate)
 {
   auto& memory = m_system.GetMemory();
 
@@ -393,7 +393,7 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
   }
 }
 
-void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
+void FifoRecorder::EndFrame(const u32 fifoStart, const u32 fifoEnd)
 {
   // m_IsRecording is assumed to be true at this point, otherwise this function would not be called
   std::lock_guard lk(m_mutex);
@@ -437,7 +437,7 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 }
 
 void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
-                                  const u32* xfRegs, u32 xfRegsSize, const u8* texMem_ptr)
+                                  const u32* xfRegs, const u32 xfRegsSize, const u8* texMem_ptr)
 {
   std::lock_guard lk(m_mutex);
 

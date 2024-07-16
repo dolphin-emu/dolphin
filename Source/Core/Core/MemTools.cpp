@@ -45,7 +45,7 @@ namespace EMM
 
 static PVOID s_veh_handle;
 
-static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
+static LONG NTAPI Handler(const PEXCEPTION_POINTERS pPtrs)
 {
   switch (pPtrs->ExceptionRecord->ExceptionCode)
   {

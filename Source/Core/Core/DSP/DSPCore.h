@@ -373,10 +373,10 @@ struct SDSP
   void SkipInstruction();
 
   // Sets the given flags in the SR register.
-  void SetSRFlag(u16 flag) { r.sr |= flag; }
+  void SetSRFlag(const u16 flag) { r.sr |= flag; }
 
   // Whether or not the given flag is set in the SR register.
-  bool IsSRFlagSet(u16 flag) const { return (r.sr & flag) != 0; }
+  bool IsSRFlagSet(const u16 flag) const { return (r.sr & flag) != 0; }
 
   // Indicates that a particular exception has occurred
   // and sets a flag in the pending exception register.
@@ -407,7 +407,7 @@ struct SDSP
   void AdvanceStepCounter() { ++m_step_counter; }
 
   // Sets the calculated IRAM CRC for debugging purposes.
-  void SetIRAMCRC(u32 crc) { m_iram_crc = crc; }
+  void SetIRAMCRC(const u32 crc) { m_iram_crc = crc; }
 
   // Saves and loads any necessary state.
   void DoState(PointerWrap& p);

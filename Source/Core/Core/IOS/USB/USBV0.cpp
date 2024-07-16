@@ -25,7 +25,7 @@ V0CtrlMessage::V0CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
   length = Common::swap16(memory.Read_U16(ioctlv.in_vectors[4].address));
 }
 
-V0BulkMessage::V0BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv, bool long_length)
+V0BulkMessage::V0BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv, const bool long_length)
     : BulkMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
 {
   auto& system = ios.GetSystem();

@@ -58,13 +58,13 @@ private:
   void EditMBP(u32 address, int edit, std::optional<QString> = std::nullopt);
 
   void OnClear();
-  void OnClicked(QTableWidgetItem* item);
+  void OnClicked(const QTableWidgetItem* item);
   void OnNewBreakpoint();
   void OnEditBreakpoint(u32 address, bool is_instruction_bp);
   void OnLoad();
   void OnSave();
   void OnContextMenu(const QPoint& pos);
-  void OnItemChanged(QTableWidgetItem* item);
+  void OnItemChanged(const QTableWidgetItem* item);
   void UpdateIcons();
 
   Core::System& m_system;

@@ -32,7 +32,7 @@
 namespace ConfigLoaders
 {
 // Returns all possible filenames in ascending order of priority
-std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optional<u16> revision)
+std::vector<std::string> GetGameIniFilenames(const std::string& id, const std::optional<u16> revision)
 {
   std::vector<std::string> filenames;
 
@@ -167,7 +167,7 @@ static std::pair<std::string, std::string> GetINILocationFromConfig(const Locati
 class INIGameConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
-  INIGameConfigLayerLoader(const std::string& id, u16 revision, bool global)
+  INIGameConfigLayerLoader(const std::string& id, const u16 revision, const bool global)
       : ConfigLayerLoader(global ? Config::LayerType::GlobalGame : Config::LayerType::LocalGame),
         m_id(id), m_revision(revision)
   {

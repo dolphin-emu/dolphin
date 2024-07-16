@@ -39,8 +39,8 @@ using ws_ssize_t = ssize_t;
 #endif
 
 TAPServerConnection::TAPServerConnection(const std::string& destination,
-                                         std::function<void(std::string&&)> recv_cb,
-                                         std::size_t max_frame_size)
+                                         const std::function<void(std::string&&)> recv_cb,
+                                         const std::size_t max_frame_size)
     : m_destination(destination), m_recv_cb(recv_cb), m_max_frame_size(max_frame_size)
 {
 }
@@ -214,7 +214,7 @@ bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
   return true;
 }
 
-bool TAPServerConnection::SendFrame(const u8* frame, u32 size)
+bool TAPServerConnection::SendFrame(const u8* frame, const u32 size)
 {
   INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 

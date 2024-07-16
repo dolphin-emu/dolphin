@@ -62,7 +62,7 @@ private:
   void OnZoomReset();
   void OnBaseAddressChanged();
   void OnTabChange(int index);
-  QString TabTextForEditor(AsmEditor* editor, bool with_dirty);
+  QString TabTextForEditor(const AsmEditor* editor, bool with_dirty);
   AsmEditor* GetEditor(int idx);
   void NewEditor(const QString& path = QStringLiteral());
   bool SaveEditor(AsmEditor* editor);

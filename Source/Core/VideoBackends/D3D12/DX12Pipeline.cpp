@@ -15,8 +15,8 @@
 namespace DX12
 {
 DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D12PipelineState* pipeline,
-                       ID3D12RootSignature* root_signature, AbstractPipelineUsage usage,
-                       D3D12_PRIMITIVE_TOPOLOGY primitive_topology, bool use_integer_rtv)
+                       ID3D12RootSignature* root_signature, const AbstractPipelineUsage usage,
+                       const D3D12_PRIMITIVE_TOPOLOGY primitive_topology, const bool use_integer_rtv)
     : AbstractPipeline(config), m_pipeline(pipeline), m_root_signature(root_signature),
       m_usage(usage), m_primitive_topology(primitive_topology), m_use_integer_rtv(use_integer_rtv)
 {
@@ -86,7 +86,7 @@ static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& st
 }
 
 static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
-                            u8 render_target_count)
+                            const u8 render_target_count)
 {
   static constexpr std::array<D3D12_BLEND, 8> src_dual_src_factors = {
       {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
@@ -162,7 +162,7 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
 }
 
 std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& config,
-                                               const void* cache_data, size_t cache_data_size)
+                                               const void* cache_data, const size_t cache_data_size)
 {
   DEBUG_ASSERT(config.vertex_shader && config.pixel_shader);
 

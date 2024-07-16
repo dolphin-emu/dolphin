@@ -31,7 +31,7 @@ public:
   void CountVBlank();
 
   void CountThrottleSleep(DT sleep);
-  void CountPerformanceMarker(Core::System& system, s64 cyclesLate);
+  void CountPerformanceMarker(const Core::System& system, s64 cyclesLate);
 
   // Getter Functions
   double GetFPS() const;

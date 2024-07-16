@@ -313,7 +313,7 @@ static void WriteThreadFunc()
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #if LIBUSB_API_HAS_HOTPLUG
-static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotplug_event event,
+static int HotplugCallback(libusb_context* ctx, const libusb_device* dev, const libusb_hotplug_event event,
                            void* user_data)
 {
   if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
@@ -739,7 +739,7 @@ static void Reset()
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter detached");
 }
 
-GCPadStatus Input(int chan)
+GCPadStatus Input(const int chan)
 {
   if (!UseAdapter())
     return {};
@@ -767,7 +767,7 @@ GCPadStatus Input(int chan)
 }
 
 // Get ControllerType from first byte in input payload.
-static ControllerType IdentifyControllerType(u8 data)
+static ControllerType IdentifyControllerType(const u8 data)
 {
   if (Common::ExtractBit<4>(data))
     return ControllerType::Wired;
@@ -778,7 +778,7 @@ static ControllerType IdentifyControllerType(u8 data)
   return ControllerType::None;
 }
 
-void ProcessInputPayload(const u8* data, std::size_t size)
+void ProcessInputPayload(const u8* data, const std::size_t size)
 {
   if (size != CONTROLLER_INPUT_PAYLOAD_EXPECTED_SIZE
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
@@ -870,13 +870,13 @@ void ProcessInputPayload(const u8* data, std::size_t size)
   }
 }
 
-bool DeviceConnected(int chan)
+bool DeviceConnected(const int chan)
 {
   std::lock_guard lk(s_read_mutex);
   return s_port_states[chan].controller_type != ControllerType::None;
 }
 
-void ResetDeviceType(int chan)
+void ResetDeviceType(const int chan)
 {
   std::lock_guard lk(s_read_mutex);
   s_port_states[chan].controller_type = ControllerType::None;
@@ -935,7 +935,7 @@ static void ResetRumbleLockNeeded()
 }
 #endif
 
-void Output(int chan, u8 rumble_command)
+void Output(const int chan, const u8 rumble_command)
 {
   if (!UseAdapter() || !s_config_rumble_enabled[chan])
     return;

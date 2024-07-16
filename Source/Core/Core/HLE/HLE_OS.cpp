@@ -30,7 +30,7 @@ enum class ParameterType : bool
   VariableArgumentList = true
 };
 
-static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard,
+static std::string GetStringVA(const Core::System& system, const Core::CPUThreadGuard& guard,
                                u32 str_reg = 3,
                                ParameterType parameter_type = ParameterType::ParameterList);
 
@@ -53,7 +53,7 @@ void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 }
 
 // Generalized function for printing formatted string.
-static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
   auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
@@ -137,7 +137,7 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
-static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
   auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
@@ -166,7 +166,7 @@ void HLE_LogVDPrint(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)fprintf message if FILE is stdout or stderr
-static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
   auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
@@ -221,13 +221,13 @@ public:
   u32 GetU32() override { return m_va_list->GetArgT<u32>(); }
   u64 GetU64() override { return m_va_list->GetArgT<u64>(); }
   double GetF64() override { return m_va_list->GetArgT<double>(); }
-  std::string GetString(std::optional<u32> max_length) override
+  std::string GetString(const std::optional<u32> max_length) override
   {
     return max_length == 0u ? std::string() :
                               PowerPC::MMU::HostGetString(m_guard, m_va_list->GetArgT<u32>(),
                                                           max_length.value_or(0u));
   }
-  std::u16string GetU16String(std::optional<u32> max_length) override
+  std::u16string GetU16String(const std::optional<u32> max_length) override
   {
     return max_length == 0u ? std::u16string() :
                               PowerPC::MMU::HostGetU16String(m_guard, m_va_list->GetArgT<u32>(),
@@ -240,8 +240,8 @@ private:
 };
 }  // namespace
 
-static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg,
-                               ParameterType parameter_type)
+static std::string GetStringVA(const Core::System& system, const Core::CPUThreadGuard& guard, const u32 str_reg,
+                               const ParameterType parameter_type)
 {
   auto& ppc_state = system.GetPPCState();
 

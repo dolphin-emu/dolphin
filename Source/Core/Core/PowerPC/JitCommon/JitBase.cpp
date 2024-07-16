@@ -88,7 +88,7 @@ const u8* JitBase::Dispatch(JitBase& jit)
   return jit.GetBlockCache()->Dispatch();
 }
 
-void JitTrampoline(JitBase& jit, u32 em_address)
+void JitTrampoline(JitBase& jit, const u32 em_address)
 {
   jit.Jit(em_address);
 }
@@ -260,7 +260,7 @@ void JitBase::CleanUpAfterStackFault()
   }
 }
 
-bool JitBase::CanMergeNextInstructions(int count) const
+bool JitBase::CanMergeNextInstructions(const int count) const
 {
   if (m_system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;

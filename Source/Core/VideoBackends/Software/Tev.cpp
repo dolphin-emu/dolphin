@@ -29,17 +29,17 @@
 #define ALLOW_TEV_DUMPS 0
 #endif
 
-static inline s16 Clamp255(s16 in)
+static inline s16 Clamp255(const s16 in)
 {
   return std::clamp<s16>(in, 0, 255);
 }
 
-static inline s16 Clamp1024(s16 in)
+static inline s16 Clamp1024(const s16 in)
 {
   return std::clamp<s16>(in, -1024, 1023);
 }
 
-void Tev::SetRasColor(RasColorChan colorChan, u32 swaptable)
+void Tev::SetRasColor(const RasColorChan colorChan, const u32 swaptable)
 {
   switch (colorChan)
   {
@@ -198,7 +198,7 @@ void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const Inpu
     Reg[ac.dest].a = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
 }
 
-static bool AlphaCompare(int alpha, int ref, CompareMode comp)
+static bool AlphaCompare(const int alpha, const int ref, const CompareMode comp)
 {
   switch (comp)
   {
@@ -224,7 +224,7 @@ static bool AlphaCompare(int alpha, int ref, CompareMode comp)
   }
 }
 
-static bool TevAlphaTest(int alpha)
+static bool TevAlphaTest(const int alpha)
 {
   const bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
   const bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
@@ -245,7 +245,7 @@ static bool TevAlphaTest(int alpha)
   }
 }
 
-static inline s32 WrapIndirectCoord(s32 coord, IndTexWrap wrapMode)
+static inline s32 WrapIndirectCoord(const s32 coord, const IndTexWrap wrapMode)
 {
   switch (wrapMode)
   {
@@ -269,7 +269,7 @@ static inline s32 WrapIndirectCoord(s32 coord, IndTexWrap wrapMode)
   }
 }
 
-void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
+void Tev::Indirect(const unsigned int stageNum, const s32 s, const s32 t)
 {
   const TevStageIndirect& indirect = bpmem.tevind[stageNum];
   const u8* indmap = IndirectTex[indirect.bt];

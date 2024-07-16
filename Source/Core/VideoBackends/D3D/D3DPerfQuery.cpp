@@ -25,7 +25,7 @@ PerfQuery::PerfQuery() : m_query_read_pos()
 
 PerfQuery::~PerfQuery() = default;
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
+void PerfQuery::EnableQuery(const PerfQueryGroup group)
 {
   u32 query_count = m_query_count.load(std::memory_order_relaxed);
 
@@ -56,7 +56,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup group)
+void PerfQuery::DisableQuery(const PerfQueryGroup group)
 {
   // stop query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
@@ -75,7 +75,7 @@ void PerfQuery::ResetQuery()
     m_results[i].store(0, std::memory_order_relaxed);
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
+u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 {
   u32 result = 0;
 

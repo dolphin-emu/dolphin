@@ -66,5 +66,5 @@ private:
   // Copy sections to internal buffers
   bool Initialize(const std::vector<u8>& buffer);
 
-  bool LoadAncastIntoMemory(Core::System& system) const;
+  bool LoadAncastIntoMemory(const Core::System& system) const;
 };

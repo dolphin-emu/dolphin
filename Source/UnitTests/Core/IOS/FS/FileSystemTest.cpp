@@ -251,7 +251,7 @@ TEST_F(FileSystemTest, RenameWithExistingTargetFile)
 
 TEST_F(FileSystemTest, GetDirectoryStats)
 {
-  auto check_stats = [this](u32 clusters, u32 inodes) {
+  auto check_stats = [this](const u32 clusters, const u32 inodes) {
     const Result<DirectoryStats> stats = m_fs->GetDirectoryStats("/tmp");
     ASSERT_TRUE(stats.Succeeded());
     EXPECT_EQ(stats->used_clusters, clusters);
@@ -308,7 +308,7 @@ TEST_F(FileSystemTest, Seek)
   EXPECT_EQ(file->GetStatus()->size, TEST_DATA.size());
   EXPECT_EQ(file->GetStatus()->offset, TEST_DATA.size());
 
-  auto seek_and_check = [&file](u32 offset, SeekMode mode, u32 expected_position) {
+  auto seek_and_check = [&file](const u32 offset, const SeekMode mode, const u32 expected_position) {
     const Result<u32> new_offset = file->Seek(offset, mode);
     ASSERT_TRUE(new_offset.Succeeded());
     EXPECT_EQ(*new_offset, expected_position);

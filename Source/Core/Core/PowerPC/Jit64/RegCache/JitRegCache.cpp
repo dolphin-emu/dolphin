@@ -24,12 +24,12 @@
 using namespace Gen;
 using namespace PowerPC;
 
-RCOpArg RCOpArg::Imm32(u32 imm)
+RCOpArg RCOpArg::Imm32(const u32 imm)
 {
   return RCOpArg{imm};
 }
 
-RCOpArg RCOpArg::R(X64Reg xr)
+RCOpArg RCOpArg::R(const X64Reg xr)
 {
   return RCOpArg{xr};
 }
@@ -321,31 +321,31 @@ bool RegCache::SanityCheck() const
   return true;
 }
 
-RCOpArg RegCache::Use(preg_t preg, RCMode mode)
+RCOpArg RegCache::Use(const preg_t preg, const RCMode mode)
 {
   m_constraints[preg].AddUse(mode);
   return RCOpArg{this, preg};
 }
 
-RCOpArg RegCache::UseNoImm(preg_t preg, RCMode mode)
+RCOpArg RegCache::UseNoImm(const preg_t preg, const RCMode mode)
 {
   m_constraints[preg].AddUseNoImm(mode);
   return RCOpArg{this, preg};
 }
 
-RCOpArg RegCache::BindOrImm(preg_t preg, RCMode mode)
+RCOpArg RegCache::BindOrImm(const preg_t preg, const RCMode mode)
 {
   m_constraints[preg].AddBindOrImm(mode);
   return RCOpArg{this, preg};
 }
 
-RCX64Reg RegCache::Bind(preg_t preg, RCMode mode)
+RCX64Reg RegCache::Bind(const preg_t preg, const RCMode mode)
 {
   m_constraints[preg].AddBind(mode);
   return RCX64Reg{this, preg};
 }
 
-RCX64Reg RegCache::RevertableBind(preg_t preg, RCMode mode)
+RCX64Reg RegCache::RevertableBind(const preg_t preg, const RCMode mode)
 {
   m_constraints[preg].AddRevertableBind(mode);
   return RCX64Reg{this, preg};
@@ -356,7 +356,7 @@ RCX64Reg RegCache::Scratch()
   return Scratch(GetFreeXReg());
 }
 
-RCX64Reg RegCache::Scratch(X64Reg xr)
+RCX64Reg RegCache::Scratch(const X64Reg xr)
 {
   FlushX(xr);
   return RCX64Reg{this, xr};
@@ -367,7 +367,7 @@ RCForkGuard RegCache::Fork()
   return RCForkGuard{*this};
 }
 
-void RegCache::Discard(BitSet32 pregs)
+void RegCache::Discard(const BitSet32 pregs)
 {
   ASSERT_MSG(
       DYNA_REC,
@@ -391,7 +391,7 @@ void RegCache::Discard(BitSet32 pregs)
   }
 }
 
-void RegCache::Flush(BitSet32 pregs)
+void RegCache::Flush(const BitSet32 pregs)
 {
   ASSERT_MSG(
       DYNA_REC,
@@ -426,7 +426,7 @@ void RegCache::Flush(BitSet32 pregs)
   }
 }
 
-void RegCache::Reset(BitSet32 pregs)
+void RegCache::Reset(const BitSet32 pregs)
 {
   for (preg_t i : pregs)
   {
@@ -463,7 +463,7 @@ bool RegCache::IsAllUnlocked() const
          !IsAnyConstraintActive();
 }
 
-void RegCache::PreloadRegisters(BitSet32 to_preload)
+void RegCache::PreloadRegisters(const BitSet32 to_preload)
 {
   for (preg_t preg : to_preload)
   {
@@ -485,7 +485,7 @@ BitSet32 RegCache::RegistersInUse() const
   return result;
 }
 
-void RegCache::FlushX(X64Reg reg)
+void RegCache::FlushX(const X64Reg reg)
 {
   ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}",
              Common::ToUnderlying(reg));
@@ -496,7 +496,7 @@ void RegCache::FlushX(X64Reg reg)
   }
 }
 
-void RegCache::DiscardRegContentsIfCached(preg_t preg)
+void RegCache::DiscardRegContentsIfCached(const preg_t preg)
 {
   if (m_regs[preg].IsBound())
   {
@@ -506,7 +506,7 @@ void RegCache::DiscardRegContentsIfCached(preg_t preg)
   }
 }
 
-void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(const preg_t i, const bool doLoad, const bool makeDirty)
 {
   if (!m_regs[i].IsBound())
   {
@@ -545,7 +545,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
              "WTF, this reg ({} -> {}) should have been flushed", i, Common::ToUnderlying(RX(i)));
 }
 
-void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
+void RegCache::StoreFromRegister(const preg_t i, const FlushMode mode)
 {
   // When a transaction is in progress, allowing the store would overwrite the old value.
   ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction on {} is in progress!", i);
@@ -630,7 +630,7 @@ int RegCache::NumFreeRegisters() const
 
 // Estimate roughly how bad it would be to de-allocate this register. Higher score
 // means more bad.
-float RegCache::ScoreRegister(X64Reg xreg) const
+float RegCache::ScoreRegister(const X64Reg xreg) const
 {
   preg_t preg = m_xregs[xreg].Contents();
   float score = 0;
@@ -660,24 +660,24 @@ float RegCache::ScoreRegister(X64Reg xreg) const
   return score;
 }
 
-const OpArg& RegCache::R(preg_t preg) const
+const OpArg& RegCache::R(const preg_t preg) const
 {
   ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - {}", preg);
   return m_regs[preg].Location().value();
 }
 
-X64Reg RegCache::RX(preg_t preg) const
+X64Reg RegCache::RX(const preg_t preg) const
 {
   ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - {}", preg);
   return m_regs[preg].Location()->GetSimpleReg();
 }
 
-void RegCache::Lock(preg_t preg)
+void RegCache::Lock(const preg_t preg)
 {
   m_regs[preg].Lock();
 }
 
-void RegCache::Unlock(preg_t preg)
+void RegCache::Unlock(const preg_t preg)
 {
   m_regs[preg].Unlock();
   if (!m_regs[preg].IsLocked())
@@ -687,22 +687,22 @@ void RegCache::Unlock(preg_t preg)
   }
 }
 
-void RegCache::LockX(X64Reg xr)
+void RegCache::LockX(const X64Reg xr)
 {
   m_xregs[xr].Lock();
 }
 
-void RegCache::UnlockX(X64Reg xr)
+void RegCache::UnlockX(const X64Reg xr)
 {
   m_xregs[xr].Unlock();
 }
 
-bool RegCache::IsRealized(preg_t preg) const
+bool RegCache::IsRealized(const preg_t preg) const
 {
   return m_constraints[preg].IsRealized();
 }
 
-void RegCache::Realize(preg_t preg)
+void RegCache::Realize(const preg_t preg)
 {
   if (m_constraints[preg].IsRealized())
     return;

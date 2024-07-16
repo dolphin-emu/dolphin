@@ -28,7 +28,7 @@ namespace IOS::HLE
 //
 //       To minimize the effect of this hack, we should only do this for disc titles
 //       booted from the game list, though.
-static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& context)
+static bool ShouldReturnFakeViewsForIOSes(const u64 title_id, const TitleContext& context)
 {
   const bool ios = IsTitleType(title_id, ES::TitleType::System) && title_id != Titles::SYSTEM_MENU;
   const bool disc_title = context.active && ES::IsDiscTitle(context.tmd.GetTitleId());
@@ -106,7 +106,7 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
 }
 
 ReturnCode ESCore::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
-                                     std::optional<u8> desired_version) const
+                                     const std::optional<u8> desired_version) const
 {
   const u64 title_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, ticket_id)]);

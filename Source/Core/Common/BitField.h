@@ -252,7 +252,7 @@ public:
   constexpr std::size_t TotalNumBits() const { return bits * size; }
 
   constexpr T Value(size_t index) const { return Value(std::is_signed<T>(), index); }
-  void SetValue(size_t index, T value)
+  void SetValue(const size_t index, T value)
   {
     const size_t pos = position + bits * index;
     storage = (storage & ~GetElementMask(index)) |
@@ -272,20 +272,20 @@ private:
   // Unsigned version of StorageType
   using StorageTypeU = std::make_unsigned_t<StorageType>;
 
-  constexpr T Value(std::true_type, size_t index) const
+  constexpr T Value(std::true_type, const size_t index) const
   {
     const size_t pos = position + bits * index;
     const size_t shift_amount = 8 * sizeof(StorageType) - bits;
     return static_cast<T>((storage << (shift_amount - pos)) >> shift_amount);
   }
 
-  constexpr T Value(std::false_type, size_t index) const
+  constexpr T Value(std::false_type, const size_t index) const
   {
     const size_t pos = position + bits * index;
     return static_cast<T>((storage & GetElementMask(index)) >> pos);
   }
 
-  static constexpr StorageType GetElementMask(size_t index)
+  static constexpr StorageType GetElementMask(const size_t index)
   {
     const size_t pos = position + bits * index;
     return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(StorageType) - bits)) << pos;
@@ -317,7 +317,7 @@ public:
 
 private:
   constexpr BitFieldArrayConstRef(const BitFieldArray<position, bits, size, T, S>* array,
-                                  size_t index)
+                                  const size_t index)
       : m_array(array), m_index(index)
   {
   }
@@ -347,7 +347,7 @@ public:
   }
 
 private:
-  constexpr BitFieldArrayRef(BitFieldArray<position, bits, size, T, S>* array, size_t index)
+  constexpr BitFieldArrayRef(BitFieldArray<position, bits, size, T, S>* array, const size_t index)
       : m_array(array), m_index(index)
   {
   }
@@ -375,7 +375,7 @@ public:
   using reference = BitFieldArrayRef<position, bits, size, T, S>;
 
 private:
-  constexpr BitFieldArrayIterator(BitFieldArray<position, bits, size, T, S>* array, size_t index)
+  constexpr BitFieldArrayIterator(BitFieldArray<position, bits, size, T, S>* array, const size_t index)
       : m_array(array), m_index(index)
   {
   }
@@ -430,7 +430,7 @@ public:
 
 private:
   constexpr BitFieldArrayConstIterator(const BitFieldArray<position, bits, size, T, S>* array,
-                                       size_t index)
+                                       const size_t index)
       : m_array(array), m_index(index)
   {
   }

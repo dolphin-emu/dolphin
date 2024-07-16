@@ -26,7 +26,7 @@
 
 using namespace Gen;
 
-bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
+bool JitBlock::OverlapsPhysicalRange(const u32 address, const u32 length) const
 {
   return physical_addresses.lower_bound(address) !=
          physical_addresses.lower_bound(address + length);
@@ -38,7 +38,7 @@ void JitBlock::ProfileData::BeginProfiling(ProfileData* data)
   data->time_start = Clock::now();
 }
 
-void JitBlock::ProfileData::EndProfiling(ProfileData* data, u32 downcount_amount)
+void JitBlock::ProfileData::EndProfiling(ProfileData* data, const u32 downcount_amount)
 {
   data->cycles_spent += downcount_amount;
   data->time_spent += Clock::now() - data->time_start;
@@ -117,7 +117,7 @@ void JitBaseBlockCache::RunOnBlocks(const Core::CPUThreadGuard&,
     f(e.second);
 }
 
-JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
+JitBlock* JitBaseBlockCache::AllocateBlock(const u32 em_address)
 {
   const u32 physical_address = m_jit.m_mmu.JitCache_TranslateAddress(em_address).address;
   JitBlock& b = block_map.emplace(physical_address, m_jit.IsProfilingEnabled())->second;
@@ -129,7 +129,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
   return &b;
 }
 
-void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
+void JitBaseBlockCache::FinalizeBlock(JitBlock& block, const bool block_link,
                                       const std::set<u32>& physical_addresses)
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
@@ -177,7 +177,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   }
 }
 
-JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, CPUEmuFeatureFlags feature_flags)
+JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(const u32 addr, const CPUEmuFeatureFlags feature_flags)
 {
   u32 translated_addr = addr;
   if (feature_flags & FEATURE_FLAG_MSR_IR)
@@ -238,7 +238,7 @@ const u8* JitBaseBlockCache::Dispatch()
   return block->normalEntry;
 }
 
-void JitBaseBlockCache::InvalidateICacheLine(u32 address)
+void JitBaseBlockCache::InvalidateICacheLine(const u32 address)
 {
   const u32 cache_line_address = address & ~0x1f;
   const auto translated = m_jit.m_mmu.JitCache_TranslateAddress(cache_line_address);
@@ -246,7 +246,7 @@ void JitBaseBlockCache::InvalidateICacheLine(u32 address)
     InvalidateICacheInternal(translated.address, cache_line_address, 32, false);
 }
 
-void JitBaseBlockCache::InvalidateICache(u32 initial_address, u32 initial_length, bool forced)
+void JitBaseBlockCache::InvalidateICache(const u32 initial_address, const u32 initial_length, const bool forced)
 {
   u32 address = initial_address;
   u32 length = initial_length;
@@ -275,8 +275,8 @@ void JitBaseBlockCache::InvalidateICache(u32 initial_address, u32 initial_length
   }
 }
 
-void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 address, u32 length,
-                                                 bool forced)
+void JitBaseBlockCache::InvalidateICacheInternal(const u32 physical_address, const u32 address, const u32 length,
+                                                 const bool forced)
 {
   // Optimization for the case of invalidating a single cache line, which is used by the dcb*
   // instructions. If the valid_block bit for that cacheline is not set, we can safely skip
@@ -321,7 +321,7 @@ void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 addre
   }
 }
 
-void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
+void JitBaseBlockCache::ErasePhysicalRange(const u32 address, const u32 length)
 {
   // Iterate over all macro blocks which overlap the given range.
   u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
@@ -477,7 +477,7 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& block)
   WriteDestroyBlock(block);
 }
 
-JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, CPUEmuFeatureFlags feature_flags)
+JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(const u32 addr, const CPUEmuFeatureFlags feature_flags)
 {
   JitBlock* block = GetBlockFromStartAddress(addr, feature_flags);
 
@@ -516,7 +516,7 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, CPUEmuFeatureFlags
   return block;
 }
 
-size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address, u32 feature_flags)
+size_t JitBaseBlockCache::FastLookupIndexForAddress(const u32 address, const u32 feature_flags)
 {
   if (m_entry_points_ptr)
   {

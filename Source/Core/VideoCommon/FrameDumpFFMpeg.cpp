@@ -80,7 +80,7 @@ void InitAVCodec()
   if (first_run)
   {
     av_log_set_level(AV_LOG_DEBUG);
-    av_log_set_callback([](void* ptr, int level, const char* fmt, va_list vl) {
+    av_log_set_callback([](void* ptr, int level, const char* fmt, const va_list vl) {
       if (level < 0)
         level = AV_LOG_DEBUG;
       if (level >= 0)
@@ -120,7 +120,7 @@ void InitAVCodec()
   }
 }
 
-std::string GetDumpPath(const std::string& extension, std::time_t time, u32 index)
+std::string GetDumpPath(const std::string& extension, const std::time_t time, u32 index)
 {
   if (!g_Config.sDumpPath.empty())
     return g_Config.sDumpPath;
@@ -151,7 +151,7 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   return path;
 }
 
-std::string AVErrorString(int error)
+std::string AVErrorString(const int error)
 {
   std::array<char, AV_ERROR_MAX_STRING_SIZE> msg;
   av_make_error_string(&msg[0], msg.size(), error);
@@ -160,7 +160,7 @@ std::string AVErrorString(int error)
 
 }  // namespace
 
-bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
+bool FFMpegFrameDump::Start(const int w, const int h, const u64 start_ticks)
 {
   if (IsStarted())
     return true;
@@ -172,7 +172,7 @@ bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
   return PrepareEncoding(w, h, start_ticks, m_savestate_index);
 }
 
-bool FFMpegFrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_index)
+bool FFMpegFrameDump::PrepareEncoding(const int w, const int h, const u64 start_ticks, const u32 savestate_index)
 {
   m_context = std::make_unique<FrameDumpContext>();
 
@@ -484,7 +484,7 @@ void FFMpegFrameDump::CloseVideoFile()
   m_context.reset();
 }
 
-void FFMpegFrameDump::DoState(PointerWrap& p)
+void FFMpegFrameDump::DoState(const PointerWrap& p)
 {
   if (p.IsReadMode())
     ++m_savestate_index;
@@ -528,7 +528,7 @@ void FFMpegFrameDump::CheckForConfigChange(const FrameData& frame)
   }
 }
 
-FrameState FFMpegFrameDump::FetchState(u64 ticks, int frame_number) const
+FrameState FFMpegFrameDump::FetchState(const u64 ticks, const int frame_number) const
 {
   FrameState state;
   state.ticks = ticks;

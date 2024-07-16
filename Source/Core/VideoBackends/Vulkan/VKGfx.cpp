@@ -33,7 +33,7 @@
 
 namespace Vulkan
 {
-VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, const float backbuffer_scale)
     : m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale)
 {
   UpdateActiveConfig();
@@ -53,25 +53,25 @@ bool VKGfx::IsHeadless() const
 }
 
 std::unique_ptr<AbstractTexture> VKGfx::CreateTexture(const TextureConfig& config,
-                                                      std::string_view name)
+                                                      const std::string_view name)
 {
   return VKTexture::Create(config, name);
 }
 
-std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(StagingTextureType type,
+std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(const StagingTextureType type,
                                                                     const TextureConfig& config)
 {
   return VKStagingTexture::Create(type, config);
 }
 
 std::unique_ptr<AbstractShader>
-VKGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+VKGfx::CreateShaderFromSource(const ShaderStage stage, const std::string_view source, const std::string_view name)
 {
   return VKShader::CreateFromSource(stage, source, name);
 }
 
-std::unique_ptr<AbstractShader> VKGfx::CreateShaderFromBinary(ShaderStage stage, const void* data,
-                                                              size_t length, std::string_view name)
+std::unique_ptr<AbstractShader> VKGfx::CreateShaderFromBinary(const ShaderStage stage, const void* data,
+                                                              const size_t length, const std::string_view name)
 {
   return VKShader::CreateFromBinary(stage, data, length, name);
 }
@@ -104,7 +104,7 @@ void VKGfx::SetPipeline(const AbstractPipeline* pipeline)
 }
 
 void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enable,
-                        bool alpha_enable, bool z_enable, u32 color, u32 z)
+                        bool alpha_enable, bool z_enable, const u32 color, const u32 z)
 {
   VkRect2D target_vk_rc = {
       {target_rc.left, target_rc.top},
@@ -319,7 +319,7 @@ void VKGfx::PresentBackbuffer()
   StateTracker::GetInstance()->InvalidateCachedState();
 }
 
-void VKGfx::SetFullscreen(bool enable_fullscreen)
+void VKGfx::SetFullscreen(const bool enable_fullscreen)
 {
   if (!m_swap_chain->IsFullscreenSupported())
     return;
@@ -332,7 +332,7 @@ bool VKGfx::IsFullscreen() const
   return m_swap_chain && m_swap_chain->GetCurrentFullscreenState();
 }
 
-void VKGfx::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)
+void VKGfx::ExecuteCommandBuffer(const bool submit_off_thread, const bool wait_for_completion)
 {
   StateTracker::GetInstance()->EndRenderPass();
 
@@ -384,7 +384,7 @@ void VKGfx::CheckForSurfaceResize()
   OnSwapChainResized();
 }
 
-void VKGfx::OnConfigChanged(u32 bits)
+void VKGfx::OnConfigChanged(const u32 bits)
 {
   AbstractGfx::OnConfigChanged(bits);
 
@@ -453,7 +453,7 @@ void VKGfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 }
 
 void VKGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
-                                   float depth_value)
+                                   const float depth_value)
 {
   VKFramebuffer* vkfb = static_cast<VKFramebuffer*>(framebuffer);
   BindFramebuffer(vkfb);
@@ -467,7 +467,7 @@ void VKGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const Clear
   vkfb->SetAndClear(vkfb->GetRect(), clear_color_value, clear_depth_value);
 }
 
-void VKGfx::SetTexture(u32 index, const AbstractTexture* texture)
+void VKGfx::SetTexture(const u32 index, const AbstractTexture* texture)
 {
   // Texture should always be in SHADER_READ_ONLY layout prior to use.
   // This is so we don't need to transition during render passes.
@@ -494,7 +494,7 @@ void VKGfx::SetTexture(u32 index, const AbstractTexture* texture)
   }
 }
 
-void VKGfx::SetSamplerState(u32 index, const SamplerState& state)
+void VKGfx::SetSamplerState(const u32 index, const SamplerState& state)
 {
   // Skip lookup if the state hasn't changed.
   if (m_sampler_states[index] == state)
@@ -512,7 +512,7 @@ void VKGfx::SetSamplerState(u32 index, const SamplerState& state)
   m_sampler_states[index] = state;
 }
 
-void VKGfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
+void VKGfx::SetComputeImageTexture(const u32 index, AbstractTexture* texture, const bool read, const bool write)
 {
   VKTexture* vk_texture = static_cast<VKTexture*>(texture);
   if (vk_texture)
@@ -568,14 +568,14 @@ void VKGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   StateTracker::GetInstance()->SetScissor(scissor);
 }
 
-void VKGfx::SetViewport(float x, float y, float width, float height, float near_depth,
-                        float far_depth)
+void VKGfx::SetViewport(const float x, const float y, const float width, const float height, const float near_depth,
+                        const float far_depth)
 {
   VkViewport viewport = {x, y, width, height, near_depth, far_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
 }
 
-void VKGfx::Draw(u32 base_vertex, u32 num_vertices)
+void VKGfx::Draw(const u32 base_vertex, const u32 num_vertices)
 {
   if (!StateTracker::GetInstance()->Bind())
     return;
@@ -583,7 +583,7 @@ void VKGfx::Draw(u32 base_vertex, u32 num_vertices)
   vkCmdDraw(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_vertices, 1, base_vertex, 0);
 }
 
-void VKGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+void VKGfx::DrawIndexed(const u32 base_index, const u32 num_indices, const u32 base_vertex)
 {
   if (!StateTracker::GetInstance()->Bind())
     return;
@@ -593,7 +593,7 @@ void VKGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 }
 
 void VKGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
-                                  u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
+                                  u32 groupsize_z, const u32 groups_x, const u32 groups_y, const u32 groups_z)
 {
   StateTracker::GetInstance()->SetComputeShader(static_cast<const VKShader*>(shader));
   if (StateTracker::GetInstance()->BindCompute())

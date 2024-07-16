@@ -34,7 +34,7 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
 template <>
 struct fmt::formatter<geometry_shader_uid_data>
 {
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const geometry_shader_uid_data& uid, FormatContext& ctx) const
   {

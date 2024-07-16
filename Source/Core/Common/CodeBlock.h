@@ -49,7 +49,7 @@ public:
   CodeBlock& operator=(CodeBlock&&) = delete;
 
   // Call this before you generate any code.
-  void AllocCodeSpace(size_t size)
+  void AllocCodeSpace(const size_t size)
   {
     region_size = size;
     total_region_size = size;
@@ -89,11 +89,11 @@ public:
   {
     return ptr >= region && ptr < (region + total_region_size);
   }
-  void WriteProtect(bool allow_execute)
+  void WriteProtect(const bool allow_execute)
   {
     WriteProtectMemory(region, region_size, allow_execute);
   }
-  void UnWriteProtect(bool allow_execute)
+  void UnWriteProtect(const bool allow_execute)
   {
     UnWriteProtectMemory(region, region_size, allow_execute);
   }
@@ -111,7 +111,7 @@ public:
   }
 
   bool HasChildren() const { return region_size != total_region_size; }
-  u8* AllocChildCodeSpace(size_t child_size)
+  u8* AllocChildCodeSpace(const size_t child_size)
   {
     ASSERT_MSG(DYNA_REC, child_size <= GetSpaceLeft(), "Insufficient space for child allocation.");
     u8* child_region = region + region_size - child_size;

@@ -110,7 +110,7 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 
 //----
 
-void DSPEmitter::setCompileSR(u16 bit)
+void DSPEmitter::setCompileSR(const u16 bit)
 {
   //	g_dsp.r[DSP_REG_SR] |= bit
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
@@ -120,7 +120,7 @@ void DSPEmitter::setCompileSR(u16 bit)
   m_compile_status_register |= bit;
 }
 
-void DSPEmitter::clrCompileSR(u16 bit)
+void DSPEmitter::clrCompileSR(const u16 bit)
 {
   //	g_dsp.r[DSP_REG_SR] &= bit
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);

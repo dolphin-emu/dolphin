@@ -23,7 +23,7 @@
 namespace DiscIO
 {
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
-             u8* buffer, u64 max_buffer_size, u64 offset_in_file)
+             u8* buffer, const u64 max_buffer_size, const u64 offset_in_file)
 {
   if (!file_info || file_info->IsDirectory() || offset_in_file >= file_info->GetSize())
     return 0;
@@ -40,8 +40,8 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
   return read_length;
 }
 
-u64 ReadFile(const Volume& volume, const Partition& partition, std::string_view path, u8* buffer,
-             u64 max_buffer_size, u64 offset_in_file)
+u64 ReadFile(const Volume& volume, const Partition& partition, const std::string_view path, u8* buffer,
+             const u64 max_buffer_size, const u64 offset_in_file)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
   if (!file_system)
@@ -88,7 +88,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
                     export_filename);
 }
 
-bool ExportFile(const Volume& volume, const Partition& partition, std::string_view path,
+bool ExportFile(const Volume& volume, const Partition& partition, const std::string_view path,
                 const std::string& export_filename)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
@@ -99,7 +99,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, std::string_vi
 }
 
 void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
-                     bool recursive, const std::string& filesystem_path,
+                     const bool recursive, const std::string& filesystem_path,
                      const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress)
 {

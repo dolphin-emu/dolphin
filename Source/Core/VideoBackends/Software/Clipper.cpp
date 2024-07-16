@@ -99,7 +99,7 @@ static inline int CalcClipMask(const OutputVertexData* v)
   return cmask;
 }
 
-static inline void AddInterpolatedVertex(float t, int out, int in, int* numVertices)
+static inline void AddInterpolatedVertex(const float t, const int out, const int in, int* numVertices)
 {
   Vertices[(*numVertices)++]->Lerp(t, Vertices[out], Vertices[in]);
 }
@@ -383,8 +383,8 @@ constexpr std::array<float, 8> LINE_PT_TEX_OFFSETS = {
     0, 1 / 16.f, 1 / 8.f, 1 / 4.f, 1 / 2.f, 1, 1, 1,
 };
 
-static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, int px, int py,
-                           bool apply_line_offset)
+static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, const int px, const int py,
+                           const bool apply_line_offset)
 {
   const float line_half_width = bpmem.lineptwidth.linesize / 12.0f;
 
@@ -463,7 +463,7 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
   }
 }
 
-static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, bool px, bool py)
+static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, const bool px, const bool py)
 {
   const float point_radius = bpmem.lineptwidth.pointsize / 12.0f;
 

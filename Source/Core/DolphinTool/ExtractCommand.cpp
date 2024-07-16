@@ -91,7 +91,7 @@ static bool ExtractSystemData(const DiscIO::Volume& disc_volume, const DiscIO::P
 }
 
 static void ExtractPartition(const DiscIO::Volume& disc_volume, const DiscIO::Partition& partition,
-                             const std::string& out, bool quiet)
+                             const std::string& out, const bool quiet)
 {
   ExtractDirectory(disc_volume, partition, "", out + "/files", quiet);
   ExtractSystemData(disc_volume, partition, out);
@@ -176,8 +176,10 @@ static bool ListVolume(const DiscIO::Volume& disc_volume, const std::string& pat
 }
 
 static bool HandleExtractPartition(const std::string& output, const std::string& single_file_path,
-                                   const std::string& partition_name, DiscIO::Volume& disc_volume,
-                                   const DiscIO::Partition& partition, bool quiet, bool single)
+                                   const std::string& partition_name,
+                                   const DiscIO::Volume& disc_volume,
+                                   const DiscIO::Partition& partition, const bool quiet,
+                                   const bool single)
 {
   std::string file;
   file.append(output).append("/");

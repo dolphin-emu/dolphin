@@ -69,7 +69,7 @@ void SWGfx::BindBackbuffer(const ClearColor& clear_color)
 class SWShader final : public AbstractShader
 {
 public:
-  explicit SWShader(ShaderStage stage) : AbstractShader(stage) {}
+  explicit SWShader(const ShaderStage stage) : AbstractShader(stage) {}
   ~SWShader() = default;
 
   BinaryData GetBinary() const override { return {}; }

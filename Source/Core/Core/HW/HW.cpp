@@ -82,7 +82,7 @@ void Shutdown(Core::System& system)
   system.GetCoreTiming().Shutdown();
 }
 
-void DoState(Core::System& system, PointerWrap& p)
+void DoState(const Core::System& system, PointerWrap& p)
 {
   system.GetMemory().DoState(p);
   p.DoMarker("Memory");

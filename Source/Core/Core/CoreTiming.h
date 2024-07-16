@@ -105,7 +105,7 @@ public:
                      FromThread from = FromThread::CPU);
 
   // We only permit one event of each type in the queue at a time.
-  void RemoveEvent(EventType* event_type);
+  void RemoveEvent(const EventType* event_type);
   void RemoveAllEvents(EventType* event_type);
 
   // Advance must be called at the beginning of dispatcher loops, not the end. Advance() ends

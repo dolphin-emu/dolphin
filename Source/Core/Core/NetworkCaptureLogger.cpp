@@ -55,7 +55,7 @@ NetworkCaptureType DummyNetworkCaptureLogger::GetCaptureType() const
   return NetworkCaptureType::None;
 }
 
-void BinarySSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
+void BinarySSLCaptureLogger::LogSSLRead(const void* data, const std::size_t length, s32 socket)
 {
   if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
     return;
@@ -64,7 +64,7 @@ void BinarySSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s3
   File::IOFile(filename, "ab").WriteBytes(data, length);
 }
 
-void BinarySSLCaptureLogger::LogSSLWrite(const void* data, std::size_t length, s32 socket)
+void BinarySSLCaptureLogger::LogSSLWrite(const void* data, const std::size_t length, s32 socket)
 {
   if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
     return;
@@ -89,37 +89,37 @@ PCAPSSLCaptureLogger::PCAPSSLCaptureLogger()
 
 PCAPSSLCaptureLogger::~PCAPSSLCaptureLogger() = default;
 
-void PCAPSSLCaptureLogger::OnNewSocket(s32 socket)
+void PCAPSSLCaptureLogger::OnNewSocket(const s32 socket)
 {
   m_read_sequence_number[socket] = 0;
   m_write_sequence_number[socket] = 0;
 }
 
-void PCAPSSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
+void PCAPSSLCaptureLogger::LogSSLRead(const void* data, const std::size_t length, const s32 socket)
 {
   if (!Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
     return;
   Log(LogType::Read, data, length, socket, nullptr);
 }
 
-void PCAPSSLCaptureLogger::LogSSLWrite(const void* data, std::size_t length, s32 socket)
+void PCAPSSLCaptureLogger::LogSSLWrite(const void* data, const std::size_t length, const s32 socket)
 {
   if (!Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE))
     return;
   Log(LogType::Write, data, length, socket, nullptr);
 }
 
-void PCAPSSLCaptureLogger::LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from)
+void PCAPSSLCaptureLogger::LogRead(const void* data, const std::size_t length, const s32 socket, sockaddr* from)
 {
   Log(LogType::Read, data, length, socket, from);
 }
 
-void PCAPSSLCaptureLogger::LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to)
+void PCAPSSLCaptureLogger::LogWrite(const void* data, const std::size_t length, const s32 socket, sockaddr* to)
 {
   Log(LogType::Write, data, length, socket, to);
 }
 
-void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
+void PCAPSSLCaptureLogger::LogBBA(const void* data, const std::size_t length)
 {
   if (!Get(Config::MAIN_NETWORK_DUMP_BBA))
     return;
@@ -129,7 +129,7 @@ void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
   m_file->AddPacket(static_cast<const u8*>(data), length);
 }
 
-void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t length, s32 socket,
+void PCAPSSLCaptureLogger::Log(const LogType log_type, const void* data, const std::size_t length, const s32 socket,
                                sockaddr* other)
 {
   const auto state = Common::SaveNetworkErrorState();
@@ -162,7 +162,7 @@ void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t l
           *to);
 }
 
-void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket,
+void PCAPSSLCaptureLogger::LogIPv4(const LogType log_type, const u8* data, const u16 length, const s32 socket,
                                    const sockaddr_in& from, const sockaddr_in& to)
 {
   int socket_type;
@@ -176,7 +176,7 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
   }
 
   std::vector<u8> packet;
-  auto insert = [&](const auto* new_data, std::size_t size) {
+  auto insert = [&](const auto* new_data, const std::size_t size) {
     const u8* begin = reinterpret_cast<const u8*>(new_data);
     packet.insert(packet.end(), begin, begin + size);
   };

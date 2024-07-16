@@ -199,14 +199,14 @@ namespace WiimoteReal
 {
 int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, enum WinWriteMethod& stack,
             const u8* buf, size_t len, DWORD* written);
-int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index);
+int IORead(const HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index);
 
 template <typename T>
 void ProcessWiimotes(bool new_scan, const T& callback);
 
 bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT&);
-void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
-bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
+void RemoveWiimote(const BLUETOOTH_DEVICE_INFO_STRUCT&);
+bool ForgetWiimote(const BLUETOOTH_DEVICE_INFO_STRUCT&);
 
 namespace
 {
@@ -232,7 +232,7 @@ std::wstring GetDeviceProperty(const HDEVINFO& device_info, const PSP_DEVINFO_DA
   return std::wstring((PWCHAR)unicode_buffer.data());
 }
 
-int IOWritePerSetOutputReport(HANDLE& dev_handle, const u8* buf, size_t len, DWORD* written)
+int IOWritePerSetOutputReport(const HANDLE& dev_handle, const u8* buf, const size_t len, DWORD* written)
 {
   const BOOLEAN result =
       pHidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, (ULONG)(len - 1));
@@ -261,7 +261,7 @@ int IOWritePerSetOutputReport(HANDLE& dev_handle, const u8* buf, size_t len, DWO
 }
 
 int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
-                        WinWriteMethod& write_method, const u8* buf, size_t len, DWORD* written)
+                        WinWriteMethod& write_method, const u8* buf, const size_t len, DWORD* written)
 {
   DWORD bytes_written;
   LPCVOID write_buffer = buf + 1;
@@ -341,7 +341,7 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
 // including that device for further processing
 // See https://msdn.microsoft.com/en-us/library/windows/hardware/ff549417(v=vs.85).aspx
 bool GetParentDevice(const DEVINST& child_device_instance, HDEVINFO* parent_device_info,
-                     PSP_DEVINFO_DATA parent_device_data)
+                     const PSP_DEVINFO_DATA parent_device_data)
 {
   ULONG status;
   ULONG problem_number;
@@ -416,7 +416,7 @@ bool CheckForToshibaStack(const DEVINST& hid_interface_device_instance)
   return false;
 }
 
-WinWriteMethod GetInitialWriteMethod(bool IsUsingToshibaStack)
+WinWriteMethod GetInitialWriteMethod(const bool IsUsingToshibaStack)
 {
   // Currently Toshiba Bluetooth Stack needs the Output buffer to be the size of the largest output
   // report
@@ -424,7 +424,7 @@ WinWriteMethod GetInitialWriteMethod(bool IsUsingToshibaStack)
                                 WWM_WRITE_FILE_ACTUAL_REPORT_SIZE);
 }
 
-int WriteToHandle(HANDLE& dev_handle, WinWriteMethod& method, const u8* buf, size_t size)
+int WriteToHandle(HANDLE& dev_handle, WinWriteMethod& method, const u8* buf, const size_t size)
 {
   OVERLAPPED hid_overlap_write = OVERLAPPED();
   hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
@@ -535,7 +535,7 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   if (!s_loaded_ok)
     return;
 
-  ProcessWiimotes(true, [](HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo,
+  ProcessWiimotes(true, [](const HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo,
                            BLUETOOTH_DEVICE_INFO_STRUCT& btdi) {
     ForgetWiimote(btdi);
     AttachWiimote(hRadio, rinfo, btdi);
@@ -683,7 +683,7 @@ void WiimoteWindows::DisconnectInternal()
 }
 
 WiimoteWindows::WiimoteWindows(const std::basic_string<TCHAR>& path,
-                               WinWriteMethod initial_write_method)
+                               const WinWriteMethod initial_write_method)
     : m_devicepath(path), m_write_method(initial_write_method)
 {
   m_dev_handle = nullptr;
@@ -733,7 +733,7 @@ size_t GetReportSize(u8 rid)
 // positive = read packet
 // negative = didn't read packet
 // zero = error
-int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
+int IORead(const HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, const int index)
 {
   // Add data report indicator byte (here, 0xa1)
   buf[0] = 0xa1;
@@ -835,7 +835,7 @@ int WiimoteWindows::IORead(u8* buf)
 // Wiimotes work with WriteFile
 // as they don't accept output reports via the Control Channel.
 int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, WinWriteMethod& write_method,
-            const u8* buf, size_t len, DWORD* written)
+            const u8* buf, const size_t len, DWORD* written)
 {
   switch (write_method)
   {
@@ -849,14 +849,14 @@ int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, WinWriteMethod& w
   return 0;
 }
 
-int WiimoteWindows::IOWrite(const u8* buf, size_t len)
+int WiimoteWindows::IOWrite(const u8* buf, const size_t len)
 {
   return WiimoteReal::IOWrite(m_dev_handle, m_hid_overlap_write, m_write_method, buf, len, nullptr);
 }
 
 // invokes callback for each found Wiimote Bluetooth device
 template <typename T>
-void ProcessWiimotes(bool new_scan, const T& callback)
+void ProcessWiimotes(const bool new_scan, const T& callback)
 {
   BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
   srch.dwSize = sizeof(srch);
@@ -922,7 +922,7 @@ void ProcessWiimotes(bool new_scan, const T& callback)
   }
 }
 
-void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+void RemoveWiimote(const BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 {
   // if (btdi.fConnected)
   {
@@ -994,7 +994,7 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info,
 }
 
 // Removes remembered non-connected devices
-bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+bool ForgetWiimote(const BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 {
   if (!btdi.fConnected && btdi.fRemembered)
   {

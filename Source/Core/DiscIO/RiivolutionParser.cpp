@@ -219,7 +219,7 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
   return disc;
 }
 
-static bool CheckRegion(const std::vector<std::string>& xml_regions, std::string_view game_region)
+static bool CheckRegion(const std::vector<std::string>& xml_regions, const std::string_view game_region)
 {
   if (xml_regions.begin() == xml_regions.end())
     return true;
@@ -233,8 +233,8 @@ static bool CheckRegion(const std::vector<std::string>& xml_regions, std::string
   return false;
 }
 
-bool Disc::IsValidForGame(const std::string& game_id, std::optional<u16> revision,
-                          std::optional<u8> disc_number) const
+bool Disc::IsValidForGame(const std::string& game_id, const std::optional<u16> revision,
+                          const std::optional<u8> disc_number) const
 {
   if (game_id.size() != 6)
     return false;
@@ -346,7 +346,7 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
 
 std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     const GameModDescriptorRiivolution& descriptor, const std::string& game_id,
-    std::optional<u16> revision, std::optional<u8> disc_number)
+    const std::optional<u16> revision, const std::optional<u8> disc_number)
 {
   std::vector<Patch> result;
   for (const auto& patch_info : descriptor.patches)
@@ -389,8 +389,8 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
 
 std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string root_directory,
                                                         const std::string& game_id,
-                                                        std::optional<u16> revision,
-                                                        std::optional<u8> disc_number)
+                                                        const std::optional<u16> revision,
+                                                        const std::optional<u8> disc_number)
 {
   std::vector<Patch> result;
 
@@ -434,7 +434,7 @@ std::optional<Config> ParseConfigFile(const std::string& filename)
   return ParseConfigString(std::string_view(data.data(), data.size()));
 }
 
-std::optional<Config> ParseConfigString(std::string_view xml)
+std::optional<Config> ParseConfigString(const std::string_view xml)
 {
   pugi::xml_document doc;
   const auto parse_result = doc.load_buffer(xml.data(), xml.size());

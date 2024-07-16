@@ -74,7 +74,7 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
-ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
+ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConfig& host_config,
                                     const vertex_shader_uid_data* uid_data)
 {
   ShaderCode out;

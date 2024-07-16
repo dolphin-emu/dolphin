@@ -20,7 +20,7 @@ DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D11InputLayout* 
                        ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
                        ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
                        ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
-                       D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op)
+                       const D3D11_PRIMITIVE_TOPOLOGY primitive_topology, const bool use_logic_op)
     : AbstractPipeline(config), m_input_layout(input_layout), m_vertex_shader(vertex_shader),
       m_geometry_shader(geometry_shader), m_pixel_shader(pixel_shader),
       m_rasterizer_state(rasterizer_state), m_depth_state(depth_state), m_blend_state(blend_state),

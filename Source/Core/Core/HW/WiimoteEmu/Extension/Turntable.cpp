@@ -155,7 +155,7 @@ void Turntable::Reset()
   // TODO: Is there calibration data?
 }
 
-ControllerEmu::ControlGroup* Turntable::GetGroup(TurntableGroup group)
+ControllerEmu::ControlGroup* Turntable::GetGroup(const TurntableGroup group)
 {
   switch (group)
   {

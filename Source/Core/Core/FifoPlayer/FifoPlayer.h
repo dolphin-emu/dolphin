@@ -67,7 +67,7 @@ enum class FramePartType
 
 struct FramePart
 {
-  constexpr FramePart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
+  constexpr FramePart(const FramePartType type, const u32 start, const u32 end, const CPState& cpmem)
       : m_type(type), m_start(start), m_end(end), m_cpmem(cpmem)
   {
   }
@@ -119,7 +119,7 @@ public:
   u32 GetFrameObjectCount(u32 frame) const;
   u32 GetCurrentFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
-  const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
+  const AnalyzedFrameInfo& GetAnalyzedFrameInfo(const u32 frame) const { return m_FrameInfo[frame]; }
   // Frame range
   u32 GetFrameRangeStart() const { return m_FrameRangeStart; }
   void SetFrameRangeStart(u32 start);
@@ -129,9 +129,9 @@ public:
 
   // Object range
   u32 GetObjectRangeStart() const { return m_ObjectRangeStart; }
-  void SetObjectRangeStart(u32 start) { m_ObjectRangeStart = start; }
+  void SetObjectRangeStart(const u32 start) { m_ObjectRangeStart = start; }
   u32 GetObjectRangeEnd() const { return m_ObjectRangeEnd; }
-  void SetObjectRangeEnd(u32 end) { m_ObjectRangeEnd = end; }
+  void SetObjectRangeEnd(const u32 end) { m_ObjectRangeEnd = end; }
 
   // Callbacks
   void SetFileLoadedCallback(CallbackFunc callback);

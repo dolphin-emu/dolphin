@@ -29,7 +29,7 @@
 
 namespace DX11
 {
-static ComPtr<ID3D11Buffer> AllocateConstantBuffer(u32 size)
+static ComPtr<ID3D11Buffer> AllocateConstantBuffer(const u32 size)
 {
   const u32 cbsize = Common::AlignUp(size, 16u);  // must be a multiple of 16
   const CD3D11_BUFFER_DESC cbdesc(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC,
@@ -45,7 +45,7 @@ static ComPtr<ID3D11Buffer> AllocateConstantBuffer(u32 size)
   return cbuf;
 }
 
-static void UpdateConstantBuffer(ID3D11Buffer* const buffer, const void* data, u32 data_size)
+static void UpdateConstantBuffer(ID3D11Buffer* const buffer, const void* data, const u32 data_size)
 {
   D3D11_MAPPED_SUBRESOURCE map;
   D3D::context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
@@ -56,7 +56,7 @@ static void UpdateConstantBuffer(ID3D11Buffer* const buffer, const void* data, u
 }
 
 static ComPtr<ID3D11ShaderResourceView>
-CreateTexelBufferView(ID3D11Buffer* buffer, TexelBufferFormat format, DXGI_FORMAT srv_format)
+CreateTexelBufferView(ID3D11Buffer* buffer, const TexelBufferFormat format, const DXGI_FORMAT srv_format)
 {
   ComPtr<ID3D11ShaderResourceView> srv;
   CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(buffer, srv_format, 0,
@@ -119,7 +119,7 @@ bool VertexManager::Initialize()
   return true;
 }
 
-void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
+void VertexManager::UploadUtilityUniforms(const void* uniforms, const u32 uniforms_size)
 {
   // Just use the one buffer for all three.
   InvalidateConstants();
@@ -129,7 +129,7 @@ void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_siz
   D3D::stateman->SetPixelConstants(m_vertex_constant_buffer.Get());
 }
 
-bool VertexManager::MapTexelBuffer(u32 required_size, D3D11_MAPPED_SUBRESOURCE& sr)
+bool VertexManager::MapTexelBuffer(const u32 required_size, D3D11_MAPPED_SUBRESOURCE& sr)
 {
   if ((m_texel_buffer_offset + required_size) > TEXEL_STREAM_BUFFER_SIZE)
   {
@@ -153,7 +153,7 @@ bool VertexManager::MapTexelBuffer(u32 required_size, D3D11_MAPPED_SUBRESOURCE& 
   return true;
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
                                       u32* out_offset)
 {
   if (data_size > TEXEL_STREAM_BUFFER_SIZE)
@@ -176,9 +176,9 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   return true;
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                      u32* out_offset, const void* palette_data, u32 palette_size,
-                                      TexelBufferFormat palette_format, u32* out_palette_offset)
+bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, const TexelBufferFormat format,
+                                      u32* out_offset, const void* palette_data, const u32 palette_size,
+                                      const TexelBufferFormat palette_format, u32* out_palette_offset)
 {
   const u32 elem_size = GetTexelBufferElementSize(format);
   const u32 palette_elem_size = GetTexelBufferElementSize(palette_format);
@@ -215,7 +215,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_index_generator.Start(m_cpu_index_buffer.data());
 }
 
-void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride, const u32 num_indices,
                                  u32* out_base_vertex, u32* out_base_index)
 {
   D3D11_MAPPED_SUBRESOURCE map;

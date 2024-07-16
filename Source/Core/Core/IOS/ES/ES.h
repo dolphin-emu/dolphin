@@ -142,7 +142,7 @@ public:
                              u64 caller_title_id, u32 caller_title_flags);
   ReturnCode ExportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size);
-  ReturnCode ExportContentEnd(Context& context, u32 content_fd);
+  ReturnCode ExportContentEnd(const Context& context, u32 content_fd);
   ReturnCode ExportTitleDone(Context& context);
   ReturnCode DeleteTitle(u64 title_id);
   ReturnCode DeleteTitleContent(u64 title_id) const;

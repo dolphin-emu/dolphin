@@ -20,19 +20,19 @@ constexpr size_t ABSOLUTE_ADDRESS_BIT = 0x2;
 
 // Compile-time helpers for mnemonic generation
 // Generate inclusive mask [left, right] -- MSB=0 LSB=31
-constexpr u32 Mask(u32 left, u32 right)
+constexpr u32 Mask(const u32 left, const u32 right)
 {
   return static_cast<u32>(((u64{1} << (32 - left)) - 1) & ~((u64{1} << (31 - right)) - 1));
 }
-constexpr u32 InsertVal(u32 val, u32 left, u32 right)
+constexpr u32 InsertVal(const u32 val, const u32 left, const u32 right)
 {
   return val << (31 - right) & Mask(left, right);
 }
-constexpr u32 InsertOpcode(u32 opcode)
+constexpr u32 InsertOpcode(const u32 opcode)
 {
   return InsertVal(opcode, 0, 5);
 }
-constexpr u32 SprBitswap(u32 spr)
+constexpr u32 SprBitswap(const u32 spr)
 {
   return ((spr & 0b0000011111) << 5) | ((spr & 0b1111100000) >> 5);
 }
@@ -78,7 +78,7 @@ constexpr OperandDesc OpDesc_I1 = OperandDesc{Mask(17, 19), {12, false}};
 constexpr OperandDesc OpDesc_I2 = OperandDesc{Mask(22, 24), {7, false}};
 }  // namespace
 
-void OperandList::Insert(size_t before, u32 val)
+void OperandList::Insert(const size_t before, u32 val)
 {
   overfill = count == MAX_OPERANDS;
   for (size_t i = before + 1; i <= count && i < MAX_OPERANDS; i++)
@@ -122,7 +122,7 @@ u32 OperandDesc::TruncBits() const
   return mask_lobit - 1;
 }
 
-bool OperandDesc::Fits(u32 val) const
+bool OperandDesc::Fits(const u32 val) const
 {
   const u32 mask_sh = mask >> shift;
   if (is_signed)
@@ -141,7 +141,7 @@ bool OperandDesc::Fits(u32 val) const
   return (mask_sh & val) == val;
 }
 
-u32 OperandDesc::Fit(u32 val) const
+u32 OperandDesc::Fit(const u32 val) const
 {
   return (val << shift) & mask;
 }
@@ -1412,30 +1412,30 @@ extern const std::array<ExtendedMnemonicDesc, NUM_EXT_MNEMONICS* VARIANT_PERMUTA
 
 namespace
 {
-constexpr TransitionF HasPlusOrMinus = [](char c) { return c == '+' || c == '-'; };
-constexpr TransitionF HasDigit = [](char c) -> bool { return std::isdigit(c); };
-constexpr TransitionF HasE = [](char c) { return c == 'e'; };
-constexpr TransitionF HasDot = [](char c) { return c == '.'; };
+constexpr TransitionF HasPlusOrMinus = [](const char c) { return c == '+' || c == '-'; };
+constexpr TransitionF HasDigit = [](const char c) -> bool { return std::isdigit(c); };
+constexpr TransitionF HasE = [](const char c) { return c == 'e'; };
+constexpr TransitionF HasDot = [](const char c) { return c == '.'; };
 
 // Normal string characters
-constexpr TransitionF HasNormal = [](char c) { return c != '\n' && c != '"' && c != '\\'; };
+constexpr TransitionF HasNormal = [](const char c) { return c != '\n' && c != '"' && c != '\\'; };
 // Invalid characters in string
-constexpr TransitionF HasInvalid = [](char c) { return c == '\n'; };
+constexpr TransitionF HasInvalid = [](const char c) { return c == '\n'; };
 // Octal digits
-constexpr TransitionF HasOctal = [](char c) { return c >= '0' && c <= '7'; };
+constexpr TransitionF HasOctal = [](const char c) { return c >= '0' && c <= '7'; };
 // Hex digits
-constexpr TransitionF HasHex = [](char c) -> bool { return std::isxdigit(c); };
+constexpr TransitionF HasHex = [](const char c) -> bool { return std::isxdigit(c); };
 // Normal - octal
-constexpr TransitionF HasNormalMinusOctal = [](char c) { return HasNormal(c) && !HasOctal(c); };
+constexpr TransitionF HasNormalMinusOctal = [](const char c) { return HasNormal(c) && !HasOctal(c); };
 // Normal - hex
-constexpr TransitionF HasNormalMinusHex = [](char c) { return HasNormal(c) && !HasHex(c); };
+constexpr TransitionF HasNormalMinusHex = [](const char c) { return HasNormal(c) && !HasHex(c); };
 // Escape start
-constexpr TransitionF HasEscape = [](char c) { return c == '\\'; };
+constexpr TransitionF HasEscape = [](const char c) { return c == '\\'; };
 // All single-character escapes
-constexpr TransitionF HasSCE = [](char c) { return !HasOctal(c) && c != 'x' && c != '\n'; };
+constexpr TransitionF HasSCE = [](const char c) { return !HasOctal(c) && c != 'x' && c != '\n'; };
 // Hex escape
-constexpr TransitionF HasHexStart = [](char c) { return c == 'x'; };
-constexpr TransitionF HasQuote = [](char c) { return c == '"'; };
+constexpr TransitionF HasHexStart = [](const char c) { return c == 'x'; };
+constexpr TransitionF HasQuote = [](const char c) { return c == '"'; };
 }  // namespace
 
 extern const std::vector<DfaNode> float_dfa = {

@@ -160,7 +160,7 @@ private:
 class DiscContentContainer
 {
 public:
-  void Add(u64 offset, std::vector<u8> vector)
+  void Add(const u64 offset, std::vector<u8> vector)
   {
     size_t vector_size = vector.size();
     return Add(offset, vector_size, std::make_shared<std::vector<u8>>(std::move(vector)));
@@ -194,7 +194,7 @@ public:
 
   bool IsWii() const { return m_is_wii; }
   u64 GetDataSize() const { return m_data_size; }
-  void SetDataSize(u64 size) { m_data_size = size; }
+  void SetDataSize(const u64 size) { m_data_size = size; }
   const std::string& GetRootDirectory() const { return m_root_directory; }
   const DiscContentContainer& GetContents() const { return m_contents; }
   const std::optional<Partition>& GetWrappedPartition() const
@@ -203,7 +203,7 @@ public:
   }
 
   const std::array<u8, VolumeWii::AES_KEY_SIZE>& GetKey() const { return m_key; }
-  void SetKey(std::array<u8, VolumeWii::AES_KEY_SIZE> key) { m_key = key; }
+  void SetKey(const std::array<u8, VolumeWii::AES_KEY_SIZE> key) { m_key = key; }
 
 private:
   void SetDiscType(std::optional<bool> is_wii, const std::vector<u8>& disc_header);
@@ -279,7 +279,7 @@ public:
 private:
   struct PartitionWithType
   {
-    PartitionWithType(DirectoryBlobPartition&& partition_, PartitionType type_)
+    PartitionWithType(DirectoryBlobPartition&& partition_, const PartitionType type_)
         : partition(std::move(partition_)), type(type_)
     {
     }

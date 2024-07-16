@@ -317,7 +317,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
   }
 }
 
-bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
+bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, const u32 size)
 {
   DEBUG_LOG_FMT(SP1, "SendFrame {} bytes:\n{}", size, ArrayToString(frame, size, 0x10));
 

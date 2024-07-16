@@ -137,8 +137,8 @@ void CPUCull::Init()
   m_cull_table[Prim::GX_DRAW_TRIANGLE_FAN] = GetCullFunction1<Prim::GX_DRAW_TRIANGLE_FAN>();
 }
 
-bool CPUCull::AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
-                                   const u8* src, u32 count)
+bool CPUCull::AreAllVerticesCulled(const VertexLoaderBase* loader, const OpcodeDecoder::Primitive primitive,
+                                   const u8* src, const u32 count)
 {
   ASSERT_MSG(VIDEO, primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES,
              "CPUCull should not be called on lines or points");

@@ -110,7 +110,7 @@ void USBV5ResourceManager::DoState(PointerWrap& p)
   USBHost::DoState(p);
 }
 
-USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(u32 in_buffer)
+USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(const u32 in_buffer)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -144,7 +144,7 @@ std::optional<IPCReply> USBV5ResourceManager::GetDeviceChange(const IOCtlRequest
   return std::nullopt;
 }
 
-IPCReply USBV5ResourceManager::SetAlternateSetting(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SetAlternateSetting(const USBV5Device& device, const IOCtlRequest& request)
 {
   const auto host_device = GetDeviceById(device.host_id);
   if (!host_device->AttachAndChangeInterface(device.interface_number))
@@ -175,7 +175,7 @@ IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply USBV5ResourceManager::SuspendResume(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SuspendResume(const USBV5Device& device, const IOCtlRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -204,7 +204,7 @@ std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlReque
 }
 
 void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
-                                          std::shared_ptr<USB::Device> device)
+                                          const std::shared_ptr<USB::Device> device)
 {
   std::lock_guard lock{m_usbv5_devices_mutex};
   const u64 host_device_id = device->GetId();

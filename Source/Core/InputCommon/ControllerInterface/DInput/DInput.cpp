@@ -18,13 +18,13 @@ namespace ciface::DInput
 {
 static IDirectInput8* s_idi8 = nullptr;
 
-BOOL CALLBACK DIEnumDeviceObjectsCallback(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
+BOOL CALLBACK DIEnumDeviceObjectsCallback(const LPCDIDEVICEOBJECTINSTANCE lpddoi, const LPVOID pvRef)
 {
   ((std::list<DIDEVICEOBJECTINSTANCE>*)pvRef)->push_back(*lpddoi);
   return DIENUM_CONTINUE;
 }
 
-BOOL CALLBACK DIEnumDevicesCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
+BOOL CALLBACK DIEnumDevicesCallback(const LPCDIDEVICEINSTANCE lpddi, const LPVOID pvRef)
 {
   ((std::list<DIDEVICEINSTANCE>*)pvRef)->push_back(*lpddi);
   return DIENUM_CONTINUE;
@@ -53,7 +53,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 }
 
 // Assumes hwnd had not changed from the previous call
-void PopulateDevices(HWND hwnd)
+void PopulateDevices(const HWND hwnd)
 {
   if (!s_idi8)
   {
@@ -78,7 +78,7 @@ void PopulateDevices(HWND hwnd)
   InitJoystick(s_idi8, hwnd);
 }
 
-void ChangeWindow(HWND hwnd)
+void ChangeWindow(const HWND hwnd)
 {
   if (s_idi8)  // Has init? Ignore if called before the first PopulateDevices()
   {

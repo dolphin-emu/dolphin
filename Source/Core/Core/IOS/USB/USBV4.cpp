@@ -81,7 +81,7 @@ V4GetUSStringMessage::V4GetUSStringMessage(EmulationKernel& ios, const IOCtlRequ
   data_address = Common::swap32(hid_request.data_addr);
 }
 
-void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
+void V4GetUSStringMessage::OnTransferComplete(const s32 return_value) const
 {
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();

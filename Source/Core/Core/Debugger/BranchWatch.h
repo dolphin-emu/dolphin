@@ -66,22 +66,22 @@ enum class BranchWatchSelectionInspection : u8
   EndOfEnumeration,
 };
 
-constexpr BranchWatchSelectionInspection operator|(BranchWatchSelectionInspection lhs,
-                                                   BranchWatchSelectionInspection rhs)
+constexpr BranchWatchSelectionInspection operator|(const BranchWatchSelectionInspection lhs,
+                                                   const BranchWatchSelectionInspection rhs)
 {
   return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) |
                                                      Common::ToUnderlying(rhs));
 }
 
-constexpr BranchWatchSelectionInspection operator&(BranchWatchSelectionInspection lhs,
-                                                   BranchWatchSelectionInspection rhs)
+constexpr BranchWatchSelectionInspection operator&(const BranchWatchSelectionInspection lhs,
+                                                   const BranchWatchSelectionInspection rhs)
 {
   return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) &
                                                      Common::ToUnderlying(rhs));
 }
 
 constexpr BranchWatchSelectionInspection& operator|=(BranchWatchSelectionInspection& self,
-                                                     BranchWatchSelectionInspection other)
+                                                     const BranchWatchSelectionInspection other)
 {
   return self = self | other;
 }
@@ -117,7 +117,7 @@ public:
   using SelectionInspection = BranchWatchSelectionInspection;
 
   bool GetRecordingActive() const { return m_recording_active; }
-  void SetRecordingActive(bool active) { m_recording_active = active; }
+  void SetRecordingActive(const bool active) { m_recording_active = active; }
   void Start() { SetRecordingActive(true); }
   void Pause() { SetRecordingActive(false); }
   void Clear(const CPUThreadGuard& guard);
@@ -152,37 +152,37 @@ public:
   // functions. HitXX_fk are optimized for when origin and destination can be passed in one register
   // easily as a Core::FakeBranchWatchCollectionKey (abbreviated as "fk"). HitXX_fk_n are the same,
   // but also increment the total_hits by N (see dcbx JIT code).
-  static void HitVirtualTrue_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
+  static void HitVirtualTrue_fk(BranchWatch* branch_watch, const u64 fake_key, const u32 inst)
   {
     branch_watch->m_collection_vt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
-  static void HitPhysicalTrue_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
+  static void HitPhysicalTrue_fk(BranchWatch* branch_watch, const u64 fake_key, const u32 inst)
   {
     branch_watch->m_collection_pt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
-  static void HitVirtualFalse_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
+  static void HitVirtualFalse_fk(BranchWatch* branch_watch, const u64 fake_key, const u32 inst)
   {
     branch_watch->m_collection_vf[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
-  static void HitPhysicalFalse_fk(BranchWatch* branch_watch, u64 fake_key, u32 inst)
+  static void HitPhysicalFalse_fk(BranchWatch* branch_watch, const u64 fake_key, const u32 inst)
   {
     branch_watch->m_collection_pf[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += 1;
   }
 
-  static void HitVirtualTrue_fk_n(BranchWatch* branch_watch, u64 fake_key, u32 inst, u32 n)
+  static void HitVirtualTrue_fk_n(BranchWatch* branch_watch, const u64 fake_key, const u32 inst, const u32 n)
   {
     branch_watch->m_collection_vt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += n;
   }
 
-  static void HitPhysicalTrue_fk_n(BranchWatch* branch_watch, u64 fake_key, u32 inst, u32 n)
+  static void HitPhysicalTrue_fk_n(BranchWatch* branch_watch, const u64 fake_key, const u32 inst, const u32 n)
   {
     branch_watch->m_collection_pt[{std::bit_cast<FakeBranchWatchCollectionKey>(fake_key), inst}]
         .total_hits += n;
@@ -190,22 +190,22 @@ public:
 
   // HitVirtualFalse_fk_n and HitPhysicalFalse_fk_n are never used, so they are omitted here.
 
-  static void HitVirtualTrue(BranchWatch* branch_watch, u32 origin, u32 destination, u32 inst)
+  static void HitVirtualTrue(BranchWatch* branch_watch, const u32 origin, const u32 destination, const u32 inst)
   {
     HitVirtualTrue_fk(branch_watch, FakeBranchWatchCollectionKey{origin, destination}, inst);
   }
 
-  static void HitPhysicalTrue(BranchWatch* branch_watch, u32 origin, u32 destination, u32 inst)
+  static void HitPhysicalTrue(BranchWatch* branch_watch, const u32 origin, const u32 destination, const u32 inst)
   {
     HitPhysicalTrue_fk(branch_watch, FakeBranchWatchCollectionKey{origin, destination}, inst);
   }
 
-  static void HitVirtualFalse(BranchWatch* branch_watch, u32 origin, u32 destination, u32 inst)
+  static void HitVirtualFalse(BranchWatch* branch_watch, const u32 origin, const u32 destination, const u32 inst)
   {
     HitVirtualFalse_fk(branch_watch, FakeBranchWatchCollectionKey{origin, destination}, inst);
   }
 
-  static void HitPhysicalFalse(BranchWatch* branch_watch, u32 origin, u32 destination, u32 inst)
+  static void HitPhysicalFalse(BranchWatch* branch_watch, const u32 origin, const u32 destination, const u32 inst)
   {
     HitPhysicalFalse_fk(branch_watch, FakeBranchWatchCollectionKey{origin, destination}, inst);
   }
@@ -240,21 +240,21 @@ public:
   }
 
 private:
-  Collection& GetCollectionV(bool condition)
+  Collection& GetCollectionV(const bool condition)
   {
     if (condition)
       return m_collection_vt;
     return m_collection_vf;
   }
 
-  Collection& GetCollectionP(bool condition)
+  Collection& GetCollectionP(const bool condition)
   {
     if (condition)
       return m_collection_pt;
     return m_collection_pf;
   }
 
-  Collection& GetCollection(bool is_virtual, bool condition)
+  Collection& GetCollection(const bool is_virtual, const bool condition)
   {
     if (is_virtual)
       return GetCollectionV(condition);

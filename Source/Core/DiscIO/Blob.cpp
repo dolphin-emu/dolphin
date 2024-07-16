@@ -26,7 +26,7 @@
 
 namespace DiscIO
 {
-std::string GetName(BlobType blob_type, bool translate)
+std::string GetName(const BlobType blob_type, bool translate)
 {
   const auto translate_str = [translate](const std::string& str) {
     return translate ? Common::GetStringT(str.c_str()) : str;
@@ -61,7 +61,7 @@ std::string GetName(BlobType blob_type, bool translate)
   }
 }
 
-void SectorReader::SetSectorSize(int blocksize)
+void SectorReader::SetSectorSize(const int blocksize)
 {
   m_block_size = std::max(blocksize, 0);
   for (auto& cache_entry : m_cache)
@@ -71,7 +71,7 @@ void SectorReader::SetSectorSize(int blocksize)
   }
 }
 
-void SectorReader::SetChunkSize(int block_cnt)
+void SectorReader::SetChunkSize(const int block_cnt)
 {
   m_chunk_blocks = std::max(block_cnt, 1);
   // Clear cache and resize the data arrays
@@ -82,7 +82,7 @@ SectorReader::~SectorReader()
 {
 }
 
-const SectorReader::Cache* SectorReader::FindCacheLine(u64 block_num)
+const SectorReader::Cache* SectorReader::FindCacheLine(const u64 block_num)
 {
   auto itr = std::find_if(m_cache.begin(), m_cache.end(),
                           [&](const Cache& entry) { return entry.Contains(block_num); });
@@ -110,7 +110,7 @@ SectorReader::Cache* SectorReader::GetEmptyCacheLine()
   return oldest;
 }
 
-const SectorReader::Cache* SectorReader::GetCacheLine(u64 block_num)
+const SectorReader::Cache* SectorReader::GetCacheLine(const u64 block_num)
 {
   if (auto entry = FindCacheLine(block_num))
     return entry;
@@ -131,7 +131,7 @@ const SectorReader::Cache* SectorReader::GetCacheLine(u64 block_num)
   return cache->Contains(block_num) ? cache : nullptr;
 }
 
-bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
+bool SectorReader::Read(u64 offset, const u64 size, u8* out_ptr)
 {
   if (offset + size > GetDataSize())
     return false;
@@ -165,7 +165,7 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 }
 
 // Crap default implementation if not overridden.
-bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 cnt_blocks, u8* out_ptr)
+bool SectorReader::ReadMultipleAlignedBlocks(const u64 block_num, const u64 cnt_blocks, u8* out_ptr)
 {
   for (u64 i = 0; i < cnt_blocks; ++i)
   {
@@ -176,7 +176,7 @@ bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 cnt_blocks, u8* 
   return true;
 }
 
-u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
+u32 SectorReader::ReadChunk(u8* buffer, const u64 chunk_num)
 {
   u64 block_num = chunk_num * m_chunk_blocks;
   u32 cnt_blocks = m_chunk_blocks;

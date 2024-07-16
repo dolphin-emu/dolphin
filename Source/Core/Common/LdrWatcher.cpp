@@ -47,8 +47,8 @@ typedef NTSTATUS(NTAPI* LdrRegisterDllNotification_t)(
 
 typedef NTSTATUS(NTAPI* LdrUnregisterDllNotification_t)(_In_ PVOID Cookie);
 
-static void LdrObserverRun(const LdrObserver& observer, PCUNICODE_STRING module_name,
-                           uintptr_t base_address)
+static void LdrObserverRun(const LdrObserver& observer, const PCUNICODE_STRING module_name,
+                           const uintptr_t base_address)
 {
   for (auto& needle : observer.module_names)
   {
@@ -60,8 +60,8 @@ static void LdrObserverRun(const LdrObserver& observer, PCUNICODE_STRING module_
   }
 }
 
-static VOID DllNotificationCallback(ULONG NotificationReason,
-                                    PCLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
+static VOID DllNotificationCallback(const ULONG NotificationReason,
+                                    const PCLDR_DLL_NOTIFICATION_DATA NotificationData, const PVOID Context)
 {
   if (NotificationReason != LDR_DLL_NOTIFICATION_REASON_LOADED)
     return;

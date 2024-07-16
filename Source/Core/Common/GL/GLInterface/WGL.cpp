@@ -195,7 +195,7 @@ bool GLContextWGL::IsHeadless() const
   return !m_window_handle;
 }
 
-void GLContextWGL::SwapInterval(int interval)
+void GLContextWGL::SwapInterval(const int interval)
 {
   if (wglSwapIntervalEXT)
   {
@@ -228,7 +228,7 @@ void* GLContextWGL::GetFuncAddress(const std::string& name)
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
+bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, const bool stereo, const bool core)
 {
   if (!wsi.render_surface)
     return false;
@@ -368,7 +368,7 @@ std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
   return context;
 }
 
-HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
+HGLRC GLContextWGL::CreateCoreContext(const HDC dc, const HGLRC share_context)
 {
   if (!wglCreateContextAttribsARB)
   {
@@ -409,7 +409,7 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
   return nullptr;
 }
 
-bool GLContextWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,
+bool GLContextWGL::CreatePBuffer(const HDC onscreen_dc, const int width, const int height, HANDLE* pbuffer_handle,
                                  HDC* pbuffer_dc)
 {
   if (!wglChoosePixelFormatARB || !wglCreatePbufferARB || !wglGetPbufferDCARB ||

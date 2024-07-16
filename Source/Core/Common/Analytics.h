@@ -83,7 +83,7 @@ public:
   }
 
   template <typename T>
-  AnalyticsReportBuilder& AddData(std::string_view key, const T& value)
+  AnalyticsReportBuilder& AddData(const std::string_view key, const T& value)
   {
     std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
@@ -92,7 +92,7 @@ public:
   }
 
   template <typename T>
-  AnalyticsReportBuilder& AddData(std::string_view key, const std::vector<T>& value)
+  AnalyticsReportBuilder& AddData(const std::string_view key, const std::vector<T>& value)
   {
     std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);

@@ -25,7 +25,7 @@ struct CameraPoint
 
   // 0xFFFFs are interpreted as "not visible".
   constexpr CameraPoint() : position({0xffff, 0xffff}), size(0xff) {}
-  constexpr CameraPoint(IRObject position_, u8 size_) : position(position_), size(size_) {}
+  constexpr CameraPoint(const IRObject position_, const u8 size_) : position(position_), size(size_) {}
   constexpr bool operator==(const CameraPoint& other) const
   {
     return this->position == other.position && this->size == other.size;

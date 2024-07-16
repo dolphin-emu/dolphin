@@ -335,7 +335,7 @@ void AsmEditor::HighlightCurrentLine()
   blockSignals(old_state);
 }
 
-void AsmEditor::LineNumberAreaPaintEvent(QPaintEvent* event)
+void AsmEditor::LineNumberAreaPaintEvent(const QPaintEvent* event)
 {
   QPainter painter(m_line_number_area);
   if (m_dark_scheme)

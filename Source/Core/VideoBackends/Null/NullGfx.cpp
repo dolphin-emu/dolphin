@@ -49,7 +49,7 @@ std::unique_ptr<AbstractStagingTexture> NullGfx::CreateStagingTexture(StagingTex
 class NullShader final : public AbstractShader
 {
 public:
-  explicit NullShader(ShaderStage stage) : AbstractShader(stage) {}
+  explicit NullShader(const ShaderStage stage) : AbstractShader(stage) {}
 };
 
 std::unique_ptr<AbstractShader>

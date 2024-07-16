@@ -103,7 +103,7 @@ bool GraphicsModManager::Initialize()
 }
 
 const std::vector<GraphicsModAction*>&
-GraphicsModManager::GetProjectionActions(ProjectionType projection_type) const
+GraphicsModManager::GetProjectionActions(const ProjectionType projection_type) const
 {
   if (const auto it = m_projection_target_to_actions.find(projection_type);
       it != m_projection_target_to_actions.end())

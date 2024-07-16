@@ -126,7 +126,7 @@ void DVDInterface::DoState(PointerWrap& p)
   m_adpcm_decoder.DoState(p);
 }
 
-size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t target_block_count,
+size_t DVDInterface::ProcessDTKSamples(s16* target_samples, const size_t target_block_count,
                                        const std::vector<u8>& audio_data)
 {
   const size_t block_count_to_process =
@@ -149,7 +149,7 @@ size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t target_block_
   return block_count_to_process;
 }
 
-u32 DVDInterface::AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process)
+u32 DVDInterface::AdvanceDTK(const u32 maximum_blocks, u32* blocks_to_process)
 {
   u32 bytes_to_process = 0;
   *blocks_to_process = 0;
@@ -185,8 +185,8 @@ u32 DVDInterface::AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process)
   return bytes_to_process;
 }
 
-void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
-                                        const std::vector<u8>& audio_data, s64 cycles_late)
+void DVDInterface::DTKStreamingCallback(const DIInterruptType interrupt_type,
+                                        const std::vector<u8>& audio_data, const s64 cycles_late)
 {
   auto& ai = m_system.GetAudioInterface();
 
@@ -286,7 +286,7 @@ void DVDInterface::Init()
 
 // Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
 // emulated device, or any inserted disc.
-void DVDInterface::ResetDrive(bool spinup)
+void DVDInterface::ResetDrive(const bool spinup)
 {
   m_stream = false;
   m_stop_at_track_end = false;
@@ -420,12 +420,12 @@ void DVDInterface::AutoChangeDiscCallback(Core::System& system, u64 userdata, s6
   system.GetDVDInterface().AutoChangeDisc(Core::CPUThreadGuard{system});
 }
 
-void DVDInterface::EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void DVDInterface::EjectDiscCallback(const Core::System& system, u64 userdata, s64 cyclesLate)
 {
   system.GetDVDInterface().SetDisc(nullptr, {});
 }
 
-void DVDInterface::InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void DVDInterface::InsertDiscCallback(const Core::System& system, u64 userdata, s64 cyclesLate)
 {
   auto& di = system.GetDVDInterface();
   std::unique_ptr<DiscIO::VolumeDisc> new_disc = DiscIO::CreateDisc(di.m_disc_path_to_insert);
@@ -439,7 +439,7 @@ void DVDInterface::InsertDiscCallback(Core::System& system, u64 userdata, s64 cy
 }
 
 // Must only be called on the CPU thread
-void DVDInterface::EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause)
+void DVDInterface::EjectDisc(const Core::CPUThreadGuard& guard, const EjectCause cause)
 {
   m_system.GetCoreTiming().ScheduleEvent(0, m_eject_disc);
   if (cause == EjectCause::User)
@@ -508,7 +508,7 @@ void DVDInterface::SetLidOpen()
     GenerateDIInterrupt(DIInterruptType::CVRINT);
 }
 
-bool DVDInterface::UpdateRunningGameMetadata(std::optional<u64> title_id)
+bool DVDInterface::UpdateRunningGameMetadata(const std::optional<u64> title_id)
 {
   auto& dvd_thread = m_system.GetDVDThread();
 
@@ -518,10 +518,10 @@ bool DVDInterface::UpdateRunningGameMetadata(std::optional<u64> title_id)
   return dvd_thread.UpdateRunningGameMetadata(IOS::HLE::DIDevice::GetCurrentPartition(), title_id);
 }
 
-void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
+void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, const u32 base, const bool is_wii)
 {
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&m_DISR.Hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& di = system.GetDVDInterface();
                    const UDISR tmp_status_reg(val);
 
@@ -548,7 +548,7 @@ void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
                  }));
 
   mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&m_DICVR.Hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& di = system.GetDVDInterface();
                    const UDICVR tmp_cover_reg(val);
 
@@ -586,7 +586,7 @@ void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
   mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&m_DILENGTH),
                  MMIO::DirectWrite<u32>(&m_DILENGTH, ~0x1F));
   mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&m_DICR.Hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& di = system.GetDVDInterface();
                    di.m_DICR.Hex = val & 7;
                    if (di.m_DICR.TSTART)
@@ -615,7 +615,7 @@ void DVDInterface::UpdateInterrupts()
   m_system.GetCoreTiming().ForceExceptionCheck(50);
 }
 
-void DVDInterface::GenerateDIInterrupt(DIInterruptType dvd_interrupt)
+void DVDInterface::GenerateDIInterrupt(const DIInterruptType dvd_interrupt)
 {
   switch (dvd_interrupt)
   {
@@ -636,7 +636,7 @@ void DVDInterface::GenerateDIInterrupt(DIInterruptType dvd_interrupt)
   UpdateInterrupts();
 }
 
-void DVDInterface::SetInterruptEnabled(DIInterruptType interrupt, bool enabled)
+void DVDInterface::SetInterruptEnabled(const DIInterruptType interrupt, const bool enabled)
 {
   switch (interrupt)
   {
@@ -655,7 +655,7 @@ void DVDInterface::SetInterruptEnabled(DIInterruptType interrupt, bool enabled)
   }
 }
 
-void DVDInterface::ClearInterrupt(DIInterruptType interrupt)
+void DVDInterface::ClearInterrupt(const DIInterruptType interrupt)
 {
   switch (interrupt)
   {
@@ -707,9 +707,9 @@ bool DVDInterface::CheckReadPreconditions()
 }
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
-bool DVDInterface::ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length,
-                                      u32 output_length, const DiscIO::Partition& partition,
-                                      ReplyType reply_type, DIInterruptType* interrupt_type)
+bool DVDInterface::ExecuteReadCommand(const u64 dvd_offset, const u32 output_address, u32 dvd_length,
+                                      const u32 output_length, const DiscIO::Partition& partition,
+                                      const ReplyType reply_type, DIInterruptType* interrupt_type)
 {
   if (!CheckReadPreconditions())
   {
@@ -748,7 +748,7 @@ bool DVDInterface::ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dv
 // When the command has finished executing, callback_event_type
 // will be called using CoreTiming::ScheduleEvent,
 // with the userdata set to the interrupt type.
-void DVDInterface::ExecuteCommand(ReplyType reply_type)
+void DVDInterface::ExecuteCommand(const ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
@@ -1186,8 +1186,8 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   }
 }
 
-void DVDInterface::PerformDecryptingRead(u32 position, u32 length, u32 output_address,
-                                         const DiscIO::Partition& partition, ReplyType reply_type)
+void DVDInterface::PerformDecryptingRead(const u32 position, const u32 length, const u32 output_address,
+                                         const DiscIO::Partition& partition, const ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
 
@@ -1207,7 +1207,7 @@ void DVDInterface::PerformDecryptingRead(u32 position, u32 length, u32 output_ad
   }
 }
 
-void DVDInterface::ForceOutOfBoundsRead(ReplyType reply_type)
+void DVDInterface::ForceOutOfBoundsRead(const ReplyType reply_type)
 {
   INFO_LOG_FMT(DVDINTERFACE, "Forcing an out-of-bounds disc read.");
 
@@ -1223,7 +1223,7 @@ void DVDInterface::ForceOutOfBoundsRead(ReplyType reply_type)
       m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
 }
 
-void DVDInterface::AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length)
+void DVDInterface::AudioBufferConfig(const bool enable_dtk, const u8 dtk_buffer_length)
 {
   m_enable_dtk = enable_dtk;
   m_dtk_buffer_length = dtk_buffer_length;
@@ -1238,26 +1238,26 @@ static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptT
   return (static_cast<u64>(reply_type) << 32) + static_cast<u32>(interrupt_type);
 }
 
-void DVDInterface::FinishExecutingCommandCallback(Core::System& system, u64 userdata,
-                                                  s64 cycles_late)
+void DVDInterface::FinishExecutingCommandCallback(const Core::System& system, const u64 userdata,
+                                                  const s64 cycles_late)
 {
   ReplyType reply_type = static_cast<ReplyType>(userdata >> 32);
   DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
   system.GetDVDInterface().FinishExecutingCommand(reply_type, interrupt_type, cycles_late);
 }
 
-void DVDInterface::SetDriveState(DriveState state)
+void DVDInterface::SetDriveState(const DriveState state)
 {
   m_drive_state = state;
 }
 
-void DVDInterface::SetDriveError(DriveError error)
+void DVDInterface::SetDriveError(const DriveError error)
 {
   m_error_code = error;
 }
 
-void DVDInterface::FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type,
-                                          s64 cycles_late, const std::vector<u8>& data)
+void DVDInterface::FinishExecutingCommand(const ReplyType reply_type, const DIInterruptType interrupt_type,
+                                          const s64 cycles_late, const std::vector<u8>& data)
 {
   // The data parameter contains the requested data iff this was called from DVDThread, and is
   // empty otherwise. DVDThread is the only source of ReplyType::NoReply and ReplyType::DTK.
@@ -1308,7 +1308,7 @@ void DVDInterface::FinishExecutingCommand(ReplyType reply_type, DIInterruptType 
 // Determines from a given read request how much of the request is buffered,
 // and how much is required to be read from disc.
 void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition,
-                                 u32 output_address, ReplyType reply_type)
+                                 u32 output_address, const ReplyType reply_type)
 {
   // The drive continues to read 1 MiB beyond the last read position when idle.
   // If a future read falls within this window, part of the read may be returned

@@ -51,7 +51,7 @@ static Map LoadMap(const std::string& file_path)
   return map;
 }
 
-void TitleDatabase::AddLazyMap(DiscIO::Language language, const std::string& language_code)
+void TitleDatabase::AddLazyMap(const DiscIO::Language language, const std::string& language_code)
 {
   m_title_maps[language] = [language_code]() -> Map {
     return LoadMap(File::GetSysDirectory() + "wiitdb-" + language_code + ".txt");
@@ -91,7 +91,7 @@ TitleDatabase::TitleDatabase()
 TitleDatabase::~TitleDatabase() = default;
 
 const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
-                                               DiscIO::Language language) const
+                                               const DiscIO::Language language) const
 {
   auto it = m_user_title_map.find(gametdb_id);
   if (it != m_user_title_map.end())
@@ -120,7 +120,7 @@ const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
   return EMPTY_STRING;
 }
 
-const std::string& TitleDatabase::GetChannelName(u64 title_id, DiscIO::Language language) const
+const std::string& TitleDatabase::GetChannelName(const u64 title_id, const DiscIO::Language language) const
 {
   const std::string id{
       {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
@@ -128,7 +128,7 @@ const std::string& TitleDatabase::GetChannelName(u64 title_id, DiscIO::Language 
   return GetTitleName(id, language);
 }
 
-std::string TitleDatabase::Describe(const std::string& gametdb_id, DiscIO::Language language) const
+std::string TitleDatabase::Describe(const std::string& gametdb_id, const DiscIO::Language language) const
 {
   const std::string& title_name = GetTitleName(gametdb_id, language);
   if (title_name.empty())

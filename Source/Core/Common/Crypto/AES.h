@@ -33,11 +33,11 @@ public:
   Context() = default;
   virtual ~Context() = default;
   virtual bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t len) const = 0;
-  bool Crypt(const u8* iv, const u8* buf_in, u8* buf_out, size_t len) const
+  bool Crypt(const u8* iv, const u8* buf_in, u8* buf_out, const size_t len) const
   {
     return Crypt(iv, nullptr, buf_in, buf_out, len);
   }
-  bool CryptIvZero(const u8* buf_in, u8* buf_out, size_t len) const
+  bool CryptIvZero(const u8* buf_in, u8* buf_out, const size_t len) const
   {
     return Crypt(nullptr, nullptr, buf_in, buf_out, len);
   }

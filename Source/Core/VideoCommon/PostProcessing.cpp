@@ -346,7 +346,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
-void PostProcessingConfiguration::SetOptionf(const std::string& option, int index, float value)
+void PostProcessingConfiguration::SetOptionf(const std::string& option, const int index, const float value)
 {
   auto it = m_options.find(option);
 
@@ -355,7 +355,7 @@ void PostProcessingConfiguration::SetOptionf(const std::string& option, int inde
   m_any_options_dirty = true;
 }
 
-void PostProcessingConfiguration::SetOptioni(const std::string& option, int index, s32 value)
+void PostProcessingConfiguration::SetOptioni(const std::string& option, const int index, const s32 value)
 {
   auto it = m_options.find(option);
 
@@ -364,7 +364,7 @@ void PostProcessingConfiguration::SetOptioni(const std::string& option, int inde
   m_any_options_dirty = true;
 }
 
-void PostProcessingConfiguration::SetOptionb(const std::string& option, bool value)
+void PostProcessingConfiguration::SetOptionb(const std::string& option, const bool value)
 {
   auto it = m_options.find(option);
 
@@ -416,7 +416,7 @@ std::vector<std::string> PostProcessing::GetPassiveShaderList()
   return GetShaders(PASSIVE_DIR DIR_SEP);
 }
 
-bool PostProcessing::Initialize(AbstractTextureFormat format)
+bool PostProcessing::Initialize(const AbstractTextureFormat format)
 {
   m_framebuffer_format = format;
   // CompilePixelShader() must be run first if configuration options are used.
@@ -605,7 +605,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   }
 }
 
-std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
+std::string PostProcessing::GetUniformBufferHeader(const bool user_post_process) const
 {
   std::ostringstream ss;
   u32 unused_counter = 1;
@@ -681,7 +681,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   return ss.str();
 }
 
-std::string PostProcessing::GetHeader(bool user_post_process) const
+std::string PostProcessing::GetHeader(const bool user_post_process) const
 {
   std::ostringstream ss;
   ss << GetUniformBufferHeader(user_post_process);
@@ -858,7 +858,7 @@ struct BuiltinUniforms
   float hdr_sdr_white_nits;
 };
 
-size_t PostProcessing::CalculateUniformsSize(bool user_post_process) const
+size_t PostProcessing::CalculateUniformsSize(const bool user_post_process) const
 {
   // Allocate a vec4 for each uniform to simplify allocation.
   return sizeof(BuiltinUniforms) +
@@ -866,10 +866,10 @@ size_t PostProcessing::CalculateUniformsSize(bool user_post_process) const
 }
 
 void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
-                                       const AbstractTexture* src_tex, int src_layer,
+                                       const AbstractTexture* src_tex, const int src_layer,
                                        const MathUtil::Rectangle<int>& dst,
                                        const MathUtil::Rectangle<int>& wnd, u8* buffer,
-                                       bool user_post_process, bool intermediary_buffer)
+                                       const bool user_post_process, const bool intermediary_buffer)
 {
   const float rcp_src_width = 1.0f / src_tex->GetWidth();
   const float rcp_src_height = 1.0f / src_tex->GetHeight();
@@ -1003,7 +1003,7 @@ bool PostProcessing::CompilePixelShader()
   return true;
 }
 
-static bool UseGeometryShaderForPostProcess(bool is_intermediary_buffer)
+static bool UseGeometryShaderForPostProcess(const bool is_intermediary_buffer)
 {
   // We only return true on stereo modes that need to copy
   // both source texture layers into the target texture layers.

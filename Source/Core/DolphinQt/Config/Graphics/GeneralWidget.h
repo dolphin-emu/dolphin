@@ -23,7 +23,7 @@ class GeneralWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeneralWidget(GraphicsWindow* parent);
+  explicit GeneralWidget(const GraphicsWindow* parent);
 signals:
   void BackendChanged(const QString& backend);
 

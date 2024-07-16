@@ -22,7 +22,7 @@
 
 namespace Common
 {
-inline u8 swap8(u8 data)
+inline u8 swap8(const u8 data)
 {
   return data;
 }
@@ -38,15 +38,15 @@ inline u32 swap24(const u8* data)
 #endif
 
 #ifdef _WIN32
-inline u16 swap16(u16 data)
+inline u16 swap16(const u16 data)
 {
   return _byteswap_ushort(data);
 }
-inline u32 swap32(u32 data)
+inline u32 swap32(const u32 data)
 {
   return _byteswap_ulong(data);
 }
-inline u64 swap64(u64 data)
+inline u64 swap64(const u64 data)
 {
   return _byteswap_uint64(data);
 }

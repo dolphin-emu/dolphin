@@ -159,7 +159,7 @@ void Guitar::Reset()
   // TODO: Is there calibration data?
 }
 
-ControllerEmu::ControlGroup* Guitar::GetGroup(GuitarGroup group)
+ControllerEmu::ControlGroup* Guitar::GetGroup(const GuitarGroup group)
 {
   switch (group)
   {

@@ -202,7 +202,7 @@ void BreakpointWidget::showEvent(QShowEvent* event)
   Update();
 }
 
-void BreakpointWidget::OnClicked(QTableWidgetItem* item)
+void BreakpointWidget::OnClicked(const QTableWidgetItem* item)
 {
   if (!item)
     return;
@@ -558,7 +558,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
   menu->exec(QCursor::pos());
 }
 
-void BreakpointWidget::OnItemChanged(QTableWidgetItem* item)
+void BreakpointWidget::OnItemChanged(const QTableWidgetItem* item)
 {
   if (item->column() != ADDRESS_COLUMN && item->column() != END_ADDRESS_COLUMN)
     return;

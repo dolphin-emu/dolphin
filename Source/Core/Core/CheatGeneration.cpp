@@ -19,7 +19,7 @@ constexpr int AR_SET_BYTE_CMD = 0x00;
 constexpr int AR_SET_SHORT_CMD = 0x02;
 constexpr int AR_SET_INT_CMD = 0x04;
 
-static std::vector<ActionReplay::AREntry> ResultToAREntries(u32 addr, const Cheats::SearchValue& sv)
+static std::vector<ActionReplay::AREntry> ResultToAREntries(const u32 addr, const Cheats::SearchValue& sv)
 {
   std::vector<ActionReplay::AREntry> codes;
   std::vector<u8> data = GetValueAsByteVector(sv);
@@ -53,7 +53,7 @@ static std::vector<ActionReplay::AREntry> ResultToAREntries(u32 addr, const Chea
 }
 
 Common::Result<Cheats::GenerateActionReplayCodeErrorCode, ActionReplay::ARCode>
-Cheats::GenerateActionReplayCode(const CheatSearchSessionBase& session, size_t index)
+Cheats::GenerateActionReplayCode(const CheatSearchSessionBase& session, const size_t index)
 {
   if (index >= session.GetResultCount())
     return GenerateActionReplayCodeErrorCode::IndexOutOfRange;

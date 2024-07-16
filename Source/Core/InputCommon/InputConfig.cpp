@@ -144,7 +144,7 @@ void InputConfig::SaveConfig()
   inifile.Save(ini_filename);
 }
 
-ControllerEmu::EmulatedController* InputConfig::GetController(int index) const
+ControllerEmu::EmulatedController* InputConfig::GetController(const int index) const
 {
   return m_controllers.at(index).get();
 }
@@ -189,7 +189,7 @@ void InputConfig::UnregisterHotplugCallback()
   g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
 }
 
-bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
+bool InputConfig::IsControllerControlledByGamepadDevice(const int index) const
 {
   if (static_cast<size_t>(index) >= m_controllers.size())
     return false;

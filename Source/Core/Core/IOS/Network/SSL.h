@@ -97,7 +97,7 @@ private:
   bool m_cert_error_shown = false;
 };
 
-constexpr bool IsSSLIDValid(int id)
+constexpr bool IsSSLIDValid(const int id)
 {
   return (id >= 0 && id < NET_SSL_MAXINSTANCES && NetSSLDevice::_SSL[id].active);
 }

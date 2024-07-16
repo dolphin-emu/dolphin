@@ -23,7 +23,7 @@ namespace
 using namespace Common::GekkoAssembler::detail;
 
 FailureOr<u32> FillInstruction(const MnemonicDesc& desc, const OperandList& operands,
-                               std::string_view inst_line)
+                               const std::string_view inst_line)
 {
   // Parser shouldn't allow this to pass
   ASSERT_MSG(COMMON, desc.operand_count == operands.count && !operands.overfill,
@@ -75,7 +75,7 @@ FailureOr<u32> FillInstruction(const MnemonicDesc& desc, const OperandList& oper
   return instruction;
 }
 
-void AdjustOperandsForGas(GekkoMnemonic mnemonic, OperandList& ops_list)
+void AdjustOperandsForGas(const GekkoMnemonic mnemonic, OperandList& ops_list)
 {
   switch (mnemonic)
   {
@@ -106,7 +106,7 @@ void AdjustOperandsForGas(GekkoMnemonic mnemonic, OperandList& ops_list)
 
 }  // namespace
 
-void CodeBlock::PushBigEndian(u32 val)
+void CodeBlock::PushBigEndian(const u32 val)
 {
   instructions.push_back((val >> 24) & 0xff);
   instructions.push_back((val >> 16) & 0xff);

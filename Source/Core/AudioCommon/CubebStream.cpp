@@ -21,7 +21,7 @@
 constexpr u32 BUFFER_SAMPLES = 512;
 
 long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
-                               void* output_buffer, long num_frames)
+                               void* output_buffer, const long num_frames)
 {
   auto* self = static_cast<CubebStream*>(user_data);
 

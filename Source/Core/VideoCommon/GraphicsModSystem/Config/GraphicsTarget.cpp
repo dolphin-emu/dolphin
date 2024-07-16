@@ -11,7 +11,7 @@
 namespace
 {
 template <typename T, std::enable_if_t<std::is_base_of_v<FBTarget, T>, int> = 0>
-std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, std::string_view prefix)
+std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, const std::string_view prefix)
 {
   T fb;
   const auto texture_filename_iter = obj.find("texture_filename");
@@ -127,7 +127,7 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
   std::string texture_info = texture_filename_iter->second.get<std::string>();
 
   const auto handle_fb_texture =
-      [&texture_info](std::string_view type) -> std::optional<std::string> {
+      [&texture_info](const std::string_view type) -> std::optional<std::string> {
     const auto letter_n_pos = texture_info.find("_n");
     if (letter_n_pos == std::string::npos)
     {

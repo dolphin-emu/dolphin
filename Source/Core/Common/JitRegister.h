@@ -17,7 +17,7 @@ void Register(const void* base_address, u32 code_size, const std::string& symbol
 bool IsEnabled();
 
 template <typename... Args>
-inline void Register(const void* base_address, u32 code_size, fmt::format_string<Args...> format,
+inline void Register(const void* base_address, const u32 code_size, fmt::format_string<Args...> format,
                      Args&&... args)
 {
   Register(base_address, code_size, fmt::format(format, std::forward<Args>(args)...));

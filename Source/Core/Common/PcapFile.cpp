@@ -42,7 +42,7 @@ struct PCAPRecordHeader
 
 }  // namespace
 
-void PCAP::AddHeader(u32 link_type)
+void PCAP::AddHeader(const u32 link_type)
 {
   PCAPHeader hdr = {PCAP_MAGIC, PCAP_VERSION_MAJOR,  PCAP_VERSION_MINOR, 0,
                     0,          PCAP_CAPTURE_LENGTH, link_type};
@@ -50,7 +50,7 @@ void PCAP::AddHeader(u32 link_type)
 }
 
 // Not thread-safe, concurrency between multiple calls to IOFile::WriteBytes.
-void PCAP::AddPacket(const u8* bytes, size_t size)
+void PCAP::AddPacket(const u8* bytes, const size_t size)
 {
   std::chrono::system_clock::time_point now(std::chrono::system_clock::now());
   auto ts = now.time_since_epoch();

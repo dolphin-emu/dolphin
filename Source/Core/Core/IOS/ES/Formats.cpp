@@ -35,18 +35,18 @@ namespace IOS::ES
 {
 constexpr size_t CONTENT_VIEW_SIZE = 0x10;
 
-bool IsTitleType(u64 title_id, TitleType title_type)
+bool IsTitleType(const u64 title_id, TitleType title_type)
 {
   return static_cast<u32>(title_id >> 32) == static_cast<u32>(title_type);
 }
 
-bool IsDiscTitle(u64 title_id)
+bool IsDiscTitle(const u64 title_id)
 {
   return IsTitleType(title_id, TitleType::Game) ||
          IsTitleType(title_id, TitleType::GameWithChannel);
 }
 
-bool IsChannel(u64 title_id)
+bool IsChannel(const u64 title_id)
 {
   if (title_id == Titles::SYSTEM_MENU)
     return true;
@@ -92,7 +92,7 @@ void SignedBlobReader::SetBytes(std::vector<u8> bytes)
   m_bytes = std::move(bytes);
 }
 
-static size_t GetIssuerOffset(SignatureType signature_type)
+static size_t GetIssuerOffset(const SignatureType signature_type)
 {
   switch (signature_type)
   {
@@ -196,7 +196,7 @@ void SignedBlobReader::DoState(PointerWrap& p)
   p.Do(m_bytes);
 }
 
-bool IsValidTMDSize(size_t size)
+bool IsValidTMDSize(const size_t size)
 {
   return size <= 0x49e4;
 }
@@ -324,7 +324,7 @@ u16 TMDReader::GetNumContents() const
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, num_contents));
 }
 
-bool TMDReader::GetContent(u16 index, Content* content) const
+bool TMDReader::GetContent(const u16 index, Content* content) const
 {
   if (index >= GetNumContents())
   {
@@ -349,7 +349,7 @@ std::vector<Content> TMDReader::GetContents() const
   return contents;
 }
 
-bool TMDReader::FindContentById(u32 id, Content* content) const
+bool TMDReader::FindContentById(const u32 id, Content* content) const
 {
   for (u16 index = 0; index < GetNumContents(); ++index)
   {
@@ -406,7 +406,7 @@ u32 TicketReader::GetTicketSize() const
   return sizeof(Ticket);
 }
 
-std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
+std::vector<u8> TicketReader::GetRawTicket(const u64 ticket_id_to_find) const
 {
   for (size_t i = 0; i < GetNumberOfTickets(); ++i)
   {
@@ -418,7 +418,7 @@ std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
   return {};
 }
 
-std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
+std::vector<u8> TicketReader::GetRawTicketView(const u32 ticket_num) const
 {
   // A ticket view is composed of a version + part of a ticket starting from the ticket_id field.
   const auto ticket_start = m_bytes.cbegin() + sizeof(Ticket) * ticket_num;
@@ -485,7 +485,7 @@ HLE::IOSC::ConsoleType TicketReader::GetConsoleType() const
   return is_rvt ? HLE::IOSC::ConsoleType::RVT : HLE::IOSC::ConsoleType::Retail;
 }
 
-void TicketReader::DeleteTicket(u64 ticket_id_to_delete)
+void TicketReader::DeleteTicket(const u64 ticket_id_to_delete)
 {
   std::vector<u8> new_ticket;
   const size_t num_tickets = GetNumberOfTickets();
@@ -540,7 +540,7 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
   return ret;
 }
 
-void TicketReader::OverwriteCommonKeyIndex(u8 index)
+void TicketReader::OverwriteCommonKeyIndex(const u8 index)
 {
   m_bytes[offsetof(Ticket, common_key_index)] = index;
 }
@@ -634,7 +634,7 @@ bool SharedContentMap::WriteEntries() const
          HLE::FS::ResultCode::Success;
 }
 
-static std::pair<u32, u64> ReadUidSysEntry(HLE::FSCore& fs, u64 fd, u64* ticks)
+static std::pair<u32, u64> ReadUidSysEntry(HLE::FSCore& fs, const u64 fd, u64* ticks)
 {
   u64 title_id = 0;
   if (fs.Read(fd, &title_id, 1, ticks) != sizeof(title_id))

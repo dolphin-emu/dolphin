@@ -179,7 +179,7 @@ private:
   void DisplayWelcomeMessage();
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
-                                         rc_client_leaderboard_entry_list_t* list,
+                                         const rc_client_leaderboard_entry_list_t* list,
                                          rc_client_t* client, void* userdata);
 
   static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
@@ -192,7 +192,7 @@ private:
   static void HandleAchievementChallengeIndicatorShowEvent(const rc_client_event_t* client_event);
   static void HandleAchievementChallengeIndicatorHideEvent(const rc_client_event_t* client_event);
   static void HandleAchievementProgressIndicatorShowEvent(const rc_client_event_t* client_event);
-  static void HandleGameCompletedEvent(const rc_client_event_t* client_event, rc_client_t* client);
+  static void HandleGameCompletedEvent(const rc_client_event_t* client_event, const rc_client_t* client);
   static void HandleResetEvent(const rc_client_event_t* client_event);
   static void HandleServerErrorEvent(const rc_client_event_t* client_event);
 

@@ -117,7 +117,7 @@ void DIDevice::ProcessQueuedIOCtl()
   }
 }
 
-std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& request, u32 value)
+std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& request, const u32 value)
 {
   if (request.buffer_out_size < 4)
   {
@@ -542,7 +542,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   }
 }
 
-std::optional<DIDevice::DIResult> DIDevice::StartDMATransfer(u32 command_length,
+std::optional<DIDevice::DIResult> DIDevice::StartDMATransfer(const u32 command_length,
                                                              const IOCtlRequest& request)
 {
   if (request.buffer_out_size < command_length)
@@ -581,7 +581,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartDMATransfer(u32 command_length,
   return {};
 }
 std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRequest& request,
-                                                                   bool write_to_buf)
+                                                                   const bool write_to_buf)
 {
   if (write_to_buf && request.buffer_out_size < 4)
   {

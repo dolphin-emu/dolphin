@@ -55,7 +55,7 @@ namespace
 struct SerializedFstEntry
 {
   std::string_view GetName() const { return {name.data(), strnlen(name.data(), name.size())}; }
-  void SetName(std::string_view new_name)
+  void SetName(const std::string_view new_name)
   {
     std::memcpy(name.data(), new_name.data(), std::min(name.size(), new_name.length()));
   }
@@ -92,7 +92,7 @@ auto GetNamePredicate(const std::string& name)
 }
 
 // Convert the host directory entries into ones that can be exposed to the emulated system.
-static u64 FixupDirectoryEntries(File::FSTEntry* dir, bool is_root)
+static u64 FixupDirectoryEntries(File::FSTEntry* dir, const bool is_root)
 {
   u64 removed_entries = 0;
   for (auto it = dir->children.begin(); it != dir->children.end();)
@@ -131,7 +131,7 @@ static u64 FixupDirectoryEntries(File::FSTEntry* dir, bool is_root)
 }
 }  // namespace
 
-bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
+bool HostFileSystem::FstEntry::CheckPermission(const Uid caller_uid, const Gid caller_gid,
                                                Mode requested_mode) const
 {
   if (caller_uid == 0)
@@ -178,7 +178,7 @@ void HostFileSystem::LoadFst()
   if (!file)
     return;
 
-  const auto parse_entry = [&file](const auto& parse, size_t depth) -> std::optional<FstEntry> {
+  const auto parse_entry = [&file](const auto& parse, const size_t depth) -> std::optional<FstEntry> {
     if (depth > MaxPathDepth)
       return std::nullopt;
 
@@ -442,7 +442,7 @@ void HostFileSystem::DoState(PointerWrap& p)
   }
 }
 
-ResultCode HostFileSystem::Format(Uid uid)
+ResultCode HostFileSystem::Format(const Uid uid)
 {
   if (uid != 0)
     return ResultCode::AccessDenied;
@@ -458,8 +458,8 @@ ResultCode HostFileSystem::Format(Uid uid)
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
-                                                 FileAttribute attr, Modes modes, bool is_file)
+ResultCode HostFileSystem::CreateFileOrDirectory(const Uid uid, const Gid gid, const std::string& path,
+                                                 const FileAttribute attr, const Modes modes, const bool is_file)
 {
   if (!IsValidNonRootPath(path) ||
       !std::all_of(path.begin(), path.end(), Common::IsPrintableCharacter))
@@ -502,14 +502,14 @@ ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::st
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateFile(Uid uid, Gid gid, const std::string& path, FileAttribute attr,
-                                      Modes modes)
+ResultCode HostFileSystem::CreateFile(const Uid uid, const Gid gid, const std::string& path, const FileAttribute attr,
+                                      const Modes modes)
 {
   return CreateFileOrDirectory(uid, gid, path, attr, modes, true);
 }
 
-ResultCode HostFileSystem::CreateDirectory(Uid uid, Gid gid, const std::string& path,
-                                           FileAttribute attr, Modes modes)
+ResultCode HostFileSystem::CreateDirectory(const Uid uid, const Gid gid, const std::string& path,
+                                           const FileAttribute attr, const Modes modes)
 {
   return CreateFileOrDirectory(uid, gid, path, attr, modes, false);
 }
@@ -528,7 +528,7 @@ bool HostFileSystem::IsDirectoryInUse(const std::string& path) const
   });
 }
 
-ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
+ResultCode HostFileSystem::Delete(const Uid uid, const Gid gid, const std::string& path)
 {
   if (!IsValidNonRootPath(path))
     return ResultCode::Invalid;
@@ -562,7 +562,7 @@ ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
+ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::string& old_path,
                                   const std::string& new_path)
 {
   if (!IsValidNonRootPath(old_path) || !IsValidNonRootPath(new_path))
@@ -658,7 +658,7 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
   return ResultCode::Success;
 }
 
-Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
+Result<std::vector<std::string>> HostFileSystem::ReadDirectory(const Uid uid, const Gid gid,
                                                                const std::string& path)
 {
   if (!IsValidPath(path))
@@ -686,7 +686,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
   for (size_t i = 0; i < entry->children.size(); ++i)
     sort_keys.emplace(entry->children[i].name, int(i));
 
-  const auto get_key = [&sort_keys](std::string_view key) {
+  const auto get_key = [&sort_keys](const std::string_view key) {
     const auto it = sort_keys.find(key);
     // As a fallback, files that are not in the FST are put at the beginning.
     return it != sort_keys.end() ? it->second : -1;
@@ -712,7 +712,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
   return output;
 }
 
-Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string& path)
+Result<Metadata> HostFileSystem::GetMetadata(const Uid uid, const Gid gid, const std::string& path)
 {
   const FstEntry* entry = nullptr;
   if (path == "/")
@@ -741,8 +741,8 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string
   return metadata;
 }
 
-ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                                       FileAttribute attr, Modes modes)
+ResultCode HostFileSystem::SetMetadata(const Uid caller_uid, const std::string& path, const Uid uid, const Gid gid,
+                                       const FileAttribute attr, const Modes modes)
 {
   if (!IsValidPath(path))
     return ResultCode::Invalid;

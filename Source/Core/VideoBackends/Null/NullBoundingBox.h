@@ -15,7 +15,7 @@ public:
   bool Initialize() override { return true; }
 
 protected:
-  std::vector<BBoxType> Read(u32 index, u32 length) override
+  std::vector<BBoxType> Read(u32 index, const u32 length) override
   {
     return std::vector<BBoxType>(length);
   }

@@ -170,11 +170,11 @@ std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch)
   return std::make_unique<HostDisassembler>();
 }
 
-DisassembleResult DisassembleBlock(HostDisassembler* disasm, u32 address)
+DisassembleResult DisassembleBlock(HostDisassembler* disasm, const u32 address)
 {
   auto res = Core::System::GetInstance().GetJitInterface().GetHostCode(address);
 
-  return std::visit(overloaded{[&](JitInterface::GetHostCodeError error) {
+  return std::visit(overloaded{[&](const JitInterface::GetHostCodeError error) {
                                  DisassembleResult result;
                                  switch (error)
                                  {

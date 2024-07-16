@@ -436,9 +436,9 @@ static int DoForEachInterface(const Configs& configs, u8 config_num, Function ac
   return ret;
 }
 
-int LibusbDevice::ClaimAllInterfaces(u8 config_num) const
+int LibusbDevice::ClaimAllInterfaces(const u8 config_num) const
 {
-  const int ret = DoForEachInterface(m_config_descriptors, config_num, [this](u8 i) {
+  const int ret = DoForEachInterface(m_config_descriptors, config_num, [this](const u8 i) {
     const int ret2 = libusb_detach_kernel_driver(m_handle, i);
     if (ret2 < LIBUSB_SUCCESS && ret2 != LIBUSB_ERROR_NOT_FOUND &&
         ret2 != LIBUSB_ERROR_NOT_SUPPORTED)
@@ -457,9 +457,9 @@ int LibusbDevice::ClaimAllInterfaces(u8 config_num) const
   return ret;
 }
 
-int LibusbDevice::ReleaseAllInterfaces(u8 config_num) const
+int LibusbDevice::ReleaseAllInterfaces(const u8 config_num) const
 {
-  const int ret = DoForEachInterface(m_config_descriptors, config_num, [this](u8 i) {
+  const int ret = DoForEachInterface(m_config_descriptors, config_num, [this](const u8 i) {
     return libusb_release_interface(m_handle, i);
   });
   if (ret < LIBUSB_SUCCESS && ret != LIBUSB_ERROR_NO_DEVICE && ret != LIBUSB_ERROR_NOT_FOUND)

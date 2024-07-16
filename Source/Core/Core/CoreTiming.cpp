@@ -59,17 +59,17 @@ CoreTimingManager::CoreTimingManager(Core::System& system) : m_system(system)
 //
 // Technically it might be more accurate to call this changing the IPC instead of the CPU speed,
 // but the effect is largely the same.
-int CoreTimingManager::DowncountToCycles(int downcount) const
+int CoreTimingManager::DowncountToCycles(const int downcount) const
 {
   return static_cast<int>(downcount * m_globals.last_OC_factor_inverted);
 }
 
-int CoreTimingManager::CyclesToDowncount(int cycles) const
+int CoreTimingManager::CyclesToDowncount(const int cycles) const
 {
   return static_cast<int>(cycles * m_last_oc_factor);
 }
 
-EventType* CoreTimingManager::RegisterEvent(const std::string& name, TimedCallback callback)
+EventType* CoreTimingManager::RegisterEvent(const std::string& name, const TimedCallback callback)
 {
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
@@ -236,8 +236,8 @@ void CoreTimingManager::ClearPendingEvents()
   m_event_queue.clear();
 }
 
-void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata,
-                                      FromThread from)
+void CoreTimingManager::ScheduleEvent(const s64 cycles_into_future, EventType* event_type, const u64 userdata,
+                                      const FromThread from)
 {
   ASSERT_MSG(POWERPC, event_type, "Event type is nullptr, will crash now.");
 
@@ -280,7 +280,7 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
   }
 }
 
-void CoreTimingManager::RemoveEvent(EventType* event_type)
+void CoreTimingManager::RemoveEvent(const EventType* event_type)
 {
   const size_t erased =
       std::erase_if(m_event_queue, [&](const Event& e) { return e.type == event_type; });
@@ -415,13 +415,13 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   }
 }
 
-void CoreTimingManager::ResetThrottle(s64 cycle)
+void CoreTimingManager::ResetThrottle(const s64 cycle)
 {
   m_throttle_last_cycle = cycle;
   m_throttle_deadline = Clock::now();
 }
 
-TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
+TimePoint CoreTimingManager::GetCPUTimePoint(const s64 cyclesLate) const
 {
   return TimePoint(std::chrono::duration_cast<DT>(DT_s(m_globals.global_timer - cyclesLate) /
                                                   m_throttle_clock_per_sec));
@@ -449,7 +449,7 @@ void CoreTimingManager::LogPendingEvents() const
 }
 
 // Should only be called from the CPU thread after the PPC clock has changed
-void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
+void CoreTimingManager::AdjustEventQueueTimes(const u32 new_ppc_clock, const u32 old_ppc_clock)
 {
   m_throttle_clock_per_sec = new_ppc_clock;
   m_throttle_min_clock_per_sleep = new_ppc_clock / 1200;
@@ -496,7 +496,7 @@ u32 CoreTimingManager::GetFakeDecStartValue() const
   return m_fake_dec_start_value;
 }
 
-void CoreTimingManager::SetFakeDecStartValue(u32 val)
+void CoreTimingManager::SetFakeDecStartValue(const u32 val)
 {
   m_fake_dec_start_value = val;
 }
@@ -506,7 +506,7 @@ u64 CoreTimingManager::GetFakeDecStartTicks() const
   return m_fake_dec_start_ticks;
 }
 
-void CoreTimingManager::SetFakeDecStartTicks(u64 val)
+void CoreTimingManager::SetFakeDecStartTicks(const u64 val)
 {
   m_fake_dec_start_ticks = val;
 }
@@ -516,7 +516,7 @@ u64 CoreTimingManager::GetFakeTBStartValue() const
   return m_globals.fake_TB_start_value;
 }
 
-void CoreTimingManager::SetFakeTBStartValue(u64 val)
+void CoreTimingManager::SetFakeTBStartValue(const u64 val)
 {
   m_globals.fake_TB_start_value = val;
 }
@@ -526,7 +526,7 @@ u64 CoreTimingManager::GetFakeTBStartTicks() const
   return m_globals.fake_TB_start_ticks;
 }
 
-void CoreTimingManager::SetFakeTBStartTicks(u64 val)
+void CoreTimingManager::SetFakeTBStartTicks(const u64 val)
 {
   m_globals.fake_TB_start_ticks = val;
 }

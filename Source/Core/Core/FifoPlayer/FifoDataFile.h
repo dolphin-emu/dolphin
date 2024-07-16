@@ -73,7 +73,7 @@ public:
   u32 GetExRamSizeReal() { return m_exram_size_real; }
 
   void AddFrame(const FifoFrameInfo& frameInfo);
-  const FifoFrameInfo& GetFrame(u32 frame) const { return m_Frames[frame]; }
+  const FifoFrameInfo& GetFrame(const u32 frame) const { return m_Frames[frame]; }
   u32 GetFrameCount() const { return static_cast<u32>(m_Frames.size()); }
   bool Save(const std::string& filename);
 

@@ -52,7 +52,7 @@ namespace
 //
 // The hostname still needs to be set as it is checked against the Common Name
 // field during the certificate verification process.
-int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
+int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, const size_t len)
 {
   auto* ssl = static_cast<WII_SSL*>(ctx);
   auto* fd = &ssl->hostfd;
@@ -71,7 +71,7 @@ int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
   return ret;
 }
 
-int SSLRecv(void* ctx, unsigned char* buf, size_t len)
+int SSLRecv(void* ctx, unsigned char* buf, const size_t len)
 {
   auto* ssl = static_cast<WII_SSL*>(ctx);
   auto* fd = &ssl->hostfd;
@@ -154,7 +154,7 @@ constexpr std::array<u8, 32> s_root_ca_hash = {{0xc5, 0xb0, 0xf8, 0xdf, 0xce, 0x
                                                 0xf2, 0xbd, 0xdf, 0x9e, 0x39, 0x17, 0x1e, 0x5f}};
 
 static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8, 32>& correct_hash,
-                                    bool silent)
+                                    const bool silent)
 {
   File::IOFile file(path, "rb");
   std::vector<u8> bytes(file.GetSize());

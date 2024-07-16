@@ -74,7 +74,7 @@ void MemoryInterfaceManager::DoState(PointerWrap& p)
   p.Do(m_mi_mem);
 }
 
-void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   for (u32 i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
   {

@@ -33,7 +33,7 @@ public:
   virtual std::pair<u8*, u32> Map(u32 size) = 0;
   virtual void Unmap(u32 used_size) = 0;
 
-  std::pair<u8*, u32> Map(u32 size, u32 stride)
+  std::pair<u8*, u32> Map(const u32 size, const u32 stride)
   {
     u32 padding = m_iterator % stride;
     if (padding)
@@ -60,7 +60,7 @@ protected:
 
 private:
   static constexpr int SYNC_POINTS = 16;
-  int Slot(u32 x) const { return x >> m_bit_per_slot; }
+  int Slot(const u32 x) const { return x >> m_bit_per_slot; }
   const int m_bit_per_slot;
 
   std::array<GLsync, SYNC_POINTS> m_fences{};

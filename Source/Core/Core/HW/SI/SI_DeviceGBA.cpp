@@ -140,7 +140,7 @@ void GBASockServer::Disconnect()
   m_booted = false;
 }
 
-void GBASockServer::ClockSync(Core::System& system)
+void GBASockServer::ClockSync(const Core::System& system)
 {
   if (!m_clock_sync)
     if (!(m_clock_sync = GetNextClock()))
@@ -214,7 +214,7 @@ void GBASockServer::Send(const u8* si_buffer)
     Disconnect();
 }
 
-int GBASockServer::Receive(u8* si_buffer, u8 bytes)
+int GBASockServer::Receive(u8* si_buffer, const u8 bytes)
 {
   if (!m_client)
     return 0;
@@ -262,7 +262,7 @@ void GBASockServer::Flush()
   }
 }
 
-CSIDevice_GBA::CSIDevice_GBA(Core::System& system, SIDevices device, int device_number)
+CSIDevice_GBA::CSIDevice_GBA(Core::System& system, const SIDevices device, const int device_number)
     : ISIDevice(system, device, device_number)
 {
 }

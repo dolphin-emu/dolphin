@@ -38,7 +38,7 @@ VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 static bool s_has_registered_callback = false;
 
-static bool IsVSyncActive(bool enabled)
+static bool IsVSyncActive(const bool enabled)
 {
   // Vsync is disabled when the throttler is disabled by the tab key.
   return enabled && !Core::GetIsThrottlerTempDisabled() &&

@@ -12,7 +12,7 @@ namespace Common
 class Semaphore
 {
 public:
-  Semaphore(int initial_count, int maximum_count)
+  Semaphore(const int initial_count, const int maximum_count)
   {
     m_handle = CreateSemaphoreA(nullptr, initial_count, maximum_count, nullptr);
   }

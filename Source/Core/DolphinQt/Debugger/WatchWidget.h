@@ -52,7 +52,7 @@ private:
   void SetEmptyRow(int row);
 
   void ShowContextMenu();
-  void OnItemChanged(QTableWidgetItem* item);
+  void OnItemChanged(const QTableWidgetItem* item);
   void LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address);
   void DeleteSelectedWatches();
   void DeleteWatch(const Core::CPUThreadGuard& guard, int row);

@@ -125,15 +125,15 @@ void WiiIPC::Shutdown()
 {
 }
 
-void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 {
   mmio->Register(base | IPC_PPCMSG, MMIO::InvalidRead<u32>(), MMIO::DirectWrite<u32>(&m_ppc_msg));
 
-  mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
+  mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](const Core::System& system, u32) {
                    auto& wii_ipc = system.GetWiiIPC();
                    return wii_ipc.m_ctrl.ppc();
                  }),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_ctrl.ppc(val);
                    // The IPC interrupt is triggered when IY1/IY2 is set and
@@ -150,7 +150,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | IPC_ARMMSG, MMIO::DirectRead<u32>(&m_arm_msg), MMIO::InvalidWrite<u32>());
 
   mmio->Register(base | PPC_IRQFLAG, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_ppc_irq_flags &= ~val;
                    system.GetIOS()->UpdateIPC();
@@ -159,7 +159,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | PPC_IRQMASK, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_ppc_irq_masks = val;
                    if (wii_ipc.m_ppc_irq_masks & INT_CAUSE_IPC_BROADWAY)  // wtf?
@@ -170,7 +170,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | GPIOB_OUT, MMIO::DirectRead<u32>(&m_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, const u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_out.m_hex =
                        (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_out.m_hex & ~gpio_owner.m_hex);
@@ -184,12 +184,12 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // TODO: AVE, SLOT_LED
                  }));
   mmio->Register(base | GPIOB_DIR, MMIO::DirectRead<u32>(&m_gpio_dir.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_dir.m_hex =
                        (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_dir.m_hex & ~gpio_owner.m_hex);
                  }));
-  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
+  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](const Core::System& system, u32) {
                    Common::Flags<GPIO> gpio_in;
                    gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
                    return gpio_in.m_hex;
@@ -207,7 +207,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // go through the HW_GPIOB registers if the corresponding bit is set in the HW_GPIO_OWNER
   // register.
   mmio->Register(base | GPIO_OUT, MMIO::DirectRead<u32>(&m_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, const u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_out.m_hex =
                        (wii_ipc.m_gpio_out.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
@@ -221,12 +221,12 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // TODO: AVE, SLOT_LED
                  }));
   mmio->Register(base | GPIO_DIR, MMIO::DirectRead<u32>(&m_gpio_dir.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
                    wii_ipc.m_gpio_dir.m_hex =
                        (wii_ipc.m_gpio_dir.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
                  }));
-  mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
+  mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](const Core::System& system, u32) {
                    Common::Flags<GPIO> gpio_in;
                    gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
                    return gpio_in.m_hex;
@@ -234,7 +234,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::Nop<u32>());
 
   mmio->Register(base | HW_RESETS, MMIO::DirectRead<u32>(&m_resets),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {
                    // A reset occurs when the corresponding bit is cleared
                    auto& wii_ipc = system.GetWiiIPC();
                    const bool di_reset_triggered = (wii_ipc.m_resets & 0x400) && !(val & 0x400);
@@ -256,7 +256,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
 }
 
-void WiiIPC::UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late)
+void WiiIPC::UpdateInterruptsCallback(const Core::System& system, u64 userdata, s64 cycles_late)
 {
   system.GetWiiIPC().UpdateInterrupts();
 }
@@ -283,7 +283,7 @@ void WiiIPC::ClearX1()
   m_ctrl.X1 = 0;
 }
 
-void WiiIPC::GenerateAck(u32 address)
+void WiiIPC::GenerateAck(const u32 address)
 {
   m_ctrl.Y2 = 1;
   DEBUG_LOG_FMT(WII_IPC, "GenerateAck: {:08x} | {:08x} [R:{} A:{} E:{}]", m_ppc_msg, address,
@@ -294,7 +294,7 @@ void WiiIPC::GenerateAck(u32 address)
                                          m_event_type_update_interrupts);
 }
 
-void WiiIPC::GenerateReply(u32 address)
+void WiiIPC::GenerateReply(const u32 address)
 {
   m_arm_msg = address;
   m_ctrl.Y1 = 1;

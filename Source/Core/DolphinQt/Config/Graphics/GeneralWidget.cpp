@@ -32,7 +32,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-GeneralWidget::GeneralWidget(GraphicsWindow* parent)
+GeneralWidget::GeneralWidget(const GraphicsWindow* parent)
 {
   CreateWidgets();
   LoadSettings();

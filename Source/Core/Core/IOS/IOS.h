@@ -65,7 +65,7 @@ class Ticks
 public:
   Ticks(u64* ticks = nullptr) : m_ticks(ticks) {}
 
-  void Add(u64 ticks)
+  void Add(const u64 ticks)
   {
     if (m_ticks != nullptr)
       *m_ticks += ticks;

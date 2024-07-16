@@ -336,7 +336,7 @@ const std::array<MemoryValues, 41>& GetMemoryValues()
   return ios_memory_values;
 }
 
-Feature GetFeatures(u32 version)
+Feature GetFeatures(const u32 version)
 {
   // Common features that are present in most versions.
   Feature features = Feature::Core | Feature::SDIO | Feature::SO | Feature::Ethernet;
@@ -370,7 +370,7 @@ Feature GetFeatures(u32 version)
   return features;
 }
 
-bool HasFeature(u32 major_version, Feature feature)
+bool HasFeature(const u32 major_version, const Feature feature)
 {
   return HasFeature(GetFeatures(major_version), feature);
 }
@@ -385,7 +385,7 @@ bool IsEmulated(u32 major_version)
       [major_version](const MemoryValues& values) { return values.ios_number == major_version; });
 }
 
-bool IsEmulated(u64 title_id)
+bool IsEmulated(const u64 title_id)
 {
   const bool ios = IsTitleType(title_id, ES::TitleType::System) && title_id != Titles::SYSTEM_MENU;
   if (!ios)

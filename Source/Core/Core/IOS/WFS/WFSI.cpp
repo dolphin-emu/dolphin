@@ -25,13 +25,13 @@
 
 namespace
 {
-std::string TitleIdStr(u64 tid)
+std::string TitleIdStr(const u64 tid)
 {
   return fmt::format("{}{}{}{}", static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
                      static_cast<char>(tid >> 8), static_cast<char>(tid));
 }
 
-std::string GroupIdStr(u16 gid)
+std::string GroupIdStr(const u16 gid)
 {
   return fmt::format("{}{}", static_cast<char>(gid >> 8), static_cast<char>(gid & 0xFF));
 }
@@ -100,7 +100,7 @@ WFSIDevice::WFSIDevice(EmulationKernel& ios, const std::string& device_name)
 {
 }
 
-void WFSIDevice::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetCurrentTitleIdAndGroupId(const u64 tid, const u16 gid)
 {
   m_current_title_id = tid;
   m_current_group_id = gid;
@@ -109,7 +109,7 @@ void WFSIDevice::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
   m_current_group_id_str = GroupIdStr(gid);
 }
 
-void WFSIDevice::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetImportTitleIdAndGroupId(const u64 tid, const u16 gid)
 {
   m_import_title_id = tid;
   m_import_group_id = gid;
@@ -555,7 +555,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
   return IPCReply(return_error_code);
 }
 
-u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
+u32 WFSIDevice::GetTmd(const u16 group_id, const u32 title_id, u64 subtitle_id, const u32 address, u32* size) const
 {
   const std::string path = fmt::format("/vol/{}/title/{}/{}/meta/{:016x}.tmd", m_device_name,
                                        GroupIdStr(group_id), TitleIdStr(title_id), subtitle_id);
@@ -582,7 +582,7 @@ static s32 DeleteTemporaryFiles(const std::string& device_name, u64 title_id)
   return IPC_SUCCESS;
 }
 
-s32 WFSIDevice::CancelTitleImport(bool continue_install)
+s32 WFSIDevice::CancelTitleImport(const bool continue_install)
 {
   m_arc_unpacker.Reset();
 
@@ -596,7 +596,7 @@ s32 WFSIDevice::CancelTitleImport(bool continue_install)
   return IPC_SUCCESS;
 }
 
-s32 WFSIDevice::CancelPatchImport(bool continue_install)
+s32 WFSIDevice::CancelPatchImport(const bool continue_install)
 {
   m_arc_unpacker.Reset();
 

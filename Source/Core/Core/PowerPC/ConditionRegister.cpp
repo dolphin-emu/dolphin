@@ -34,7 +34,7 @@ u32 ConditionRegister::Get() const
   return new_cr;
 }
 
-void ConditionRegister::Set(u32 cr)
+void ConditionRegister::Set(const u32 cr)
 {
   for (u32 i = 0; i < 8; i++)
   {

@@ -25,8 +25,8 @@ constexpr auto CENTER_CONFIG_NAME = "Center";
 constexpr auto CENTER_CONFIG_SCALE = 100;
 
 // Calculate distance to intersection of a ray with a line segment defined by two points.
-std::optional<double> GetRayLineIntersection(Common::DVec2 ray, Common::DVec2 point1,
-                                             Common::DVec2 point2)
+std::optional<double> GetRayLineIntersection(Common::DVec2 ray, const Common::DVec2 point1,
+                                             const Common::DVec2 point2)
 {
   const auto diff = point2 - point1;
 
@@ -47,7 +47,7 @@ std::optional<double> GetRayLineIntersection(Common::DVec2 ray, Common::DVec2 po
   return diff.Cross(-point1) / dot;
 }
 
-double GetNearestNotch(double angle, double virtual_notch_angle)
+double GetNearestNotch(const double angle, const double virtual_notch_angle)
 {
   constexpr auto sides = 8;
   constexpr auto rounding = MathUtil::TAU / sides;
@@ -57,7 +57,7 @@ double GetNearestNotch(double angle, double virtual_notch_angle)
   return std::abs(angle_diff) < virtual_notch_angle / 2 ? closest_notch : angle;
 }
 
-Common::DVec2 GetPointFromAngleAndLength(double angle, double length)
+Common::DVec2 GetPointFromAngleAndLength(const double angle, const double length)
 {
   return Common::DVec2{std::cos(angle), std::sin(angle)} * length;
 }
@@ -72,7 +72,7 @@ std::optional<u32> StickGate::GetIdealCalibrationSampleCount() const
   return std::nullopt;
 }
 
-OctagonStickGate::OctagonStickGate(ControlState radius) : m_radius(radius)
+OctagonStickGate::OctagonStickGate(const ControlState radius) : m_radius(radius)
 {
 }
 
@@ -92,7 +92,7 @@ std::optional<u32> OctagonStickGate::GetIdealCalibrationSampleCount() const
   return 8;
 }
 
-RoundStickGate::RoundStickGate(ControlState radius) : m_radius(radius)
+RoundStickGate::RoundStickGate(const ControlState radius) : m_radius(radius)
 {
 }
 
@@ -107,11 +107,11 @@ std::optional<u32> RoundStickGate::GetIdealCalibrationSampleCount() const
   return 1;
 }
 
-SquareStickGate::SquareStickGate(ControlState half_width) : m_half_width(half_width)
+SquareStickGate::SquareStickGate(const ControlState half_width) : m_half_width(half_width)
 {
 }
 
-ControlState SquareStickGate::GetRadiusAtAngle(double angle) const
+ControlState SquareStickGate::GetRadiusAtAngle(const double angle) const
 {
   constexpr double section_angle = MathUtil::TAU / 4;
   return m_half_width /
@@ -124,20 +124,20 @@ std::optional<u32> SquareStickGate::GetIdealCalibrationSampleCount() const
   return 8;
 }
 
-ReshapableInput::ReshapableInput(std::string name_, std::string ui_name_, GroupType type_)
+ReshapableInput::ReshapableInput(std::string name_, std::string ui_name_, const GroupType type_)
     : ControlGroup(std::move(name_), std::move(ui_name_), type_)
 {
   // 50 is not always enough but users can set it to more with an expression
   AddDeadzoneSetting(&m_deadzone_setting, 50);
 }
 
-ControlState ReshapableInput::GetDeadzoneRadiusAtAngle(double angle) const
+ControlState ReshapableInput::GetDeadzoneRadiusAtAngle(const double angle) const
 {
   // FYI: deadzone is scaled by input radius which allows the shape to match.
   return GetInputRadiusAtAngle(angle) * GetDeadzonePercentage();
 }
 
-ControlState ReshapableInput::GetInputRadiusAtAngle(double angle) const
+ControlState ReshapableInput::GetInputRadiusAtAngle(const double angle) const
 {
   // Handle the "default" state.
   if (m_calibration.empty())
@@ -154,7 +154,7 @@ ControlState ReshapableInput::GetDeadzonePercentage() const
 }
 
 ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationData& data,
-                                                              double angle)
+                                                              const double angle)
 {
   const auto sample_pos = angle / MathUtil::TAU * data.size();
   // Interpolate the radius between 2 calibration samples.
@@ -172,7 +172,7 @@ ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationD
   return intersection.value_or(data[sample1_index]);
 }
 
-ControlState ReshapableInput::GetDefaultInputRadiusAtAngle(double angle) const
+ControlState ReshapableInput::GetDefaultInputRadiusAtAngle(const double angle) const
 {
   // This will normally be the same as the gate radius.
   // Unless a sub-class is doing weird things with the gate radius (e.g. Tilt)
@@ -193,8 +193,8 @@ void ReshapableInput::SetCalibrationFromGate(const StickGate& gate)
     val = gate.GetRadiusAtAngle(MathUtil::TAU * i++ / m_calibration.size());
 }
 
-void ReshapableInput::UpdateCalibrationData(CalibrationData& data, Common::DVec2 point1,
-                                            Common::DVec2 point2)
+void ReshapableInput::UpdateCalibrationData(CalibrationData& data, const Common::DVec2 point1,
+                                            const Common::DVec2 point2)
 {
   for (u32 i = 0; i != data.size(); ++i)
   {
@@ -221,7 +221,7 @@ const ReshapableInput::ReshapeData& ReshapableInput::GetCenter() const
   return m_center;
 }
 
-void ReshapableInput::SetCenter(ReshapeData center)
+void ReshapableInput::SetCenter(const ReshapeData center)
 {
   m_center = center;
 }
@@ -286,7 +286,7 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section,
   std::vector<std::string> save_data(m_calibration.size());
   std::transform(
       m_calibration.begin(), m_calibration.end(), save_data.begin(),
-      [](ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
+      [](const ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
   section->Set(group + CALIBRATION_CONFIG_NAME, JoinStrings(save_data, " "), "");
 
   // Save center value.
@@ -297,8 +297,8 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section,
 }
 
 ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
-                                                      ControlState modifier,
-                                                      ControlState clamp) const
+                                                      const ControlState modifier,
+                                                      const ControlState clamp) const
 {
   x -= m_center.x;
   y -= m_center.y;

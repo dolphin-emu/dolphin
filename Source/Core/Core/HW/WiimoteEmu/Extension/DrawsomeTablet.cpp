@@ -98,7 +98,7 @@ void DrawsomeTablet::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-ControllerEmu::ControlGroup* DrawsomeTablet::GetGroup(DrawsomeTabletGroup group)
+ControllerEmu::ControlGroup* DrawsomeTablet::GetGroup(const DrawsomeTabletGroup group)
 {
   switch (group)
   {

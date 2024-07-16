@@ -9,7 +9,7 @@
 
 namespace JitCommon
 {
-SignedMagic SignedDivisionConstants(s32 divisor)
+SignedMagic SignedDivisionConstants(const s32 divisor)
 {
   const u32 two31 = 2147483648;
 
@@ -55,7 +55,7 @@ SignedMagic SignedDivisionConstants(s32 divisor)
   return mag;
 }
 
-UnsignedMagic UnsignedDivisionConstants(u32 divisor)
+UnsignedMagic UnsignedDivisionConstants(const u32 divisor)
 {
   u32 shift = 31 - std::countl_zero(divisor);
 

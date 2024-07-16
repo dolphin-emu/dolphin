@@ -255,7 +255,7 @@ void AXWiiUCode::HandleCommandList()
   }
 }
 
-void AXWiiUCode::SetupProcessing(u32 init_addr)
+void AXWiiUCode::SetupProcessing(const u32 init_addr)
 {
   const std::array<BufferDesc, 20> buffers = {{
       {m_samples_main_left, 32}, {m_samples_main_right, 32}, {m_samples_main_surround, 32},
@@ -270,7 +270,7 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
   InitMixingBuffers<3 /*ms*/>(init_addr, buffers);
 }
 
-void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
+void AXWiiUCode::AddToLR(const u32 val_addr, const bool neg)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   int* ptr = (int*)HLEMemory_Get_Pointer(memory, val_addr);
@@ -285,7 +285,7 @@ void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
   }
 }
 
-void AXWiiUCode::AddSubToLR(u32 val_addr)
+void AXWiiUCode::AddSubToLR(const u32 val_addr)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   int* ptr = (int*)HLEMemory_Get_Pointer(memory, val_addr);
@@ -301,7 +301,7 @@ void AXWiiUCode::AddSubToLR(u32 val_addr)
   }
 }
 
-AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
+AXMixControl AXWiiUCode::ConvertMixerControl(const u32 mixer_control)
 {
   u32 ret = 0;
 
@@ -349,7 +349,7 @@ AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
   return (AXMixControl)ret;
 }
 
-void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals)
+void AXWiiUCode::GenerateVolumeRamp(u16* output, const u16 vol1, const u16 vol2, const size_t nvals)
 {
   float curr = vol1;
   for (size_t i = 0; i < nvals; ++i)
@@ -402,7 +402,7 @@ bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* update
   return true;
 }
 
-void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr)
+void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, const u16* num_updates, const u32 updates_addr)
 {
   auto pb_mem = Common::BitCastToArray<u16>(pb);
 
@@ -470,7 +470,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
   }
 }
 
-void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
+void AXWiiUCode::MixAUXSamples(const int aux_id, const u32 write_addr, const u32 read_addr, const u16 volume)
 {
   std::array<u16, 96> volume_ramp;
   GenerateVolumeRamp(volume_ramp.data(), m_last_aux_volumes[aux_id], volume, volume_ramp.size());
@@ -535,7 +535,7 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   }
 }
 
-void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
+void AXWiiUCode::UploadAUXMixLRSC(const int aux_id, const u32* addresses, const u16 volume)
 {
   int* aux_left = aux_id ? m_samples_auxB_left : m_samples_auxA_left;
   int* aux_right = aux_id ? m_samples_auxB_right : m_samples_auxA_right;
@@ -576,7 +576,7 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   }
 }
 
-void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool upload_auxc)
+void AXWiiUCode::OutputSamples(const u32 lr_addr, u32 surround_addr, const u16 volume, const bool upload_auxc)
 {
   std::array<u16, 96> volume_ramp;
   GenerateVolumeRamp(volume_ramp.data(), m_last_main_volume, volume, volume_ramp.size());
@@ -623,7 +623,7 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
   m_mail_handler.PushMail(DSP_SYNC, true);
 }
 
-void AXWiiUCode::OutputWMSamples(u32* addresses)
+void AXWiiUCode::OutputWMSamples(const u32* addresses)
 {
   int* buffers[] = {m_samples_wm0, m_samples_wm1, m_samples_wm2, m_samples_wm3};
 

@@ -25,14 +25,14 @@
 // Decodes all known GameCube/Wii texture formats.
 // by ector
 
-static inline u32 DecodePixel_IA8(u16 val)
+static inline u32 DecodePixel_IA8(const u16 val)
 {
   int a = val & 0xFF;
   int i = val >> 8;
   return i | (i << 8) | (i << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_RGB565(u16 val)
+static inline u32 DecodePixel_RGB565(const u16 val)
 {
   int r, g, b, a;
   r = Convert5To8((val >> 11) & 0x1f);
@@ -42,7 +42,7 @@ static inline u32 DecodePixel_RGB565(u16 val)
   return r | (g << 8) | (b << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_RGB5A3(u16 val)
+static inline u32 DecodePixel_RGB5A3(const u16 val)
 {
   int r, g, b, a;
   if ((val & 0x8000))
@@ -216,9 +216,9 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
 // free to make the assumption that addresses are multiples of 16 in the aligned case.
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
-static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int height,
-                                     TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                     int Wsteps4, int Wsteps8)
+static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, const int width, const int height,
+                                     TextureFormat texformat, const u8* tlut, const TLUTFormat tlutfmt,
+                                     int Wsteps4, const int Wsteps8)
 {
   switch (tlutfmt)
   {
@@ -395,9 +395,9 @@ static void TexDecoder_DecodeImpl_I4(u32* dst, const u8* src, int width, int hei
 }
 
 FUNCTION_TARGET_SSSE3
-static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, const int width, const int height,
                                            TextureFormat texformat, const u8* tlut,
-                                           TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
+                                           TLUTFormat tlutfmt, int Wsteps4, const int Wsteps8)
 {
   // xsacha optimized with SSSE3 intrinsics
   // Produces a ~10% speed improvement over SSE2 implementation
@@ -525,9 +525,9 @@ static void TexDecoder_DecodeImpl_I8(u32* dst, const u8* src, int width, int hei
   }
 }
 
-static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int height,
-                                     TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                     int Wsteps4, int Wsteps8)
+static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, const int width, const int height,
+                                     TextureFormat texformat, const u8* tlut, const TLUTFormat tlutfmt,
+                                     int Wsteps4, const int Wsteps8)
 {
   switch (tlutfmt)
   {
@@ -563,9 +563,9 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   }
 }
 
-static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, const int width, const int height,
                                       TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                      int Wsteps4, int Wsteps8)
+                                      int Wsteps4, const int Wsteps8)
 {
   for (int y = 0; y < height; y += 4)
   {
@@ -580,9 +580,9 @@ static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int he
 }
 
 FUNCTION_TARGET_SSSE3
-static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, const int width, const int height,
                                             TextureFormat texformat, const u8* tlut,
-                                            TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
+                                            TLUTFormat tlutfmt, const int Wsteps4, int Wsteps8)
 {
   // xsacha optimized with SSSE3 intrinsics.
   // Produces an ~50% speed improvement over SSE2 implementation.
@@ -665,9 +665,9 @@ static void TexDecoder_DecodeImpl_IA8(u32* dst, const u8* src, int width, int he
   }
 }
 
-static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int height,
-                                        TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt,
-                                        int Wsteps4, int Wsteps8)
+static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, const int width, const int height,
+                                        TextureFormat texformat, const u8* tlut, const TLUTFormat tlutfmt,
+                                        const int Wsteps4, int Wsteps8)
 {
   switch (tlutfmt)
   {
@@ -1002,9 +1002,9 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
 }
 
 FUNCTION_TARGET_SSSE3
-static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width, int height,
+static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, const int width, const int height,
                                               TextureFormat texformat, const u8* tlut,
-                                              TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
+                                              TLUTFormat tlutfmt, const int Wsteps4, int Wsteps8)
 {
   // xsacha optimized with SSSE3 instrinsics
   // Produces a ~30% speed improvement over SSE2 implementation
@@ -1413,8 +1413,8 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
   }
 }
 
-void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, TextureFormat texformat,
-                            const u8* tlut, TLUTFormat tlutfmt)
+void _TexDecoder_DecodeImpl(u32* dst, const u8* src, const int width, const int height, const TextureFormat texformat,
+                            const u8* tlut, const TLUTFormat tlutfmt)
 {
   int Wsteps4 = (width + 3) / 4;
   int Wsteps8 = (width + 7) / 8;

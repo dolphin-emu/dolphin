@@ -26,9 +26,9 @@
 
 namespace Vulkan
 {
-VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
-                     std::string_view name, VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
-                     ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
+VKTexture::VKTexture(const TextureConfig& tex_config, const VmaAllocation alloc, VkImage image,
+                     const std::string_view name, const VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
+                     const ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
     : AbstractTexture(tex_config), m_alloc(alloc), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
@@ -134,7 +134,7 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 }
 
 std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_config, VkImage image,
-                                                    VkImageViewType view_type, VkImageLayout layout)
+                                                    const VkImageViewType view_type, VkImageLayout layout)
 {
   std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
       tex_config, VmaAllocation(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
@@ -144,7 +144,7 @@ std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_con
   return texture;
 }
 
-bool VKTexture::CreateView(VkImageViewType type)
+bool VKTexture::CreateView(const VkImageViewType type)
 {
   VkImageViewCreateInfo view_info = {
       VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -167,7 +167,7 @@ bool VKTexture::CreateView(VkImageViewType type)
   return true;
 }
 
-VkFormat VKTexture::GetLinearFormat(VkFormat format)
+VkFormat VKTexture::GetLinearFormat(const VkFormat format)
 {
   switch (format)
   {
@@ -188,7 +188,7 @@ VkFormat VKTexture::GetLinearFormat(VkFormat format)
   }
 }
 
-VkFormat VKTexture::GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
+VkFormat VKTexture::GetVkFormatForHostTextureFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -243,7 +243,7 @@ VkFormat VKTexture::GetVkFormatForHostTextureFormat(AbstractTextureFormat format
   }
 }
 
-VkImageAspectFlags VKTexture::GetImageAspectForFormat(AbstractTextureFormat format)
+VkImageAspectFlags VKTexture::GetImageAspectForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -260,7 +260,7 @@ VkImageAspectFlags VKTexture::GetImageAspectForFormat(AbstractTextureFormat form
   }
 }
 
-VkImageAspectFlags VKTexture::GetImageViewAspectForFormat(AbstractTextureFormat format)
+VkImageAspectFlags VKTexture::GetImageViewAspectForFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -276,9 +276,9 @@ VkImageAspectFlags VKTexture::GetImageViewAspectForFormat(AbstractTextureFormat 
 }
 
 void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                         u32 dst_layer, u32 dst_level)
+                                         const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                         const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                         const u32 dst_layer, const u32 dst_level)
 {
   const VKTexture* src_texture = static_cast<const VKTexture*>(src);
 
@@ -319,7 +319,7 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 }
 
 void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                                   u32 layer, u32 level)
+                                   const u32 layer, const u32 level)
 {
   const VKTexture* srcentry = static_cast<const VKTexture*>(src);
   DEBUG_ASSERT(m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
@@ -348,8 +348,8 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
   srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
 }
 
-void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size, u32 layer)
+void VKTexture::Load(const u32 level, u32 width, u32 height, const u32 row_length, const u8* buffer,
+                     size_t buffer_size, const u32 layer)
 {
   // Can't copy data larger than the texture extents.
   width = std::max(1u, std::min(width, GetWidth() >> level));
@@ -456,12 +456,12 @@ void VKTexture::FinishedRendering()
                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void VKTexture::OverrideImageLayout(VkImageLayout new_layout)
+void VKTexture::OverrideImageLayout(const VkImageLayout new_layout)
 {
   m_layout = new_layout;
 }
 
-void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const
+void VKTexture::TransitionToLayout(const VkCommandBuffer command_buffer, const VkImageLayout new_layout) const
 {
   if (m_layout == new_layout)
     return;
@@ -606,8 +606,8 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   m_layout = new_layout;
 }
 
-void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
-                                   ComputeImageLayout new_layout) const
+void VKTexture::TransitionToLayout(const VkCommandBuffer command_buffer,
+                                   const ComputeImageLayout new_layout) const
 {
   ASSERT(new_layout != ComputeImageLayout::Undefined);
   if (m_compute_layout == new_layout)
@@ -709,9 +709,9 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
                        &barrier);
 }
 
-VKStagingTexture::VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
-                                   std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
-                                   VmaAllocation linear_image_alloc)
+VKStagingTexture::VKStagingTexture(PrivateTag, const StagingTextureType type, const TextureConfig& config,
+                                   std::unique_ptr<StagingBuffer> buffer, const VkImage linear_image,
+                                   const VmaAllocation linear_image_alloc)
     : AbstractStagingTexture(type, config), m_staging_buffer(std::move(buffer)),
       m_linear_image(linear_image), m_linear_image_alloc(linear_image_alloc)
 {
@@ -832,8 +832,8 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
 }
 
 void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                       const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+                                       const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                       const u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
   const VKTexture* src_tex = static_cast<const VKTexture*>(src);
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
@@ -884,7 +884,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
 void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
                                                     const MathUtil::Rectangle<int>& src_rect,
-                                                    u32 src_layer, u32 src_level,
+                                                    const u32 src_layer, const u32 src_level,
                                                     const MathUtil::Rectangle<int>& dst_rect)
 {
   // The proprietary Qualcomm driver allocates a temporary image when copying from an image
@@ -932,8 +932,8 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
 }
 
 void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                                     u32 dst_level)
+                                     const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
+                                     const u32 dst_level)
 {
   const VKTexture* dst_tex = static_cast<const VKTexture*>(dst);
   ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
@@ -1010,10 +1010,10 @@ void VKStagingTexture::Flush()
 }
 
 VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment,
-                             std::vector<AbstractTexture*> additional_color_attachments, u32 width,
-                             u32 height, u32 layers, u32 samples, VkFramebuffer fb,
-                             VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
-                             VkRenderPass clear_render_pass)
+                             std::vector<AbstractTexture*> additional_color_attachments, const u32 width,
+                             const u32 height, const u32 layers, const u32 samples, const VkFramebuffer fb,
+                             const VkRenderPass load_render_pass, const VkRenderPass discard_render_pass,
+                             const VkRenderPass clear_render_pass)
     : AbstractFramebuffer(
           color_attachment, depth_attachment, std::move(additional_color_attachments),
           color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined,

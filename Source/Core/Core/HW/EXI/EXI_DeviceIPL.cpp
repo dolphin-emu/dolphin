@@ -48,7 +48,7 @@ Common::Flags<RTCFlag> g_rtc_flags;
 
 // bootrom descrambler reversed by segher
 // Copyright 2008 Segher Boessenkool <segher@kernel.crashing.org>
-void CEXIIPL::Descrambler(u8* data, u32 size)
+void CEXIIPL::Descrambler(u8* data, const u32 size)
 {
   u8 acc = 0;
   u8 nacc = 0;
@@ -158,7 +158,7 @@ void CEXIIPL::DoState(PointerWrap& p)
   p.Do(m_fonts_loaded);
 }
 
-bool CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
+bool CEXIIPL::LoadFileToIPL(const std::string& filename, const u32 offset)
 {
   if (offset >= ROM_SIZE)
     return false;
@@ -200,7 +200,7 @@ bool CEXIIPL::HasIPLDump()
   return !ipl_rom_path.empty();
 }
 
-void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
+void CEXIIPL::LoadFontFile(const std::string& filename, const u32 offset)
 {
   // Official IPL fonts are copyrighted. Dolphin ships with a set of free font alternatives but
   // unfortunately the bundled fonts have different padding, causing issues with misplaced text
@@ -246,7 +246,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   m_fonts_loaded = true;
 }
 
-void CEXIIPL::SetCS(int cs)
+void CEXIIPL::SetCS(const int cs)
 {
   if (cs)
   {
@@ -399,7 +399,7 @@ void CEXIIPL::TransferByte(u8& data)
   }
 }
 
-u32 CEXIIPL::GetEmulatedTime(Core::System& system, u32 epoch)
+u32 CEXIIPL::GetEmulatedTime(const Core::System& system, const u32 epoch)
 {
   u64 ltime = 0;
 

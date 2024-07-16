@@ -87,7 +87,7 @@ std::string Profiler::ToString()
          << " ";
   buffer << "/ usec" << std::endl;
 
-  s_all_profilers.sort([](Profiler* a, Profiler* b) { return *b < *a; });
+  s_all_profilers.sort([](const Profiler* a, const Profiler* b) { return *b < *a; });
 
   for (auto profiler : s_all_profilers)
   {

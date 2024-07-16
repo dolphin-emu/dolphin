@@ -41,7 +41,7 @@ static constexpr std::array named_motors{"Motor L", "Motor R"};
 class Button final : public Core::Device::Input
 {
 public:
-  Button(u8 index, const WORD& buttons) : m_buttons(buttons), m_index(index) {}
+  Button(const u8 index, const WORD& buttons) : m_buttons(buttons), m_index(index) {}
   std::string GetName() const override { return named_buttons[m_index].name; }
   ControlState GetState() const override
   {
@@ -56,7 +56,7 @@ private:
 class Axis final : public Core::Device::Input
 {
 public:
-  Axis(u8 index, const SHORT& axis, SHORT range) : m_axis(axis), m_range(range), m_index(index) {}
+  Axis(const u8 index, const SHORT& axis, const SHORT range) : m_axis(axis), m_range(range), m_index(index) {}
   std::string GetName() const override
   {
     return std::string(named_axes[m_index]) + (m_range < 0 ? '-' : '+');
@@ -72,7 +72,7 @@ private:
 class Trigger final : public Core::Device::Input
 {
 public:
-  Trigger(u8 index, const BYTE& trigger, BYTE range)
+  Trigger(const u8 index, const BYTE& trigger, const BYTE range)
       : m_trigger(trigger), m_range(range), m_index(index)
   {
   }
@@ -88,13 +88,13 @@ private:
 class Motor final : public Core::Device::Output
 {
 public:
-  Motor(u8 index, Device* parent, WORD& motor, WORD range)
+  Motor(const u8 index, Device* parent, WORD& motor, const WORD range)
       : m_motor(motor), m_range(range), m_index(index), m_parent(parent)
   {
   }
 
   std::string GetName() const override { return named_motors[m_index]; }
-  void SetState(ControlState state) override
+  void SetState(const ControlState state) override
   {
     const auto old_value = m_motor;
     m_motor = (WORD)(state * m_range);
@@ -200,7 +200,7 @@ void DeInit()
   }
 }
 
-Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubType), m_index(index)
+Device::Device(const XINPUT_CAPABILITIES& caps, const u8 index) : m_subtype(caps.SubType), m_index(index)
 {
   // XInputGetCaps can be broken on some devices, so we'll just ignore it
   // and assume all gamepad + vibration capabilities are supported

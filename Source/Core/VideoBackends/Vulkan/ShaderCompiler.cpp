@@ -89,7 +89,7 @@ static const char SUBGROUP_HELPER_HEADER[] = R"(
   #define SUBGROUP_MAX(value) value = subgroupMax(value)
 )";
 
-static std::string GetShaderCode(std::string_view source, std::string_view header)
+static std::string GetShaderCode(const std::string_view source, const std::string_view header)
 {
   std::string full_source_code;
   if (!header.empty())
@@ -121,25 +121,25 @@ static glslang::EShTargetLanguageVersion GetLanguageVersion()
   return glslang::EShTargetSpv_1_0;
 }
 
-std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileVertexShader(const std::string_view source_code)
 {
   return SPIRV::CompileVertexShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
                                     GetLanguageVersion());
 }
 
-std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileGeometryShader(const std::string_view source_code)
 {
   return SPIRV::CompileGeometryShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
                                       GetLanguageVersion());
 }
 
-std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileFragmentShader(const std::string_view source_code)
 {
   return SPIRV::CompileFragmentShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
                                       GetLanguageVersion());
 }
 
-std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileComputeShader(const std::string_view source_code)
 {
   return SPIRV::CompileComputeShader(GetShaderCode(source_code, COMPUTE_SHADER_HEADER),
                                      APIType::Vulkan, GetLanguageVersion());

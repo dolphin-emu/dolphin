@@ -695,7 +695,7 @@ void AssemblerWidget::OnTabChange(int index)
   m_address_line->setText(active_editor->BaseAddress());
 }
 
-QString AssemblerWidget::TabTextForEditor(AsmEditor* editor, bool with_dirty)
+QString AssemblerWidget::TabTextForEditor(const AsmEditor* editor, bool with_dirty)
 {
   ASSERT(editor != nullptr);
 

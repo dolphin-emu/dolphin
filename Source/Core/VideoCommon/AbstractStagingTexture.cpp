@@ -10,22 +10,22 @@
 #include "Common/MsgHandler.h"
 #include "VideoCommon/AbstractTexture.h"
 
-AbstractStagingTexture::AbstractStagingTexture(StagingTextureType type, const TextureConfig& c)
+AbstractStagingTexture::AbstractStagingTexture(const StagingTextureType type, const TextureConfig& c)
     : m_type(type), m_config(c), m_texel_size(AbstractTexture::GetTexelSizeForFormat(c.format))
 {
 }
 
 AbstractStagingTexture::~AbstractStagingTexture() = default;
 
-void AbstractStagingTexture::CopyFromTexture(const AbstractTexture* src, u32 src_layer,
-                                             u32 src_level)
+void AbstractStagingTexture::CopyFromTexture(const AbstractTexture* src, const u32 src_layer,
+                                             const u32 src_level)
 {
   MathUtil::Rectangle<int> src_rect = src->GetConfig().GetMipRect(src_level);
   MathUtil::Rectangle<int> dst_rect = m_config.GetRect();
   CopyFromTexture(src, src_rect, src_layer, src_level, dst_rect);
 }
 
-void AbstractStagingTexture::CopyToTexture(AbstractTexture* dst, u32 dst_layer, u32 dst_level)
+void AbstractStagingTexture::CopyToTexture(AbstractTexture* dst, const u32 dst_layer, const u32 dst_level)
 {
   MathUtil::Rectangle<int> src_rect = m_config.GetRect();
   MathUtil::Rectangle<int> dst_rect = dst->GetConfig().GetMipRect(dst_level);
@@ -33,7 +33,7 @@ void AbstractStagingTexture::CopyToTexture(AbstractTexture* dst, u32 dst_layer, 
 }
 
 void AbstractStagingTexture::ReadTexels(const MathUtil::Rectangle<int>& rect, void* out_ptr,
-                                        u32 out_stride)
+                                        const u32 out_stride)
 {
   ASSERT(m_type != StagingTextureType::Upload);
   if (!PrepareForAccess())
@@ -66,7 +66,7 @@ void AbstractStagingTexture::ReadTexels(const MathUtil::Rectangle<int>& rect, vo
   }
 }
 
-void AbstractStagingTexture::ReadTexel(u32 x, u32 y, void* out_ptr)
+void AbstractStagingTexture::ReadTexel(const u32 x, const u32 y, void* out_ptr)
 {
   ASSERT(m_type != StagingTextureType::Upload);
   if (!PrepareForAccess())
@@ -78,7 +78,7 @@ void AbstractStagingTexture::ReadTexel(u32 x, u32 y, void* out_ptr)
 }
 
 void AbstractStagingTexture::WriteTexels(const MathUtil::Rectangle<int>& rect, const void* in_ptr,
-                                         u32 in_stride)
+                                         const u32 in_stride)
 {
   ASSERT(m_type != StagingTextureType::Readback);
   if (!PrepareForAccess())
@@ -110,7 +110,7 @@ void AbstractStagingTexture::WriteTexels(const MathUtil::Rectangle<int>& rect, c
   }
 }
 
-void AbstractStagingTexture::WriteTexel(u32 x, u32 y, const void* in_ptr)
+void AbstractStagingTexture::WriteTexel(const u32 x, const u32 y, const void* in_ptr)
 {
   ASSERT(m_type != StagingTextureType::Readback);
   if (!PrepareForAccess())

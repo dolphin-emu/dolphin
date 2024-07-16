@@ -56,7 +56,7 @@ void PresetTimeBaseTicks(Core::System& system, const Core::CPUThreadGuard& guard
 }
 }  // Anonymous namespace
 
-void CBoot::RunFunction(Core::System& system, u32 address)
+void CBoot::RunFunction(const Core::System& system, const u32 address)
 {
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
@@ -78,7 +78,7 @@ void CBoot::SetupMSR(PowerPC::PowerPCState& ppc_state)
   MSRUpdated(ppc_state);
 }
 
-void CBoot::SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii)
+void CBoot::SetupHID(PowerPC::PowerPCState& ppc_state, const bool is_wii)
 {
   // HID0 is 0x0011c464 on GC, 0x0011c664 on Wii
   HID0(ppc_state).BHT = 1;
@@ -111,7 +111,7 @@ void CBoot::SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii)
   }
 }
 
-void CBoot::SetupBAT(Core::System& system, bool is_wii)
+void CBoot::SetupBAT(const Core::System& system, const bool is_wii)
 {
   auto& ppc_state = system.GetPPCState();
   ppc_state.spr[SPR_IBAT0U] = 0x80001fff;
@@ -136,7 +136,7 @@ void CBoot::SetupBAT(Core::System& system, bool is_wii)
   mmu.IBATUpdated();
 }
 
-bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
+bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, const bool is_wii,
                          const DiscIO::VolumeDisc& volume,
                          const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
@@ -329,7 +329,7 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& gua
   return RunApploader(system, guard, /*is_wii*/ false, volume, riivolution_patches);
 }
 
-static DiscIO::Region CodeRegion(char c)
+static DiscIO::Region CodeRegion(const char c)
 {
   switch (c)
   {
@@ -610,7 +610,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
 
 // Returns true if apploader has run successfully. If is_wii is true, the disc
 // that volume refers to must currently be inserted into the emulated disc drive.
-bool CBoot::EmulatedBS2(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
+bool CBoot::EmulatedBS2(Core::System& system, const Core::CPUThreadGuard& guard, const bool is_wii,
                         const DiscIO::VolumeDisc& volume,
                         const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {

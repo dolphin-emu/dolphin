@@ -165,12 +165,12 @@ struct DDSLoadInfo
   std::function<void(VideoCommon::CustomTextureData::ArraySlice::Level*)> conversion_function;
 };
 
-static constexpr u32 GetBlockCount(u32 extent, u32 block_size)
+static constexpr u32 GetBlockCount(const u32 extent, const u32 block_size)
 {
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-static u32 CalculateMipCount(u32 width, u32 height)
+static u32 CalculateMipCount(const u32 width, const u32 height)
 {
   u32 mip_width = width;
   u32 mip_height = height;
@@ -458,9 +458,9 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 }
 
 static bool ReadMipLevel(VideoCommon::CustomTextureData::ArraySlice::Level* level,
-                         File::IOFile& file, const std::string& filename, u32 mip_level,
-                         const DDSLoadInfo& info, u32 width, u32 height, u32 row_length,
-                         size_t size)
+                         File::IOFile& file, const std::string& filename, const u32 mip_level,
+                         const DDSLoadInfo& info, const u32 width, const u32 height, const u32 row_length,
+                         const size_t size)
 {
   // D3D11 cannot handle block compressed textures where the first mip level is
   // not a multiple of the block size.
@@ -548,7 +548,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
 }
 
 bool LoadDDSTexture(CustomTextureData::ArraySlice::Level* level, const std::string& filename,
-                    u32 mip_level)
+                    const u32 mip_level)
 {
   // Only loading a single mip level.
   File::IOFile file;

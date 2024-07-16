@@ -7,7 +7,7 @@ using namespace ciface::ExpressionParser;
 
 static thread_local bool tls_input_gate = true;
 
-void ControlReference::SetInputGate(bool enable)
+void ControlReference::SetInputGate(const bool enable)
 {
   tls_input_gate = enable;
 }

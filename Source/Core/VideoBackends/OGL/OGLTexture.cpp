@@ -15,7 +15,7 @@
 
 namespace OGL
 {
-GLenum OGLTexture::GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage)
+GLenum OGLTexture::GetGLInternalFormatForTextureFormat(const AbstractTextureFormat format, const bool storage)
 {
   switch (format)
   {
@@ -55,7 +55,7 @@ GLenum OGLTexture::GetGLInternalFormatForTextureFormat(AbstractTextureFormat for
 
 namespace
 {
-GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
+GLenum GetGLFormatForTextureFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -82,7 +82,7 @@ GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
   }
 }
 
-GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
+GLenum GetGLTypeForTextureFormat(const AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -121,7 +121,7 @@ bool UsePersistentStagingBuffers()
 }
 }  // Anonymous namespace
 
-OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
+OGLTexture::OGLTexture(const TextureConfig& tex_config, const std::string_view name)
     : AbstractTexture(tex_config), m_name(name)
 {
   DEBUG_ASSERT_MSG(VIDEO, !tex_config.IsMultisampled() || tex_config.levels == 1,
@@ -221,9 +221,9 @@ OGLTexture::~OGLTexture()
 }
 
 void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                          const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                          u32 dst_layer, u32 dst_level)
+                                          const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                          const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                          const u32 dst_layer, const u32 dst_level)
 {
   const OGLTexture* src_gltex = static_cast<const OGLTexture*>(src);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
@@ -241,10 +241,10 @@ void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   }
 }
 
-void OGLTexture::BlitFramebuffer(OGLTexture* srcentry, const MathUtil::Rectangle<int>& src_rect,
-                                 u32 src_layer, u32 src_level,
-                                 const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                                 u32 dst_level)
+void OGLTexture::BlitFramebuffer(const OGLTexture* srcentry, const MathUtil::Rectangle<int>& src_rect,
+                                 const u32 src_layer, const u32 src_level,
+                                 const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
+                                 const u32 dst_level)
 {
   GetOGLGfx()->BindSharedReadFramebuffer();
   glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, srcentry->m_texId, src_level,
@@ -266,7 +266,7 @@ void OGLTexture::BlitFramebuffer(OGLTexture* srcentry, const MathUtil::Rectangle
 }
 
 void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
-                                    const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
+                                    const MathUtil::Rectangle<int>& rect, const u32 layer, const u32 level)
 {
   const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
   DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
@@ -276,8 +276,8 @@ void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
   BlitFramebuffer(const_cast<OGLTexture*>(srcentry), rect, layer, level, rect, layer, level);
 }
 
-void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                      size_t buffer_size, u32 layer)
+void OGLTexture::Load(const u32 level, const u32 width, const u32 height, const u32 row_length, const u8* buffer,
+                      const size_t buffer_size, const u32 layer)
 {
   if (level >= m_config.levels)
     PanicAlertFmt("Texture only has {} levels, can't update level {}", m_config.levels, level);
@@ -404,9 +404,9 @@ GLenum OGLTexture::GetGLFormatForImageTexture() const
   return GetGLInternalFormatForTextureFormat(m_config.format, true);
 }
 
-OGLStagingTexture::OGLStagingTexture(StagingTextureType type, const TextureConfig& config,
-                                     GLenum target, GLuint buffer_name, size_t buffer_size,
-                                     char* map_ptr, size_t map_stride)
+OGLStagingTexture::OGLStagingTexture(const StagingTextureType type, const TextureConfig& config,
+                                     const GLenum target, const GLuint buffer_name, const size_t buffer_size,
+                                     char* map_ptr, const size_t map_stride)
     : AbstractStagingTexture(type, config), m_target(target), m_buffer_name(buffer_name),
       m_buffer_size(buffer_size)
 {
@@ -428,7 +428,7 @@ OGLStagingTexture::~OGLStagingTexture()
     glDeleteBuffers(1, &m_buffer_name);
 }
 
-std::unique_ptr<OGLStagingTexture> OGLStagingTexture::Create(StagingTextureType type,
+std::unique_ptr<OGLStagingTexture> OGLStagingTexture::Create(const StagingTextureType type,
                                                              const TextureConfig& config)
 {
   size_t stride = config.GetStride();
@@ -479,8 +479,8 @@ std::unique_ptr<OGLStagingTexture> OGLStagingTexture::Create(StagingTextureType 
 }
 
 void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+                                        const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
+                                        const u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
@@ -551,7 +551,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
 void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
                                       AbstractTexture* dst,
-                                      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
+                                      const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
                                       u32 dst_level)
 {
   ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
@@ -658,9 +658,9 @@ void OGLStagingTexture::Unmap()
 
 OGLFramebuffer::OGLFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
                                std::vector<AbstractTexture*> additional_color_attachments,
-                               AbstractTextureFormat color_format,
-                               AbstractTextureFormat depth_format, u32 width, u32 height,
-                               u32 layers, u32 samples, GLuint fbo)
+                               const AbstractTextureFormat color_format,
+                               const AbstractTextureFormat depth_format, const u32 width, const u32 height,
+                               const u32 layers, const u32 samples, const GLuint fbo)
     : AbstractFramebuffer(color_attachment, depth_attachment,
                           std::move(additional_color_attachments), color_format, depth_format,
                           width, height, layers, samples),
@@ -752,7 +752,7 @@ OGLFramebuffer::Create(OGLTexture* color_attachment, OGLTexture* depth_attachmen
                                           depth_format, width, height, layers, samples, fbo);
 }
 
-void OGLFramebuffer::UpdateDimensions(u32 width, u32 height)
+void OGLFramebuffer::UpdateDimensions(const u32 width, const u32 height)
 {
   m_width = width;
   m_height = height;

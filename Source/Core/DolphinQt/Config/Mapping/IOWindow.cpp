@@ -522,7 +522,7 @@ void IOWindow::OnDeviceChanged()
   UpdateOptionList();
 }
 
-void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
+void IOWindow::OnDialogButtonPressed(const QAbstractButton* button)
 {
   if (button == m_clear_button)
   {

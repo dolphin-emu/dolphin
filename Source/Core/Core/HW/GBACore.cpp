@@ -44,7 +44,7 @@ constexpr auto SAMPLES = 512;
 constexpr auto SAMPLE_RATE = 48000;
 
 // libmGBA does not return the correct frequency for some GB models
-static u32 GetCoreFrequency(mCore* core)
+static u32 GetCoreFrequency(const mCore* core)
 {
   if (core->platform(core) != mPLATFORM_GB)
     return static_cast<u32>(core->frequency(core));
@@ -149,7 +149,7 @@ static std::array<u8, 20> GetROMHash(VFile* rom)
   return digest;
 }
 
-Core::Core(::Core::System& system, int device_number)
+Core::Core(::Core::System& system, const int device_number)
     : m_device_number(device_number), m_system(system)
 {
   mLogSetDefaultLogger(&s_stub_logger);
@@ -160,7 +160,7 @@ Core::~Core()
   Stop();
 }
 
-bool Core::Start(u64 gc_ticks)
+bool Core::Start(const u64 gc_ticks)
 {
   if (IsStarted())
     return false;
@@ -316,12 +316,12 @@ void Core::SetHost(std::weak_ptr<GBAHostInterface> host)
   m_host = std::move(host);
 }
 
-void Core::SetForceDisconnect(bool force_disconnect)
+void Core::SetForceDisconnect(const bool force_disconnect)
 {
   m_force_disconnect = force_disconnect;
 }
 
-void Core::EReaderQueueCard(std::string_view card_path)
+void Core::EReaderQueueCard(const std::string_view card_path)
 {
   Flush();
   if (!GetCoreInfo().has_ereader)
@@ -462,7 +462,7 @@ void Core::SetupEvent()
   m_event.priority = 0x80;
 }
 
-void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys)
+void Core::SendJoybusCommand(const u64 gc_ticks, const int transfer_time, u8* buffer, const u16 keys)
 {
   if (!IsStarted())
     return;
@@ -562,7 +562,7 @@ void Core::RunCommand(Command& command)
     RunFor(command.transfer_time);
 }
 
-void Core::RunUntil(u64 gc_ticks)
+void Core::RunUntil(const u64 gc_ticks)
 {
   if (static_cast<s64>(gc_ticks - m_last_gc_ticks) <= 0)
     return;
@@ -584,12 +584,12 @@ void Core::RunUntil(u64 gc_ticks)
   m_gc_ticks_remainder = d % core_frequency;
 }
 
-void Core::RunFor(u64 gc_ticks)
+void Core::RunFor(const u64 gc_ticks)
 {
   RunUntil(m_last_gc_ticks + gc_ticks);
 }
 
-void Core::ImportState(std::string_view state_path)
+void Core::ImportState(const std::string_view state_path)
 {
   Flush();
   if (!IsStarted())
@@ -604,7 +604,7 @@ void Core::ImportState(std::string_view state_path)
   m_core->loadState(m_core, core_state.data());
 }
 
-void Core::ExportState(std::string_view state_path)
+void Core::ExportState(const std::string_view state_path)
 {
   Flush();
   if (!IsStarted())
@@ -617,7 +617,7 @@ void Core::ExportState(std::string_view state_path)
   file.WriteBytes(core_state.data(), core_state.size());
 }
 
-void Core::ImportSave(std::string_view save_path)
+void Core::ImportSave(const std::string_view save_path)
 {
   Flush();
   if (!IsStarted())
@@ -632,7 +632,7 @@ void Core::ImportSave(std::string_view save_path)
   m_core->reset(m_core);
 }
 
-void Core::ExportSave(std::string_view save_path)
+void Core::ExportSave(const std::string_view save_path)
 {
   Flush();
   if (!IsStarted())
@@ -732,7 +732,7 @@ bool Core::GetRomInfo(const char* rom_path, std::array<u8, 20>& hash, std::strin
   return true;
 }
 
-std::string Core::GetSavePath(std::string_view rom_path, int device_number)
+std::string Core::GetSavePath(const std::string_view rom_path, const int device_number)
 {
   std::string save_path =
       fmt::format("{}-{}.sav", rom_path.substr(0, rom_path.find_last_of('.')), device_number + 1);

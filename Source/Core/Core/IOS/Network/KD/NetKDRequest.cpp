@@ -97,9 +97,9 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
       0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3, 0xC, 0x2, 0x6, 0xE, 0x8, 0x0, 0xA, 0x5,
   };
 
-  constexpr auto u64_get_byte = [](u64 value, u32 shift) -> u8 { return u8(value >> (shift * 8)); };
+  constexpr auto u64_get_byte = [](const u64 value, const u32 shift) -> u8 { return u8(value >> (shift * 8)); };
 
-  constexpr auto u64_insert_byte = [](u64 value, u32 shift, u8 byte) -> u64 {
+  constexpr auto u64_insert_byte = [](const u64 value, const u32 shift, u8 byte) -> u64 {
     const u64 mask = 0x00000000000000FFULL << (shift * 8);
     const u64 inst = u64{byte} << (shift * 8);
     return (value & ~mask) | inst;
@@ -304,7 +304,7 @@ std::string NetKDRequestDevice::GetValueFromCGIResponse(const std::string& respo
   return {};
 }
 
-void NetKDRequestDevice::LogError(ErrorType error_type, s32 error_code)
+void NetKDRequestDevice::LogError(const ErrorType error_type, const s32 error_code)
 {
   s32 new_code{};
   switch (error_type)
@@ -487,7 +487,7 @@ NWC24::ErrorCode NetKDRequestDevice::DetermineDownloadTask(u16* entry_index,
   return NWC24::WC24_OK;
 }
 
-NWC24::ErrorCode NetKDRequestDevice::DetermineSubtask(u16 entry_index,
+NWC24::ErrorCode NetKDRequestDevice::DetermineSubtask(const u16 entry_index,
                                                       std::optional<u8>* subtask_id) const
 {
   // Before we do anything, determine if this task wants to be downloaded

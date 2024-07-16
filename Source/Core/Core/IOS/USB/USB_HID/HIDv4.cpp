@@ -166,7 +166,7 @@ std::shared_ptr<USB::Device> USB_HIDv4::GetDeviceByIOSID(const s32 ios_id) const
   return GetDeviceById(iterator->second);
 }
 
-void USB_HIDv4::OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> device)
+void USB_HIDv4::OnDeviceChange(const ChangeEvent event, const std::shared_ptr<USB::Device> device)
 {
   {
     std::lock_guard id_map_lock{m_id_map_mutex};

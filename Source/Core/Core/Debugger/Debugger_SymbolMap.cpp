@@ -22,7 +22,7 @@
 namespace Dolphin_Debugger
 {
 // Returns true if the address is not a valid RAM address or NULL.
-static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
+static bool IsStackBottom(const Core::CPUThreadGuard& guard, const u32 addr)
 {
   return !addr || !PowerPC::MMU::HostIsRAMAddress(guard, addr);
 }
@@ -79,7 +79,7 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
       .vAddress = LR(ppc_state) - 4,
   });
 
-  WalkTheStack(guard, [&output, &ppc_symbol_db](u32 func_addr) {
+  WalkTheStack(guard, [&output, &ppc_symbol_db](const u32 func_addr) {
     std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
@@ -113,7 +113,7 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
     GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", lr_desc, LR(ppc_state));
   }
 
-  WalkTheStack(guard, [type, level, &ppc_symbol_db](u32 func_addr) {
+  WalkTheStack(guard, [type, level, &ppc_symbol_db](const u32 func_addr) {
     std::string_view func_desc = ppc_symbol_db.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
@@ -121,8 +121,8 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
   });
 }
 
-void PrintDataBuffer(const Core::System& system, Common::Log::LogType type, u32 address, u32 size,
-                     std::string_view title)
+void PrintDataBuffer(const Core::System& system, const Common::Log::LogType type, const u32 address, const u32 size,
+                     const std::string_view title)
 {
   const u8* data = system.GetMemory().GetPointerForRange(address, size);
 

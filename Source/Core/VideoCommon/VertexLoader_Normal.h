@@ -13,8 +13,8 @@
 class VertexLoader_Normal
 {
 public:
-  static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ComponentFormat format,
-                                          NormalComponentCount elements, bool index3)
+  static DOLPHIN_FORCE_INLINE u32 GetSize(const VertexComponentFormat type, const ComponentFormat format,
+                                          const NormalComponentCount elements, const bool index3)
   {
     return s_table_size[type][index3][elements][format];
   }
