@@ -52,12 +52,12 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   setLayout(layout);
 }
 
-void SettingsWindow::SelectAudioPane()
+void SettingsWindow::SelectAudioPane() const
 {
   m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::Audio));
 }
 
-void SettingsWindow::SelectGeneralPane()
+void SettingsWindow::SelectGeneralPane() const
 {
   m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::General));
 }

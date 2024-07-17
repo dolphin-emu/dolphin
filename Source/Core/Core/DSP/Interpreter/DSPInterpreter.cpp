@@ -218,7 +218,7 @@ int Interpreter::RunCycles(int cycles)
 }
 
 // NOTE: These have nothing to do with SDSP::r::cr!
-void Interpreter::WriteControlRegister(u16 val)
+void Interpreter::WriteControlRegister(u16 val) const
 {
   auto& state = m_dsp_core.DSPState();
 
@@ -265,7 +265,7 @@ void Interpreter::WriteControlRegister(u16 val)
   state.control_reg = val;
 }
 
-u16 Interpreter::ReadControlRegister()
+u16 Interpreter::ReadControlRegister() const
 {
   auto& state = m_dsp_core.DSPState();
   if ((state.control_reg & CR_INIT_CODE) != 0)
@@ -279,7 +279,7 @@ u16 Interpreter::ReadControlRegister()
   return state.control_reg;
 }
 
-void Interpreter::SetSRFlag(const u16 flag)
+void Interpreter::SetSRFlag(const u16 flag) const
 {
   m_dsp_core.DSPState().SetSRFlag(flag);
 }
@@ -441,7 +441,7 @@ s64 Interpreter::GetLongAcc(const s32 reg) const
   return static_cast<s64>(state.r.ac[reg].val);
 }
 
-void Interpreter::SetLongAcc(const s32 reg, const s64 value)
+void Interpreter::SetLongAcc(const s32 reg, const s64 value) const
 {
   auto& state = m_dsp_core.DSPState();
   // 40-bit sign extension
@@ -490,7 +490,7 @@ s64 Interpreter::GetLongProductRounded() const
     return (prod + 0x7fff) & ~0xffff;
 }
 
-void Interpreter::SetLongProduct(const s64 value)
+void Interpreter::SetLongProduct(const s64 value) const
 {
   // For accurate emulation, this is wrong - but the real prod registers behave
   // in completely bizarre ways. Not needed to emulate them correctly for game ucodes.
@@ -547,7 +547,7 @@ s64 Interpreter::MultiplyMulX(const u8 axh0, const u8 axh1, const u16 val1, cons
   return result;
 }
 
-void Interpreter::UpdateSR16(const s16 value, const bool carry, const bool overflow, const bool over_s32)
+void Interpreter::UpdateSR16(const s16 value, const bool carry, const bool overflow, const bool over_s32) const
 {
   auto& state = m_dsp_core.DSPState();
 
@@ -597,7 +597,7 @@ void Interpreter::UpdateSR16(const s16 value, const bool carry, const bool overf
   return (topbits == 0) || (0xffff'ff80'0000'0000ULL == topbits);
 }
 
-void Interpreter::UpdateSR64(const s64 value, const bool carry, const bool overflow)
+void Interpreter::UpdateSR64(const s64 value, const bool carry, const bool overflow) const
 {
   DEBUG_ASSERT(IsProperlySignExtended(value));
 
@@ -646,7 +646,7 @@ void Interpreter::UpdateSR64(const s64 value, const bool carry, const bool overf
 // Updates SR based on a 64-bit value computed by result = val1 + val2.
 // Result is a separate parameter that is properly sign-extended, and as such may not equal the
 // result of adding a and b in a 64-bit context.
-void Interpreter::UpdateSR64Add(const s64 val1, const s64 val2, const s64 result)
+void Interpreter::UpdateSR64Add(const s64 val1, const s64 val2, const s64 result) const
 {
   DEBUG_ASSERT(((val1 + val2) & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
   DEBUG_ASSERT(IsProperlySignExtended(val1));
@@ -657,7 +657,7 @@ void Interpreter::UpdateSR64Add(const s64 val1, const s64 val2, const s64 result
 // Updates SR based on a 64-bit value computed by result = val1 - val2.
 // Result is a separate parameter that is properly sign-extended, and as such may not equal the
 // result of adding a and b in a 64-bit context.
-void Interpreter::UpdateSR64Sub(const s64 val1, const s64 val2, const s64 result)
+void Interpreter::UpdateSR64Sub(const s64 val1, const s64 val2, const s64 result) const
 {
   DEBUG_ASSERT(((val1 - val2) & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
   DEBUG_ASSERT(IsProperlySignExtended(val1));
@@ -665,7 +665,7 @@ void Interpreter::UpdateSR64Sub(const s64 val1, const s64 val2, const s64 result
   UpdateSR64(result, isCarrySubtract(val1, result), isOverflow(val1, -val2, result));
 }
 
-void Interpreter::UpdateSRLogicZero(const bool value)
+void Interpreter::UpdateSRLogicZero(const bool value) const
 {
   auto& state = m_dsp_core.DSPState();
 
@@ -675,7 +675,7 @@ void Interpreter::UpdateSRLogicZero(const bool value)
     state.r.sr &= ~SR_LOGIC_ZERO;
 }
 
-u16 Interpreter::OpReadRegister(const int reg_)
+u16 Interpreter::OpReadRegister(const int reg_) const
 {
   const int reg = reg_ & 0x1f;
   auto& state = m_dsp_core.DSPState();
@@ -753,7 +753,7 @@ u16 Interpreter::OpReadRegister(const int reg_)
   }
 }
 
-void Interpreter::OpWriteRegister(const int reg_, const u16 val)
+void Interpreter::OpWriteRegister(const int reg_, const u16 val) const
 {
   const int reg = reg_ & 0x1f;
   auto& state = m_dsp_core.DSPState();
@@ -830,7 +830,7 @@ void Interpreter::OpWriteRegister(const int reg_, const u16 val)
   }
 }
 
-void Interpreter::ConditionalExtendAccum(const int reg)
+void Interpreter::ConditionalExtendAccum(const int reg) const
 {
   if (reg != DSP_REG_ACM0 && reg != DSP_REG_ACM1)
     return;

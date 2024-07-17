@@ -212,7 +212,7 @@ void CodeWidget::OnBranchWatchDialog()
   m_branch_watch_dialog->activateWindow();
 }
 
-void CodeWidget::OnPPCSymbolsChanged()
+void CodeWidget::OnPPCSymbolsChanged() const
 {
   UpdateSymbols();
   UpdateCallstack();
@@ -223,7 +223,7 @@ void CodeWidget::OnPPCSymbolsChanged()
   }
 }
 
-void CodeWidget::OnSearchAddress()
+void CodeWidget::OnSearchAddress() const
 {
   bool good = true;
   u32 address = m_search_address->text().toUInt(&good, 16);
@@ -254,7 +254,7 @@ void CodeWidget::OnSearchSymbols()
   UpdateSymbols();
 }
 
-void CodeWidget::OnSelectSymbol()
+void CodeWidget::OnSelectSymbol() const
 {
   const auto items = m_symbols_list->selectedItems();
   if (items.isEmpty())
@@ -271,7 +271,7 @@ void CodeWidget::OnSelectSymbol()
   m_code_view->setFocus();
 }
 
-void CodeWidget::OnSelectCallstack()
+void CodeWidget::OnSelectCallstack() const
 {
   const auto items = m_callstack_list->selectedItems();
   if (items.isEmpty())
@@ -282,7 +282,7 @@ void CodeWidget::OnSelectCallstack()
   Update();
 }
 
-void CodeWidget::OnSelectFunctionCalls()
+void CodeWidget::OnSelectFunctionCalls() const
 {
   const auto items = m_function_calls_list->selectedItems();
   if (items.isEmpty())
@@ -293,7 +293,7 @@ void CodeWidget::OnSelectFunctionCalls()
   Update();
 }
 
-void CodeWidget::OnSelectFunctionCallers()
+void CodeWidget::OnSelectFunctionCallers() const
 {
   const auto items = m_function_callers_list->selectedItems();
   if (items.isEmpty())
@@ -317,7 +317,7 @@ void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update
   }
 }
 
-void CodeWidget::Update()
+void CodeWidget::Update() const
 {
   if (!isVisible())
     return;
@@ -336,7 +336,7 @@ void CodeWidget::Update()
   UpdateFunctionCallers(symbol);
 }
 
-void CodeWidget::UpdateCallstack()
+void CodeWidget::UpdateCallstack() const
 {
   m_callstack_list->clear();
 
@@ -365,7 +365,7 @@ void CodeWidget::UpdateCallstack()
   }
 }
 
-void CodeWidget::UpdateSymbols()
+void CodeWidget::UpdateSymbols() const
 {
   const QString selection = m_symbols_list->selectedItems().isEmpty() ?
                                 QString{} :
@@ -393,7 +393,7 @@ void CodeWidget::UpdateSymbols()
   m_symbols_list->sortItems();
 }
 
-void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
+void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol) const
 {
   m_function_calls_list->clear();
   const QString filter = m_search_calls->text();
@@ -418,7 +418,7 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
   }
 }
 
-void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
+void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol) const
 {
   m_function_callers_list->clear();
   const QString filter = m_search_callers->text();
@@ -443,7 +443,7 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
   }
 }
 
-void CodeWidget::Step()
+void CodeWidget::Step() const
 {
   auto& cpu = m_system.GetCPU();
 
@@ -466,7 +466,7 @@ void CodeWidget::Step()
     m_branch_watch_dialog->Update();
 }
 
-void CodeWidget::StepOver()
+void CodeWidget::StepOver() const
 {
   auto& cpu = m_system.GetCPU();
 
@@ -504,7 +504,7 @@ static bool WillInstructionReturn(Core::System& system, UGeckoInstruction inst)
   return isBclr && counter && condition && !inst.LK_3;
 }
 
-void CodeWidget::StepOut()
+void CodeWidget::StepOut() const
 {
   auto& cpu = m_system.GetCPU();
 
@@ -565,30 +565,30 @@ void CodeWidget::StepOut()
     Core::DisplayMessage(tr("Step out successful!").toStdString(), 2000);
 }
 
-void CodeWidget::Skip()
+void CodeWidget::Skip() const
 {
   m_system.GetPPCState().pc += 4;
   ShowPC();
 }
 
-void CodeWidget::ShowPC()
+void CodeWidget::ShowPC() const
 {
   m_code_view->SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 
-void CodeWidget::SetPC()
+void CodeWidget::SetPC() const
 {
   m_system.GetPPCState().pc = m_code_view->GetAddress();
   Update();
 }
 
-void CodeWidget::ToggleBreakpoint()
+void CodeWidget::ToggleBreakpoint() const
 {
   m_code_view->ToggleBreakpoint();
 }
 
-void CodeWidget::AddBreakpoint()
+void CodeWidget::AddBreakpoint() const
 {
   m_code_view->AddBreakpoint();
 }

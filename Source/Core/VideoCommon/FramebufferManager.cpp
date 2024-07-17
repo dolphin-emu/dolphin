@@ -308,12 +308,12 @@ void FramebufferManager::DestroyEFBFramebuffer()
   m_efb_depth_resolve_texture.reset();
 }
 
-void FramebufferManager::BindEFBFramebuffer()
+void FramebufferManager::BindEFBFramebuffer() const
 {
   g_gfx->SetFramebuffer(m_efb_framebuffer.get());
 }
 
-AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region)
+AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region) const
 {
   // Return the normal EFB texture if multisampling is off.
   if (!IsEFBMultisampled())
@@ -350,7 +350,7 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
 }
 
 AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region,
-                                                            const bool force_r32f)
+                                                            const bool force_r32f) const
 {
   if (!IsEFBMultisampled() &&
       (!force_r32f || m_efb_depth_texture->GetFormat() == AbstractTextureFormat::D32F))
@@ -980,7 +980,7 @@ void FramebufferManager::PokeEFBDepth(const u32 x, u32 y, const float depth)
 }
 
 void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, const u32 x,
-                                            const u32 y, const float z, const u32 color)
+                                            const u32 y, const float z, const u32 color) const
 {
   const float cs_pixel_width = 1.0f / EFB_WIDTH * 2.0f;
   const float cs_pixel_height = 1.0f / EFB_HEIGHT * 2.0f;
@@ -1025,7 +1025,7 @@ void FramebufferManager::FlushEFBPokes()
 }
 
 void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, const u32 vertex_count,
-                                          const AbstractPipeline* pipeline)
+                                          const AbstractPipeline* pipeline) const
 {
   // Copy to vertex buffer.
   g_gfx->BeginUtilityDrawing();
@@ -1115,7 +1115,7 @@ void FramebufferManager::DoState(PointerWrap& p)
     DoLoadState(p);
 }
 
-void FramebufferManager::DoSaveState(PointerWrap& p)
+void FramebufferManager::DoSaveState(PointerWrap& p) const
 {
   // For multisampling, we need to resolve first before we can save.
   // This won't be bit-exact when loading, which could cause interesting rendering side-effects for

@@ -354,22 +354,22 @@ std::shared_ptr<FS::FileSystem> Kernel::GetFS()
   return m_fs;
 }
 
-FSCore& Kernel::GetFSCore()
+FSCore& Kernel::GetFSCore() const
 {
   return *m_fs_core;
 }
 
-std::shared_ptr<FSDevice> EmulationKernel::GetFSDevice()
+std::shared_ptr<FSDevice> EmulationKernel::GetFSDevice() const
 {
   return std::static_pointer_cast<FSDevice>(m_device_map.at("/dev/fs"));
 }
 
-ESCore& Kernel::GetESCore()
+ESCore& Kernel::GetESCore() const
 {
   return *m_es_core;
 }
 
-std::shared_ptr<ESDevice> EmulationKernel::GetESDevice()
+std::shared_ptr<ESDevice> EmulationKernel::GetESDevice() const
 {
   return std::static_pointer_cast<ESDevice>(m_device_map.at("/dev/es"));
 }
@@ -420,7 +420,7 @@ static std::vector<u8> ReadBootContent(FSCore& fs, const std::string& path, cons
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool EmulationKernel::BootstrapPPC(const std::string& boot_content_path)
+bool EmulationKernel::BootstrapPPC(const std::string& boot_content_path) const
 {
   // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
   u64 ticks = 0;
@@ -531,7 +531,7 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, const HangPPC hang_ppc,
   return true;
 }
 
-void EmulationKernel::InitIPC()
+void EmulationKernel::InitIPC() const
 {
   if (GetState(m_system) == Core::State::Uninitialized)
     return;
@@ -624,7 +624,7 @@ void EmulationKernel::AddStaticDevices()
   }
 }
 
-s32 EmulationKernel::GetFreeDeviceID()
+s32 EmulationKernel::GetFreeDeviceID() const
 {
   for (u32 i = 0; i < IPC_MAX_FDS; i++)
   {
@@ -779,7 +779,7 @@ void EmulationKernel::ExecuteIPCCommand(const u32 address)
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
-void EmulationKernel::EnqueueIPCRequest(const u32 address)
+void EmulationKernel::EnqueueIPCRequest(const u32 address) const
 {
   // Based on hardware tests, IOS takes between 5µs and 10µs to acknowledge an IPC request.
   // Console 1: 456 TB ticks before ACK
@@ -790,7 +790,7 @@ void EmulationKernel::EnqueueIPCRequest(const u32 address)
 
 // Called to send a reply to an IOS syscall
 void EmulationKernel::EnqueueIPCReply(const Request& request, const s32 return_value,
-                                      const s64 cycles_in_future, const CoreTiming::FromThread from)
+                                      const s64 cycles_in_future, const CoreTiming::FromThread from) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -837,7 +837,7 @@ void EmulationKernel::UpdateIPC()
   }
 }
 
-void EmulationKernel::UpdateDevices()
+void EmulationKernel::UpdateDevices() const
 {
   // Check if a hardware device must be updated
   for (const auto& entry : m_device_map)
@@ -849,7 +849,7 @@ void EmulationKernel::UpdateDevices()
   }
 }
 
-void EmulationKernel::UpdateWantDeterminism(const bool new_want_determinism)
+void EmulationKernel::UpdateWantDeterminism(const bool new_want_determinism) const
 {
   if (m_socket_manager)
     m_socket_manager->UpdateWantDeterminism(new_want_determinism);

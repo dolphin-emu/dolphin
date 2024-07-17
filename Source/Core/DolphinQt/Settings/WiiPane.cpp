@@ -381,7 +381,7 @@ void WiiPane::CreateWiiRemoteSettings()
   wii_remote_settings_group_layout->addWidget(m_wiimote_motor, 3, 0, 1, -1);
 }
 
-void WiiPane::OnEmulationStateChanged(bool running)
+void WiiPane::OnEmulationStateChanged(bool running) const
 {
   m_screensaver_checkbox->setEnabled(!running);
   m_pal60_mode_checkbox->setEnabled(!running);
@@ -397,7 +397,7 @@ void WiiPane::OnEmulationStateChanged(bool running)
   m_wiilink_checkbox->setEnabled(!running);
 }
 
-void WiiPane::LoadConfig()
+void WiiPane::LoadConfig() const
 {
   m_screensaver_checkbox->setChecked(Get(Config::SYSCONF_SCREENSAVER));
   m_pal60_mode_checkbox->setChecked(Get(Config::SYSCONF_PAL60));
@@ -427,7 +427,7 @@ void WiiPane::LoadConfig()
   m_wiimote_motor->setChecked(Get(Config::SYSCONF_WIIMOTE_MOTOR));
 }
 
-void WiiPane::OnSaveConfig()
+void WiiPane::OnSaveConfig() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
@@ -459,7 +459,7 @@ void WiiPane::OnSaveConfig()
   }
 }
 
-void WiiPane::ValidateSelectionState()
+void WiiPane::ValidateSelectionState() const
 {
   m_whitelist_usb_remove_button->setEnabled(m_whitelist_usb_list->currentIndex().isValid());
 }
@@ -473,7 +473,7 @@ void WiiPane::OnUSBWhitelistAddButton()
   usb_whitelist_dialog.exec();
 }
 
-void WiiPane::OnUSBWhitelistRemoveButton()
+void WiiPane::OnUSBWhitelistRemoveButton() const
 {
   QString device = m_whitelist_usb_list->currentItem()->text().left(9);
   QStringList split = device.split(QString::fromStdString(":"));
@@ -487,7 +487,7 @@ void WiiPane::OnUSBWhitelistRemoveButton()
   PopulateUSBPassthroughListWidget();
 }
 
-void WiiPane::PopulateUSBPassthroughListWidget()
+void WiiPane::PopulateUSBPassthroughListWidget() const
 {
   m_whitelist_usb_list->clear();
   auto whitelist = Config::GetUSBDeviceWhitelist();
@@ -511,7 +511,7 @@ void WiiPane::BrowseSDRaw()
     SetSDRaw(file);
 }
 
-void WiiPane::SetSDRaw(const QString& path)
+void WiiPane::SetSDRaw(const QString& path) const
 {
   SetBase(Config::MAIN_WII_SD_CARD_IMAGE_PATH, path.toStdString());
   SignalBlocking(m_sd_raw_edit)->setText(path);
@@ -526,7 +526,7 @@ void WiiPane::BrowseSDSyncFolder()
     SetSDSyncFolder(file);
 }
 
-void WiiPane::SetSDSyncFolder(const QString& path)
+void WiiPane::SetSDSyncFolder(const QString& path) const
 {
   SetBase(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH, path.toStdString());
   SignalBlocking(m_sd_sync_folder_edit)->setText(path);

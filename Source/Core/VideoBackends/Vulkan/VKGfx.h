@@ -91,7 +91,7 @@ private:
 
   void ResetSamplerStates();
 
-  void OnSwapChainResized();
+  void OnSwapChainResized() const;
   void BindFramebuffer(VKFramebuffer* fb);
 
   std::unique_ptr<SwapChain> m_swap_chain;

@@ -81,8 +81,8 @@ public:
   void SetInterrupt(u32 cause_mask, bool set = true);
 
   // Thread-safe func which sets and clears reset button state automagically
-  void ResetButton_Tap();
-  void PowerButton_Tap();
+  void ResetButton_Tap() const;
+  void PowerButton_Tap() const;
 
   u32 m_interrupt_cause = 0;
   u32 m_interrupt_mask = 0;
@@ -94,7 +94,7 @@ public:
 
 private:
   // Let the PPC know that an external exception is set/cleared
-  void UpdateException();
+  void UpdateException() const;
 
   void SetResetButton(bool set);
 

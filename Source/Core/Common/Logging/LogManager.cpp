@@ -198,7 +198,7 @@ void LogManager::SaveSettings()
   Config::Save();
 }
 
-void LogManager::Log(const LogLevel level, const LogType type, const char* file, const int line, const char* message)
+void LogManager::Log(const LogLevel level, const LogType type, const char* file, const int line, const char* message) const
 {
   if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
@@ -219,7 +219,7 @@ std::string LogManager::GetTimestamp()
 }
 
 void LogManager::LogWithFullPath(LogLevel level, const LogType type, const char* file, int line,
-                                 const char* message)
+                                 const char* message) const
 {
   const std::string msg =
       fmt::format("{} {}:{} {}[{}]: {}\n", GetTimestamp(), file, line,

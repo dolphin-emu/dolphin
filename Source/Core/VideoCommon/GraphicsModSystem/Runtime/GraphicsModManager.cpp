@@ -348,7 +348,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   }
 }
 
-void GraphicsModManager::EndOfFrame()
+void GraphicsModManager::EndOfFrame() const
 {
   for (auto&& action : m_actions)
   {

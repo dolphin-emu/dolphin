@@ -373,7 +373,7 @@ DXFramebuffer::DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture*
 
 DXFramebuffer::~DXFramebuffer() = default;
 
-void DXFramebuffer::Unbind()
+void DXFramebuffer::Unbind() const
 {
   bool should_apply = false;
   if (GetColorAttachment() &&
@@ -403,7 +403,7 @@ void DXFramebuffer::Unbind()
   }
 }
 
-void DXFramebuffer::Clear(const ClearColor& color_value, const float depth_value)
+void DXFramebuffer::Clear(const ClearColor& color_value, const float depth_value) const
 {
   if (GetDepthFormat() != AbstractTextureFormat::Undefined)
   {

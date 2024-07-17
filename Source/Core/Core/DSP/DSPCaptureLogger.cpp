@@ -52,7 +52,7 @@ PCAPDSPCaptureLogger::PCAPDSPCaptureLogger(std::unique_ptr<Common::PCAP>&& pcap)
 {
 }
 
-void PCAPDSPCaptureLogger::LogIFXAccess(const bool read, const u16 address, const u16 value)
+void PCAPDSPCaptureLogger::LogIFXAccess(const bool read, const u16 address, const u16 value) const
 {
   IFXAccessPacket pkt;
   pkt.magic = IFX_ACCESS_PACKET_MAGIC;

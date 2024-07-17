@@ -703,7 +703,7 @@ void Jit64::SingleStep()
   UnprotectStack();
 }
 
-void Jit64::Trace()
+void Jit64::Trace() const
 {
   std::string regs;
   std::string fregs;

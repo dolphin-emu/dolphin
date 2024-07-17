@@ -29,8 +29,8 @@ public:
   void InvalidateBinding(u32 stage);
 
   void Clear();
-  void BindNearestSampler(int stage);
-  void BindLinearSampler(int stage);
+  void BindNearestSampler(int stage) const;
+  void BindLinearSampler(int stage) const;
 
 private:
   static void SetParameters(GLuint sampler_id, const SamplerState& params);

@@ -626,7 +626,7 @@ Device::Output* ControlEnvironment::FindOutput(const ControlQualifier& qualifier
   return device->FindOutput(qualifier.control_name);
 }
 
-std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::string& name)
+std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::string& name) const
 {
   // Do not accept an empty string as key, even if the expression parser already prevents this case.
   if (name.empty())
@@ -640,7 +640,7 @@ std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::stri
   return variable;
 }
 
-void ControlEnvironment::CleanUnusedVariables()
+void ControlEnvironment::CleanUnusedVariables() const
 {
   for (auto it = m_variables.begin(); it != m_variables.end();)
   {
@@ -705,7 +705,7 @@ private:
     return tok;
   }
 
-  Token Peek() { return *m_it; }
+  Token Peek() const { return *m_it; }
 
   bool Expects(const TokenType type)
   {

@@ -30,7 +30,7 @@ CustomShaderCache::~CustomShaderCache()
     m_async_uber_shader_compiler->StopWorkerThreads();
 }
 
-void CustomShaderCache::RetrieveAsyncShaders()
+void CustomShaderCache::RetrieveAsyncShaders() const
 {
   m_async_shader_compiler->RetrieveWorkItems();
   m_async_uber_shader_compiler->RetrieveWorkItems();

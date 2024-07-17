@@ -52,8 +52,8 @@ public:
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-  void ScheduleEvent(int device_number, s64 cycles_into_future, u64 userdata = 0);
-  void RemoveEvent(int device_number);
+  void ScheduleEvent(int device_number, s64 cycles_into_future, u64 userdata = 0) const;
+  void RemoveEvent(int device_number) const;
 
   void UpdateDevices();
 
@@ -65,7 +65,7 @@ public:
 
   SIDevices GetDeviceType(int channel) const;
 
-  u32 GetPollXLines();
+  u32 GetPollXLines() const;
 
 private:
   // SI Interrupt Types

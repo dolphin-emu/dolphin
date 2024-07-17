@@ -101,8 +101,8 @@ private:
   void FrameAdvance();
   void StateLoad();
   void StateSave();
-  void StateLoadSlot();
-  void StateSaveSlot();
+  void StateLoadSlot() const;
+  void StateSaveSlot() const;
   void StateLoadSlotAt(int slot);
   void StateSaveSlotAt(int slot);
   void StateLoadLastSavedAt(int slot);
@@ -110,8 +110,8 @@ private:
   void StateSaveUndo();
   void StateSaveOldest();
   void SetStateSlot(int slot);
-  void IncrementSelectedStateSlot();
-  void DecrementSelectedStateSlot();
+  void IncrementSelectedStateSlot() const;
+  void DecrementSelectedStateSlot() const;
   void BootWiiSystemMenu();
 
   void PerformOnlineUpdate(const std::string& region);
@@ -119,7 +119,7 @@ private:
   void SetFullScreenResolution(bool fullscreen);
 
   void FullScreen();
-  void UnlockCursor();
+  void UnlockCursor() const;
   void ScreenShot();
 
   void CreateComponents();
@@ -133,7 +133,7 @@ private:
   void ConnectToolBar();
 
   void InitControllers();
-  void ShutdownControllers();
+  void ShutdownControllers() const;
 
   void InitCoreCallbacks();
 
@@ -163,14 +163,14 @@ private:
   void ShowFreeLookWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
-  void ShowNetPlaySetupDialog();
+  void ShowNetPlaySetupDialog() const;
   void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowMemcardManager();
   void ShowResourcePackManager();
-  void ShowCheatsManager();
+  void ShowCheatsManager() const;
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -197,7 +197,7 @@ private:
   void OnExportRecording();
   void OnActivateChat();
   void OnRequestGolfControl();
-  void ShowTASInput();
+  void ShowTASInput() const;
 
   void ChangeDisc();
   void EjectDisc();

@@ -28,14 +28,14 @@ signals:
   void BackendChanged(const QString& backend);
 
 private:
-  void LoadSettings();
+  void LoadSettings() const;
   void SaveSettings();
 
   void CreateWidgets();
   void ConnectWidgets();
-  void AddDescriptions();
+  void AddDescriptions() const;
 
-  void OnBackendChanged(const QString& backend_name);
+  void OnBackendChanged(const QString& backend_name) const;
   void OnEmulationStateChanged(bool running);
 
   // Video

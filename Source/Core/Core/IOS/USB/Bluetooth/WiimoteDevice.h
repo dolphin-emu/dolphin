@@ -150,12 +150,12 @@ private:
   u16 GenerateChannelID() const;
 
   bool DoesChannelExist(const u16 scid) const { return m_channels.count(scid) != 0; }
-  void SendCommandToACL(u8 ident, u8 code, u8 command_length, const u8* command_data);
+  void SendCommandToACL(u8 ident, u8 code, u8 command_length, const u8* command_data) const;
 
   void SignalChannel(u8* data, u32 size);
 
   void SendConnectionRequest(u16 psm);
-  void SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_out);
+  void SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_out) const;
 
   void ReceiveConnectionReq(u8 ident, u8* data, u32 size);
   void ReceiveConnectionResponse(u8 ident, u8* data, u32 size);
@@ -163,12 +163,12 @@ private:
   void ReceiveConfigurationReq(u8 ident, u8* data, u32 size);
   void ReceiveConfigurationResponse(u8 ident, u8* data, u32 size);
 
-  void HandleSDP(u16 cid, u8* data, u32 size);
+  void HandleSDP(u16 cid, u8* data, u32 size) const;
   void SDPSendServiceSearchResponse(u16 cid, u16 transaction_id, u8* service_search_pattern,
-                                    u16 maximum_service_record_count);
+                                    u16 maximum_service_record_count) const;
 
   void SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id, u32 service_handle,
                                        u16 start_attr_id, u16 end_attr_id,
-                                       u16 maximum_attribute_byte_count, u8* continuation_state);
+                                       u16 maximum_attribute_byte_count, u8* continuation_state) const;
 };
 }  // namespace IOS::HLE

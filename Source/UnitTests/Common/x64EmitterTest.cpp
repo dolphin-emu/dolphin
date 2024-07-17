@@ -129,9 +129,9 @@ protected:
 
   void TearDown() override { cpu_info = CPUInfo(); }
 
-  void ResetCodeBuffer() { emitter->SetCodePtr(code_buffer, code_buffer_end); }
+  void ResetCodeBuffer() const { emitter->SetCodePtr(code_buffer, code_buffer_end); }
 
-  void ExpectDisassembly(const std::string& expected)
+  void ExpectDisassembly(const std::string& expected) const
   {
     std::string disasmed;
     const u8* generated_code_iterator = code_buffer;
@@ -192,7 +192,7 @@ protected:
     ResetCodeBuffer();
   }
 
-  void ExpectBytes(const std::vector<u8> expected_bytes)
+  void ExpectBytes(const std::vector<u8> expected_bytes) const
   {
     const std::vector<u8> code_bytes(code_buffer, emitter->GetWritableCodePtr());
 

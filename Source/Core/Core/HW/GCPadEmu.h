@@ -37,7 +37,7 @@ class GCPad : public ControllerEmu::EmulatedController
 public:
   explicit GCPad(unsigned int index);
   GCPadStatus GetInput() const;
-  void SetOutput(const ControlState strength);
+  void SetOutput(const ControlState strength) const;
 
   bool GetMicButton() const;
 
@@ -45,7 +45,7 @@ public:
 
   InputConfig* GetConfig() const override;
 
-  ControllerEmu::ControlGroup* GetGroup(PadGroup group);
+  ControllerEmu::ControlGroup* GetGroup(PadGroup group) const;
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 

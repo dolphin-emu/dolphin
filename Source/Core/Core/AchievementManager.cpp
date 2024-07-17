@@ -109,7 +109,7 @@ void AchievementManager::SetUpdateCallback(UpdateCallback callback)
   m_update_callback(UpdatedItems{.all = true});
 }
 
-void AchievementManager::Login(const std::string& password)
+void AchievementManager::Login(const std::string& password) const
 {
   if (!m_client)
   {
@@ -289,7 +289,7 @@ void AchievementManager::DoFrame()
   }
 }
 
-bool AchievementManager::CanPause()
+bool AchievementManager::CanPause() const
 {
   u32 frames_to_next_pause = 0;
   bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
@@ -305,7 +305,7 @@ bool AchievementManager::CanPause()
   return can_pause;
 }
 
-void AchievementManager::DoIdle()
+void AchievementManager::DoIdle() const
 {
   std::thread([this]() {
     while (true)
@@ -337,12 +337,12 @@ void AchievementManager::DoIdle()
   }).detach();
 }
 
-std::recursive_mutex& AchievementManager::GetLock()
+std::recursive_mutex& AchievementManager::GetLock() const
 {
   return m_lock;
 }
 
-void AchievementManager::SetHardcoreMode()
+void AchievementManager::SetHardcoreMode() const
 {
   rc_client_set_hardcore_enabled(m_client, Get(Config::RA_HARDCORE_ENABLED));
 }
@@ -413,7 +413,7 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
   }
 }
 
-void AchievementManager::SetSpectatorMode()
+void AchievementManager::SetSpectatorMode() const
 {
   rc_client_set_spectator_mode_enabled(m_client, Get(Config::RA_SPECTATOR_ENABLED));
 }
@@ -448,7 +448,7 @@ std::string_view AchievementManager::GetGameDisplayName() const
   return IsGameLoaded() ? std::string_view(rc_client_get_game_info(m_client)->title) : "";
 }
 
-rc_client_t* AchievementManager::GetClient()
+rc_client_t* AchievementManager::GetClient() const
 {
   return m_client;
 }
@@ -516,7 +516,7 @@ std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
   return display_values;
 }
 
-void AchievementManager::DoState(PointerWrap& p)
+void AchievementManager::DoState(PointerWrap& p) const
 {
   if (!m_client || !Get(Config::RA_ENABLED))
     return;

@@ -100,7 +100,7 @@ void JitBaseBlockCache::Reset()
   Init();
 }
 
-u8** JitBaseBlockCache::GetEntryPoints()
+u8** JitBaseBlockCache::GetEntryPoints() const
 {
   return m_entry_points_ptr;
 }
@@ -516,7 +516,7 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(const u32 addr, const CPUEmu
   return block;
 }
 
-size_t JitBaseBlockCache::FastLookupIndexForAddress(const u32 address, const u32 feature_flags)
+size_t JitBaseBlockCache::FastLookupIndexForAddress(const u32 address, const u32 feature_flags) const
 {
   if (m_entry_points_ptr)
   {

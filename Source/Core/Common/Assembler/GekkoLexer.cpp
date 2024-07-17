@@ -466,7 +466,7 @@ AssemblerToken Lexer::LookaheadFloat() const
   return tok;
 }
 
-void Lexer::Eat()
+void Lexer::Eat() const
 {
   if (m_lexed_tokens.empty())
   {

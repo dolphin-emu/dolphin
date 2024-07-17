@@ -471,7 +471,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE* DXFramebuffer::GetIntRTVDescriptorArray() con
   return GetRTVDescriptorArray();
 }
 
-void DXFramebuffer::Unbind()
+void DXFramebuffer::Unbind() const
 {
   static const D3D12_DISCARD_REGION dr = {0, nullptr, 0, 1};
   if (HasColorBuffer())

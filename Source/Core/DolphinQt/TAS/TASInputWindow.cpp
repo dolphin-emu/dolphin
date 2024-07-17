@@ -238,7 +238,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
 }
 
 std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
-                                                      ControlState controller_state)
+                                                      ControlState controller_state) const
 {
   const bool pressed = std::llround(controller_state) > 0;
   if (m_use_controller->isChecked())
@@ -248,7 +248,7 @@ std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
 }
 
 std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zero, int min, int max,
-                                                       ControlState controller_state)
+                                                       ControlState controller_state) const
 {
   const int controller_value =
       ControllerEmu::EmulatedController::MapFloat<int>(controller_state, zero, 0, max);
@@ -262,7 +262,7 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zer
 
 std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zero,
                                                        ControlState controller_state,
-                                                       ControlState scale)
+                                                       ControlState scale) const
 {
   const int controller_value = static_cast<int>(std::llround(controller_state * scale + zero));
 

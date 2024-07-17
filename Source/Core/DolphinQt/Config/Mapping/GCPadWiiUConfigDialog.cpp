@@ -60,7 +60,7 @@ void GCPadWiiUConfigDialog::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::accepted, this, &GCPadWiiUConfigDialog::accept);
 }
 
-void GCPadWiiUConfigDialog::UpdateAdapterStatus()
+void GCPadWiiUConfigDialog::UpdateAdapterStatus() const
 {
   const char* error_message = nullptr;
   const bool detected = GCAdapter::IsDetected(&error_message);
@@ -85,13 +85,13 @@ void GCPadWiiUConfigDialog::UpdateAdapterStatus()
   m_simulate_bongos->setEnabled(detected);
 }
 
-void GCPadWiiUConfigDialog::LoadSettings()
+void GCPadWiiUConfigDialog::LoadSettings() const
 {
   m_rumble->setChecked(Get(Config::GetInfoForAdapterRumble(m_port)));
   m_simulate_bongos->setChecked(Get(Config::GetInfoForSimulateKonga(m_port)));
 }
 
-void GCPadWiiUConfigDialog::SaveSettings()
+void GCPadWiiUConfigDialog::SaveSettings() const
 {
   SetBaseOrCurrent(Config::GetInfoForAdapterRumble(m_port), m_rumble->isChecked());
   SetBaseOrCurrent(Config::GetInfoForSimulateKonga(m_port), m_simulate_bongos->isChecked());

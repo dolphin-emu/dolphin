@@ -61,7 +61,7 @@ public:
 private:
   void BlitFramebuffer(const OGLTexture* srcentry, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                       u32 dst_layer, u32 dst_level);
+                       u32 dst_layer, u32 dst_level) const;
 
   GLuint m_texId;
   std::string m_name;

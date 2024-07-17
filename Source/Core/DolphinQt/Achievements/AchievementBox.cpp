@@ -70,7 +70,7 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   UpdateData();
 }
 
-void AchievementBox::UpdateData()
+void AchievementBox::UpdateData() const
 {
   {
     std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
@@ -115,7 +115,7 @@ void AchievementBox::UpdateData()
   UpdateProgress();
 }
 
-void AchievementBox::UpdateProgress()
+void AchievementBox::UpdateProgress() const
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   // rc_client guarantees m_achievement will be valid as long as the game is loaded

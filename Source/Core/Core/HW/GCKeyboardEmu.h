@@ -32,7 +32,7 @@ public:
   KeyboardStatus GetInput() const;
   std::string GetName() const override;
   InputConfig* GetConfig() const override;
-  ControllerEmu::ControlGroup* GetGroup(KeyboardGroup group);
+  ControllerEmu::ControlGroup* GetGroup(KeyboardGroup group) const;
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:

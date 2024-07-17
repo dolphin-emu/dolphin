@@ -60,7 +60,7 @@ public:
   void Reload();
 
   // Retrieves all pending shaders/pipelines from the async compiler.
-  void RetrieveAsyncShaders();
+  void RetrieveAsyncShaders() const;
 
   // Accesses ShaderGen shader caches
   const AbstractPipeline* GetPipelineForUid(const GXPipelineUid& uid);
@@ -104,7 +104,7 @@ public:
   }
 
   // Palette texture conversion pipelines
-  const AbstractPipeline* GetPaletteConversionPipeline(TLUTFormat format);
+  const AbstractPipeline* GetPaletteConversionPipeline(TLUTFormat format) const;
 
   // Texture reinterpret pipelines
   const AbstractPipeline* GetTextureReinterpretPipeline(TextureFormat from_format,
@@ -117,7 +117,7 @@ public:
 private:
   static constexpr size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
 
-  void WaitForAsyncCompiler();
+  void WaitForAsyncCompiler() const;
   void LoadCaches();
   void ClearCaches();
   void LoadPipelineUIDCache();

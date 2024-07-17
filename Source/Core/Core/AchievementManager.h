@@ -104,7 +104,7 @@ public:
   static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
-  void Login(const std::string& password);
+  void Login(const std::string& password) const;
   bool HasAPIToken() const;
   void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
@@ -115,21 +115,21 @@ public:
 
   void DoFrame();
 
-  bool CanPause();
-  void DoIdle();
+  bool CanPause() const;
+  void DoIdle() const;
 
-  std::recursive_mutex& GetLock();
-  void SetHardcoreMode();
+  std::recursive_mutex& GetLock() const;
+  void SetHardcoreMode() const;
   bool IsHardcoreModeActive() const;
   void SetGameIniId(const std::string& game_ini_id) { m_game_ini_id = game_ini_id; }
   void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                              const std::string& game_ini_id) const;
-  void SetSpectatorMode();
+  void SetSpectatorMode() const;
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
   const Badge& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
-  rc_client_t* GetClient();
+  rc_client_t* GetClient() const;
   rc_api_fetch_game_data_response_t* GetGameData();
   const Badge& GetGameBadge() const;
   const Badge& GetAchievementBadge(AchievementId id, bool locked) const;
@@ -140,7 +140,7 @@ public:
   const std::unordered_set<AchievementId>& GetActiveChallenges() const;
   std::vector<std::string> GetActiveLeaderboards() const;
 
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) const;
 
   void CloseGame();
   void Logout();

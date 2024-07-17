@@ -25,10 +25,10 @@ public:
   explicit GamecubeControllersWidget(QWidget* parent);
 
 private:
-  void LoadSettings(Core::State state);
-  void SaveSettings();
+  void LoadSettings(Core::State state) const;
+  void SaveSettings() const;
 
-  void OnGCTypeChanged(size_t index);
+  void OnGCTypeChanged(size_t index) const;
   void OnGCPadConfigure(size_t index);
 
   void CreateLayout();

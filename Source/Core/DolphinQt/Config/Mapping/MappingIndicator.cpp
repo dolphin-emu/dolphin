@@ -124,7 +124,7 @@ QColor MappingIndicator::GetAltTextColor() const
   return palette().highlightedText().color();
 }
 
-void MappingIndicator::AdjustGateColor(QColor* color)
+void MappingIndicator::AdjustGateColor(QColor* color) const
 {
   if (GetBBoxBrush().color().valueF() < 0.5)
     color->setHsvF(color->hueF(), color->saturationF(), 1 - color->valueF());
@@ -307,7 +307,7 @@ qreal SquareIndicator::GetContentsScale() const
   return (NORMAL_INDICATOR_WIDTH - 1.0) / 2;
 }
 
-void SquareIndicator::DrawBoundingBox(QPainter& p)
+void SquareIndicator::DrawBoundingBox(QPainter& p) const
 {
   p.setBrush(GetBBoxBrush());
   p.setPen(GetBBoxPen());
@@ -315,7 +315,7 @@ void SquareIndicator::DrawBoundingBox(QPainter& p)
                     NORMAL_INDICATOR_WIDTH + 1.0, NORMAL_INDICATOR_HEIGHT + 1.0});
 }
 
-void SquareIndicator::TransformPainter(QPainter& p)
+void SquareIndicator::TransformPainter(QPainter& p) const
 {
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
@@ -854,7 +854,7 @@ void IRPassthroughMappingIndicator::Draw()
   }
 }
 
-void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
+void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point) const
 {
   const auto center = m_calibration_widget->GetCenter();
 
@@ -881,7 +881,7 @@ void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
   p.drawPoint(QPointF{point.x, point.y});
 }
 
-void ReshapableInputIndicator::UpdateCalibrationWidget(Common::DVec2 point)
+void ReshapableInputIndicator::UpdateCalibrationWidget(Common::DVec2 point) const
 {
   if (m_calibration_widget)
     m_calibration_widget->Update(point);

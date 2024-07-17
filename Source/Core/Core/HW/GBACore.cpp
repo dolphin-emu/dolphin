@@ -333,7 +333,7 @@ void Core::EReaderQueueCard(const std::string_view card_path)
   GBACartEReaderQueueCard(static_cast<::GBA*>(m_core->board), core_state.data(), core_state.size());
 }
 
-bool Core::LoadBIOS(const char* bios_path)
+bool Core::LoadBIOS(const char* bios_path) const
 {
   VFile* vf = VFileOpen(bios_path, O_RDONLY);
   if (!vf)
@@ -352,7 +352,7 @@ bool Core::LoadBIOS(const char* bios_path)
   return true;
 }
 
-bool Core::LoadSave(const char* save_path)
+bool Core::LoadSave(const char* save_path) const
 {
   VFile* vf = VFileOpen(save_path, O_CREAT | O_RDWR);
   if (!vf)
@@ -400,7 +400,7 @@ void Core::SetVideoBuffer()
     host->GameChanged();
 }
 
-void Core::SetSampleRates()
+void Core::SetSampleRates() const
 {
   m_core->setAudioBufferSize(m_core, SAMPLES);
   blip_set_rates(m_core->getAudioChannel(m_core, 0), m_core->frequency(m_core), SAMPLE_RATE);

@@ -307,7 +307,7 @@ bool GCMemcard::IsShiftJIS() const
   return m_header_block.IsShiftJIS();
 }
 
-bool GCMemcard::Save()
+bool GCMemcard::Save() const
 {
   File::IOFile mcdFile(m_filename, "wb");
   mcdFile.Seek(0, File::SeekOrigin::Begin);

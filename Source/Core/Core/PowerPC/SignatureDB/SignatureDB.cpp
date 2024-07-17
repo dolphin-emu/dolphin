@@ -51,12 +51,12 @@ SignatureDB::SignatureDB(const std::string& file_path) : SignatureDB(GetHandlerT
 {
 }
 
-void SignatureDB::Clear()
+void SignatureDB::Clear() const
 {
   m_handler->Clear();
 }
 
-bool SignatureDB::Load(const std::string& file_path)
+bool SignatureDB::Load(const std::string& file_path) const
 {
   return m_handler->Load(file_path);
 }
@@ -71,7 +71,7 @@ void SignatureDB::List() const
   m_handler->List();
 }
 
-void SignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& filter)
+void SignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& filter) const
 {
   m_handler->Populate(func_db, filter);
 }
@@ -82,7 +82,7 @@ void SignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
 }
 
 bool SignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 start_addr, const u32 size,
-                      const std::string& name)
+                      const std::string& name) const
 {
   return m_handler->Add(guard, start_addr, size, name);
 }

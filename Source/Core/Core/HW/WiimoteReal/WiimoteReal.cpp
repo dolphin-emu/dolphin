@@ -625,7 +625,7 @@ static void CheckForDisconnectedWiimotes()
       HandleWiimoteDisconnect(i);
 }
 
-void WiimoteScanner::PoolThreadFunc()
+void WiimoteScanner::PoolThreadFunc() const
 {
   Common::SetCurrentThreadName("Wiimote Pool Thread");
 

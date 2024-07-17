@@ -409,7 +409,7 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
   }
 }
 
-void VideoInterfaceManager::UpdateInterrupts()
+void VideoInterfaceManager::UpdateInterrupts() const
 {
   if ((m_interrupt_register[0].IR_INT && m_interrupt_register[0].IR_MASK) ||
       (m_interrupt_register[1].IR_INT && m_interrupt_register[1].IR_MASK) ||
@@ -755,7 +755,7 @@ void VideoInterfaceManager::LogField(FieldType field, const u32 xfb_address) con
                 GetTicksPerOddField());
 }
 
-void VideoInterfaceManager::OutputField(const FieldType field, const u64 ticks)
+void VideoInterfaceManager::OutputField(const FieldType field, const u64 ticks) const
 {
   // Could we fit a second line of data in the stride?
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
@@ -822,7 +822,7 @@ void VideoInterfaceManager::OutputField(const FieldType field, const u64 ticks)
     g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
-void VideoInterfaceManager::BeginField(const FieldType field, const u64 ticks)
+void VideoInterfaceManager::BeginField(const FieldType field, const u64 ticks) const
 {
   // Outputting the frame at the beginning of scanout reduces latency. This assumes the game isn't
   // going to change the VI registers while a frame is scanning out.
@@ -830,7 +830,7 @@ void VideoInterfaceManager::BeginField(const FieldType field, const u64 ticks)
     OutputField(field, ticks);
 }
 
-void VideoInterfaceManager::EndField(const FieldType field, const u64 ticks)
+void VideoInterfaceManager::EndField(const FieldType field, const u64 ticks) const
 {
   // If the game does change VI registers while a frame is scanning out, we can defer output
   // until the end so the last register values are used. This still isn't accurate, but it does

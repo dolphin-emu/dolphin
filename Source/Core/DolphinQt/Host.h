@@ -21,7 +21,7 @@ public:
 
   static Host* GetInstance();
 
-  bool GetRenderFocus();
+  bool GetRenderFocus() const;
   bool GetRenderFullFocus();
   bool GetRenderFullscreen();
   bool GetGBAFocus();

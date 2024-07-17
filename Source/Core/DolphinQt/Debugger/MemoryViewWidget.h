@@ -79,13 +79,13 @@ signals:
 private:
   void OnContextMenu(const QPoint& pos);
   void OnCopyAddress(u32 addr);
-  void OnCopyHex(u32 addr);
-  void UpdateBreakpointTags();
-  void UpdateColumns();
-  void UpdateColumns(const Core::CPUThreadGuard* guard);
+  void OnCopyHex(u32 addr) const;
+  void UpdateBreakpointTags() const;
+  void UpdateColumns() const;
+  void UpdateColumns(const Core::CPUThreadGuard* guard) const;
   void ScrollbarActionTriggered(int action);
-  void ScrollbarSliderReleased();
-  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+  void ScrollbarSliderReleased() const;
+  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type) const;
 
   Core::System& m_system;
 

@@ -39,12 +39,12 @@ signals:
 private:
   void CreateMainLayout();
   void ConnectWidgets();
-  void PopulateGameList();
+  void PopulateGameList() const;
   void ResetTraversalHost();
 
-  void SaveSettings();
+  void SaveSettings() const;
 
-  void OnConnectionTypeChanged(int index);
+  void OnConnectionTypeChanged(int index) const;
 
   // Main Widget
   QDialogButtonBox* m_button_box;

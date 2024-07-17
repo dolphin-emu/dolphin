@@ -88,7 +88,7 @@ public:
   int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
   int columnCount(const QModelIndex& parent = QModelIndex{}) const override;
   bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex{}) override;
-  void setFont(const QFont& font) { m_font = font; }
+  void setFont(const QFont& font) const { m_font = font; }
 
   void OnClearBranchWatch(const Core::CPUThreadGuard& guard);
   void OnCodePathWasTaken(const Core::CPUThreadGuard& guard);

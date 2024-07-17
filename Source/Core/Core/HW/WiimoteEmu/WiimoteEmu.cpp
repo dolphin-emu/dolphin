@@ -844,7 +844,7 @@ bool Wiimote::IsUpright() const
   return m_upright_setting.GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 }
 
-void Wiimote::SetRumble(const bool on)
+void Wiimote::SetRumble(const bool on) const
 {
   const auto lock = GetStateLock();
   m_rumble->controls.front()->control_ref->State(on);

@@ -726,7 +726,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, const s
 }
 
 // Merge opcode with params.
-void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, const param_t* par, const u32 par_count, u16* outbuf)
+void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, const param_t* par, const u32 par_count, u16* outbuf) const
 {
   outbuf[m_cur_addr] |= opc->opcode;
   for (u32 i = 0; i < par_count; i++)

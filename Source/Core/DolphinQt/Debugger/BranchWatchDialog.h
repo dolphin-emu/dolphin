@@ -66,7 +66,7 @@ protected:
   void showEvent(QShowEvent* event) override;
 
 private:
-  void OnStartPause(bool checked);
+  void OnStartPause(bool checked) const;
   void OnClearBranchWatch();
   void OnSave();
   void OnSaveAs();
@@ -76,36 +76,36 @@ private:
   void OnCodePathNotTaken();
   void OnBranchWasOverwritten();
   void OnBranchNotOverwritten();
-  void OnWipeRecentHits();
-  void OnWipeInspection();
-  void OnTimeout();
-  void OnEmulationStateChanged(Core::State new_state);
+  void OnWipeRecentHits() const;
+  void OnWipeInspection() const;
+  void OnTimeout() const;
+  void OnEmulationStateChanged(Core::State new_state) const;
   void OnThemeChanged();
   void OnHelp();
   void OnToggleAutoSave(bool checked);
-  void OnHideShowControls(bool checked);
-  void OnToggleIgnoreApploader(bool checked);
+  void OnHideShowControls(bool checked) const;
+  void OnToggleIgnoreApploader(bool checked) const;
 
-  void OnTableClicked(const QModelIndex& index);
+  void OnTableClicked(const QModelIndex& index) const;
   void OnTableContextMenu(const QPoint& pos);
-  void OnTableHeaderContextMenu(const QPoint& pos);
+  void OnTableHeaderContextMenu(const QPoint& pos) const;
   void OnTableDelete();
   void OnTableDeleteKeypress();
-  void OnTableSetBLR();
-  void OnTableSetNOP();
+  void OnTableSetBLR() const;
+  void OnTableSetNOP() const;
   void OnTableCopyAddress();
-  void OnTableSetBreakpointBreak();
-  void OnTableSetBreakpointLog();
-  void OnTableSetBreakpointBoth();
+  void OnTableSetBreakpointBreak() const;
+  void OnTableSetBreakpointLog() const;
+  void OnTableSetBreakpointBoth() const;
 
-  void SaveSettings();
+  void SaveSettings() const;
 
 public:
   // TODO: Step doesn't cause EmulationStateChanged to be emitted, so it has to call this manually.
-  void Update();
+  void Update() const;
 
 private:
-  void UpdateStatus();
+  void UpdateStatus() const;
   void UpdateIcons();
   void Save(const Core::CPUThreadGuard& guard, const std::string& filepath);
   void Load(const Core::CPUThreadGuard& guard, const std::string& filepath);

@@ -106,7 +106,7 @@ public:
   D3D_FEATURE_LEVEL GetFeatureLevel() const { return m_feature_level; }
 
   // Test for support for the specified texture format.
-  bool SupportsTextureFormat(DXGI_FORMAT format);
+  bool SupportsTextureFormat(DXGI_FORMAT format) const;
 
   // Creates command lists, global buffers and descriptor heaps.
   bool CreateGlobalResources();

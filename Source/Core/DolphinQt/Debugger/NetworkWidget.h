@@ -31,7 +31,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  void Update();
+  void Update() const;
 
   QGroupBox* CreateSocketTableGroup();
   QGroupBox* CreateSSLContextGroup();
@@ -39,7 +39,7 @@ private:
   QGroupBox* CreateSecurityOptionsGroup();
   QComboBox* CreateDumpFormatCombo();
 
-  void OnDumpFormatComboChanged(int index);
+  void OnDumpFormatComboChanged(int index) const;
 
   enum class FormatComboId : int
   {

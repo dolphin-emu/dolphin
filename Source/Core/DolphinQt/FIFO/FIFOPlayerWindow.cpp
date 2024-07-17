@@ -174,7 +174,7 @@ void FIFOPlayerWindow::CreateWidgets()
   setLayout(tab_layout);
 }
 
-void FIFOPlayerWindow::LoadSettings()
+void FIFOPlayerWindow::LoadSettings() const
 {
   m_early_memory_updates->setChecked(Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES));
   m_loop->setChecked(Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY));
@@ -197,7 +197,7 @@ void FIFOPlayerWindow::ConnectWidgets()
   connect(m_object_range_to, &QSpinBox::valueChanged, this, &FIFOPlayerWindow::OnLimitsChanged);
 }
 
-void FIFOPlayerWindow::AddDescriptions()
+void FIFOPlayerWindow::AddDescriptions() const
 {
   static const char TR_MEMORY_UPDATES_DESCRIPTION[] = QT_TR_NOOP(
       "If enabled, then all memory updates happen at once before the first frame.<br><br>"
@@ -252,7 +252,7 @@ void FIFOPlayerWindow::StartRecording()
   UpdateInfo();
 }
 
-void FIFOPlayerWindow::StopRecording()
+void FIFOPlayerWindow::StopRecording() const
 {
   m_fifo_recorder.StopRecording();
 
@@ -260,7 +260,7 @@ void FIFOPlayerWindow::StopRecording()
   UpdateInfo();
 }
 
-void FIFOPlayerWindow::OnEmulationStarted()
+void FIFOPlayerWindow::OnEmulationStarted() const
 {
   UpdateControls();
 
@@ -268,7 +268,7 @@ void FIFOPlayerWindow::OnEmulationStarted()
     OnFIFOLoaded();
 }
 
-void FIFOPlayerWindow::OnEmulationStopped()
+void FIFOPlayerWindow::OnEmulationStopped() const
 {
   // If we have previously been recording, stop now.
   if (m_fifo_recorder.IsRecording())
@@ -280,13 +280,13 @@ void FIFOPlayerWindow::OnEmulationStopped()
   m_analyzer->Update();
 }
 
-void FIFOPlayerWindow::OnRecordingDone()
+void FIFOPlayerWindow::OnRecordingDone() const
 {
   UpdateInfo();
   UpdateControls();
 }
 
-void FIFOPlayerWindow::UpdateInfo()
+void FIFOPlayerWindow::UpdateInfo() const
 {
   if (m_fifo_player.IsPlaying())
   {
@@ -326,7 +326,7 @@ void FIFOPlayerWindow::UpdateInfo()
   m_info_label->setText(tr("No file loaded / recorded."));
 }
 
-void FIFOPlayerWindow::OnFIFOLoaded()
+void FIFOPlayerWindow::OnFIFOLoaded() const
 {
   FifoDataFile* file = m_fifo_player.GetFile();
 
@@ -348,14 +348,14 @@ void FIFOPlayerWindow::OnFIFOLoaded()
   m_analyzer->Update();
 }
 
-void FIFOPlayerWindow::OnConfigChanged()
+void FIFOPlayerWindow::OnConfigChanged() const
 {
   SetBase(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES,
                   m_early_memory_updates->isChecked());
   SetBase(Config::MAIN_FIFOPLAYER_LOOP_REPLAY, m_loop->isChecked());
 }
 
-void FIFOPlayerWindow::OnLimitsChanged()
+void FIFOPlayerWindow::OnLimitsChanged() const
 {
   FifoPlayer& player = m_fifo_player;
 
@@ -366,7 +366,7 @@ void FIFOPlayerWindow::OnLimitsChanged()
   UpdateLimits();
 }
 
-void FIFOPlayerWindow::UpdateLimits()
+void FIFOPlayerWindow::UpdateLimits() const
 {
   m_frame_range_from->setMaximum(m_frame_range_to->value());
   m_frame_range_to->setMinimum(m_frame_range_from->value());
@@ -374,7 +374,7 @@ void FIFOPlayerWindow::UpdateLimits()
   m_object_range_to->setMinimum(m_object_range_from->value());
 }
 
-void FIFOPlayerWindow::UpdateControls()
+void FIFOPlayerWindow::UpdateControls() const
 {
   bool running = IsRunning(Core::System::GetInstance());
   bool is_recording = m_fifo_recorder.IsRecording();

@@ -194,7 +194,7 @@ public:
 
 private:
   void ThreadFunc();
-  void PoolThreadFunc();
+  void PoolThreadFunc() const;
 
   std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
   mutable std::mutex m_backends_mutex;

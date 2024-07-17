@@ -153,7 +153,7 @@ private:
   private:
     TAPServerConnection m_tapserver_if;
 
-    void HandleReceivedFrame(std::string&& data);
+    void HandleReceivedFrame(std::string&& data) const;
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;

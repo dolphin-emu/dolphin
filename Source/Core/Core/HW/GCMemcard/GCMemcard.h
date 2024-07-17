@@ -429,7 +429,7 @@ public:
 
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
-  bool Save();
+  bool Save() const;
   bool Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
               u32 sram_language, u64 format_time);
   static bool Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbits, bool shift_jis,

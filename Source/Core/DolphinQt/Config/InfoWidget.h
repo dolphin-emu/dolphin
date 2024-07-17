@@ -29,7 +29,7 @@ public:
   ~InfoWidget() override;
 
 private:
-  void ChangeLanguage();
+  void ChangeLanguage() const;
   void SaveBanner();
 
   QGroupBox* CreateFileDetails();

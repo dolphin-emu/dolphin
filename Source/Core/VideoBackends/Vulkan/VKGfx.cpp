@@ -413,7 +413,7 @@ void VKGfx::OnConfigChanged(const u32 bits)
   }
 }
 
-void VKGfx::OnSwapChainResized()
+void VKGfx::OnSwapChainResized() const
 {
   g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
 }

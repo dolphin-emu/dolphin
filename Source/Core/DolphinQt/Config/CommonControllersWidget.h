@@ -24,8 +24,8 @@ private:
   void CreateLayout();
   void ConnectWidgets();
 
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;

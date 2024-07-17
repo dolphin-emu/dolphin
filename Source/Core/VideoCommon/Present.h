@@ -44,7 +44,7 @@ public:
 
   bool Initialize();
 
-  void ConfigChanged(u32 changed_bits);
+  void ConfigChanged(u32 changed_bits) const;
 
   // Window resolution (display resolution if fullscreen)
   int GetBackbufferWidth() const { return m_backbuffer_width; }
@@ -69,7 +69,7 @@ public:
                                    MathUtil::Rectangle<int>* source_rect, int fb_width,
                                    int fb_height);
 
-  void ReleaseXFBContentLock();
+  void ReleaseXFBContentLock() const;
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
@@ -86,11 +86,11 @@ public:
   bool SurfaceChangedTestAndClear() { return m_surface_changed.TestAndClear(); }
   void* GetNewSurfaceHandle();
 
-  void SetKeyMap(const DolphinKeyMap& key_map);
+  void SetKeyMap(const DolphinKeyMap& key_map) const;
 
-  void SetKey(u32 key, bool is_down, const char* chars);
-  void SetMousePos(float x, float y);
-  void SetMousePress(u32 button_mask);
+  void SetKey(u32 key, bool is_down, const char* chars) const;
+  void SetMousePos(float x, float y) const;
+  void SetMousePress(u32 button_mask) const;
 
   int FrameCount() const { return m_frame_count; }
 

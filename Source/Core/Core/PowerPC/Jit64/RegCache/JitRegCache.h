@@ -39,7 +39,7 @@ public:
   RCOpArg(const RCOpArg&) = delete;
   RCOpArg& operator=(const RCOpArg&) = delete;
 
-  void Realize();
+  void Realize() const;
   Gen::OpArg Location() const;
   operator Gen::OpArg() const& { return Location(); }
   operator Gen::OpArg() const&& = delete;
@@ -76,7 +76,7 @@ public:
   RCX64Reg(const RCX64Reg&) = delete;
   RCX64Reg& operator=(const RCX64Reg&) = delete;
 
-  void Realize();
+  void Realize() const;
   operator Gen::OpArg() const&;
   operator Gen::X64Reg() const&;
   operator Gen::OpArg() const&& = delete;

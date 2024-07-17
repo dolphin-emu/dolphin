@@ -73,7 +73,7 @@ bool ObjectCache::Initialize()
   return true;
 }
 
-void ObjectCache::Shutdown()
+void ObjectCache::Shutdown() const
 {
   if (g_ActiveConfig.bShaderCache && m_pipeline_cache != VK_NULL_HANDLE)
     SavePipelineCache();
@@ -234,7 +234,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   return true;
 }
 
-void ObjectCache::DestroyDescriptorSetLayouts()
+void ObjectCache::DestroyDescriptorSetLayouts() const
 {
   for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
   {
@@ -309,7 +309,7 @@ bool ObjectCache::CreatePipelineLayouts()
   return true;
 }
 
-void ObjectCache::DestroyPipelineLayouts()
+void ObjectCache::DestroyPipelineLayouts() const
 {
   for (VkPipelineLayout layout : m_pipeline_layouts)
   {
@@ -659,7 +659,7 @@ void ObjectCache::DestroyPipelineCache()
   m_pipeline_cache = VK_NULL_HANDLE;
 }
 
-void ObjectCache::SavePipelineCache()
+void ObjectCache::SavePipelineCache() const
 {
   size_t data_size;
   VkResult res =

@@ -36,7 +36,7 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
   });
 }
 
-void ConfigFloatSlider::Update(int value)
+void ConfigFloatSlider::Update(int value) const
 {
   const float current_value = (m_step * value) + m_minimum;
   SetBaseOrCurrent(m_setting, current_value);

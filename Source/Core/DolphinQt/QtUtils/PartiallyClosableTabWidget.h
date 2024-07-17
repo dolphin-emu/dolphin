@@ -13,5 +13,5 @@ class PartiallyClosableTabWidget : public QTabWidget
 public:
   PartiallyClosableTabWidget(QWidget* parent = nullptr);
 
-  void setTabUnclosable(int index);
+  void setTabUnclosable(int index) const;
 };

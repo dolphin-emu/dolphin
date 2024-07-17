@@ -227,8 +227,8 @@ public:
   void Write_U32_Swap(u32 var, u32 address);
   void Write_U64_Swap(u64 var, u32 address);
 
-  void DMA_LCToMemory(u32 mem_address, u32 cache_address, u32 num_blocks);
-  void DMA_MemoryToLC(u32 cache_address, u32 mem_address, u32 num_blocks);
+  void DMA_LCToMemory(u32 mem_address, u32 cache_address, u32 num_blocks) const;
+  void DMA_MemoryToLC(u32 cache_address, u32 mem_address, u32 num_blocks) const;
 
   void ClearDCacheLine(u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
   void StoreDCacheLine(u32 address);
@@ -237,8 +237,8 @@ public:
   void TouchDCacheLine(u32 address, bool store);
 
   // TLB functions
-  void SDRUpdated();
-  void InvalidateTLBEntry(u32 address);
+  void SDRUpdated() const;
+  void InvalidateTLBEntry(u32 address) const;
   void DBATUpdated();
   void IBATUpdated();
 
@@ -297,13 +297,13 @@ private:
   template <const XCheckTLBFlag flag>
   TranslateAddressResult TranslatePageAddress(const EffectiveAddress address, bool* wi);
 
-  void GenerateDSIException(u32 effective_address, bool write);
-  void GenerateISIException(u32 effective_address);
+  void GenerateDSIException(u32 effective_address, bool write) const;
+  void GenerateISIException(u32 effective_address) const;
 
-  void Memcheck(u32 address, u64 var, bool write, size_t size);
+  void Memcheck(u32 address, u64 var, bool write, size_t size) const;
 
-  void UpdateBATs(BatTable& bat_table, u32 base_spr);
-  void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
+  void UpdateBATs(BatTable& bat_table, u32 base_spr) const;
+  void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr) const;
 
   template <XCheckTLBFlag flag, typename T, bool never_translate = false>
   T ReadFromHardware(u32 em_address);

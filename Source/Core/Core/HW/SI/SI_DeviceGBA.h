@@ -24,11 +24,11 @@ public:
   ~GBASockServer();
 
   bool Connect();
-  bool IsConnected();
+  bool IsConnected() const;
   void ClockSync(const Core::System& system);
   void Send(const u8* si_buffer);
   int Receive(u8* si_buffer, u8 bytes);
-  void Flush();
+  void Flush() const;
 
 private:
   void Disconnect();

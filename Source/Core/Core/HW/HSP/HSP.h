@@ -27,8 +27,8 @@ public:
   void Init();
   void Shutdown();
 
-  u64 Read(u32 address);
-  void Write(u32 address, u64 value);
+  u64 Read(u32 address) const;
+  void Write(u32 address, u64 value) const;
 
   void DoState(PointerWrap& p);
 

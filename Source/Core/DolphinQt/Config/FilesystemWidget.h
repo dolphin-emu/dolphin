@@ -41,9 +41,9 @@ private:
   void ExtractDirectory(const DiscIO::Partition& partition, const QString& path,
                         const QString& out);
   void ExtractFile(const DiscIO::Partition& partition, const QString& path, const QString& out);
-  bool ExtractSystemData(const DiscIO::Partition& partition, const QString& out);
+  bool ExtractSystemData(const DiscIO::Partition& partition, const QString& out) const;
 
-  DiscIO::Partition GetPartitionFromID(int id);
+  DiscIO::Partition GetPartitionFromID(int id) const;
 
   QStandardItemModel* m_tree_model;
   QTreeView* m_tree_view;

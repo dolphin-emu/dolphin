@@ -24,7 +24,7 @@ void HSPManager::Shutdown()
   RemoveDevice();
 }
 
-u64 HSPManager::Read(const u32 address)
+u64 HSPManager::Read(const u32 address) const
 {
   DEBUG_LOG_FMT(HSP, "HSP read from 0x{:08x}", address);
   if (m_device)
@@ -32,7 +32,7 @@ u64 HSPManager::Read(const u32 address)
   return 0;
 }
 
-void HSPManager::Write(const u32 address, const u64 value)
+void HSPManager::Write(const u32 address, const u64 value) const
 {
   DEBUG_LOG_FMT(HSP, "HSP write to 0x{:08x}: 0x{:016x}", address, value);
   if (m_device)

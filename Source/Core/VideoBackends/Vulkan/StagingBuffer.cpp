@@ -62,7 +62,7 @@ void StagingBuffer::Unmap()
   // The staging buffer is permanently mapped and VMA handles the unmapping for us
 }
 
-void StagingBuffer::FlushCPUCache(const VkDeviceSize offset, const VkDeviceSize size)
+void StagingBuffer::FlushCPUCache(const VkDeviceSize offset, const VkDeviceSize size) const
 {
   // vmaFlushAllocation checks whether the allocation uses a coherent memory type internally
   vmaFlushAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, offset, size);
@@ -71,7 +71,7 @@ void StagingBuffer::FlushCPUCache(const VkDeviceSize offset, const VkDeviceSize 
 void StagingBuffer::InvalidateGPUCache(const VkCommandBuffer command_buffer,
                                        const VkAccessFlagBits dest_access_flags,
                                        const VkPipelineStageFlagBits dest_pipeline_stage,
-                                       const VkDeviceSize offset, const VkDeviceSize size)
+                                       const VkDeviceSize offset, const VkDeviceSize size) const
 {
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_HOST_WRITE_BIT, dest_access_flags, offset,
@@ -81,7 +81,7 @@ void StagingBuffer::InvalidateGPUCache(const VkCommandBuffer command_buffer,
 void StagingBuffer::PrepareForGPUWrite(const VkCommandBuffer command_buffer,
                                        const VkAccessFlagBits dst_access_flags,
                                        const VkPipelineStageFlagBits dst_pipeline_stage,
-                                       const VkDeviceSize offset, const VkDeviceSize size)
+                                       const VkDeviceSize offset, const VkDeviceSize size) const
 {
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_MEMORY_WRITE_BIT, dst_access_flags,
@@ -90,20 +90,20 @@ void StagingBuffer::PrepareForGPUWrite(const VkCommandBuffer command_buffer,
 
 void StagingBuffer::FlushGPUCache(const VkCommandBuffer command_buffer, const VkAccessFlagBits src_access_flags,
                                   const VkPipelineStageFlagBits src_pipeline_stage, const VkDeviceSize offset,
-                                  const VkDeviceSize size)
+                                  const VkDeviceSize size) const
 {
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, src_access_flags, VK_ACCESS_HOST_READ_BIT, offset,
                       size, src_pipeline_stage, VK_PIPELINE_STAGE_HOST_BIT);
 }
 
-void StagingBuffer::InvalidateCPUCache(const VkDeviceSize offset, const VkDeviceSize size)
+void StagingBuffer::InvalidateCPUCache(const VkDeviceSize offset, const VkDeviceSize size) const
 {
   // vmaInvalidateAllocation checks whether the allocation uses a coherent memory type internally
   vmaInvalidateAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, offset, size);
 }
 
-void StagingBuffer::Read(const VkDeviceSize offset, void* data, const size_t size, const bool invalidate_caches)
+void StagingBuffer::Read(const VkDeviceSize offset, void* data, const size_t size, const bool invalidate_caches) const
 {
   ASSERT((offset + size) <= m_size);
   if (invalidate_caches)
@@ -113,7 +113,7 @@ void StagingBuffer::Read(const VkDeviceSize offset, void* data, const size_t siz
 }
 
 void StagingBuffer::Write(const VkDeviceSize offset, const void* data, const size_t size,
-                          const bool invalidate_caches)
+                          const bool invalidate_caches) const
 {
   ASSERT((offset + size) <= m_size);
 

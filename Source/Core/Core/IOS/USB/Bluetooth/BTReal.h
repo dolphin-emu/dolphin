@@ -103,18 +103,18 @@ private:
 
   bool m_is_wii_bt_module = false;
 
-  void WaitForHCICommandComplete(u16 opcode);
-  void SendHCIResetCommand();
-  void SendHCIDeleteLinkKeyCommand();
-  bool SendHCIStoreLinkKeyCommand();
-  void FakeVendorCommandReply(const USB::V0IntrMessage& ctrl);
-  void FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl);
-  void FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload, u8 size);
+  void WaitForHCICommandComplete(u16 opcode) const;
+  void SendHCIResetCommand() const;
+  void SendHCIDeleteLinkKeyCommand() const;
+  bool SendHCIStoreLinkKeyCommand() const;
+  void FakeVendorCommandReply(const USB::V0IntrMessage& ctrl) const;
+  void FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl) const;
+  void FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload, u8 size) const;
   void FakeSyncButtonPressedEvent(USB::V0IntrMessage& ctrl);
   void FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl);
 
   void LoadLinkKeys();
-  void SaveLinkKeys();
+  void SaveLinkKeys() const;
 
   bool OpenDevice(libusb_device* device);
 };

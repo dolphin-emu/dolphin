@@ -86,7 +86,7 @@ static std::string GetGLSLVersionString()
   }
 }
 
-void SHADER::SetProgramVariables()
+void SHADER::SetProgramVariables() const
 {
   if (g_ActiveConfig.backend_info.bSupportsBindingLayout)
     return;
@@ -124,7 +124,7 @@ void SHADER::SetProgramVariables()
   glUseProgram(CurrentProgram);
 }
 
-void SHADER::SetProgramBindings(const bool is_compute)
+void SHADER::SetProgramBindings(const bool is_compute) const
 {
   if (g_ogl_config.bSupportsExplicitLayoutInShader)
   {

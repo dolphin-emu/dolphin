@@ -18,8 +18,8 @@ public:
   }
 
   ~Semaphore() { CloseHandle(m_handle); }
-  void Wait() { WaitForSingleObject(m_handle, INFINITE); }
-  void Post() { ReleaseSemaphore(m_handle, 1, nullptr); }
+  void Wait() const { WaitForSingleObject(m_handle, INFINITE); }
+  void Post() const { ReleaseSemaphore(m_handle, 1, nullptr); }
 
 private:
   HANDLE m_handle;

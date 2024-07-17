@@ -43,7 +43,7 @@ public:
   std::pair<ReturnCode, u64> DeviceOpen(u16 vid, u16 pid);
   void DeviceClose(u64 device_id);
   std::optional<IPCReply> DeviceIOCtl(u64 device_id, const IOCtlRequest& request);
-  std::optional<IPCReply> DeviceIOCtlV(u64 device_id, const IOCtlVRequest& request);
+  std::optional<IPCReply> DeviceIOCtlV(u64 device_id, const IOCtlVRequest& request) const;
 
   void DoState(PointerWrap& p) override;
 
@@ -52,12 +52,12 @@ private:
   IPCReply GetDeviceList(const IOCtlVRequest& request) const;
   IPCReply GetRhDesca(const IOCtlRequest& request) const;
   IPCReply GetRhPortStatus(const IOCtlVRequest& request) const;
-  IPCReply SetRhPortStatus(const IOCtlVRequest& request);
+  IPCReply SetRhPortStatus(const IOCtlVRequest& request) const;
   std::optional<IPCReply> RegisterRemovalHook(u64 device_id, const IOCtlRequest& request);
   std::optional<IPCReply> RegisterInsertionHook(const IOCtlVRequest& request);
   std::optional<IPCReply> RegisterInsertionHookWithID(const IOCtlVRequest& request);
-  std::optional<IPCReply> RegisterClassChangeHook(const IOCtlVRequest& request);
-  s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& request);
+  std::optional<IPCReply> RegisterClassChangeHook(const IOCtlVRequest& request) const;
+  s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& request) const;
 
   bool HasDeviceWithVidPid(u16 vid, u16 pid) const;
   void OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> device) override;

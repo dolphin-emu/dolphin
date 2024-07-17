@@ -68,7 +68,7 @@ private:
   void OnResetClicked();
   void OnAddressTableItemChanged(const QTableWidgetItem* item);
   void OnAddressTableContextMenu();
-  void OnValueSourceChanged();
+  void OnValueSourceChanged() const;
   void OnDisplayHexCheckboxStateChanged();
 
   void RefreshCurrentValueTableItem(QTableWidgetItem* current_value_table_item);

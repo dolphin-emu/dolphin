@@ -15,7 +15,7 @@ class DSPBreakpoints
 public:
   DSPBreakpoints() { Clear(); }
   // is address breakpoint
-  bool IsAddressBreakPoint(const u32 addr) { return b[addr] != 0; }
+  bool IsAddressBreakPoint(const u32 addr) const { return b[addr] != 0; }
   // AddBreakPoint
   bool Add(const u32 addr, const bool temp = false)
   {

@@ -372,7 +372,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
       last_state = new_state;
     }
 
-    bool IsPressed()
+    bool IsPressed() const
     {
       if (!is_ready)
         return false;

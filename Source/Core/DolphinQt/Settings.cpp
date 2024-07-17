@@ -104,7 +104,7 @@ Settings::Settings()
 
 Settings::~Settings() = default;
 
-void Settings::UnregisterDevicesChangedCallback()
+void Settings::UnregisterDevicesChangedCallback() const
 {
   g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
 }

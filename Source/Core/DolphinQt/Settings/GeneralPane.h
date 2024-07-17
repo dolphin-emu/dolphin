@@ -37,8 +37,8 @@ private:
   void AddDescriptions();
 
   void LoadConfig();
-  void OnSaveConfig();
-  void OnEmulationStateChanged(Core::State state);
+  void OnSaveConfig() const;
+  void OnEmulationStateChanged(Core::State state) const;
 
   // Widgets
   QVBoxLayout* m_main_layout;
@@ -56,7 +56,7 @@ private:
 // Analytics related
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   void CreateAnalytics();
-  void GenerateNewIdentity();
+  void GenerateNewIdentity() const;
 
   ToolTipPushButton* m_button_generate_new_identity;
   ToolTipCheckBox* m_checkbox_enable_analytics;

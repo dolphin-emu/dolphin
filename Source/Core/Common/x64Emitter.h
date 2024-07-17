@@ -341,7 +341,7 @@ private:
   // Must be cleared with SetCodePtr() afterwards.
   bool m_write_failed = false;
 
-  void CheckFlags();
+  void CheckFlags() const;
 
   void Rex(int w, int r, int x, int b);
   void WriteModRM(int mod, int reg, int rm);
@@ -395,9 +395,9 @@ public:
   u8* AlignCode16();
   u8* AlignCodePage();
   const u8* GetCodePtr() const { return code; }
-  u8* GetWritableCodePtr() { return code; }
+  u8* GetWritableCodePtr() const { return code; }
   const u8* GetCodeEnd() const { return m_code_end; }
-  u8* GetWritableCodeEnd() { return m_code_end; }
+  u8* GetWritableCodeEnd() const { return m_code_end; }
 
   void LockFlags() { flags_locked = true; }
   void UnlockFlags() { flags_locked = false; }
@@ -465,7 +465,7 @@ public:
   [[nodiscard]] FixupBranch J_CC(CCFlags conditionCode, Jump jump = Jump::Short);
   void J_CC(CCFlags conditionCode, const u8* addr);
 
-  void SetJumpTarget(const FixupBranch& branch);
+  void SetJumpTarget(const FixupBranch& branch) const;
 
   void SETcc(CCFlags flag, OpArg dest);
   // Note: CMOV brings small if any benefit on current CPUs.

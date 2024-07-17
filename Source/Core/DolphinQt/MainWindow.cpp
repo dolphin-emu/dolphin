@@ -399,7 +399,7 @@ void MainWindow::InitControllers()
   FreeLook::GetInputConfig()->SaveConfig();
 }
 
-void MainWindow::ShutdownControllers()
+void MainWindow::ShutdownControllers() const
 {
   m_hotkey_scheduler->Stop();
 
@@ -1060,7 +1060,7 @@ void MainWindow::FullScreen()
   }
 }
 
-void MainWindow::UnlockCursor()
+void MainWindow::UnlockCursor() const
 {
   if (!m_render_widget->isFullScreen())
     m_render_widget->SetCursorLocked(false);
@@ -1357,7 +1357,7 @@ void MainWindow::ShowGraphicsWindow()
   m_graphics_window->activateWindow();
 }
 
-void MainWindow::ShowNetPlaySetupDialog()
+void MainWindow::ShowNetPlaySetupDialog() const
 {
   SetQWidgetWindowDecorations(m_netplay_setup_dialog);
   m_netplay_setup_dialog->show();
@@ -1440,12 +1440,12 @@ void MainWindow::StateSave()
     State::SaveAs(Core::System::GetInstance(), path.toStdString());
 }
 
-void MainWindow::StateLoadSlot()
+void MainWindow::StateLoadSlot() const
 {
   State::Load(Core::System::GetInstance(), m_state_slot);
 }
 
-void MainWindow::StateSaveSlot()
+void MainWindow::StateSaveSlot() const
 {
   State::Save(Core::System::GetInstance(), m_state_slot);
 }
@@ -1490,7 +1490,7 @@ void MainWindow::SetStateSlot(int slot)
                        2500);
 }
 
-void MainWindow::IncrementSelectedStateSlot()
+void MainWindow::IncrementSelectedStateSlot() const
 {
   u32 state_slot = m_state_slot + 1;
   if (state_slot > State::NUM_STATES)
@@ -1498,7 +1498,7 @@ void MainWindow::IncrementSelectedStateSlot()
   m_menu_bar->SetStateSlot(state_slot);
 }
 
-void MainWindow::DecrementSelectedStateSlot()
+void MainWindow::DecrementSelectedStateSlot() const
 {
   u32 state_slot = m_state_slot - 1;
   if (state_slot < 1)
@@ -1966,7 +1966,7 @@ void MainWindow::OnRequestGolfControl()
     client->RequestGolfControl();
 }
 
-void MainWindow::ShowTASInput()
+void MainWindow::ShowTASInput() const
 {
   for (int i = 0; i < num_gc_controllers; i++)
   {
@@ -2050,7 +2050,7 @@ void MainWindow::ShowResourcePackManager()
   manager.exec();
 }
 
-void MainWindow::ShowCheatsManager()
+void MainWindow::ShowCheatsManager() const
 {
   SetQWidgetWindowDecorations(m_cheats_manager);
   m_cheats_manager->show();

@@ -109,7 +109,7 @@ void LogWidget::UpdateLog()
   }
 }
 
-void LogWidget::UpdateFont()
+void LogWidget::UpdateFont() const
 {
   QFont f;
 
@@ -188,7 +188,7 @@ void LogWidget::LoadSettings()
   UpdateFont();
 }
 
-void LogWidget::SaveSettings()
+void LogWidget::SaveSettings() const
 {
   auto& settings = Settings::GetQSettings();
 

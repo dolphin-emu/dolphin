@@ -37,7 +37,7 @@ public:
   JitInterface& operator=(JitInterface&&) = delete;
   ~JitInterface();
 
-  void DoState(const PointerWrap& p);
+  void DoState(const PointerWrap& p) const;
 
   CPUCoreBase* InitJitCore(PowerPC::CPUCore core);
   CPUCoreBase* GetCore() const;
@@ -55,26 +55,26 @@ public:
     u32 entry_address;
   };
 
-  void UpdateMembase();
+  void UpdateMembase() const;
   void JitBlockLogDump(const Core::CPUThreadGuard& guard, std::FILE* file) const;
   std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address) const;
 
   // Memory Utilities
-  bool HandleFault(uintptr_t access_address, SContext* ctx);
-  bool HandleStackFault();
+  bool HandleFault(uintptr_t access_address, SContext* ctx) const;
+  bool HandleStackFault() const;
 
   // Clearing CodeCache
-  void ClearCache(const Core::CPUThreadGuard& guard);
+  void ClearCache(const Core::CPUThreadGuard& guard) const;
 
   // This clear is "safe" in the sense that it's okay to run from
   // inside a JIT'ed block: it clears the instruction cache, but not
   // the JIT'ed code.
-  void ClearSafe();
+  void ClearSafe() const;
 
   // If "forced" is true, a recompile is being requested on code that hasn't been modified.
-  void InvalidateICache(u32 address, u32 size, bool forced);
-  void InvalidateICacheLine(u32 address);
-  void InvalidateICacheLines(u32 address, u32 count);
+  void InvalidateICache(u32 address, u32 size, bool forced) const;
+  void InvalidateICacheLine(u32 address) const;
+  void InvalidateICacheLines(u32 address, u32 count) const;
   static void InvalidateICacheLineFromJIT(JitInterface& jit_interface, u32 address);
   static void InvalidateICacheLinesFromJIT(JitInterface& jit_interface, u32 address, u32 count);
 
@@ -84,7 +84,7 @@ public:
     PairedQuantize,
     SpeculativeConstants
   };
-  void CompileExceptionCheck(ExceptionType type);
+  void CompileExceptionCheck(ExceptionType type) const;
   static void CompileExceptionCheckFromJIT(JitInterface& jit_interface, ExceptionType type);
 
   /// used for the page fault unit test, don't use outside of tests!

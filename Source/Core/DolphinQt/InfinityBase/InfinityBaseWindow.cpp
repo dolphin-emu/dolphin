@@ -131,7 +131,7 @@ void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, Fi
   vbox_group->addLayout(hbox_infinity);
 }
 
-void InfinityBaseWindow::ClearFigure(FigureUIPosition slot)
+void InfinityBaseWindow::ClearFigure(FigureUIPosition slot) const
 {
   auto& system = Core::System::GetInstance();
   m_edit_figures[static_cast<u8>(slot)]->setText(tr("None"));
@@ -325,13 +325,13 @@ QString CreateFigureDialog::GetFilePath() const
   return m_file_path;
 }
 
-void InfinityBaseWindow::EmulateBase(bool emulate)
+void InfinityBaseWindow::EmulateBase(bool emulate) const
 {
   SetBaseOrCurrent(Config::MAIN_EMULATE_INFINITY_BASE, emulate);
   m_group_figures->setVisible(emulate);
 }
 
-void InfinityBaseWindow::OnEmulationStateChanged(Core::State state)
+void InfinityBaseWindow::OnEmulationStateChanged(Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 

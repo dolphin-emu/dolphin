@@ -316,7 +316,7 @@ bool WASAPIStream::SetRunning(bool running)
   return true;
 }
 
-void WASAPIStream::SoundLoop()
+void WASAPIStream::SoundLoop() const
 {
   Common::SetCurrentThreadName("WASAPI Handler");
   BYTE* data;

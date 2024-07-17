@@ -80,7 +80,7 @@ private:
   void CmdDone();
 
   // Signals that the transfer that was previously executed is now done.
-  void TransferComplete();
+  void TransferComplete() const;
 
   // Variant of CmdDone which schedules an event later in the future to complete the command.
   void CmdDoneLater(u64 cycles);

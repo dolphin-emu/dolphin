@@ -81,7 +81,7 @@ public:
     return m_depth_attachment ? &m_dsv_descriptor.cpu_handle : nullptr;
   }
 
-  void Unbind();
+  void Unbind() const;
   void ClearRenderTargets(const ClearColor& color_value, const D3D12_RECT* rectangle) const;
   void ClearDepth(float depth_value, const D3D12_RECT* rectangle) const;
   void TransitionRenderTargets() const;

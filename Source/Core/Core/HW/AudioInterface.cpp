@@ -93,7 +93,7 @@ void AudioInterfaceManager::DoState(PointerWrap& p)
   sound_stream->GetMixer()->DoState(p);
 }
 
-void AudioInterfaceManager::UpdateInterrupts()
+void AudioInterfaceManager::UpdateInterrupts() const
 {
   m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_AI,
                                                 m_control.AIINT & m_control.AIINTMSK);
@@ -208,7 +208,7 @@ void AudioInterfaceManager::Shutdown()
 {
 }
 
-void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
+void AudioInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base) const
 {
   mmio->Register(
       base | AI_CONTROL_REGISTER, MMIO::DirectRead<u32>(&m_control.hex),

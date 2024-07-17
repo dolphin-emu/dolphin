@@ -24,12 +24,12 @@ private:
   void Connect();
 
   // Index changed by code/expression.
-  void OnAttachmentChanged(int index);
+  void OnAttachmentChanged(int index) const;
   // Selection chosen by user.
   void OnAttachmentSelected(int index);
 
-  void ConfigChanged();
-  void Update();
+  void ConfigChanged() const;
+  void Update() const;
 
   // Extensions
   QComboBox* m_extension_combo;

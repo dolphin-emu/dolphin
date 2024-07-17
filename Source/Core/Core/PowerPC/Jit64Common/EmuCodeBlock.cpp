@@ -230,7 +230,7 @@ private:
   // Generates code to load a constant to the destination register. In
   // practice it would be better to avoid using a register for this, but it
   // would require refactoring a lot of JIT code.
-  void LoadConstantToReg(const int sbits, u32 value)
+  void LoadConstantToReg(const int sbits, u32 value) const
   {
     if (m_sign_extend)
     {
@@ -242,7 +242,7 @@ private:
 
   // Generate the proper MOV instruction depending on whether the read should
   // be sign extended or zero extended.
-  void MoveOpArgToReg(const int sbits, const OpArg& arg)
+  void MoveOpArgToReg(const int sbits, const OpArg& arg) const
   {
     if (m_sign_extend)
       m_code->MOVSX(32, sbits, m_dst_reg, arg);
@@ -250,7 +250,7 @@ private:
       m_code->MOVZX(32, sbits, m_dst_reg, arg);
   }
 
-  void LoadAddrMaskToReg(const int sbits, const void* ptr, const u32 mask)
+  void LoadAddrMaskToReg(const int sbits, const void* ptr, const u32 mask) const
   {
     m_code->MOV(64, R(RSCRATCH), ImmPtr(ptr));
     // If we do not need to mask, we can do the sign extend while loading

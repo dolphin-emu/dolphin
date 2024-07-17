@@ -177,7 +177,7 @@ std::optional<IPCReply> Device::Close(u32 fd)
   return IPCReply{IPC_SUCCESS};
 }
 
-std::optional<IPCReply> Device::Unsupported(const Request& request)
+std::optional<IPCReply> Device::Unsupported(const Request& request) const
 {
   static const std::map<IPCCommandType, std::string_view> names{{
       {IPC_CMD_READ, "Read"},

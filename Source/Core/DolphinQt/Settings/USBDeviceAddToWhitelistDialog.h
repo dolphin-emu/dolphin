@@ -42,7 +42,7 @@ private:
   void RefreshDeviceList();
   void AddUSBDeviceToWhitelist();
 
-  void OnDeviceSelection();
+  void OnDeviceSelection() const;
 
   std::map<std::pair<quint16, quint16>, std::string> m_shown_devices;
 };

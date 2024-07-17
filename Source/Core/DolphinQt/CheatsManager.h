@@ -52,14 +52,14 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void OnStateChanged(Core::State state);
-  void OnFrameEnd();
+  void OnFrameEnd() const;
   void RegisterAfterFrameEventCallback();
   void RemoveAfterFrameEventCallback();
   void OnNewSessionCreated(const Cheats::CheatSearchSessionBase& session);
-  void OnTabCloseRequested(int index);
+  void OnTabCloseRequested(int index) const;
 
   void RefreshCodeTabs(Core::State state, bool force);
-  void UpdateAllCheatSearchWidgetCurrentValues();
+  void UpdateAllCheatSearchWidgetCurrentValues() const;
 
   std::string m_game_id;
   std::string m_game_tdb_id;

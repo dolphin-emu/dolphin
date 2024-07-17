@@ -128,7 +128,7 @@ void WatchWidget::ConnectWidgets()
   connect(m_table, &QTableWidget::itemChanged, this, &WatchWidget::OnItemChanged);
 }
 
-void WatchWidget::UpdateIcons()
+void WatchWidget::UpdateIcons() const
 {
   // TODO: Create a "debugger_add_watch" icon
   m_new->setIcon(Resources::GetThemeIcon("debugger_add_breakpoint"));
@@ -138,7 +138,7 @@ void WatchWidget::UpdateIcons()
   m_save->setIcon(Resources::GetThemeIcon("debugger_save"));
 }
 
-void WatchWidget::UpdateButtonsEnabled()
+void WatchWidget::UpdateButtonsEnabled() const
 {
   if (!isVisible())
     return;
@@ -229,7 +229,7 @@ void WatchWidget::Update()
   m_updating = false;
 }
 
-void WatchWidget::SetEmptyRow(int row)
+void WatchWidget::SetEmptyRow(int row) const
 {
   auto* label = new QTableWidgetItem;
   label->setData(Qt::UserRole, -1);
@@ -315,7 +315,7 @@ void WatchWidget::OnLoad()
   Update();
 }
 
-void WatchWidget::OnSave()
+void WatchWidget::OnSave() const
 {
   Common::IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
@@ -451,7 +451,7 @@ void WatchWidget::OnItemChanged(const QTableWidgetItem* item)
   }
 }
 
-void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address)
+void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address) const
 {
   const std::string memory_data_as_string = PowerPC::MMU::HostGetString(guard, address, 4);
 
@@ -490,7 +490,7 @@ void WatchWidget::DeleteSelectedWatches()
   Update();
 }
 
-void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, int row)
+void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, int row) const
 {
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
   debug_interface.UnsetPatch(guard, debug_interface.GetWatch(row).address);

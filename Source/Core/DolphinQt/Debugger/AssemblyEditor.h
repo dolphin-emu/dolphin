@@ -19,7 +19,7 @@ class AsmEditor : public QPlainTextEdit
 
 public:
   AsmEditor(const QString& file_path, int editor_num, bool dark_scheme, QWidget* parent = nullptr);
-  void LineNumberAreaPaintEvent(const QPaintEvent* event);
+  void LineNumberAreaPaintEvent(const QPaintEvent* event) const;
   int LineNumberAreaWidth();
   const QString& Path() const { return m_path; }
   const QString& FileName() const { return m_filename; }

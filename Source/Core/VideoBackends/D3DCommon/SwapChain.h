@@ -37,7 +37,7 @@ public:
 
   // Mode switches.
   bool GetFullscreen() const;
-  void SetFullscreen(bool request);
+  void SetFullscreen(bool request) const;
 
   // Checks for loss of exclusive fullscreen.
   bool CheckForFullscreenChange();

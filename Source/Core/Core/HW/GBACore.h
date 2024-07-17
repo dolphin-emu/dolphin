@@ -99,12 +99,12 @@ private:
   };
   void RunCommand(Command& command);
 
-  bool LoadBIOS(const char* bios_path);
-  bool LoadSave(const char* save_path);
+  bool LoadBIOS(const char* bios_path) const;
+  bool LoadSave(const char* save_path) const;
 
   void SetSIODriver();
   void SetVideoBuffer();
-  void SetSampleRates();
+  void SetSampleRates() const;
   void AddCallbacks();
   void SetAVStream();
   void SetupEvent();

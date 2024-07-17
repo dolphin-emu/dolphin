@@ -69,7 +69,7 @@ public:
   void AdjustPadBufferSize(unsigned int size);
   void SetHostInputAuthority(bool enable);
 
-  void KickPlayer(PlayerId player);
+  void KickPlayer(PlayerId player) const;
 
   u16 GetPort() const;
 

@@ -301,13 +301,13 @@ protected:
     u16 version;
   };
 
-  std::string GetDeviceRegion();
-  std::string GetDeviceId();
+  std::string GetDeviceRegion() const;
+  std::string GetDeviceId() const;
 
   IOS::HLE::Kernel m_ios;
 };
 
-std::string SystemUpdater::GetDeviceRegion()
+std::string SystemUpdater::GetDeviceRegion() const
 {
   // Try to determine the region from an installed system menu.
   const auto tmd = m_ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -324,7 +324,7 @@ std::string SystemUpdater::GetDeviceRegion()
   return "";
 }
 
-std::string SystemUpdater::GetDeviceId()
+std::string SystemUpdater::GetDeviceId() const
 {
   u32 ios_device_id;
   if (m_ios.GetESCore().GetDeviceId(&ios_device_id) < 0)
@@ -345,20 +345,20 @@ private:
     std::vector<TitleInfo> titles;
   };
 
-  Response GetSystemTitles();
+  Response GetSystemTitles() const;
   Response ParseTitlesResponse(const std::vector<u8>& response) const;
-  bool ShouldInstallTitle(const TitleInfo& title);
+  bool ShouldInstallTitle(const TitleInfo& title) const;
 
   UpdateResult InstallTitleFromNUS(const std::string& prefix_url, const TitleInfo& title,
                                    std::unordered_set<u64>* updated_titles);
 
   // Helper functions to download contents from NUS.
   std::pair<IOS::ES::TMDReader, std::vector<u8>> DownloadTMD(const std::string& prefix_url,
-                                                             const TitleInfo& title);
+                                                             const TitleInfo& title) const;
   std::pair<std::vector<u8>, std::vector<u8>> DownloadTicket(const std::string& prefix_url,
-                                                             const TitleInfo& title);
+                                                             const TitleInfo& title) const;
   std::optional<std::vector<u8>> DownloadContent(const std::string& prefix_url,
-                                                 const TitleInfo& title, u32 cid);
+                                                 const TitleInfo& title, u32 cid) const;
 
   UpdateCallback m_update_callback;
   std::string m_requested_region;
@@ -417,7 +417,7 @@ OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
   return info;
 }
 
-bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title)
+bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title) const
 {
   const auto& es = m_ios.GetESCore();
   const auto installed_tmd = es.FindInstalledTMD(title.id);
@@ -440,7 +440,7 @@ constexpr const char* GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0"
 </soapenv:Envelope>
 )";
 
-OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
+OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles() const
 {
   // Construct the request by loading the template first, then updating some fields.
   pugi::xml_document doc;
@@ -640,7 +640,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 }
 
 std::pair<IOS::ES::TMDReader, std::vector<u8>>
-OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo& title)
+OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo& title) const
 {
   const std::string url = (title.version == 0) ?
                               fmt::format("{}/{:016x}/tmd", prefix_url, title.id) :
@@ -667,7 +667,7 @@ OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo&
 }
 
 std::pair<std::vector<u8>, std::vector<u8>>
-OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleInfo& title)
+OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleInfo& title) const
 {
   const std::string url = fmt::format("{}/{:016x}/cetk", prefix_url, title.id);
   const Common::HttpRequest::Response response = m_http.Get(url);
@@ -684,7 +684,7 @@ OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleIn
 }
 
 std::optional<std::vector<u8>> OnlineSystemUpdater::DownloadContent(const std::string& prefix_url,
-                                                                    const TitleInfo& title, u32 cid)
+                                                                    const TitleInfo& title, u32 cid) const
 {
   const std::string url = fmt::format("{}/{:016x}/{:08x}", prefix_url, title.id, cid);
   return m_http.Get(url);

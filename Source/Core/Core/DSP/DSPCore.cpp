@@ -491,7 +491,7 @@ void DSPCore::Reset()
   m_dsp.GetAnalyzer().Analyze(m_dsp);
 }
 
-void DSPCore::ClearIRAM()
+void DSPCore::ClearIRAM() const
 {
   if (!m_dsp_jit)
     return;
@@ -555,7 +555,7 @@ u16 DSPCore::ReadMailboxLow(const Mailbox mailbox)
   return m_dsp.ReadMailboxLow(mailbox);
 }
 
-u16 DSPCore::ReadMailboxHigh(const Mailbox mailbox)
+u16 DSPCore::ReadMailboxHigh(const Mailbox mailbox) const
 {
   return m_dsp.ReadMailboxHigh(mailbox);
 }
@@ -570,17 +570,17 @@ void DSPCore::WriteMailboxHigh(const Mailbox mailbox, const u16 value)
   m_dsp.WriteMailboxHigh(mailbox, value);
 }
 
-void DSPCore::LogIFXRead(const u16 address, const u16 read_value)
+void DSPCore::LogIFXRead(const u16 address, const u16 read_value) const
 {
   m_dsp_cap->LogIFXRead(address, read_value);
 }
 
-void DSPCore::LogIFXWrite(const u16 address, const u16 written_value)
+void DSPCore::LogIFXWrite(const u16 address, const u16 written_value) const
 {
   m_dsp_cap->LogIFXWrite(address, written_value);
 }
 
-void DSPCore::LogDMA(const u16 control, const u32 gc_address, const u16 dsp_address, const u16 length, const u8* data)
+void DSPCore::LogDMA(const u16 control, const u32 gc_address, const u16 dsp_address, const u16 length, const u8* data) const
 {
   m_dsp_cap->LogDMA(control, gc_address, dsp_address, length, data);
 }

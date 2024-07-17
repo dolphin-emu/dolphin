@@ -142,7 +142,7 @@ void GBAWidget::VolumeUp()
   SetVolume(m_volume + 10);
 }
 
-bool GBAWidget::IsMuted()
+bool GBAWidget::IsMuted() const
 {
   return m_muted;
 }
@@ -199,7 +199,7 @@ void GBAWidget::PromptForEReaderCards()
     QueueEReaderCard(m_core, QDir::toNativeSeparators(card_path).toStdString());
 }
 
-void GBAWidget::ResetCore()
+void GBAWidget::ResetCore() const
 {
   if (!CanResetCore())
     return;
@@ -358,7 +358,7 @@ void GBAWidget::LoadSettings()
     m_interframe_blending = settings.value(key).toBool();
 }
 
-void GBAWidget::SaveSettings()
+void GBAWidget::SaveSettings() const
 {
   QSettings& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("gbawidget/flags%1").arg(m_local_pad + 1),
@@ -373,7 +373,7 @@ bool GBAWidget::CanControlCore()
   return !Core::System::GetInstance().GetMovie().IsMovieActive() && !NetPlay::IsNetPlayRunning();
 }
 
-bool GBAWidget::CanResetCore()
+bool GBAWidget::CanResetCore() const
 {
   return m_is_local_pad;
 }
@@ -608,12 +608,12 @@ void GBAWidgetController::Create(std::weak_ptr<HW::GBA::Core> core, const HW::GB
   m_widget = new GBAWidget(std::move(core), info, netplay_pad);
 }
 
-void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info)
+void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info) const
 {
   m_widget->GameChanged(info);
 }
 
-void GBAWidgetController::FrameEnded(std::span<const u32> video_buffer)
+void GBAWidgetController::FrameEnded(std::span<const u32> video_buffer) const
 {
   m_widget->SetVideoBuffer(video_buffer);
 }

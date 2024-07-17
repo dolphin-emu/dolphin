@@ -29,7 +29,7 @@ ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& 
   });
 }
 
-void ConfigInteger::Update(int value)
+void ConfigInteger::Update(int value) const
 {
   SetBaseOrCurrent(m_setting, value);
 }

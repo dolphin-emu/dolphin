@@ -116,7 +116,7 @@ void GamecubeControllersWidget::ConnectWidgets()
   }
 }
 
-void GamecubeControllersWidget::OnGCTypeChanged(size_t index)
+void GamecubeControllersWidget::OnGCTypeChanged(size_t index) const
 {
   const SerialInterface::SIDevices si_device =
       FromGCMenuIndex(m_gc_controller_boxes[index]->currentIndex());
@@ -169,7 +169,7 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
   window->show();
 }
 
-void GamecubeControllersWidget::LoadSettings(Core::State state)
+void GamecubeControllersWidget::LoadSettings(Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
   for (size_t i = 0; i < m_gc_groups.size(); i++)
@@ -186,7 +186,7 @@ void GamecubeControllersWidget::LoadSettings(Core::State state)
   }
 }
 
-void GamecubeControllersWidget::SaveSettings()
+void GamecubeControllersWidget::SaveSettings() const
 {
   {
     Config::ConfigChangeCallbackGuard config_guard;

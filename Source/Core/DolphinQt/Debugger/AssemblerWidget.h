@@ -51,29 +51,29 @@ private:
 
   void OnEditChanged();
 
-  void OnAssemble(std::vector<Common::GekkoAssembler::CodeBlock>* asm_out);
-  void OnCopyOutput();
+  void OnAssemble(std::vector<Common::GekkoAssembler::CodeBlock>* asm_out) const;
+  void OnCopyOutput() const;
   void OnOpen();
   void OnNew();
-  void OnInject();
+  void OnInject() const;
   void OnSave();
   void OnZoomIn();
   void OnZoomOut();
   void OnZoomReset();
-  void OnBaseAddressChanged();
-  void OnTabChange(int index);
+  void OnBaseAddressChanged() const;
+  void OnTabChange(int index) const;
   QString TabTextForEditor(const AsmEditor* editor, bool with_dirty);
-  AsmEditor* GetEditor(int idx);
+  AsmEditor* GetEditor(int idx) const;
   void NewEditor(const QString& path = QStringLiteral());
   bool SaveEditor(AsmEditor* editor);
-  void OnEmulationStateChanged(Core::State state);
+  void OnEmulationStateChanged(Core::State state) const;
   void OnTabClose(int index);
   void CloseTab(int index, AsmEditor* editor);
   int AllocateTabNum();
   void FreeTabNum(int num);
   void UpdateTabText(AsmEditor* editor);
   void DisambiguateTabTitles(AsmEditor* editor);
-  void UpdateIcons();
+  void UpdateIcons() const;
   void ZoomAllEditors(int amount);
 
   static constexpr int INVALID_EDITOR_NUM = -1;

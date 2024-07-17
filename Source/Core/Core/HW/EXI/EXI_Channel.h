@@ -30,7 +30,7 @@ public:
   ~CEXIChannel();
 
   // get device
-  IEXIDevice* GetDevice(u8 chip_select);
+  IEXIDevice* GetDevice(u8 chip_select) const;
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 

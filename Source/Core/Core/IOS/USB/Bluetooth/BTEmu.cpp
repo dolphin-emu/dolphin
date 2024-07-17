@@ -1870,7 +1870,7 @@ void BluetoothEmuDevice::CommandVendorSpecific_FC4C(const u32 input_address, con
   SendEventCommandComplete(0xFC4C, &reply, sizeof(hci_status_rp));
 }
 
-WiimoteDevice* BluetoothEmuDevice::AccessWiimoteByIndex(const std::size_t index)
+WiimoteDevice* BluetoothEmuDevice::AccessWiimoteByIndex(const std::size_t index) const
 {
   if (index < MAX_BBMOTES)
     return m_wiimotes[index].get();
@@ -1890,7 +1890,7 @@ u32 BluetoothEmuDevice::GetWiimoteNumberFromConnectionHandle(const u16 connectio
   return connection_handle & 0xff;
 }
 
-WiimoteDevice* BluetoothEmuDevice::AccessWiimote(const bdaddr_t& address)
+WiimoteDevice* BluetoothEmuDevice::AccessWiimote(const bdaddr_t& address) const
 {
   // Fixed bluetooth addresses are generated in WiimoteDevice::WiimoteDevice.
   const auto wiimote = AccessWiimoteByIndex(address.back());
@@ -1901,7 +1901,7 @@ WiimoteDevice* BluetoothEmuDevice::AccessWiimote(const bdaddr_t& address)
   return nullptr;
 }
 
-WiimoteDevice* BluetoothEmuDevice::AccessWiimote(const u16 connection_handle)
+WiimoteDevice* BluetoothEmuDevice::AccessWiimote(const u16 connection_handle) const
 {
   const auto wiimote =
       AccessWiimoteByIndex(GetWiimoteNumberFromConnectionHandle(connection_handle));

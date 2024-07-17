@@ -103,7 +103,7 @@ void GameConfigEdit::AddDescription(const QString& keyword, const QString& descr
   m_completions << keyword;
 }
 
-void GameConfigEdit::LoadFile()
+void GameConfigEdit::LoadFile() const
 {
   QFile file(m_path);
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -158,7 +158,7 @@ void GameConfigEdit::AddBoolOption(QMenu* menu, const QString& name, const QStri
                     [this, section, key] { SetOption(section, key, QStringLiteral("False")); });
 }
 
-void GameConfigEdit::SetOption(const QString& section, const QString& key, const QString& value)
+void GameConfigEdit::SetOption(const QString& section, const QString& key, const QString& value) const
 {
   auto section_cursor =
       m_edit->document()->find(QRegularExpression(QStringLiteral("^\\[%1\\]").arg(section)), 0);
@@ -188,7 +188,7 @@ void GameConfigEdit::SetOption(const QString& section, const QString& key, const
   }
 }
 
-QString GameConfigEdit::GetTextUnderCursor()
+QString GameConfigEdit::GetTextUnderCursor() const
 {
   QTextCursor tc = m_edit->textCursor();
   tc.select(QTextCursor::WordUnderCursor);
@@ -237,7 +237,7 @@ void GameConfigEdit::AddMenubarOptions()
   }
 }
 
-void GameConfigEdit::OnAutoComplete(const QString& completion)
+void GameConfigEdit::OnAutoComplete(const QString& completion) const
 {
   QTextCursor cursor = m_edit->textCursor();
   int extra = completion.length() - m_completer->completionPrefix().length();

@@ -110,7 +110,7 @@ void PathPane::BrowseWFS()
   }
 }
 
-void PathPane::OnNANDPathChanged()
+void PathPane::OnNANDPathChanged() const
 {
   SetBase(Config::MAIN_FS_PATH, m_nand_edit->text().toStdString());
 }
@@ -235,7 +235,7 @@ QGridLayout* PathPane::MakePathsLayout()
   return layout;
 }
 
-void PathPane::RemovePath()
+void PathPane::RemovePath() const
 {
   auto item = m_path_list->currentItem();
   if (!item)

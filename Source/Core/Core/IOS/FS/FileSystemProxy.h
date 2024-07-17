@@ -72,10 +72,10 @@ public:
 
   FS::Result<FS::FileStatus> GetFileStatus(u64 fd, Ticks ticks = {});
   FS::ResultCode RenameFile(FS::Uid uid, FS::Gid gid, const std::string& old_path,
-                            const std::string& new_path, Ticks ticks = {});
-  FS::ResultCode DeleteFile(FS::Uid uid, FS::Gid gid, const std::string& path, Ticks ticks = {});
+                            const std::string& new_path, Ticks ticks = {}) const;
+  FS::ResultCode DeleteFile(FS::Uid uid, FS::Gid gid, const std::string& path, Ticks ticks = {}) const;
   FS::ResultCode CreateFile(FS::Uid uid, FS::Gid gid, const std::string& path,
-                            FS::FileAttribute attribute, FS::Modes modes, Ticks ticks = {});
+                            FS::FileAttribute attribute, FS::Modes modes, Ticks ticks = {}) const;
 
   template <typename T>
   s32 Read(const u64 fd, T* data, const size_t count, const Ticks ticks = {})
@@ -149,18 +149,18 @@ private:
 
   using Handle = FSCore::Handle;
 
-  IPCReply Format(const Handle& handle, const IOCtlRequest& request);
-  IPCReply GetStats(const Handle& handle, const IOCtlRequest& request);
-  IPCReply CreateDirectory(const Handle& handle, const IOCtlRequest& request);
-  IPCReply ReadDirectory(const Handle& handle, const IOCtlVRequest& request);
-  IPCReply SetAttribute(const Handle& handle, const IOCtlRequest& request);
-  IPCReply GetAttribute(const Handle& handle, const IOCtlRequest& request);
-  IPCReply DeleteFile(const Handle& handle, const IOCtlRequest& request);
-  IPCReply RenameFile(const Handle& handle, const IOCtlRequest& request);
-  IPCReply CreateFile(const Handle& handle, const IOCtlRequest& request);
-  IPCReply SetFileVersionControl(const Handle& handle, const IOCtlRequest& request);
-  IPCReply GetFileStats(const Handle& handle, const IOCtlRequest& request);
-  IPCReply GetUsage(const Handle& handle, const IOCtlVRequest& request);
+  IPCReply Format(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply GetStats(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply CreateDirectory(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply ReadDirectory(const Handle& handle, const IOCtlVRequest& request) const;
+  IPCReply SetAttribute(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply GetAttribute(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply DeleteFile(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply RenameFile(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply CreateFile(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply SetFileVersionControl(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply GetFileStats(const Handle& handle, const IOCtlRequest& request) const;
+  IPCReply GetUsage(const Handle& handle, const IOCtlVRequest& request) const;
   IPCReply Shutdown(const Handle& handle, const IOCtlRequest& request);
 
   FSCore& m_core;

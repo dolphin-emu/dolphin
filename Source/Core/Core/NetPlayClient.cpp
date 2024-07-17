@@ -952,7 +952,7 @@ void NetPlayClient::OnPowerButton()
   m_dialog->OnMsgPowerButton();
 }
 
-void NetPlayClient::OnPing(sf::Packet& packet)
+void NetPlayClient::OnPing(sf::Packet& packet) const
 {
   u32 ping_key = 0;
   packet >> ping_key;
@@ -1484,7 +1484,7 @@ void NetPlayClient::OnComputeGameDigest(sf::Packet& packet)
   ComputeGameDigest(sync_identifier);
 }
 
-void NetPlayClient::OnGameDigestProgress(sf::Packet& packet)
+void NetPlayClient::OnGameDigestProgress(sf::Packet& packet) const
 {
   PlayerId pid;
   int progress;
@@ -1494,7 +1494,7 @@ void NetPlayClient::OnGameDigestProgress(sf::Packet& packet)
   m_dialog->SetGameDigestProgress(pid, progress);
 }
 
-void NetPlayClient::OnGameDigestResult(sf::Packet& packet)
+void NetPlayClient::OnGameDigestResult(sf::Packet& packet) const
 {
   PlayerId pid;
   std::string result;
@@ -1504,7 +1504,7 @@ void NetPlayClient::OnGameDigestResult(sf::Packet& packet)
   m_dialog->SetGameDigestResult(pid, result);
 }
 
-void NetPlayClient::OnGameDigestError(sf::Packet& packet)
+void NetPlayClient::OnGameDigestError(sf::Packet& packet) const
 {
   PlayerId pid;
   std::string error;
@@ -1520,12 +1520,12 @@ void NetPlayClient::OnGameDigestAbort()
   m_dialog->AbortGameDigest();
 }
 
-void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
+void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id) const
 {
   Common::ENet::SendPacket(m_server, packet, channel_id);
 }
 
-void NetPlayClient::DisplayPlayersPing()
+void NetPlayClient::DisplayPlayersPing() const
 {
   if (!g_ActiveConfig.bShowNetPlayPing)
     return;
@@ -1697,7 +1697,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 
 // called from ---CPU--- thread
 void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus& pad,
-                                        sf::Packet& packet)
+                                        sf::Packet& packet) const
 {
   packet << static_cast<PadIndex>(in_game_pad);
   packet << pad.button;
@@ -1844,7 +1844,7 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
   }
 }
 
-void NetPlayClient::SyncCodeResponse(const bool success)
+void NetPlayClient::SyncCodeResponse(const bool success) const
 {
   // If something failed, immediately report back that code sync failed
   if (!success)
@@ -1879,7 +1879,7 @@ bool NetPlayClient::ChangeGame(const std::string&)
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayClient::UpdateDevices()
+void NetPlayClient::UpdateDevices() const
 {
   u8 local_pad = 0;
   u8 pad = 0;
@@ -2498,7 +2498,7 @@ const PlayerId& NetPlayClient::GetLocalPlayerId() const
   return m_local_player->pid;
 }
 
-void NetPlayClient::SendGameStatus()
+void NetPlayClient::SendGameStatus() const
 {
   sf::Packet packet;
   packet << MessageID::GameStatus;

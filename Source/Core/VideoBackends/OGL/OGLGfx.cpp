@@ -456,7 +456,7 @@ void OGLGfx::WaitForGPUIdle()
   glFinish();
 }
 
-void OGLGfx::CheckForSurfaceChange()
+void OGLGfx::CheckForSurfaceChange() const
 {
   if (!g_presenter->SurfaceChangedTestAndClear())
     return;
@@ -471,7 +471,7 @@ void OGLGfx::CheckForSurfaceChange()
   m_system_framebuffer->UpdateDimensions(width, height);
 }
 
-void OGLGfx::CheckForSurfaceResize()
+void OGLGfx::CheckForSurfaceResize() const
 {
   if (!g_presenter->SurfaceResizedTestAndClear())
     return;
@@ -707,17 +707,17 @@ bool OGLGfx::IsGLES() const
   return m_main_gl_context->IsGLES();
 }
 
-void OGLGfx::BindSharedReadFramebuffer()
+void OGLGfx::BindSharedReadFramebuffer() const
 {
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_shared_read_framebuffer);
 }
 
-void OGLGfx::BindSharedDrawFramebuffer()
+void OGLGfx::BindSharedDrawFramebuffer() const
 {
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_shared_draw_framebuffer);
 }
 
-void OGLGfx::RestoreFramebufferBinding()
+void OGLGfx::RestoreFramebufferBinding() const
 {
   glBindFramebuffer(
       GL_FRAMEBUFFER,

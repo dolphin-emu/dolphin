@@ -48,7 +48,7 @@ VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(st
   OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 }
 
-void VerifyWidget::OnEmulationStateChanged(Core::State state)
+void VerifyWidget::OnEmulationStateChanged(Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -138,7 +138,7 @@ bool VerifyWidget::CanVerifyRedump() const
   return m_md5_checkbox->isChecked() || m_sha1_checkbox->isChecked();
 }
 
-void VerifyWidget::UpdateRedumpEnabled()
+void VerifyWidget::UpdateRedumpEnabled() const
 {
   if (m_redump_checkbox)
     m_redump_checkbox->setEnabled(CanVerifyRedump());
@@ -224,7 +224,7 @@ void VerifyWidget::Verify()
     m_redump_line_edit->setText(QString::fromStdString(result->redump.message));
 }
 
-void VerifyWidget::SetProblemCellText(int row, int column, QString text)
+void VerifyWidget::SetProblemCellText(int row, int column, QString text) const
 {
   QLabel* label = new QLabel(text);
   label->setTextInteractionFlags(Qt::TextSelectableByMouse);

@@ -41,10 +41,10 @@ public:
     AddPacket(reinterpret_cast<const u8*>(&obj), sizeof(obj));
   }
 
-  void AddPacket(const u8* bytes, size_t size);
+  void AddPacket(const u8* bytes, size_t size) const;
 
 private:
-  void AddHeader(u32 link_type);
+  void AddHeader(u32 link_type) const;
 
   std::unique_ptr<File::IOFile> m_fp;
 };

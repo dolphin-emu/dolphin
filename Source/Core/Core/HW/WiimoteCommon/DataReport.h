@@ -82,8 +82,8 @@ public:
   void GetCoreData(CoreData*) const;
   void GetAccelData(AccelData*) const;
 
-  void SetCoreData(const CoreData&);
-  void SetAccelData(const AccelData&);
+  void SetCoreData(const CoreData&) const;
+  void SetAccelData(const AccelData&) const;
 
   u8* GetIRDataPtr();
   const u8* GetIRDataPtr() const;

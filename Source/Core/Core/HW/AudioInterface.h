@@ -44,7 +44,7 @@ public:
   void DoState(PointerWrap& p);
   bool IsPlaying() const;
 
-  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base) const;
 
   // Get the audio rate divisors (divisors for 48KHz or 32KHz only)
   // Mixer::FIXED_SAMPLE_RATE_DIVIDEND will be the dividend used for these divisors
@@ -95,7 +95,7 @@ private:
     u32 hex = 0;
   };
 
-  void UpdateInterrupts();
+  void UpdateInterrupts() const;
   void GenerateAudioInterrupt();
   void IncreaseSampleCount(const u32 amount);
   int GetAIPeriod() const;

@@ -83,8 +83,8 @@ public:
   std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
                              int device_number) override;
 
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
   void ShowGameDigestDialog(const std::string& title) override;
   void SetGameDigestProgress(int pid, int progress) override;
@@ -109,14 +109,14 @@ private:
   void OnChat();
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
-                      int duration = OSD::Duration::NORMAL);
+                      int duration = OSD::Duration::NORMAL) const;
   void ResetExternalIP();
   void UpdateDiscordPresence();
   void UpdateGUI();
   void GameStatusChanged(bool running);
-  void SetOptionsEnabled(bool enabled);
+  void SetOptionsEnabled(bool enabled) const;
 
-  void SendMessage(const std::string& message);
+  void SendMessage(const std::string& message) const;
 
   // Chat
   QGroupBox* m_chat_box;

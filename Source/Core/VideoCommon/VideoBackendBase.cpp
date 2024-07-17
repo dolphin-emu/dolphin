@@ -98,7 +98,7 @@ void VideoBackendBase::Video_ExitLoop()
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_OutputXFB(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height,
-                                       const u64 ticks)
+                                       const u64 ticks) const
 {
   if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {

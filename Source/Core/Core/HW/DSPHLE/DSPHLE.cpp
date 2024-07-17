@@ -60,7 +60,7 @@ u32 DSPHLE::DSP_UpdateRate()
   return m_system.GetSystemTimers().GetTicksPerSecond() / 1000;
 }
 
-void DSPHLE::SendMailToDSP(const u32 mail)
+void DSPHLE::SendMailToDSP(const u32 mail) const
 {
   if (m_ucode != nullptr)
   {

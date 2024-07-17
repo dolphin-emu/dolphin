@@ -3027,7 +3027,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(const RcTcacheEntry& entry, const u32 
                                           const u32 data_size, const TextureFormat format, const u32 width,
                                           const u32 height, const u32 aligned_width, const u32 aligned_height,
                                           const u32 row_stride, const u8* palette,
-                                          TLUTFormat palette_format)
+                                          TLUTFormat palette_format) const
 {
   const auto* info = TextureConversionShaderTiled::GetDecodingShaderInfo(format);
   if (!info)

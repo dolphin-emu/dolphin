@@ -49,7 +49,7 @@ bool IsPairedSingleInstruction(UGeckoInstruction inst)
 // Paired single instructions are illegal to execute if HID2.PSE is not set.
 // It's also illegal to execute psq_l, psq_lu, psq_st, and psq_stu if HID2.PSE is enabled,
 // but HID2.LSQE is not set.
-bool Interpreter::IsInvalidPairedSingleExecution(UGeckoInstruction inst)
+bool Interpreter::IsInvalidPairedSingleExecution(UGeckoInstruction inst) const
 {
   if (!HID2(m_ppc_state).PSE && IsPairedSingleInstruction(inst))
     return true;
@@ -82,7 +82,7 @@ void Interpreter::Shutdown()
 {
 }
 
-void Interpreter::Trace(const UGeckoInstruction& inst)
+void Interpreter::Trace(const UGeckoInstruction& inst) const
 {
   std::string regs;
   for (size_t i = 0; i < std::size(m_ppc_state.gpr); i++)

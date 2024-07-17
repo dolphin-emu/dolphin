@@ -18,7 +18,7 @@ public:
   ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse = false);
 
 private:
-  void Update();
+  void Update() const;
 
   const Config::Info<bool>& m_setting;
   bool m_reverse;

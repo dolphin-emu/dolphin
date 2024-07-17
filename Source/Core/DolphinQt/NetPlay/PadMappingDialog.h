@@ -25,9 +25,9 @@ public:
 
   int exec() override;
 
-  NetPlay::PadMappingArray GetGCPadArray();
+  NetPlay::PadMappingArray GetGCPadArray() const;
   NetPlay::GBAConfigArray GetGBAArray();
-  NetPlay::PadMappingArray GetWiimoteArray();
+  NetPlay::PadMappingArray GetWiimoteArray() const;
 
 private:
   void CreateWidgets();

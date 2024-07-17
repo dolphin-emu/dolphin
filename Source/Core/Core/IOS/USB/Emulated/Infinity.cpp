@@ -441,7 +441,7 @@ u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, const int num_
   return (checksum & 0xFF);
 }
 
-void InfinityBase::GetBlankResponse(const u8 sequence, std::array<u8, 32>& reply_buf)
+void InfinityBase::GetBlankResponse(const u8 sequence, std::array<u8, 32>& reply_buf) const
 {
   reply_buf[0] = 0xaa;
   reply_buf[1] = 0x01;
@@ -449,7 +449,7 @@ void InfinityBase::GetBlankResponse(const u8 sequence, std::array<u8, 32>& reply
   reply_buf[3] = GenerateChecksum(reply_buf, 3);
 }
 
-void InfinityBase::GetPresentFigures(const u8 sequence, std::array<u8, 32>& reply_buf)
+void InfinityBase::GetPresentFigures(const u8 sequence, std::array<u8, 32>& reply_buf) const
 {
   int x = 3;
   for (u8 i = 0; i < m_figures.size(); i++)

@@ -60,8 +60,8 @@ public:
   void SetNandRedirects(std::vector<NandRedirect> nand_redirects) override;
 
 private:
-  void DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path);
-  void DoStateRead(PointerWrap& p, std::string start_directory_path);
+  void DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path) const;
+  void DoStateRead(PointerWrap& p, std::string start_directory_path) const;
 
   struct FstEntry
   {
@@ -104,7 +104,7 @@ private:
   std::string GetFstFilePath() const;
   void ResetFst();
   void LoadFst();
-  void SaveFst();
+  void SaveFst() const;
   /// Get the FST entry for a file (or directory).
   /// Automatically creates fallback entries for parents if they do not exist.
   /// Returns nullptr if the path is invalid or the file does not exist.

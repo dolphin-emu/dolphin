@@ -21,8 +21,8 @@ private:
   void ConnectWidgets();
 
   void OnFreeLookControllerConfigured();
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
   ToolTipCheckBox* m_enable_freelook;
   ConfigChoice* m_freelook_control_type;

@@ -74,7 +74,7 @@ public:
   virtual void SaveConfig(Common::IniFile::Section* sec, const std::string& defdev = "",
                           const std::string& base = "");
 
-  void SetControlExpression(int index, const std::string& expression);
+  void SetControlExpression(int index, const std::string& expression) const;
 
   void AddInput(Translatability translate, std::string name);
   void AddInput(Translatability translate, std::string name, std::string ui_name);

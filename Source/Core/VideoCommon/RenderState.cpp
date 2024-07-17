@@ -243,7 +243,7 @@ void BlendingState::ApproximateLogicOpWithBlending()
   }
 }
 
-bool BlendingState::LogicOpApproximationIsExact()
+bool BlendingState::LogicOpApproximationIsExact() const
 {
   switch (logicmode.Value())
   {
@@ -259,7 +259,7 @@ bool BlendingState::LogicOpApproximationIsExact()
   }
 }
 
-bool BlendingState::LogicOpApproximationWantsShaderHelp()
+bool BlendingState::LogicOpApproximationWantsShaderHelp() const
 {
   switch (logicmode.Value())
   {

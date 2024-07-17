@@ -141,8 +141,8 @@ private:
 
   // Base address where VPBs are stored linearly in RAM.
   u32 m_vpb_base_addr;
-  void FetchVPB(u16 voice_id, VPB* vpb);
-  void StoreVPB(u16 voice_id, VPB* vpb);
+  void FetchVPB(u16 voice_id, VPB* vpb) const;
+  void StoreVPB(u16 voice_id, VPB* vpb) const;
 
   // Sine table transferred from MRAM. Contains sin(x) values for x in
   // [0.0;pi/4] (sin(x) in [1.0;0.0]), in 1.15 fixed format.
@@ -161,7 +161,7 @@ private:
 
   // Resamples raw samples to 0x50 input samples, using the resampling ratio
   // and current position information from the VPB.
-  void Resample(VPB* vpb, const s16* src, MixingBuffer* dst);
+  void Resample(VPB* vpb, const s16* src, MixingBuffer* dst) const;
 
   // Coefficients used for resampling.
   std::array<s16, 0x100> m_resampling_coeffs{};
@@ -173,17 +173,17 @@ private:
   // Downloads PCM encoded samples from ARAM. Handles looping and other
   // parameters appropriately.
   template <typename T>
-  void DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
+  void DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count) const;
 
   // Downloads AFC encoded samples from ARAM and decode them. Handles looping
   // and other parameters appropriately.
-  void DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
-  void DecodeAFC(VPB* vpb, s16* dst, size_t block_count);
+  void DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count) const;
+  void DecodeAFC(VPB* vpb, s16* dst, size_t block_count) const;
   std::array<s16, 0x20> m_afc_coeffs{};
 
   // Downloads samples from MRAM while handling appropriate length / looping
   // behavior.
-  void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
+  void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count) const;
 
   // Applies the reverb effect to Dolby mixed voices based on a set of
   // per-buffer parameters. Is called twice: once before frame rendering and
@@ -277,7 +277,7 @@ private:
     STANDARD,
     DONE_RENDERING,
   };
-  void SendCommandAck(CommandAck ack_type, u16 sync_value);
+  void SendCommandAck(CommandAck ack_type, u16 sync_value) const;
 
   // Audio rendering flow control state.
   u32 m_rendering_requested_frames = 0;

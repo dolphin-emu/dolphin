@@ -102,7 +102,7 @@ void DSPManager::CompleteARAM(u64 userdata, s64 cyclesLate)
   GenerateDSPInterrupt(INT_ARAM, 0);
 }
 
-DSPEmulator* DSPManager::GetDSPEmulator()
+DSPEmulator* DSPManager::GetDSPEmulator() const
 {
   return m_dsp_emulator.get();
 }
@@ -369,7 +369,7 @@ void DSPManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
 }
 
 // UpdateInterrupts
-void DSPManager::UpdateInterrupts()
+void DSPManager::UpdateInterrupts() const
 {
   // For each interrupt bit in DSP_CONTROL, the interrupt enablemask is the bit directly
   // to the left of it. By doing:
@@ -396,7 +396,7 @@ void DSPManager::GenerateDSPInterrupt(const u64 DSPIntType, s64 cyclesLate)
 }
 
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
-void DSPManager::GenerateDSPInterruptFromDSPEmu(const DSPInterruptType type, const int cycles_into_future)
+void DSPManager::GenerateDSPInterruptFromDSPEmu(const DSPInterruptType type, const int cycles_into_future) const
 {
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(cycles_into_future, m_event_type_generate_dsp_interrupt, type,
@@ -592,7 +592,7 @@ u8 DSPManager::ReadARAM(const u32 address) const
   }
 }
 
-void DSPManager::WriteARAM(const u8 value, const u32 address)
+void DSPManager::WriteARAM(const u8 value, const u32 address) const
 {
   // TODO: verify this on Wii
   m_aram.ptr[address & m_aram.mask] = value;

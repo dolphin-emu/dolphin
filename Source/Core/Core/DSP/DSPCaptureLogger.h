@@ -69,7 +69,7 @@ public:
   void LogDMA(u16 control, u32 gc_address, u16 dsp_address, u16 length, const u8* data) override;
 
 private:
-  void LogIFXAccess(bool read, u16 address, u16 value);
+  void LogIFXAccess(bool read, u16 address, u16 value) const;
 
   std::unique_ptr<Common::PCAP> m_pcap;
 };

@@ -33,7 +33,7 @@ public:
   // as the drawing is tied to a "frame".
   std::unique_lock<std::mutex> GetImGuiLock();
 
-  bool IsReady() { return m_ready; }
+  bool IsReady() const { return m_ready; }
 
   // Sets up ImGui state for the next frame.
   // This function itself acquires the ImGui lock, so it should not be held.
@@ -44,7 +44,7 @@ public:
 
   // Renders ImGui windows to the currently-bound framebuffer.
   // Should be called with the ImGui lock held.
-  void DrawImGui();
+  void DrawImGui() const;
 
   // Recompiles ImGui pipeline - call when stereo mode changes.
   bool RecompileImGuiPipeline();
@@ -60,7 +60,7 @@ public:
   void SetMousePress(u32 button_mask);
 
 private:
-  void DrawDebugText();
+  void DrawDebugText() const;
   void DrawChallengesAndLeaderboards();
 
   // ImGui resources.

@@ -35,7 +35,7 @@ public:
 
   void PopulateDevices() override;
   void HandleWindowChange() override;
-  HWND GetHWND();
+  HWND GetHWND() const;
 };
 }  // namespace ciface::Win32
 
@@ -72,7 +72,7 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
   return std::make_unique<InputBackend>(controller_interface);
 }
 
-HWND InputBackend::GetHWND()
+HWND InputBackend::GetHWND() const
 {
   return static_cast<HWND>(GetControllerInterface().GetWindowSystemInfo().render_window);
 }

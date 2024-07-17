@@ -57,7 +57,7 @@ FileDataLoaderHostFS::FileDataLoaderHostFS(std::string sd_root, const std::strin
 }
 
 std::optional<std::string>
-FileDataLoaderHostFS::MakeAbsoluteFromRelative(const std::string_view external_relative_path)
+FileDataLoaderHostFS::MakeAbsoluteFromRelative(const std::string_view external_relative_path) const
 {
 #ifdef _WIN32
   // Riivolution treats a backslash as just a standard filename character, but we can't replicate

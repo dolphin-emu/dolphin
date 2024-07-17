@@ -56,7 +56,7 @@ AsmEditor::AsmEditor(const QString& path, int editor_num, bool dark_scheme, QWid
   });
 }
 
-int AsmEditor::LineNumberAreaWidth()
+int AsmEditor::LineNumberAreaWidth() const
 {
   int num_digits = 1;
   for (int max = qMax(1, blockCount()); max >= 10; max /= 10, ++num_digits)
@@ -335,7 +335,7 @@ void AsmEditor::HighlightCurrentLine()
   blockSignals(old_state);
 }
 
-void AsmEditor::LineNumberAreaPaintEvent(const QPaintEvent* event)
+void AsmEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const
 {
   QPainter painter(m_line_number_area);
   if (m_dark_scheme)

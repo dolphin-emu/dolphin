@@ -208,7 +208,7 @@ public:
   GetExpressionVariables() const;
 
   // Resets the values while keeping the list.
-  void ResetExpressionVariables();
+  void ResetExpressionVariables() const;
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
@@ -257,7 +257,7 @@ protected:
 
   InputOverrideFunction m_input_override_function;
 
-  void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env);
+  void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env) const;
 
 private:
   ciface::Core::DeviceQualifier m_default_device;

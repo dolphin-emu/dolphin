@@ -18,8 +18,8 @@ class SettingsWindow final : public QDialog
   Q_OBJECT
 public:
   explicit SettingsWindow(QWidget* parent = nullptr);
-  void SelectGeneralPane();
-  void SelectAudioPane();
+  void SelectGeneralPane() const;
+  void SelectAudioPane() const;
 
 private:
   QTabWidget* m_tab_widget;

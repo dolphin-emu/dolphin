@@ -117,7 +117,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   OnCompressionChanged();
 }
 
-void ConvertDialog::AddToBlockSizeComboBox(int size)
+void ConvertDialog::AddToBlockSizeComboBox(int size) const
 {
   m_block_size->addItem(QString::fromStdString(UICommon::FormatSize(size, 0)), size);
 
@@ -128,12 +128,12 @@ void ConvertDialog::AddToBlockSizeComboBox(int size)
 }
 
 void ConvertDialog::AddToCompressionComboBox(const QString& name,
-                                             DiscIO::WIARVZCompressionType type)
+                                             DiscIO::WIARVZCompressionType type) const
 {
   m_compression->addItem(name, static_cast<int>(type));
 }
 
-void ConvertDialog::AddToCompressionLevelComboBox(int level)
+void ConvertDialog::AddToCompressionLevelComboBox(int level) const
 {
   m_compression_level->addItem(QString::number(level), level);
 }
@@ -257,7 +257,7 @@ void ConvertDialog::OnFormatChanged()
     m_scrub->setChecked(false);
 }
 
-void ConvertDialog::OnCompressionChanged()
+void ConvertDialog::OnCompressionChanged() const
 {
   m_compression_level->clear();
 
@@ -276,7 +276,7 @@ void ConvertDialog::OnCompressionChanged()
   m_compression_level->setEnabled(m_compression_level->count() > 1);
 }
 
-bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
+bool ConvertDialog::ShowAreYouSureDialog(const QString& text) const
 {
   ModalMessageBox warning(this);
   warning.setIcon(QMessageBox::Warning);

@@ -52,7 +52,7 @@ WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(pa
   LoadSettings(GetState(Core::System::GetInstance()));
 }
 
-void WiimoteControllersWidget::UpdateBluetoothAvailableStatus()
+void WiimoteControllersWidget::UpdateBluetoothAvailableStatus() const
 {
   m_bluetooth_unavailable->setHidden(WiimoteReal::IsScannerReady());
 }
@@ -267,7 +267,7 @@ void WiimoteControllersWidget::OnWiimoteConfigure(size_t index)
   window->show();
 }
 
-void WiimoteControllersWidget::LoadSettings(Core::State state)
+void WiimoteControllersWidget::LoadSettings(Core::State state) const
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
@@ -329,7 +329,7 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   m_wiimote_continuous_scanning->setEnabled(enable_emu_bt || ciface_wiimotes);
 }
 
-void WiimoteControllersWidget::SaveSettings()
+void WiimoteControllersWidget::SaveSettings() const
 {
   {
     Config::ConfigChangeCallbackGuard config_guard;

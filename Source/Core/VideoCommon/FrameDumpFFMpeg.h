@@ -47,10 +47,10 @@ public:
 private:
   bool IsFirstFrameInCurrentFile() const;
   bool PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_index);
-  bool CreateVideoFile();
+  bool CreateVideoFile() const;
   void CloseVideoFile();
   void CheckForConfigChange(const FrameData&);
-  void ProcessPackets();
+  void ProcessPackets() const;
 
 #if defined(HAVE_FFMPEG)
   std::unique_ptr<FrameDumpContext> m_context;

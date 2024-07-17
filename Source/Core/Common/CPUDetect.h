@@ -59,7 +59,7 @@ struct CPUInfo
   //  cpu_id is ':'-delimited string of id info
   //  flags are optionally included if the related feature is supported and reporting its enablement
   //  seems useful to report
-  std::string Summarize();
+  std::string Summarize() const;
 
 private:
   void Detect();

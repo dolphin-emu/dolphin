@@ -451,7 +451,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   }
 }
 
-void VertexShaderManager::TransformToClipSpace(const float* data, float* out, const u32 MtxIdx)
+void VertexShaderManager::TransformToClipSpace(const float* data, float* out, const u32 MtxIdx) const
 {
   const float* world_matrix = &xfmem.posMatrices[(MtxIdx & 0x3f) * 4];
 

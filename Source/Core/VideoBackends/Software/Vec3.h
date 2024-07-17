@@ -69,7 +69,7 @@ public:
 
   float Length2() const { return (x * x) + (y * y) + (z * z); }
   float Length() const { return sqrtf(Length2()); }
-  float Distance2To(const Vec3& other) { return (other - (*this)).Length2(); }
+  float Distance2To(const Vec3& other) const { return (other - (*this)).Length2(); }
   Vec3 Normalized() const { return (*this) / Length(); }
   void Normalize() { (*this) /= Length(); }
   float& operator[](const int i) { return *((&x) + i); }

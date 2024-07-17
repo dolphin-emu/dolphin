@@ -118,7 +118,7 @@ private:
   char* FindBrackets(char* src, char* dst);
   const DSPOPCTemplate* FindOpcode(std::string name, size_t par_count, OpcodeType type);
   bool VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count, OpcodeType type);
-  void BuildCode(const DSPOPCTemplate* opc, const param_t* par, u32 par_count, u16* outbuf);
+  void BuildCode(const DSPOPCTemplate* opc, const param_t* par, u32 par_count, u16* outbuf) const;
 
   std::vector<u16> m_output_buffer;
 

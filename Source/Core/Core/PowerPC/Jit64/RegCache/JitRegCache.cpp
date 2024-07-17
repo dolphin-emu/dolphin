@@ -82,7 +82,7 @@ RCOpArg& RCOpArg::operator=(RCX64Reg&& other) noexcept
   return *this;
 }
 
-void RCOpArg::Realize()
+void RCOpArg::Realize() const
 {
   if (const preg_t* preg = std::get_if<preg_t>(&contents))
   {
@@ -204,7 +204,7 @@ RCX64Reg& RCX64Reg::operator=(RCX64Reg&& other) noexcept
   return *this;
 }
 
-void RCX64Reg::Realize()
+void RCX64Reg::Realize() const
 {
   if (const preg_t* preg = std::get_if<preg_t>(&contents))
   {

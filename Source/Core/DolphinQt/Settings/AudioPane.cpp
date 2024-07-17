@@ -194,7 +194,7 @@ void AudioPane::ConnectWidgets()
 #endif
 }
 
-void AudioPane::LoadSettings()
+void AudioPane::LoadSettings() const
 {
   auto& settings = Settings::Instance();
 
@@ -264,7 +264,7 @@ void AudioPane::LoadSettings()
 #endif
 }
 
-void AudioPane::SaveSettings()
+void AudioPane::SaveSettings() const
 {
   auto& settings = Settings::Instance();
 
@@ -332,7 +332,7 @@ void AudioPane::SaveSettings()
   AudioCommon::UpdateSoundStream(Core::System::GetInstance());
 }
 
-void AudioPane::OnDspChanged()
+void AudioPane::OnDspChanged() const
 {
   const auto backend = Get(Config::MAIN_AUDIO_BACKEND);
 
@@ -342,7 +342,7 @@ void AudioPane::OnDspChanged()
                             m_dolby_pro_logic->isChecked());
 }
 
-void AudioPane::OnBackendChanged()
+void AudioPane::OnBackendChanged() const
 {
   const auto backend = Get(Config::MAIN_AUDIO_BACKEND);
 
@@ -375,7 +375,7 @@ void AudioPane::OnBackendChanged()
   m_volume_indicator->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
 }
 
-void AudioPane::OnEmulationStateChanged(bool running)
+void AudioPane::OnEmulationStateChanged(bool running) const
 {
   m_dsp_hle->setEnabled(!running);
   m_dsp_lle->setEnabled(!running);
@@ -400,7 +400,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
 #endif
 }
 
-void AudioPane::OnVolumeChanged(int volume)
+void AudioPane::OnVolumeChanged(int volume) const
 {
   m_volume_slider->setValue(volume);
   m_volume_indicator->setText(tr("%1%").arg(volume));

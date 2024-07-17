@@ -423,7 +423,7 @@ bool MovieManager::IsNetPlayRecording() const
 }
 
 // NOTE: Host Thread
-void MovieManager::ChangePads()
+void MovieManager::ChangePads() const
 {
   if (!IsRunning(m_system))
     return;
@@ -471,7 +471,7 @@ void MovieManager::ChangePads()
 }
 
 // NOTE: Host / Emu Threads
-void MovieManager::ChangeWiiPads(const bool instantly)
+void MovieManager::ChangeWiiPads(const bool instantly) const
 {
   WiimoteEnabledArray wiimotes{};
 
@@ -1359,7 +1359,7 @@ void MovieManager::EndPlayInput(const bool cont)
 }
 
 // NOTE: Save State + Host Thread
-void MovieManager::SaveRecording(const std::string& filename)
+void MovieManager::SaveRecording(const std::string& filename) const
 {
   File::IOFile save_record(filename, "wb");
   // Create the real header now and write it
@@ -1426,7 +1426,7 @@ void MovieManager::SaveRecording(const std::string& filename)
 }
 
 // NOTE: GPU Thread
-void MovieManager::SetGraphicsConfig()
+void MovieManager::SetGraphicsConfig() const
 {
   g_Config.bEFBAccessEnable = m_temp_header.bEFBAccessEnable;
   g_Config.bSkipEFBCopyToRam = m_temp_header.bSkipEFBCopyToRam;
@@ -1513,7 +1513,7 @@ void MovieManager::GetSettings()
 }
 
 // NOTE: Entrypoint for own thread
-void MovieManager::CheckMD5()
+void MovieManager::CheckMD5() const
 {
   if (m_current_file_name.empty())
     return;

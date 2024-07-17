@@ -154,7 +154,7 @@ void PatchesWidget::OnRemove()
   Update();
 }
 
-void PatchesWidget::SavePatches()
+void PatchesWidget::SavePatches() const
 {
   const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
 
@@ -164,7 +164,7 @@ void PatchesWidget::SavePatches()
   game_ini_local.Save(ini_path);
 }
 
-void PatchesWidget::Update()
+void PatchesWidget::Update() const
 {
   m_list->clear();
 
@@ -179,7 +179,7 @@ void PatchesWidget::Update()
   }
 }
 
-void PatchesWidget::UpdateActions()
+void PatchesWidget::UpdateActions() const
 {
   bool selected = !m_list->selectedItems().isEmpty();
 

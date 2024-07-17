@@ -30,11 +30,11 @@ protected:
 
 private:
   void UpdateLog();
-  void UpdateFont();
+  void UpdateFont() const;
   void CreateWidgets();
   void ConnectWidgets();
   void LoadSettings();
-  void SaveSettings();
+  void SaveSettings() const;
 
   void Log(Common::Log::LogLevel level, const char* text) override;
 

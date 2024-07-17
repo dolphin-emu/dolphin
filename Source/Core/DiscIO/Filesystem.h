@@ -50,7 +50,7 @@ public:
       ++*m_file_info;
       return *this;
     }
-    const_iterator operator++(int)
+    const_iterator operator++(int) const
     {
       const_iterator old = *this;
       ++*m_file_info;

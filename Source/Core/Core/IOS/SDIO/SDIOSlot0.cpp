@@ -391,7 +391,7 @@ IPCReply SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SDIOSlot0Device::ReadHCRegister(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::ReadHCRegister(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -412,7 +412,7 @@ IPCReply SDIOSlot0Device::ReadHCRegister(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SDIOSlot0Device::ResetCard(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::ResetCard(const IOCtlRequest& request) const
 {
   INFO_LOG_FMT(IOS_SD, "IOCTL_RESETCARD");
 
@@ -425,7 +425,7 @@ IPCReply SDIOSlot0Device::ResetCard(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SDIOSlot0Device::SetClk(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::SetClk(const IOCtlRequest& request) const
 {
   INFO_LOG_FMT(IOS_SD, "IOCTL_SETCLK");
 
@@ -501,7 +501,7 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply SDIOSlot0Device::GetOCRegister(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::GetOCRegister(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();

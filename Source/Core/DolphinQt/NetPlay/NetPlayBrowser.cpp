@@ -214,7 +214,7 @@ void NetPlayBrowser::RefreshLoop()
   }
 }
 
-void NetPlayBrowser::UpdateList()
+void NetPlayBrowser::UpdateList() const
 {
   const int session_count = static_cast<int>(m_sessions.size());
 
@@ -265,13 +265,13 @@ void NetPlayBrowser::UpdateList()
       (session_count == 1 ? tr("%1 session found") : tr("%1 sessions found")).arg(session_count));
 }
 
-void NetPlayBrowser::OnSelectionChanged()
+void NetPlayBrowser::OnSelectionChanged() const
 {
   m_button_box->button(QDialogButtonBox::Ok)
       ->setEnabled(!m_table_widget->selectedItems().isEmpty());
 }
 
-void NetPlayBrowser::OnUpdateStatusRequested(const QString& status)
+void NetPlayBrowser::OnUpdateStatusRequested(const QString& status) const
 {
   m_status_label->setText(status);
 }

@@ -133,7 +133,7 @@ void MemArena::ReleaseSHMSegment()
   m_memory_handle = nullptr;
 }
 
-void* MemArena::CreateView(const s64 offset, const size_t size)
+void* MemArena::CreateView(const s64 offset, const size_t size) const
 {
   const u64 off = static_cast<u64>(offset);
   return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, GetHighDWORD(off), GetLowDWORD(off),

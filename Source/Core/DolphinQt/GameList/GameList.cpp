@@ -252,7 +252,7 @@ GameList::~GameList()
   Settings::GetQSettings().setValue(QStringLiteral("gridview/scale"), m_model.GetScale());
 }
 
-void GameList::UpdateColumnVisibility()
+void GameList::UpdateColumnVisibility() const
 {
   const auto SetVisiblity = [this](const GameListModel::Column column, const bool is_visible) {
     m_list->setColumnHidden(static_cast<int>(column), !is_visible);
@@ -350,7 +350,7 @@ void GameList::MakeGridView()
           });
 }
 
-void GameList::ShowHeaderContextMenu(const QPoint& pos)
+void GameList::ShowHeaderContextMenu(const QPoint& pos) const
 {
   const MenuBar* const menu_bar = MenuBar::GetMenuBar();
   if (!menu_bar)
@@ -594,7 +594,7 @@ void GameList::ExportWiiSave()
   }
 }
 
-void GameList::OpenWiki()
+void GameList::OpenWiki() const
 {
   const auto game = GetSelectedGame();
   if (!game)
@@ -617,7 +617,7 @@ void GameList::ConvertFile()
   dialog.exec();
 }
 
-void GameList::InstallWAD()
+void GameList::InstallWAD() const
 {
   const auto game = GetSelectedGame();
   if (!game)
@@ -635,7 +635,7 @@ void GameList::InstallWAD()
   result_dialog.exec();
 }
 
-void GameList::UninstallWAD()
+void GameList::UninstallWAD() const
 {
   const auto game = GetSelectedGame();
   if (!game)
@@ -674,7 +674,7 @@ void GameList::StartWithRiivolution()
   emit OnStartWithRiivolution(*game);
 }
 
-void GameList::SetDefaultISO()
+void GameList::SetDefaultISO() const
 {
   const auto game = GetSelectedGame();
   if (!game)
@@ -684,7 +684,7 @@ void GameList::SetDefaultISO()
       QDir::toNativeSeparators(QString::fromStdString(game->GetFilePath())));
 }
 
-void GameList::OpenContainingFolder()
+void GameList::OpenContainingFolder() const
 {
   const auto game = GetSelectedGame();
   if (!game)
@@ -780,7 +780,7 @@ void GameList::OpenGCSaveFolder()
 }
 
 #ifdef _WIN32
-bool GameList::AddShortcutToDesktop()
+bool GameList::AddShortcutToDesktop() const
 {
   auto init = wil::CoInitializeEx_failfast(COINIT_APARTMENTTHREADED);
   auto shell_link = wil::CoCreateInstanceNoThrow<ShellLink, IShellLink>();
@@ -869,7 +869,7 @@ void GameList::DeleteFile()
   }
 }
 
-void GameList::ChangeDisc()
+void GameList::ChangeDisc() const
 {
   const auto game = GetSelectedGame();
   if (!game)
@@ -947,7 +947,7 @@ std::string GameList::GetNetPlayName(const UICommon::GameFile& game) const
   return m_model.GetNetPlayName(game);
 }
 
-void GameList::SetViewColumn(int col, bool view)
+void GameList::SetViewColumn(int col, bool view) const
 {
   m_list->setColumnHidden(col, !view);
 }
@@ -988,7 +988,7 @@ void GameList::keyPressEvent(QKeyEvent* event)
   }
 }
 
-void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
+void GameList::OnColumnVisibilityToggled(const QString& row, bool visible) const
 {
   using Column = GameListModel::Column;
   static const QMap<QString, Column> rowname_to_column = {
@@ -1011,13 +1011,13 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
   m_list->setColumnHidden(static_cast<int>(rowname_to_column[row]), !visible);
 }
 
-void GameList::OnGameListVisibilityChanged()
+void GameList::OnGameListVisibilityChanged() const
 {
   m_list_proxy->invalidate();
   m_grid_proxy->invalidate();
 }
 
-void GameList::OnSectionResized(int index, int, int)
+void GameList::OnSectionResized(int index, int, int) const
 {
   auto* hor_header = m_list->horizontalHeader();
 
@@ -1063,7 +1063,7 @@ void GameList::OnSectionResized(int index, int, int)
   }
 }
 
-void GameList::OnHeaderViewChanged()
+void GameList::OnHeaderViewChanged() const
 {
   static bool block = false;
 
@@ -1169,7 +1169,7 @@ void GameList::ZoomOut()
   UpdateFont();
 }
 
-void GameList::UpdateFont()
+void GameList::UpdateFont() const
 {
   QFont f;
 

@@ -30,10 +30,10 @@ public:
 private:
   std::shared_ptr<USB::Device> GetDeviceByIOSID(s32 ios_id) const;
 
-  IPCReply CancelInterrupt(const IOCtlRequest& request);
+  IPCReply CancelInterrupt(const IOCtlRequest& request) const;
   std::optional<IPCReply> GetDeviceChange(const IOCtlRequest& request);
   IPCReply Shutdown(const IOCtlRequest& request);
-  s32 SubmitTransfer(USB::Device& device, const IOCtlRequest& request);
+  s32 SubmitTransfer(USB::Device& device, const IOCtlRequest& request) const;
 
   void TriggerDeviceChangeReply();
   std::vector<u8> GetDeviceEntry(const USB::Device& device) const;

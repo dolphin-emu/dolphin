@@ -133,7 +133,7 @@ public:
 
   void Init();
   void ResetDrive(bool spinup);
-  void Shutdown();
+  void Shutdown() const;
   void DoState(PointerWrap& p);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
@@ -141,7 +141,7 @@ public:
   void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
                std::optional<std::vector<std::string>> auto_disc_change_paths);
   bool IsDiscInside() const;
-  void EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause);
+  void EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause) const;
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::vector<std::string>& paths);
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::string& new_path);
   bool AutoChangeDisc(const Core::CPUThreadGuard& guard);
@@ -150,7 +150,7 @@ public:
   // if both of the following conditions are true:
   // - A disc is inserted
   // - The title_id argument doesn't contain a value, or its value matches the disc's title ID
-  bool UpdateRunningGameMetadata(std::optional<u64> title_id = {});
+  bool UpdateRunningGameMetadata(std::optional<u64> title_id = {}) const;
 
   // Direct access to DI for IOS HLE (simpler to implement than how real IOS accesses DI,
   // and lets us skip encrypting/decrypting in some cases)
@@ -184,7 +184,7 @@ private:
   u32 AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process);
 
   void SetLidOpen();
-  void UpdateInterrupts();
+  void UpdateInterrupts() const;
   void GenerateDIInterrupt(DIInterruptType dvd_interrupt);
 
   bool CheckReadPreconditions();

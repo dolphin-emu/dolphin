@@ -46,10 +46,10 @@ private:
   void ShowContextMenu(const QTableWidget* table);
 
   void Update();
-  void UpdateThreadContext(const Common::Debug::PartialContext& context);
+  void UpdateThreadContext(const Common::Debug::PartialContext& context) const;
   void UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
-                             const Common::Debug::PartialContext& context);
-  void OnSelectionChanged(int row);
+                             const Common::Debug::PartialContext& context) const;
+  void OnSelectionChanged(int row) const;
 
   QGroupBox* m_state;
   QLineEdit* m_current_context;

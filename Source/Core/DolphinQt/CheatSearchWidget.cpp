@@ -507,7 +507,7 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   menu->exec(QCursor::pos());
 }
 
-void CheatSearchWidget::OnValueSourceChanged()
+void CheatSearchWidget::OnValueSourceChanged() const
 {
   const auto filter_type = m_value_source_dropdown->currentData().value<Cheats::FilterType>();
   const bool is_value_search = filter_type == Cheats::FilterType::CompareAgainstSpecificValue;

@@ -15,9 +15,9 @@ public:
   CDump(const std::string& filename);
   ~CDump();
 
-  int GetNumberOfSteps();
-  u32 GetGPR(int _step, int _gpr);
-  u32 GetPC(int _step);
+  int GetNumberOfSteps() const;
+  u32 GetGPR(int _step, int _gpr) const;
+  u32 GetPC(int _step) const;
 
 private:
   enum
@@ -31,5 +31,5 @@ private:
 
   size_t m_size = 0;
 
-  u32 Read32(u32 _pos);
+  u32 Read32(u32 _pos) const;
 };

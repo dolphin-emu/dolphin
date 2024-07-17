@@ -328,7 +328,7 @@ void DVDInterface::ResetDrive(const bool spinup)
   m_read_buffer_end_time = 0;
 }
 
-void DVDInterface::Shutdown()
+void DVDInterface::Shutdown() const
 {
   m_system.GetDVDThread().Stop();
 }
@@ -439,7 +439,7 @@ void DVDInterface::InsertDiscCallback(const Core::System& system, u64 userdata, 
 }
 
 // Must only be called on the CPU thread
-void DVDInterface::EjectDisc(const Core::CPUThreadGuard& guard, const EjectCause cause)
+void DVDInterface::EjectDisc(const Core::CPUThreadGuard& guard, const EjectCause cause) const
 {
   m_system.GetCoreTiming().ScheduleEvent(0, m_eject_disc);
   if (cause == EjectCause::User)
@@ -508,7 +508,7 @@ void DVDInterface::SetLidOpen()
     GenerateDIInterrupt(DIInterruptType::CVRINT);
 }
 
-bool DVDInterface::UpdateRunningGameMetadata(const std::optional<u64> title_id)
+bool DVDInterface::UpdateRunningGameMetadata(const std::optional<u64> title_id) const
 {
   auto& dvd_thread = m_system.GetDVDThread();
 
@@ -603,7 +603,7 @@ void DVDInterface::RegisterMMIO(MMIO::Mapping* mmio, const u32 base, const bool 
                  MMIO::InvalidWrite<u32>());
 }
 
-void DVDInterface::UpdateInterrupts()
+void DVDInterface::UpdateInterrupts() const
 {
   const bool set_mask =
       (m_DISR.DEINT & m_DISR.DEINTMASK) != 0 || (m_DISR.TCINT & m_DISR.TCINTMASK) != 0 ||

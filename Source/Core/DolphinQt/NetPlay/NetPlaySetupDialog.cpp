@@ -258,7 +258,7 @@ void NetPlaySetupDialog::ConnectWidgets()
   });
 }
 
-void NetPlaySetupDialog::SaveSettings()
+void NetPlaySetupDialog::SaveSettings() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
@@ -290,7 +290,7 @@ void NetPlaySetupDialog::SaveSettings()
                            m_host_server_password->text().toStdString());
 }
 
-void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
+void NetPlaySetupDialog::OnConnectionTypeChanged(int index) const
 {
   m_connect_port_box->setHidden(index != 0);
   m_connect_port_label->setHidden(index != 0);
@@ -355,7 +355,7 @@ void NetPlaySetupDialog::accept()
   }
 }
 
-void NetPlaySetupDialog::PopulateGameList()
+void NetPlaySetupDialog::PopulateGameList() const
 {
   QSignalBlocker blocker(m_host_games);
 

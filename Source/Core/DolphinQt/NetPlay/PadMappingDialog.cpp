@@ -112,7 +112,7 @@ int PadMappingDialog::exec()
   return QDialog::exec();
 }
 
-NetPlay::PadMappingArray PadMappingDialog::GetGCPadArray()
+NetPlay::PadMappingArray PadMappingDialog::GetGCPadArray() const
 {
   return m_pad_mapping;
 }
@@ -122,7 +122,7 @@ NetPlay::GBAConfigArray PadMappingDialog::GetGBAArray()
   return m_gba_config;
 }
 
-NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray()
+NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray() const
 {
   return m_wii_mapping;
 }

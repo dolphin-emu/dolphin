@@ -32,7 +32,7 @@ public:
   // out:  4 floats which will be initialized with the corresponding clip space coordinates
   // NOTE: m_projection_matrix must be up to date when this is called
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
-  void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
+  void TransformToClipSpace(const float* data, float* out, u32 mtxIdx) const;
 
   static bool UseVertexDepthRange();
 

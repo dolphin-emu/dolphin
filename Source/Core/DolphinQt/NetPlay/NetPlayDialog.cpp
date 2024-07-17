@@ -428,7 +428,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_hide_remote_gbas_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
 }
 
-void NetPlayDialog::SendMessage(const std::string& msg)
+void NetPlayDialog::SendMessage(const std::string& msg) const
 {
   Settings::Instance().GetNetPlayClient()->SendChatMessage(msg);
 
@@ -794,7 +794,7 @@ void NetPlayDialog::Update()
   QueueOnObject(this, &NetPlayDialog::UpdateGUI);
 }
 
-void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color, int duration)
+void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color, int duration) const
 {
   QueueOnObject(m_chat_edit, [this, color, msg] {
     m_chat_edit->append(QStringLiteral("<font color='%1'>%2</font>")
@@ -847,7 +847,7 @@ void NetPlayDialog::GameStatusChanged(bool running)
   QueueOnObject(this, [this, running] { SetOptionsEnabled(!running); });
 }
 
-void NetPlayDialog::SetOptionsEnabled(bool enabled)
+void NetPlayDialog::SetOptionsEnabled(bool enabled) const
 {
   if (Settings::Instance().GetNetPlayServer())
   {
@@ -1124,7 +1124,7 @@ std::string NetPlayDialog::FindGBARomPath(const std::array<u8, 20>& hash, std::s
   return {};
 }
 
-void NetPlayDialog::LoadSettings()
+void NetPlayDialog::LoadSettings() const
 {
   const int buffer_size = Get(Config::NETPLAY_BUFFER_SIZE);
   const bool savedata_load = Get(Config::NETPLAY_SAVEDATA_LOAD);
@@ -1173,7 +1173,7 @@ void NetPlayDialog::LoadSettings()
   }
 }
 
-void NetPlayDialog::SaveSettings()
+void NetPlayDialog::SaveSettings() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 

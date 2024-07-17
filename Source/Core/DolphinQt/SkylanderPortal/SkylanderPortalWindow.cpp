@@ -681,7 +681,7 @@ void SkylanderPortalWindow::OnCollectionPathChanged()
   RefreshList();
 }
 
-void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
+void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -698,7 +698,7 @@ void SkylanderPortalWindow::UpdateCurrentIDs()
   }
 }
 
-void SkylanderPortalWindow::RefreshList()
+void SkylanderPortalWindow::RefreshList() const
 {
   const bool is_dark_theme = Settings::Instance().IsThemeDark();
 
@@ -838,7 +838,7 @@ void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
   UpdateSlotNames();
 }
 
-void SkylanderPortalWindow::UpdateSlotNames()
+void SkylanderPortalWindow::UpdateSlotNames() const
 {
   for (auto i = 0; i < MAX_SKYLANDERS; i++)
   {

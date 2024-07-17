@@ -148,7 +148,7 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
   }
 }
 
-void ControlGroup::SetControlExpression(const int index, const std::string& expression)
+void ControlGroup::SetControlExpression(const int index, const std::string& expression) const
 {
   controls.at(index)->control_ref->SetExpression(expression);
 }

@@ -158,7 +158,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   accept();
 }
 
-void USBDeviceAddToWhitelistDialog::OnDeviceSelection()
+void USBDeviceAddToWhitelistDialog::OnDeviceSelection() const
 {
   // Not the nicest way of doing this but...
   QString device = usb_inserted_devices_list->currentItem()->text().left(9);

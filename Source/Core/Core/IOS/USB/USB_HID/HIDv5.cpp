@@ -117,7 +117,7 @@ s32 USB_HIDv5::SubmitTransfer(const USBV5Device& device, USB::Device& host_devic
   }
 }
 
-IPCReply USB_HIDv5::CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_HIDv5::CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();

@@ -205,7 +205,7 @@ void OnScreenUI::BeginImGuiFrameUnlocked(const u32 width, const u32 height)
   ImGui::NewFrame();
 }
 
-void OnScreenUI::DrawImGui()
+void OnScreenUI::DrawImGui() const
 {
   ImDrawData* draw_data = ImGui::GetDrawData();
   if (!draw_data)
@@ -268,7 +268,7 @@ void OnScreenUI::DrawImGui()
 }
 
 // Create On-Screen-Messages
-void OnScreenUI::DrawDebugText()
+void OnScreenUI::DrawDebugText() const
 {
   const bool show_movie_window =
       Get(Config::MAIN_SHOW_FRAME_COUNT) || Get(Config::MAIN_SHOW_LAG) ||

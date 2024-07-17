@@ -332,7 +332,7 @@ void Presenter::OnBackbufferSet(const bool size_changed, const bool is_first_set
   }
 }
 
-void Presenter::ConfigChanged(const u32 changed_bits)
+void Presenter::ConfigChanged(const u32 changed_bits) const
 {
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
@@ -468,7 +468,7 @@ void Presenter::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rec
   }
 }
 
-void Presenter::ReleaseXFBContentLock()
+void Presenter::ReleaseXFBContentLock() const
 {
   if (m_xfb_entry)
     m_xfb_entry->ReleaseContentLock();
@@ -854,25 +854,25 @@ void Presenter::Present()
   g_gfx->EndUtilityDrawing();
 }
 
-void Presenter::SetKeyMap(const DolphinKeyMap& key_map)
+void Presenter::SetKeyMap(const DolphinKeyMap& key_map) const
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetKeyMap(key_map);
 }
 
-void Presenter::SetKey(const u32 key, const bool is_down, const char* chars)
+void Presenter::SetKey(const u32 key, const bool is_down, const char* chars) const
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetKey(key, is_down, chars);
 }
 
-void Presenter::SetMousePos(const float x, const float y)
+void Presenter::SetMousePos(const float x, const float y) const
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetMousePos(x, y);
 }
 
-void Presenter::SetMousePress(const u32 button_mask)
+void Presenter::SetMousePress(const u32 button_mask) const
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetMousePress(button_mask);

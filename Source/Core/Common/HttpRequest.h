@@ -42,22 +42,22 @@ public:
     std::string data;
   };
 
-  void SetCookies(const std::string& cookies);
-  void UseIPv4();
-  void FollowRedirects(long max = 1);
+  void SetCookies(const std::string& cookies) const;
+  void UseIPv4() const;
+  void FollowRedirects(long max = 1) const;
   s32 GetLastResponseCode() const;
-  std::string EscapeComponent(const std::string& string);
+  std::string EscapeComponent(const std::string& string) const;
   std::string GetHeaderValue(std::string_view name) const;
   Response Get(const std::string& url, const Headers& headers = {},
-               AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+               AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only) const;
   Response Post(const std::string& url, const std::vector<u8>& payload, const Headers& headers = {},
-                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only) const;
   Response Post(const std::string& url, const std::string& payload, const Headers& headers = {},
-                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only) const;
 
   Response PostMultiform(const std::string& url, std::span<Multiform> multiform,
                          const Headers& headers = {},
-                         AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+                         AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only) const;
 
 private:
   class Impl;

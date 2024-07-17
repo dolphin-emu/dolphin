@@ -265,7 +265,7 @@ bool SwapChain::GetFullscreen() const
   return GetFullscreenState(m_swap_chain.Get());
 }
 
-void SwapChain::SetFullscreen(const bool request)
+void SwapChain::SetFullscreen(const bool request) const
 {
   m_swap_chain->SetFullscreenState(request, nullptr);
 }

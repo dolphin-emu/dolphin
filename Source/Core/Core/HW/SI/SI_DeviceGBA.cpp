@@ -188,7 +188,7 @@ bool GBASockServer::Connect()
   return IsConnected();
 }
 
-bool GBASockServer::IsConnected()
+bool GBASockServer::IsConnected() const
 {
   return static_cast<bool>(m_client);
 }
@@ -247,7 +247,7 @@ int GBASockServer::Receive(u8* si_buffer, const u8 bytes)
   return static_cast<int>(std::min(num_received, recv_data.size()));
 }
 
-void GBASockServer::Flush()
+void GBASockServer::Flush() const
 {
   if (!m_client)
     return;

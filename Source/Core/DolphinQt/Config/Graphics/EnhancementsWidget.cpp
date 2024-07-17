@@ -252,7 +252,7 @@ void EnhancementsWidget::ConnectWidgets()
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
 
-void EnhancementsWidget::LoadPPShaders()
+void EnhancementsWidget::LoadPPShaders() const
 {
   std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
   if (g_Config.stereo_mode == StereoMode::Anaglyph)
@@ -491,7 +491,7 @@ void EnhancementsWidget::SaveSettings()
   LoadSettings();
 }
 
-void EnhancementsWidget::AddDescriptions()
+void EnhancementsWidget::AddDescriptions() const
 {
   static const char TR_INTERNAL_RESOLUTION_DESCRIPTION[] =
       QT_TR_NOOP("Controls the rendering resolution.<br><br>A high resolution greatly improves "

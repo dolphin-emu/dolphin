@@ -242,7 +242,7 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
 }
 
 std::optional<DiscIO::Riivolution::Config>
-RiivolutionBootWidget::LoadConfigXML(const std::string& root_directory)
+RiivolutionBootWidget::LoadConfigXML(const std::string& root_directory) const
 {
   // The way Riivolution stores settings only makes sense for standard game IDs.
   if (!(m_game_id.size() == 4 || m_game_id.size() == 6))
@@ -252,7 +252,7 @@ RiivolutionBootWidget::LoadConfigXML(const std::string& root_directory)
       fmt::format("{}/riivolution/config/{}.xml", root_directory, m_game_id.substr(0, 4)));
 }
 
-void RiivolutionBootWidget::SaveConfigXMLs()
+void RiivolutionBootWidget::SaveConfigXMLs() const
 {
   if (!(m_game_id.size() == 4 || m_game_id.size() == 6))
     return;

@@ -240,7 +240,7 @@ void CPUInfo::Detect()
   cpu_id = ReplaceAll(cpu_id, ",", "_");
 }
 
-std::string CPUInfo::Summarize()
+std::string CPUInfo::Summarize() const
 {
   std::vector<std::string> sum;
   sum.push_back(model_name);

@@ -69,8 +69,8 @@ public:
   u32* GetXFMem() { return m_XFMem.data(); }
   u32* GetXFRegs() { return m_XFRegs.data(); }
   u8* GetTexMem() { return m_TexMem.data(); }
-  u32 GetRamSizeReal() { return m_ram_size_real; }
-  u32 GetExRamSizeReal() { return m_exram_size_real; }
+  u32 GetRamSizeReal() const { return m_ram_size_real; }
+  u32 GetExRamSizeReal() const { return m_exram_size_real; }
 
   void AddFrame(const FifoFrameInfo& frameInfo);
   const FifoFrameInfo& GetFrame(const u32 frame) const { return m_Frames[frame]; }

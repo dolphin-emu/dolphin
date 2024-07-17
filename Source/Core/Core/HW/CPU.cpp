@@ -170,7 +170,7 @@ void CPUManager::Run()
 }
 
 // Requires holding m_state_change_lock
-void CPUManager::RunAdjacentSystems(const bool running)
+void CPUManager::RunAdjacentSystems(const bool running) const
 {
   // NOTE: We're assuming these will not try to call Break or SetStepping.
   m_system.GetFifo().EmulatorState(running);

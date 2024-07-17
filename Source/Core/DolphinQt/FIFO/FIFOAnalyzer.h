@@ -40,11 +40,11 @@ private:
 
   void ShowSearchResult(size_t index);
 
-  void UpdateTree();
+  void UpdateTree() const;
   void UpdateDetails();
-  void UpdateDescription();
+  void UpdateDescription() const;
 
-  void OnDebugFontChanged(const QFont& font);
+  void OnDebugFontChanged(const QFont& font) const;
 
   FifoPlayer& m_fifo_player;
 

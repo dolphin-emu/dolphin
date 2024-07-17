@@ -261,7 +261,7 @@ void CEXIMemoryCard::CmdDone()
   m_system.GetExpansionInterface().UpdateInterrupts();
 }
 
-void CEXIMemoryCard::TransferComplete()
+void CEXIMemoryCard::TransferComplete() const
 {
   // Transfer complete, send interrupt
   m_system.GetExpansionInterface()

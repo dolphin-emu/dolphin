@@ -456,7 +456,7 @@ void VKTexture::FinishedRendering()
                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void VKTexture::OverrideImageLayout(const VkImageLayout new_layout)
+void VKTexture::OverrideImageLayout(const VkImageLayout new_layout) const
 {
   m_layout = new_layout;
 }
@@ -885,7 +885,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
 void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
                                                     const MathUtil::Rectangle<int>& src_rect,
                                                     const u32 src_layer, const u32 src_level,
-                                                    const MathUtil::Rectangle<int>& dst_rect)
+                                                    const MathUtil::Rectangle<int>& dst_rect) const
 {
   // The proprietary Qualcomm driver allocates a temporary image when copying from an image
   // with optimal tiling (VK_IMAGE_TILING_OPTIMAL) to a buffer.
@@ -1097,7 +1097,7 @@ VKFramebuffer::Create(VKTexture* color_attachment, VKTexture* depth_attachment,
       layers, samples, fb, load_render_pass, discard_render_pass, clear_render_pass);
 }
 
-void VKFramebuffer::Unbind()
+void VKFramebuffer::Unbind() const
 {
   if (m_color_attachment)
   {
@@ -1115,7 +1115,7 @@ void VKFramebuffer::Unbind()
   }
 }
 
-void VKFramebuffer::TransitionForRender()
+void VKFramebuffer::TransitionForRender() const
 {
   if (m_color_attachment)
   {
@@ -1139,7 +1139,7 @@ void VKFramebuffer::TransitionForRender()
 }
 
 void VKFramebuffer::SetAndClear(const VkRect2D& rect, const VkClearValue& color_value,
-                                const VkClearValue& depth_value)
+                                const VkClearValue& depth_value) const
 {
   std::vector<VkClearValue> clear_values;
   if (GetColorFormat() != AbstractTextureFormat::Undefined)

@@ -76,7 +76,7 @@ public:
   void AddLiteral(u32 lit);
   void AddSymbolResolve(std::string_view sym, bool absolute);
 
-  void RunFixups();
+  void RunFixups() const;
 
   void EvalOperatorRel(AsmOp operation);
   void EvalOperatorAbs(AsmOp operation);
@@ -562,7 +562,7 @@ void GekkoIRPlugin::SaveOperandFixup(const size_t str_left, const size_t str_rig
   m_output_result.operand_pool.emplace_back(Interval{str_left, str_right - str_left}, 0);
 }
 
-void GekkoIRPlugin::RunFixups()
+void GekkoIRPlugin::RunFixups() const
 {
   for (size_t i = 0; i < m_operand_fixups.size(); i++)
   {

@@ -45,21 +45,21 @@ private:
   void OnNewWatch();
 
   void OnLoad();
-  void OnSave();
+  void OnSave() const;
 
-  void UpdateButtonsEnabled();
+  void UpdateButtonsEnabled() const;
   void Update();
-  void SetEmptyRow(int row);
+  void SetEmptyRow(int row) const;
 
   void ShowContextMenu();
   void OnItemChanged(const QTableWidgetItem* item);
-  void LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address);
+  void LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address) const;
   void DeleteSelectedWatches();
-  void DeleteWatch(const Core::CPUThreadGuard& guard, int row);
+  void DeleteWatch(const Core::CPUThreadGuard& guard, int row) const;
   void DeleteWatchAndUpdate(int row);
   void AddWatchBreakpoint(int row);
   void ShowInMemory(int row);
-  void UpdateIcons();
+  void UpdateIcons() const;
   void LockSelectedWatches();
   void UnlockSelectedWatches();
 

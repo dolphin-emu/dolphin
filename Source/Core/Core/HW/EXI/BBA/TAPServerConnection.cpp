@@ -156,7 +156,7 @@ void TAPServerConnection::Deactivate()
   m_fd = -1;
 }
 
-bool TAPServerConnection::IsActivated()
+bool TAPServerConnection::IsActivated() const
 {
   return (m_fd >= 0);
 }
@@ -177,7 +177,7 @@ void TAPServerConnection::RecvStop()
   m_read_enabled.Clear();
 }
 
-bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
+bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf) const
 {
   while (!send_buf->empty())
   {
@@ -214,7 +214,7 @@ bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf)
   return true;
 }
 
-bool TAPServerConnection::SendFrame(const u8* frame, const u32 size)
+bool TAPServerConnection::SendFrame(const u8* frame, const u32 size) const
 {
   INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 
@@ -238,7 +238,7 @@ bool TAPServerConnection::SendFrame(const u8* frame, const u32 size)
   return true;
 }
 
-void TAPServerConnection::ReadThreadHandler()
+void TAPServerConnection::ReadThreadHandler() const
 {
   enum class ReadState
   {

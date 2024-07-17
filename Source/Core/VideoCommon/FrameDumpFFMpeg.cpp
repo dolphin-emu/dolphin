@@ -192,7 +192,7 @@ bool FFMpegFrameDump::PrepareEncoding(const int w, const int h, const u64 start_
   return success;
 }
 
-bool FFMpegFrameDump::CreateVideoFile()
+bool FFMpegFrameDump::CreateVideoFile() const
 {
   const std::string& format = g_Config.sDumpFormat;
 
@@ -406,7 +406,7 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
   ProcessPackets();
 }
 
-void FFMpegFrameDump::ProcessPackets()
+void FFMpegFrameDump::ProcessPackets() const
 {
   auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
       av_packet_alloc(), [](AVPacket* packet) { av_packet_free(&packet); });

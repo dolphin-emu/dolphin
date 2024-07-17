@@ -220,7 +220,7 @@ bool CEXIChannel::IsCausingInterrupt()
   }
 }
 
-IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
+IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select) const
 {
   switch (chip_select)
   {

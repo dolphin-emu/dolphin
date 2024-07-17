@@ -496,7 +496,7 @@ std::optional<IPCReply> FSDevice::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-IPCReply FSDevice::Format(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::Format(const Handle& handle, const IOCtlRequest& request) const
 {
   if (handle.uid != 0)
     return GetFSReply(ConvertResult(ResultCode::AccessDenied));
@@ -505,7 +505,7 @@ IPCReply FSDevice::Format(const Handle& handle, const IOCtlRequest& request)
   return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
-IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request) const
 {
   if (request.buffer_out_size < sizeof(ISFSNandStats))
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -530,7 +530,7 @@ IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequest& request) const
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
@@ -542,7 +542,7 @@ IPCReply FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequest& req
   return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
-IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& request)
+IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& request) const
 {
   if (request.in_vectors.empty() || request.in_vectors.size() != request.io_vectors.size() ||
       request.in_vectors.size() > 2 || request.in_vectors[0].size != 64)
@@ -599,7 +599,7 @@ IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& requ
   return GetFSReply(IPC_SUCCESS);
 }
 
-IPCReply FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest& request) const
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
@@ -611,7 +611,7 @@ IPCReply FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest& reques
   return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
-IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& request) const
 {
   if (request.buffer_in_size < 64 || request.buffer_out_size < sizeof(ISFSParams))
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -638,7 +638,7 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
-ResultCode FSCore::DeleteFile(const Uid uid, const Gid gid, const std::string& path, Ticks ticks)
+ResultCode FSCore::DeleteFile(const Uid uid, const Gid gid, const std::string& path, Ticks ticks) const
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -648,7 +648,7 @@ ResultCode FSCore::DeleteFile(const Uid uid, const Gid gid, const std::string& p
   return result;
 }
 
-IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request) const
 {
   if (request.buffer_in_size < 64)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -663,7 +663,7 @@ IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
 }
 
 ResultCode FSCore::RenameFile(const Uid uid, const Gid gid, const std::string& old_path,
-                              const std::string& new_path, Ticks ticks)
+                              const std::string& new_path, Ticks ticks) const
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -673,7 +673,7 @@ ResultCode FSCore::RenameFile(const Uid uid, const Gid gid, const std::string& o
   return result;
 }
 
-IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request) const
 {
   if (request.buffer_in_size < 64 * 2)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -689,7 +689,7 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
 }
 
 ResultCode FSCore::CreateFile(const Uid uid, const Gid gid, const std::string& path,
-                              const FileAttribute attribute, const Modes modes, Ticks ticks)
+                              const FileAttribute attribute, const Modes modes, Ticks ticks) const
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -699,7 +699,7 @@ ResultCode FSCore::CreateFile(const Uid uid, const Gid gid, const std::string& p
   return result;
 }
 
-IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request) const
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
@@ -710,7 +710,7 @@ IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
   });
 }
 
-IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlRequest& request) const
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
@@ -722,7 +722,7 @@ IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlReques
   return GetFSReply(IPC_SUCCESS);
 }
 
-IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& request) const
 {
   if (request.buffer_out_size < 8)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -755,7 +755,7 @@ Result<FileStatus> FSCore::GetFileStatus(const u64 fd, Ticks ticks)
   return status;
 }
 
-IPCReply FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request)
+IPCReply FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 2) || request.in_vectors[0].size != 64 ||
       request.io_vectors[0].size != 4 || request.io_vectors[1].size != 4)

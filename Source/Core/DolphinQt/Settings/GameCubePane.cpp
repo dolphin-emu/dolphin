@@ -297,7 +297,7 @@ void GameCubePane::ConnectWidgets()
   OnEmulationStateChanged();
 }
 
-void GameCubePane::OnEmulationStateChanged()
+void GameCubePane::OnEmulationStateChanged() const
 {
 #ifdef HAS_LIBMGBA
   bool gba_enabled = !NetPlay::IsNetPlayRunning();

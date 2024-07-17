@@ -381,7 +381,7 @@ private:
   private:
     TAPServerConnection m_tapserver_if;
 
-    void HandleReceivedFrame(std::string&& data);
+    void HandleReceivedFrame(std::string&& data) const;
   };
 
   class XLinkNetworkInterface : public NetworkInterface

@@ -38,7 +38,7 @@ public:
   void Load(const GraphicsModGroupConfig& config);
 
 private:
-  void EndOfFrame();
+  void EndOfFrame() const;
   void Reset();
 
   class DecoratedAction;

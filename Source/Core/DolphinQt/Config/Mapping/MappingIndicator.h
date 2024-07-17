@@ -41,7 +41,7 @@ public:
   QBrush GetDeadZoneBrush(const QPainter&) const;
   QColor GetTextColor() const;
   QColor GetAltTextColor() const;
-  void AdjustGateColor(QColor*);
+  void AdjustGateColor(QColor*) const;
 
 protected:
   virtual void Draw() {}
@@ -56,8 +56,8 @@ protected:
   SquareIndicator();
 
   qreal GetContentsScale() const;
-  void DrawBoundingBox(QPainter&);
-  void TransformPainter(QPainter&);
+  void DrawBoundingBox(QPainter&) const;
+  void TransformPainter(QPainter&) const;
 };
 
 class ReshapableInputIndicator : public SquareIndicator
@@ -73,8 +73,8 @@ protected:
 
   bool IsCalibrating() const;
 
-  void DrawCalibration(QPainter& p, Common::DVec2 point);
-  void UpdateCalibrationWidget(Common::DVec2 point);
+  void DrawCalibration(QPainter& p, Common::DVec2 point) const;
+  void UpdateCalibrationWidget(Common::DVec2 point) const;
 
 private:
   CalibrationWidget* m_calibration_widget{};

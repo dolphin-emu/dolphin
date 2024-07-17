@@ -75,15 +75,15 @@ private:
   void CreateMainLayout();
   void ConnectWidgets();
   void ConfigChanged();
-  void Update();
+  void Update() const;
 
   void OnDialogButtonPressed(const QAbstractButton* button);
   void OnDeviceChanged();
-  void OnDetectButtonPressed();
-  void OnTestButtonPressed();
-  void OnRangeChanged(int range);
+  void OnDetectButtonPressed() const;
+  void OnTestButtonPressed() const;
+  void OnRangeChanged(int range) const;
 
-  void AppendSelectedOption();
+  void AppendSelectedOption() const;
   void UpdateOptionList();
   void UpdateDeviceList();
   void ReleaseDevices();
@@ -94,7 +94,7 @@ private:
     Force,
   };
 
-  void UpdateExpression(std::string new_expression, UpdateMode mode = UpdateMode::Normal);
+  void UpdateExpression(std::string new_expression, UpdateMode mode = UpdateMode::Normal) const;
 
   // Main Layout
   QVBoxLayout* m_main_layout;

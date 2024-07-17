@@ -158,7 +158,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
   }
 }
 
-void PixelEngineManager::UpdateInterrupts()
+void PixelEngineManager::UpdateInterrupts() const
 {
   auto& processor_interface = m_system.GetProcessorInterface();
 

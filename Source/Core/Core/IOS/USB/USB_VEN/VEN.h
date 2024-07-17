@@ -20,10 +20,10 @@ public:
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
 private:
-  IPCReply CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request);
-  IPCReply GetDeviceInfo(const USBV5Device& device, const IOCtlRequest& request);
+  IPCReply CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request) const;
+  IPCReply GetDeviceInfo(const USBV5Device& device, const IOCtlRequest& request) const;
 
-  s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv);
+  s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv) const;
   bool HasInterfaceNumberInIDs() const override { return false; }
 
   ScanThread& GetScanThread() override { return m_scan_thread; }

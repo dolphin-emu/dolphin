@@ -756,14 +756,14 @@ void CodeViewWidget::OnDebugFontChanged(const QFont& font)
   FontBasedSizing();
 }
 
-void CodeViewWidget::OnCopyAddress()
+void CodeViewWidget::OnCopyAddress() const
 {
   const u32 addr = GetContextAddress();
 
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 }
 
-void CodeViewWidget::OnCopyTargetAddress()
+void CodeViewWidget::OnCopyTargetAddress() const
 {
   if (GetState(m_system) != Core::State::Paused)
     return;
@@ -815,7 +815,7 @@ void CodeViewWidget::OnShowTargetInMemory()
     emit ShowMemory(*target_addr);
 }
 
-void CodeViewWidget::OnCopyCode()
+void CodeViewWidget::OnCopyCode() const
 {
   const u32 addr = GetContextAddress();
 
@@ -827,7 +827,7 @@ void CodeViewWidget::OnCopyCode()
   QApplication::clipboard()->setText(QString::fromStdString(text));
 }
 
-void CodeViewWidget::OnCopyFunction()
+void CodeViewWidget::OnCopyFunction() const
 {
   const u32 address = GetContextAddress();
 
@@ -854,7 +854,7 @@ void CodeViewWidget::OnCopyFunction()
   QApplication::clipboard()->setText(QString::fromStdString(text));
 }
 
-void CodeViewWidget::OnCopyHex()
+void CodeViewWidget::OnCopyHex() const
 {
   const u32 addr = GetContextAddress();
 
@@ -867,7 +867,7 @@ void CodeViewWidget::OnCopyHex()
       QStringLiteral("%1").arg(instruction, 8, 16, QLatin1Char('0')));
 }
 
-void CodeViewWidget::OnRunToHere()
+void CodeViewWidget::OnRunToHere() const
 {
   const u32 addr = GetContextAddress();
 
@@ -881,7 +881,7 @@ void CodeViewWidget::OnPPCComparison()
   emit RequestPPCComparison(addr);
 }
 
-void CodeViewWidget::OnAddFunction()
+void CodeViewWidget::OnAddFunction() const
 {
   const u32 addr = GetContextAddress();
 

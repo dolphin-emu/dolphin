@@ -541,7 +541,7 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   return std::nullopt;
 }
 
-void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
+void MMU::Memcheck(u32 address, u64 var, bool write, size_t size) const
 {
   if (!m_power_pc.GetMemChecks().HasAny())
     return;
@@ -1014,7 +1014,7 @@ bool MMU::HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 add
   return false;
 }
 
-void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 num_blocks)
+void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 num_blocks) const
 {
   // TODO: It's not completely clear this is the right spot for this code;
   // what would happen if, for example, the DVD drive tried to write to the EFB?
@@ -1047,7 +1047,7 @@ void MMU::DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u
   m_memory.CopyToEmu(mem_address, src, 32 * num_blocks);
 }
 
-void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks)
+void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks) const
 {
   // No known game uses this; here for completeness.
   // TODO: Refactor.
@@ -1269,7 +1269,7 @@ TranslateResult MMU::JitCache_TranslateAddress(u32 address)
   return TranslateResult{from_bat, tlb_addr.address};
 }
 
-void MMU::GenerateDSIException(u32 effective_address, bool write)
+void MMU::GenerateDSIException(u32 effective_address, bool write) const
 {
   // DSI exceptions are only supported in MMU mode.
   if (!m_system.IsMMUMode())
@@ -1297,7 +1297,7 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
   m_ppc_state.Exceptions |= EXCEPTION_DSI;
 }
 
-void MMU::GenerateISIException(u32 effective_address)
+void MMU::GenerateISIException(u32 effective_address) const
 {
   // Address of instruction could not be translated
   m_ppc_state.npc = effective_address;
@@ -1306,7 +1306,7 @@ void MMU::GenerateISIException(u32 effective_address)
   WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", m_ppc_state.pc);
 }
 
-void MMU::SDRUpdated()
+void MMU::SDRUpdated() const
 {
   const auto sdr = UReg_SDR1{m_ppc_state.spr[SPR_SDR]};
   const u32 htabmask = sdr.htabmask;
@@ -1407,7 +1407,7 @@ static void UpdateTLBEntry(PowerPCState& ppc_state, const XCheckTLBFlag flag, UP
   tlbe.vsid[index] = vsid;
 }
 
-void MMU::InvalidateTLBEntry(u32 address)
+void MMU::InvalidateTLBEntry(u32 address) const
 {
   const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
 
@@ -1515,7 +1515,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
   return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
 }
 
-void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
+void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr) const
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
   // TODO: Handle PP settings.
@@ -1608,7 +1608,7 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
   }
 }
 
-void MMU::UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
+void MMU::UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr) const
 {
   for (u32 i = 0; i < (0x10000000 >> BAT_INDEX_SHIFT); ++i)
   {

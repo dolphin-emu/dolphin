@@ -446,7 +446,7 @@ void CommandProcessorManager::UpdateInterrupts(const u64 userdata)
   m_system.GetFifo().RunGpu();
 }
 
-void CommandProcessorManager::UpdateInterruptsFromVideoBackend(const u64 userdata)
+void CommandProcessorManager::UpdateInterruptsFromVideoBackend(const u64 userdata) const
 {
   if (!m_system.GetFifo().UseDeterministicGPUThread())
   {

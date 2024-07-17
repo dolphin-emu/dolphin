@@ -161,7 +161,7 @@ IPCReply OH0::GetRhPortStatus(const IOCtlVRequest& request) const
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply OH0::SetRhPortStatus(const IOCtlVRequest& request)
+IPCReply OH0::SetRhPortStatus(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(IPC_EINVAL);
@@ -222,7 +222,7 @@ std::optional<IPCReply> OH0::RegisterInsertionHookWithID(const IOCtlVRequest& re
   return std::nullopt;
 }
 
-std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& request)
+std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(IPC_EINVAL);
@@ -312,7 +312,7 @@ std::optional<IPCReply> OH0::DeviceIOCtl(const u64 device_id, const IOCtlRequest
   }
 }
 
-std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVRequest& request)
+std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVRequest& request) const
 {
   const auto device = GetDeviceById(device_id);
   if (!device)
@@ -335,7 +335,7 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
   }
 }
 
-s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
+s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();

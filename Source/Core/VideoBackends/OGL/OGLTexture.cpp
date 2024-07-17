@@ -244,7 +244,7 @@ void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 void OGLTexture::BlitFramebuffer(const OGLTexture* srcentry, const MathUtil::Rectangle<int>& src_rect,
                                  const u32 src_layer, const u32 src_level,
                                  const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
-                                 const u32 dst_level)
+                                 const u32 dst_level) const
 {
   GetOGLGfx()->BindSharedReadFramebuffer();
   glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, srcentry->m_texId, src_level,

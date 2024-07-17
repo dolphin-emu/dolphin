@@ -315,7 +315,7 @@ bool IniFile::Load(const std::string& filename, const bool keep_current_data)
   return true;
 }
 
-bool IniFile::Save(const std::string& filename)
+bool IniFile::Save(const std::string& filename) const
 {
   std::ofstream out;
   std::string temp = File::GetTempFilenameForAtomicWrite(filename);

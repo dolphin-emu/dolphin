@@ -54,7 +54,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(GuitarGroup group);
+  ControllerEmu::ControlGroup* GetGroup(GuitarGroup group) const;
 
   static constexpr u16 BUTTON_PLUS = 0x04;
   static constexpr u16 BUTTON_MINUS = 0x10;

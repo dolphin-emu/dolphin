@@ -64,8 +64,8 @@ public:
   void Reset();
 
   // TODO: change int to u16 or something
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out);
-  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in);
+  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) const;
+  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) const;
 
 private:
   // Pointers are unowned:

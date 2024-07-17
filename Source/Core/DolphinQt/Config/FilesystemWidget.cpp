@@ -313,7 +313,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   menu->exec(QCursor::pos());
 }
 
-DiscIO::Partition FilesystemWidget::GetPartitionFromID(int id)
+DiscIO::Partition FilesystemWidget::GetPartitionFromID(int id) const
 {
   return id == -1 ? DiscIO::PARTITION_NONE : m_volume->GetPartitions()[id];
 }
@@ -324,7 +324,7 @@ void FilesystemWidget::ExtractPartition(const DiscIO::Partition& partition, cons
   ExtractSystemData(partition, out);
 }
 
-bool FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, const QString& out)
+bool FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, const QString& out) const
 {
   return ExportSystemData(*m_volume, partition, out.toStdString());
 }

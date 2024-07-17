@@ -85,7 +85,7 @@ void GeneralPane::CreateLayout()
   setLayout(m_main_layout);
 }
 
-void GeneralPane::OnEmulationStateChanged(Core::State state)
+void GeneralPane::OnEmulationStateChanged(Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
   const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
@@ -328,7 +328,7 @@ static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
   return value;
 }
 
-void GeneralPane::OnSaveConfig()
+void GeneralPane::OnSaveConfig() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
@@ -354,7 +354,7 @@ void GeneralPane::OnSaveConfig()
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-void GeneralPane::GenerateNewIdentity()
+void GeneralPane::GenerateNewIdentity() const
 {
   DolphinAnalytics::Instance().GenerateNewIdentity();
   DolphinAnalytics::Instance().ReloadConfig();

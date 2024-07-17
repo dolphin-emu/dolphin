@@ -109,7 +109,7 @@ void RegisterWidget::ConnectWidgets()
   connect(&Settings::Instance(), &Settings::DebugFontChanged, m_table, &RegisterWidget::setFont);
 }
 
-void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
+void RegisterWidget::OnItemChanged(QTableWidgetItem* item) const
 {
   if (!item->data(DATA_TYPE).isNull() && !m_updating)
     static_cast<RegisterColumn*>(item)->SetValue();

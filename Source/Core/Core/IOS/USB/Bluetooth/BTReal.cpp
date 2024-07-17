@@ -402,7 +402,7 @@ void BluetoothRealDevice::TriggerSyncButtonHeldEvent()
   m_sync_button_state = SyncButtonState::LongPressed;
 }
 
-void BluetoothRealDevice::WaitForHCICommandComplete(const u16 opcode)
+void BluetoothRealDevice::WaitForHCICommandComplete(const u16 opcode) const
 {
   int actual_length;
   SHCIEventCommand packet;
@@ -420,7 +420,7 @@ void BluetoothRealDevice::WaitForHCICommandComplete(const u16 opcode)
   }
 }
 
-void BluetoothRealDevice::SendHCIResetCommand()
+void BluetoothRealDevice::SendHCIResetCommand() const
 {
   u8 packet[3] = {};
   const u16 payload[] = {HCI_CMD_RESET};
@@ -433,7 +433,7 @@ void BluetoothRealDevice::SendHCIResetCommand()
     INFO_LOG_FMT(IOS_WIIMOTE, "Sent a reset command to adapter");
 }
 
-void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand()
+void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand() const
 {
   struct Payload
   {
@@ -453,7 +453,7 @@ void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand()
     WARN_LOG_FMT(IOS_WIIMOTE, "libusb_control_transfer failed: {}", LibusbUtils::ErrorWrap(ret));
 }
 
-bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
+bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand() const
 {
   if (m_link_keys.empty())
     return false;
@@ -494,7 +494,7 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
   return true;
 }
 
-void BluetoothRealDevice::FakeVendorCommandReply(const USB::V0IntrMessage& ctrl)
+void BluetoothRealDevice::FakeVendorCommandReply(const USB::V0IntrMessage& ctrl) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -514,7 +514,7 @@ void BluetoothRealDevice::FakeVendorCommandReply(const USB::V0IntrMessage& ctrl)
 // - it will cause a u8 underflow and royally screw things up.
 // Therefore, the reply to this command has to be faked to avoid random, weird issues
 // (including Wiimote disconnects and "event mismatch" warning messages).
-void BluetoothRealDevice::FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl)
+void BluetoothRealDevice::FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -539,7 +539,7 @@ void BluetoothRealDevice::FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl
 }
 
 void BluetoothRealDevice::FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload,
-                                              const u8 size)
+                                              const u8 size) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -613,7 +613,7 @@ void BluetoothRealDevice::LoadLinkKeys()
   }
 }
 
-void BluetoothRealDevice::SaveLinkKeys()
+void BluetoothRealDevice::SaveLinkKeys() const
 {
   std::ostringstream oss;
   for (const auto& entry : m_link_keys)

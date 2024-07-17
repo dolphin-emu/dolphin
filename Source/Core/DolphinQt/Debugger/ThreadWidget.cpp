@@ -349,7 +349,7 @@ void ThreadWidget::Update()
   UpdateThreadContext({});
 }
 
-void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& context)
+void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& context) const
 {
   const auto format_hex = [](const std::optional<u32>& value) {
     if (!value)
@@ -440,7 +440,7 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
 }
 
 void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
-                                         const Common::Debug::PartialContext& context)
+                                         const Common::Debug::PartialContext& context) const
 {
   m_callstack_table->setRowCount(0);
 
@@ -476,7 +476,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
   }
 }
 
-void ThreadWidget::OnSelectionChanged(int row)
+void ThreadWidget::OnSelectionChanged(int row) const
 {
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   Common::Debug::PartialContext context;

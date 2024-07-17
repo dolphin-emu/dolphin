@@ -278,14 +278,14 @@ public:
 
   // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
   // It's not threadsafe otherwise.
-  void SingleStep();
+  void SingleStep() const;
   void CheckExceptions();
   void CheckExternalExceptions();
   // Evaluate the breakpoints in order to log. Returns whether it would break.
   bool CheckBreakPoints();
   // Evaluate the breakpoints in order to log and/or break. Returns whether it breaks.
   bool CheckAndHandleBreakPoints();
-  void RunLoop();
+  void RunLoop() const;
 
   u64 ReadFullTimeBaseValue() const;
   void WriteFullTimeBaseValue(u64 value);

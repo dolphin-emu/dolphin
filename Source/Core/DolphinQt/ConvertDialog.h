@@ -33,15 +33,15 @@ public:
 
 private slots:
   void OnFormatChanged();
-  void OnCompressionChanged();
+  void OnCompressionChanged() const;
   void Convert();
 
 private:
-  void AddToBlockSizeComboBox(int size);
-  void AddToCompressionComboBox(const QString& name, DiscIO::WIARVZCompressionType type);
-  void AddToCompressionLevelComboBox(int level);
+  void AddToBlockSizeComboBox(int size) const;
+  void AddToCompressionComboBox(const QString& name, DiscIO::WIARVZCompressionType type) const;
+  void AddToCompressionLevelComboBox(int level) const;
 
-  bool ShowAreYouSureDialog(const QString& text);
+  bool ShowAreYouSureDialog(const QString& text) const;
 
   QComboBox* m_format;
   QComboBox* m_block_size;

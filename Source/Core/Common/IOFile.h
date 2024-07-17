@@ -103,7 +103,7 @@ public:
   // m_good is set to false when a read, write or other function fails
   bool IsGood() const { return m_good; }
   explicit operator bool() const { return IsGood() && IsOpen(); }
-  std::FILE* GetHandle() { return m_file; }
+  std::FILE* GetHandle() const { return m_file; }
   void SetHandle(std::FILE* file);
 
   bool Seek(s64 offset, SeekOrigin origin);

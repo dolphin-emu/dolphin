@@ -166,7 +166,7 @@ void Nunchuk::Reset()
   UpdateCalibrationDataChecksum(m_reg.calibration, CALIBRATION_CHECKSUM_BYTES);
 }
 
-ControllerEmu::ControlGroup* Nunchuk::GetGroup(const NunchukGroup group)
+ControllerEmu::ControlGroup* Nunchuk::GetGroup(const NunchukGroup group) const
 {
   switch (group)
   {

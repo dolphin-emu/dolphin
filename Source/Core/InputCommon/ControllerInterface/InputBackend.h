@@ -30,7 +30,7 @@ public:
 
   virtual void HandleWindowChange();
 
-  ControllerInterface& GetControllerInterface();
+  ControllerInterface& GetControllerInterface() const;
 
 private:
   ControllerInterface& m_controller_interface;

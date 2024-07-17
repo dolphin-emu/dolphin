@@ -131,7 +131,7 @@ void FIFOAnalyzer::Update()
   UpdateDescription();
 }
 
-void FIFOAnalyzer::UpdateTree()
+void FIFOAnalyzer::UpdateTree() const
 {
   m_tree_widget->clear();
 
@@ -743,7 +743,7 @@ public:
 };
 }  // namespace
 
-void FIFOAnalyzer::UpdateDescription()
+void FIFOAnalyzer::UpdateDescription() const
 {
   m_entry_detail_browser->clear();
 
@@ -777,7 +777,7 @@ void FIFOAnalyzer::UpdateDescription()
   m_entry_detail_browser->setText(callback.text);
 }
 
-void FIFOAnalyzer::OnDebugFontChanged(const QFont& font)
+void FIFOAnalyzer::OnDebugFontChanged(const QFont& font) const
 {
   m_detail_list->setFont(font);
   m_entry_detail_browser->setFont(font);

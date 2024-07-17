@@ -33,7 +33,7 @@ ExpansionInterfaceManager::ExpansionInterfaceManager(Core::System& system) : m_s
 
 ExpansionInterfaceManager::~ExpansionInterfaceManager() = default;
 
-void ExpansionInterfaceManager::AddMemoryCard(const Slot slot)
+void ExpansionInterfaceManager::AddMemoryCard(const Slot slot) const
 {
   EXIDeviceType memorycard_device;
 
@@ -165,13 +165,13 @@ void ExpansionInterfaceManager::Shutdown()
   }
 }
 
-void ExpansionInterfaceManager::DoState(PointerWrap& p)
+void ExpansionInterfaceManager::DoState(PointerWrap& p) const
 {
   for (auto& channel : m_channels)
     channel->DoState(p);
 }
 
-void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
+void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base) const
 {
   for (int i = 0; i < MAX_EXI_CHANNELS; ++i)
   {
@@ -197,13 +197,13 @@ void ExpansionInterfaceManager::ChangeDeviceCallback(const Core::System& system,
 }
 
 void ExpansionInterfaceManager::ChangeDevice(const Slot slot, const EXIDeviceType device_type,
-                                             const CoreTiming::FromThread from_thread)
+                                             const CoreTiming::FromThread from_thread) const
 {
   ChangeDevice(SlotToEXIChannel(slot), SlotToEXIDevice(slot), device_type, from_thread);
 }
 
 void ExpansionInterfaceManager::ChangeDevice(const u8 channel, const u8 device_num, EXIDeviceType device_type,
-                                             const CoreTiming::FromThread from_thread)
+                                             const CoreTiming::FromThread from_thread) const
 {
   // Let the hardware see no device for 1 second
   auto& core_timing = m_system.GetCoreTiming();
@@ -215,17 +215,17 @@ void ExpansionInterfaceManager::ChangeDevice(const u8 channel, const u8 device_n
       ((u64)channel << 32) | ((u64)device_type << 16) | device_num, from_thread);
 }
 
-CEXIChannel* ExpansionInterfaceManager::GetChannel(const u32 index)
+CEXIChannel* ExpansionInterfaceManager::GetChannel(const u32 index) const
 {
   return m_channels.at(index).get();
 }
 
-IEXIDevice* ExpansionInterfaceManager::GetDevice(const Slot slot)
+IEXIDevice* ExpansionInterfaceManager::GetDevice(const Slot slot) const
 {
   return m_channels.at(SlotToEXIChannel(slot))->GetDevice(1 << SlotToEXIDevice(slot));
 }
 
-void ExpansionInterfaceManager::UpdateInterrupts()
+void ExpansionInterfaceManager::UpdateInterrupts() const
 {
   // Interrupts are mapped a bit strangely:
   // Channel 0 Device 0 generates interrupt on channel 0
@@ -247,7 +247,7 @@ void ExpansionInterfaceManager::UpdateInterruptsCallback(const Core::System& sys
 }
 
 void ExpansionInterfaceManager::ScheduleUpdateInterrupts(const CoreTiming::FromThread from,
-                                                         const int cycles_late)
+                                                         const int cycles_late) const
 {
   m_system.GetCoreTiming().ScheduleEvent(cycles_late, m_event_type_update_interrupts, 0, from);
 }

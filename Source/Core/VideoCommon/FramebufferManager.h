@@ -94,12 +94,12 @@ public:
   void RecompileShaders();
 
   // This is virtual, because D3D has both normalized and integer framebuffers.
-  void BindEFBFramebuffer();
+  void BindEFBFramebuffer() const;
 
   // Resolve color/depth textures to a non-msaa texture, and return it.
-  AbstractTexture* ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region);
+  AbstractTexture* ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region) const;
   AbstractTexture* ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region,
-                                          bool force_r32f = false);
+                                          bool force_r32f = false) const;
 
   // Reinterpret pixel format of EFB color texture.
   // Assumes no render pass is currently in progress.
@@ -184,15 +184,15 @@ protected:
   void PopulateEFBCache(bool depth, u32 tile_index, bool async = false);
 
   void CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x, u32 y, float z,
-                          u32 color);
+                          u32 color) const;
 
   void DrawPokeVertices(const EFBPokeVertex* vertices, u32 vertex_count,
-                        const AbstractPipeline* pipeline);
+                        const AbstractPipeline* pipeline) const;
 
   std::tuple<u32, u32> CalculateTargetSize();
 
   void DoLoadState(PointerWrap& p);
-  void DoSaveState(PointerWrap& p);
+  void DoSaveState(PointerWrap& p) const;
 
   float m_efb_scale = 1.0f;
   PixelFormat m_prev_efb_format;

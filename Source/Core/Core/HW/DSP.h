@@ -84,16 +84,16 @@ public:
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-  DSPEmulator* GetDSPEmulator();
+  DSPEmulator* GetDSPEmulator() const;
 
   void DoState(PointerWrap& p);
 
   // TODO: Maybe rethink this? The timing is unpredictable.
-  void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future = 0);
+  void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future = 0) const;
 
   // Audio/DSP Helper
   u8 ReadARAM(u32 address) const;
-  void WriteARAM(u8 value, u32 address);
+  void WriteARAM(u8 value, u32 address) const;
 
   // Debugger Helper
   u8* GetARAMPtr() const;
@@ -106,7 +106,7 @@ private:
   static void GlobalGenerateDSPInterrupt(const Core::System& system, u64 DSPIntType, s64 cyclesLate);
   void CompleteARAM(u64 userdata, s64 cyclesLate);
   static void GlobalCompleteARAM(const Core::System& system, u64 userdata, s64 cyclesLate);
-  void UpdateInterrupts();
+  void UpdateInterrupts() const;
   void Do_ARAM_DMA();
 
   // UARAMCount

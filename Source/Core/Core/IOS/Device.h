@@ -220,7 +220,7 @@ protected:
   bool m_is_active = false;
 
 private:
-  std::optional<IPCReply> Unsupported(const Request& request);
+  std::optional<IPCReply> Unsupported(const Request& request) const;
 };
 
 // Helper class for Devices that we know are only ever instantiated under an EmulationKernel.

@@ -134,7 +134,7 @@ public:
     m_current_pipeline_object = nullptr;
     m_pipeline_config_changed = true;
   }
-  void NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config);
+  void NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config) const;
 
   // Utility pipeline drawing (e.g. EFB copies, post-processing, UI).
   virtual void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);

@@ -52,7 +52,7 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
   env.CleanUnusedVariables();
 }
 
-void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
+void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env) const
 {
   const auto lock = GetStateLock();
 
@@ -94,7 +94,7 @@ EmulatedController::GetExpressionVariables() const
   return m_expression_vars;
 }
 
-void EmulatedController::ResetExpressionVariables()
+void EmulatedController::ResetExpressionVariables() const
 {
   for (auto& var : m_expression_vars)
   {

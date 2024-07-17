@@ -1653,7 +1653,7 @@ void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
   });
 }
 
-auto Device::ReportHandler::TryToHandleReport(const WiimoteReal::Report& report) -> HandlerResult
+auto Device::ReportHandler::TryToHandleReport(const WiimoteReal::Report& report) const -> HandlerResult
 {
   for (auto& callback : m_callbacks)
   {

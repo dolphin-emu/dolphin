@@ -58,7 +58,7 @@ bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, const u
   return ret;
 }
 
-void CEXIETHERNET::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data)
+void CEXIETHERNET::TAPServerNetworkInterface::HandleReceivedFrame(std::string&& data) const
 {
   if (data.size() > BBA_RECV_SIZE)
   {

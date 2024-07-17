@@ -24,7 +24,7 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 {
 }
 
-bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& text)
+bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& text) const
 {
   if (code.size() > std::numeric_limits<u16>::max())
   {
@@ -42,7 +42,7 @@ bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& tex
   return true;
 }
 
-std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, const u16 op1, const u16 op2)
+std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, const u16 op1, const u16 op2) const
 {
   std::string buf;
 
@@ -142,13 +142,13 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, co
   return buf;
 }
 
-bool DSPDisassembler::DisassembleOpcode(const std::vector<u16>& code, u16* pc, std::string& dest)
+bool DSPDisassembler::DisassembleOpcode(const std::vector<u16>& code, u16* pc, std::string& dest) const
 {
   return DisassembleOpcode(code.data(), code.size(), pc, dest);
 }
 
 bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, const size_t binbuf_size, u16* pc,
-                                        std::string& dest)
+                                        std::string& dest) const
 {
   const u16 wrapped_pc = (*pc & 0x7fff);
   if (wrapped_pc >= binbuf_size)

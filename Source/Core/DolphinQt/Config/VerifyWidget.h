@@ -31,15 +31,15 @@ public:
   explicit VerifyWidget(std::shared_ptr<DiscIO::Volume> volume);
 
 private:
-  void OnEmulationStateChanged(Core::State state);
+  void OnEmulationStateChanged(Core::State state) const;
   void CreateWidgets();
   std::pair<QCheckBox*, QLineEdit*> AddHashLine(QFormLayout* layout, QString text);
   void ConnectWidgets();
 
   bool CanVerifyRedump() const;
-  void UpdateRedumpEnabled();
+  void UpdateRedumpEnabled() const;
   void Verify();
-  void SetProblemCellText(int row, int column, QString text);
+  void SetProblemCellText(int row, int column, QString text) const;
 
   std::shared_ptr<DiscIO::Volume> m_volume;
   QTableWidget* m_problems;

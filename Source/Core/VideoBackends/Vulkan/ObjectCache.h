@@ -36,7 +36,7 @@ public:
 
   // Perform at startup, create descriptor layouts, compiles all static shaders.
   bool Initialize();
-  void Shutdown();
+  void Shutdown() const;
 
   // Descriptor set layout accessor. Used for allocating descriptor sets.
   VkDescriptorSetLayout GetDescriptorSetLayout(const DESCRIPTOR_SET_LAYOUT layout) const
@@ -70,16 +70,16 @@ public:
   void ClearSamplerCache();
 
   // Saves the pipeline cache to disk. Call when shutting down.
-  void SavePipelineCache();
+  void SavePipelineCache() const;
 
   // Reload pipeline cache. Call when host config changes.
   void ReloadPipelineCache();
 
 private:
   bool CreateDescriptorSetLayouts();
-  void DestroyDescriptorSetLayouts();
+  void DestroyDescriptorSetLayouts() const;
   bool CreatePipelineLayouts();
-  void DestroyPipelineLayouts();
+  void DestroyPipelineLayouts() const;
   bool CreateStaticSamplers();
   void DestroySamplers();
   void DestroyRenderPassCache();

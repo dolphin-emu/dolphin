@@ -131,7 +131,7 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
   }
 }
 
-void Wiimote::SendAck(const OutputReportID rpt_id, const ErrorCode error_code)
+void Wiimote::SendAck(const OutputReportID rpt_id, const ErrorCode error_code) const
 {
   TypedInputData<InputReportAck> rpt(InputReportID::Ack);
   auto& ack = rpt.payload;
@@ -325,7 +325,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
   SendAck(OutputReportID::WriteData, error_code);
 }
 
-void Wiimote::HandleReportRumble(const OutputReportRumble& rpt)
+void Wiimote::HandleReportRumble(const OutputReportRumble& rpt) const
 {
   SetRumble(rpt.rumble);
 
@@ -340,7 +340,7 @@ void Wiimote::HandleReportLeds(const OutputReportLeds& rpt)
     SendAck(OutputReportID::LED, ErrorCode::Success);
 }
 
-void Wiimote::HandleIRLogicEnable2(const OutputReportEnableFeature& rpt)
+void Wiimote::HandleIRLogicEnable2(const OutputReportEnableFeature& rpt) const
 {
   // FYI: We ignore this and update camera data regardless.
 
@@ -378,7 +378,7 @@ void Wiimote::HandleSpeakerEnable(const OutputReportEnableFeature& rpt)
     SendAck(OutputReportID::SpeakerEnable, ErrorCode::Success);
 }
 
-void Wiimote::HandleSpeakerData(const OutputReportSpeakerData& rpt)
+void Wiimote::HandleSpeakerData(const OutputReportSpeakerData& rpt) const
 {
   // TODO: Does speaker_mute stop speaker data processing?
   // and what about speaker_enable?

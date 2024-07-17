@@ -193,7 +193,7 @@ public:
 
 private:
   void RaiseEvent(int cycles_into_future);
-  void UpdateInterrupts();
+  void UpdateInterrupts() const;
   void SetTokenFinish_OnMainThread(u64 userdata, s64 cycles_late);
 
   static void SetTokenFinish_OnMainThread_Static(const Core::System& system, u64 userdata,

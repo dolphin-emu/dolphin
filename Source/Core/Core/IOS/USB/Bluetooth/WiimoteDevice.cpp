@@ -38,18 +38,18 @@ public:
   u8 Read8(const u32 offset) const { return m_buffer[offset]; }
   u16 Read16(const u32 offset) const { return Common::swap16(&m_buffer[offset]); }
   u32 Read32(const u32 offset) const { return Common::swap32(&m_buffer[offset]); }
-  void Write8(const u32 offset, const u8 data) { m_buffer[offset] = data; }
-  void Write16(const u32 offset, const u16 data)
+  void Write8(const u32 offset, const u8 data) const { m_buffer[offset] = data; }
+  void Write16(const u32 offset, const u16 data) const
   {
     const u16 swapped = Common::swap16(data);
     std::memcpy(&m_buffer[offset], &swapped, sizeof(u16));
   }
-  void Write32(const u32 offset, const u32 data)
+  void Write32(const u32 offset, const u32 data) const
   {
     const u32 swapped = Common::swap32(data);
     std::memcpy(&m_buffer[offset], &swapped, sizeof(u32));
   }
-  u8* GetPointer(const u32 offset) { return &m_buffer[offset]; }
+  u8* GetPointer(const u32 offset) const { return &m_buffer[offset]; }
 
 private:
   u8* m_buffer;
@@ -718,7 +718,7 @@ void WiimoteDevice::SendConnectionRequest(const u16 psm)
   SendCommandToACL(L2CAP_CONNECT_REQ, L2CAP_CONNECT_REQ, sizeof(l2cap_con_req_cp), (u8*)&cr);
 }
 
-void WiimoteDevice::SendConfigurationRequest(const u16 cid, const u16 mtu, const u16 flush_time_out)
+void WiimoteDevice::SendConfigurationRequest(const u16 cid, const u16 mtu, const u16 flush_time_out) const
 {
   u8 buffer[1024];
   int offset = 0;
@@ -767,7 +767,7 @@ constexpr u8 SDP_SEQ8 = 0x35;
 
 void WiimoteDevice::SDPSendServiceSearchResponse(const u16 cid, const u16 transaction_id,
                                                  u8* service_search_pattern,
-                                                 u16 maximum_service_record_count)
+                                                 u16 maximum_service_record_count) const
 {
   // verify block... we handle search pattern for HID service only
   {
@@ -863,7 +863,7 @@ static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
 void WiimoteDevice::SDPSendServiceAttributeResponse(const u16 cid, const u16 transaction_id, const u32 service_handle,
                                                     u16 start_attr_id, u16 end_attr_id,
                                                     u16 maximum_attribute_byte_count,
-                                                    u8* continuation_state)
+                                                    u8* continuation_state) const
 {
   if (service_handle != 0x10000)
   {
@@ -897,7 +897,7 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(const u16 cid, const u16 tra
   m_host->SendACLPacket(GetBD(), data_frame, header->length + sizeof(l2cap_hdr_t));
 }
 
-void WiimoteDevice::HandleSDP(const u16 cid, u8* data, const u32 size)
+void WiimoteDevice::HandleSDP(const u16 cid, u8* data, const u32 size) const
 {
   CBigEndianBuffer buffer(data);
 
@@ -950,7 +950,7 @@ void WiimoteDevice::HandleSDP(const u16 cid, u8* data, const u32 size)
   }
 }
 
-void WiimoteDevice::SendCommandToACL(const u8 ident, const u8 code, const u8 command_length, const u8* command_data)
+void WiimoteDevice::SendCommandToACL(const u8 ident, const u8 code, const u8 command_length, const u8* command_data) const
 {
   u8 data_frame[1024];
   u32 offset = 0;

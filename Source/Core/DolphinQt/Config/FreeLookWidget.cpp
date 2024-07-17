@@ -108,7 +108,7 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
   window->show();
 }
 
-void FreeLookWidget::LoadSettings()
+void FreeLookWidget::LoadSettings() const
 {
   const bool checked = Get(Config::FREE_LOOK_ENABLED);
   m_enable_freelook->setChecked(checked);
@@ -121,7 +121,7 @@ void FreeLookWidget::LoadSettings()
   m_freelook_background_input->setEnabled(checked);
 }
 
-void FreeLookWidget::SaveSettings()
+void FreeLookWidget::SaveSettings() const
 {
   const bool checked = m_enable_freelook->isChecked();
   SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, checked);

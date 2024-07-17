@@ -176,7 +176,7 @@ public:
   void SetCPStatusFromCPU();
   void GatherPipeBursted();
   void UpdateInterrupts(u64 userdata);
-  void UpdateInterruptsFromVideoBackend(u64 userdata);
+  void UpdateInterruptsFromVideoBackend(u64 userdata) const;
 
   bool IsInterruptWaiting() const;
 

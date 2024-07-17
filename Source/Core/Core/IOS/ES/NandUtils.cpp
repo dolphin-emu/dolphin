@@ -289,7 +289,7 @@ bool ESCore::CreateTitleDirectories(const u64 title_id, const u16 group_id) cons
   return true;
 }
 
-bool ESCore::InitImport(const ES::TMDReader& tmd)
+bool ESCore::InitImport(const ES::TMDReader& tmd) const
 {
   if (!CreateTitleDirectories(tmd.GetTitleId(), tmd.GetGroupId()))
     return false;
@@ -321,7 +321,7 @@ bool ESCore::InitImport(const ES::TMDReader& tmd)
   return true;
 }
 
-bool ESCore::FinishImport(const ES::TMDReader& tmd)
+bool ESCore::FinishImport(const ES::TMDReader& tmd) const
 {
   const auto fs = m_ios.GetFS();
   const u64 title_id = tmd.GetTitleId();
@@ -354,7 +354,7 @@ bool ESCore::FinishImport(const ES::TMDReader& tmd)
   return true;
 }
 
-bool ESCore::WriteImportTMD(const ES::TMDReader& tmd)
+bool ESCore::WriteImportTMD(const ES::TMDReader& tmd) const
 {
   const auto fs = m_ios.GetFS();
   const std::string tmd_path = "/tmp/title.tmd";
@@ -369,7 +369,7 @@ bool ESCore::WriteImportTMD(const ES::TMDReader& tmd)
   return fs->Rename(PID_KERNEL, PID_KERNEL, tmd_path, dest) == FS::ResultCode::Success;
 }
 
-void ESCore::FinishStaleImport(const u64 title_id)
+void ESCore::FinishStaleImport(const u64 title_id) const
 {
   const auto fs = m_ios.GetFS();
   const auto import_tmd = FindImportTMD(title_id);
@@ -385,7 +385,7 @@ void ESCore::FinishStaleImport(const u64 title_id)
   }
 }
 
-void ESCore::FinishAllStaleImports()
+void ESCore::FinishAllStaleImports() const
 {
   const std::vector<u64> titles = GetTitleImports();
   for (const u64& title_id : titles)
@@ -404,7 +404,7 @@ std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& conten
   return fmt::format("{}/{:08x}.app", Common::GetTitleContentPath(title_id), content.id);
 }
 
-s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, const Ticks ticks)
+s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, const Ticks ticks) const
 {
   auto& fs = GetEmulationKernel().GetFSCore();
   const std::string tmp_path = "/tmp/" + PathToFileName(path);

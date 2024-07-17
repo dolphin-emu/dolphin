@@ -26,12 +26,12 @@ class SetupUnit
   void SetupTriFan();
   void SetupLine();
   void SetupLineStrip();
-  void SetupPoint();
+  void SetupPoint() const;
 
 public:
   void Init(OpcodeDecoder::Primitive primitive_type);
 
-  OutputVertexData* GetVertex();
+  OutputVertexData* GetVertex() const;
 
   void SetupVertex();
 };

@@ -880,7 +880,7 @@ bool VulkanContext::SupportsDeviceExtension(const char* name) const
                      [name](const std::string& extension) { return extension == name; });
 }
 
-void VulkanContext::InitDriverDetails()
+void VulkanContext::InitDriverDetails() const
 {
   DriverDetails::Vendor vendor;
   DriverDetails::Driver driver;

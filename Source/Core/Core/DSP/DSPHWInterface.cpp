@@ -48,7 +48,7 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
   return static_cast<u16>(value);
 }
 
-u16 SDSP::ReadMailboxHigh(const Mailbox mailbox)
+u16 SDSP::ReadMailboxHigh(const Mailbox mailbox) const
 {
   // TODO: mask away the top bit?
   return static_cast<u16>(PeekMailbox(mailbox) >> 16);
@@ -276,7 +276,7 @@ u16 SDSP::ReadIFX(const u16 address)
   return retval;
 }
 
-const u8* SDSP::IDMAIn(const u16 dsp_addr, const u32 addr, const u32 size)
+const u8* SDSP::IDMAIn(const u16 dsp_addr, const u32 addr, const u32 size) const
 {
   Common::UnWriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
   Host::DMAToDSP(iram + dsp_addr / 2, addr, size);
@@ -297,7 +297,7 @@ const u8* SDSP::IDMAOut(const u16 dsp_addr, const u32 addr, const u32 size)
 }
 
 // TODO: These should eat clock cycles.
-const u8* SDSP::DDMAIn(const u16 dsp_addr, const u32 addr, const u32 size)
+const u8* SDSP::DDMAIn(const u16 dsp_addr, const u32 addr, const u32 size) const
 {
   Host::DMAToDSP(dram + dsp_addr / 2, addr, size);
   DEBUG_LOG_FMT(DSPLLE, "*** ddma_in RAM ({:#010x}) -> DRAM_DSP ({:#06x}) : size ({:#010x})", addr,
@@ -306,7 +306,7 @@ const u8* SDSP::DDMAIn(const u16 dsp_addr, const u32 addr, const u32 size)
   return reinterpret_cast<const u8*>(dram) + dsp_addr;
 }
 
-const u8* SDSP::DDMAOut(const u16 dsp_addr, const u32 addr, const u32 size)
+const u8* SDSP::DDMAOut(const u16 dsp_addr, const u32 addr, const u32 size) const
 {
   Host::DMAFromDSP(dram + dsp_addr / 2, addr, size);
   DEBUG_LOG_FMT(DSPLLE, "*** ddma_out DRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",

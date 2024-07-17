@@ -31,7 +31,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(UDrawTabletGroup group);
+  ControllerEmu::ControlGroup* GetGroup(UDrawTabletGroup group) const;
 
   static constexpr u8 BUTTON_ROCKER_UP = 0x1;
   static constexpr u8 BUTTON_ROCKER_DOWN = 0x2;

@@ -92,8 +92,8 @@ class InfinityBase final
 public:
   bool HasFigureBeenAddedRemoved() const;
   std::array<u8, 32> PopAddedRemovedResponse();
-  void GetBlankResponse(u8 sequence, std::array<u8, 32>& reply_buf);
-  void GetPresentFigures(u8 sequence, std::array<u8, 32>& reply_buf);
+  void GetBlankResponse(u8 sequence, std::array<u8, 32>& reply_buf) const;
+  void GetPresentFigures(u8 sequence, std::array<u8, 32>& reply_buf) const;
   void GetFigureIdentifier(u8 fig_num, u8 sequence, std::array<u8, 32>& reply_buf);
   void QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_buf, u8 sequence);
   void WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf, std::array<u8, 32>& reply_buf,

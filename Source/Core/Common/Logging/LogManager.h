@@ -38,9 +38,9 @@ public:
   static void Init();
   static void Shutdown();
 
-  void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
+  void Log(LogLevel level, LogType type, const char* file, int line, const char* message) const;
   void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       const char* message);
+                       const char* message) const;
 
   LogLevel GetLogLevel() const;
   void SetLogLevel(LogLevel level);

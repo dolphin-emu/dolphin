@@ -75,7 +75,7 @@ public:
   void IntializeSpeculativeConstants();
 
   JitBlockCache* GetBlockCache() override { return &blocks; }
-  void Trace();
+  void Trace() const;
 
   void ClearCache() override;
 

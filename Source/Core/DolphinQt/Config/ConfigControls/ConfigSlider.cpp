@@ -30,7 +30,7 @@ ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& se
   });
 }
 
-void ConfigSlider::Update(int value)
+void ConfigSlider::Update(int value) const
 {
   SetBaseOrCurrent(m_setting, value);
 }

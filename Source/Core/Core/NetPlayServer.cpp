@@ -2206,7 +2206,7 @@ void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 ch
   Common::ENet::SendPacket(socket, packet, channel_id);
 }
 
-void NetPlayServer::KickPlayer(const PlayerId player)
+void NetPlayServer::KickPlayer(const PlayerId player) const
 {
   for (auto& current_player : m_players)
   {

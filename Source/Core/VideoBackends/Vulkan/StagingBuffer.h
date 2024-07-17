@@ -27,30 +27,30 @@ public:
   void Unmap();
 
   // Upload part 1: Prepare from device read from the CPU side
-  void FlushCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE);
+  void FlushCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) const;
 
   // Upload part 2: Prepare for device read from the GPU side
   // Implicit when submitting the command buffer, so rarely needed.
   void InvalidateGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits dst_access_flags,
                           VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
-                          VkDeviceSize size = VK_WHOLE_SIZE);
+                          VkDeviceSize size = VK_WHOLE_SIZE) const;
 
   // Readback part 0: Prepare for GPU usage (if necessary)
   void PrepareForGPUWrite(VkCommandBuffer command_buffer, VkAccessFlagBits dst_access_flags,
                           VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
-                          VkDeviceSize size = VK_WHOLE_SIZE);
+                          VkDeviceSize size = VK_WHOLE_SIZE) const;
 
   // Readback part 1: Prepare for host readback from the GPU side
   void FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits src_access_flags,
                      VkPipelineStageFlagBits src_pipeline_stage, VkDeviceSize offset = 0,
-                     VkDeviceSize size = VK_WHOLE_SIZE);
+                     VkDeviceSize size = VK_WHOLE_SIZE) const;
 
   // Readback part 2: Prepare for host readback from the CPU side
-  void InvalidateCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE);
+  void InvalidateCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) const;
 
   // offset is from the start of the buffer, not from the map offset
-  void Read(VkDeviceSize offset, void* data, size_t size, bool invalidate_caches = true);
-  void Write(VkDeviceSize offset, const void* data, size_t size, bool invalidate_caches = true);
+  void Read(VkDeviceSize offset, void* data, size_t size, bool invalidate_caches = true) const;
+  void Write(VkDeviceSize offset, const void* data, size_t size, bool invalidate_caches = true) const;
 
   // Creates the optimal format of image copy.
   static std::unique_ptr<StagingBuffer> Create(STAGING_BUFFER_TYPE type, VkDeviceSize size,

@@ -47,8 +47,8 @@ protected:
   virtual void SetUp() = 0;
 
   // Common tests.
-  void TestGeneralInfo();
-  void TestRawTMDAndView();
+  void TestGeneralInfo() const;
+  void TestRawTMDAndView() const;
 
   // Expected data.
   virtual u64 GetTitleId() const = 0;
@@ -66,14 +66,14 @@ void TMDReaderTest::SetUp()
   ASSERT_TRUE(m_tmd.IsValid()) << "BUG: The test TMD should be valid.";
 }
 
-void TMDReaderTest::TestGeneralInfo()
+void TMDReaderTest::TestGeneralInfo() const
 {
   EXPECT_EQ(m_tmd.GetTitleId(), GetTitleId());
   EXPECT_EQ(m_tmd.GetIOSId(), GetIOSId());
   EXPECT_EQ(m_tmd.GetGameID(), GetGameID());
 }
 
-void TMDReaderTest::TestRawTMDAndView()
+void TMDReaderTest::TestRawTMDAndView() const
 {
   const std::vector<u8>& dolphin_tmd_bytes = m_tmd.GetBytes();
   // Separate check because gtest prints neither the size nor the full buffer.

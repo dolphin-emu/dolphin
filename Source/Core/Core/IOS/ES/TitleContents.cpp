@@ -47,7 +47,7 @@ s32 ESCore::OpenContent(const ES::TMDReader& tmd, const u16 content_index, const
   return FS_EFDEXHAUSTED;
 }
 
-IPCReply ESDevice::OpenContent(const u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::OpenContent(const u32 uid, const IOCtlVRequest& request) const
 {
   return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(3, 0) || request.in_vectors[0].size != sizeof(u64) ||
@@ -71,7 +71,7 @@ IPCReply ESDevice::OpenContent(const u32 uid, const IOCtlVRequest& request)
   });
 }
 
-IPCReply ESDevice::OpenActiveTitleContent(const u32 caller_uid, const IOCtlVRequest& request)
+IPCReply ESDevice::OpenActiveTitleContent(const u32 caller_uid, const IOCtlVRequest& request) const
 {
   return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
@@ -108,7 +108,7 @@ s32 ESCore::ReadContent(const u32 cfd, u8* buffer, const u32 size, const u32 uid
   return m_ios.GetFSCore().Read(entry.m_fd, buffer, size, {}, ticks);
 }
 
-IPCReply ESDevice::ReadContent(const u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::ReadContent(const u32 uid, const IOCtlVRequest& request) const
 {
   return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
@@ -143,7 +143,7 @@ s32 ESCore::CloseContent(const u32 cfd, const u32 uid, const Ticks ticks)
   return IPC_SUCCESS;
 }
 
-IPCReply ESDevice::CloseContent(const u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::CloseContent(const u32 uid, const IOCtlVRequest& request) const
 {
   return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
@@ -170,7 +170,7 @@ s32 ESCore::SeekContent(const u32 cfd, const u32 offset, SeekMode mode, const u3
   return m_ios.GetFSCore().Seek(entry.m_fd, offset, static_cast<FS::SeekMode>(mode), ticks);
 }
 
-IPCReply ESDevice::SeekContent(const u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::SeekContent(const u32 uid, const IOCtlVRequest& request) const
 {
   return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(3, 0))

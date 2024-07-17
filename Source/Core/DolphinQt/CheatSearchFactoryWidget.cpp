@@ -137,7 +137,7 @@ void CheatSearchFactoryWidget::ConnectWidgets()
           &CheatSearchFactoryWidget::OnAddressSpaceRadioChanged);
 }
 
-void CheatSearchFactoryWidget::RefreshGui()
+void CheatSearchFactoryWidget::RefreshGui() const
 {
   bool enable_custom = m_custom_address_space->isChecked();
   m_custom_virtual_address_space->setEnabled(enable_custom);
@@ -147,7 +147,7 @@ void CheatSearchFactoryWidget::RefreshGui()
   m_custom_address_end->setEnabled(enable_custom);
 }
 
-void CheatSearchFactoryWidget::OnAddressSpaceRadioChanged()
+void CheatSearchFactoryWidget::OnAddressSpaceRadioChanged() const
 {
   RefreshGui();
 }

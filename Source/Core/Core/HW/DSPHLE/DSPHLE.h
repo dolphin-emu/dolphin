@@ -53,7 +53,7 @@ public:
   Core::System& GetSystem() const { return m_system; }
 
 private:
-  void SendMailToDSP(u32 mail);
+  void SendMailToDSP(u32 mail) const;
 
   // Fake mailbox utility
   struct DSPState

@@ -440,7 +440,7 @@ void IOWindow::ConfigChanged()
   UpdateDeviceList();
 }
 
-void IOWindow::Update()
+void IOWindow::Update() const
 {
   m_option_list->viewport()->update();
   m_parse_text->update();
@@ -503,7 +503,7 @@ void IOWindow::ConnectWidgets()
   connect(this, &IOWindow::finished, [this] { UpdateExpression(m_original_expression); });
 }
 
-void IOWindow::AppendSelectedOption()
+void IOWindow::AppendSelectedOption() const
 {
   if (m_option_list->currentRow() < 0)
     return;
@@ -546,7 +546,7 @@ void IOWindow::OnDialogButtonPressed(const QAbstractButton* button)
   }
 }
 
-void IOWindow::OnDetectButtonPressed()
+void IOWindow::OnDetectButtonPressed() const
 {
   const auto expression =
       MappingCommon::DetectExpression(m_detect_button, g_controller_interface, {m_devq.ToString()},
@@ -562,12 +562,12 @@ void IOWindow::OnDetectButtonPressed()
     m_option_list->setCurrentItem(list[0]);
 }
 
-void IOWindow::OnTestButtonPressed()
+void IOWindow::OnTestButtonPressed() const
 {
   MappingCommon::TestOutput(m_test_button, static_cast<OutputReference*>(m_reference));
 }
 
-void IOWindow::OnRangeChanged(int value)
+void IOWindow::OnRangeChanged(int value) const
 {
   m_reference->range = value / 100.0;
 }
@@ -668,7 +668,7 @@ void IOWindow::UpdateDeviceList()
   OnDeviceChanged();
 }
 
-void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode)
+void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode) const
 {
   const auto lock = m_controller->GetStateLock();
   if (mode != UpdateMode::Force && new_expression == m_reference->GetExpression())

@@ -183,7 +183,7 @@ void BreakpointWidget::CreateWidgets()
   setWidget(widget);
 }
 
-void BreakpointWidget::UpdateIcons()
+void BreakpointWidget::UpdateIcons() const
 {
   m_new->setIcon(Resources::GetThemeIcon("debugger_add_breakpoint"));
   m_clear->setIcon(Resources::GetThemeIcon("debugger_clear"));
@@ -249,7 +249,7 @@ void BreakpointWidget::OnClicked(const QTableWidgetItem* item)
     EditBreakpoint(address, item->column(), string);
 }
 
-void BreakpointWidget::UpdateButtonsEnabled()
+void BreakpointWidget::UpdateButtonsEnabled() const
 {
   if (!isVisible())
     return;
@@ -259,7 +259,7 @@ void BreakpointWidget::UpdateButtonsEnabled()
   m_save->setEnabled(is_initialised);
 }
 
-void BreakpointWidget::Update()
+void BreakpointWidget::Update() const
 {
   if (!isVisible())
     return;
@@ -496,7 +496,7 @@ void BreakpointWidget::OnLoad()
   Update();
 }
 
-void BreakpointWidget::OnSave()
+void BreakpointWidget::OnSave() const
 {
   Common::IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",

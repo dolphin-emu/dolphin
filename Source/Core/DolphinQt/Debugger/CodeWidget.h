@@ -35,20 +35,20 @@ public:
   explicit CodeWidget(QWidget* parent = nullptr);
   ~CodeWidget();
 
-  void Step();
-  void StepOver();
-  void StepOut();
-  void Skip();
-  void ShowPC();
-  void SetPC();
+  void Step() const;
+  void StepOver() const;
+  void StepOut() const;
+  void Skip() const;
+  void ShowPC() const;
+  void SetPC() const;
 
   void OnBranchWatchDialog();
-  void ToggleBreakpoint();
-  void AddBreakpoint();
+  void ToggleBreakpoint() const;
+  void AddBreakpoint() const;
   void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
 
-  void Update();
-  void UpdateSymbols();
+  void Update() const;
+  void UpdateSymbols() const;
 signals:
   void BreakpointsChanged();
   void RequestPPCComparison(u32 addr);
@@ -57,17 +57,17 @@ signals:
 private:
   void CreateWidgets();
   void ConnectWidgets();
-  void UpdateCallstack();
-  void UpdateFunctionCalls(const Common::Symbol* symbol);
-  void UpdateFunctionCallers(const Common::Symbol* symbol);
+  void UpdateCallstack() const;
+  void UpdateFunctionCalls(const Common::Symbol* symbol) const;
+  void UpdateFunctionCallers(const Common::Symbol* symbol) const;
 
-  void OnPPCSymbolsChanged();
-  void OnSearchAddress();
+  void OnPPCSymbolsChanged() const;
+  void OnSearchAddress() const;
   void OnSearchSymbols();
-  void OnSelectSymbol();
-  void OnSelectCallstack();
-  void OnSelectFunctionCallers();
-  void OnSelectFunctionCalls();
+  void OnSelectSymbol() const;
+  void OnSelectCallstack() const;
+  void OnSelectFunctionCallers() const;
+  void OnSelectFunctionCalls() const;
 
   void closeEvent(QCloseEvent*) override;
   void showEvent(QShowEvent* event) override;

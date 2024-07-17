@@ -86,7 +86,7 @@ std::vector<u32> DXContext::GetAAModes(const u32 adapter_index)
   return aa_modes;
 }
 
-bool DXContext::SupportsTextureFormat(const DXGI_FORMAT format)
+bool DXContext::SupportsTextureFormat(const DXGI_FORMAT format) const
 {
   constexpr u32 required = D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_TEXTURECUBE |
                            D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE;

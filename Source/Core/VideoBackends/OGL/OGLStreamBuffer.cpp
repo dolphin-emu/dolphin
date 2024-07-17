@@ -70,7 +70,7 @@ void StreamBuffer::CreateFences()
     m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   }
 }
-void StreamBuffer::DeleteFences()
+void StreamBuffer::DeleteFences() const
 {
   for (int i = Slot(m_free_iterator) + 1; i < SYNC_POINTS; i++)
   {

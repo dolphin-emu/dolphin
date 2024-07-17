@@ -199,7 +199,7 @@ u8* XEmitter::AlignCodePage()
 // This operation modifies flags; check to see the flags are locked.
 // If the flags are locked, we should immediately and loudly fail before
 // causing a subtle JIT bug.
-void XEmitter::CheckFlags()
+void XEmitter::CheckFlags() const
 {
   ASSERT_MSG(DYNA_REC, !flags_locked, "Attempt to modify flags while flags locked!");
 }
@@ -565,7 +565,7 @@ void XEmitter::J_CC(const CCFlags conditionCode, const u8* addr)
   }
 }
 
-void XEmitter::SetJumpTarget(const FixupBranch& branch)
+void XEmitter::SetJumpTarget(const FixupBranch& branch) const
 {
   if (!branch.ptr)
     return;

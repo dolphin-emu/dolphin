@@ -61,13 +61,13 @@ public:
   virtual ButtonData GetCurrentlyPressedButtons() = 0;
 
 protected:
-  void InterruptDataInputCallback(const u8* data, const u32 size)
+  void InterruptDataInputCallback(const u8* data, const u32 size) const
   {
     InterruptCallback((HID_TYPE_DATA << 4) | HID_PARAM_INPUT, data,
                       size);
   }
 
-  void InterruptCallback(const u8 hid_type, const u8* data, const u32 size)
+  void InterruptCallback(const u8 hid_type, const u8* data, const u32 size) const
   {
     m_callback(hid_type, data, size);
   }

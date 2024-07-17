@@ -119,7 +119,7 @@ public:
   // Since there's only one place floats get lexed, it's 'okay' to have an explicit
   // "lex a float token" function
   AssemblerToken LookaheadFloat() const;
-  void Eat();
+  void Eat() const;
   void EatAndReset();
 
   template <size_t N>
@@ -150,7 +150,7 @@ public:
   }
 
   template <size_t N>
-  void EatN()
+  void EatN() const
   {
     size_t consumed = 0;
     while (m_lexed_tokens.size() > 0 && consumed < N)

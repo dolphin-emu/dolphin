@@ -65,7 +65,7 @@ class Ticks
 public:
   Ticks(u64* ticks = nullptr) : m_ticks(ticks) {}
 
-  void Add(const u64 ticks)
+  void Add(const u64 ticks) const
   {
     if (m_ticks != nullptr)
       *m_ticks += ticks;
@@ -127,8 +127,8 @@ public:
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
   std::shared_ptr<FS::FileSystem> GetFS();
-  FSCore& GetFSCore();
-  ESCore& GetESCore();
+  FSCore& GetFSCore() const;
+  ESCore& GetESCore() const;
 
   u32 GetVersion() const;
 
@@ -160,31 +160,31 @@ public:
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
   std::shared_ptr<Device> GetDeviceByFileDescriptor(const u32 fd);
 
-  std::shared_ptr<FSDevice> GetFSDevice();
-  std::shared_ptr<ESDevice> GetESDevice();
+  std::shared_ptr<FSDevice> GetFSDevice() const;
+  std::shared_ptr<ESDevice> GetESDevice() const;
 
   void DoState(PointerWrap& p);
-  void UpdateDevices();
-  void UpdateWantDeterminism(bool new_want_determinism);
+  void UpdateDevices() const;
+  void UpdateWantDeterminism(bool new_want_determinism) const;
 
   std::shared_ptr<WiiSockMan> GetSocketManager();
 
   void HandleIPCEvent(u64 userdata);
   void UpdateIPC();
 
-  void EnqueueIPCRequest(u32 address);
+  void EnqueueIPCRequest(u32 address) const;
   void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
-                       CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
+                       CoreTiming::FromThread from = CoreTiming::FromThread::CPU) const;
 
   void SetUidForPPC(u32 uid);
   u32 GetUidForPPC() const;
   void SetGidForPPC(u16 gid);
   u16 GetGidForPPC() const;
 
-  bool BootstrapPPC(const std::string& boot_content_path);
+  bool BootstrapPPC(const std::string& boot_content_path) const;
   bool BootIOS(u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
                const std::string& boot_content_path = {});
-  void InitIPC();
+  void InitIPC() const;
 
   Core::System& GetSystem() const { return m_system; }
 
@@ -195,7 +195,7 @@ private:
   void AddDevice(std::unique_ptr<Device> device);
 
   void AddStaticDevices();
-  s32 GetFreeDeviceID();
+  s32 GetFreeDeviceID() const;
   std::optional<IPCReply> OpenDevice(OpenRequest& request);
 
   Core::System& m_system;

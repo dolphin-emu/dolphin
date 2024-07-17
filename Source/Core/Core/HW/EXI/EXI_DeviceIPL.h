@@ -69,7 +69,7 @@ private:
   std::string m_buffer;
   bool m_fonts_loaded{};
 
-  void UpdateRTC();
+  void UpdateRTC() const;
 
   void TransferByte(u8& data) override;
 

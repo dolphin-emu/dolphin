@@ -22,7 +22,7 @@ public:
   explicit WiiPane(QWidget* parent = nullptr);
 
 private:
-  void PopulateUSBPassthroughListWidget();
+  void PopulateUSBPassthroughListWidget() const;
   void CreateLayout();
   void ConnectLayout();
   void CreateMisc();
@@ -30,19 +30,19 @@ private:
   void CreateWhitelistedUSBPassthroughDevices();
   void CreateWiiRemoteSettings();
 
-  void LoadConfig();
-  void OnSaveConfig();
-  void OnEmulationStateChanged(bool running);
+  void LoadConfig() const;
+  void OnSaveConfig() const;
+  void OnEmulationStateChanged(bool running) const;
 
-  void ValidateSelectionState();
+  void ValidateSelectionState() const;
 
   void OnUSBWhitelistAddButton();
-  void OnUSBWhitelistRemoveButton();
+  void OnUSBWhitelistRemoveButton() const;
 
   void BrowseSDRaw();
-  void SetSDRaw(const QString& path);
+  void SetSDRaw(const QString& path) const;
   void BrowseSDSyncFolder();
-  void SetSDSyncFolder(const QString& path);
+  void SetSDSyncFolder(const QString& path) const;
 
   // Widgets
   QVBoxLayout* m_main_layout;

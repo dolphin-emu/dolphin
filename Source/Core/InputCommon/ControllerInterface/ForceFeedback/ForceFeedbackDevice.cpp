@@ -167,7 +167,7 @@ void ForceFeedbackDevice::TypedForce<P>::PlayEffect()
 }
 
 template <typename P>
-void ForceFeedbackDevice::TypedForce<P>::StopEffect()
+void ForceFeedbackDevice::TypedForce<P>::StopEffect() const
 {
   m_effect->Stop();
 }
@@ -247,7 +247,7 @@ void ForceFeedbackDevice::Force::UpdateOutput()
   UpdateEffect(m_desired_magnitude);
 }
 
-void ForceFeedbackDevice::Force::Release()
+void ForceFeedbackDevice::Force::Release() const
 {
   // This isn't in the destructor because it should happen before the device is released.
   m_effect->Stop();

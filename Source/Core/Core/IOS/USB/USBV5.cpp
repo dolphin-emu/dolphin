@@ -144,7 +144,7 @@ std::optional<IPCReply> USBV5ResourceManager::GetDeviceChange(const IOCtlRequest
   return std::nullopt;
 }
 
-IPCReply USBV5ResourceManager::SetAlternateSetting(const USBV5Device& device, const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SetAlternateSetting(const USBV5Device& device, const IOCtlRequest& request) const
 {
   const auto host_device = GetDeviceById(device.host_id);
   if (!host_device->AttachAndChangeInterface(device.interface_number))
@@ -175,7 +175,7 @@ IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply USBV5ResourceManager::SuspendResume(const USBV5Device& device, const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SuspendResume(const USBV5Device& device, const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();

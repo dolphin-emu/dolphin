@@ -375,13 +375,13 @@ void NetIPTopDevice::Update()
   GetEmulationKernel().GetSocketManager()->Update();
 }
 
-IPCReply NetIPTopDevice::HandleInitInterfaceRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInitInterfaceRequest(const IOCtlRequest& request) const
 {
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply NetIPTopDevice::HandleSocketRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleSocketRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -400,7 +400,7 @@ IPCReply NetIPTopDevice::HandleSocketRequest(const IOCtlRequest& request)
   return IPCReply(return_value);
 }
 
-IPCReply NetIPTopDevice::HandleICMPSocketRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleICMPSocketRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -413,7 +413,7 @@ IPCReply NetIPTopDevice::HandleICMPSocketRequest(const IOCtlRequest& request)
   return IPCReply(return_value);
 }
 
-IPCReply NetIPTopDevice::HandleCloseRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleCloseRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -428,7 +428,7 @@ IPCReply NetIPTopDevice::HandleCloseRequest(const IOCtlRequest& request)
   return IPCReply(return_value);
 }
 
-std::optional<IPCReply> NetIPTopDevice::HandleDoSockRequest(const IOCtlRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandleDoSockRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -439,7 +439,7 @@ std::optional<IPCReply> NetIPTopDevice::HandleDoSockRequest(const IOCtlRequest& 
   return std::nullopt;
 }
 
-IPCReply NetIPTopDevice::HandleShutdownRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleShutdownRequest(const IOCtlRequest& request) const
 {
   if (request.buffer_in == 0 || request.buffer_in_size < 8)
   {
@@ -459,7 +459,7 @@ IPCReply NetIPTopDevice::HandleShutdownRequest(const IOCtlRequest& request)
   return IPCReply(return_value);
 }
 
-IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -473,7 +473,7 @@ IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request)
   return IPCReply(socket_manager->GetNetErrorCode(ret, "SO_LISTEN", false));
 }
 
-IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -510,7 +510,7 @@ IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request)
   return IPCReply(return_value);
 }
 
-IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -549,7 +549,7 @@ IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request)
   return IPCReply(socket_manager->GetNetErrorCode(ret, "SO_SETSOCKOPT", false));
 }
 
-IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -579,7 +579,7 @@ IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request)
   return IPCReply(ret);
 }
 
-IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -617,7 +617,7 @@ IPCReply NetIPTopDevice::HandleGetHostIDRequest(const IOCtlRequest& request)
   return IPCReply(host_ip);
 }
 
-IPCReply NetIPTopDevice::HandleInetAToNRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInetAToNRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -649,7 +649,7 @@ IPCReply NetIPTopDevice::HandleInetAToNRequest(const IOCtlRequest& request)
   return IPCReply(1);
 }
 
-IPCReply NetIPTopDevice::HandleInetPToNRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInetPToNRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -665,7 +665,7 @@ IPCReply NetIPTopDevice::HandleInetPToNRequest(const IOCtlRequest& request)
   return IPCReply(1);
 }
 
-IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -685,7 +685,7 @@ IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request)
   return IPCReply(0);
 }
 
-std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& request) const
 {
   auto sm = GetEmulationKernel().GetSocketManager();
 
@@ -731,7 +731,7 @@ std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& re
   return std::nullopt;
 }
 
-IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request) const
 {
   if (request.buffer_out_size != 0x460)
   {
@@ -825,7 +825,7 @@ IPCReply NetIPTopDevice::HandleICMPCancelRequest(const IOCtlRequest& request)
   return IPCReply(0);
 }
 
-IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& request)
+IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -1018,7 +1018,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
   return IPCReply(0);
 }
 
-std::optional<IPCReply> NetIPTopDevice::HandleSendToRequest(const IOCtlVRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandleSendToRequest(const IOCtlVRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -1028,7 +1028,7 @@ std::optional<IPCReply> NetIPTopDevice::HandleSendToRequest(const IOCtlVRequest&
   return std::nullopt;
 }
 
-std::optional<IPCReply> NetIPTopDevice::HandleRecvFromRequest(const IOCtlVRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandleRecvFromRequest(const IOCtlVRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -1038,7 +1038,7 @@ std::optional<IPCReply> NetIPTopDevice::HandleRecvFromRequest(const IOCtlVReques
   return std::nullopt;
 }
 
-IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& request)
+IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -1136,7 +1136,7 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
   return IPCReply(ret);
 }
 
-IPCReply NetIPTopDevice::HandleICMPPingRequest(const IOCtlVRequest& request)
+IPCReply NetIPTopDevice::HandleICMPPingRequest(const IOCtlVRequest& request) const
 {
   struct
   {

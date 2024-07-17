@@ -44,7 +44,7 @@ private:
   bool ReadHeader();
 
   File::IOFile& SeekToCluster(u64 offset, u64* available);
-  bool IsGood() { return m_good; }
+  bool IsGood() const { return m_good; }
   struct FileEntry
   {
     FileEntry(File::IOFile file_, const u64 base_address_, const u64 size_)

@@ -22,7 +22,7 @@ class AchievementsWindow : public QDialog
 public:
   explicit AchievementsWindow(QWidget* parent);
   void UpdateData(AchievementManager::UpdatedItems updated_items);
-  void ForceSettingsTab();
+  void ForceSettingsTab() const;
 
 private:
   void CreateMainLayout();

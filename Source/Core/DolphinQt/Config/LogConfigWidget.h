@@ -26,7 +26,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void LoadSettings();
-  void SaveSettings();
+  void SaveSettings() const;
 
   QRadioButton* m_verbosity_notice;
   QRadioButton* m_verbosity_error;

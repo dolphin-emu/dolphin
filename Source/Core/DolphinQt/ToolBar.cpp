@@ -79,7 +79,7 @@ void ToolBar::closeEvent(QCloseEvent*)
   Settings::Instance().SetToolBarVisible(false);
 }
 
-void ToolBar::OnDebugModeToggled(bool enabled)
+void ToolBar::OnDebugModeToggled(bool enabled) const
 {
   m_step_action->setVisible(enabled);
   m_step_over_action->setVisible(enabled);
@@ -169,7 +169,7 @@ void ToolBar::UpdatePausePlayButtonState(const bool playing_state)
   }
 }
 
-void ToolBar::UpdateIcons()
+void ToolBar::UpdateIcons() const
 {
   m_step_action->setIcon(Resources::GetThemeIcon("debugger_step_in"));
   m_step_over_action->setIcon(Resources::GetThemeIcon("debugger_step_over"));

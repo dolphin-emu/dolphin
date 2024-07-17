@@ -63,7 +63,7 @@ public:
   ///
   /// @return Pointer to the memory region, or nullptr on failure.
   ///
-  void* CreateView(s64 offset, size_t size);
+  void* CreateView(s64 offset, size_t size) const;
 
   ///
   /// Unmap a memory region previously mapped with CreateView().

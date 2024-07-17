@@ -120,7 +120,7 @@ private:
   bool SelectDeviceExtensions(bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
-  void InitDriverDetails();
+  void InitDriverDetails() const;
   void PopulateShaderSubgroupSupport();
   bool CreateAllocator(u32 vk_api_version);
 

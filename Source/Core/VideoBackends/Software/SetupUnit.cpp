@@ -20,7 +20,7 @@ void SetupUnit::Init(const OpcodeDecoder::Primitive primitive_type)
   m_VertWritePointer = m_VertPointer[0];
 }
 
-OutputVertexData* SetupUnit::GetVertex()
+OutputVertexData* SetupUnit::GetVertex() const
 {
   memset(reinterpret_cast<u8*>(m_VertWritePointer), 0, sizeof(*m_VertWritePointer));
   return m_VertWritePointer;
@@ -163,7 +163,7 @@ void SetupUnit::SetupLineStrip()
   m_VertPointer[1] = &m_Vertices[m_VertexCounter & 1];
 }
 
-void SetupUnit::SetupPoint()
+void SetupUnit::SetupPoint() const
 {
   Clipper::ProcessPoint(m_VertPointer[0]);
 }

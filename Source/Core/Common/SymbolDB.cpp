@@ -32,7 +32,7 @@ void Symbol::Rename(const std::string& symbol_name)
   this->function_name = GetStrippedFunctionName(symbol_name);
 }
 
-void SymbolDB::List()
+void SymbolDB::List() const
 {
   for (const auto& func : m_functions)
   {

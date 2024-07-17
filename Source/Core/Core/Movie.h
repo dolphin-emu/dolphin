@@ -190,15 +190,15 @@ public:
   bool IsConfigSaved() const;
   bool IsStartingFromClearSave() const;
   bool IsUsingMemcard(ExpansionInterface::Slot slot) const;
-  void SetGraphicsConfig();
+  void SetGraphicsConfig() const;
   bool IsNetPlayRecording() const;
 
   bool IsUsingPad(int controller) const;
   bool IsUsingWiimote(int wiimote) const;
   bool IsUsingBongo(int controller) const;
   bool IsUsingGBA(int controller) const;
-  void ChangePads();
-  void ChangeWiiPads(bool instantly = false);
+  void ChangePads() const;
+  void ChangeWiiPads(bool instantly = false) const;
 
   void SetReadOnly(bool bEnabled);
 
@@ -214,7 +214,7 @@ public:
   bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
                    WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
   void EndPlayInput(bool cont);
-  void SaveRecording(const std::string& filename);
+  void SaveRecording(const std::string& filename) const;
   void DoState(PointerWrap& p);
   void Shutdown();
   void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
@@ -229,7 +229,7 @@ private:
   void GetSettings();
   void CheckInputEnd();
 
-  void CheckMD5();
+  void CheckMD5() const;
   void GetMD5();
 
   bool m_read_only = true;

@@ -71,23 +71,23 @@ public:
 
   void Init(const Sram* override_sram);
   void Shutdown();
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) const;
 
-  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base) const;
 
-  void UpdateInterrupts();
-  void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late);
+  void UpdateInterrupts() const;
+  void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late) const;
 
   void ChangeDevice(Slot slot, EXIDeviceType device_type,
-                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU) const;
   void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
-                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU) const;
 
-  CEXIChannel* GetChannel(u32 index);
-  IEXIDevice* GetDevice(Slot slot);
+  CEXIChannel* GetChannel(u32 index) const;
+  IEXIDevice* GetDevice(Slot slot) const;
 
 private:
-  void AddMemoryCard(Slot slot);
+  void AddMemoryCard(Slot slot) const;
 
   static void ChangeDeviceCallback(const Core::System& system, u64 userdata, s64 cycles_late);
   static void UpdateInterruptsCallback(const Core::System& system, u64 userdata, s64 cycles_late);

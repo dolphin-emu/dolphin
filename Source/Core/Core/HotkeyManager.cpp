@@ -395,7 +395,7 @@ InputConfig* HotkeyManager::GetConfig() const
   return HotkeyManagerEmu::GetConfig();
 }
 
-void HotkeyManager::GetInput(HotkeyStatus* kb, const bool ignore_focus)
+void HotkeyManager::GetInput(HotkeyStatus* kb, const bool ignore_focus) const
 {
   const auto lock = GetStateLock();
   for (std::size_t group = 0; group < s_groups_info.size(); group++)

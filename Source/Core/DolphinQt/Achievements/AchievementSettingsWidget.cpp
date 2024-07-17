@@ -39,7 +39,7 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
     ToggleHardcore();
 }
 
-void AchievementSettingsWidget::UpdateData()
+void AchievementSettingsWidget::UpdateData() const
 {
   LoadSettings();
 }
@@ -159,7 +159,7 @@ void AchievementSettingsWidget::OnControllerInterfaceConfigure()
   window->show();
 }
 
-void AchievementSettingsWidget::LoadSettings()
+void AchievementSettingsWidget::LoadSettings() const
 {
   bool enabled = Get(Config::RA_ENABLED);
   bool hardcore_enabled = Get(Config::RA_HARDCORE_ENABLED);
@@ -210,7 +210,7 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled);
 }
 
-void AchievementSettingsWidget::SaveSettings()
+void AchievementSettingsWidget::SaveSettings() const
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
@@ -229,7 +229,7 @@ void AchievementSettingsWidget::SaveSettings()
   Config::Save();
 }
 
-void AchievementSettingsWidget::ToggleRAIntegration()
+void AchievementSettingsWidget::ToggleRAIntegration() const
 {
   SaveSettings();
 
@@ -245,7 +245,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
   }
 }
 
-void AchievementSettingsWidget::Login()
+void AchievementSettingsWidget::Login() const
 {
   SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
   AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
@@ -253,13 +253,13 @@ void AchievementSettingsWidget::Login()
   SaveSettings();
 }
 
-void AchievementSettingsWidget::Logout()
+void AchievementSettingsWidget::Logout() const
 {
   AchievementManager::GetInstance().Logout();
   SaveSettings();
 }
 
-void AchievementSettingsWidget::ToggleHardcore()
+void AchievementSettingsWidget::ToggleHardcore() const
 {
   SaveSettings();
   AchievementManager::GetInstance().SetHardcoreMode();
@@ -275,29 +275,29 @@ void AchievementSettingsWidget::ToggleHardcore()
   emit Settings::Instance().HardcoreStateChanged();
 }
 
-void AchievementSettingsWidget::ToggleUnofficial()
+void AchievementSettingsWidget::ToggleUnofficial() const
 {
   SaveSettings();
 }
 
-void AchievementSettingsWidget::ToggleEncore()
+void AchievementSettingsWidget::ToggleEncore() const
 {
   SaveSettings();
 }
 
-void AchievementSettingsWidget::ToggleSpectator()
+void AchievementSettingsWidget::ToggleSpectator() const
 {
   SaveSettings();
   AchievementManager::GetInstance().SetSpectatorMode();
 }
 
-void AchievementSettingsWidget::ToggleDiscordPresence()
+void AchievementSettingsWidget::ToggleDiscordPresence() const
 {
   SaveSettings();
   Discord::UpdateDiscordPresence();
 }
 
-void AchievementSettingsWidget::ToggleProgress()
+void AchievementSettingsWidget::ToggleProgress() const
 {
   SaveSettings();
 }

@@ -47,13 +47,13 @@ public:
   // These expect pre-byteswapped values
   // Also there's an upper limit of about 512 per batch
   // Most likely these should be inlined into JIT instead
-  void FastWrite8(u8 value);
-  void FastWrite16(u16 value);
-  void FastWrite32(u32 value);
-  void FastWrite64(u64 value);
+  void FastWrite8(u8 value) const;
+  void FastWrite16(u16 value) const;
+  void FastWrite32(u32 value) const;
+  void FastWrite64(u64 value) const;
 
 private:
-  size_t GetGatherPipeCount();
+  size_t GetGatherPipeCount() const;
   void SetGatherPipeCount(size_t size);
 
   // More room for the fastmodes

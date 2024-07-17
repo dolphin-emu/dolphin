@@ -1063,7 +1063,7 @@ void VertexManagerBase::OnEndFrame()
   InvalidatePipelineObject();
 }
 
-void VertexManagerBase::NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config)
+void VertexManagerBase::NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config) const
 {
   m_custom_shader_cache->SetHostConfig(host_config);
   m_custom_shader_cache->Reload();

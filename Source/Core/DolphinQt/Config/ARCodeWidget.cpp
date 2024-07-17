@@ -177,7 +177,7 @@ void ARCodeWidget::OnListReordered()
   SaveCodes();
 }
 
-void ARCodeWidget::OnSelectionChanged()
+void ARCodeWidget::OnSelectionChanged() const
 {
   auto items = m_code_list->selectedItems();
 
@@ -192,7 +192,7 @@ void ARCodeWidget::OnSelectionChanged()
   m_code_edit->setText(user_defined ? tr("&Edit Code...") : tr("Clone and &Edit Code..."));
 }
 
-void ARCodeWidget::UpdateList()
+void ARCodeWidget::UpdateList() const
 {
   m_code_list->clear();
 

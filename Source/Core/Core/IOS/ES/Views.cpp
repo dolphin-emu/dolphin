@@ -36,7 +36,7 @@ static bool ShouldReturnFakeViewsForIOSes(const u64 title_id, const TitleContext
          (ios && SConfig::GetInstance().m_disc_booted_from_game_list && disc_title);
 }
 
-IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
@@ -67,7 +67,7 @@ IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return IPCReply(ES_EINVAL);
@@ -151,7 +151,7 @@ ReturnCode ESCore::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* tic
   return IPC_SUCCESS;
 }
 
-IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
+IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
       request.in_vectors[0].size != sizeof(ES::TicketView) ||
@@ -167,7 +167,7 @@ IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
       memory.GetPointerForRange(request.io_vectors[0].address, sizeof(ES::Ticket)), nullptr, 0));
 }
 
-IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request) const
 {
   u32 ticket_size = 0;
   if (!request.HasNumberOfValidVectors(1, 1) ||
@@ -186,7 +186,7 @@ IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
   return IPCReply(ret);
 }
 
-IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(ES::TicketView) ||
@@ -208,7 +208,7 @@ IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
       std::nullopt));
 }
 
-IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
@@ -229,7 +229,7 @@ IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request) const
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -258,7 +258,7 @@ IPCReply ESDevice::GetTMDViews(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
@@ -302,7 +302,7 @@ IPCReply ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return IPCReply(ES_EINVAL);
@@ -351,7 +351,7 @@ IPCReply ESDevice::DIGetTMDView(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
       request.io_vectors[0].size != sizeof(ES::TicketView))
@@ -392,7 +392,7 @@ IPCReply ESDevice::DIGetTicketView(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
@@ -407,7 +407,7 @@ IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::DIGetTMD(const IOCtlVRequest& request)
+IPCReply ESDevice::DIGetTMD(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);

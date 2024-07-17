@@ -278,7 +278,7 @@ IPCReply NetWDCommandDevice::GetLinkState(const IOCtlVRequest& request) const
   return IPCReply(u32(m_status == GetTargetStatusForMode(m_mode)));
 }
 
-IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
+IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request) const
 {
   const auto* vector = request.GetVector(0);
   if (!vector || vector->address == 0)

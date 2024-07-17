@@ -23,7 +23,7 @@ bool ControlReference::GetInputGate()
 // Updates a controlreference's binded devices/controls
 // need to call this to re-bind a control reference after changing its expression
 //
-void ControlReference::UpdateReference(ControlEnvironment& env)
+void ControlReference::UpdateReference(ControlEnvironment& env) const
 {
   if (m_parsed_expression)
   {

@@ -216,17 +216,17 @@ private:
   Common::Vec3 GetTotalAngularVelocity() const;
   Common::Matrix44 GetTotalTransformation() const;
 
-  void HandleReportRumble(const WiimoteCommon::OutputReportRumble&);
+  void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) const;
   void HandleReportLeds(const WiimoteCommon::OutputReportLeds&);
   void HandleReportMode(const WiimoteCommon::OutputReportMode&);
   void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&);
   void HandleReadData(const WiimoteCommon::OutputReportReadData&);
   void HandleWriteData(const WiimoteCommon::OutputReportWriteData&);
   void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&);
-  void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&) const;
   void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&);
   void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&);
-  void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&);
+  void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&) const;
 
   template <typename T, typename H>
   void InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size);
@@ -236,9 +236,9 @@ private:
   void SendDataReport(const DesiredWiimoteState& target_state);
   bool ProcessReadDataRequest();
 
-  void SetRumble(bool on);
+  void SetRumble(bool on) const;
 
-  void SendAck(WiimoteCommon::OutputReportID rpt_id, WiimoteCommon::ErrorCode err);
+  void SendAck(WiimoteCommon::OutputReportID rpt_id, WiimoteCommon::ErrorCode err) const;
 
   bool IsSideways() const;
   bool IsUpright() const;

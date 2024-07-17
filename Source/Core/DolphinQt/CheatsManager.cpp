@@ -55,7 +55,7 @@ void CheatsManager::OnStateChanged(Core::State state)
     UpdateAllCheatSearchWidgetCurrentValues();
 }
 
-void CheatsManager::OnFrameEnd()
+void CheatsManager::OnFrameEnd() const
 {
   if (!isVisible())
     return;
@@ -69,7 +69,7 @@ void CheatsManager::OnFrameEnd()
   }
 }
 
-void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
+void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues() const
 {
   for (int i = 0; i < m_tab_widget->count(); ++i)
   {
@@ -183,7 +183,7 @@ void CheatsManager::OnNewSessionCreated(const Cheats::CheatSearchSessionBase& se
   m_tab_widget->setCurrentIndex(tab_index);
 }
 
-void CheatsManager::OnTabCloseRequested(int index)
+void CheatsManager::OnTabCloseRequested(int index) const
 {
   auto* w = m_tab_widget->widget(index);
   if (w)

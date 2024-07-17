@@ -65,7 +65,7 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   setLayout(m_total);
 }
 
-void AchievementHeaderWidget::UpdateData()
+void AchievementHeaderWidget::UpdateData() const
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   auto& instance = AchievementManager::GetInstance();

@@ -125,7 +125,7 @@ bool InputConfig::LoadConfig()
   }
 }
 
-void InputConfig::SaveConfig()
+void InputConfig::SaveConfig() const
 {
   std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
 
@@ -184,7 +184,7 @@ void InputConfig::RegisterHotplugCallback()
   });
 }
 
-void InputConfig::UnregisterHotplugCallback()
+void InputConfig::UnregisterHotplugCallback() const
 {
   g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
 }
@@ -208,7 +208,7 @@ bool InputConfig::IsControllerControlledByGamepadDevice(const int index) const
                controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse
 }
 
-void InputConfig::GenerateControllerTextures(const Common::IniFile& file)
+void InputConfig::GenerateControllerTextures(const Common::IniFile& file) const
 {
   std::vector<std::string> controller_names;
   for (auto& controller : m_controllers)

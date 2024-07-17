@@ -29,7 +29,7 @@ public:
 private:
   void CreateLayout();
   void ConnectLayout();
-  void Update();
+  void Update() const;
 
   QComboBox* m_cpu_emulation_engine_combobox;
   ConfigBool* m_enable_mmu_checkbox;

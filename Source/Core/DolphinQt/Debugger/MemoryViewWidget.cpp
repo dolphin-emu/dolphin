@@ -146,7 +146,7 @@ public:
     }
   }
 
-  void OnItemChanged(const QTableWidgetItem* item)
+  void OnItemChanged(const QTableWidgetItem* item) const
   {
     QString text = item->text();
     MemoryViewWidget::Type type =
@@ -435,7 +435,7 @@ void MemoryViewWidget::Update()
   update();
 }
 
-void MemoryViewWidget::UpdateColumns()
+void MemoryViewWidget::UpdateColumns() const
 {
   if (!isVisible())
     return;
@@ -456,7 +456,7 @@ void MemoryViewWidget::UpdateColumns()
   }
 }
 
-void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
+void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard) const
 {
   // Check if table is created
   if (m_table->item(1, 1) == nullptr)
@@ -482,7 +482,7 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
 }
 
 // May only be called if we have taken on the role of the CPU thread
-QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type)
+QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type) const
 {
   const AddressSpace::Accessors* accessors = GetAccessors(m_address_space);
   if (!accessors->IsValidAddress(guard, address))
@@ -552,7 +552,7 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   }
 }
 
-void MemoryViewWidget::UpdateBreakpointTags()
+void MemoryViewWidget::UpdateBreakpointTags() const
 {
   for (int i = 0; i < m_table->rowCount(); i++)
   {
@@ -849,7 +849,7 @@ void MemoryViewWidget::OnCopyAddress(u32 addr)
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 }
 
-void MemoryViewWidget::OnCopyHex(u32 addr)
+void MemoryViewWidget::OnCopyHex(u32 addr) const
 {
   const auto length = GetTypeSize(m_type);
 
@@ -936,7 +936,7 @@ void MemoryViewWidget::ScrollbarActionTriggered(int action)
   }
 }
 
-void MemoryViewWidget::ScrollbarSliderReleased()
+void MemoryViewWidget::ScrollbarSliderReleased() const
 {
   // Reset the draggable part of the bar back to the center.
   m_scrollbar->setValue(SCROLLBAR_CENTER);

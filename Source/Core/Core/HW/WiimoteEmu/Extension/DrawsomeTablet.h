@@ -31,7 +31,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(DrawsomeTabletGroup group);
+  ControllerEmu::ControlGroup* GetGroup(DrawsomeTabletGroup group) const;
 
   struct DataFormat
   {

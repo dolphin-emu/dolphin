@@ -208,7 +208,7 @@ void HostFileSystem::LoadFst()
   m_root_entry = *root_entry;
 }
 
-void HostFileSystem::SaveFst()
+void HostFileSystem::SaveFst() const
 {
   std::vector<SerializedFstEntry> to_write;
   auto collect_entries = [&to_write](const auto& collect, const FstEntry& entry) -> void {
@@ -283,7 +283,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   return entry;
 }
 
-void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_path)
+void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_path) const
 {
   std::string path = BuildFilename(start_directory_path).host_path;
   File::DeleteDirRecursively(path);
@@ -328,7 +328,7 @@ void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_pat
   }
 }
 
-void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path)
+void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path) const
 {
   std::string path = BuildFilename(start_directory_path).host_path;
   File::FSTEntry parent_entry = File::ScanDirectoryTree(path, true);

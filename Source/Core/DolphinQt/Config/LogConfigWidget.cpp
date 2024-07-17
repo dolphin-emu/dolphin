@@ -164,7 +164,7 @@ void LogConfigWidget::LoadSettings()
   }
 }
 
-void LogConfigWidget::SaveSettings()
+void LogConfigWidget::SaveSettings() const
 {
   if (m_block_save)
     return;

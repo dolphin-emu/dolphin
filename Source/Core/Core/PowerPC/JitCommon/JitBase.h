@@ -176,7 +176,7 @@ protected:
 
   bool CanMergeNextInstructions(int count) const;
 
-  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
+  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op) const;
 
 public:
   explicit JitBase(Core::System& system);

@@ -99,7 +99,7 @@ void ShaderCache::Reload()
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
 }
 
-void ShaderCache::RetrieveAsyncShaders()
+void ShaderCache::RetrieveAsyncShaders() const
 {
   m_async_shader_compiler->RetrieveWorkItems();
 }
@@ -160,7 +160,7 @@ const AbstractPipeline* ShaderCache::GetUberPipelineForUid(const GXUberPipelineU
   return InsertGXUberPipeline(uid, std::move(pipeline));
 }
 
-void ShaderCache::WaitForAsyncCompiler()
+void ShaderCache::WaitForAsyncCompiler() const
 {
   bool running = true;
 
@@ -1528,7 +1528,7 @@ bool ShaderCache::CompileSharedPipelines()
   return true;
 }
 
-const AbstractPipeline* ShaderCache::GetPaletteConversionPipeline(TLUTFormat format)
+const AbstractPipeline* ShaderCache::GetPaletteConversionPipeline(TLUTFormat format) const
 {
   ASSERT(static_cast<size_t>(format) < NUM_PALETTE_CONVERSION_SHADERS);
   return m_palette_conversion_pipelines[static_cast<size_t>(format)].get();

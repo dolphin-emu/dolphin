@@ -286,9 +286,9 @@ public:
   void UpdateInput(std::vector<std::weak_ptr<Core::Device>>& devices_to_remove) override;
 
 private:
-  void OpenAndAddDevice(int index);
+  void OpenAndAddDevice(int index) const;
 
-  bool HandleEventAndContinue(const SDL_Event& e);
+  bool HandleEventAndContinue(const SDL_Event& e) const;
 
   Common::Event m_init_event;
   Uint32 m_stop_event_type;
@@ -301,7 +301,7 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
   return std::make_unique<InputBackend>(controller_interface);
 }
 
-void InputBackend::OpenAndAddDevice(int index)
+void InputBackend::OpenAndAddDevice(int index) const
 {
   SDL_GameController* gc = SDL_GameControllerOpen(index);
   SDL_Joystick* js = SDL_JoystickOpen(index);
@@ -322,7 +322,7 @@ void InputBackend::OpenAndAddDevice(int index)
   }
 }
 
-bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
+bool InputBackend::HandleEventAndContinue(const SDL_Event& e) const
 {
   if (e.type == SDL_CONTROLLERDEVICEADDED || e.type == SDL_JOYDEVICEADDED)
   {

@@ -380,7 +380,7 @@ bool MemChecks::OverlapsMemcheck(const u32 address, const u32 length) const
   });
 }
 
-bool TMemCheck::Action(Core::System& system, const u64 value, const u32 addr, const bool write, const size_t size, const u32 pc)
+bool TMemCheck::Action(Core::System& system, const u64 value, const u32 addr, const bool write, const size_t size, const u32 pc) const
 {
   if (!is_enabled)
     return false;

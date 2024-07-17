@@ -156,7 +156,7 @@ private:
 
   IPCReply SetLinkState(const IOCtlVRequest& request);
   IPCReply GetLinkState(const IOCtlVRequest& request) const;
-  IPCReply Disassociate(const IOCtlVRequest& request);
+  IPCReply Disassociate(const IOCtlVRequest& request) const;
   IPCReply GetInfo(const IOCtlVRequest& request) const;
 
   s32 m_ipc_owner_fd = -1;

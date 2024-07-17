@@ -20,7 +20,7 @@ void InputBackend::HandleWindowChange()
 {
 }
 
-ControllerInterface& InputBackend::GetControllerInterface()
+ControllerInterface& InputBackend::GetControllerInterface() const
 {
   return m_controller_interface;
 }

@@ -182,7 +182,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(ClassicGroup group);
+  ControllerEmu::ControlGroup* GetGroup(ClassicGroup group) const;
 
   static constexpr u16 PAD_RIGHT = 0x80;
   static constexpr u16 PAD_DOWN = 0x40;

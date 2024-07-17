@@ -81,7 +81,7 @@ void TaTaCon::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-ControllerEmu::ControlGroup* TaTaCon::GetGroup(const TaTaConGroup group)
+ControllerEmu::ControlGroup* TaTaCon::GetGroup(const TaTaConGroup group) const
 {
   switch (group)
   {

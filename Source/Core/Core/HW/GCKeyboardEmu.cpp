@@ -92,7 +92,7 @@ InputConfig* GCKeyboard::GetConfig() const
   return Keyboard::GetConfig();
 }
 
-ControllerEmu::ControlGroup* GCKeyboard::GetGroup(const KeyboardGroup group)
+ControllerEmu::ControlGroup* GCKeyboard::GetGroup(const KeyboardGroup group) const
 {
   switch (group)
   {

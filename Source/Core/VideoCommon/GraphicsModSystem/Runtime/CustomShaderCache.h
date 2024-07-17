@@ -41,7 +41,7 @@ public:
   void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config.bits = host_config.bits; }
 
   // Retrieves all pending shaders/pipelines from the async compiler.
-  void RetrieveAsyncShaders();
+  void RetrieveAsyncShaders() const;
 
   // Reloads/recreates all shaders and pipelines.
   void Reload();

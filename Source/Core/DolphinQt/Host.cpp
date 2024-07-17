@@ -118,7 +118,7 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
   }
 }
 
-bool Host::GetRenderFocus()
+bool Host::GetRenderFocus() const
 {
 #ifdef _WIN32
   // Unfortunately Qt calls SetRenderFocus() with a slight delay compared to what we actually need

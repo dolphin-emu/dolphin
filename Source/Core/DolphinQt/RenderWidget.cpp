@@ -511,7 +511,7 @@ bool RenderWidget::event(QEvent* event)
   return QWidget::event(event);
 }
 
-void RenderWidget::PassEventToPresenter(const QEvent* event)
+void RenderWidget::PassEventToPresenter(const QEvent* event) const
 {
   if (!IsRunning(Core::System::GetInstance()))
     return;

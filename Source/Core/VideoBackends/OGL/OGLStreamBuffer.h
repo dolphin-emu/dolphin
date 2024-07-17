@@ -48,7 +48,7 @@ public:
 protected:
   StreamBuffer(u32 type, u32 size);
   void CreateFences();
-  void DeleteFences();
+  void DeleteFences() const;
   void AllocMemory(u32 size);
 
   const u32 m_buffertype;

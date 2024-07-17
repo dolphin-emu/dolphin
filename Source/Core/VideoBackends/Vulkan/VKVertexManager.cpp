@@ -132,7 +132,7 @@ bool VertexManager::Initialize()
   return true;
 }
 
-void VertexManager::DestroyTexelBufferViews()
+void VertexManager::DestroyTexelBufferViews() const
 {
   for (VkBufferView view : m_texel_buffer_views)
   {
@@ -202,7 +202,7 @@ void VertexManager::UploadUniforms()
   UpdatePixelShaderConstants();
 }
 
-void VertexManager::UpdateVertexShaderConstants()
+void VertexManager::UpdateVertexShaderConstants() const
 {
   auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
@@ -220,7 +220,7 @@ void VertexManager::UpdateVertexShaderConstants()
   vertex_shader_manager.dirty = false;
 }
 
-void VertexManager::UpdateGeometryShaderConstants()
+void VertexManager::UpdateGeometryShaderConstants() const
 {
   auto& system = Core::System::GetInstance();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
@@ -238,7 +238,7 @@ void VertexManager::UpdateGeometryShaderConstants()
   geometry_shader_manager.dirty = false;
 }
 
-void VertexManager::UpdatePixelShaderConstants()
+void VertexManager::UpdatePixelShaderConstants() const
 {
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
@@ -273,7 +273,7 @@ void VertexManager::UpdatePixelShaderConstants()
   }
 }
 
-bool VertexManager::ReserveConstantStorage()
+bool VertexManager::ReserveConstantStorage() const
 {
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
@@ -295,7 +295,7 @@ bool VertexManager::ReserveConstantStorage()
   return false;
 }
 
-void VertexManager::UploadAllConstants()
+void VertexManager::UploadAllConstants() const
 {
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();

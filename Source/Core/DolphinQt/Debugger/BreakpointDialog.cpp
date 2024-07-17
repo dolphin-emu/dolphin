@@ -233,13 +233,13 @@ void BreakpointDialog::ConnectWidgets()
           &BreakpointDialog::OnAddressTypeChanged);
 }
 
-void BreakpointDialog::OnBPTypeChanged()
+void BreakpointDialog::OnBPTypeChanged() const
 {
   m_instruction_box->setEnabled(m_instruction_bp->isChecked());
   m_memory_box->setEnabled(m_memory_bp->isChecked());
 }
 
-void BreakpointDialog::OnAddressTypeChanged()
+void BreakpointDialog::OnAddressTypeChanged() const
 {
   bool ranged = m_memory_use_range->isChecked();
 

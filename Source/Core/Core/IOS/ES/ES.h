@@ -127,26 +127,26 @@ public:
   };
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
                           TicketImportType type = TicketImportType::PossiblyPersonalised,
-                          VerifySignature verify_signature = VerifySignature::Yes);
+                          VerifySignature verify_signature = VerifySignature::Yes) const;
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes, u64 caller_title_id,
-                       u32 caller_title_flags);
+                       u32 caller_title_flags) const;
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                              const std::vector<u8>& cert_chain,
-                             VerifySignature verify_signature = VerifySignature::Yes);
+                             VerifySignature verify_signature = VerifySignature::Yes) const;
   ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
-  ReturnCode ImportContentEnd(Context& context, u32 content_fd);
-  ReturnCode ImportTitleDone(Context& context);
-  ReturnCode ImportTitleCancel(Context& context);
+  ReturnCode ImportContentEnd(Context& context, u32 content_fd) const;
+  ReturnCode ImportTitleDone(Context& context) const;
+  ReturnCode ImportTitleCancel(Context& context) const;
   ReturnCode ExportTitleInit(Context& context, u64 title_id, u8* tmd, u32 tmd_size,
-                             u64 caller_title_id, u32 caller_title_flags);
+                             u64 caller_title_id, u32 caller_title_flags) const;
   ReturnCode ExportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size);
   ReturnCode ExportContentEnd(const Context& context, u32 content_fd);
-  ReturnCode ExportTitleDone(Context& context);
-  ReturnCode DeleteTitle(u64 title_id);
+  ReturnCode ExportTitleDone(Context& context) const;
+  ReturnCode DeleteTitle(u64 title_id) const;
   ReturnCode DeleteTitleContent(u64 title_id) const;
-  ReturnCode DeleteTicket(const u8* ticket_view);
+  ReturnCode DeleteTicket(const u8* ticket_view) const;
   ReturnCode DeleteSharedContent(const std::array<u8, 20>& sha1) const;
   ReturnCode DeleteContent(u64 title_id, u32 content_id) const;
 
@@ -154,13 +154,13 @@ public:
   ReturnCode GetTitleId(u64* device_id) const;
 
   ReturnCode VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
-                        const std::vector<u8>& certs);
+                        const std::vector<u8>& certs) const;
 
   // Views
   ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
                                std::optional<u8> desired_version) const;
 
-  ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const ES::TMDReader& tmd, u32* handle);
+  ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const ES::TMDReader& tmd, u32* handle) const;
 
   bool CreateTitleDirectories(u64 title_id, u16 group_id) const;
 
@@ -180,21 +180,21 @@ public:
   // The caller is responsible for using IOSC_DeleteObject.
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
                              const ES::SignedBlobReader& signed_blob,
-                             const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr);
+                             const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr) const;
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
                              const ES::CertReader& certificate, const std::vector<u8>& cert_chain,
-                             u32 certificate_iosc_handle);
+                             u32 certificate_iosc_handle) const;
 
 private:
   // Start a title import.
-  bool InitImport(const ES::TMDReader& tmd);
+  bool InitImport(const ES::TMDReader& tmd) const;
   // Clean up the import content directory and move it back to /title.
-  bool FinishImport(const ES::TMDReader& tmd);
+  bool FinishImport(const ES::TMDReader& tmd) const;
   // Write a TMD for a title in /import atomically.
-  bool WriteImportTMD(const ES::TMDReader& tmd);
+  bool WriteImportTMD(const ES::TMDReader& tmd) const;
   // Finish stale imports and clear the import directory.
-  void FinishStaleImport(u64 title_id);
-  void FinishAllStaleImports();
+  void FinishStaleImport(u64 title_id) const;
+  void FinishAllStaleImports() const;
 
   std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
 
@@ -202,7 +202,7 @@ private:
 
   bool IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert) const;
   ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
-  ReturnCode WriteNewCertToStore(const ES::CertReader& cert);
+  ReturnCode WriteNewCertToStore(const ES::CertReader& cert) const;
 
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
                                        const ES::TMDReader& tmd) const;
@@ -239,7 +239,7 @@ public:
   static void InitializeEmulationState(CoreTiming::CoreTimingManager& core_timing);
   static void FinalizeEmulationState();
 
-  ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
+  ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket) const;
   bool LaunchTitle(u64 title_id, HangPPC hang_ppc = HangPPC::No);
 
   void DoState(PointerWrap& p) override;
@@ -329,84 +329,84 @@ private:
   using ContextArray = std::array<Context, 3>;
 
   // Title management
-  IPCReply ImportTicket(const IOCtlVRequest& request);
-  IPCReply ImportTmd(Context& context, const IOCtlVRequest& request);
-  IPCReply ImportTitleInit(Context& context, const IOCtlVRequest& request);
-  IPCReply ImportContentBegin(Context& context, const IOCtlVRequest& request);
-  IPCReply ImportContentData(Context& context, const IOCtlVRequest& request);
-  IPCReply ImportContentEnd(Context& context, const IOCtlVRequest& request);
-  IPCReply ImportTitleDone(Context& context, const IOCtlVRequest& request);
-  IPCReply ImportTitleCancel(Context& context, const IOCtlVRequest& request);
-  IPCReply ExportTitleInit(Context& context, const IOCtlVRequest& request);
-  IPCReply ExportContentBegin(Context& context, const IOCtlVRequest& request);
-  IPCReply ExportContentData(Context& context, const IOCtlVRequest& request);
-  IPCReply ExportContentEnd(Context& context, const IOCtlVRequest& request);
-  IPCReply ExportTitleDone(Context& context, const IOCtlVRequest& request);
-  IPCReply DeleteTitle(const IOCtlVRequest& request);
-  IPCReply DeleteTitleContent(const IOCtlVRequest& request);
-  IPCReply DeleteTicket(const IOCtlVRequest& request);
-  IPCReply DeleteSharedContent(const IOCtlVRequest& request);
-  IPCReply DeleteContent(const IOCtlVRequest& request);
+  IPCReply ImportTicket(const IOCtlVRequest& request) const;
+  IPCReply ImportTmd(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ImportTitleInit(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ImportContentBegin(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ImportContentData(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ImportContentEnd(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ImportTitleDone(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ImportTitleCancel(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ExportTitleInit(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ExportContentBegin(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ExportContentData(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ExportContentEnd(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ExportTitleDone(Context& context, const IOCtlVRequest& request) const;
+  IPCReply DeleteTitle(const IOCtlVRequest& request) const;
+  IPCReply DeleteTitleContent(const IOCtlVRequest& request) const;
+  IPCReply DeleteTicket(const IOCtlVRequest& request) const;
+  IPCReply DeleteSharedContent(const IOCtlVRequest& request) const;
+  IPCReply DeleteContent(const IOCtlVRequest& request) const;
 
   // Device identity and encryption
-  IPCReply GetDeviceId(const IOCtlVRequest& request);
-  IPCReply GetDeviceCertificate(const IOCtlVRequest& request);
+  IPCReply GetDeviceId(const IOCtlVRequest& request) const;
+  IPCReply GetDeviceCertificate(const IOCtlVRequest& request) const;
   IPCReply CheckKoreaRegion(const IOCtlVRequest& request);
-  IPCReply Sign(const IOCtlVRequest& request);
-  IPCReply VerifySign(const IOCtlVRequest& request);
-  IPCReply Encrypt(u32 uid, const IOCtlVRequest& request);
-  IPCReply Decrypt(u32 uid, const IOCtlVRequest& request);
+  IPCReply Sign(const IOCtlVRequest& request) const;
+  IPCReply VerifySign(const IOCtlVRequest& request) const;
+  IPCReply Encrypt(u32 uid, const IOCtlVRequest& request) const;
+  IPCReply Decrypt(u32 uid, const IOCtlVRequest& request) const;
 
   // Misc
-  IPCReply SetUID(u32 uid, const IOCtlVRequest& request);
-  IPCReply GetTitleDirectory(const IOCtlVRequest& request);
-  IPCReply GetTitleId(const IOCtlVRequest& request);
-  IPCReply GetConsumption(const IOCtlVRequest& request);
+  IPCReply SetUID(u32 uid, const IOCtlVRequest& request) const;
+  IPCReply GetTitleDirectory(const IOCtlVRequest& request) const;
+  IPCReply GetTitleId(const IOCtlVRequest& request) const;
+  IPCReply GetConsumption(const IOCtlVRequest& request) const;
   std::optional<IPCReply> Launch(const IOCtlVRequest& request);
   std::optional<IPCReply> LaunchBC(const IOCtlVRequest& request);
   IPCReply DIVerify(const IOCtlVRequest& request);
-  IPCReply SetUpStreamKey(const Context& context, const IOCtlVRequest& request);
-  IPCReply DeleteStreamKey(const IOCtlVRequest& request);
+  IPCReply SetUpStreamKey(const Context& context, const IOCtlVRequest& request) const;
+  IPCReply DeleteStreamKey(const IOCtlVRequest& request) const;
 
   // Title contents
-  IPCReply OpenActiveTitleContent(u32 uid, const IOCtlVRequest& request);
-  IPCReply OpenContent(u32 uid, const IOCtlVRequest& request);
-  IPCReply ReadContent(u32 uid, const IOCtlVRequest& request);
-  IPCReply CloseContent(u32 uid, const IOCtlVRequest& request);
-  IPCReply SeekContent(u32 uid, const IOCtlVRequest& request);
+  IPCReply OpenActiveTitleContent(u32 uid, const IOCtlVRequest& request) const;
+  IPCReply OpenContent(u32 uid, const IOCtlVRequest& request) const;
+  IPCReply ReadContent(u32 uid, const IOCtlVRequest& request) const;
+  IPCReply CloseContent(u32 uid, const IOCtlVRequest& request) const;
+  IPCReply SeekContent(u32 uid, const IOCtlVRequest& request) const;
 
   // Title information
-  IPCReply GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request);
-  IPCReply GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request);
-  IPCReply GetOwnedTitleCount(const IOCtlVRequest& request);
-  IPCReply GetOwnedTitles(const IOCtlVRequest& request);
-  IPCReply GetTitleCount(const IOCtlVRequest& request);
-  IPCReply GetTitles(const IOCtlVRequest& request);
-  IPCReply GetBoot2Version(const IOCtlVRequest& request);
-  IPCReply GetStoredContentsCount(const ES::TMDReader& tmd, const IOCtlVRequest& request);
-  IPCReply GetStoredContents(const ES::TMDReader& tmd, const IOCtlVRequest& request);
-  IPCReply GetStoredContentsCount(const IOCtlVRequest& request);
-  IPCReply GetStoredContents(const IOCtlVRequest& request);
-  IPCReply GetTMDStoredContentsCount(const IOCtlVRequest& request);
-  IPCReply GetTMDStoredContents(const IOCtlVRequest& request);
-  IPCReply GetStoredTMDSize(const IOCtlVRequest& request);
-  IPCReply GetStoredTMD(const IOCtlVRequest& request);
+  IPCReply GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request) const;
+  IPCReply GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request) const;
+  IPCReply GetOwnedTitleCount(const IOCtlVRequest& request) const;
+  IPCReply GetOwnedTitles(const IOCtlVRequest& request) const;
+  IPCReply GetTitleCount(const IOCtlVRequest& request) const;
+  IPCReply GetTitles(const IOCtlVRequest& request) const;
+  IPCReply GetBoot2Version(const IOCtlVRequest& request) const;
+  IPCReply GetStoredContentsCount(const ES::TMDReader& tmd, const IOCtlVRequest& request) const;
+  IPCReply GetStoredContents(const ES::TMDReader& tmd, const IOCtlVRequest& request) const;
+  IPCReply GetStoredContentsCount(const IOCtlVRequest& request) const;
+  IPCReply GetStoredContents(const IOCtlVRequest& request) const;
+  IPCReply GetTMDStoredContentsCount(const IOCtlVRequest& request) const;
+  IPCReply GetTMDStoredContents(const IOCtlVRequest& request) const;
+  IPCReply GetStoredTMDSize(const IOCtlVRequest& request) const;
+  IPCReply GetStoredTMD(const IOCtlVRequest& request) const;
   IPCReply GetSharedContentsCount(const IOCtlVRequest& request) const;
   IPCReply GetSharedContents(const IOCtlVRequest& request) const;
 
   // Views for tickets and TMDs
-  IPCReply GetTicketViewCount(const IOCtlVRequest& request);
-  IPCReply GetTicketViews(const IOCtlVRequest& request);
-  IPCReply GetV0TicketFromView(const IOCtlVRequest& request);
-  IPCReply GetTicketSizeFromView(const IOCtlVRequest& request);
-  IPCReply GetTicketFromView(const IOCtlVRequest& request);
-  IPCReply GetTMDViewSize(const IOCtlVRequest& request);
-  IPCReply GetTMDViews(const IOCtlVRequest& request);
-  IPCReply DIGetTicketView(const IOCtlVRequest& request);
-  IPCReply DIGetTMDViewSize(const IOCtlVRequest& request);
-  IPCReply DIGetTMDView(const IOCtlVRequest& request);
-  IPCReply DIGetTMDSize(const IOCtlVRequest& request);
-  IPCReply DIGetTMD(const IOCtlVRequest& request);
+  IPCReply GetTicketViewCount(const IOCtlVRequest& request) const;
+  IPCReply GetTicketViews(const IOCtlVRequest& request) const;
+  IPCReply GetV0TicketFromView(const IOCtlVRequest& request) const;
+  IPCReply GetTicketSizeFromView(const IOCtlVRequest& request) const;
+  IPCReply GetTicketFromView(const IOCtlVRequest& request) const;
+  IPCReply GetTMDViewSize(const IOCtlVRequest& request) const;
+  IPCReply GetTMDViews(const IOCtlVRequest& request) const;
+  IPCReply DIGetTicketView(const IOCtlVRequest& request) const;
+  IPCReply DIGetTMDViewSize(const IOCtlVRequest& request) const;
+  IPCReply DIGetTMDView(const IOCtlVRequest& request) const;
+  IPCReply DIGetTMDSize(const IOCtlVRequest& request) const;
+  IPCReply DIGetTMD(const IOCtlVRequest& request) const;
 
   ContextArray::iterator FindActiveContext(s32 fd);
   ContextArray::iterator FindInactiveContext();
@@ -416,8 +416,8 @@ private:
 
   void FinishInit();
 
-  s32 WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks = {});
-  s32 WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks = {});
+  s32 WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks = {}) const;
+  s32 WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks = {}) const;
   bool BootstrapPPC();
 
   ESCore& m_core;

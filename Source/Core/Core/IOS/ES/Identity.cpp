@@ -27,7 +27,7 @@ ReturnCode ESCore::GetDeviceId(u32* device_id) const
   return IPC_SUCCESS;
 }
 
-IPCReply ESDevice::GetDeviceId(const IOCtlVRequest& request)
+IPCReply ESDevice::GetDeviceId(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
@@ -43,7 +43,7 @@ IPCReply ESDevice::GetDeviceId(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::Encrypt(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::Encrypt(u32 uid, const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(3, 2))
     return IPCReply(ES_EINVAL);
@@ -63,7 +63,7 @@ IPCReply ESDevice::Encrypt(u32 uid, const IOCtlVRequest& request)
   return IPCReply(ret);
 }
 
-IPCReply ESDevice::Decrypt(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::Decrypt(u32 uid, const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(3, 2))
     return IPCReply(ES_EINVAL);
@@ -96,7 +96,7 @@ IPCReply ESDevice::CheckKoreaRegion(const IOCtlVRequest& request)
   return IPCReply(ES_EINVAL);
 }
 
-IPCReply ESDevice::GetDeviceCertificate(const IOCtlVRequest& request)
+IPCReply ESDevice::GetDeviceCertificate(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 0x180)
     return IPCReply(ES_EINVAL);
@@ -110,7 +110,7 @@ IPCReply ESDevice::GetDeviceCertificate(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply ESDevice::Sign(const IOCtlVRequest& request)
+IPCReply ESDevice::Sign(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 2))
     return IPCReply(ES_EINVAL);
@@ -133,7 +133,7 @@ IPCReply ESDevice::Sign(const IOCtlVRequest& request)
 }
 
 ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
-                              const std::vector<u8>& certs_bytes)
+                              const std::vector<u8>& certs_bytes) const
 {
   const std::map<std::string, ES::CertReader> certs = ES::ParseCertChain(certs_bytes);
   if (certs.empty())
@@ -204,7 +204,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   return IPC_SUCCESS;
 }
 
-IPCReply ESDevice::VerifySign(const IOCtlVRequest& request)
+IPCReply ESDevice::VerifySign(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(3, 0))
     return IPCReply(ES_EINVAL);

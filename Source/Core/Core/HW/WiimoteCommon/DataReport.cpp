@@ -393,7 +393,7 @@ void DataReportBuilder::GetCoreData(CoreData* core) const
   m_manip->GetCoreData(core);
 }
 
-void DataReportBuilder::SetCoreData(const CoreData& core)
+void DataReportBuilder::SetCoreData(const CoreData& core) const
 {
   m_manip->SetCoreData(core);
 }
@@ -403,7 +403,7 @@ void DataReportBuilder::GetAccelData(AccelData* accel) const
   m_manip->GetAccelData(accel);
 }
 
-void DataReportBuilder::SetAccelData(const AccelData& accel)
+void DataReportBuilder::SetAccelData(const AccelData& accel) const
 {
   m_manip->SetAccelData(accel);
 }

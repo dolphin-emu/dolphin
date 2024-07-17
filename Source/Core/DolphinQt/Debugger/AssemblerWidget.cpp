@@ -489,7 +489,7 @@ void AssemblerWidget::ConnectWidgets()
   m_asm_tabs->connect(m_asm_tabs, &QTabWidget::currentChanged, this, &AssemblerWidget::OnTabChange);
 }
 
-void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out)
+void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out) const
 {
   if (m_asm_tabs->currentIndex() == -1)
   {
@@ -571,7 +571,7 @@ void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out)
   *asm_out = std::move(GetT(result));
 }
 
-void AssemblerWidget::OnCopyOutput()
+void AssemblerWidget::OnCopyOutput() const
 {
   QApplication::clipboard()->setText(m_output_box->toPlainText());
 }
@@ -620,7 +620,7 @@ void AssemblerWidget::OnNew()
   NewEditor();
 }
 
-void AssemblerWidget::OnInject()
+void AssemblerWidget::OnInject() const
 {
   Core::CPUThreadGuard guard(m_system);
 
@@ -672,7 +672,7 @@ void AssemblerWidget::OnZoomReset()
   }
 }
 
-void AssemblerWidget::OnBaseAddressChanged()
+void AssemblerWidget::OnBaseAddressChanged() const
 {
   if (m_asm_tabs->currentIndex() == -1)
   {
@@ -683,7 +683,7 @@ void AssemblerWidget::OnBaseAddressChanged()
   active_editor->SetBaseAddress(m_address_line->text());
 }
 
-void AssemblerWidget::OnTabChange(int index)
+void AssemblerWidget::OnTabChange(int index) const
 {
   if (index == -1)
   {
@@ -717,7 +717,7 @@ QString AssemblerWidget::TabTextForEditor(const AsmEditor* editor, bool with_dir
   return result;
 }
 
-AsmEditor* AssemblerWidget::GetEditor(int idx)
+AsmEditor* AssemblerWidget::GetEditor(int idx) const
 {
   return qobject_cast<AsmEditor*>(m_asm_tabs->widget(idx));
 }
@@ -789,7 +789,7 @@ bool AssemblerWidget::SaveEditor(AsmEditor* editor)
   return true;
 }
 
-void AssemblerWidget::OnEmulationStateChanged(Core::State state)
+void AssemblerWidget::OnEmulationStateChanged(Core::State state) const
 {
   m_inject->setEnabled(state != Core::State::Uninitialized);
 }
@@ -934,7 +934,7 @@ void AssemblerWidget::DisambiguateTabTitles(AsmEditor* new_tab)
   }
 }
 
-void AssemblerWidget::UpdateIcons()
+void AssemblerWidget::UpdateIcons() const
 {
   m_new->setIcon(Resources::GetThemeIcon("assembler_new"));
   m_open->setIcon(Resources::GetThemeIcon("assembler_openasm"));

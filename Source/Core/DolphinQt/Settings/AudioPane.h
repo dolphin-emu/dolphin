@@ -29,13 +29,13 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
-  void OnEmulationStateChanged(bool running);
-  void OnBackendChanged();
-  void OnDspChanged();
-  void OnVolumeChanged(int volume);
+  void OnEmulationStateChanged(bool running) const;
+  void OnBackendChanged() const;
+  void OnDspChanged() const;
+  void OnVolumeChanged(int volume) const;
 
   void CheckNeedForLatencyControl();
   bool m_latency_control_supported;

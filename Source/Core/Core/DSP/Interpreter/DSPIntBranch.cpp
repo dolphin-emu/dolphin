@@ -16,7 +16,7 @@ namespace DSP::Interpreter
 // Call function if condition cc has been met. Push program counter of
 // instruction following "call" to $st0. Set program counter to address
 // represented by value that follows this "call" instruction.
-void Interpreter::call(const UDSPInstruction opc)
+void Interpreter::call(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
 
@@ -35,7 +35,7 @@ void Interpreter::call(const UDSPInstruction opc)
 // Call function if condition cc has been met. Push program counter of
 // instruction following "call" to call stack $st0. Set program counter to
 // register $R.
-void Interpreter::callr(const UDSPInstruction opc)
+void Interpreter::callr(const UDSPInstruction opc) const
 {
   if (!CheckCondition(opc & 0xf))
     return;
@@ -51,7 +51,7 @@ void Interpreter::callr(const UDSPInstruction opc)
 // IFcc
 // 0000 0010 0111 cccc
 // Execute following opcode if the condition has been met.
-void Interpreter::ifcc(const UDSPInstruction opc)
+void Interpreter::ifcc(const UDSPInstruction opc) const
 {
   if (CheckCondition(opc & 0xf))
     return;
@@ -66,7 +66,7 @@ void Interpreter::ifcc(const UDSPInstruction opc)
 // aaaa aaaa aaaa aaaa
 // Jump to addressA if condition cc has been met. Set program counter to
 // address represented by value that follows this "jmp" instruction.
-void Interpreter::jcc(const UDSPInstruction opc)
+void Interpreter::jcc(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u16 dest = state.FetchInstruction();
@@ -81,7 +81,7 @@ void Interpreter::jcc(const UDSPInstruction opc)
 // 0001 0111 rrr0 cccc
 // Jump to address if condition cc has been met. Set program counter to
 // a value from register $R.
-void Interpreter::jmprcc(const UDSPInstruction opc)
+void Interpreter::jmprcc(const UDSPInstruction opc) const
 {
   if (!CheckCondition(opc & 0xf))
     return;
@@ -96,7 +96,7 @@ void Interpreter::jmprcc(const UDSPInstruction opc)
 // 0000 0010 1101 cccc
 // Return from subroutine if condition cc has been met. Pops stored PC
 // from call stack $st0 and sets $pc to this location.
-void Interpreter::ret(const UDSPInstruction opc)
+void Interpreter::ret(const UDSPInstruction opc) const
 {
   if (!CheckCondition(opc & 0xf))
     return;
@@ -111,7 +111,7 @@ void Interpreter::ret(const UDSPInstruction opc)
 // $st1 and program counter PC from call stack $st0 and sets $pc to this
 // location.
 // This instruction has a conditional form, but it is not used by any official ucode.
-void Interpreter::rti(const UDSPInstruction opc)
+void Interpreter::rti(const UDSPInstruction opc) const
 {
   if (!CheckCondition(opc & 0xf))
     return;
@@ -124,7 +124,7 @@ void Interpreter::rti(const UDSPInstruction opc)
 // HALT
 // 0000 0000 0010 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
-void Interpreter::halt(const UDSPInstruction)
+void Interpreter::halt(const UDSPInstruction) const
 {
   auto& state = m_dsp_core.DSPState();
   state.control_reg |= CR_HALT;
@@ -137,7 +137,7 @@ void Interpreter::halt(const UDSPInstruction)
 // then PC is modified with value from call stack $st0. Otherwise values from
 // call stack $st0 and both loop stacks $st2 and $st3 are popped and execution
 // continues at next opcode.
-void Interpreter::HandleLoop()
+void Interpreter::HandleLoop() const
 {
   auto& state = m_dsp_core.DSPState();
 
@@ -175,7 +175,7 @@ void Interpreter::HandleLoop()
 // then looped instruction will not get executed.
 // Actually, this instruction simply prepares the loop stacks for the above.
 // The looping hardware takes care of the rest.
-void Interpreter::loop(const UDSPInstruction opc)
+void Interpreter::loop(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u16 reg = opc & 0x1f;
@@ -202,7 +202,7 @@ void Interpreter::loop(const UDSPInstruction opc)
 // instruction will not get executed.
 // Actually, this instruction simply prepares the loop stacks for the above.
 // The looping hardware takes care of the rest.
-void Interpreter::loopi(const UDSPInstruction opc)
+void Interpreter::loopi(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u16 cnt = opc & 0xff;
@@ -229,7 +229,7 @@ void Interpreter::loopi(const UDSPInstruction opc)
 // included in loop. Counter is pushed on loop stack $st3, end of block address
 // is pushed on loop stack $st2 and repeat address is pushed on call stack $st0.
 // Up to 4 nested loops are allowed.
-void Interpreter::bloop(const UDSPInstruction opc)
+void Interpreter::bloop(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u16 reg = opc & 0x1f;
@@ -258,7 +258,7 @@ void Interpreter::bloop(const UDSPInstruction opc)
 // loop. Counter is pushed on loop stack $st3, end of block address is pushed
 // on loop stack $st2 and repeat address is pushed on call stack $st0. Up to 4
 // nested loops are allowed.
-void Interpreter::bloopi(const UDSPInstruction opc)
+void Interpreter::bloopi(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u16 cnt = opc & 0xff;

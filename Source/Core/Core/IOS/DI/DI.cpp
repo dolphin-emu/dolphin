@@ -117,7 +117,7 @@ void DIDevice::ProcessQueuedIOCtl()
   }
 }
 
-std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& request, const u32 value)
+std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& request, const u32 value) const
 {
   if (request.buffer_out_size < 4)
   {

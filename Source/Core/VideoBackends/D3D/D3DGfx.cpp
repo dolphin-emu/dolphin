@@ -180,7 +180,7 @@ void Gfx::OnConfigChanged(const u32 bits)
     m_swap_chain->SetHDR(SwapChain::WantsHDR());
 }
 
-void Gfx::CheckForSwapChainChanges()
+void Gfx::CheckForSwapChainChanges() const
 {
   const bool surface_changed = g_presenter->SurfaceChangedTestAndClear();
   const bool surface_resized =

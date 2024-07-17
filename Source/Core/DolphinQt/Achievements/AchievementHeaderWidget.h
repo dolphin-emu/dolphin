@@ -17,7 +17,7 @@ class AchievementHeaderWidget final : public QWidget
   Q_OBJECT
 public:
   explicit AchievementHeaderWidget(QWidget* parent);
-  void UpdateData();
+  void UpdateData() const;
 
 private:
   QLabel* m_user_icon;

@@ -45,7 +45,7 @@ public:
 
   ~Settings();
 
-  void UnregisterDevicesChangedCallback();
+  void UnregisterDevicesChangedCallback() const;
 
   static Settings& Instance();
   static QSettings& GetQSettings();

@@ -139,7 +139,7 @@ void DualShockUDPClientWidget::OnServerRemoved()
   RefreshServerList();
 }
 
-void DualShockUDPClientWidget::OnServersToggled()
+void DualShockUDPClientWidget::OnServersToggled() const
 {
   bool checked = m_servers_enabled->isChecked();
   SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED, checked);

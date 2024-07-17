@@ -151,7 +151,7 @@ DiscIO::Platform DVDThread::GetDiscType() const
   return m_disc->GetVolumeType();
 }
 
-u64 DVDThread::PartitionOffsetToRawOffset(const u64 offset, const DiscIO::Partition& partition)
+u64 DVDThread::PartitionOffsetToRawOffset(const u64 offset, const DiscIO::Partition& partition) const
 {
   // PartitionOffsetToRawOffset is thread-safe, so calling WaitUntilIdle isn't necessary.
   return m_disc->PartitionOffsetToRawOffset(offset, partition);

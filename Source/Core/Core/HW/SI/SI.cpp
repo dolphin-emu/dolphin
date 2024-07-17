@@ -242,13 +242,13 @@ void SerialInterfaceManager::RegisterEvents()
   }
 }
 
-void SerialInterfaceManager::ScheduleEvent(const int device_number, const s64 cycles_into_future, const u64 userdata)
+void SerialInterfaceManager::ScheduleEvent(const int device_number, const s64 cycles_into_future, const u64 userdata) const
 {
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(cycles_into_future, m_event_types_device[device_number], userdata);
 }
 
-void SerialInterfaceManager::RemoveEvent(const int device_number)
+void SerialInterfaceManager::RemoveEvent(const int device_number) const
 {
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.RemoveEvent(m_event_types_device[device_number]);
@@ -577,7 +577,7 @@ SIDevices SerialInterfaceManager::GetDeviceType(const int channel) const
   return m_channel[channel].device->GetDeviceType();
 }
 
-u32 SerialInterfaceManager::GetPollXLines()
+u32 SerialInterfaceManager::GetPollXLines() const
 {
   return m_poll.X;
 }

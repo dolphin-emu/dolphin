@@ -64,12 +64,12 @@ void CommonControllersWidget::OnControllerInterfaceConfigure()
   window->show();
 }
 
-void CommonControllersWidget::LoadSettings()
+void CommonControllersWidget::LoadSettings() const
 {
   SignalBlocking(m_common_bg_input)->setChecked(Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
 }
 
-void CommonControllersWidget::SaveSettings()
+void CommonControllersWidget::SaveSettings() const
 {
   SetBaseOrCurrent(Config::MAIN_INPUT_BACKGROUND_INPUT, m_common_bg_input->isChecked());
   Config::Save();

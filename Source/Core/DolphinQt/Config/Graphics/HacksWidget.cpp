@@ -130,7 +130,7 @@ void HacksWidget::CreateWidgets()
   UpdateSkipPresentingDuplicateFramesEnabled();
 }
 
-void HacksWidget::OnBackendChanged(const QString& backend_name)
+void HacksWidget::OnBackendChanged(const QString& backend_name) const
 {
   const bool bbox = g_Config.backend_info.bSupportsBBox;
   const bool gpu_texture_decoding = g_Config.backend_info.bSupportsGPUTextureDecoding;
@@ -158,7 +158,7 @@ void HacksWidget::ConnectWidgets()
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
 }
 
-void HacksWidget::LoadSettings()
+void HacksWidget::LoadSettings() const
 {
   const QSignalBlocker blocker(m_accuracy);
   auto samples = Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
@@ -194,7 +194,7 @@ void HacksWidget::LoadSettings()
   m_accuracy_label->setFont(bf);
 }
 
-void HacksWidget::SaveSettings()
+void HacksWidget::SaveSettings() const
 {
   int slider_pos = m_accuracy->value();
 
@@ -217,7 +217,7 @@ void HacksWidget::SaveSettings()
   }
 }
 
-void HacksWidget::AddDescriptions()
+void HacksWidget::AddDescriptions() const
 {
   static const char TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION[] = QT_TR_NOOP(
       "Ignores any requests from the CPU to read from or write to the EFB. "
@@ -312,7 +312,7 @@ void HacksWidget::AddDescriptions()
   m_vi_skip->SetDescription(tr(TR_VI_SKIP_DESCRIPTION));
 }
 
-void HacksWidget::UpdateDeferEFBCopiesEnabled()
+void HacksWidget::UpdateDeferEFBCopiesEnabled() const
 {
   // We disable the checkbox for defer EFB copies when both EFB and XFB copies to texture are
   // enabled.
@@ -320,7 +320,7 @@ void HacksWidget::UpdateDeferEFBCopiesEnabled()
   m_defer_efb_copies->setEnabled(!can_defer);
 }
 
-void HacksWidget::UpdateSkipPresentingDuplicateFramesEnabled()
+void HacksWidget::UpdateSkipPresentingDuplicateFramesEnabled() const
 {
   // If Immediate XFB is on, there's no point to skipping duplicate XFB copies as immediate presents
   // when the XFB is created, therefore all XFB copies will be unique.

@@ -116,7 +116,7 @@ void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_ite
   update();
 }
 
-void AchievementsWindow::ForceSettingsTab()
+void AchievementsWindow::ForceSettingsTab() const
 {
   m_tab_widget->setCurrentIndex(0);
 }

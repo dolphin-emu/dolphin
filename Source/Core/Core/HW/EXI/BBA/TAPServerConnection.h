@@ -23,12 +23,12 @@ public:
 
   bool Activate();
   void Deactivate();
-  bool IsActivated();
+  bool IsActivated() const;
   bool RecvInit();
   void RecvStart();
   void RecvStop();
-  bool SendAndRemoveAllHDLCFrames(std::string* send_buf);
-  bool SendFrame(const u8* frame, u32 size);
+  bool SendAndRemoveAllHDLCFrames(std::string* send_buf) const;
+  bool SendFrame(const u8* frame, u32 size) const;
 
 private:
   const std::string m_destination;
@@ -42,7 +42,7 @@ private:
   Common::Flag m_read_shutdown;
 
   bool StartReadThread();
-  void ReadThreadHandler();
+  void ReadThreadHandler() const;
 };
 
 }  // namespace ExpansionInterface

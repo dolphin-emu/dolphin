@@ -27,7 +27,7 @@ ConfigBool::ConfigBool(const QString& label, const Config::Info<bool>& setting, 
   });
 }
 
-void ConfigBool::Update()
+void ConfigBool::Update() const
 {
   SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
 }

@@ -60,7 +60,7 @@ public:
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
-  ControllerEmu::ControlGroup* GetGroup(TurntableGroup group);
+  ControllerEmu::ControlGroup* GetGroup(TurntableGroup group) const;
 
   static constexpr u16 BUTTON_EUPHORIA = 0x1000;
 

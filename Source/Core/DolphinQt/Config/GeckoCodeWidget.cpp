@@ -164,7 +164,7 @@ void GeckoCodeWidget::ConnectWidgets()
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
-void GeckoCodeWidget::OnSelectionChanged()
+void GeckoCodeWidget::OnSelectionChanged() const
 {
   auto items = m_code_list->selectedItems();
 
@@ -254,7 +254,7 @@ void GeckoCodeWidget::RemoveCode()
   SaveCodes();
 }
 
-void GeckoCodeWidget::SaveCodes()
+void GeckoCodeWidget::SaveCodes() const
 {
   if (m_game_id.empty())
     return;
@@ -324,7 +324,7 @@ void GeckoCodeWidget::OnListReordered()
   SaveCodes();
 }
 
-void GeckoCodeWidget::UpdateList()
+void GeckoCodeWidget::UpdateList() const
 {
   m_code_list->clear();
 

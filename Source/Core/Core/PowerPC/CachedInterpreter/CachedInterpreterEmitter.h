@@ -48,9 +48,9 @@ public:
   void Write(AnyCallback callback) { Write(callback, nullptr, 0); }
 
   const u8* GetCodePtr() const { return m_code; }
-  u8* GetWritableCodePtr() { return m_code; }
+  u8* GetWritableCodePtr() const { return m_code; }
   const u8* GetCodeEnd() const { return m_code_end; };
-  u8* GetWritableCodeEnd() { return m_code_end; };
+  u8* GetWritableCodeEnd() const { return m_code_end; };
   // Should be checked after a block of code has been generated to see if the code has been
   // successfully written to memory. Do not call the generated code when this returns true!
   bool HasWriteFailed() const { return m_write_failed; }

@@ -167,7 +167,7 @@ void GeneralWidget::ConnectWidgets()
   });
 }
 
-void GeneralWidget::LoadSettings()
+void GeneralWidget::LoadSettings() const
 {
   // Video Backend
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
@@ -231,7 +231,7 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
     emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 }
 
-void GeneralWidget::AddDescriptions()
+void GeneralWidget::AddDescriptions() const
 {
   // We need QObject::tr
   static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
@@ -345,7 +345,7 @@ void GeneralWidget::AddDescriptions()
   m_wait_for_shaders->SetDescription(tr(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
 }
 
-void GeneralWidget::OnBackendChanged(const QString& backend_name)
+void GeneralWidget::OnBackendChanged(const QString& backend_name) const
 {
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(QVariant(backend_name)));
 

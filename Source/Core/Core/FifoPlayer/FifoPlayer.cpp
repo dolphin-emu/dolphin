@@ -476,7 +476,7 @@ void FifoPlayer::WriteFramePart(const FramePart& part, u32* next_mem_update,
     WriteFifo(data, data_start, data_end);
 }
 
-void FifoPlayer::WriteAllMemoryUpdates()
+void FifoPlayer::WriteAllMemoryUpdates() const
 {
   ASSERT(m_File);
 
@@ -490,7 +490,7 @@ void FifoPlayer::WriteAllMemoryUpdates()
   }
 }
 
-void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
+void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate) const
 {
   auto& memory = m_system.GetMemory();
   u8* mem = nullptr;
@@ -542,7 +542,7 @@ void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
   }
 }
 
-void FifoPlayer::SetupFifo()
+void FifoPlayer::SetupFifo() const
 {
   WriteCP(CommandProcessor::CTRL_REGISTER, 0);   // disable read, BP, interrupts
   WriteCP(CommandProcessor::CLEAR_REGISTER, 7);  // clear overflow, underflow, metrics
@@ -582,7 +582,7 @@ void FifoPlayer::SetupFifo()
   WriteCP(CommandProcessor::CTRL_REGISTER, 17);  // enable read & GP link
 }
 
-void FifoPlayer::ClearEfb()
+void FifoPlayer::ClearEfb() const
 {
   // Trigger a bogus EFB copy to clear the screen
   // The target address is 0, and there shouldn't be anything there,
@@ -693,24 +693,24 @@ void FifoPlayer::LoadRegisters()
   }
 }
 
-void FifoPlayer::LoadTextureMemory()
+void FifoPlayer::LoadTextureMemory() const
 {
   static_assert(static_cast<size_t>(TMEM_SIZE) == static_cast<size_t>(FifoDataFile::TEX_MEM_SIZE),
                 "TMEM_SIZE matches the size of texture memory in FifoDataFile");
   std::memcpy(s_tex_mem.data(), m_File->GetTexMem(), FifoDataFile::TEX_MEM_SIZE);
 }
 
-void FifoPlayer::WriteCP(const u32 address, const u16 value)
+void FifoPlayer::WriteCP(const u32 address, const u16 value) const
 {
   m_system.GetMMU().Write_U16(value, 0xCC000000 | address);
 }
 
-void FifoPlayer::WritePI(const u32 address, const u32 value)
+void FifoPlayer::WritePI(const u32 address, const u32 value) const
 {
   m_system.GetMMU().Write_U32(value, 0xCC003000 | address);
 }
 
-void FifoPlayer::FlushWGP()
+void FifoPlayer::FlushWGP() const
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -723,7 +723,7 @@ void FifoPlayer::FlushWGP()
   gpfifo.ResetGatherPipe();
 }
 
-void FifoPlayer::WaitForGPUInactive()
+void FifoPlayer::WaitForGPUInactive() const
 {
   auto& core_timing = m_system.GetCoreTiming();
   auto& cpu = m_system.GetCPU();
@@ -736,7 +736,7 @@ void FifoPlayer::WaitForGPUInactive()
   }
 }
 
-void FifoPlayer::LoadBPReg(const u8 reg, const u32 value)
+void FifoPlayer::LoadBPReg(const u8 reg, const u32 value) const
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -747,7 +747,7 @@ void FifoPlayer::LoadBPReg(const u8 reg, const u32 value)
   gpfifo.Write32(cmd);
 }
 
-void FifoPlayer::LoadCPReg(const u8 reg, const u32 value)
+void FifoPlayer::LoadCPReg(const u8 reg, const u32 value) const
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -756,7 +756,7 @@ void FifoPlayer::LoadCPReg(const u8 reg, const u32 value)
   gpfifo.Write32(value);
 }
 
-void FifoPlayer::LoadXFReg(const u16 reg, const u32 value)
+void FifoPlayer::LoadXFReg(const u16 reg, const u32 value) const
 {
   auto& gpfifo = m_system.GetGPFifo();
 
@@ -765,7 +765,7 @@ void FifoPlayer::LoadXFReg(const u16 reg, const u32 value)
   gpfifo.Write32(value);
 }
 
-void FifoPlayer::LoadXFMem16(const u16 address, const u32* data)
+void FifoPlayer::LoadXFMem16(const u16 address, const u32* data) const
 {
   auto& gpfifo = m_system.GetGPFifo();
 

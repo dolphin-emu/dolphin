@@ -40,7 +40,7 @@ void DynamicInputTextureManager::Load()
 }
 
 void DynamicInputTextureManager::GenerateTextures(const Common::IniFile& file,
-                                                  const std::vector<std::string>& controller_names)
+                                                  const std::vector<std::string>& controller_names) const
 {
   for (const auto& configuration : m_configuration)
   {

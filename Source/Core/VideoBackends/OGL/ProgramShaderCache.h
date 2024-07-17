@@ -35,8 +35,8 @@ struct SHADER
   GLuint psid = 0;
   GLuint glprogid = 0;
 
-  void SetProgramVariables();
-  void SetProgramBindings(bool is_compute);
+  void SetProgramVariables() const;
+  void SetProgramBindings(bool is_compute) const;
   void Bind() const;
   void DestroyShaders();
 };

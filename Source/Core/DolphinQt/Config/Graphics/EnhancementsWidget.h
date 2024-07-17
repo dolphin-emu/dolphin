@@ -30,10 +30,10 @@ private:
 
   void CreateWidgets();
   void ConnectWidgets();
-  void AddDescriptions();
+  void AddDescriptions() const;
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
-  void LoadPPShaders();
+  void LoadPPShaders() const;
 
   // Enhancements
   ConfigChoice* m_ir_combo;

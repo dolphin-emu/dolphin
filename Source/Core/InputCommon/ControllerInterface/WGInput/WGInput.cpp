@@ -534,7 +534,7 @@ private:
     return Core::DeviceRemoval::Keep;
   }
 
-  void UpdateMotors()
+  void UpdateMotors() const
   {
     try
     {

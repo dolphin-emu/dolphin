@@ -89,7 +89,7 @@ bool AXUCode::LoadResamplingCoefficients(const bool require_same_checksum, const
   return false;
 }
 
-void AXUCode::SignalWorkEnd()
+void AXUCode::SignalWorkEnd() const
 {
   // Signal end of processing
   // TODO: figure out how many cycles this is actually supposed to take
@@ -292,7 +292,7 @@ void AXUCode::HandleCommandList()
   }
 }
 
-AXMixControl AXUCode::ConvertMixerControl(const u32 mixer_control)
+AXMixControl AXUCode::ConvertMixerControl(const u32 mixer_control) const
 {
   u32 ret = 0;
 
@@ -490,7 +490,7 @@ void AXUCode::MixAUXSamples(const int aux_id, const u32 write_addr, const u32 re
     sample += (int)Common::swap32(*ptr++);
 }
 
-void AXUCode::UploadLRS(const u32 dst_addr)
+void AXUCode::UploadLRS(const u32 dst_addr) const
 {
   int buffers[3][5 * 32];
 
@@ -563,7 +563,7 @@ void AXUCode::RunCompressor(const u16 threshold, const u16 release_frames, const
   }
 }
 
-void AXUCode::OutputSamples(const u32 lr_addr, const u32 surround_addr)
+void AXUCode::OutputSamples(const u32 lr_addr, const u32 surround_addr) const
 {
   int surround_buffer[5 * 32];
 

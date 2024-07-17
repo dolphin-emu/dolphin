@@ -69,7 +69,7 @@ public:
 
   bool HasWiiHashes() const;
   DiscIO::Platform GetDiscType() const;
-  u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition);
+  u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition) const;
   IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition);
   IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition);
   bool IsInsertedDiscRunning();

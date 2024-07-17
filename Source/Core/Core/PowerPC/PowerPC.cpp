@@ -373,12 +373,12 @@ void PowerPCManager::InjectExternalCPUCore(CPUCoreBase* new_cpu)
   m_cpu_core_base_is_injected = true;
 }
 
-void PowerPCManager::SingleStep()
+void PowerPCManager::SingleStep() const
 {
   m_cpu_core_base->SingleStep();
 }
 
-void PowerPCManager::RunLoop()
+void PowerPCManager::RunLoop() const
 {
   m_cpu_core_base->Run();
   Host_UpdateDisasmDialog();

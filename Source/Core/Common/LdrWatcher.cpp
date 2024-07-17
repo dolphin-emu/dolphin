@@ -79,8 +79,8 @@ public:
     static LdrDllNotifier notifier;
     return notifier;
   };
-  void Install(LdrObserver* observer);
-  void Uninstall(LdrObserver* observer);
+  void Install(LdrObserver* observer) const;
+  void Uninstall(LdrObserver* observer) const;
 
 private:
   LdrDllNotifier();
@@ -111,7 +111,7 @@ bool LdrDllNotifier::Init()
   return true;
 }
 
-void LdrDllNotifier::Install(LdrObserver* observer)
+void LdrDllNotifier::Install(LdrObserver* observer) const
 {
   if (!initialized)
     return;
@@ -123,7 +123,7 @@ void LdrDllNotifier::Install(LdrObserver* observer)
   return;
 }
 
-void LdrDllNotifier::Uninstall(LdrObserver* observer)
+void LdrDllNotifier::Uninstall(LdrObserver* observer) const
 {
   if (!initialized)
     return;

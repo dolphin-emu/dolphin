@@ -276,7 +276,7 @@ bool JitBase::CanMergeNextInstructions(const int count) const
   return true;
 }
 
-bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op)
+bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op) const
 {
   if (jo.fp_exceptions)
     return (op->opinfo->flags & FL_FLOAT_EXCEPTION) != 0;

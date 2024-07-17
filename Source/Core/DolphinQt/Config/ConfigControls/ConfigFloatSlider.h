@@ -18,7 +18,7 @@ class ConfigFloatSlider : public ToolTipSlider
   Q_OBJECT
 public:
   ConfigFloatSlider(float minimum, float maximum, const Config::Info<float>& setting, float step);
-  void Update(int value);
+  void Update(int value) const;
 
   // Returns the adjusted float value
   float GetValue() const;

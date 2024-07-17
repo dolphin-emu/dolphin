@@ -254,7 +254,7 @@ private:
   void SendStopGamePacket();
 
   void SyncSaveDataResponse(bool success);
-  void SyncCodeResponse(bool success);
+  void SyncCodeResponse(bool success) const;
 
   bool PollLocalPad(int local_pad, sf::Packet& packet);
   void SendPadHostPoll(PadIndex pad_num);
@@ -262,16 +262,16 @@ private:
   bool AddLocalWiimoteToBuffer(int local_wiimote, const WiimoteEmu::SerializedWiimoteState& state,
                                sf::Packet& packet);
 
-  void UpdateDevices();
-  void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
+  void UpdateDevices() const;
+  void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet) const;
   void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
                                sf::Packet& packet);
-  void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
+  void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL) const;
   void Disconnect();
   bool Connect();
-  void SendGameStatus();
+  void SendGameStatus() const;
   void ComputeGameDigest(const SyncIdentifier& sync_identifier);
-  void DisplayPlayersPing();
+  void DisplayPlayersPing() const;
   u32 GetPlayersMaxPing() const;
 
   void OnData(sf::Packet& packet);
@@ -297,7 +297,7 @@ private:
   void OnStartGame(sf::Packet& packet);
   void OnStopGame(sf::Packet& packet);
   void OnPowerButton();
-  void OnPing(sf::Packet& packet);
+  void OnPing(sf::Packet& packet) const;
   void OnPlayerPingData(sf::Packet& packet);
   void OnDesyncDetected(sf::Packet& packet);
   void OnSyncSaveData(sf::Packet& packet);
@@ -313,9 +313,9 @@ private:
   void OnSyncCodesNotifyAR(sf::Packet& packet);
   void OnSyncCodesDataAR(sf::Packet& packet);
   void OnComputeGameDigest(sf::Packet& packet);
-  void OnGameDigestProgress(sf::Packet& packet);
-  void OnGameDigestResult(sf::Packet& packet);
-  void OnGameDigestError(sf::Packet& packet);
+  void OnGameDigestProgress(sf::Packet& packet) const;
+  void OnGameDigestResult(sf::Packet& packet) const;
+  void OnGameDigestError(sf::Packet& packet) const;
   void OnGameDigestAbort();
 
   bool m_is_connected = false;

@@ -290,7 +290,7 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
   }
 }
 
-void MemoryManager::DoState(PointerWrap& p)
+void MemoryManager::DoState(PointerWrap& p) const
 {
   const u32 current_ram_size = GetRamSize();
   const u32 current_l1_cache_size = GetL1CacheSize();
@@ -387,7 +387,7 @@ void MemoryManager::ShutdownFastmemArena()
   m_is_fastmem_arena_initialized = false;
 }
 
-void MemoryManager::Clear()
+void MemoryManager::Clear() const
 {
   if (m_ram)
     memset(m_ram, 0, GetRamSize());
@@ -434,7 +434,7 @@ void MemoryManager::CopyFromEmu(void* data, const u32 address, const size_t size
   memcpy(data, pointer, size);
 }
 
-void MemoryManager::CopyToEmu(const u32 address, const void* data, const size_t size)
+void MemoryManager::CopyToEmu(const u32 address, const void* data, const size_t size) const
 {
   if (size == 0)
     return;
@@ -448,7 +448,7 @@ void MemoryManager::CopyToEmu(const u32 address, const void* data, const size_t 
   memcpy(pointer, data, size);
 }
 
-void MemoryManager::Memset(const u32 address, const u8 value, const size_t size)
+void MemoryManager::Memset(const u32 address, const u8 value, const size_t size) const
 {
   if (size == 0)
     return;
@@ -462,7 +462,7 @@ void MemoryManager::Memset(const u32 address, const u8 value, const size_t size)
   memset(pointer, value, size);
 }
 
-std::string MemoryManager::GetString(u32 em_address, const size_t size)
+std::string MemoryManager::GetString(u32 em_address, const size_t size) const
 {
   std::string result;
 
@@ -540,35 +540,35 @@ u64 MemoryManager::Read_U64(const u32 address) const
   return Common::swap64(value);
 }
 
-void MemoryManager::Write_U8(const u8 value, const u32 address)
+void MemoryManager::Write_U8(const u8 value, const u32 address) const
 {
   CopyToEmu(address, &value, sizeof(value));
 }
 
-void MemoryManager::Write_U16(const u16 value, const u32 address)
+void MemoryManager::Write_U16(const u16 value, const u32 address) const
 {
   u16 swapped_value = Common::swap16(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U32(const u32 value, const u32 address)
+void MemoryManager::Write_U32(const u32 value, const u32 address) const
 {
   u32 swapped_value = Common::swap32(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U64(const u64 value, const u32 address)
+void MemoryManager::Write_U64(const u64 value, const u32 address) const
 {
   u64 swapped_value = Common::swap64(value);
   CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
-void MemoryManager::Write_U32_Swap(const u32 value, const u32 address)
+void MemoryManager::Write_U32_Swap(const u32 value, const u32 address) const
 {
   CopyToEmu(address, &value, sizeof(value));
 }
 
-void MemoryManager::Write_U64_Swap(const u64 value, const u32 address)
+void MemoryManager::Write_U64_Swap(const u64 value, const u32 address) const
 {
   CopyToEmu(address, &value, sizeof(value));
 }

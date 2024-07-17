@@ -21,14 +21,14 @@ public:
   explicit AdvancedWidget(GraphicsWindow* parent);
 
 private:
-  void LoadSettings();
-  void SaveSettings();
+  void LoadSettings() const;
+  void SaveSettings() const;
 
   void CreateWidgets();
   void ConnectWidgets();
-  void AddDescriptions();
-  void OnBackendChanged();
-  void OnEmulationStateChanged(bool running);
+  void AddDescriptions() const;
+  void OnBackendChanged() const;
+  void OnEmulationStateChanged(bool running) const;
 
   // Debugging
   ConfigBool* m_enable_wireframe;

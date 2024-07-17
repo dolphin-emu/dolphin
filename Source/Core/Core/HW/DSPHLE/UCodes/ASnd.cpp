@@ -229,7 +229,7 @@ void ASndUCode::DMAInVoiceData()
   m_current_voice._pad = HLEMemory_Read_U32(memory, m_voice_addr + 60);
 }
 
-void ASndUCode::DMAOutVoiceData()
+void ASndUCode::DMAOutVoiceData() const
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   HLEMemory_Write_U32(memory, m_voice_addr, m_current_voice.out_buf);

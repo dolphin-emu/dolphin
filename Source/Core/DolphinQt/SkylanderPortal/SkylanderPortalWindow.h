@@ -44,7 +44,7 @@ public:
   explicit SkylanderPortalWindow(QWidget* parent = nullptr);
   ~SkylanderPortalWindow() override;
 
-  void RefreshList();
+  void RefreshList() const;
 
 protected:
   std::array<QLineEdit*, MAX_SKYLANDERS> m_edit_skylanders;
@@ -68,12 +68,12 @@ private:
   void ModifySkylander();
 
   // Behind the scenes
-  void OnEmulationStateChanged(Core::State state);
+  void OnEmulationStateChanged(Core::State state) const;
   void OnCollectionPathChanged();
   void UpdateCurrentIDs();
   void CreateSkyfile(const QString& path, bool load_after);
   void LoadSkyfilePath(u8 slot, const QString& path);
-  void UpdateSlotNames();
+  void UpdateSlotNames() const;
 
   // Helpers
   bool PassesFilter(const QString& name, u16 id, u16 var) const;

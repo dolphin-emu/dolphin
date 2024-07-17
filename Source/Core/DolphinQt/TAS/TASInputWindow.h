@@ -77,9 +77,9 @@ protected:
   QSpinBox* m_turbo_release_frames;
 
 private:
-  std::optional<ControlState> GetButton(TASCheckBox* checkbox, ControlState controller_state);
+  std::optional<ControlState> GetButton(TASCheckBox* checkbox, ControlState controller_state) const;
   std::optional<ControlState> GetSpinBox(TASSpinBox* spin, int zero, int min, int max,
-                                         ControlState controller_state);
+                                         ControlState controller_state) const;
   std::optional<ControlState> GetSpinBox(TASSpinBox* spin, int zero, ControlState controller_state,
-                                         ControlState scale);
+                                         ControlState scale) const;
 };

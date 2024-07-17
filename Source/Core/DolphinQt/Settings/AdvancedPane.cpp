@@ -237,7 +237,7 @@ void AdvancedPane::ConnectLayout()
   });
 }
 
-void AdvancedPane::Update()
+void AdvancedPane::Update() const
 {
   const bool running = GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
   const bool enable_cpu_clock_override_widgets = Get(Config::MAIN_OVERCLOCK_ENABLE);

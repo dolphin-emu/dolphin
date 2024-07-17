@@ -234,7 +234,7 @@ public:
   HotkeyManager();
   ~HotkeyManager();
 
-  void GetInput(HotkeyStatus* hk, bool ignore_focus);
+  void GetInput(HotkeyStatus* hk, bool ignore_focus) const;
   std::string GetName() const override;
   InputConfig* GetConfig() const override;
   ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group) const;

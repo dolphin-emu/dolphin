@@ -411,7 +411,7 @@ void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
   }
 }
 
-void MenuBar::UpdateStateSlotMenu()
+void MenuBar::UpdateStateSlotMenu() const
 {
   QList<QAction*> actions_slot = m_state_slots->actions();
   QList<QAction*> actions_load = m_state_load_slots_menu->actions();
@@ -598,7 +598,7 @@ void MenuBar::AddOptionsMenu()
   m_change_font = options_menu->addAction(tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
-void MenuBar::InstallUpdateManually()
+void MenuBar::InstallUpdateManually() const
 {
   const std::string autoupdate_track = Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK);
   const std::string manual_track = autoupdate_track.empty() ? "dev" : autoupdate_track;
@@ -1047,7 +1047,7 @@ void MenuBar::AddSymbolsMenu()
   m_symbols->addAction(tr("&Patch HLE Functions"), this, &MenuBar::PatchHLEFunctions);
 }
 
-void MenuBar::UpdateToolsMenu(bool emulation_started)
+void MenuBar::UpdateToolsMenu(bool emulation_started) const
 {
   m_boot_sysmenu->setEnabled(!emulation_started);
   m_perform_online_update_menu->setEnabled(!emulation_started);
@@ -1260,7 +1260,7 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
                                 !system.GetMovie().IsPlayingInput());
 }
 
-void MenuBar::OnRecordingStatusChanged(bool recording)
+void MenuBar::OnRecordingStatusChanged(bool recording) const
 {
   auto& system = Core::System::GetInstance();
   m_recording_start->setEnabled(!recording && (m_game_selected || IsRunning(system)));
@@ -1268,7 +1268,7 @@ void MenuBar::OnRecordingStatusChanged(bool recording)
   m_recording_export->setEnabled(recording);
 }
 
-void MenuBar::OnReadOnlyModeChanged(bool read_only)
+void MenuBar::OnReadOnlyModeChanged(bool read_only) const
 {
   m_recording_read_only->setChecked(read_only);
 }

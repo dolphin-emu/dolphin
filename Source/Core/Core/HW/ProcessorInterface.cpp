@@ -143,7 +143,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base
   }
 }
 
-void ProcessorInterfaceManager::UpdateException()
+void ProcessorInterfaceManager::UpdateException() const
 {
   auto& ppc_state = m_system.GetPPCState();
   if ((m_interrupt_cause & m_interrupt_mask) != 0)
@@ -253,7 +253,7 @@ void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(const Core::System&
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->PowerButton();
 }
 
-void ProcessorInterfaceManager::ResetButton_Tap()
+void ProcessorInterfaceManager::ResetButton_Tap() const
 {
   if (!IsRunning(m_system))
     return;
@@ -266,7 +266,7 @@ void ProcessorInterfaceManager::ResetButton_Tap()
                             m_event_type_toggle_reset_button, false, CoreTiming::FromThread::ANY);
 }
 
-void ProcessorInterfaceManager::PowerButton_Tap()
+void ProcessorInterfaceManager::PowerButton_Tap() const
 {
   if (!IsRunning(m_system))
     return;

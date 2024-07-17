@@ -28,17 +28,17 @@ public:
 
   bool IsValid() const;
   std::string GetHeaderValue(std::string_view name) const;
-  void SetCookies(const std::string& cookies);
-  void UseIPv4();
-  void FollowRedirects(long max);
-  s32 GetLastResponseCode();
+  void SetCookies(const std::string& cookies) const;
+  void UseIPv4() const;
+  void FollowRedirects(long max) const;
+  s32 GetLastResponseCode() const;
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only,
                  std::span<Multiform> multiform = {});
 
   static int CurlProgressCallback(const Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
                                   curl_off_t ultotal, curl_off_t ulnow);
-  std::string EscapeComponent(const std::string& string);
+  std::string EscapeComponent(const std::string& string) const;
 
 private:
   static inline std::once_flag s_curl_was_initialized;
@@ -60,22 +60,22 @@ bool HttpRequest::IsValid() const
   return m_impl->IsValid();
 }
 
-void HttpRequest::SetCookies(const std::string& cookies)
+void HttpRequest::SetCookies(const std::string& cookies) const
 {
   m_impl->SetCookies(cookies);
 }
 
-void HttpRequest::UseIPv4()
+void HttpRequest::UseIPv4() const
 {
   m_impl->UseIPv4();
 }
 
-void HttpRequest::FollowRedirects(const long max)
+void HttpRequest::FollowRedirects(const long max) const
 {
   m_impl->FollowRedirects(max);
 }
 
-std::string HttpRequest::EscapeComponent(const std::string& string)
+std::string HttpRequest::EscapeComponent(const std::string& string) const
 {
   return m_impl->EscapeComponent(string);
 }
@@ -91,19 +91,19 @@ std::string HttpRequest::GetHeaderValue(const std::string_view name) const
 }
 
 HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers,
-                                       const AllowedReturnCodes codes)
+                                       const AllowedReturnCodes codes) const
 {
   return m_impl->Fetch(url, Impl::Method::GET, headers, nullptr, 0, codes);
 }
 
 HttpRequest::Response HttpRequest::Post(const std::string& url, const std::vector<u8>& payload,
-                                        const Headers& headers, const AllowedReturnCodes codes)
+                                        const Headers& headers, const AllowedReturnCodes codes) const
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers, payload.data(), payload.size(), codes);
 }
 
 HttpRequest::Response HttpRequest::Post(const std::string& url, const std::string& payload,
-                                        const Headers& headers, const AllowedReturnCodes codes)
+                                        const Headers& headers, const AllowedReturnCodes codes) const
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers,
                        reinterpret_cast<const u8*>(payload.data()), payload.size(), codes);
@@ -158,31 +158,31 @@ bool HttpRequest::Impl::IsValid() const
   return m_curl != nullptr;
 }
 
-s32 HttpRequest::Impl::GetLastResponseCode()
+s32 HttpRequest::Impl::GetLastResponseCode() const
 {
   long response_code{};
   curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
   return static_cast<s32>(response_code);
 }
 
-void HttpRequest::Impl::SetCookies(const std::string& cookies)
+void HttpRequest::Impl::SetCookies(const std::string& cookies) const
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_COOKIE, cookies.c_str());
 }
 
-void HttpRequest::Impl::UseIPv4()
+void HttpRequest::Impl::UseIPv4() const
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 }
 
 HttpRequest::Response HttpRequest::PostMultiform(const std::string& url,
                                                  const std::span<Multiform> multiform,
-                                                 const Headers& headers, const AllowedReturnCodes codes)
+                                                 const Headers& headers, const AllowedReturnCodes codes) const
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers, nullptr, 0, codes, multiform);
 }
 
-void HttpRequest::Impl::FollowRedirects(const long max)
+void HttpRequest::Impl::FollowRedirects(const long max) const
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(m_curl.get(), CURLOPT_MAXREDIRS, max);
@@ -199,7 +199,7 @@ std::string HttpRequest::Impl::GetHeaderValue(const std::string_view name) const
   return {};
 }
 
-std::string HttpRequest::Impl::EscapeComponent(const std::string& string)
+std::string HttpRequest::Impl::EscapeComponent(const std::string& string) const
 {
   char* escaped = curl_easy_escape(m_curl.get(), string.c_str(), static_cast<int>(string.size()));
   std::string escaped_str(escaped);

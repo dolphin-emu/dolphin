@@ -255,7 +255,7 @@ void CEXIIPL::SetCS(const int cs)
   }
 }
 
-void CEXIIPL::UpdateRTC()
+void CEXIIPL::UpdateRTC() const
 {
   auto& sram = m_system.GetSRAM();
   sram.rtc = GetEmulatedTime(m_system, GC_EPOCH);

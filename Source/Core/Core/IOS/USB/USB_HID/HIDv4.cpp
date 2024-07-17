@@ -72,7 +72,7 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
   }
 }
 
-IPCReply USB_HIDv4::CancelInterrupt(const IOCtlRequest& request)
+IPCReply USB_HIDv4::CancelInterrupt(const IOCtlRequest& request) const
 {
   if (request.buffer_in == 0 || request.buffer_in_size != 8)
     return IPCReply(IPC_EINVAL);
@@ -118,7 +118,7 @@ IPCReply USB_HIDv4::Shutdown(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request)
+s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request) const
 {
   switch (request.request)
   {

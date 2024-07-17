@@ -41,7 +41,7 @@ public:
   static Microsoft::WRL::ComPtr<IMMDevice> GetDeviceByName(std::string_view name);
 
 private:
-  void SoundLoop();
+  void SoundLoop() const;
 
   u32 m_frames_in_buffer = 0;
   std::atomic<bool> m_running = false;

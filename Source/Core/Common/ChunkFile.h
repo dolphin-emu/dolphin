@@ -240,7 +240,7 @@ public:
     return previous_pointer;
   }
 
-  u32 GetOffsetFromPreviousPosition(const u8* previous_pointer)
+  u32 GetOffsetFromPreviousPosition(const u8* previous_pointer) const
   {
     return static_cast<u32>((*m_ptr_current) - previous_pointer);
   }

@@ -360,7 +360,7 @@ void AXWiiUCode::GenerateVolumeRamp(u16* output, const u16 vol1, const u16 vol2,
 }
 
 bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates,
-                                      u32* updates_addr)
+                                      u32* updates_addr) const
 {
   auto pb_mem = Common::BitCastToArray<u16>(pb);
 

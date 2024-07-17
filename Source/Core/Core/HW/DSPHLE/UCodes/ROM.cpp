@@ -93,7 +93,7 @@ void ROMUCode::HandleMail(const u32 mail)
   }
 }
 
-void ROMUCode::BootUCode()
+void ROMUCode::BootUCode() const
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
   const u32 ector_crc = Common::HashEctor(

@@ -358,7 +358,7 @@ void MemoryWidget::Update()
   update();
 }
 
-void MemoryWidget::LoadSettings()
+void MemoryWidget::LoadSettings() const
 {
   QSettings& settings = Settings::GetQSettings();
 
@@ -399,7 +399,7 @@ void MemoryWidget::LoadSettings()
   m_bp_log_check->setChecked(bp_log);
 }
 
-void MemoryWidget::SaveSettings()
+void MemoryWidget::SaveSettings() const
 {
   QSettings& settings = Settings::GetQSettings();
 
@@ -420,7 +420,7 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/bplog"), m_bp_log_check->isChecked());
 }
 
-void MemoryWidget::OnAddressSpaceChanged()
+void MemoryWidget::OnAddressSpaceChanged() const
 {
   AddressSpace::Type space;
 
@@ -436,7 +436,7 @@ void MemoryWidget::OnAddressSpaceChanged()
   SaveSettings();
 }
 
-void MemoryWidget::OnDisplayChanged()
+void MemoryWidget::OnDisplayChanged() const
 {
   const auto type = static_cast<Type>(m_display_combo->currentData().toInt());
   int bytes_per_row = m_row_length_combo->currentData().toInt();
@@ -459,13 +459,13 @@ void MemoryWidget::OnDisplayChanged()
   SaveSettings();
 }
 
-void MemoryWidget::OnBPLogChanged()
+void MemoryWidget::OnBPLogChanged() const
 {
   m_memory_view->SetBPLoggingEnabled(m_bp_log_check->isChecked());
   SaveSettings();
 }
 
-void MemoryWidget::OnBPTypeChanged()
+void MemoryWidget::OnBPTypeChanged() const
 {
   bool read_write = m_bp_read_write->isChecked();
   bool read_only = m_bp_read_only->isChecked();
@@ -517,7 +517,7 @@ void MemoryWidget::SetAddress(u32 address)
   m_memory_view->setFocus();
 }
 
-void MemoryWidget::OnSearchAddress()
+void MemoryWidget::OnSearchAddress() const
 {
   const auto target_addr = GetTargetAddress();
 
@@ -545,7 +545,7 @@ void MemoryWidget::OnSearchAddress()
   m_search_offset->setPalette(offset_palette);
 }
 
-void MemoryWidget::ValidateAndPreviewInputValue()
+void MemoryWidget::ValidateAndPreviewInputValue() const
 {
   m_data_preview->clear();
   QString input_text = m_data_edit->text();
@@ -801,7 +801,7 @@ MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
   return target;
 }
 
-void MemoryWidget::FindValue(bool next)
+void MemoryWidget::FindValue(bool next) const
 {
   auto target_addr = GetTargetAddress();
 
@@ -858,12 +858,12 @@ void MemoryWidget::FindValue(bool next)
   m_result_label->setText(tr("No Match"));
 }
 
-void MemoryWidget::OnFindNextValue()
+void MemoryWidget::OnFindNextValue() const
 {
   FindValue(true);
 }
 
-void MemoryWidget::OnFindPreviousValue()
+void MemoryWidget::OnFindPreviousValue() const
 {
   FindValue(false);
 }

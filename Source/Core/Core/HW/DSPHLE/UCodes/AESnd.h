@@ -81,7 +81,7 @@ public:
 
 private:
   void DMAInParameterBlock();
-  void DMAOutParameterBlock();
+  void DMAOutParameterBlock() const;
   void SetUpAccelerator(u16 format, u16 gain);
   void DoMixing();
 

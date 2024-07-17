@@ -188,7 +188,7 @@ u32 SystemTimersManager::GetTicksPerSecond() const
   return m_cpu_core_clock;
 }
 
-void SystemTimersManager::DecrementerSet()
+void SystemTimersManager::DecrementerSet() const
 {
   auto& core_timing = m_system.GetCoreTiming();
   auto& ppc_state = m_system.GetPPCState();
@@ -212,7 +212,7 @@ u32 SystemTimersManager::GetFakeDecrementer() const
           (u32)((core_timing.GetTicks() - core_timing.GetFakeDecStartTicks()) / TIMER_RATIO));
 }
 
-void SystemTimersManager::TimeBaseSet()
+void SystemTimersManager::TimeBaseSet() const
 {
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.SetFakeTBStartTicks(core_timing.GetTicks());

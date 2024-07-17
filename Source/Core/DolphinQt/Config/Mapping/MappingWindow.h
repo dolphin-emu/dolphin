@@ -53,7 +53,7 @@ public:
   int GetPort() const;
   ControllerEmu::EmulatedController* GetController() const;
   bool IsMappingAllDevices() const;
-  void ShowExtensionMotionTabs(bool show);
+  void ShowExtensionMotionTabs(bool show) const;
 
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
@@ -74,19 +74,19 @@ private:
 
   void RefreshDevices();
 
-  void OnSelectProfile(int index);
-  void OnProfileTextChanged(const QString& text);
-  void OnDeleteProfilePressed();
+  void OnSelectProfile(int index) const;
+  void OnProfileTextChanged(const QString& text) const;
+  void OnDeleteProfilePressed() const;
   void OnLoadProfilePressed();
-  void OnSaveProfilePressed();
-  void UpdateProfileIndex();
-  void UpdateProfileButtonState();
-  void PopulateProfileSelection();
+  void OnSaveProfilePressed() const;
+  void UpdateProfileIndex() const;
+  void UpdateProfileButtonState() const;
+  void PopulateProfileSelection() const;
 
   void OnDefaultFieldsPressed();
   void OnClearFieldsPressed();
-  void OnSelectDevice(int index);
-  void OnGlobalDevicesChanged();
+  void OnSelectDevice(int index) const;
+  void OnGlobalDevicesChanged() const;
 
   ControllerEmu::EmulatedController* m_controller = nullptr;
 

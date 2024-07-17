@@ -234,7 +234,7 @@ void NetworkWidget::ConnectWidgets()
   });
 }
 
-void NetworkWidget::Update()
+void NetworkWidget::Update() const
 {
   if (!isVisible())
     return;
@@ -431,7 +431,7 @@ QComboBox* NetworkWidget::CreateDumpFormatCombo()
   return combo;
 }
 
-void NetworkWidget::OnDumpFormatComboChanged(int index)
+void NetworkWidget::OnDumpFormatComboChanged(int index) const
 {
   const auto combo_id = static_cast<FormatComboId>(index);
 

@@ -68,7 +68,7 @@ public:
   }
 
 private:
-  void EventThread()
+  void EventThread() const
   {
     Common::SetCurrentThreadName("libusb thread");
     timeval tv{5, 0};

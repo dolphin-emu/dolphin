@@ -375,18 +375,18 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   UpdateExt();
 }
 
-WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote()
+WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote() const
 {
   return static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(m_num));
 }
 
-ControllerEmu::Attachments* WiiTASInputWindow::GetAttachments()
+ControllerEmu::Attachments* WiiTASInputWindow::GetAttachments() const
 {
   return static_cast<ControllerEmu::Attachments*>(
       GetWiimote()->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments));
 }
 
-WiimoteEmu::Extension* WiiTASInputWindow::GetExtension()
+WiimoteEmu::Extension* WiiTASInputWindow::GetExtension() const
 {
   return static_cast<WiimoteEmu::Extension*>(
       GetAttachments()->GetAttachmentList()[m_active_extension].get());

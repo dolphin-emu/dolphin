@@ -34,12 +34,12 @@ SamplerCache::~SamplerCache()
   glDeleteSamplers(1, &m_linear_sampler);
 }
 
-void SamplerCache::BindNearestSampler(const int stage)
+void SamplerCache::BindNearestSampler(const int stage) const
 {
   glBindSampler(stage, m_point_sampler);
 }
 
-void SamplerCache::BindLinearSampler(const int stage)
+void SamplerCache::BindLinearSampler(const int stage) const
 {
   glBindSampler(stage, m_linear_sampler);
 }

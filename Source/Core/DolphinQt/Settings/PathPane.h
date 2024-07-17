@@ -27,9 +27,9 @@ private:
   void BrowseWFS();
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();
-  void RemovePath();
+  void RemovePath() const;
 
-  void OnNANDPathChanged();
+  void OnNANDPathChanged() const;
 
   QListWidget* m_path_list;
   QLineEdit* m_game_edit;

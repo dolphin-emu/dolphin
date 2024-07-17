@@ -158,7 +158,7 @@ private:
     template <typename R, typename T>
     void AddHandler(std::function<R(const T&)>);
 
-    HandlerResult TryToHandleReport(const WiimoteReal::Report& report);
+    HandlerResult TryToHandleReport(const WiimoteReal::Report& report) const;
 
     bool IsExpired() const;
 

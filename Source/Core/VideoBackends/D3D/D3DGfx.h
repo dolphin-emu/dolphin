@@ -73,7 +73,7 @@ public:
   SurfaceInfo GetSurfaceInfo() const override;
 
 private:
-  void CheckForSwapChainChanges();
+  void CheckForSwapChainChanges() const;
 
   StateCache m_state_cache;
 

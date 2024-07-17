@@ -73,10 +73,10 @@ public:
   void ChangePPCClock(Mode mode);
 
   // Notify timing system that somebody wrote to the decrementer
-  void DecrementerSet();
+  void DecrementerSet() const;
   u32 GetFakeDecrementer() const;
 
-  void TimeBaseSet();
+  void TimeBaseSet() const;
   u64 GetFakeTimeBase() const;
   // Custom RTC
   s64 GetLocalTimeRTCOffset() const;

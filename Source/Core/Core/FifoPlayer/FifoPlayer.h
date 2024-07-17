@@ -148,30 +148,30 @@ private:
   void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
   void WriteFramePart(const FramePart& part, u32* next_mem_update, const FifoFrameInfo& frame);
 
-  void WriteAllMemoryUpdates();
-  void WriteMemory(const MemoryUpdate& memUpdate);
+  void WriteAllMemoryUpdates() const;
+  void WriteMemory(const MemoryUpdate& memUpdate) const;
 
   // writes a range of data to the fifo
   // start and end must be relative to frame's fifo data so elapsed cycles are figured correctly
   void WriteFifo(const u8* data, u32 start, u32 end);
 
-  void SetupFifo();
+  void SetupFifo() const;
 
   void LoadMemory();
   void LoadRegisters();
-  void LoadTextureMemory();
-  void ClearEfb();
+  void LoadTextureMemory() const;
+  void ClearEfb() const;
 
-  void WriteCP(u32 address, u16 value);
-  void WritePI(u32 address, u32 value);
+  void WriteCP(u32 address, u16 value) const;
+  void WritePI(u32 address, u32 value) const;
 
-  void FlushWGP();
-  void WaitForGPUInactive();
+  void FlushWGP() const;
+  void WaitForGPUInactive() const;
 
-  void LoadBPReg(u8 reg, u32 value);
-  void LoadCPReg(u8 reg, u32 value);
-  void LoadXFReg(u16 reg, u32 value);
-  void LoadXFMem16(u16 address, const u32* data);
+  void LoadBPReg(u8 reg, u32 value) const;
+  void LoadCPReg(u8 reg, u32 value) const;
+  void LoadXFReg(u16 reg, u32 value) const;
+  void LoadXFMem16(u16 address, const u32* data) const;
 
   bool ShouldLoadBP(u8 address);
   bool ShouldLoadXF(u8 address);

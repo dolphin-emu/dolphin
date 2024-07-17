@@ -33,7 +33,7 @@ GPFifoManager::GPFifoManager(Core::System& system) : m_system(system)
 // Both of these should actually work! Only problem is that we have to decide at run time,
 // the same function could use both methods. Compile 2 different versions of each such block?
 
-size_t GPFifoManager::GetGatherPipeCount()
+size_t GPFifoManager::GetGatherPipeCount() const
 {
   return m_system.GetPPCState().gather_pipe_ptr - m_gather_pipe;
 }
@@ -154,14 +154,14 @@ void GPFifoManager::Write64(const u64 value)
   CheckGatherPipe();
 }
 
-void GPFifoManager::FastWrite8(const u8 value)
+void GPFifoManager::FastWrite8(const u8 value) const
 {
   auto& ppc_state = m_system.GetPPCState();
   *ppc_state.gather_pipe_ptr = value;
   ppc_state.gather_pipe_ptr += sizeof(u8);
 }
 
-void GPFifoManager::FastWrite16(u16 value)
+void GPFifoManager::FastWrite16(u16 value) const
 {
   value = Common::swap16(value);
   auto& ppc_state = m_system.GetPPCState();
@@ -169,7 +169,7 @@ void GPFifoManager::FastWrite16(u16 value)
   ppc_state.gather_pipe_ptr += sizeof(u16);
 }
 
-void GPFifoManager::FastWrite32(u32 value)
+void GPFifoManager::FastWrite32(u32 value) const
 {
   value = Common::swap32(value);
   auto& ppc_state = m_system.GetPPCState();
@@ -177,7 +177,7 @@ void GPFifoManager::FastWrite32(u32 value)
   ppc_state.gather_pipe_ptr += sizeof(u32);
 }
 
-void GPFifoManager::FastWrite64(u64 value)
+void GPFifoManager::FastWrite64(u64 value) const
 {
   value = Common::swap64(value);
   auto& ppc_state = m_system.GetPPCState();

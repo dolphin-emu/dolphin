@@ -116,7 +116,7 @@ public:
    */
   bool Load(const std::string& filename, bool keep_current_data = false);
 
-  bool Save(const std::string& filename);
+  bool Save(const std::string& filename) const;
 
   bool Exists(std::string_view section_name) const;
   // Returns true if key exists in section

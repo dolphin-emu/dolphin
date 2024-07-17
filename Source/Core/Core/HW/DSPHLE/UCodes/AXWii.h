@@ -45,7 +45,7 @@ protected:
 
   // If needed, extract the updates related fields from a PB. We need to
   // reinject them afterwards so that the correct PB typs is written to RAM.
-  bool ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates, u32* updates_addr);
+  bool ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates, u32* updates_addr) const;
   void ReinjectUpdatesFields(AXPBWii& pb, const u16* num_updates, u32 updates_addr);
 
   // Convert a mixer_control bitfield to our internal representation for that

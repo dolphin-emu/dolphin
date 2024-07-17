@@ -101,7 +101,7 @@ InputConfig* GCPad::GetConfig() const
   return Pad::GetConfig();
 }
 
-ControllerEmu::ControlGroup* GCPad::GetGroup(const PadGroup group)
+ControllerEmu::ControlGroup* GCPad::GetGroup(const PadGroup group) const
 {
   switch (group)
   {
@@ -168,7 +168,7 @@ GCPadStatus GCPad::GetInput() const
   return pad;
 }
 
-void GCPad::SetOutput(const ControlState strength)
+void GCPad::SetOutput(const ControlState strength) const
 {
   const auto lock = GetStateLock();
   m_rumble->controls[0]->control_ref->State(strength);

@@ -44,7 +44,7 @@ public:
 
   int BoundCount() const;
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
-  void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
+  void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env) const;
   std::string GetExpression() const;
 
   // Returns a human-readable error description when the given expression is invalid.

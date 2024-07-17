@@ -256,7 +256,7 @@ void InterfacePane::ConnectLayout()
           &Settings::LockCursorChanged);
 }
 
-void InterfacePane::UpdateShowDebuggingCheckbox()
+void InterfacePane::UpdateShowDebuggingCheckbox() const
 {
   SignalBlocking(m_checkbox_show_debugging_ui)
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
@@ -282,7 +282,7 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
   }
 }
 
-void InterfacePane::LoadUserStyle()
+void InterfacePane::LoadUserStyle() const
 {
   const Settings::StyleType style_type = Settings::Instance().GetStyleType();
   const QString userstyle = Settings::Instance().GetUserStyleName();
@@ -294,7 +294,7 @@ void InterfacePane::LoadUserStyle()
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 }
 
-void InterfacePane::OnUserStyleChanged()
+void InterfacePane::OnUserStyleChanged() const
 {
   const auto selected_style = m_combobox_userstyle->currentData();
   bool is_builtin_type = false;
@@ -314,7 +314,7 @@ void InterfacePane::OnLanguageChanged()
       tr("You must restart Dolphin in order for the change to take effect."));
 }
 
-void InterfacePane::AddDescriptions()
+void InterfacePane::AddDescriptions() const
 {
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
       "Uses Dolphin's database of properly formatted names in the game list's Title column."

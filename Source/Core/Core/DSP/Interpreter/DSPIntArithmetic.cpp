@@ -51,7 +51,7 @@ void Interpreter::clrl(const UDSPInstruction opc)
 // accumulator mid part $acD.m with immediate value I is equal to I.
 //
 // flags out: -x-- ----
-void Interpreter::andcf(const UDSPInstruction opc)
+void Interpreter::andcf(const UDSPInstruction opc) const
 {
   const u8 reg = (opc >> 8) & 0x1;
   const u16 imm = m_dsp_core.DSPState().FetchInstruction();
@@ -68,7 +68,7 @@ void Interpreter::andcf(const UDSPInstruction opc)
 // to immediate value 0.
 //
 // flags out: -x-- ----
-void Interpreter::andf(const UDSPInstruction opc)
+void Interpreter::andf(const UDSPInstruction opc) const
 {
   const u8 reg = (opc >> 8) & 0x1;
   const u16 imm = m_dsp_core.DSPState().FetchInstruction();
@@ -151,7 +151,7 @@ void Interpreter::cmpaxh(const UDSPInstruction opc)
 // $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
-void Interpreter::cmpi(const UDSPInstruction opc)
+void Interpreter::cmpi(const UDSPInstruction opc) const
 {
   const u8 reg = (opc >> 8) & 0x1;
   auto& state = m_dsp_core.DSPState();
@@ -172,7 +172,7 @@ void Interpreter::cmpi(const UDSPInstruction opc)
 // $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
-void Interpreter::cmpis(const UDSPInstruction opc)
+void Interpreter::cmpis(const UDSPInstruction opc) const
 {
   const u8 areg = (opc >> 8) & 0x1;
 
@@ -327,7 +327,7 @@ void Interpreter::notc(const UDSPInstruction opc)
 // immediate value I.
 //
 // flags out: --xx xx00
-void Interpreter::xori(const UDSPInstruction opc)
+void Interpreter::xori(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u8 reg = (opc >> 8) & 0x1;
@@ -343,7 +343,7 @@ void Interpreter::xori(const UDSPInstruction opc)
 // Logic AND of accumulator mid part $acD.m with immediate value I.
 //
 // flags out: --xx xx00
-void Interpreter::andi(const UDSPInstruction opc)
+void Interpreter::andi(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u8 reg = (opc >> 8) & 0x1;
@@ -360,7 +360,7 @@ void Interpreter::andi(const UDSPInstruction opc)
 // Logic OR of accumulator mid part $acD.m with immediate value I.
 //
 // flags out: --xx xx00
-void Interpreter::ori(const UDSPInstruction opc)
+void Interpreter::ori(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u8 reg = (opc >> 8) & 0x1;
@@ -496,7 +496,7 @@ void Interpreter::addaxl(const UDSPInstruction opc)
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
 //
 // flags out: x-xx xxxx
-void Interpreter::addi(const UDSPInstruction opc)
+void Interpreter::addi(const UDSPInstruction opc) const
 {
   auto& state = m_dsp_core.DSPState();
   const u8 areg = (opc >> 8) & 0x1;
@@ -515,7 +515,7 @@ void Interpreter::addi(const UDSPInstruction opc)
 // Adds short immediate (8-bit sign extended) to mid accumulator $acD.hm.
 //
 // flags out: x-xx xxxx
-void Interpreter::addis(const UDSPInstruction opc)
+void Interpreter::addis(const UDSPInstruction opc) const
 {
   const u8 dreg = (opc >> 8) & 0x1;
 
@@ -878,7 +878,7 @@ void Interpreter::asr16(const UDSPInstruction opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 //
 // flags out: --xx xx00
-void Interpreter::lsl(const UDSPInstruction opc)
+void Interpreter::lsl(const UDSPInstruction opc) const
 {
   const u8 rreg = (opc >> 8) & 0x01;
   const u16 shift = opc & 0x3f;
@@ -896,7 +896,7 @@ void Interpreter::lsl(const UDSPInstruction opc)
 // calculated by negating sign extended bits 0-6.
 //
 // flags out: --xx xx00
-void Interpreter::lsr(const UDSPInstruction opc)
+void Interpreter::lsr(const UDSPInstruction opc) const
 {
   const u8 rreg = (opc >> 8) & 0x01;
   u16 shift;
@@ -920,7 +920,7 @@ void Interpreter::lsr(const UDSPInstruction opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 //
 // flags out: --xx xx00
-void Interpreter::asl(const UDSPInstruction opc)
+void Interpreter::asl(const UDSPInstruction opc) const
 {
   const u8 rreg = (opc >> 8) & 0x01;
   const u16 shift = opc & 0x3f;
@@ -938,7 +938,7 @@ void Interpreter::asl(const UDSPInstruction opc)
 // value calculated by negating sign extended bits 0-6.
 //
 // flags out: --xx xx00
-void Interpreter::asr(const UDSPInstruction opc)
+void Interpreter::asr(const UDSPInstruction opc) const
 {
   const u8 dreg = (opc >> 8) & 0x01;
   u16 shift;
@@ -962,7 +962,7 @@ void Interpreter::asr(const UDSPInstruction opc)
 // (if value negative, becomes left shift).
 //
 // flags out: --xx xx00
-void Interpreter::lsrn(const UDSPInstruction opc)
+void Interpreter::lsrn(const UDSPInstruction opc) const
 {
   s16 shift;
   const u16 accm = static_cast<u16>(GetAccMid(1));
@@ -995,7 +995,7 @@ void Interpreter::lsrn(const UDSPInstruction opc)
 // (if value negative, becomes left shift).
 //
 // flags out: --xx xx00
-void Interpreter::asrn(const UDSPInstruction opc)
+void Interpreter::asrn(const UDSPInstruction opc) const
 {
   s16 shift;
   const u16 accm = static_cast<u16>(GetAccMid(1));

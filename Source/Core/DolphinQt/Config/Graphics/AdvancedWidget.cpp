@@ -219,7 +219,7 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
 
-void AdvancedWidget::LoadSettings()
+void AdvancedWidget::LoadSettings() const
 {
   m_prefetch_custom_textures->setEnabled(Get(Config::GFX_HIRES_TEXTURES));
   m_dump_bitrate->setEnabled(!Get(Config::GFX_USE_FFV1));
@@ -231,7 +231,7 @@ void AdvancedWidget::LoadSettings()
   SignalBlocking(m_enable_graphics_mods)->setChecked(Settings::Instance().GetGraphicModsEnabled());
 }
 
-void AdvancedWidget::SaveSettings()
+void AdvancedWidget::SaveSettings() const
 {
   m_prefetch_custom_textures->setEnabled(Get(Config::GFX_HIRES_TEXTURES));
   m_dump_bitrate->setEnabled(!Get(Config::GFX_USE_FFV1));
@@ -242,7 +242,7 @@ void AdvancedWidget::SaveSettings()
   Settings::Instance().SetGraphicModsEnabled(m_enable_graphics_mods->isChecked());
 }
 
-void AdvancedWidget::OnBackendChanged()
+void AdvancedWidget::OnBackendChanged() const
 {
   m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
   m_prefer_vs_for_point_line_expansion->setEnabled(
@@ -251,12 +251,12 @@ void AdvancedWidget::OnBackendChanged()
   AddDescriptions();
 }
 
-void AdvancedWidget::OnEmulationStateChanged(bool running)
+void AdvancedWidget::OnEmulationStateChanged(bool running) const
 {
   m_enable_prog_scan->setEnabled(!running);
 }
 
-void AdvancedWidget::AddDescriptions()
+void AdvancedWidget::AddDescriptions() const
 {
   static const char TR_SHOW_FPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "

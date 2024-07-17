@@ -228,7 +228,7 @@ void InfoWidget::CreateLanguageSelector()
   connect(m_language_selector, &QComboBox::currentIndexChanged, this, &InfoWidget::ChangeLanguage);
 }
 
-void InfoWidget::ChangeLanguage()
+void InfoWidget::ChangeLanguage() const
 {
   DiscIO::Language language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());

@@ -43,11 +43,11 @@ public:
 
   explicit MenuBar(QWidget* parent = nullptr);
 
-  void UpdateToolsMenu(bool emulation_started);
+  void UpdateToolsMenu(bool emulation_started) const;
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 
-  void InstallUpdateManually();
+  void InstallUpdateManually() const;
 
 signals:
   // File
@@ -148,7 +148,7 @@ private:
   void AddJITMenu();
   void AddSymbolsMenu();
 
-  void UpdateStateSlotMenu();
+  void UpdateStateSlotMenu() const;
 
   void InstallWAD();
   void ImportWiiSave();
@@ -182,8 +182,8 @@ private:
   void SearchInstruction();
 
   void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
-  void OnRecordingStatusChanged(bool recording);
-  void OnReadOnlyModeChanged(bool read_only);
+  void OnRecordingStatusChanged(bool recording) const;
+  void OnReadOnlyModeChanged(bool read_only) const;
   void OnDebugModeToggled(bool enabled);
   void OnWriteJitBlockLogDump();
 

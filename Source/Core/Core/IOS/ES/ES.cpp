@@ -209,7 +209,7 @@ void TitleContext::Update(const ES::TMDReader& tmd_, const ES::TicketReader& tic
   }
 }
 
-IPCReply ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTitleDirectory(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
@@ -236,7 +236,7 @@ ReturnCode ESCore::GetTitleId(u64* title_id) const
   return IPC_SUCCESS;
 }
 
-IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(0, 1))
     return IPCReply(ES_EINVAL);
@@ -292,7 +292,7 @@ static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, const u32 call
   return ES_EINVAL;
 }
 
-IPCReply ESDevice::SetUID(const u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::SetUID(const u32 uid, const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return IPCReply(ES_EINVAL);
@@ -389,7 +389,7 @@ bool ESDevice::LaunchIOS(const u64 ios_title_id, const HangPPC hang_ppc)
   return GetEmulationKernel().BootIOS(ios_title_id, hang_ppc);
 }
 
-s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, const Ticks ticks)
+s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, const Ticks ticks) const
 {
   GetEmulationKernel().GetFSCore().DeleteFile(PID_KERNEL, PID_KERNEL, SPACE_FILE_PATH, ticks);
 
@@ -728,7 +728,7 @@ std::optional<IPCReply> ESDevice::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-IPCReply ESDevice::GetConsumption(const IOCtlVRequest& request)
+IPCReply ESDevice::GetConsumption(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 2))
     return IPCReply(ES_EINVAL);
@@ -822,7 +822,7 @@ static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const ES::TMDReader& t
   return ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
 }
 
-ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket)
+ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket) const
 {
   m_core.m_title_context.Clear();
   INFO_LOG_FMT(IOS_ES, "ES_DIVerify: Title context changed: (none)");
@@ -906,7 +906,7 @@ ReturnCode ESCore::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_vie
 }
 
 ReturnCode ESCore::SetUpStreamKey(const u32 uid, const u8* ticket_view, const ES::TMDReader& tmd,
-                                  u32* handle)
+                                  u32* handle) const
 {
   ReturnCode ret = CheckStreamKeyPermissions(uid, ticket_view, tmd);
   if (ret != IPC_SUCCESS)
@@ -959,7 +959,7 @@ ReturnCode ESCore::SetUpStreamKey(const u32 uid, const u8* ticket_view, const ES
                                          &ticket_bytes[offsetof(ES::Ticket, title_key)], PID_ES);
 }
 
-IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(ES::TicketView) ||
@@ -986,7 +986,7 @@ IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& r
   return IPCReply(ret);
 }
 
-IPCReply ESDevice::DeleteStreamKey(const IOCtlVRequest& request)
+IPCReply ESDevice::DeleteStreamKey(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
@@ -1040,7 +1040,7 @@ ReturnCode ESCore::ReadCertStore(std::vector<u8>* buffer) const
   return IPC_SUCCESS;
 }
 
-ReturnCode ESCore::WriteNewCertToStore(const ES::CertReader& cert)
+ReturnCode ESCore::WriteNewCertToStore(const ES::CertReader& cert) const
 {
   // Read the current store to determine if the new cert needs to be written.
   std::vector<u8> current_store;
@@ -1067,7 +1067,7 @@ ReturnCode ESCore::WriteNewCertToStore(const ES::CertReader& cert)
 
 ReturnCode ESCore::VerifyContainer(const VerifyContainerType type, const VerifyMode mode,
                                    const ES::SignedBlobReader& signed_blob,
-                                   const std::vector<u8>& cert_chain, u32* issuer_handle_out)
+                                   const std::vector<u8>& cert_chain, u32* issuer_handle_out) const
 {
   if (!signed_blob.IsSignatureValid())
     return ES_EINVAL;
@@ -1164,7 +1164,7 @@ ReturnCode ESCore::VerifyContainer(const VerifyContainerType type, const VerifyM
 
 ReturnCode ESCore::VerifyContainer(const VerifyContainerType type, const VerifyMode mode,
                                    const ES::CertReader& cert, const std::vector<u8>& cert_chain,
-                                   const u32 certificate_iosc_handle)
+                                   const u32 certificate_iosc_handle) const
 {
   IOSC::Handle issuer_handle;
   ReturnCode ret = VerifyContainer(type, mode, cert, cert_chain, &issuer_handle);
