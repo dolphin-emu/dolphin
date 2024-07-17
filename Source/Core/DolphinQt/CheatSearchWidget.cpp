@@ -42,11 +42,12 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
 
-constexpr size_t TABLE_MAX_ROWS = 1000;
+constexpr int TABLE_MAX_ROWS = 1000;
 
 constexpr int ADDRESS_TABLE_ADDRESS_ROLE = Qt::UserRole;
 constexpr int ADDRESS_TABLE_RESULT_INDEX_ROLE = Qt::UserRole + 1;
@@ -64,7 +65,8 @@ CheatSearchWidget::CheatSearchWidget(Core::System& system,
   CreateWidgets();
   ConnectWidgets();
   OnValueSourceChanged();
-  RecreateGUITable();
+  UpdateCurrentValueSessionAddressesAndValues();
+  RecreateTable();
 }
 
 CheatSearchWidget::~CheatSearchWidget()
@@ -310,7 +312,21 @@ void CheatSearchWidget::OnNextScanClicked()
 
   if (error_code == Cheats::SearchErrorCode::Success)
   {
+    UpdateCurrentValueSessionAddressesAndValues();
+
     const size_t new_count = m_last_value_session->GetResultCount();
+    if (old_count == new_count)
+    {
+      // We only need to recreate the table if the set of displayed addresses has changed. Since
+      // old_count == new_count that isn't the case, because the initial scan can only add new
+      // addresses and followup scans can only remove old ones.
+      UpdateTableLastAndCurrentValues();
+    }
+    else
+    {
+      RecreateTable();
+    }
+
     const size_t new_valid_count = m_last_value_session->GetValidValueCount();
     m_info_label_1->setText(tr("Scan succeeded."));
 
@@ -351,110 +367,83 @@ void CheatSearchWidget::OnNextScanClicked()
         m_info_label_2->setText(tr("%1 %2").arg(found_str).arg(inaccessible_str));
       }
     }
-
-    m_address_table_current_values.clear();
-    const bool show_in_hex = m_display_values_in_hex_checkbox->isChecked();
-    const bool too_many_results = new_count > TABLE_MAX_ROWS;
-    const size_t result_count_to_display = too_many_results ? TABLE_MAX_ROWS : new_count;
-    for (size_t i = 0; i < result_count_to_display; ++i)
-    {
-      m_address_table_current_values[m_last_value_session->GetResultAddress(i)] =
-          m_last_value_session->GetResultValueAsString(i, show_in_hex);
-    }
-
-    RecreateGUITable();
   }
   else
   {
-    switch (error_code)
-    {
-    case Cheats::SearchErrorCode::NoEmulationActive:
-      m_info_label_1->setText(tr("No game is running."));
-      break;
-    case Cheats::SearchErrorCode::InvalidParameters:
-      m_info_label_1->setText(tr("Invalid parameters given to search."));
-      break;
-    case Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible:
-      m_info_label_1->setText(
-          tr("Search currently not possible in virtual address space. Please run "
-             "the game for a bit and try again."));
-      break;
-    default:
-      m_info_label_1->setText(tr("Unknown error occurred."));
-      break;
-    }
+    DisplaySharedSearchErrorMessage(error_code);
   }
 }
 
-bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const size_t begin_index,
-                                        const size_t end_index, const UpdateSource source)
+// Most error messages show the same text whether they were filtering scans or refreshes
+void CheatSearchWidget::DisplaySharedSearchErrorMessage(const Cheats::SearchErrorCode result)
 {
-  const bool update_status_text = source == UpdateSource::User;
-
-  auto tmp = m_last_value_session->ClonePartial(begin_index, end_index);
-  tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
-
-  const Cheats::SearchErrorCode error_code = tmp->RunSearch(guard);
-  if (error_code != Cheats::SearchErrorCode::Success)
+  switch (result)
   {
-    if (update_status_text)
-      m_info_label_1->setText(tr("Refresh failed. Please run the game for a bit and try again."));
-    return false;
-  }
-
-  const bool show_in_hex = m_display_values_in_hex_checkbox->isChecked();
-  const size_t result_count_to_display = tmp->GetResultCount();
-  for (size_t i = 0; i < result_count_to_display; ++i)
-  {
-    m_address_table_current_values[tmp->GetResultAddress(i)] =
-        tmp->GetResultValueAsString(i, show_in_hex);
-  }
-
-  RefreshGUICurrentValues(begin_index, end_index);
-  if (update_status_text)
-    m_info_label_1->setText(tr("Refreshed current values."));
-  return true;
-}
-
-void CheatSearchWidget::UpdateTableVisibleCurrentValues(const UpdateSource source)
-{
-  if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
+  case Cheats::SearchErrorCode::NoEmulationActive:
+    m_info_label_1->setText(tr("No game is running."));
     return;
-
-  if (m_address_table->rowCount() == 0)
+  case Cheats::SearchErrorCode::InvalidParameters:
+    m_info_label_1->setText(tr("Invalid parameters given to search."));
     return;
-
-  UpdateTableRows(Core::CPUThreadGuard{m_system}, GetVisibleRowsBeginIndex(),
-                  GetVisibleRowsEndIndex(), source);
+  case Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible:
+    m_info_label_1->setText(tr("Search currently not possible in virtual address space. Please run "
+                               "the game for a bit and try again."));
+    return;
+  case Cheats::SearchErrorCode::DisabledInHardcoreMode:
+    m_info_label_1->setText(
+        tr("Cheat Search is disabled when Hardcore mode is enabled in the Achievements window."));
+    return;
+  case Cheats::SearchErrorCode::NoRemainingAddresses:
+    m_info_label_1->setText(tr("No addresses left. Press 'Reset Results' to start a new search."));
+    return;
+  case Cheats::SearchErrorCode::Success:
+    // Scans and refreshes show different messages for successful searches.
+    return;
+  default:
+    m_info_label_1->setText(tr("Unknown error occurred."));
+    return;
+  }
 }
 
-bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
+Cheats::SearchErrorCode CheatSearchWidget::UpdateCurrentValueSessionAndTable()
 {
-  if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
-    return false;
+  if (m_current_value_session->WasFirstSearchDone() &&
+      m_current_value_session->GetResultCount() == 0)
+    return Cheats::SearchErrorCode::NoRemainingAddresses;
+  const Cheats::SearchErrorCode result =
+      m_current_value_session->RunSearch(Core::CPUThreadGuard{m_system});
+  if (result == Cheats::SearchErrorCode::Success)
+    UpdateTableCurrentValues();
 
-  const size_t result_count = m_address_table->rowCount();
-  if (result_count == 0)
-  {
-    if (source == UpdateSource::User)
-      m_info_label_1->setText(tr("Cannot refresh without results."));
-    return false;
-  }
-
-  return UpdateTableRows(Core::CPUThreadGuard{m_system}, 0, result_count, source);
+  return result;
 }
 
 void CheatSearchWidget::OnRefreshClicked()
 {
-  UpdateTableAllCurrentValues(UpdateSource::User);
+  if (!m_current_value_session->WasFirstSearchDone())
+  {
+    m_info_label_1->setText(tr("Cannot refresh current values before a search is run."));
+    return;
+  }
+  const Cheats::SearchErrorCode refresh_result = UpdateCurrentValueSessionAndTable();
+  switch (refresh_result)
+  {
+  case Cheats::SearchErrorCode::Success:
+    m_info_label_1->setText(tr("Refreshed current values."));
+    return;
+  default:
+    DisplaySharedSearchErrorMessage(refresh_result);
+    return;
+  }
 }
 
 void CheatSearchWidget::OnResetClicked()
 {
   m_last_value_session->ResetResults();
-  m_address_table_current_values.clear();
+  m_current_value_session->ResetResults();
 
-  RecreateGUITable();
+  RecreateTable();
+
   m_info_label_1->setText(tr("Waiting for first scan..."));
   m_info_label_2->clear();
 }
@@ -476,16 +465,15 @@ void CheatSearchWidget::OnAddressTableItemChanged(QTableWidgetItem* item)
   }
 }
 
-int CheatSearchWidget::GetVisibleRowsBeginIndex() const
+void CheatSearchWidget::UpdateCurrentValueSessionAddressesAndValues()
 {
-  return m_address_table->rowAt(0);
+  m_current_value_session = m_last_value_session->ClonePartial(0, GetTableRowCount());
+  m_current_value_session->SetFilterType(Cheats::FilterType::DoNotFilter);
 }
 
-int CheatSearchWidget::GetVisibleRowsEndIndex() const
+int CheatSearchWidget::GetTableRowCount() const
 {
-  const int row_at_bottom_of_viewport = m_address_table->rowAt(m_address_table->height());
-  const int end_index = m_address_table->rowCount();
-  return row_at_bottom_of_viewport == -1 ? end_index : row_at_bottom_of_viewport + 1;
+  return std::min(TABLE_MAX_ROWS, static_cast<int>(m_last_value_session->GetResultCount()));
 }
 
 void CheatSearchWidget::OnAddressTableContextMenu()
@@ -523,9 +511,7 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
   if (!m_last_value_session->WasFirstSearchDone())
     return;
 
-  // If the game is running CheatsManager::OnFrameEnd will update values automatically.
-  if (Core::GetState(m_system) != Core::State::Running)
-    UpdateTableAllCurrentValues(UpdateSource::User);
+  UpdateTableLastAndCurrentValues();
 }
 
 void CheatSearchWidget::GenerateARCodes()
@@ -591,28 +577,47 @@ void CheatSearchWidget::GenerateARCodes()
   }
 }
 
-void CheatSearchWidget::RefreshCurrentValueTableItem(
-    QTableWidgetItem* const current_value_table_item)
+QString CheatSearchWidget::GetValueStringFromSessionIndex(
+    const std::unique_ptr<Cheats::CheatSearchSessionBase>& session, const int index) const
 {
-  const auto address = current_value_table_item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
-  const auto curr_val_iter = m_address_table_current_values.find(address);
-  if (curr_val_iter != m_address_table_current_values.end())
-    current_value_table_item->setText(QString::fromStdString(curr_val_iter->second));
-  else
-    current_value_table_item->setText(QStringLiteral("---"));
+  const bool show_in_hex = m_display_values_in_hex_checkbox->isChecked();
+  return QString::fromStdString(session->GetResultValueAsString(index, show_in_hex));
 }
 
-void CheatSearchWidget::RefreshGUICurrentValues(const size_t begin_index, const size_t end_index)
+void CheatSearchWidget::UpdateTableLastAndCurrentValues()
 {
-  for (size_t i = begin_index; i < end_index; ++i)
+  const int result_count_to_display = GetTableRowCount();
+
+  for (int i = 0; i < result_count_to_display; ++i)
+  {
+    QTableWidgetItem* const last_value_table_item =
+        m_address_table->item(i, ADDRESS_TABLE_COLUMN_INDEX_LAST_VALUE);
+    if (last_value_table_item == nullptr)
+      return;
+
+    const auto value_string = GetValueStringFromSessionIndex(m_last_value_session, i);
+    last_value_table_item->setText(value_string);
+  }
+
+  UpdateTableCurrentValues();
+}
+
+void CheatSearchWidget::UpdateTableCurrentValues()
+{
+  const int session_result_count = static_cast<int>(m_current_value_session->GetResultCount());
+  for (int table_row = 0; table_row < session_result_count; ++table_row)
   {
     QTableWidgetItem* const current_value_table_item =
-        m_address_table->item(static_cast<int>(i), ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE);
-    RefreshCurrentValueTableItem(current_value_table_item);
+        m_address_table->item(table_row, ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE);
+    if (current_value_table_item == nullptr)
+      return;
+
+    const auto value_string = GetValueStringFromSessionIndex(m_current_value_session, table_row);
+    current_value_table_item->setText(value_string);
   }
 }
 
-void CheatSearchWidget::RecreateGUITable()
+void CheatSearchWidget::RecreateTable()
 {
   const QSignalBlocker blocker(m_address_table);
 
@@ -621,9 +626,7 @@ void CheatSearchWidget::RecreateGUITable()
   m_address_table->setHorizontalHeaderLabels(
       {tr("Description"), tr("Address"), tr("Last Value"), tr("Current Value")});
 
-  const size_t result_count = m_last_value_session->GetResultCount();
-  const bool too_many_results = result_count > TABLE_MAX_ROWS;
-  const int result_count_to_display = int(too_many_results ? TABLE_MAX_ROWS : result_count);
+  const int result_count_to_display = GetTableRowCount();
   m_address_table->setRowCount(result_count_to_display);
 
   for (int i = 0; i < result_count_to_display; ++i)
@@ -658,9 +661,10 @@ void CheatSearchWidget::RecreateGUITable()
 
     auto* current_value_item = new QTableWidgetItem();
     current_value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    current_value_item->setText(
+        QString::fromStdString(m_current_value_session->GetResultValueAsString(i, show_in_hex)));
     current_value_item->setData(ADDRESS_TABLE_ADDRESS_ROLE, address);
     current_value_item->setData(ADDRESS_TABLE_RESULT_INDEX_ROLE, static_cast<u32>(i));
     m_address_table->setItem(i, ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE, current_value_item);
-    RefreshCurrentValueTableItem(current_value_item);
   }
 }

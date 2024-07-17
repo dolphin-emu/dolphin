@@ -6,6 +6,7 @@
 #include <QWidget>
 
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -45,15 +46,6 @@ public:
                              QWidget* parent = nullptr);
   ~CheatSearchWidget() override;
 
-  enum class UpdateSource
-  {
-    User,
-    Auto,
-  };
-
-  bool UpdateTableAllCurrentValues(UpdateSource source);
-  void UpdateTableVisibleCurrentValues(UpdateSource source);
-
 signals:
   void ActionReplayCodeGenerated(const ActionReplay::ARCode& ar_code);
   void RequestWatch(QString name, u32 address);
@@ -70,22 +62,31 @@ private:
   void OnAddressTableContextMenu();
   void OnValueSourceChanged();
   void OnDisplayHexCheckboxStateChanged();
+  Cheats::SearchErrorCode UpdateCurrentValueSessionAndTable();
+  void UpdateCurrentValueSessionAddressesAndValues();
 
-  void RefreshCurrentValueTableItem(QTableWidgetItem* current_value_table_item);
-  void RefreshGUICurrentValues(size_t begin_index, size_t end_index);
-  bool UpdateTableRows(const Core::CPUThreadGuard& guard, size_t begin_index, size_t end_index,
-                       UpdateSource source);
-  void RecreateGUITable();
+  void DisplaySharedSearchErrorMessage(Cheats::SearchErrorCode result);
+  void UpdateTableLastAndCurrentValues();
+  void UpdateTableCurrentValues();
+  void RecreateTable();
+  int GetTableRowCount() const;
+  QString
+  GetValueStringFromSessionIndex(const std::unique_ptr<Cheats::CheatSearchSessionBase>& session,
+                                 int index) const;
+
   void GenerateARCodes();
-  int GetVisibleRowsBeginIndex() const;
-  int GetVisibleRowsEndIndex() const;
 
   Core::System& m_system;
 
+  // Stores the values used by the "last value" search filter and shown in the Last Value column.
+  // Updated only after clicking the "Search and Filter" button or resetting the table.
   std::unique_ptr<Cheats::CheatSearchSessionBase> m_last_value_session;
 
-  // storage for the 'Current Value' column's data
-  std::unordered_map<u32, std::string> m_address_table_current_values;
+  // Stores the values shown in the Current Value column. Updated when the user clicks the "Refresh
+  // Current Values" button or when "Automatically update Current Values" is checked and an end of
+  // frame event, pause, or breakpoint occurs. Overwritten by m_last_value_session (up to the
+  // maximum table size) whenever that session updates.
+  std::unique_ptr<Cheats::CheatSearchSessionBase> m_current_value_session;
 
   // storage for user-entered metadata such as text descriptions for memory addresses
   // this is intentionally NOT cleared when updating values or resetting or similar

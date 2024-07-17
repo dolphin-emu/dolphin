@@ -102,6 +102,10 @@ enum class SearchErrorCode
 
   // Cheats and memory reading are disabled in RetroAchievements hardcore mode.
   DisabledInHardcoreMode,
+
+  // At least one search has been performed but there are no remaining addresses to filter or
+  // refresh.
+  NoRemainingAddresses,
 };
 
 // Returns the corresponding DataType enum for the value currently held by the given SearchValue.

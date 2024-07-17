@@ -272,6 +272,9 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
+  if (previous_results.empty())
+    return Cheats::SearchErrorCode::NoRemainingAddresses;
+
   for (const auto& previous_result : previous_results)
   {
     const u32 addr = previous_result.m_address;
