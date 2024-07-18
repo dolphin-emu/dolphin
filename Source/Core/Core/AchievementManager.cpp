@@ -479,8 +479,6 @@ AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderb
   if (const auto leaderboard_iter = m_leaderboard_map.find(leaderboard_id);
       leaderboard_iter != m_leaderboard_map.end())
   {
-    if (leaderboard_iter->second.entries.size() == 0)
-      FetchBoardInfo(leaderboard_id);
     return &leaderboard_iter->second;
   }
 
@@ -806,6 +804,8 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
     map_entry.username.assign(response_entry.user);
     memcpy(map_entry.score.data(), response_entry.display, FORMAT_SIZE);
     map_entry.rank = response_entry.rank;
+    if (ix == list->user_index)
+      leaderboard.player_index = response_entry.rank;
   }
   AchievementManager::GetInstance().m_update_callback({.leaderboards = {*leaderboard_id}});
 }
