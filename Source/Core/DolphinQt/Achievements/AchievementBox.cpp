@@ -79,7 +79,7 @@ void AchievementBox::UpdateData()
       return;
 
     const auto& badge = AchievementManager::GetInstance().GetAchievementBadge(
-        m_achievement->id, m_achievement->state != RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED);
+        m_achievement->id, !m_achievement->unlocked);
     std::string_view color = AchievementManager::GRAY;
     if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_HARDCORE)
       color = AchievementManager::GOLD;
@@ -92,11 +92,18 @@ void AchievementBox::UpdateData()
     m_badge->setStyleSheet(
         QStringLiteral("border: 4px solid %1").arg(QtUtils::FromStdString(color)));
 
-    if (m_achievement->state == RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED)
+    if (m_achievement->unlocked)
     {
-      m_status->setText(
-          tr("Unlocked at %1")
-              .arg(QDateTime::fromSecsSinceEpoch(m_achievement->unlock_time).toString()));
+      if (m_achievement->unlock_time != 0)
+      {
+        m_status->setText(
+            tr("Unlocked at %1")
+                .arg(QDateTime::fromSecsSinceEpoch(m_achievement->unlock_time).toString()));
+      }
+      else
+      {
+        m_status->setText(tr("Unlocked"));
+      }
     }
     else
     {
