@@ -1,0 +1,121 @@
+
+#
+#------------------------------------------------------------------------------
+
+### author:       Wiimm, 2012-09-20
+### info:         man magic(5) file(1)
+### append to:    /etc/magic
+### download:     http://wit.wiimm.de/download/magic.txt
+
+#------------------------------------------------------------------------------
+# ISO image of a GameCube disc
+# Created by: Wiimm, www.wiimm.de, 2012-09-19
+
+0x1c		belong	0xc2339f3d
+>0		regex	=^[A-Z0-9]{6}		GameCube ISO image
+!:mime	application/x-gamecube-iso-image
+>>0x00		string	x			'%.6s'
+>>0x20		string	x			%.64s
+
+#------------------------------------------------------------------------------
+# ISO image of a Wii disc
+# Created by: Wiimm, www.wiimm.de, 2012-09-19
+
+0x18		belong	0x5d1c9ea3
+>0		regex	=^[A-Z0-9]{6}		Wii ISO image
+!:mime	application/x-wii-iso-image
+>>0x00		string	x			'%.6s'
+>>0x20		string	x			%.64s
+
+#------------------------------------------------------------------------------
+# WBFS == Wii Backup File System
+# Created by: Wiimm, www.wiimm.de, 2012-09-19
+
+0		string	WBFS			WBFS
+!:mime application/x-wbfs
+>10		byte	x			v%u
+>8		byte	9			\b, hss 512
+>8		byte	10			\b, hss 1K
+>8		byte	11			\b, hss 2K
+>8		byte	12			\b, hss 4K
+>8		byte	13			\b, hss 8K
+>8		byte	14			\b, hss 16K
+>8		byte	<9			\b, hss 2^%u
+>8		byte	>14			\b, hss 2^%u
+>9		byte	20			\b, wss 1M
+>9		byte	21			\b, wss 2M
+>9		byte	22			\b, wss 4M
+>9		byte	23			\b, wss 8M
+>9		byte	24			\b, wss 16M
+>9		byte	25			\b, wss 32M
+>9		byte	26			\b, wss 64M
+>9		byte	>26			\b, wss 2^%u
+>9		byte	<20			\b, wss 2^%u
+>12		quad	!1			\b, multi disc archive
+>12		quad	=1
+>>0x200		regex	=^[A-Z0-9]{6}
+>>>0x21c	belong	0xc2339f3d
+>>>>0x200	string	x			\b, GC '%.6s'
+>>>>0x220	string	x			%.64s
+>>>0x218	belong	0x5d1c9ea3
+>>>>0x200	string	x			\b, Wii '%.6s'
+>>>>0x220	string	x			%.64s
+
+#------------------------------------------------------------------------------
+# WDF == Wii(mms) Disc File
+# Created by: Wiimm, www.wiimm.de, 2012-09-19
+
+0		string	WII\001DISC		WDF
+!:mime	application/x-wdf
+>8		belong	x			v%u,
+>24		bequad	x			v-size %lld,
+>44		belong	x			%u chunks
+>0x38		regex	=^[A-Z0-9]{6}
+>>0x54		belong	0xc2339f3d
+>>>0x38		string	x			\b, GC '%.6s'
+>>>0x58		string	x			%.64s
+>>0x50		belong	0x5d1c9ea3
+>>>0x38		string	x			\b, Wii '%.6s'
+>>>0x58		string	x			%.64s
+
+#------------------------------------------------------------------------------
+# WIA == Wii(mms) ISO Achive
+# Created by: Wiimm, www.wiimm.de, 2012-09-19
+
+0		string	WIA\001			WIA
+!:mime	application/x-wia
+>4		byte	x			v%u
+>5		byte	x			\b.%02x
+>0x4c		belong	0			NONE
+>0x4c		belong	1			PURGE
+>0x4c		belong	2			BZIP2
+>0x4c		belong	3			LZMA
+>0x4c		belong	4			LZMA2
+>0x4c		belong	>4			?
+>0x50		belong	x			\b.%u
+>0x54		belong	0x0200000		\b@1
+>0x54		belong	!0x0200000
+>>0x54		belong	0x0a00000		\b@5
+>>0x54		belong	!0x0a00000
+>>>0x54		belong	0x1400000		\b@10
+>>>0x54		belong	!0x1400000
+>>>>0x54	belong	0x2800000		\b@20
+>>>>0x54	belong	!0x2800000
+>>>>>0x54	belong	0x3c00000		\b@30
+>>>>>0x54	belong	!0x3c00000
+>>>>>>0x54	belong	0x5000000		\b@40
+>>>>>>0x54	belong	!0x5000000
+>>>>>>>0x54	belong	0x6400000		\b@50
+>>>>>>>0x54	belong	!0x6400000
+>>>>>>>>0x54	belong	x			\b, c-size %x
+>0x24		bequad	x			\b, v-size %llu
+>0x58		regex	=^[A-Z0-9]{6}
+>>0x74		belong	0xc2339f3d
+>>>0x58		string	x			\b, GC '%.6s'
+>>>0x78		string	x			%.64s
+>>0x70		belong	0x5d1c9ea3
+>>>0x58		string	x			\b, Wii '%.6s'
+>>>0x78		string	x			%.64s
+
+#------------------------------------------------------------------------------
+

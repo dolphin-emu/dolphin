@@ -65,6 +65,10 @@ typedef struct mpn_addresses_t
   uint32_t TotalTurns;
   uint32_t MinigameIdAddress;
   uint32_t SceneIdAddress;
+  uint32_t ControllerPortAddress1;
+  uint32_t ControllerPortAddress2;
+  uint32_t ControllerPortAddress3;
+  uint32_t ControllerPortAddress4;
 } mpn_addresses_t;
 
 typedef struct mpn_player_t
@@ -112,7 +116,16 @@ bool mpn_update_state();
 /* ============================================================================
    Mario Party 4 metadata
 ============================================================================ */
-const mpn_addresses_t MP4_ADDRESSES = {0x0018FCFC, 0x0018FCFD, 0x0018FD2C, 0x001D3CE2};
+const mpn_addresses_t MP4_ADDRESSES = {
+    0x0018FCFC,  // Current Turns
+    0x0018FCFD,  // Total Turns
+    0x0018FD2C,  // Mini ID
+    0x001D3CE2,  // Scene ID
+    0x0018FC19,  // Controller Port A
+    0x0018FC23,  // Controller Port B
+    0x0018FC2D,  // Controller Port C
+    0x0018FC37   // Controller Port D
+};
 
 const mpn_board_t MP4_BOARDS[] = {{1, 0x59, {"Toad's Midway Madness"}, {"mp4-toad"}},
                                   {2, 0x5A, {"Goomba's Greedy Gala"}, {"mp4-goomba"}},
@@ -213,7 +226,11 @@ const mpn_addresses_t MP5_ADDRESSES = {
     0x0022A494,  // Current Turns
     0x0022A495,  // Total Turns
     0x0022A4C4,  // Mini ID
-    0x00288862   // Scene ID
+    0x00288862,  // Scene ID
+    0x0022A05B,  // Controller Port A
+    0x0022A051,  // Controller Port B
+    0x0022A065,  // Controller Port C
+    0x0022A06F   // Controller Port D
 };
 
 const mpn_board_t MP5_BOARDS[] = {{1, 0x76, {"Toy Dream"}, {"mp5-toy"}},
@@ -333,8 +350,11 @@ const mpn_addresses_t MP6_ADDRESSES = {
     0x00265B74,  // Current Turns
     0x00265B75,  // Total Turns
     0x00265BA8,  // Mini ID
-    0x002C0256   // Scene ID
-};
+    0x002C0256,  // Scene ID
+    0x00265745,  // Controller Port A
+    0x00265731,  // Controller Port B
+    0x0026574F,  // Controller Port C
+    0x0026573B}; // Controller Port D
 
 const mpn_board_t MP6_BOARDS[] = {{1, 0x7B, {"Towering Treetop"}, {"mp6-treetop"}},
                                   {2, 0x7C, {"E. Gadd's Garage"}, {"mp6-garage"}},
@@ -460,7 +480,20 @@ const mpn_scene_t MP6_GAMESTATES[] = {{NONE, 0x01, {"Title Screen"}, 0},
    Mario Party 7 metadata
 ============================================================================ */
 
-const mpn_addresses_t MP7_ADDRESSES = {0x0029151C, 0x0029151D, 0x00291558, 0x002F2F3E};
+const mpn_addresses_t MP7_ADDRESSES = {
+  0x0029151C,   // Current Turns
+  0x0029151D,   // Total Turns
+  0x00291558,   // Mini ID
+  0x002F2F3E,   // Scene ID
+  0x00290C51,   // Controller Port A
+  0x00290C5B,   // Controller Port B
+  0x00290C65,   // Controller Port C
+  0x00290C6F    // Controller Port D
+  //0x00290C79, // Controller Port E
+  //0x00290C83, // Controller Port F
+  //0x00290C8D, // Controller Port G
+  //0x00290C97  // Controller Port H
+};  
 
 const mpn_board_t MP7_BOARDS[] = {{1, 0x7A, {"Grand Canal"}, {"mp7-canal"}},
                                   {2, 0x7B, {"Pagoda Peak"}, {"mp7-peak"}},
