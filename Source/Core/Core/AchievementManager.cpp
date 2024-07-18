@@ -479,8 +479,6 @@ AchievementManager::GetLeaderboardInfo(AchievementManager::AchievementId leaderb
   if (const auto leaderboard_iter = m_leaderboard_map.find(leaderboard_id);
       leaderboard_iter != m_leaderboard_map.end())
   {
-    if (leaderboard_iter->second.entries.size() == 0)
-      FetchBoardInfo(leaderboard_id);
     return &leaderboard_iter->second;
   }
 
