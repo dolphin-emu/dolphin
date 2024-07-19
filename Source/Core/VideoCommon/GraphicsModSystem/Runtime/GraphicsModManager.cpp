@@ -197,7 +197,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   {
     for (const GraphicsTargetGroupConfig& group : mod.m_groups)
     {
-      if (m_groups.find(group.m_name) != m_groups.end())
+      if (m_groups.contains(group.m_name))
       {
         WARN_LOG_FMT(
             VIDEO,

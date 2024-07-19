@@ -279,7 +279,7 @@ TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
   // Delete if present in this manifest but not in next manifest.
   for (const auto& entry : this_manifest.entries)
   {
-    if (next_manifest.entries.find(entry.first) == next_manifest.entries.end())
+    if (!next_manifest.entries.contains(entry.first))
     {
       TodoList::DeleteOp del;
       del.filename = entry.first;

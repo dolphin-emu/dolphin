@@ -188,7 +188,7 @@ u16 WiimoteDevice::GenerateChannelID() const
 
   u16 cid = starting_id;
 
-  while (m_channels.count(cid) != 0)
+  while (m_channels.contains(cid))
     ++cid;
 
   return cid;

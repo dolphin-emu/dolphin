@@ -125,7 +125,7 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
-  if (!m_status_labels.count(pid))
+  if (!m_status_labels.contains(pid))
     return;
 
   const float acquired = progress / 1024.0f / 1024.0f;

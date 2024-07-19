@@ -186,7 +186,7 @@ FigureData SkylanderFigure::GetData() const
 
   auto filter = std::make_pair(figure_data.figure_id, figure_data.variant_id);
   Type type = Type::Item;
-  if (list_skylanders.count(filter) != 0)
+  if (list_skylanders.contains(filter))
   {
     const auto found = list_skylanders.at(filter);
     type = found.type;

@@ -665,7 +665,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
 
       auto refpair1 = std::make_pair(*id1, *id2);
       auto refpair2 = std::make_pair(*id2, *id1);
-      if (reference_pairs.count(refpair1) == 0 && reference_pairs.count(refpair2) == 0)
+      if (!reference_pairs.contains(refpair1) && !reference_pairs.contains(refpair2))
         reference_pairs.insert(refpair1);
     }
   }
@@ -854,7 +854,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
   {
     auto& entry = iter.first->second;
     if (entry != entry_to_update && entry->IsCopy() &&
-        entry->references.count(entry_to_update.get()) == 0 &&
+        !entry->references.contains(entry_to_update.get()) &&
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
         entry->memory_stride == numBlocksX * block_size)
     {

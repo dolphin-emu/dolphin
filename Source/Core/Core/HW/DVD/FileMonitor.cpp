@@ -43,7 +43,7 @@ static bool IsSoundFile(const std::string& filename)
       ".str",    // Harry Potter & the Sorcerer's Stone
   };
 
-  return extensions.find(extension) != extensions.end();
+  return extensions.contains(extension);
 }
 
 FileLogger::FileLogger() = default;

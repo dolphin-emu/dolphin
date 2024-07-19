@@ -317,7 +317,7 @@ void JitInterface::CompileExceptionCheck(const ExceptionType type) const
 
   const auto& ppc_state = m_system.GetPPCState();
   if (ppc_state.pc != 0 &&
-      (exception_addresses->find(ppc_state.pc)) == (exception_addresses->end()))
+      (!exception_addresses->contains(ppc_state.pc)))
   {
     if (type == ExceptionType::FIFOWrite)
     {

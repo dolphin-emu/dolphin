@@ -72,7 +72,7 @@ void USBHost::DoState(PointerWrap& p)
 bool USBHost::AddDevice(std::unique_ptr<USB::Device> device)
 {
   std::lock_guard lk(m_devices_mutex);
-  if (m_devices.find(device->GetId()) != m_devices.end())
+  if (m_devices.contains(device->GetId()))
     return false;
 
   m_devices[device->GetId()] = std::move(device);
@@ -136,7 +136,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
       const int ret = m_context.GetDeviceList([&](libusb_device* device) {
         libusb_device_descriptor descriptor;
         libusb_get_device_descriptor(device, &descriptor);
-        if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
+        if (!whitelist.contains({descriptor.idVendor, descriptor.idProduct}))
           return true;
 
         auto usb_device =
@@ -157,7 +157,7 @@ void USBHost::DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceC
   std::lock_guard lk(m_devices_mutex);
   for (auto it = m_devices.begin(); it != m_devices.end();)
   {
-    if (plugged_devices.find(it->second->GetId()) == plugged_devices.end())
+    if (!plugged_devices.contains(it->second->GetId()))
     {
       hooks.emplace(it->second, ChangeEvent::Removed);
       it = m_devices.erase(it);
