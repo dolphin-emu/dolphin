@@ -1158,8 +1158,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       // Gather pipe writes using a non-immediate address are discovered by profiling.
       const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck =
-          js.fifoWriteAddresses.find(prev_address) != js.fifoWriteAddresses.end();
+      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
 
       if (jo.optimizeGatherPipe &&
           (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))

@@ -44,7 +44,7 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
   for (DIDEVICEINSTANCE& joystick : joysticks)
   {
     // Skip XInput Devices
-    if (xinput_guids.count(joystick.guidProduct.Data1))
+    if (xinput_guids.contains(joystick.guidProduct.Data1))
     {
       continue;
     }
@@ -52,7 +52,7 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
     // Skip devices we are already using.
     {
       std::lock_guard lk(s_guids_mutex);
-      if (s_guids_in_use.count(joystick.guidInstance))
+      if (s_guids_in_use.contains(joystick.guidInstance))
       {
         continue;
       }

@@ -113,7 +113,7 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
   auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : current_devices)
   {
-    if (whitelist.count({device.first.first, device.first.second}) != 0)
+    if (whitelist.contains({device.first.first, device.first.second}))
       continue;
     usb_inserted_devices_list->addItem(QString::fromStdString(device.second));
   }
