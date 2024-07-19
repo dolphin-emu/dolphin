@@ -13,7 +13,9 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QCursor>
+#include <QEvent>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -46,6 +48,23 @@
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
+
+namespace
+{
+struct AutoupdateEvent : public QEvent
+{
+  AutoupdateEvent(std::unique_ptr<Cheats::CheatSearchSessionBase> autoupdate_session)
+      : QEvent(GetType()), session(std::move(autoupdate_session))
+  {
+  }
+  static QEvent::Type GetType()
+  {
+    static const QEvent::Type event_type = static_cast<QEvent::Type>(QEvent::registerEventType());
+    return event_type;
+  }
+  std::unique_ptr<Cheats::CheatSearchSessionBase> session;
+};
+}  // namespace
 
 constexpr int TABLE_MAX_ROWS = 1000;
 
@@ -82,6 +101,27 @@ CheatSearchWidget::~CheatSearchWidget()
     settings.setValue(QStringLiteral("cheatsearchwidget/parsehex"),
                       m_parse_values_as_hex_checkbox->isChecked());
   }
+}
+
+bool CheatSearchWidget::event(QEvent* const event)
+{
+  if (event->type() != AutoupdateEvent::GetType())
+    return QWidget::event(event);
+
+  OnAutoupdate(static_cast<AutoupdateEvent*>(event)->session.release());
+  return true;
+}
+
+void CheatSearchWidget::hideEvent(QHideEvent* const event)
+{
+  RemoveAutoupdateCallback();
+  QWidget::hideEvent(event);
+}
+
+void CheatSearchWidget::showEvent(QShowEvent* const event)
+{
+  RefreshAutoupdateCallback();
+  QWidget::showEvent(event);
 }
 
 Q_DECLARE_METATYPE(Cheats::CompareType);
@@ -278,6 +318,10 @@ void CheatSearchWidget::ConnectWidgets()
           &CheatSearchWidget::OnValueSourceChanged);
   connect(m_display_values_in_hex_checkbox, &QCheckBox::toggled, this,
           &CheatSearchWidget::OnDisplayHexCheckboxStateChanged);
+  connect(m_autoupdate_current_values, &QCheckBox::toggled, this,
+          &CheatSearchWidget::OnAutoupdateToggled);
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+          &CheatSearchWidget::OnUpdateDisasmDialog);
 }
 
 void CheatSearchWidget::OnNextScanClicked()
@@ -312,7 +356,15 @@ void CheatSearchWidget::OnNextScanClicked()
 
   if (error_code == Cheats::SearchErrorCode::Success)
   {
+    // The previous Autoupdate callback (if any) might be for the wrong set of addresses. Remove it
+    // now so it doesn't generate an Autoupdate after we clear out any pending ones but before we
+    // refresh the callback.
+    RemoveAutoupdateCallback();
+    // Any pending Autoupdates will have data older than the search we just did, so discard them.
+    RemovePendingAutoupdates();
+
     UpdateCurrentValueSessionAddressesAndValues();
+    RefreshAutoupdateCallback();
 
     const size_t new_count = m_last_value_session->GetResultCount();
     if (old_count == new_count)
@@ -439,6 +491,9 @@ void CheatSearchWidget::OnRefreshClicked()
 
 void CheatSearchWidget::OnResetClicked()
 {
+  RemoveAutoupdateCallback();
+  RemovePendingAutoupdates();
+
   m_last_value_session->ResetResults();
   m_current_value_session->ResetResults();
 
@@ -471,9 +526,139 @@ void CheatSearchWidget::UpdateCurrentValueSessionAddressesAndValues()
   m_current_value_session->SetFilterType(Cheats::FilterType::DoNotFilter);
 }
 
+void CheatSearchWidget::OnAutoupdate(Cheats::CheatSearchSessionBase* const autoupdate_session)
+{
+  m_current_value_session.reset(autoupdate_session);
+  UpdateTableCurrentValues();
+}
+
+void CheatSearchWidget::OnAutoupdateToggled(const bool enabled)
+{
+  if (enabled && Core::GetState(m_system) == Core::State::Paused)
+  {
+    // When enabling Autoupdates the Current Values need to be updated. If the game is running the
+    // next Autoupdate will handle it, but if it's paused then update them now.
+    AutoupdateAllCurrentValueRowsIfNeeded();
+  }
+
+  RefreshAutoupdateCallback();
+}
+
+// When pausing or a breakpoint is triggered, all CheatSearchWidgets with Autoupdates enabled run a
+// scan to ensure their Current Values are up to date. If this widget has any queued
+// AutoupdateEvents the data in their sessions may be outdated, so prevent them from updating the
+// table afterward.
+void CheatSearchWidget::RemovePendingAutoupdates()
+{
+  QCoreApplication::removePostedEvents(this, AutoupdateEvent::GetType());
+}
+
+void CheatSearchWidget::OnUpdateDisasmDialog()
+{
+  const bool pause_or_breakpoint_triggered = Core::GetState(m_system) == Core::State::Paused;
+  if (pause_or_breakpoint_triggered)
+    AutoupdateAllCurrentValueRowsIfNeeded();
+}
+
+void CheatSearchWidget::AutoupdateAllCurrentValueRowsIfNeeded()
+{
+  if (m_autoupdate_current_values->isChecked() && m_current_value_session->WasFirstSearchDone())
+  {
+    // We don't update the status text for automatically triggered searches, so the return value can
+    // be ignored.
+    static_cast<void>(UpdateCurrentValueSessionAndTable());
+    // The data in any pending Autoupdates is out of date, so remove them to prevent them from
+    // overwriting the scan we just did.
+    RemovePendingAutoupdates();
+  }
+}
+
 int CheatSearchWidget::GetTableRowCount() const
 {
   return std::min(TABLE_MAX_ROWS, static_cast<int>(m_last_value_session->GetResultCount()));
+}
+
+void CheatSearchWidget::RefreshAutoupdateCallback()
+{
+  // Autoupdates have several design requirements:
+  //  * Minimize the performance impact by having the CPU thread update CheatSearch session values
+  //    when the frame ends instead of during it.
+  //  * Update the Current Values in CheatSearchWidget's table from the Host thread, both to avoid
+  //    threading issues caused by accessing QWidget-derived classes from a thread that isn't the
+  //    Host thread, and so the CPU thread doesn't have to spend time updating the table.
+  //  * Minimize lock contention between the CPU and Host threads.
+  //
+  // While the game is actively running, only the currently visible CheatSearchWidget with updates
+  // enabled (if any) will receive them. Skipped updates to other widgets won't be visible until the
+  // user switches to a different widget, at which point the newly shown widget will be updated by
+  // the next Autoupdate in a small fraction of a second.
+  //
+  // When the game is paused or a breakpoint is triggered, all CheatSearchWidgets with Autoupdates
+  // enabled will be updated. This is because newly shown widgets will no longer receive updates
+  // immediately after and so their tables need to be updated manually so they'll display the
+  // correct values when the user switches to them.
+  //
+  // The overall flow of the system is:
+  //  * When a CheatSearchWidget with Autoupdates enabled and a nonempty set of addresses is
+  //    visible, the Host thread registers a lambda callback for the VIEndFieldEvent which will run
+  //    on the CPU thread at the end of each frame. The lambda contains a CheatSearchSession with
+  //    the set of addresses that need an Autoupdate.
+  //  * When the VIEndFieldEvent is triggered, the CPU thread runs a scan on those addresses to
+  //    get their new values. These are passed via postEvent to Qt's event loop on the Host thread,
+  //    which calls OnAutoupdate with the session.
+  //  * OnAutoupdate replaces the CheatSearchWidget's m_current_value_session with the one from the
+  //    Autoupdate and updates the table.
+  //  * The VIEndFieldEvent needs to be removed (and maybe replaced with a new one with an updated
+  //    set of addresses) when certain events cause the set of visible addresses to change. These
+  //    are: when a CheatSearchWidget is shown or hidden, the Reset Results button is pressed,
+  //    Autoupdates are enabled or disabled for the shown widget, or a filtering scan is run.
+  //
+  // Thread safety is handled by the VIEndFieldEvent::Register and ::Trigger functions (which lock a
+  // mutex preventing the callback from being changed while it's running and vice versa) and the
+  // call to postEvent with the updated session. In particular, the CPU thread should rarely have to
+  // wait on the Host thread, and even then only for long enough to add a new lambda to the
+  // VIEndFieldEvent callback list.
+
+  RemoveAutoupdateCallback();
+
+  if (!m_autoupdate_current_values->isChecked() || m_current_value_session->GetResultCount() == 0)
+    return;
+
+  // This can't be a unique_ptr because the lambda is passed to VIEndFieldEvent::Register, which
+  // converts it to a std::function which requires the lambda to be CopyConstructible.
+  // TODO: Convert this to unique_ptr if/when HookableEvent is converted to std::move_only_function.
+  std::shared_ptr<Cheats::CheatSearchSessionBase> autoupdate_session_shared =
+      m_current_value_session->Clone();
+
+  const auto frame_end_callback = [this, system = std::ref(m_system),
+                                   autoupdate_session = std::move(autoupdate_session_shared)]() {
+    const Cheats::SearchErrorCode error_code =
+        autoupdate_session->RunSearch(Core::CPUThreadGuard{system});
+
+    if (error_code != Cheats::SearchErrorCode::Success)
+      return;
+
+    const auto autoupdate_event = new AutoupdateEvent(autoupdate_session->Clone());
+
+    // Posting the AutoupdateEvent for this CheatSearchWidget is safe even if the widget gets
+    // deleted by the Host thread while this callback is being run on the CPU thread.
+    // m_VI_end_field_event's destructor will block while acquiring VIEndFieldEvent's storage lock
+    // until the event's callbacks are finished running on the CPU thread, at which point the
+    // CheatSearchWidget's inherited QObject destructor will disconnect all its signals and remove
+    // any pending events from the event queue that target it. This prevents the AutoupdateEvent
+    // from running on a destroyed object.
+    QCoreApplication::postEvent(this, autoupdate_event);
+  };
+
+  m_VI_end_field_event = VIEndFieldEvent::Register(frame_end_callback, "CheatSearchWidget");
+}
+
+// Any action that might change which addresses need to be Autoupdated (such as filtering scans,
+// resets, or CheatSearchWidget visibility changes) should call this function first. Actions that
+// only update the values for those addresses don't need to call this.
+void CheatSearchWidget::RemoveAutoupdateCallback()
+{
+  m_VI_end_field_event.reset();
 }
 
 void CheatSearchWidget::OnAddressTableContextMenu()

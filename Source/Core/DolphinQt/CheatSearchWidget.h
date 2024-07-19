@@ -14,6 +14,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/CheatSearch.h"
+#include "VideoCommon/VideoEvents.h"
 
 namespace ActionReplay
 {
@@ -51,6 +52,11 @@ signals:
   void RequestWatch(QString name, u32 address);
   void ShowMemory(const u32 address);
 
+protected:
+  bool event(QEvent* event) override;
+  void hideEvent(QHideEvent* event) override;
+  void showEvent(QShowEvent* event) override;
+
 private:
   void CreateWidgets();
   void ConnectWidgets();
@@ -62,6 +68,11 @@ private:
   void OnAddressTableContextMenu();
   void OnValueSourceChanged();
   void OnDisplayHexCheckboxStateChanged();
+  void OnUpdateDisasmDialog();
+  void OnAutoupdate(Cheats::CheatSearchSessionBase* session);
+  void OnAutoupdateToggled(bool enabled);
+
+  void AutoupdateAllCurrentValueRowsIfNeeded();
   Cheats::SearchErrorCode UpdateCurrentValueSessionAndTable();
   void UpdateCurrentValueSessionAddressesAndValues();
 
@@ -75,6 +86,11 @@ private:
                                  int index) const;
 
   void GenerateARCodes();
+
+  // Removes any existing callback, and adds an updated one if necessary.
+  void RefreshAutoupdateCallback();
+  void RemoveAutoupdateCallback();
+  void RemovePendingAutoupdates();
 
   Core::System& m_system;
 
@@ -91,6 +107,8 @@ private:
   // storage for user-entered metadata such as text descriptions for memory addresses
   // this is intentionally NOT cleared when updating values or resetting or similar
   std::unordered_map<u32, CheatSearchTableUserData> m_address_table_user_data;
+
+  Common::EventHook m_VI_end_field_event{};
 
   QComboBox* m_compare_type_dropdown;
   QComboBox* m_value_source_dropdown;
