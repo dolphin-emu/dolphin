@@ -34,6 +34,10 @@
 #include "DiscIO/Volume.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <rcheevos/include/rc_client_raintegration.h>
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
 namespace Core
 {
 class CPUThreadGuard;
@@ -161,6 +165,15 @@ public:
   const std::unordered_set<AchievementId>& GetActiveChallenges() const;
   std::vector<std::string> GetActiveLeaderboards() const;
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  const rc_client_raintegration_menu_t* GetDevelopmentMenu();
+  u32 ActivateDevMenuItem(u32 menu_item_id);
+  void SetDevMenuUpdateCallback(std::function<void(void)> callback)
+  {
+    m_dev_menu_callback = callback;
+  };
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
   void DoState(PointerWrap& p);
 
   void CloseGame();
@@ -270,6 +283,11 @@ private:
   bool m_challenges_updated = false;
   std::unordered_set<AchievementId> m_active_challenges;
   std::vector<rc_client_leaderboard_tracker_t> m_active_leaderboards;
+
+  bool m_dll_found = false;
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  std::function<void(void)> m_dev_menu_callback;
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
