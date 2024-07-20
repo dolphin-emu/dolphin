@@ -256,7 +256,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 
   auto& instance = AchievementManager::GetInstance();
   if (Config::Get(Config::RA_ENABLED))
-    instance.Init();
+    instance.Init(reinterpret_cast<void*>(winId()));
   else
     instance.Shutdown();
   UpdateHardcoreMode();
