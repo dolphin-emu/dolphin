@@ -25,6 +25,7 @@ class DolphinSensorEventListener : SensorEventListener {
         val axisSetDetails: Array<AxisSetDetails>
     ) {
         var isSuspended = true
+        var hasRegisteredListener = false
     }
 
     private val sensorManager: SensorManager?
@@ -33,6 +34,16 @@ class DolphinSensorEventListener : SensorEventListener {
 
     private val rotateCoordinatesForScreenOrientation: Boolean
 
+    /**
+     * AOSP has a bug in InputDeviceSensorManager where
+     * InputSensorEventListenerDelegate.removeSensor attempts to modify an ArrayList it's iterating
+     * through in a way that throws a ConcurrentModificationException. Because of this, we can't
+     * suspend individual sensors for InputDevices, but we can suspend all sensors at once.
+     */
+    private val canSuspendSensorsIndividually: Boolean
+
+    private var unsuspendedSensors = 0
+
     private var deviceQualifier = ""
 
     @Keep
@@ -40,6 +51,7 @@ class DolphinSensorEventListener : SensorEventListener {
         sensorManager = DolphinApplication.getAppContext()
             .getSystemService(Context.SENSOR_SERVICE) as SensorManager?
         rotateCoordinatesForScreenOrientation = true
+        canSuspendSensorsIndividually = true
         addSensors()
         sortSensorDetails()
     }
@@ -47,6 +59,7 @@ class DolphinSensorEventListener : SensorEventListener {
     @Keep
     constructor(inputDevice: InputDevice) {
         rotateCoordinatesForScreenOrientation = false
+        canSuspendSensorsIndividually = false
         sensorManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             inputDevice.sensorManager
 
@@ -409,10 +422,46 @@ class DolphinSensorEventListener : SensorEventListener {
                     suspend
                 )
 
-                if (suspend)
-                    sensorManager!!.unregisterListener(this, sensorDetails.sensor)
-                else
-                    sensorManager!!.registerListener(this, sensorDetails.sensor, SAMPLING_PERIOD_US)
+                if (suspend) {
+                    unsuspendedSensors -= 1
+                } else {
+                    unsuspendedSensors += 1
+                }
+
+                if (canSuspendSensorsIndividually) {
+                    if (suspend) {
+                        sensorManager!!.unregisterListener(this, sensorDetails.sensor)
+                    } else {
+                        sensorManager!!.registerListener(
+                            this,
+                            sensorDetails.sensor,
+                            SAMPLING_PERIOD_US
+                        )
+                    }
+                    sensorDetails.hasRegisteredListener = !suspend
+                } else {
+                    if (suspend) {
+                        // If there are no unsuspended sensors left, unregister them all.
+                        // Otherwise, leave unregistering for later. A possible alternative could be
+                        // to unregister everything and then re-register the sensors we still want,
+                        // but I fear this could lead to dropped inputs.
+                        if (unsuspendedSensors == 0) {
+                            sensorManager!!.unregisterListener(this)
+                            for (sd in this.sensorDetails) {
+                                sd.hasRegisteredListener = false
+                            }
+                        }
+                    } else {
+                        if (!sensorDetails.hasRegisteredListener) {
+                            sensorManager!!.registerListener(
+                                this,
+                                sensorDetails.sensor,
+                                SAMPLING_PERIOD_US
+                            )
+                            sensorDetails.hasRegisteredListener = true
+                        }
+                    }
+                }
 
                 sensorDetails.isSuspended = suspend
 
