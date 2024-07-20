@@ -42,6 +42,12 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <libloaderapi.h>
+#include <rcheevos/include/rc_client_raintegration.h>
+#include <shlwapi.h>
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
 static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
     {"User-Agent", Common::GetUserAgentStr()}};
 
@@ -51,7 +57,7 @@ AchievementManager& AchievementManager::GetInstance()
   return s_instance;
 }
 
-void AchievementManager::Init()
+void AchievementManager::Init(void* hwnd)
 {
   LoadDefaultBadges();
   if (!m_client && Config::Get(Config::RA_ENABLED))
@@ -73,9 +79,19 @@ void AchievementManager::Init()
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    // Attempt to load the integration DLL from the directory containing the main client executable.
+    // In x64 build, will look for RA_Integration-x64.dll, then RA_Integration.dll.
+    // In non-x64 build, will only look for RA_Integration.dll.
+    rc_client_begin_load_raintegration(
+        m_client, UTF8ToWString(File::GetExeDirectory()).c_str(), reinterpret_cast<HWND>(hwnd),
+        "Dolphin", Common::GetScmDescStr().c_str(), LoadIntegrationCallback, NULL);
+#else   // RC_CLIENT_SUPPORTS_RAINTEGRATION
     if (HasAPIToken())
       Login("");
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   }
 }
 
@@ -1394,5 +1410,33 @@ void AchievementManager::EventHandler(const rc_client_event_t* event, rc_client_
     break;
   }
 }
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+void AchievementManager::LoadIntegrationCallback(int result, const char* error_message,
+                                                 rc_client_t* client, void* userdata)
+{
+  auto& instance = AchievementManager::GetInstance();
+  switch (result)
+  {
+  case RC_OK:
+    INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll found.");
+    // TODO: hook up menu and dll event handlers
+    break;
+
+  case RC_MISSING_VALUE:
+    INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll not found.");
+    // DLL is not present; do nothing.
+    break;
+
+  default:
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load RAIntegration.dll. {}", error_message);
+    break;
+  }
+
+  if (instance.HasAPIToken())
+    instance.Login("");
+  INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
+}
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 #endif  // USE_RETRO_ACHIEVEMENTS

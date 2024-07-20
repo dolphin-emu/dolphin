@@ -113,7 +113,7 @@ public:
   using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
   static AchievementManager& GetInstance();
-  void Init();
+  void Init(void* hwnd);
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool HasAPIToken() const;
@@ -234,6 +234,11 @@ private:
   void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
                   const UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  static void LoadIntegrationCallback(int result, const char* error_message, rc_client_t* client,
+                                      void* userdata);
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
