@@ -637,6 +637,22 @@ std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
   return display_values;
 }
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+const rc_client_raintegration_menu_t* AchievementManager::GetDevelopmentMenu()
+{
+  if (!m_dll_found)
+    return nullptr;
+  return rc_client_raintegration_get_menu(m_client);
+}
+
+u32 AchievementManager::ActivateDevMenuItem(u32 menu_item_id)
+{
+  if (!m_dll_found)
+    return 0;
+  return rc_client_raintegration_activate_menu_item(m_client, menu_item_id);
+}
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
 void AchievementManager::DoState(PointerWrap& p)
 {
   if (!m_client || !Config::Get(Config::RA_ENABLED))
@@ -732,6 +748,7 @@ void AchievementManager::Shutdown()
     // DON'T log out - keep those credentials for next run.
     rc_client_destroy(m_client);
     m_client = nullptr;
+    m_dll_found = false;
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager shut down.");
   }
 }
@@ -1420,6 +1437,8 @@ void AchievementManager::LoadIntegrationCallback(int result, const char* error_m
   {
   case RC_OK:
     INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll found.");
+    instance.m_dll_found = true;
+    instance.m_dev_menu_callback();
     // TODO: hook up menu and dll event handlers
     break;
 
