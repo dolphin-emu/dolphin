@@ -178,6 +178,15 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
   SignalBlocking(m_common_login_button)
       ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
+  if (enabled && Core::IsRunning(Core::System::GetInstance()))
+  {
+    SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
+  }
+  else
+  {
+    SignalBlocking(m_common_login_button)->setText(tr("Log In"));
+  }
+
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
