@@ -228,9 +228,9 @@ FileSystemGCWii::FileSystemGCWii(const VolumeDisc* volume, const Partition& part
 {
   u8 offset_shift;
   // Check if this is a GameCube or Wii disc
-  if (volume->ReadSwapped<u32>(0x18, partition) == WII_DISC_MAGIC)
+  if (volume->GetVolumeType() == Platform::WiiDisc)
     offset_shift = 2;  // Wii file system
-  else if (volume->ReadSwapped<u32>(0x1c, partition) == GAMECUBE_DISC_MAGIC)
+  else if (volume->GetVolumeType() == Platform::GameCubeDisc)
     offset_shift = 0;  // GameCube file system
   else
     return;  // Invalid partition (maybe someone removed its data but not its partition table entry)
