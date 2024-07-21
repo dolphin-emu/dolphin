@@ -97,6 +97,25 @@ static void ExtractPartition(const DiscIO::Volume& disc_volume, const DiscIO::Pa
   ExtractSystemData(disc_volume, partition, out);
 }
 
+static void ListRecursively(const std::string& path, const DiscIO::FileInfo& info,
+                            std::string* result_text)
+{
+  // Don't print the root.
+  if (!path.empty())
+  {
+    const std::string line = fmt::format("{}\n", path);
+    fmt::print("{}", line);
+    result_text->append(line);
+  }
+  for (const DiscIO::FileInfo& child_info : info)
+  {
+    std::string child_path = path + child_info.GetName();
+    if (child_info.IsDirectory())
+      child_path += '/';
+    ListRecursively(child_path, child_info, result_text);
+  }
+}
+
 static bool ListPartition(const DiscIO::Volume& disc_volume, const DiscIO::Partition& partition,
                           const std::string& partition_name, const std::string& path,
                           std::string* result_text)
@@ -113,12 +132,8 @@ static bool ListPartition(const DiscIO::Volume& disc_volume, const DiscIO::Parti
     return false;
   }
 
-  for (auto it = info->begin(); it != info->end(); ++it)
-  {
-    const std::string file_name = fmt::format("{}\n", it->GetName());
-    fmt::print(std::cout, "{}", file_name);
-    result_text->append(file_name);
-  }
+  // Canonicalize user-provided path by reconstructing it using GetPath().
+  ListRecursively(info->GetPath(), *info, result_text);
   return true;
 }
 
