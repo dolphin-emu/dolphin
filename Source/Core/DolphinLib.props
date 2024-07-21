@@ -428,6 +428,7 @@
     <ClInclude Include="Core\PatchEngine.h" />
     <ClInclude Include="Core\PowerPC\BreakPoints.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.h" />
+    <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedOpCodeFunction.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
     <ClInclude Include="Core\PowerPC\ConditionRegister.h" />
     <ClInclude Include="Core\PowerPC\CPUCoreBase.h" />
