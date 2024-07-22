@@ -72,9 +72,9 @@ void BranchWatch::Save(const CPUThreadGuard& guard, std::FILE* file) const
   const auto routine = [&](const Collection& collection, bool is_virtual, bool condition) {
     for (const Collection::value_type& kv : collection)
     {
-      const auto iter = std::find_if(
-          m_selection.begin(), m_selection.end(),
-          [&](const Selection::value_type& value) { return value.collection_ptr == &kv; });
+      const auto iter = std::ranges::find_if(m_selection, [&](const Selection::value_type& value) {
+        return value.collection_ptr == &kv;
+      });
       fmt::println(file, "{:08x} {:08x} {:08x} {} {} {:x}", kv.first.origin_addr,
                    kv.first.destin_addr, kv.first.original_inst.hex, kv.second.total_hits,
                    kv.second.hits_snapshot,
@@ -303,8 +303,7 @@ void BranchWatch::UpdateHitsSnapshot()
 
 void BranchWatch::ClearSelectionInspection()
 {
-  std::for_each(m_selection.begin(), m_selection.end(),
-                [](Selection::value_type& value) { value.inspection = {}; });
+  std::ranges::for_each(m_selection, [](Selection::value_type& value) { value.inspection = {}; });
 }
 
 void BranchWatch::SetSelectedInspected(std::size_t idx, SelectionInspection inspection)

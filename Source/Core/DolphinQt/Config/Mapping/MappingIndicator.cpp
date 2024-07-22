@@ -610,9 +610,9 @@ void ShakeMappingIndicator::Draw()
   }
 
   // Grid line.
-  if (m_grid_line_position ||
-      std::any_of(m_position_samples.begin(), m_position_samples.end(),
-                  [](const Common::Vec3& v) { return v.LengthSquared() != 0.0; }))
+  if (m_grid_line_position || std::ranges::any_of(m_position_samples, [](const Common::Vec3& v) {
+       return v.LengthSquared() != 0.0;
+     }))
   {
     // Only start moving the line if there's non-zero data.
     m_grid_line_position = (m_grid_line_position + 1) % HISTORY_COUNT;
@@ -913,7 +913,7 @@ CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
   m_informative_timer = new QTimer(this);
   connect(m_informative_timer, &QTimer::timeout, this, [this] {
     // If the user has started moving we'll assume they know what they are doing.
-    if (*std::max_element(m_calibration_data.begin(), m_calibration_data.end()) > 0.5)
+    if (*std::ranges::max_element(m_calibration_data) > 0.5)
       return;
 
     ModalMessageBox::information(

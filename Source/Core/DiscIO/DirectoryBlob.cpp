@@ -624,16 +624,15 @@ void DirectoryBlobReader::SetWiiRegionData(const std::vector<u8>& wii_region_dat
 
 void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partitions)
 {
-  std::sort(partitions.begin(), partitions.end(),
-            [](const PartitionWithType& lhs, const PartitionWithType& rhs) {
-              if (lhs.type == rhs.type)
-                return lhs.partition.GetRootDirectory() < rhs.partition.GetRootDirectory();
+  std::ranges::sort(partitions, [](const PartitionWithType& lhs, const PartitionWithType& rhs) {
+    if (lhs.type == rhs.type)
+      return lhs.partition.GetRootDirectory() < rhs.partition.GetRootDirectory();
 
-              // Ascending sort by partition type, except Update (1) comes before before Game (0)
-              return (lhs.type > PartitionType::Update || rhs.type > PartitionType::Update) ?
-                         lhs.type < rhs.type :
-                         lhs.type > rhs.type;
-            });
+    // Ascending sort by partition type, except Update (1) comes before before Game (0)
+    return (lhs.type > PartitionType::Update || rhs.type > PartitionType::Update) ?
+               lhs.type < rhs.type :
+               lhs.type > rhs.type;
+  });
 
   u32 subtable_1_size = 0;
   while (subtable_1_size < partitions.size() && subtable_1_size < 3 &&
@@ -864,10 +863,8 @@ static std::vector<u8> ExtractNodeToVector(std::vector<FSTBuilderNode>* nodes, v
                                            DirectoryBlobReader* blob)
 {
   std::vector<u8> data;
-  const auto it =
-      std::find_if(nodes->begin(), nodes->end(), [&userdata](const FSTBuilderNode& node) {
-        return node.m_user_data == userdata;
-      });
+  const auto it = std::ranges::find_if(
+      *nodes, [&userdata](const FSTBuilderNode& node) { return node.m_user_data == userdata; });
   if (it == nodes->end() || !it->IsFile())
     return data;
 
@@ -1197,15 +1194,13 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
   std::vector<FSTBuilderNode>& sorted_entries = *parent_entries;
 
   // Sort for determinism
-  std::sort(sorted_entries.begin(), sorted_entries.end(),
-            [](const FSTBuilderNode& one, const FSTBuilderNode& two) {
-              std::string one_upper = one.m_filename;
-              std::string two_upper = two.m_filename;
-              Common::ToUpper(&one_upper);
-              Common::ToUpper(&two_upper);
-              return one_upper == two_upper ? one.m_filename < two.m_filename :
-                                              one_upper < two_upper;
-            });
+  std::ranges::sort(sorted_entries, [](const FSTBuilderNode& one, const FSTBuilderNode& two) {
+    std::string one_upper = one.m_filename;
+    std::string two_upper = two.m_filename;
+    Common::ToUpper(&one_upper);
+    Common::ToUpper(&two_upper);
+    return one_upper == two_upper ? one.m_filename < two.m_filename : one_upper < two_upper;
+  });
 
   for (FSTBuilderNode& entry : sorted_entries)
   {

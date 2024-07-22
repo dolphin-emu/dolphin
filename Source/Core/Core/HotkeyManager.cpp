@@ -420,8 +420,8 @@ ControllerEmu::ControlGroup* HotkeyManager::GetHotkeyGroup(HotkeyGroup group) co
 
 int HotkeyManager::FindGroupByID(int id) const
 {
-  const auto i = std::find_if(s_groups_info.begin(), s_groups_info.end(),
-                              [id](const auto& entry) { return entry.last >= id; });
+  const auto i =
+      std::ranges::find_if(s_groups_info, [id](const auto& entry) { return entry.last >= id; });
 
   return static_cast<int>(std::distance(s_groups_info.begin(), i));
 }

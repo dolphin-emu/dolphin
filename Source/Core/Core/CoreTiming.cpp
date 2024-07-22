@@ -205,7 +205,7 @@ void CoreTimingManager::DoState(PointerWrap& p)
     // When loading from a save state, we must assume the Event order is random and meaningless.
     // The exact layout of the heap in memory is implementation defined, therefore it is platform
     // and library version specific.
-    std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::make_heap(m_event_queue, std::greater<Event>());
 
     // The stave state has changed the time, so our previous Throttle targets are invalid.
     // Especially when global_time goes down; So we create a fake throttle update.
@@ -263,7 +263,7 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
       ForceExceptionCheck(cycles_into_future);
 
     m_event_queue.emplace_back(Event{timeout, m_event_fifo_id++, userdata, event_type});
-    std::push_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::push_heap(m_event_queue, std::greater<Event>());
   }
   else
   {
@@ -288,7 +288,7 @@ void CoreTimingManager::RemoveEvent(EventType* event_type)
   // Removing random items breaks the invariant so we have to re-establish it.
   if (erased != 0)
   {
-    std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::make_heap(m_event_queue, std::greater<Event>());
   }
 }
 
@@ -317,7 +317,7 @@ void CoreTimingManager::MoveEvents()
   {
     ev.fifo_order = m_event_fifo_id++;
     m_event_queue.emplace_back(std::move(ev));
-    std::push_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::push_heap(m_event_queue, std::greater<Event>());
   }
 }
 
@@ -341,7 +341,7 @@ void CoreTimingManager::Advance()
   while (!m_event_queue.empty() && m_event_queue.front().time <= m_globals.global_timer)
   {
     Event evt = std::move(m_event_queue.front());
-    std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+    std::ranges::pop_heap(m_event_queue, std::greater<Event>());
     m_event_queue.pop_back();
 
     Throttle(evt.time);

@@ -145,8 +145,7 @@ void GameDigestDialog::SetResult(int pid, const std::string& result)
   auto client = Settings::Instance().GetNetPlayClient();
   if (client && m_results.size() >= client->GetPlayers().size())
   {
-    if (std::adjacent_find(m_results.begin(), m_results.end(), std::not_equal_to<>()) ==
-        m_results.end())
+    if (std::ranges::adjacent_find(m_results, std::not_equal_to<>()) == m_results.end())
     {
       m_check_label->setText(tr("The hashes match!"));
     }

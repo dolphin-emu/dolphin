@@ -1067,12 +1067,10 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
     m_act_insert_nop->setVisible(false);
     m_act_insert_blr->setVisible(true);
     const bool all_branches_save_lr =
-        core_initialized &&
-        std::all_of(
-            m_index_list_temp.begin(), m_index_list_temp.end(), [this](const QModelIndex& idx) {
-              const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
-              return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
-            });
+        core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& idx) {
+          const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
+          return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
+        });
     m_act_insert_blr->setEnabled(all_branches_save_lr);
     m_act_copy_address->setEnabled(true);
     m_mnu_set_breakpoint->setEnabled(true);
@@ -1084,11 +1082,9 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
     m_act_insert_nop->setVisible(false);
     m_act_insert_blr->setVisible(true);
     const bool all_symbols_valid =
-        core_initialized &&
-        std::all_of(m_index_list_temp.begin(), m_index_list_temp.end(),
-                    [this](const QModelIndex& idx) {
-                      return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
-                    });
+        core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& idx) {
+          return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
+        });
     m_act_insert_blr->setEnabled(all_symbols_valid);
     m_act_copy_address->setEnabled(all_symbols_valid);
     m_mnu_set_breakpoint->setEnabled(all_symbols_valid);

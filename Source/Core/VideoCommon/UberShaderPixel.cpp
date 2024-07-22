@@ -880,8 +880,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             BitfieldExtract<&GenMode::numtevstages>("bpmem_genmode"));
 
   bool has_custom_shader_details = false;
-  if (std::any_of(custom_details.shaders.begin(), custom_details.shaders.end(),
-                  [](const std::optional<CustomPixelShader>& ps) { return ps.has_value(); }))
+  if (std::ranges::any_of(custom_details.shaders, [](const std::optional<CustomPixelShader>& ps) {
+        return ps.has_value();
+      }))
   {
     WriteCustomShaderStructImpl(&out, numTexgen, per_pixel_lighting);
     has_custom_shader_details = true;

@@ -145,9 +145,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
     const std::string system_not_available_message = "System \"" + system + "\" doesn't exist.";
     const bool system_not_available_match =
-        result->end() != std::search(result->begin(), result->end(),
-                                     system_not_available_message.begin(),
-                                     system_not_available_message.end());
+        result->end() != std::ranges::search(*result, system_not_available_message).begin();
     return system_not_available_match ? DownloadStatus::SystemNotAvailable : DownloadStatus::Fail;
   }
 
@@ -453,27 +451,23 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
       types.emplace_back(*type);
   }
 
-  if (std::find(types.cbegin(), types.cend(), PARTITION_UPDATE) == types.cend())
+  if (std::ranges::find(types, PARTITION_UPDATE) == types.cend())
     AddProblem(Severity::Low, Common::GetStringT("The update partition is missing."));
 
-  const bool has_data_partition =
-      std::find(types.cbegin(), types.cend(), PARTITION_DATA) != types.cend();
+  const bool has_data_partition = std::ranges::find(types, PARTITION_DATA) != types.cend();
   if (!m_is_datel && !has_data_partition)
     AddProblem(Severity::High, Common::GetStringT("The data partition is missing."));
 
-  const bool has_channel_partition =
-      std::find(types.cbegin(), types.cend(), PARTITION_CHANNEL) != types.cend();
+  const bool has_channel_partition = std::ranges::find(types, PARTITION_CHANNEL) != types.cend();
   if (ShouldHaveChannelPartition() && !has_channel_partition)
     AddProblem(Severity::Medium, Common::GetStringT("The channel partition is missing."));
 
-  const bool has_install_partition =
-      std::find(types.cbegin(), types.cend(), PARTITION_INSTALL) != types.cend();
+  const bool has_install_partition = std::ranges::find(types, PARTITION_INSTALL) != types.cend();
   if (ShouldHaveInstallPartition() && !has_install_partition)
     AddProblem(Severity::High, Common::GetStringT("The install partition is missing."));
 
   if (ShouldHaveMasterpiecePartitions() &&
-      types.cend() ==
-          std::find_if(types.cbegin(), types.cend(), [](u32 type) { return type >= 0xFF; }))
+      types.cend() == std::ranges::find_if(types, [](u32 type) { return type >= 0xFF; }))
   {
     // i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
     // where you play demos of NES/SNES/N64 games. Official translations:
@@ -720,10 +714,9 @@ bool VolumeVerifier::ShouldHaveChannelPartition() const
       "RFNE01", "RFNJ01", "RFNK01", "RFNP01", "RFNW01", "RFPE01", "RFPJ01", "RFPK01", "RFPP01",
       "RFPW01", "RGWE41", "RGWJ41", "RGWP41", "RGWX41", "RMCE01", "RMCJ01", "RMCK01", "RMCP01",
   };
-  DEBUG_ASSERT(std::is_sorted(channel_discs.cbegin(), channel_discs.cend()));
+  DEBUG_ASSERT(std::ranges::is_sorted(channel_discs));
 
-  return std::binary_search(channel_discs.cbegin(), channel_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(channel_discs, std::string_view(m_volume.GetGameID()));
 }
 
 bool VolumeVerifier::ShouldHaveInstallPartition() const
@@ -731,16 +724,15 @@ bool VolumeVerifier::ShouldHaveInstallPartition() const
   static constexpr std::array<std::string_view, 4> dragon_quest_x = {"S4MJGD", "S4SJGD", "S6TJGD",
                                                                      "SDQJGD"};
   const std::string& game_id = m_volume.GetGameID();
-  return std::any_of(dragon_quest_x.cbegin(), dragon_quest_x.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+  return std::ranges::any_of(dragon_quest_x,
+                             [&game_id](std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldHaveMasterpiecePartitions() const
 {
   static constexpr std::array<std::string_view, 4> ssbb = {"RSBE01", "RSBJ01", "RSBK01", "RSBP01"};
   const std::string& game_id = m_volume.GetGameID();
-  return std::any_of(ssbb.cbegin(), ssbb.cend(),
-                     [&game_id](std::string_view x) { return x == game_id; });
+  return std::ranges::any_of(ssbb, [&game_id](std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldBeDualLayer() const
@@ -753,10 +745,9 @@ bool VolumeVerifier::ShouldBeDualLayer() const
       "SLSEXJ", "SLSP01", "SQIE4Q", "SQIP4Q", "SQIY4Q", "SR5E41", "SR5P41", "SUOE41", "SUOP41",
       "SVXX52", "SVXY52", "SX4E01", "SX4P01", "SZ3EGT", "SZ3PGT",
   };
-  DEBUG_ASSERT(std::is_sorted(dual_layer_discs.cbegin(), dual_layer_discs.cend()));
+  DEBUG_ASSERT(std::ranges::is_sorted(dual_layer_discs));
 
-  return std::binary_search(dual_layer_discs.cbegin(), dual_layer_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(dual_layer_discs, std::string_view(m_volume.GetGameID()));
 }
 
 void VolumeVerifier::CheckVolumeSize()
@@ -1042,7 +1033,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   if (!m_volume.Read(offset, length, data.data(), partition))
     return;
 
-  if (std::any_of(data.cbegin(), data.cend(), [](u8 x) { return x != 0; }))
+  if (std::ranges::any_of(data, [](u8 x) { return x != 0; }))
   {
     AddProblem(Severity::High,
                Common::GetStringT("Some padding data that should be zero is not zero. "
@@ -1062,8 +1053,8 @@ void VolumeVerifier::SetUpHashing()
     m_scrubber.SetupScrub(m_volume);
   }
 
-  std::sort(m_groups.begin(), m_groups.end(),
-            [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
+  std::ranges::sort(
+      m_groups, [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
 
   if (m_hashes_to_calculate.crc32)
     m_crc32_context = Common::StartCRC32();
@@ -1346,8 +1337,9 @@ void VolumeVerifier::Finish()
   }
 
   // Show the most serious problems at the top
-  std::stable_sort(m_result.problems.begin(), m_result.problems.end(),
-                   [](const Problem& p1, const Problem& p2) { return p1.severity > p2.severity; });
+  std::ranges::stable_sort(m_result.problems, [](const Problem& p1, const Problem& p2) {
+    return p1.severity > p2.severity;
+  });
   const Severity highest_severity =
       m_result.problems.empty() ? Severity::None : m_result.problems[0].severity;
 

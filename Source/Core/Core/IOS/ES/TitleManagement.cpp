@@ -464,7 +464,7 @@ static bool HasAllRequiredContents(Kernel& ios, const ES::TMDReader& tmd)
   const u64 title_id = tmd.GetTitleId();
   const std::vector<ES::Content> contents = tmd.GetContents();
   const ES::SharedContentMap shared_content_map{ios.GetFSCore()};
-  return std::all_of(contents.cbegin(), contents.cend(), [&](const ES::Content& content) {
+  return std::ranges::all_of(contents, [&](const ES::Content& content) {
     if (content.IsOptional())
       return true;
 
@@ -817,7 +817,7 @@ ReturnCode ESCore::ExportContentData(Context& context, u32 content_fd, u8* data,
   if (encrypt_ret != IPC_SUCCESS)
     return encrypt_ret;
 
-  std::copy(output.cbegin(), output.cend(), data);
+  std::ranges::copy(output, data);
   return IPC_SUCCESS;
 }
 
@@ -878,7 +878,7 @@ ReturnCode ESCore::DeleteSharedContent(const std::array<u8, 20>& sha1) const
 
   // Check whether the shared content is used by a system title.
   const std::vector<u64> titles = GetInstalledTitles();
-  const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&](u64 id) {
+  const bool is_used_by_system_title = std::ranges::any_of(titles, [&](u64 id) {
     if (!ES::IsTitleType(id, ES::TitleType::System))
       return false;
 
@@ -887,8 +887,8 @@ ReturnCode ESCore::DeleteSharedContent(const std::array<u8, 20>& sha1) const
       return true;
 
     const auto contents = tmd.GetContents();
-    return std::any_of(contents.begin(), contents.end(),
-                       [&sha1](const auto& content) { return content.sha1 == sha1; });
+    return std::ranges::any_of(contents,
+                               [&sha1](const auto& content) { return content.sha1 == sha1; });
   });
 
   // Any shared content used by a system title cannot be deleted.

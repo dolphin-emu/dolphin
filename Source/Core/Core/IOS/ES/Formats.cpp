@@ -302,7 +302,7 @@ std::string TMDReader::GetGameID() const
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  if (std::all_of(std::begin(game_id), std::end(game_id), Common::IsPrintableCharacter))
+  if (std::ranges::all_of(game_id, Common::IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
   return fmt::format("{:016x}", GetTitleId());
@@ -535,7 +535,7 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
                      sizeof(Ticket::title_key), key.data(), PID_ES);
   // Finally, IOS copies the decrypted title key back to the ticket buffer.
   if (ret == IPC_SUCCESS)
-    std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
+    std::ranges::copy(key, ticket_begin + offsetof(Ticket, title_key));
 
   return ret;
 }
@@ -575,8 +575,8 @@ SharedContentMap::~SharedContentMap() = default;
 std::optional<std::string>
 SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
 {
-  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
-                               [&sha1](const auto& entry) { return entry.sha1 == sha1; });
+  const auto it =
+      std::ranges::find_if(m_entries, [&sha1](const auto& entry) { return entry.sha1 == sha1; });
   if (it == m_entries.end())
     return {};
 
@@ -602,7 +602,7 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
 
   const std::string id = fmt::format("{:08x}", m_last_id);
   Entry entry;
-  std::copy(id.cbegin(), id.cend(), entry.id.begin());
+  std::ranges::copy(id, entry.id.begin());
   entry.sha1 = sha1;
   m_entries.push_back(entry);
 
@@ -672,8 +672,8 @@ UIDSys::UIDSys(HLE::FSCore& fs_core) : m_fs{fs_core.GetFS()}
 
 u32 UIDSys::GetUIDFromTitle(u64 title_id) const
 {
-  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
-                               [title_id](const auto& entry) { return entry.second == title_id; });
+  const auto it = std::ranges::find_if(
+      m_entries, [title_id](const auto& entry) { return entry.second == title_id; });
   return (it == m_entries.end()) ? 0 : it->first;
 }
 
@@ -726,7 +726,7 @@ CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(byt
       {SignatureType::ECC, PublicKeyType::ECC, sizeof(CertECC)},
   }};
 
-  const auto info = std::find_if(types.cbegin(), types.cend(), [this](const CertStructInfo& entry) {
+  const auto info = std::ranges::find_if(types, [this](const CertStructInfo& entry) {
     return m_bytes.size() >= std::get<2>(entry) && std::get<0>(entry) == GetSignatureType() &&
            std::get<1>(entry) == GetPublicKeyType();
   });

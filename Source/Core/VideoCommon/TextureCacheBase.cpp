@@ -1667,8 +1667,8 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
   if (!assets_data.empty())
   {
     const auto calculate_max_levels = [&]() {
-      const auto max_element = std::max_element(
-          assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
+      const auto max_element =
+          std::ranges::max_element(assets_data, [](const auto& lhs, const auto& rhs) {
             return lhs->m_texture.m_slices[0].m_levels.size() <
                    rhs->m_texture.m_slices[0].m_levels.size();
           });
@@ -2028,8 +2028,8 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
   if (candidates.empty())
     return;
 
-  std::sort(candidates.begin(), candidates.end(),
-            [](const TCacheEntry* a, const TCacheEntry* b) { return a->id < b->id; });
+  std::ranges::sort(candidates,
+                    [](const TCacheEntry* a, const TCacheEntry* b) { return a->id < b->id; });
 
   // We only upscale when necessary to preserve resolution. i.e. when there are upscaled partial
   // copies to be stitched together.
@@ -2814,7 +2814,7 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
       // Xenoblade's sunset scene, where 35 copies are done per frame, and 25 of them are
       // copied to the same address, and can be skipped.
       ReleaseEFBCopyStagingTexture(std::move(entry->pending_efb_copy));
-      auto pending_it = std::find(m_pending_efb_copies.begin(), m_pending_efb_copies.end(), entry);
+      auto pending_it = std::ranges::find(m_pending_efb_copies, entry);
       if (pending_it != m_pending_efb_copies.end())
         m_pending_efb_copies.erase(pending_it);
     }

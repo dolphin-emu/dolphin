@@ -284,9 +284,9 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section,
   }
 
   std::vector<std::string> save_data(m_calibration.size());
-  std::transform(
-      m_calibration.begin(), m_calibration.end(), save_data.begin(),
-      [](ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
+  std::ranges::transform(m_calibration, save_data.begin(), [](ControlState val) {
+    return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE);
+  });
   section->Set(group + CALIBRATION_CONFIG_NAME, JoinStrings(save_data, " "), "");
 
   // Save center value.

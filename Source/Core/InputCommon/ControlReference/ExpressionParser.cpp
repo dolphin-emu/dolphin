@@ -495,10 +495,10 @@ public:
   ControlState GetValue() const override
   {
     // True if we have no modifiers
-    const bool modifiers_pressed = std::all_of(m_modifiers.begin(), m_modifiers.end(),
-                                               [](const std::unique_ptr<ControlExpression>& input) {
-                                                 return input->GetValue() > CONDITION_THRESHOLD;
-                                               });
+    const bool modifiers_pressed =
+        std::ranges::all_of(m_modifiers, [](const std::unique_ptr<ControlExpression>& input) {
+          return input->GetValue() > CONDITION_THRESHOLD;
+        });
 
     const auto final_input_state = m_final_input->GetValueIgnoringSuppression();
 

@@ -915,7 +915,7 @@ static void ResetRumbleLockNeeded()
     return;
   }
 
-  std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
+  std::ranges::fill(s_controller_rumble, 0);
 
   std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
       0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],

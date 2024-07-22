@@ -146,8 +146,8 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
       const std::string macro_id = macro_node.attribute("id").as_string();
       for (auto& section : disc.m_sections)
       {
-        auto option_to_clone = std::find_if(section.m_options.begin(), section.m_options.end(),
-                                            [&](const Option& o) { return o.m_id == macro_id; });
+        auto option_to_clone = std::ranges::find_if(
+            section.m_options, [&](const Option& o) { return o.m_id == macro_id; });
         if (option_to_clone == section.m_options.end())
           continue;
 
@@ -305,8 +305,8 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
       const Choice& choice = option.m_choices[selected - 1];
       for (const auto& patch_ref : choice.m_patch_references)
       {
-        const auto patch = std::find_if(m_patches.begin(), m_patches.end(),
-                                        [&](const Patch& p) { return patch_ref.m_id == p.m_id; });
+        const auto patch = std::ranges::find_if(
+            m_patches, [&](const Patch& p) { return patch_ref.m_id == p.m_id; });
         if (patch == m_patches.end())
           continue;
 

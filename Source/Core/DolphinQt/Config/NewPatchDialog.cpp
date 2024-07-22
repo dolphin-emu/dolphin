@@ -181,8 +181,8 @@ QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
       m_entry_layout->removeWidget(box);
       box->deleteLater();
 
-      m_entries.erase(std::find_if(m_entries.begin(), m_entries.end(),
-                                   [new_entry](const auto& e) { return e.get() == new_entry; }));
+      m_entries.erase(std::ranges::find_if(
+          m_entries, [new_entry](const auto& e) { return e.get() == new_entry; }));
     }
   });
 

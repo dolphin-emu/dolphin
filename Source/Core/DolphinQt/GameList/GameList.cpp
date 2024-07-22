@@ -377,15 +377,15 @@ void GameList::ShowContextMenu(const QPoint&)
   {
     const auto selected_games = GetSelectedGames();
 
-    if (std::all_of(selected_games.begin(), selected_games.end(),
-                    [](const auto& game) { return game->ShouldAllowConversion(); }))
+    if (std::ranges::all_of(selected_games,
+                            [](const auto& game) { return game->ShouldAllowConversion(); }))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
       menu->addSeparator();
     }
 
-    if (std::all_of(selected_games.begin(), selected_games.end(),
-                    [](const auto& game) { return DiscIO::IsWii(game->GetPlatform()); }))
+    if (std::ranges::all_of(selected_games,
+                            [](const auto& game) { return DiscIO::IsWii(game->GetPlatform()); }))
     {
       menu->addAction(tr("Export Wii Saves"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
@@ -805,8 +805,7 @@ bool GameList::AddShortcutToDesktop()
   // Sanitize the string by removing all characters that cannot be used in NTFS file names
   std::erase_if(game_name, [](char ch) {
     static constexpr char illegal_characters[] = {'<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
-    return std::find(std::begin(illegal_characters), std::end(illegal_characters), ch) !=
-           std::end(illegal_characters);
+    return std::ranges::find(illegal_characters, ch) != std::end(illegal_characters);
   });
 
   std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");

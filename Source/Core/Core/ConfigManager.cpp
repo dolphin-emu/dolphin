@@ -265,7 +265,7 @@ struct SetGameMetadata
     std::string executable_path = executable.path;
     constexpr char BACKSLASH = '\\';
     constexpr char FORWARDSLASH = '/';
-    std::replace(executable_path.begin(), executable_path.end(), BACKSLASH, FORWARDSLASH);
+    std::ranges::replace(executable_path, BACKSLASH, FORWARDSLASH);
     config->SetRunningGameMetadata(SConfig::MakeGameID(PathToFileName(executable_path)));
 
     Host_TitleChanged();

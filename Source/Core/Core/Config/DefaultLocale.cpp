@@ -39,7 +39,7 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
   if (split_locale[0] == "zh")
   {
     const auto locale_contains = [&split_locale](std::string_view str) {
-      return std::find(split_locale.cbegin(), split_locale.cend(), str) != split_locale.cend();
+      return std::ranges::find(split_locale, str) != split_locale.cend();
     };
 
     if (locale_contains("Hans"))
@@ -59,7 +59,7 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
       "ja", "en", "de", "fr", "es", "it", "nl", "zh", "zh", "ko",
   };
 
-  const auto it = std::find(LANGUAGES.cbegin(), LANGUAGES.cend(), split_locale[0]);
+  const auto it = std::ranges::find(LANGUAGES, split_locale[0]);
   if (it == LANGUAGES.cend())
     return std::nullopt;
 
@@ -142,7 +142,7 @@ static std::optional<u8> ComputeDefaultCountry()
   if (country == "BQ" || country == "CW" || country == "SX")
     country = "AN";
 
-  const auto it = std::find(COUNTRIES.cbegin(), COUNTRIES.cend(), country);
+  const auto it = std::ranges::find(COUNTRIES, country);
   if (it == COUNTRIES.cend())
     return std::nullopt;
 

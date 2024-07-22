@@ -79,8 +79,8 @@ static bool IsValidPartOfTitleID(const std::string& string)
 {
   if (string.length() != 8)
     return false;
-  return std::all_of(string.begin(), string.end(),
-                     [](const auto character) { return std::isxdigit(character) != 0; });
+  return std::ranges::all_of(string,
+                             [](const auto character) { return std::isxdigit(character) != 0; });
 }
 
 static std::vector<u64> GetTitlesInTitleOrImport(FS::FileSystem* fs, const std::string& titles_dir)
@@ -189,29 +189,32 @@ ESCore::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
 
   std::vector<ES::Content> stored_contents;
 
-  std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
-               [this, &tmd, check_content_hashes](const ES::Content& content) {
-                 const auto fs = m_ios.GetFS();
+  std::ranges::copy_if(contents, std::back_inserter(stored_contents),
+                       [this, &tmd, check_content_hashes](const ES::Content& content) {
+                         const auto fs = m_ios.GetFS();
 
-                 const std::string path = GetContentPath(tmd.GetTitleId(), content);
-                 if (path.empty())
-                   return false;
+                         const std::string path = GetContentPath(tmd.GetTitleId(), content);
+                         if (path.empty())
+                           return false;
 
-                 // Check whether the content file exists.
-                 const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
-                 if (!file.Succeeded())
-                   return false;
+                         // Check whether the content file exists.
+                         const auto file =
+                             fs->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
+                         if (!file.Succeeded())
+                           return false;
 
-                 // If content hash checks are disabled, all we have to do is check for existence.
-                 if (check_content_hashes == CheckContentHashes::No)
-                   return true;
+                         // If content hash checks are disabled, all we have to do is check for
+                         // existence.
+                         if (check_content_hashes == CheckContentHashes::No)
+                           return true;
 
-                 // Otherwise, check whether the installed content SHA1 matches the expected hash.
-                 std::vector<u8> content_data(file->GetStatus()->size);
-                 if (!file->Read(content_data.data(), content_data.size()))
-                   return false;
-                 return Common::SHA1::CalculateDigest(content_data) == content.sha1;
-               });
+                         // Otherwise, check whether the installed content SHA1 matches the expected
+                         // hash.
+                         std::vector<u8> content_data(file->GetStatus()->size);
+                         if (!file->Read(content_data.data(), content_data.size()))
+                           return false;
+                         return Common::SHA1::CalculateDigest(content_data) == content.sha1;
+                       });
 
   return stored_contents;
 }

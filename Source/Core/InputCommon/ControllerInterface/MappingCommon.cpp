@@ -43,7 +43,7 @@ std::string GetExpressionForControl(const std::string& control_name,
   {
     // If our expression contains any non-alpha characters
     // we should quote it
-    if (!std::all_of(expr.begin(), expr.end(), Common::IsAlpha))
+    if (!std::ranges::all_of(expr, Common::IsAlpha))
       expr = fmt::format("`{}`", expr);
   }
 
@@ -100,7 +100,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
     }
     else
     {
-      std::sort(alternation.begin(), alternation.end());
+      std::ranges::sort(alternation);
       alternations.push_back(JoinStrings(alternation, "&"));
     }
   };
@@ -127,8 +127,8 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
   handle_release();
 
   // Remove duplicates
-  std::sort(alternations.begin(), alternations.end());
-  alternations.erase(std::unique(alternations.begin(), alternations.end()), alternations.end());
+  std::ranges::sort(alternations);
+  alternations.erase(std::ranges::unique(alternations).begin(), alternations.end());
 
   return JoinStrings(alternations, "|");
 }

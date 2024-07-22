@@ -147,16 +147,15 @@ static Location MapINIToRealLocation(const std::string& section, const std::stri
 static std::pair<std::string, std::string> GetINILocationFromConfig(const Location& location)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
-  const auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
-                               [&location](const auto& entry) { return entry.second == location; });
+  const auto it = std::ranges::find_if(
+      ini_to_location, [&location](const auto& entry) { return entry.second == location; });
   if (it != ini_to_location.end())
     return it->first;
 
   static const INIToSectionMap& ini_to_section = GetINIToSectionMap();
-  const auto it2 =
-      std::find_if(ini_to_section.begin(), ini_to_section.end(), [&location](const auto& entry) {
-        return entry.second.first == location.system && entry.second.second == location.section;
-      });
+  const auto it2 = std::ranges::find_if(ini_to_section, [&location](const auto& entry) {
+    return entry.second.first == location.system && entry.second.second == location.section;
+  });
   if (it2 != ini_to_section.end())
     return {it2->first, location.key};
 

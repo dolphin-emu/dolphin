@@ -101,8 +101,8 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
       MBIT_SIZE_MEMORY_CARD_2043,
   }};
 
-  if (!std::any_of(valid_megabits.begin(), valid_megabits.end(),
-                   [filesize_megabits](u64 mbits) { return mbits == filesize_megabits; }))
+  if (!std::ranges::any_of(valid_megabits,
+                           [filesize_megabits](u64 mbits) { return mbits == filesize_megabits; }))
   {
     error_code.Set(GCMemcardValidityIssues::INVALID_CARD_SIZE);
     return std::make_pair(error_code, std::nullopt);
@@ -1301,8 +1301,8 @@ GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
     error_code.Set(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE);
 
   // unused areas, should always be filled with 0xFF
-  if (std::any_of(m_unused_1.begin(), m_unused_1.end(), [](u8 val) { return val != 0xFF; }) ||
-      std::any_of(m_unused_2.begin(), m_unused_2.end(), [](u8 val) { return val != 0xFF; }))
+  if (std::ranges::any_of(m_unused_1, [](u8 val) { return val != 0xFF; }) ||
+      std::ranges::any_of(m_unused_2, [](u8 val) { return val != 0xFF; }))
   {
     error_code.Set(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA);
   }
@@ -1366,7 +1366,7 @@ GCMemcardErrorCode Directory::CheckForErrors() const
     error_code.Set(GCMemcardValidityIssues::INVALID_CHECKSUM);
 
   // unused area, should always be filled with 0xFF
-  if (std::any_of(m_padding.begin(), m_padding.end(), [](u8 val) { return val != 0xFF; }))
+  if (std::ranges::any_of(m_padding, [](u8 val) { return val != 0xFF; }))
     error_code.Set(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA);
 
   return error_code;

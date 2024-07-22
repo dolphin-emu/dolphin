@@ -20,7 +20,7 @@ bool IsQualifier(std::string_view value)
   static constexpr std::array<std::string_view, 7> qualifiers = {
       "attribute", "const", "highp", "lowp", "mediump", "uniform", "varying",
   };
-  return std::find(qualifiers.begin(), qualifiers.end(), value) != qualifiers.end();
+  return std::ranges::find(qualifiers, value) != qualifiers.end();
 }
 
 bool IsBuiltInMacro(std::string_view value)
@@ -28,7 +28,7 @@ bool IsBuiltInMacro(std::string_view value)
   static constexpr std::array<std::string_view, 5> built_in = {
       "__LINE__", "__FILE__", "__VERSION__", "GL_core_profile", "GL_compatibility_profile",
   };
-  return std::find(built_in.begin(), built_in.end(), value) != built_in.end();
+  return std::ranges::find(built_in, value) != built_in.end();
 }
 
 std::vector<std::string> GlobalConflicts(std::string_view source)
@@ -164,10 +164,9 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
   // Sort the conflicts from largest to smallest string
   // this way we can ensure smaller strings that are a substring
   // of the larger string are able to be replaced appropriately
-  std::sort(global_result.begin(), global_result.end(),
-            [](const std::string& first, const std::string& second) {
-              return first.size() > second.size();
-            });
+  std::ranges::sort(global_result, [](const std::string& first, const std::string& second) {
+    return first.size() > second.size();
+  });
   return global_result;
 }
 

@@ -261,8 +261,8 @@ static int GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
 {
   for (int i = 1; i <= (int)NUM_STATES; i++)
   {
-    const auto it = std::find_if(used_slots.begin(), used_slots.end(),
-                                 [i](const SlotWithTimestamp& slot) { return slot.slot == i; });
+    const auto it = std::ranges::find_if(
+        used_slots, [i](const SlotWithTimestamp& slot) { return slot.slot == i; });
     if (it == used_slots.end())
       return i;
   }
@@ -1000,7 +1000,7 @@ void LoadLastSaved(Core::System& system, int i)
     return;
   }
 
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, CompareTimestamp);
   Load(system, (used_slots.end() - i)->slot);
 }
 
@@ -1016,7 +1016,7 @@ void SaveFirstSaved(Core::System& system)
   }
 
   // overwrite the oldest state
-  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  std::ranges::stable_sort(used_slots, CompareTimestamp);
   Save(system, used_slots.front().slot, true);
 }
 

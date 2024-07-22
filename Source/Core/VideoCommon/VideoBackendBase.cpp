@@ -271,9 +271,8 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
     g_video_backend = GetDefaultVideoBackend();
 
   const auto& backends = GetAvailableBackends();
-  const auto iter = std::find_if(backends.begin(), backends.end(), [&name](const auto& backend) {
-    return name == backend->GetName();
-  });
+  const auto iter = std::ranges::find_if(
+      backends, [&name](const auto& backend) { return name == backend->GetName(); });
 
   if (iter == backends.end())
     return;

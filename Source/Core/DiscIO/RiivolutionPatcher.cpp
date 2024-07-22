@@ -104,7 +104,7 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
         result.pop_back();
       result.pop_back();
     }
-    else if (std::all_of(element.begin(), element.end(), [](char c) { return c == '.'; }))
+    else if (std::ranges::all_of(element, [](char c) { return c == '.'; }))
     {
       // This is a triple, quadruple, etc. dot.
       // Some file systems treat this as several 'up' path traversals, but Riivolution does not.
@@ -366,7 +366,7 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
   const size_t path_separator = path.find('/');
   const bool is_file = path_separator == std::string_view::npos;
   const std::string_view name = is_file ? path : path.substr(0, path_separator);
-  const auto it = std::find_if(fst->begin(), fst->end(), [&](const FSTBuilderNode& node) {
+  const auto it = std::ranges::find_if(*fst, [&](const FSTBuilderNode& node) {
     return Common::CaseInsensitiveEquals(node.m_filename, name);
   });
 

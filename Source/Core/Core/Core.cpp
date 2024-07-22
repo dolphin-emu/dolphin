@@ -194,7 +194,7 @@ void DisplayMessage(std::string message, int time_in_ms)
     return;
 
   // Actually displaying non-ASCII could cause things to go pear-shaped
-  if (!std::all_of(message.begin(), message.end(), Common::IsPrintableCharacter))
+  if (!std::ranges::all_of(message, Common::IsPrintableCharacter))
     return;
 
   OSD::AddMessage(std::move(message), time_in_ms);

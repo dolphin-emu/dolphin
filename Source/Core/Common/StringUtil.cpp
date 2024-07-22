@@ -233,8 +233,8 @@ std::string_view StripQuotes(std::string_view s)
 // Turns "\n\rhello" into "  hello".
 void ReplaceBreaksWithSpaces(std::string& str)
 {
-  std::replace(str.begin(), str.end(), '\r', ' ');
-  std::replace(str.begin(), str.end(), '\n', ' ');
+  std::ranges::replace(str, '\r', ' ');
+  std::ranges::replace(str, '\n', ' ');
 }
 
 void TruncateToCString(std::string* s)
@@ -374,8 +374,7 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
     return "";
 
   std::ostringstream res;
-  std::copy(strings.begin(), strings.end(),
-            std::ostream_iterator<std::string>(res, delimiter.c_str()));
+  std::ranges::copy(strings, std::ostream_iterator<std::string>(res, delimiter.c_str()));
 
   // Drop the trailing delimiter.
   std::string joined = res.str();
@@ -417,8 +416,7 @@ void StringPopBackIf(std::string* s, char c)
 
 size_t StringUTF8CodePointCount(std::string_view str)
 {
-  return str.size() -
-         std::count_if(str.begin(), str.end(), [](char c) -> bool { return (c & 0xC0) == 0x80; });
+  return str.size() - std::ranges::count_if(str, [](char c) -> bool { return (c & 0xC0) == 0x80; });
 }
 
 #ifdef _WIN32
@@ -670,12 +668,12 @@ std::string GetEscapedHtml(std::string html)
 
 void ToLower(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+  std::ranges::transform(*str, str->begin(), [](char c) { return Common::ToLower(c); });
 }
 
 void ToUpper(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+  std::ranges::transform(*str, str->begin(), [](char c) { return Common::ToUpper(c); });
 }
 
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b)

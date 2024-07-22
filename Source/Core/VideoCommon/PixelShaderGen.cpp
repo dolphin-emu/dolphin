@@ -1061,8 +1061,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 
   bool has_custom_shaders = false;
-  if (std::any_of(custom_details.shaders.begin(), custom_details.shaders.end(),
-                  [](const std::optional<CustomPixelShader>& ps) { return ps.has_value(); }))
+  if (std::ranges::any_of(custom_details.shaders, [](const std::optional<CustomPixelShader>& ps) {
+        return ps.has_value();
+      }))
   {
     WriteCustomShaderStructImpl(&out, numStages, per_pixel_lighting, uid_data);
     has_custom_shaders = true;

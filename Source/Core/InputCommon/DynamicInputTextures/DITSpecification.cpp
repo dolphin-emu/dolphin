@@ -136,8 +136,8 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
             return false;
           }
 
-          if (!std::all_of(region_offsets.begin(), region_offsets.end(),
-                           [](picojson::value val) { return val.is<double>(); }))
+          if (!std::ranges::all_of(region_offsets,
+                                   [](picojson::value val) { return val.is<double>(); }))
           {
             ERROR_LOG_FMT(
                 VIDEO,

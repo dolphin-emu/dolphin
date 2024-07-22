@@ -115,8 +115,9 @@ public:
         {
           const Config::Location location{system.first, section_name, value.first};
           const bool load_disallowed =
-              std::any_of(begin(s_setting_disallowed), end(s_setting_disallowed),
-                          [&location](const Config::Location* l) { return *l == location; });
+              std::ranges::any_of(s_setting_disallowed, [&location](const Config::Location* l) {
+                return *l == location;
+              });
           if (load_disallowed)
             continue;
 

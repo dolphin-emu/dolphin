@@ -84,8 +84,8 @@ SectorReader::~SectorReader()
 
 const SectorReader::Cache* SectorReader::FindCacheLine(u64 block_num)
 {
-  auto itr = std::find_if(m_cache.begin(), m_cache.end(),
-                          [&](const Cache& entry) { return entry.Contains(block_num); });
+  auto itr =
+      std::ranges::find_if(m_cache, [&](const Cache& entry) { return entry.Contains(block_num); });
   if (itr == m_cache.end())
     return nullptr;
 

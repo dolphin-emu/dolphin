@@ -79,13 +79,12 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   res = vkEnumerateInstanceLayerProperties(&layer_count, layer_list.data());
   ASSERT(res == VK_SUCCESS);
 
-  bool supports_validation_layers =
-      std::find_if(layer_list.begin(), layer_list.end(), [](const auto& it) {
-        return strcmp(it.layerName, VALIDATION_LAYER_NAME) == 0;
-      }) != layer_list.end();
+  bool supports_validation_layers = std::ranges::find_if(layer_list, [](const auto& it) {
+                                      return strcmp(it.layerName, VALIDATION_LAYER_NAME) == 0;
+                                    }) != layer_list.end();
 
   bool supports_debug_utils =
-      std::find_if(extension_list.begin(), extension_list.end(), [](const auto& it) {
+      std::ranges::find_if(extension_list, [](const auto& it) {
         return strcmp(it.extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0;
       }) != extension_list.end();
 
@@ -106,7 +105,7 @@ bool VulkanContext::CheckValidationLayerAvailablility()
                                                  extension_list.data());
     ASSERT(res == VK_SUCCESS);
     supports_debug_utils =
-        std::find_if(extension_list.begin(), extension_list.end(), [](const auto& it) {
+        std::ranges::find_if(extension_list, [](const auto& it) {
           return strcmp(it.extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0;
         }) != extension_list.end();
   }
@@ -242,16 +241,15 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
 
   auto AddExtension = [&](const char* name, bool required) {
     bool extension_supported =
-        std::find_if(available_extension_list.begin(), available_extension_list.end(),
-                     [&](const VkExtensionProperties& properties) {
-                       return !strcmp(name, properties.extensionName);
-                     }) != available_extension_list.end();
-    extension_supported =
-        extension_supported ||
-        std::find_if(validation_layer_extension_list.begin(), validation_layer_extension_list.end(),
-                     [&](const VkExtensionProperties& properties) {
-                       return !strcmp(name, properties.extensionName);
-                     }) != validation_layer_extension_list.end();
+        std::ranges::find_if(available_extension_list,
+                             [&](const VkExtensionProperties& properties) {
+                               return !strcmp(name, properties.extensionName);
+                             }) != available_extension_list.end();
+    extension_supported = extension_supported ||
+                          std::ranges::find_if(validation_layer_extension_list,
+                                               [&](const VkExtensionProperties& properties) {
+                                                 return !strcmp(name, properties.extensionName);
+                                               }) != validation_layer_extension_list.end();
 
     if (extension_supported)
     {
@@ -568,10 +566,10 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
     INFO_LOG_FMT(VIDEO, "Available extension: {}", extension_properties.extensionName);
 
   auto AddExtension = [&](const char* name, bool required) {
-    if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
-                     [&](const VkExtensionProperties& properties) {
-                       return !strcmp(name, properties.extensionName);
-                     }) != available_extension_list.end())
+    if (std::ranges::find_if(available_extension_list,
+                             [&](const VkExtensionProperties& properties) {
+                               return !strcmp(name, properties.extensionName);
+                             }) != available_extension_list.end())
     {
       INFO_LOG_FMT(VIDEO, "Enabling extension: {}", name);
       m_device_extensions.push_back(name);
@@ -876,8 +874,8 @@ void VulkanContext::DisableDebugUtils()
 
 bool VulkanContext::SupportsDeviceExtension(const char* name) const
 {
-  return std::any_of(m_device_extensions.begin(), m_device_extensions.end(),
-                     [name](const std::string& extension) { return extension == name; });
+  return std::ranges::any_of(m_device_extensions,
+                             [name](const std::string& extension) { return extension == name; });
 }
 
 void VulkanContext::InitDriverDetails()

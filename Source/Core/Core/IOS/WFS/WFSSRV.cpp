@@ -372,8 +372,8 @@ s32 WFSSRVDevice::Rename(std::string source, std::string dest) const
 
   INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_RENAME: {} to {}", source, dest);
 
-  const bool opened = std::any_of(m_fds.begin(), m_fds.end(),
-                                  [&](const auto& fd) { return fd.in_use && fd.path == source; });
+  const bool opened =
+      std::ranges::any_of(m_fds, [&](const auto& fd) { return fd.in_use && fd.path == source; });
 
   if (opened)
     return WFS_FILE_IS_OPENED;

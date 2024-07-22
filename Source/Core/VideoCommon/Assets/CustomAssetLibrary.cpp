@@ -69,10 +69,11 @@ CustomAssetLibrary::LoadInfo CustomAssetLibrary::LoadGameTexture(const AssetID& 
     }
 
     // All levels have to have the same format.
-    if (std::any_of(slice.m_levels.begin(), slice.m_levels.end(),
-                    [&first_mip](const VideoCommon::CustomTextureData::ArraySlice::Level& l) {
-                      return l.format != first_mip.format;
-                    }))
+    if (std::ranges::any_of(
+            slice.m_levels,
+            [&first_mip](const VideoCommon::CustomTextureData::ArraySlice::Level& l) {
+              return l.format != first_mip.format;
+            }))
     {
       ERROR_LOG_FMT(
           VIDEO, "Custom game texture {} has inconsistent formats across mip levels for slice {}.",

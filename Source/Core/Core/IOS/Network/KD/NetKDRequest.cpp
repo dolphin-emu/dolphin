@@ -62,8 +62,8 @@ u8 GetAreaCode(std::string_view area)
       {"CHN", 6},
   }};
 
-  const auto entry_pos = std::find_if(regions.cbegin(), regions.cend(),
-                                      [&area](const auto& entry) { return entry.first == area; });
+  const auto entry_pos =
+      std::ranges::find_if(regions, [&area](const auto& entry) { return entry.first == area; });
   if (entry_pos != regions.end())
     return entry_pos->second;
 
@@ -79,8 +79,8 @@ HardwareModel GetHardwareModel(std::string_view model)
       {"RVD", HardwareModel::RVD},
   }};
 
-  const auto entry_pos = std::find_if(models.cbegin(), models.cend(),
-                                      [&model](const auto& entry) { return entry.first == model; });
+  const auto entry_pos =
+      std::ranges::find_if(models, [&model](const auto& entry) { return entry.first == model; });
   if (entry_pos != models.cend())
     return entry_pos->second;
 

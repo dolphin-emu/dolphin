@@ -24,7 +24,7 @@ struct Elt
 {
   bool IsZero() const
   {
-    return std::all_of(data.begin(), data.end(), [](u8 b) { return b == 0; });
+    return std::ranges::all_of(data, [](u8 b) { return b == 0; });
   }
 
   void MulX()
@@ -252,8 +252,8 @@ Signature Sign(const u8* key, const u8* hash)
   bn_mul(s.data.data(), minv, kk, ec_N, 30);
 
   Signature signature;
-  std::copy(r.data.cbegin(), r.data.cend(), signature.begin());
-  std::copy(s.data.cbegin(), s.data.cend(), signature.begin() + 30);
+  std::ranges::copy(r.data, signature.begin());
+  std::ranges::copy(s.data, signature.begin() + 30);
   return signature;
 }
 

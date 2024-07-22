@@ -254,8 +254,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   for (const std::string& component : SplitString(std::string(path.substr(1)), '/'))
   {
     complete_path += '/' + component;
-    const auto next =
-        std::find_if(entry->children.begin(), entry->children.end(), GetNamePredicate(component));
+    const auto next = std::ranges::find_if(entry->children, GetNamePredicate(component));
     if (next != entry->children.end())
     {
       entry = &*next;
@@ -461,13 +460,12 @@ ResultCode HostFileSystem::Format(Uid uid)
 ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
                                                  FileAttribute attr, Modes modes, bool is_file)
 {
-  if (!IsValidNonRootPath(path) ||
-      !std::all_of(path.begin(), path.end(), Common::IsPrintableCharacter))
+  if (!IsValidNonRootPath(path) || !std::ranges::all_of(path, Common::IsPrintableCharacter))
   {
     return ResultCode::Invalid;
   }
 
-  if (!is_file && std::count(path.begin(), path.end(), '/') > int(MaxPathDepth))
+  if (!is_file && std::ranges::count(path, '/') > int(MaxPathDepth))
     return ResultCode::TooManyPathComponents;
 
   const auto split_path = SplitPathAndBasename(path);
@@ -516,14 +514,14 @@ ResultCode HostFileSystem::CreateDirectory(Uid uid, Gid gid, const std::string& 
 
 bool HostFileSystem::IsFileOpened(const std::string& path) const
 {
-  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+  return std::ranges::any_of(m_handles, [&path](const Handle& handle) {
     return handle.opened && handle.wii_path == path;
   });
 }
 
 bool HostFileSystem::IsDirectoryInUse(const std::string& path) const
 {
-  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+  return std::ranges::any_of(m_handles, [&path](const Handle& handle) {
     return handle.opened && handle.wii_path.starts_with(path);
   });
 }
@@ -553,8 +551,7 @@ ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
   else
     return ResultCode::InUse;
 
-  const auto it = std::find_if(parent->children.begin(), parent->children.end(),
-                               GetNamePredicate(split_path.file_name));
+  const auto it = std::ranges::find_if(parent->children, GetNamePredicate(split_path.file_name));
   if (it != parent->children.end())
     parent->children.erase(it);
   SaveFst();
@@ -643,8 +640,8 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
   new_entry->name = split_new_path.file_name;
 
   // Finally, remove the child from the old parent and move it to the new parent.
-  const auto it = std::find_if(old_parent->children.begin(), old_parent->children.end(),
-                               GetNamePredicate(split_old_path.file_name));
+  const auto it =
+      std::ranges::find_if(old_parent->children, GetNamePredicate(split_old_path.file_name));
   if (it != old_parent->children.end())
   {
     new_entry->data = it->data;
@@ -694,17 +691,17 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
 
   // Now sort in reverse order because Nintendo traverses a linked list
   // in which new elements are inserted at the front.
-  std::sort(host_entry.children.begin(), host_entry.children.end(),
-            [&get_key](const File::FSTEntry& one, const File::FSTEntry& two) {
-              const int key1 = get_key(one.virtualName);
-              const int key2 = get_key(two.virtualName);
-              if (key1 != key2)
-                return key1 > key2;
+  std::ranges::sort(host_entry.children,
+                    [&get_key](const File::FSTEntry& one, const File::FSTEntry& two) {
+                      const int key1 = get_key(one.virtualName);
+                      const int key2 = get_key(two.virtualName);
+                      if (key1 != key2)
+                        return key1 > key2;
 
-              // For files that are not in the FST, sort lexicographically to ensure that
-              // results are consistent no matter what the underlying filesystem is.
-              return one.virtualName > two.virtualName;
-            });
+                      // For files that are not in the FST, sort lexicographically to ensure that
+                      // results are consistent no matter what the underlying filesystem is.
+                      return one.virtualName > two.virtualName;
+                    });
 
   std::vector<std::string> output;
   for (const File::FSTEntry& child : host_entry.children)

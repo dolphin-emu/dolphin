@@ -105,9 +105,9 @@ constexpr u32 PLACEHOLDER = 0xDEADBEEF;
 
 static bool SetupMemory(Memory::MemoryManager& memory, u64 ios_title_id, MemorySetupType setup_type)
 {
-  auto target_imv = std::find_if(
-      GetMemoryValues().begin(), GetMemoryValues().end(),
-      [&](const MemoryValues& imv) { return imv.ios_number == (ios_title_id & 0xffff); });
+  auto target_imv = std::ranges::find_if(GetMemoryValues(), [&](const MemoryValues& imv) {
+    return imv.ios_number == (ios_title_id & 0xffff);
+  });
 
   if (target_imv == GetMemoryValues().end())
   {

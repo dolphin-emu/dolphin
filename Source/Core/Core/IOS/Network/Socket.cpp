@@ -1085,10 +1085,10 @@ void WiiSockMan::UpdatePollCommands()
       std::vector<int> original_order(pfds.size());
       std::iota(original_order.begin(), original_order.end(), 0);
       // Select indices with valid fds
-      auto mid = std::partition(original_order.begin(), original_order.end(), [&](auto i) {
+      auto mid = std::ranges::partition(original_order, [&](auto i) {
         return GetHostSocket(memory.Read_U32(pcmd.buffer_out + 0xc * i)) >= 0;
       });
-      const auto n_valid = std::distance(original_order.begin(), mid);
+      const auto n_valid = std::distance(original_order.begin(), mid.begin());
 
       // Move all the valid pollfds to the front of the vector
       for (auto i = 0; i < n_valid; ++i)

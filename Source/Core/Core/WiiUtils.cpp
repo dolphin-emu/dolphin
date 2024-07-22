@@ -591,10 +591,10 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   const UpdateResult import_result = [&]() {
     for (const IOS::ES::Content& content : tmd.first.GetContents())
     {
-      const bool is_already_installed = std::find_if(stored_contents.begin(), stored_contents.end(),
-                                                     [&content](const auto& stored_content) {
-                                                       return stored_content.id == content.id;
-                                                     }) != stored_contents.end();
+      const bool is_already_installed =
+          std::ranges::find_if(stored_contents, [&content](const auto& stored_content) {
+            return stored_content.id == content.id;
+          }) != stored_contents.end();
 
       // Do skip what is already installed on the NAND.
       if (is_already_installed)
@@ -751,7 +751,7 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
 
   const auto partitions = m_volume->GetPartitions();
   const auto update_partition =
-      std::find_if(partitions.cbegin(), partitions.cend(), [&](const DiscIO::Partition& partition) {
+      std::ranges::find_if(partitions, [&](const DiscIO::Partition& partition) {
         return m_volume->GetPartitionType(partition) == 1u;
       });
 
@@ -947,8 +947,8 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     }
 
     const auto installed_contents = es.GetStoredContentsFromTMD(tmd);
-    const bool is_installed = std::any_of(installed_contents.begin(), installed_contents.end(),
-                                          [](const auto& content) { return !content.IsShared(); });
+    const bool is_installed = std::ranges::any_of(
+        installed_contents, [](const auto& content) { return !content.IsShared(); });
 
     if (is_installed && installed_contents != tmd.GetContents() &&
         (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_DATA) == 0)

@@ -760,9 +760,9 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   }
 
   m_efb_color_cache.tiles.resize(total_tiles);
-  std::fill(m_efb_color_cache.tiles.begin(), m_efb_color_cache.tiles.end(), EFBCacheTile{false, 0});
+  std::ranges::fill(m_efb_color_cache.tiles, EFBCacheTile{false, 0});
   m_efb_depth_cache.tiles.resize(total_tiles);
-  std::fill(m_efb_depth_cache.tiles.begin(), m_efb_depth_cache.tiles.end(), EFBCacheTile{false, 0});
+  std::ranges::fill(m_efb_depth_cache.tiles, EFBCacheTile{false, 0});
 
   return true;
 }

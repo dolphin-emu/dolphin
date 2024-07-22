@@ -472,9 +472,8 @@ void FIFOAnalyzer::FindNext()
   const int index = m_detail_list->currentRow();
   ASSERT(index >= 0);
 
-  auto next_result =
-      std::find_if(m_search_results.begin(), m_search_results.end(),
-                   [index](auto& result) { return result.m_cmd > static_cast<u32>(index); });
+  auto next_result = std::ranges::find_if(
+      m_search_results, [index](auto& result) { return result.m_cmd > static_cast<u32>(index); });
   if (next_result != m_search_results.end())
   {
     ShowSearchResult(next_result - m_search_results.begin());

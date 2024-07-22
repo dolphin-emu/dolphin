@@ -250,8 +250,8 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
                                          const std::string& install_base_path,
                                          const std::string& temp_dir)
 {
-  const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(),
-                                  [&](const auto& op) { return op.filename == "build_info.txt"; });
+  const auto op_it = std::ranges::find_if(
+      to_update, [&](const auto& op) { return op.filename == "build_info.txt"; });
   if (op_it == to_update.cend())
     return {};
 
