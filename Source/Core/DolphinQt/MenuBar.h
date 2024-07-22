@@ -181,7 +181,7 @@ private:
   void LogInstructions();
   void SearchInstruction();
 
-  void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
+  void OnSelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file);
   void OnRecordingStatusChanged(bool recording) const;
   void OnReadOnlyModeChanged(bool read_only) const;
   void OnDebugModeToggled(bool enabled);

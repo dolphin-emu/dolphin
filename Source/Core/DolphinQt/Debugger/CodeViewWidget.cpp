@@ -194,7 +194,7 @@ CodeViewWidget::CodeViewWidget()
 
 CodeViewWidget::~CodeViewWidget() = default;
 
-static u32 GetBranchFromAddress(const Core::CPUThreadGuard& guard, u32 addr)
+static u32 GetBranchFromAddress(const Core::CPUThreadGuard& guard, const u32 addr)
 {
   std::string disasm = guard.GetSystem().GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
   size_t pos = disasm.find("->0x");
@@ -239,7 +239,7 @@ void CodeViewWidget::FontBasedSizing()
   Update();
 }
 
-u32 CodeViewWidget::AddressForRow(int row) const
+u32 CodeViewWidget::AddressForRow(const int row) const
 {
   // m_address is defined as the center row of the table, so we have rowCount/2 instructions above
   // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
@@ -247,13 +247,13 @@ u32 CodeViewWidget::AddressForRow(int row) const
   return row_zero_address + row * 4;
 }
 
-static bool IsBranchInstructionWithLink(std::string_view ins)
+static bool IsBranchInstructionWithLink(const std::string_view ins)
 {
   return ins.ends_with('l') || ins.ends_with("la") || ins.ends_with("l+") || ins.ends_with("la+") ||
          ins.ends_with("l-") || ins.ends_with("la-");
 }
 
-static bool IsInstructionLoadStore(std::string_view ins)
+static bool IsInstructionLoadStore(const std::string_view ins)
 {
   // Could add check for context address being near PC, because we need gprs to be correct for the
   // load/store.
@@ -441,14 +441,14 @@ void CodeViewWidget::CalculateBranchIndentation()
   // build a 2D lookup table representing the columns and rows the arrow could be drawn in
   // and try to place all branch arrows in it as far left as possible
   std::vector<bool> arrow_space_used(columns * rows, false);
-  const auto index = [&](u32 column, u32 row) {
+  const auto index = [&](const u32 column, const u32 row) {
     ASSERT(row <= rows);
     ASSERT(column <= columns);
     return column * rows + row;
   };
 
-  const auto add_branch_arrow = [&](CodeViewBranch& branch, u32 first_addr, u32 first_row,
-                                    u32 last_addr) {
+  const auto add_branch_arrow = [&](CodeViewBranch& branch, const u32 first_addr, const u32 first_row,
+                                    const u32 last_addr) {
     const u32 arrow_src_addr = branch.src_addr;
     const u32 arrow_dst_addr = branch.is_link ? branch.src_addr : branch.dst_addr;
     const auto [arrow_addr_lower, arrow_addr_higher] = std::minmax(arrow_src_addr, arrow_dst_addr);
@@ -526,7 +526,7 @@ u32 CodeViewWidget::GetAddress() const
   return m_address;
 }
 
-void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
+void CodeViewWidget::SetAddress(const u32 address, const SetAddressUpdate update)
 {
   if (m_address == address)
     return;
@@ -547,7 +547,7 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
   }
 }
 
-void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
+void CodeViewWidget::ReplaceAddress(const u32 address, const ReplaceWith replace)
 {
   Core::CPUThreadGuard guard(m_system);
 
@@ -668,7 +668,7 @@ void CodeViewWidget::OnContextMenu()
   Update();
 }
 
-void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
+void CodeViewWidget::AutoStep(const CodeTrace::AutoStop option)
 {
   // Autosteps and follows value in the target (left-most) register. The Used and Changed options
   // silently follows target through reshuffles in memory and registers and stops on use or update.
@@ -1014,7 +1014,7 @@ void CodeViewWidget::OnAssembleInstruction()
   DoPatchInstruction(true);
 }
 
-void CodeViewWidget::DoPatchInstruction(bool assemble)
+void CodeViewWidget::DoPatchInstruction(const bool assemble)
 {
   Core::CPUThreadGuard guard(m_system);
   const u32 addr = GetContextAddress();

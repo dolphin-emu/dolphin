@@ -48,7 +48,7 @@ CheatsManager::~CheatsManager()
   settings.setValue(QStringLiteral("cheatsmanager/geometry"), saveGeometry());
 }
 
-void CheatsManager::OnStateChanged(Core::State state)
+void CheatsManager::OnStateChanged(const Core::State state)
 {
   RefreshCodeTabs(state, false);
   if (state == Core::State::Paused)
@@ -99,7 +99,7 @@ void CheatsManager::showEvent(QShowEvent* event)
   RegisterAfterFrameEventCallback();
 }
 
-void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
+void CheatsManager::RefreshCodeTabs(const Core::State state, const bool force)
 {
   if (!force && (state == Core::State::Starting || state == Core::State::Stopping))
     return;
@@ -177,13 +177,13 @@ void CheatsManager::OnNewSessionCreated(const Cheats::CheatSearchSessionBase& se
                if (m_ar_code)
                  m_ar_code->AddCode(ar_code);
              });
-  w->connect(w, &CheatSearchWidget::ShowMemory, [this](u32 address) { emit ShowMemory(address); });
+  w->connect(w, &CheatSearchWidget::ShowMemory, [this](const u32 address) { emit ShowMemory(address); });
   w->connect(w, &CheatSearchWidget::RequestWatch,
-             [this](QString name, u32 address) { emit RequestWatch(name, address); });
+             [this](const QString& name, const u32 address) { emit RequestWatch(name, address); });
   m_tab_widget->setCurrentIndex(tab_index);
 }
 
-void CheatsManager::OnTabCloseRequested(int index) const
+void CheatsManager::OnTabCloseRequested(const int index) const
 {
   auto* w = m_tab_widget->widget(index);
   if (w)

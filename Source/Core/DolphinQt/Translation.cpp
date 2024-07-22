@@ -51,7 +51,7 @@ public:
   using pointer = value_type;
   using reference = value_type;
 
-  explicit MoIterator(const char* data, u32 table_offset, u32 index = 0)
+  explicit MoIterator(const char* data, const u32 table_offset, const u32 index = 0)
       : m_data{data}, m_table_offset{table_offset}, m_index{index}
   {
   }
@@ -59,7 +59,7 @@ public:
   // This is the actual underlying logic of accessing a Mo file. Patterned after the
   // boost::iterator_facade library, which nicely separates out application logic from
   // iterator-concept logic.
-  void advance(difference_type n) { m_index += n; }
+  void advance(const difference_type n) { m_index += n; }
   difference_type distance_to(const MoIterator& other) const
   {
     return static_cast<difference_type>(other.m_index) - m_index;
@@ -107,27 +107,27 @@ public:
   bool operator<=(const MoIterator& other) const { return distance_to(other) >= 0; }
   bool operator>(const MoIterator& other) const { return distance_to(other) < 0; }
   bool operator>=(const MoIterator& other) const { return distance_to(other) <= 0; }
-  reference operator[](difference_type n) const { return *(*this + n); }
-  MoIterator& operator+=(difference_type n)
+  reference operator[](const difference_type n) const { return *(*this + n); }
+  MoIterator& operator+=(const difference_type n)
   {
     advance(n);
     return *this;
   }
-  MoIterator& operator-=(difference_type n)
+  MoIterator& operator-=(const difference_type n)
   {
     advance(-n);
     return *this;
   }
-  friend MoIterator operator+(difference_type n, const MoIterator& it) { return it + n; }
-  friend MoIterator operator+(const MoIterator& it, difference_type n)
+  friend MoIterator operator+(const difference_type n, const MoIterator& it) { return it + n; }
+  friend MoIterator operator+(const MoIterator& it, const difference_type n)
   {
     MoIterator tmp(it);
     tmp += n;
     return tmp;
   }
   difference_type operator-(const MoIterator& other) const { return other.distance_to(*this); }
-  friend MoIterator operator-(difference_type n, const MoIterator& it) { return it - n; }
-  friend MoIterator operator-(const MoIterator& it, difference_type n)
+  friend MoIterator operator-(const difference_type n, const MoIterator& it) { return it - n; }
+  friend MoIterator operator-(const MoIterator& it, const difference_type n)
   {
     MoIterator tmp(it);
     tmp -= n;

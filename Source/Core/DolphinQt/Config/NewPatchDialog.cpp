@@ -186,17 +186,17 @@ QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
     }
   });
 
-  connect(byte, &QRadioButton::toggled, [new_entry](bool checked) {
+  connect(byte, &QRadioButton::toggled, [new_entry](const bool checked) {
     if (checked)
       new_entry->entry.type = PatchEngine::PatchType::Patch8Bit;
   });
 
-  connect(word, &QRadioButton::toggled, [new_entry](bool checked) {
+  connect(word, &QRadioButton::toggled, [new_entry](const bool checked) {
     if (checked)
       new_entry->entry.type = PatchEngine::PatchType::Patch16Bit;
   });
 
-  connect(dword, &QRadioButton::toggled, [new_entry](bool checked) {
+  connect(dword, &QRadioButton::toggled, [new_entry](const bool checked) {
     if (checked)
       new_entry->entry.type = PatchEngine::PatchType::Patch32Bit;
   });
@@ -205,7 +205,7 @@ QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
   word->setChecked(entry.type == PatchEngine::PatchType::Patch16Bit);
   dword->setChecked(entry.type == PatchEngine::PatchType::Patch32Bit);
 
-  connect(conditional, &QCheckBox::toggled, [new_entry, comparand_label, comparand](bool checked) {
+  connect(conditional, &QCheckBox::toggled, [new_entry, comparand_label, comparand](const bool checked) {
     new_entry->entry.conditional = checked;
     comparand_label->setVisible(checked);
     comparand->setVisible(checked);

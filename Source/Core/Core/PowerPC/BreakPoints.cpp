@@ -26,18 +26,18 @@ BreakPoints::BreakPoints(Core::System& system) : m_system(system)
 
 BreakPoints::~BreakPoints() = default;
 
-bool BreakPoints::IsAddressBreakPoint(u32 address) const
+bool BreakPoints::IsAddressBreakPoint(const u32 address) const
 {
   return GetBreakpoint(address) != nullptr;
 }
 
-bool BreakPoints::IsBreakPointEnable(u32 address) const
+bool BreakPoints::IsBreakPointEnable(const u32 address) const
 {
   const TBreakPoint* bp = GetBreakpoint(address);
   return bp != nullptr && bp->is_enabled;
 }
 
-const TBreakPoint* BreakPoints::GetBreakpoint(u32 address) const
+const TBreakPoint* BreakPoints::GetBreakpoint(const u32 address) const
 {
   // Give priority to the temporary breakpoint (it could be in the same address of a regular
   // breakpoint that doesn't break)
@@ -150,7 +150,7 @@ void BreakPoints::Add(u32 address, const bool break_on_hit, const bool log_on_hi
   m_system.GetJitInterface().InvalidateICache(address, 4, true);
 }
 
-void BreakPoints::SetTemporary(u32 address)
+void BreakPoints::SetTemporary(const u32 address)
 {
   TBreakPoint bp;  // breakpoint settings
   bp.is_enabled = true;
@@ -164,7 +164,7 @@ void BreakPoints::SetTemporary(u32 address)
   m_system.GetJitInterface().InvalidateICache(address, 4, true);
 }
 
-bool BreakPoints::ToggleBreakPoint(u32 address)
+bool BreakPoints::ToggleBreakPoint(const u32 address)
 {
   if (!Remove(address))
   {

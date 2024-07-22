@@ -124,7 +124,7 @@ void FilesystemWidget::PopulateView()
     PopulateDirectory(-1, disc, DiscIO::PARTITION_NONE);
 }
 
-void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
+void FilesystemWidget::PopulateDirectory(const int partition_id, QStandardItem* root,
                                          const DiscIO::Partition& partition)
 {
   auto partition_type = m_volume->GetPartitionType(partition);
@@ -184,7 +184,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
     PopulateDirectory(partition_id, root, file_system->GetRoot());
 }
 
-void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
+void FilesystemWidget::PopulateDirectory(const int partition_id, QStandardItem* root,
                                          const DiscIO::FileInfo& directory)
 {
   for (const auto& info : directory)
@@ -313,7 +313,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   menu->exec(QCursor::pos());
 }
 
-DiscIO::Partition FilesystemWidget::GetPartitionFromID(int id) const
+DiscIO::Partition FilesystemWidget::GetPartitionFromID(const int id) const
 {
   return id == -1 ? DiscIO::PARTITION_NONE : m_volume->GetPartitions()[id];
 }

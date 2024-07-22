@@ -117,7 +117,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   OnCompressionChanged();
 }
 
-void ConvertDialog::AddToBlockSizeComboBox(int size) const
+void ConvertDialog::AddToBlockSizeComboBox(const int size) const
 {
   m_block_size->addItem(QString::fromStdString(UICommon::FormatSize(size, 0)), size);
 
@@ -133,7 +133,7 @@ void ConvertDialog::AddToCompressionComboBox(const QString& name,
   m_compression->addItem(name, static_cast<int>(type));
 }
 
-void ConvertDialog::AddToCompressionLevelComboBox(int level) const
+void ConvertDialog::AddToCompressionLevelComboBox(const int level) const
 {
   m_compression_level->addItem(QString::number(level), level);
 }
@@ -476,7 +476,7 @@ void ConvertDialog::Convert()
     }
     else
     {
-      const auto callback = [&progress_dialog](const std::string& text, float percent) {
+      const auto callback = [&progress_dialog](const std::string& text, const float percent) {
         progress_dialog.SetValue(percent * 100);
         return !progress_dialog.WasCanceled();
       };

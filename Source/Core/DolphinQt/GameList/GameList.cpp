@@ -81,7 +81,7 @@ public:
   explicit GameListTableView(QWidget* parent = nullptr) : QTableView(parent) {}
 
 protected:
-  QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) override
+  QModelIndex moveCursor(const CursorAction cursorAction, const Qt::KeyboardModifiers modifiers) override
   {
     // QTableView::moveCursor handles home by moving to the first column and end by moving to the
     // last column, unless control is held in which case it ALSO moves to the first/last row.
@@ -456,7 +456,7 @@ void GameList::ShowContextMenu(const QPoint&)
         wad_uninstall_action->setEnabled(WiiUtils::IsTitleInstalled(game->GetTitleID()));
 
       connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu,
-              [=](Core::State state) {
+              [=](const Core::State state) {
                 wad_install_action->setEnabled(state == Core::State::Uninitialized);
                 wad_uninstall_action->setEnabled(state == Core::State::Uninitialized &&
                                                  WiiUtils::IsTitleInstalled(game->GetTitleID()));
@@ -511,7 +511,7 @@ void GameList::ShowContextMenu(const QPoint&)
       tag_action->setCheckable(true);
       tag_action->setChecked(game_tags.contains(tag));
 
-      connect(tag_action, &QAction::toggled, [path, tag, model = &m_model](bool checked) {
+      connect(tag_action, &QAction::toggled, [path, tag, model = &m_model](const bool checked) {
         if (!checked)
           model->RemoveGameTag(path, tag);
         else
@@ -528,7 +528,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     connect(netplay_host, &QAction::triggered, [this, game] { emit NetPlayHost(*game); });
 
-    connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
+    connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](const Core::State state) {
       netplay_host->setEnabled(state == Core::State::Uninitialized);
     });
     netplay_host->setEnabled(!IsRunning(system));
@@ -803,10 +803,9 @@ bool GameList::AddShortcutToDesktop() const
 
   std::string game_name = game->GetName(Core::TitleDatabase());
   // Sanitize the string by removing all characters that cannot be used in NTFS file names
-  std::erase_if(game_name, [](char ch) {
+  std::erase_if(game_name, [](const char ch) {
     static constexpr char illegal_characters[] = {'<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
-    return std::find(std::begin(illegal_characters), std::end(illegal_characters), ch) !=
-           std::end(illegal_characters);
+    return std::ranges::find(illegal_characters, ch) != std::end(illegal_characters);
   });
 
   std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
@@ -947,12 +946,12 @@ std::string GameList::GetNetPlayName(const UICommon::GameFile& game) const
   return m_model.GetNetPlayName(game);
 }
 
-void GameList::SetViewColumn(int col, bool view) const
+void GameList::SetViewColumn(const int col, const bool view) const
 {
   m_list->setColumnHidden(col, !view);
 }
 
-void GameList::SetPreferredView(bool list)
+void GameList::SetPreferredView(const bool list)
 {
   m_prefer_list = list;
   Settings::Instance().SetPreferredView(list);
@@ -988,7 +987,7 @@ void GameList::keyPressEvent(QKeyEvent* event)
   }
 }
 
-void GameList::OnColumnVisibilityToggled(const QString& row, bool visible) const
+void GameList::OnColumnVisibilityToggled(const QString& row, const bool visible) const
 {
   using Column = GameListModel::Column;
   static const QMap<QString, Column> rowname_to_column = {
@@ -1017,7 +1016,7 @@ void GameList::OnGameListVisibilityChanged() const
   m_grid_proxy->invalidate();
 }
 
-void GameList::OnSectionResized(int index, int, int) const
+void GameList::OnSectionResized(const int index, int, int) const
 {
   auto* hor_header = m_list->horizontalHeader();
 

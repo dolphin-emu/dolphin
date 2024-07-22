@@ -36,7 +36,7 @@ AudioPane::AudioPane()
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::VolumeChanged, this, &AudioPane::OnVolumeChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
 
@@ -375,7 +375,7 @@ void AudioPane::OnBackendChanged() const
   m_volume_indicator->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
 }
 
-void AudioPane::OnEmulationStateChanged(bool running) const
+void AudioPane::OnEmulationStateChanged(const bool running) const
 {
   m_dsp_hle->setEnabled(!running);
   m_dsp_lle->setEnabled(!running);
@@ -400,7 +400,7 @@ void AudioPane::OnEmulationStateChanged(bool running) const
 #endif
 }
 
-void AudioPane::OnVolumeChanged(int volume) const
+void AudioPane::OnVolumeChanged(const int volume) const
 {
   m_volume_slider->setValue(volume);
   m_volume_indicator->setText(tr("%1%").arg(volume));
@@ -413,7 +413,7 @@ void AudioPane::CheckNeedForLatencyControl()
       std::any_of(backends.cbegin(), backends.cend(), AudioCommon::SupportsLatencyControl);
 }
 
-QString AudioPane::GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const
+QString AudioPane::GetDPL2QualityLabel(const AudioCommon::DPL2Quality value) const
 {
   switch (value)
   {
@@ -428,7 +428,7 @@ QString AudioPane::GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const
   }
 }
 
-QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const
+QString AudioPane::GetDPL2ApproximateLatencyLabel(const AudioCommon::DPL2Quality value) const
 {
   switch (value)
   {
@@ -443,7 +443,7 @@ QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value
   }
 }
 
-void AudioPane::EnableDolbyQualityWidgets(bool enabled) const
+void AudioPane::EnableDolbyQualityWidgets(const bool enabled) const
 {
   m_dolby_quality_label->setEnabled(enabled);
   m_dolby_quality_slider->setEnabled(enabled);

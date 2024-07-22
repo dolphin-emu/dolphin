@@ -352,7 +352,7 @@ void NetPlayDialog::ConnectWidgets()
           [this] { m_chat_send_button->setEnabled(!m_chat_type_edit->text().isEmpty()); });
 
   // Other
-  connect(m_buffer_size_box, &QSpinBox::valueChanged, [this](int value) {
+  connect(m_buffer_size_box, &QSpinBox::valueChanged, [this](const int value) {
     if (value == m_buffer_size)
       return;
 
@@ -364,7 +364,7 @@ void NetPlayDialog::ConnectWidgets()
       client->AdjustPadBufferSize(value);
   });
 
-  const auto hia_function = [this](bool enable) {
+  const auto hia_function = [this](const bool enable) {
     if (m_host_input_authority != enable)
     {
       auto server = Settings::Instance().GetNetPlayServer();
@@ -397,7 +397,7 @@ void NetPlayDialog::ConnectWidgets()
     }
   });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     if (isVisible())
     {
       GameStatusChanged(state != Core::State::Uninitialized);
@@ -451,7 +451,7 @@ void NetPlayDialog::OnChat()
   });
 }
 
-void NetPlayDialog::OnIndexAdded(bool success, const std::string error)
+void NetPlayDialog::OnIndexAdded(const bool success, const std::string error)
 {
   DisplayMessage(success ? tr("Successfully added to the NetPlay index") :
                            tr("Failed to add this session to the NetPlay index: %1")
@@ -503,7 +503,7 @@ void NetPlayDialog::reject()
   }
 }
 
-void NetPlayDialog::show(std::string nickname, bool use_traversal)
+void NetPlayDialog::show(const std::string& nickname, const bool use_traversal)
 {
   m_nickname = nickname;
   m_use_traversal = use_traversal;
@@ -828,7 +828,7 @@ void NetPlayDialog::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifi
   DisplayMessage(tr("Game changed to \"%1\"").arg(qname), "magenta");
 }
 
-void NetPlayDialog::OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config)
+void NetPlayDialog::OnMsgChangeGBARom(const int pad, const NetPlay::GBAConfig& config)
 {
   if (config.has_rom)
   {
@@ -847,7 +847,7 @@ void NetPlayDialog::GameStatusChanged(bool running)
   QueueOnObject(this, [this, running] { SetOptionsEnabled(!running); });
 }
 
-void NetPlayDialog::SetOptionsEnabled(bool enabled) const
+void NetPlayDialog::SetOptionsEnabled(const bool enabled) const
 {
   if (Settings::Instance().GetNetPlayServer())
   {
@@ -965,7 +965,7 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
   });
 }
 
-void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
+void NetPlayDialog::OnDesync(const u32 frame, const std::string& player)
 {
   DisplayMessage(tr("Possible desync detected: %1 might have desynced at frame %2")
                      .arg(QString::fromStdString(player), QString::number(frame)),
@@ -1008,7 +1008,7 @@ void NetPlayDialog::OnTraversalError(Common::TraversalClient::FailureReason erro
   });
 }
 
-void NetPlayDialog::OnTraversalStateChanged(Common::TraversalClient::State state)
+void NetPlayDialog::OnTraversalStateChanged(const Common::TraversalClient::State state)
 {
   switch (state)
   {
@@ -1040,7 +1040,7 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
-void NetPlayDialog::OnTtlDetermined(u8 ttl)
+void NetPlayDialog::OnTtlDetermined(const u8 ttl)
 {
   DisplayMessage(tr("Using TTL %1 for probe packet").arg(QString::number(ttl)), "");
 }
@@ -1080,7 +1080,7 @@ NetPlayDialog::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
 }
 
 std::string NetPlayDialog::FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
-                                          int device_number)
+                                          const int device_number)
 {
 #ifdef HAS_LIBMGBA
   auto result = RunOnObject(this, [&, this] {

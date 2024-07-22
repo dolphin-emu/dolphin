@@ -1958,7 +1958,7 @@ void NetPlayClient::OnTraversalStateChanged()
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayClient::OnConnectReady(ENetAddress addr)
+void NetPlayClient::OnConnectReady(const ENetAddress addr)
 {
   if (m_connection_state == ConnectionState::WaitingForTraversalClientConnectReady)
   {

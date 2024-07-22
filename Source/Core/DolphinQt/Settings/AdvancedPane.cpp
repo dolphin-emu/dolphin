@@ -191,13 +191,13 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
-  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](int index) {
+  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](const int index) {
     const auto cpu_cores = PowerPC::AvailableCPUCores();
     if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
       SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
   });
 
-  connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
+  connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](const bool enable_clock_override) {
     SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
     Update();
   });
@@ -208,7 +208,7 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
+  connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](const bool enable_ram_override) {
     SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
     Update();
   });
@@ -225,7 +225,7 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
+  connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](const bool enable_custom_rtc) {
     SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
     Update();
   });

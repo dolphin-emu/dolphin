@@ -76,7 +76,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
     auto* update_later_check = new QCheckBox(tr("Update after closing Dolphin"));
 
-    connect(update_later_check, &QCheckBox::toggled, [&](bool checked) { later = checked; });
+    connect(update_later_check, &QCheckBox::toggled, [&](const bool checked) { later = checked; });
 
     auto* buttons = new QDialogButtonBox;
 

@@ -393,7 +393,7 @@ void ESCore::FinishAllStaleImports() const
 }
 
 std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& content,
-                                   Ticks ticks) const
+                                   const Ticks ticks) const
 {
   if (content.IsShared())
   {

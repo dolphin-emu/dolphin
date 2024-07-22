@@ -59,37 +59,37 @@ MMU::MMU(Core::System& system, Memory::MemoryManager& memory, PowerPCManager& po
 MMU::~MMU() = default;
 
 // Overloaded byteswap functions, for use within the templated functions below.
-[[maybe_unused]] static u8 bswap(u8 val)
+[[maybe_unused]] static u8 bswap(const u8 val)
 {
   return val;
 }
-[[maybe_unused]] static s8 bswap(s8 val)
+[[maybe_unused]] static s8 bswap(const s8 val)
 {
   return val;
 }
-[[maybe_unused]] static u16 bswap(u16 val)
+[[maybe_unused]] static u16 bswap(const u16 val)
 {
   return Common::swap16(val);
 }
-[[maybe_unused]] static s16 bswap(s16 val)
+[[maybe_unused]] static s16 bswap(const s16 val)
 {
   return Common::swap16(val);
 }
-[[maybe_unused]] static u32 bswap(u32 val)
+[[maybe_unused]] static u32 bswap(const u32 val)
 {
   return Common::swap32(val);
 }
-[[maybe_unused]] static u64 bswap(u64 val)
+[[maybe_unused]] static u64 bswap(const u64 val)
 {
   return Common::swap64(val);
 }
 
-static constexpr bool IsOpcodeFlag(XCheckTLBFlag flag)
+static constexpr bool IsOpcodeFlag(const XCheckTLBFlag flag)
 {
   return flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException;
 }
 
-static constexpr bool IsNoExceptionFlag(XCheckTLBFlag flag)
+static constexpr bool IsNoExceptionFlag(const XCheckTLBFlag flag)
 {
   return flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::OpcodeNoException;
 }
@@ -121,7 +121,7 @@ static u32 EFB_Read(const u32 addr)
   return var;
 }
 
-static void EFB_Write(u32 data, u32 addr)
+static void EFB_Write(const u32 data, const u32 addr)
 {
   const u32 x = (addr & 0xfff) >> 2;
   const u32 y = (addr >> 12) & 0x3ff;
@@ -461,7 +461,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
    location through ReadFromHardware and WriteToHardware */
 // ----------------
 
-u32 MMU::Read_Opcode(u32 address)
+u32 MMU::Read_Opcode(const u32 address)
 {
   TryReadInstResult result = TryReadInstruction(address);
   if (!result.valid)
@@ -510,7 +510,7 @@ u32 MMU::HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 addre
 
 std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThreadGuard& guard,
                                                            const u32 address,
-                                                           RequestedAddressSpace space)
+                                                           const RequestedAddressSpace space)
 {
   if (!HostIsInstructionRAMAddress(guard, address, space))
     return std::nullopt;
@@ -541,7 +541,7 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   return std::nullopt;
 }
 
-void MMU::Memcheck(u32 address, u64 var, bool write, size_t size) const
+void MMU::Memcheck(const u32 address, const u64 var, const bool write, const size_t size) const
 {
   if (!m_power_pc.GetMemChecks().HasAny())
     return;
@@ -607,7 +607,8 @@ u64 MMU::Read_U64(const u32 address)
 
 template <typename T>
 std::optional<ReadResult<T>> MMU::HostTryReadUX(const Core::CPUThreadGuard& guard,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
@@ -638,32 +639,37 @@ std::optional<ReadResult<T>> MMU::HostTryReadUX(const Core::CPUThreadGuard& guar
   return std::nullopt;
 }
 
-std::optional<ReadResult<u8>> MMU::HostTryReadU8(const Core::CPUThreadGuard& guard, u32 address,
-                                                 RequestedAddressSpace space)
+std::optional<ReadResult<u8>> MMU::HostTryReadU8(const Core::CPUThreadGuard& guard,
+                                                 const u32 address,
+                                                 const RequestedAddressSpace space)
 {
   return HostTryReadUX<u8>(guard, address, space);
 }
 
-std::optional<ReadResult<u16>> MMU::HostTryReadU16(const Core::CPUThreadGuard& guard, u32 address,
-                                                   RequestedAddressSpace space)
+std::optional<ReadResult<u16>> MMU::HostTryReadU16(const Core::CPUThreadGuard& guard,
+                                                   const u32 address,
+                                                   const RequestedAddressSpace space)
 {
   return HostTryReadUX<u16>(guard, address, space);
 }
 
-std::optional<ReadResult<u32>> MMU::HostTryReadU32(const Core::CPUThreadGuard& guard, u32 address,
-                                                   RequestedAddressSpace space)
+std::optional<ReadResult<u32>> MMU::HostTryReadU32(const Core::CPUThreadGuard& guard,
+                                                   const u32 address,
+                                                   const RequestedAddressSpace space)
 {
   return HostTryReadUX<u32>(guard, address, space);
 }
 
-std::optional<ReadResult<u64>> MMU::HostTryReadU64(const Core::CPUThreadGuard& guard, u32 address,
-                                                   RequestedAddressSpace space)
+std::optional<ReadResult<u64>> MMU::HostTryReadU64(const Core::CPUThreadGuard& guard,
+                                                   const u32 address,
+                                                   const RequestedAddressSpace space)
 {
   return HostTryReadUX<u64>(guard, address, space);
 }
 
-std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard& guard, u32 address,
-                                                     RequestedAddressSpace space)
+std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard& guard,
+                                                     const u32 address,
+                                                     const RequestedAddressSpace space)
 {
   const auto result = HostTryReadUX<u32>(guard, address, space);
   if (!result)
@@ -672,7 +678,8 @@ std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard&
 }
 
 std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard& guard,
-                                                      u32 address, RequestedAddressSpace space)
+                                                      const u32 address,
+                                                      const RequestedAddressSpace space)
 {
   const auto result = HostTryReadUX<u64>(guard, address, space);
   if (!result)
@@ -796,7 +803,7 @@ void MMU::HostWrite_F64(const Core::CPUThreadGuard& guard, const double var, con
 
 std::optional<WriteResult> MMU::HostTryWriteUX(const Core::CPUThreadGuard& guard, const u32 var,
                                                const u32 address, const u32 size,
-                                               RequestedAddressSpace space)
+                                               const RequestedAddressSpace space)
 {
   if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
@@ -822,25 +829,28 @@ std::optional<WriteResult> MMU::HostTryWriteUX(const Core::CPUThreadGuard& guard
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU8(const Core::CPUThreadGuard& guard, const u32 var,
-                                               const u32 address, RequestedAddressSpace space)
+                                               const u32 address, const RequestedAddressSpace space)
 {
   return HostTryWriteUX(guard, var, address, 1, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU16(const Core::CPUThreadGuard& guard, const u32 var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   return HostTryWriteUX(guard, var, address, 2, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU32(const Core::CPUThreadGuard& guard, const u32 var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   return HostTryWriteUX(guard, var, address, 4, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteU64(const Core::CPUThreadGuard& guard, const u64 var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   const auto result = HostTryWriteUX(guard, static_cast<u32>(var >> 32), address, 4, space);
   if (!result)
@@ -850,20 +860,22 @@ std::optional<WriteResult> MMU::HostTryWriteU64(const Core::CPUThreadGuard& guar
 }
 
 std::optional<WriteResult> MMU::HostTryWriteF32(const Core::CPUThreadGuard& guard, const float var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   const u32 integral = std::bit_cast<u32>(var);
   return HostTryWriteU32(guard, integral, address, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteF64(const Core::CPUThreadGuard& guard, const double var,
-                                                const u32 address, RequestedAddressSpace space)
+                                                const u32 address,
+                                                const RequestedAddressSpace space)
 {
   const u64 integral = std::bit_cast<u64>(var);
   return HostTryWriteU64(guard, integral, address, space);
 }
 
-std::string MMU::HostGetString(const Core::CPUThreadGuard& guard, u32 address, size_t size)
+std::string MMU::HostGetString(const Core::CPUThreadGuard& guard, u32 address, const size_t size)
 {
   std::string s;
   do
@@ -879,7 +891,8 @@ std::string MMU::HostGetString(const Core::CPUThreadGuard& guard, u32 address, s
   return s;
 }
 
-std::u16string MMU::HostGetU16String(const Core::CPUThreadGuard& guard, u32 address, size_t size)
+std::u16string MMU::HostGetU16String(const Core::CPUThreadGuard& guard, u32 address,
+                                     const size_t size)
 {
   std::u16string s;
   do
@@ -896,8 +909,8 @@ std::u16string MMU::HostGetU16String(const Core::CPUThreadGuard& guard, u32 addr
 }
 
 std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThreadGuard& guard,
-                                                              u32 address, size_t size,
-                                                              RequestedAddressSpace space)
+                                                              u32 address, const size_t size,
+                                                              const RequestedAddressSpace space)
 {
   auto c = HostTryReadU8(guard, address, space);
   if (!c)
@@ -938,7 +951,7 @@ bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) cons
 }
 
 template <XCheckTLBFlag flag>
-bool MMU::IsRAMAddress(u32 address, bool translate)
+bool MMU::IsRAMAddress(u32 address, const bool translate)
 {
   if (translate)
   {
@@ -970,8 +983,8 @@ bool MMU::IsRAMAddress(u32 address, bool translate)
   return false;
 }
 
-bool MMU::HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
-                           RequestedAddressSpace space)
+bool MMU::HostIsRAMAddress(const Core::CPUThreadGuard& guard, const u32 address,
+                           const RequestedAddressSpace space)
 {
   auto& mmu = guard.GetSystem().GetMMU();
   switch (space)
@@ -990,8 +1003,8 @@ bool MMU::HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
   return false;
 }
 
-bool MMU::HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
-                                      RequestedAddressSpace space)
+bool MMU::HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, const u32 address,
+                                      const RequestedAddressSpace space)
 {
   // Instructions are always 32bit aligned.
   if (address & 3)
@@ -1186,7 +1199,7 @@ void MMU::FlushDCacheLine(u32 address)
     m_ppc_state.dCache.Flush(m_memory, address);
 }
 
-void MMU::TouchDCacheLine(u32 address, bool store)
+void MMU::TouchDCacheLine(u32 address, const bool store)
 {
   address &= ~0x1F;
 
@@ -1210,7 +1223,7 @@ void MMU::TouchDCacheLine(u32 address, bool store)
     m_ppc_state.dCache.Touch(m_memory, address, store);
 }
 
-u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
+u32 MMU::IsOptimizableMMIOAccess(u32 address, const u32 access_size) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return 0;
@@ -1255,7 +1268,7 @@ bool MMU::IsOptimizableGatherPipeWrite(u32 address) const
   return address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS;
 }
 
-TranslateResult MMU::JitCache_TranslateAddress(u32 address)
+TranslateResult MMU::JitCache_TranslateAddress(const u32 address)
 {
   if (!m_ppc_state.msr.IR)
     return TranslateResult{address};
@@ -1269,7 +1282,7 @@ TranslateResult MMU::JitCache_TranslateAddress(u32 address)
   return TranslateResult{from_bat, tlb_addr.address};
 }
 
-void MMU::GenerateDSIException(u32 effective_address, bool write) const
+void MMU::GenerateDSIException(const u32 effective_address, const bool write) const
 {
   // DSI exceptions are only supported in MMU mode.
   if (!m_system.IsMMUMode())
@@ -1297,7 +1310,7 @@ void MMU::GenerateDSIException(u32 effective_address, bool write) const
   m_ppc_state.Exceptions |= EXCEPTION_DSI;
 }
 
-void MMU::GenerateISIException(u32 effective_address) const
+void MMU::GenerateISIException(const u32 effective_address) const
 {
   // Address of instruction could not be translated
   m_ppc_state.npc = effective_address;
@@ -1390,7 +1403,7 @@ static TLBLookupResult LookupTLBPageAddress(PowerPCState& ppc_state,
   return TLBLookupResult::NotFound;
 }
 
-static void UpdateTLBEntry(PowerPCState& ppc_state, const XCheckTLBFlag flag, UPTE_Hi pte2,
+static void UpdateTLBEntry(PowerPCState& ppc_state, const XCheckTLBFlag flag, const UPTE_Hi pte2,
                            const u32 address, const u32 vsid)
 {
   if (IsNoExceptionFlag(flag))
@@ -1407,7 +1420,7 @@ static void UpdateTLBEntry(PowerPCState& ppc_state, const XCheckTLBFlag flag, UP
   tlbe.vsid[index] = vsid;
 }
 
-void MMU::InvalidateTLBEntry(u32 address) const
+void MMU::InvalidateTLBEntry(const u32 address) const
 {
   const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
 
@@ -1515,7 +1528,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
   return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
 }
 
-void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr) const
+void MMU::UpdateBATs(BatTable& bat_table, const u32 base_spr) const
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
   // TODO: Handle PP settings.
@@ -1608,7 +1621,7 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr) const
   }
 }
 
-void MMU::UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr) const
+void MMU::UpdateFakeMMUBat(BatTable& bat_table, const u32 start_addr) const
 {
   for (u32 i = 0; i < (0x10000000 >> BAT_INDEX_SHIFT); ++i)
   {
@@ -1678,7 +1691,7 @@ MMU::TranslateAddressResult MMU::TranslateAddress(u32 address)
   return TranslatePageAddress<flag>(EffectiveAddress{address}, &wi);
 }
 
-std::optional<u32> MMU::GetTranslatedAddress(u32 address)
+std::optional<u32> MMU::GetTranslatedAddress(const u32 address)
 {
   auto result = TranslateAddress<XCheckTLBFlag::NoException>(address);
   if (!result.Success())
@@ -1688,51 +1701,51 @@ std::optional<u32> MMU::GetTranslatedAddress(u32 address)
   return std::optional<u32>(result.address);
 }
 
-void ClearDCacheLineFromJit(MMU& mmu, u32 address)
+void ClearDCacheLineFromJit(MMU& mmu, const u32 address)
 {
   mmu.ClearDCacheLine(address);
 }
-u32 ReadU8FromJit(MMU& mmu, u32 address)
+u32 ReadU8FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U8(address);
 }
-u32 ReadU16FromJit(MMU& mmu, u32 address)
+u32 ReadU16FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U16(address);
 }
-u32 ReadU32FromJit(MMU& mmu, u32 address)
+u32 ReadU32FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U32(address);
 }
-u64 ReadU64FromJit(MMU& mmu, u32 address)
+u64 ReadU64FromJit(MMU& mmu, const u32 address)
 {
   return mmu.Read_U64(address);
 }
-void WriteU8FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU8FromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U8(var, address);
 }
-void WriteU16FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU16FromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U16(var, address);
 }
-void WriteU32FromJit(MMU& mmu, u32 var, u32 address)
+void WriteU32FromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U32(var, address);
 }
-void WriteU64FromJit(MMU& mmu, u64 var, u32 address)
+void WriteU64FromJit(MMU& mmu, const u64 var, const u32 address)
 {
   mmu.Write_U64(var, address);
 }
-void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address)
+void WriteU16SwapFromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U16_Swap(var, address);
 }
-void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address)
+void WriteU32SwapFromJit(MMU& mmu, const u32 var, const u32 address)
 {
   mmu.Write_U32_Swap(var, address);
 }
-void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address)
+void WriteU64SwapFromJit(MMU& mmu, const u64 var, const u32 address)
 {
   mmu.Write_U64_Swap(var, address);
 }

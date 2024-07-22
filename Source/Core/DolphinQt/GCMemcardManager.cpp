@@ -61,7 +61,7 @@ constexpr int COLUMN_COUNT = 5;
 
 namespace
 {
-Slot OtherSlot(Slot slot)
+Slot OtherSlot(const Slot slot)
 {
   return slot == Slot::A ? Slot::B : Slot::A;
 }
@@ -235,7 +235,7 @@ void GCMemcardManager::LoadDefaultMemcards()
   }
 }
 
-void GCMemcardManager::SetActiveSlot(Slot slot)
+void GCMemcardManager::SetActiveSlot(const Slot slot)
 {
   for (Slot slot2 : MEMCARD_SLOTS)
     m_slot_table[slot2]->setEnabled(slot2 == slot);
@@ -331,7 +331,7 @@ void GCMemcardManager::UpdateActions()
   m_fix_checksums_button->setEnabled(have_memcard);
 }
 
-void GCMemcardManager::SetSlotFile(Slot slot, QString path)
+void GCMemcardManager::SetSlotFile(const Slot slot, const QString& path)
 {
   auto [error_code, memcard] = Memcard::GCMemcard::Open(path.toStdString());
 
@@ -352,7 +352,7 @@ void GCMemcardManager::SetSlotFile(Slot slot, QString path)
   UpdateActions();
 }
 
-void GCMemcardManager::SetSlotFileInteractive(Slot slot)
+void GCMemcardManager::SetSlotFileInteractive(const Slot slot)
 {
   QString path = QDir::toNativeSeparators(
       DolphinFileDialog::getOpenFileName(this,
@@ -391,7 +391,7 @@ std::vector<u8> GCMemcardManager::GetSelectedFileIndices()
   return selected_indices;
 }
 
-static QString GetFormatDescription(Memcard::SavefileFormat format)
+static QString GetFormatDescription(const Memcard::SavefileFormat format)
 {
   switch (format)
   {
@@ -503,7 +503,8 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
   }
 }
 
-void GCMemcardManager::ImportFiles(Slot slot, std::span<const Memcard::Savefile> savefiles)
+void GCMemcardManager::ImportFiles(const Slot slot,
+                                   const std::span<const Memcard::Savefile> savefiles)
 {
   auto& card = m_slot_memcard[slot];
   if (!card)
@@ -601,7 +602,7 @@ void GCMemcardManager::ImportFile()
     auto read_result = Memcard::ReadSavefile(path.toStdString());
     std::visit(overloaded{
                    [&](Memcard::Savefile savefile) { savefiles.emplace_back(std::move(savefile)); },
-                   [&](Memcard::ReadSavefileErrorCode error_code) {
+                   [&](const Memcard::ReadSavefileErrorCode error_code) {
                      errors.push_back(
                          tr("%1: %2").arg(path, GetErrorMessageForErrorCode(error_code)));
                    },
@@ -693,7 +694,7 @@ void GCMemcardManager::FixChecksums()
   }
 }
 
-void GCMemcardManager::CreateNewCard(Slot slot)
+void GCMemcardManager::CreateNewCard(const Slot slot)
 {
   GCMemcardCreateNewDialog dialog(this);
   SetQWidgetWindowDecorations(&dialog);
@@ -754,7 +755,7 @@ void GCMemcardManager::DrawIcons()
   ++m_current_frame;
 }
 
-QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, Slot slot)
+QPixmap GCMemcardManager::GetBannerFromSaveFile(const int file_index, const Slot slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
@@ -770,7 +771,7 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, Slot slot)
   return QPixmap::fromImage(image);
 }
 
-GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int file_index, Slot slot)
+GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(const int file_index, const Slot slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
@@ -855,7 +856,7 @@ QString GCMemcardManager::GetErrorMessagesForErrorCode(const Memcard::GCMemcardE
   return sl.join(QLatin1Char{'\n'});
 }
 
-QString GCMemcardManager::GetErrorMessageForErrorCode(Memcard::ReadSavefileErrorCode code)
+QString GCMemcardManager::GetErrorMessageForErrorCode(const Memcard::ReadSavefileErrorCode code)
 {
   switch (code)
   {

@@ -85,7 +85,7 @@ void GeneralPane::CreateLayout()
   setLayout(m_main_layout);
 }
 
-void GeneralPane::OnEmulationStateChanged(Core::State state) const
+void GeneralPane::OnEmulationStateChanged(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
   const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
@@ -283,7 +283,7 @@ void GeneralPane::LoadConfig()
     SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
-static QString UpdateTrackFromIndex(int index)
+static QString UpdateTrackFromIndex(const int index)
 {
   QString value;
 
@@ -303,7 +303,7 @@ static QString UpdateTrackFromIndex(int index)
   return value;
 }
 
-static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
+static DiscIO::Region UpdateFallbackRegionFromIndex(const int index)
 {
   DiscIO::Region value = DiscIO::Region::Unknown;
 

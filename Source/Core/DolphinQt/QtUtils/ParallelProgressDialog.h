@@ -38,11 +38,11 @@ public:
   void Reset() { emit ResetSignal(); }
   void SetCancelButtonText(const QString& text) { emit SetCancelButtonTextSignal(text); }
   void SetLabelText(const QString& text) { emit SetLabelTextSignal(text); }
-  void SetMaximum(int maximum) { emit SetMaximumSignal(maximum); }
-  void SetMinimum(int minimum) { emit SetMinimumSignal(minimum); }
-  void SetMinimumDuration(int ms) { emit SetMinimumDurationSignal(ms); }
-  void SetRange(int minimum, int maximum) { emit SetRangeSignal(minimum, maximum); }
-  void SetValue(int progress) { emit SetValueSignal(progress); }
+  void SetMaximum(const int maximum) { emit SetMaximumSignal(maximum); }
+  void SetMinimum(const int minimum) { emit SetMinimumSignal(minimum); }
+  void SetMinimumDuration(const int ms) { emit SetMinimumDurationSignal(ms); }
+  void SetRange(const int minimum, const int maximum) { emit SetRangeSignal(minimum, maximum); }
+  void SetValue(const int progress) { emit SetValueSignal(progress); }
 
   // Can be called from any thread
   bool WasCanceled() const { return m_was_cancelled.IsSet(); }
@@ -64,7 +64,7 @@ signals:
 private slots:
   void OnCancelled() { m_was_cancelled.Set(); }
 
-  void SetValueSlot(int progress)
+  void SetValueSlot(const int progress)
   {
     // Normally we would've been able to just call setValue instead of having this wrapper
     // around it, but due to the https://bugreports.qt.io/browse/QTBUG-10561 stack overflow,

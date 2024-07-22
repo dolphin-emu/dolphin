@@ -219,7 +219,7 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_connect_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
   // Host widget
   connect(m_host_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
-  connect(m_host_games, &QListWidget::currentRowChanged, [this](int index) {
+  connect(m_host_games, &QListWidget::currentRowChanged, [this](const int index) {
     Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"),
                                       m_host_games->item(index)->text());
   });
@@ -227,8 +227,8 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_games, &QListWidget::itemDoubleClicked, this, &NetPlaySetupDialog::accept);
 
   connect(m_host_force_port_check, &QCheckBox::toggled,
-          [this](bool value) { m_host_force_port_box->setEnabled(value); });
-  connect(m_host_chunked_upload_limit_check, &QCheckBox::toggled, this, [this](bool value) {
+          [this](const bool value) { m_host_force_port_box->setEnabled(value); });
+  connect(m_host_chunked_upload_limit_check, &QCheckBox::toggled, this, [this](const bool value) {
     m_host_chunked_upload_limit_box->setEnabled(value);
     SaveSettings();
   });
@@ -251,7 +251,7 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_reset_traversal_button, &QPushButton::clicked, this,
           &NetPlaySetupDialog::ResetTraversalHost);
-  connect(m_host_server_browser, &QCheckBox::toggled, this, [this](bool value) {
+  connect(m_host_server_browser, &QCheckBox::toggled, this, [this](const bool value) {
     m_host_server_region->setEnabled(value);
     m_host_server_name->setEnabled(value);
     m_host_server_password->setEnabled(value);
@@ -290,7 +290,7 @@ void NetPlaySetupDialog::SaveSettings() const
                            m_host_server_password->text().toStdString());
 }
 
-void NetPlaySetupDialog::OnConnectionTypeChanged(int index) const
+void NetPlaySetupDialog::OnConnectionTypeChanged(const int index) const
 {
   m_connect_port_box->setHidden(index != 0);
   m_connect_port_label->setHidden(index != 0);

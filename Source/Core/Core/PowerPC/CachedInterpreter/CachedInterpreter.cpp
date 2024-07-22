@@ -229,12 +229,12 @@ void CachedInterpreter::ResetFreeMemoryRanges()
   m_free_ranges.insert(region, region + region_size);
 }
 
-void CachedInterpreter::Jit(u32 em_address)
+void CachedInterpreter::Jit(const u32 em_address)
 {
   Jit(em_address, true);
 }
 
-void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
+void CachedInterpreter::Jit(const u32 em_address, const bool clear_cache_and_retry_on_failure)
 {
   if (IsAlmostFull() || SConfig::GetInstance().bJITNoBlockCache)
   {

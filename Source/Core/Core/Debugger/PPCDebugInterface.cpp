@@ -503,7 +503,7 @@ void PPCDebugInterface::SetPC(const u32 address)
   m_system.GetPPCState().pc = address;
 }
 
-void PPCDebugInterface::RunTo(u32 address)
+void PPCDebugInterface::RunTo(const u32 address)
 {
   auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
   breakpoints.SetTemporary(address);

@@ -48,7 +48,7 @@ VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(st
   OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 }
 
-void VerifyWidget::OnEmulationStateChanged(Core::State state) const
+void VerifyWidget::OnEmulationStateChanged(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -102,7 +102,7 @@ void VerifyWidget::CreateWidgets()
   m_verify_button = new QPushButton(tr("Verify Integrity"), this);
 }
 
-std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout, QString text)
+std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout, const QString& text)
 {
   QLineEdit* line_edit = new QLineEdit(this);
   line_edit->setReadOnly(true);
@@ -224,7 +224,7 @@ void VerifyWidget::Verify()
     m_redump_line_edit->setText(QString::fromStdString(result->redump.message));
 }
 
-void VerifyWidget::SetProblemCellText(int row, int column, QString text) const
+void VerifyWidget::SetProblemCellText(const int row, const int column, const QString& text) const
 {
   QLabel* label = new QLabel(text);
   label->setTextInteractionFlags(Qt::TextSelectableByMouse);

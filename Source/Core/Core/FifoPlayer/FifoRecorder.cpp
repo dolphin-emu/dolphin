@@ -31,13 +31,13 @@ public:
   }
 
   OPCODE_CALLBACK(void OnXF(u16 address, u8 count, const u8* data)) {}
-  OPCODE_CALLBACK(void OnCP(u8 command, u32 value)) { GetCPState().LoadCPReg(command, value); }
+  OPCODE_CALLBACK(void OnCP(const u8 command, const u32 value)) { GetCPState().LoadCPReg(command, value); }
   OPCODE_CALLBACK(void OnBP(u8 command, u32 value)) {}
   OPCODE_CALLBACK(void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size));
   OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
                                           u32 vertex_size, u16 num_vertices,
                                           const u8* vertex_data));
-  OPCODE_CALLBACK(void OnDisplayList(u32 address, u32 size))
+  OPCODE_CALLBACK(void OnDisplayList(const u32 address, const u32 size))
   {
     WARN_LOG_FMT(VIDEO,
                  "Unhandled display list call {:08x} {:08x}; should have been inlined earlier",
@@ -50,7 +50,7 @@ public:
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
 
-  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  OPCODE_CALLBACK(u32 GetVertexSize(const u8 vat))
   {
     return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
   }

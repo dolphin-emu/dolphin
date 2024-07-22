@@ -78,7 +78,7 @@ void Host::SetMainWindowHandle(void* handle)
   m_main_window_handle = handle;
 }
 
-static void RunWithGPUThreadInactive(std::function<void()> f)
+static void RunWithGPUThreadInactive(const std::function<void()>& f)
 {
   // Potentially any thread which shows panic alerts can be blocked on this returning.
   // This means that, in order to avoid deadlocks, we need to be careful with how we
@@ -148,7 +148,7 @@ void Host::SetRenderFocus(bool focus)
   }
 }
 
-void Host::SetRenderFullFocus(bool focus)
+void Host::SetRenderFullFocus(const bool focus)
 {
   m_render_full_focus = focus;
 }
@@ -204,7 +204,7 @@ std::vector<std::string> Host_GetPreferredLocales()
   return converted_languages;
 }
 
-void Host_Message(HostMessageID id)
+void Host_Message(const HostMessageID id)
 {
   if (id == HostMessageID::WMUserStop)
   {
@@ -268,7 +268,7 @@ void Host_UpdateMainFrame()
 {
 }
 
-void Host_RequestRenderWindowSize(int w, int h)
+void Host_RequestRenderWindowSize(const int w, const int h)
 {
   emit Host::GetInstance()->RequestRenderSize(w, h);
 }

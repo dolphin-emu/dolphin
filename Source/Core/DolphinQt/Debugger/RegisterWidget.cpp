@@ -47,9 +47,9 @@ RegisterWidget::RegisterWidget(QWidget* parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &RegisterWidget::Update);
 
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsRegistersVisible());
   });
 }
@@ -324,17 +324,17 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 0, RegisterType::gpr, "r" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().gpr[i]; },
-        [this, i](u64 value) { m_system.GetPPCState().gpr[i] = value; });
+        [this, i](const u64 value) { m_system.GetPPCState().gpr[i] = value; });
 
     // Floating point registers (double)
     AddRegister(
         i, 2, RegisterType::fpr, "f" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().ps[i].PS0AsU64(); },
-        [this, i](u64 value) { m_system.GetPPCState().ps[i].SetPS0(value); });
+        [this, i](const u64 value) { m_system.GetPPCState().ps[i].SetPS0(value); });
 
     AddRegister(
         i, 4, RegisterType::fpr, "", [this, i] { return m_system.GetPPCState().ps[i].PS1AsU64(); },
-        [this, i](u64 value) { m_system.GetPPCState().ps[i].SetPS1(value); });
+        [this, i](const u64 value) { m_system.GetPPCState().ps[i].SetPS1(value); });
   }
 
   // The IBAT and DBAT registers have a large gap between
@@ -390,16 +390,16 @@ void RegisterWidget::PopulateTable()
   // HID registers
   AddRegister(
       24, 7, RegisterType::hid, "HID0", [this] { return m_system.GetPPCState().spr[SPR_HID0]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID0] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID0] = static_cast<u32>(value); });
   AddRegister(
       25, 7, RegisterType::hid, "HID1", [this] { return m_system.GetPPCState().spr[SPR_HID1]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID1] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID1] = static_cast<u32>(value); });
   AddRegister(
       26, 7, RegisterType::hid, "HID2", [this] { return m_system.GetPPCState().spr[SPR_HID2]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID2] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID2] = static_cast<u32>(value); });
   AddRegister(
       27, 7, RegisterType::hid, "HID4", [this] { return m_system.GetPPCState().spr[SPR_HID4]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_HID4] = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_HID4] = static_cast<u32>(value); });
 
   for (int i = 0; i < 16; i++)
   {
@@ -407,7 +407,7 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 7, RegisterType::sr, "SR" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().sr[i]; },
-        [this, i](u64 value) { m_system.GetPPCState().sr[i] = value; });
+        [this, i](const u64 value) { m_system.GetPPCState().sr[i] = value; });
   }
 
   // Special registers
@@ -419,37 +419,37 @@ void RegisterWidget::PopulateTable()
   // PC
   AddRegister(
       17, 5, RegisterType::pc, "PC", [this] { return m_system.GetPPCState().pc; },
-      [this](u64 value) { m_system.GetPPCState().pc = value; });
+      [this](const u64 value) { m_system.GetPPCState().pc = value; });
 
   // LR
   AddRegister(
       18, 5, RegisterType::lr, "LR", [this] { return m_system.GetPPCState().spr[SPR_LR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_LR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_LR] = value; });
 
   // CTR
   AddRegister(
       19, 5, RegisterType::ctr, "CTR", [this] { return m_system.GetPPCState().spr[SPR_CTR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_CTR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_CTR] = value; });
 
   // CR
   AddRegister(
       20, 5, RegisterType::cr, "CR", [this] { return m_system.GetPPCState().cr.Get(); },
-      [this](u64 value) { m_system.GetPPCState().cr.Set(value); });
+      [this](const u64 value) { m_system.GetPPCState().cr.Set(value); });
 
   // XER
   AddRegister(
       21, 5, RegisterType::xer, "XER", [this] { return m_system.GetPPCState().GetXER().Hex; },
-      [this](u64 value) { m_system.GetPPCState().SetXER(UReg_XER(value)); });
+      [this](const u64 value) { m_system.GetPPCState().SetXER(UReg_XER(value)); });
 
   // FPSCR
   AddRegister(
       22, 5, RegisterType::fpscr, "FPSCR", [this] { return m_system.GetPPCState().fpscr.Hex; },
-      [this](u64 value) { m_system.GetPPCState().fpscr = static_cast<u32>(value); });
+      [this](const u64 value) { m_system.GetPPCState().fpscr = static_cast<u32>(value); });
 
   // MSR
   AddRegister(
       23, 5, RegisterType::msr, "MSR", [this] { return m_system.GetPPCState().msr.Hex; },
-      [this](u64 value) {
+      [this](const u64 value) {
         m_system.GetPPCState().msr.Hex = value;
         MSRUpdated(m_system.GetPPCState());
       });
@@ -457,16 +457,16 @@ void RegisterWidget::PopulateTable()
   // SRR 0-1
   AddRegister(
       24, 5, RegisterType::srr, "SRR0", [this] { return m_system.GetPPCState().spr[SPR_SRR0]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_SRR0] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_SRR0] = value; });
   AddRegister(
       25, 5, RegisterType::srr, "SRR1", [this] { return m_system.GetPPCState().spr[SPR_SRR1]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_SRR1] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_SRR1] = value; });
 
   // Exceptions
   AddRegister(
       26, 5, RegisterType::exceptions, "Exceptions",
       [this] { return m_system.GetPPCState().Exceptions; },
-      [this](u64 value) { m_system.GetPPCState().Exceptions = value; });
+      [this](const u64 value) { m_system.GetPPCState().Exceptions = value; });
 
   // Int Mask
   AddRegister(
@@ -481,11 +481,11 @@ void RegisterWidget::PopulateTable()
   // DSISR
   AddRegister(
       29, 5, RegisterType::dsisr, "DSISR", [this] { return m_system.GetPPCState().spr[SPR_DSISR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_DSISR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_DSISR] = value; });
   // DAR
   AddRegister(
       30, 5, RegisterType::dar, "DAR", [this] { return m_system.GetPPCState().spr[SPR_DAR]; },
-      [this](u64 value) { m_system.GetPPCState().spr[SPR_DAR] = value; });
+      [this](const u64 value) { m_system.GetPPCState().spr[SPR_DAR] = value; });
 
   // Hash Mask
   AddRegister(
@@ -500,7 +500,7 @@ void RegisterWidget::PopulateTable()
   m_table->resizeColumnsToContents();
 }
 
-void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::string register_name,
+void RegisterWidget::AddRegister(const int row, const int column, const RegisterType type, const std::string& register_name,
                                  std::function<u64()> get_reg, std::function<void(u64)> set_reg)
 {
   auto* value = new RegisterColumn(type, std::move(get_reg), std::move(set_reg));

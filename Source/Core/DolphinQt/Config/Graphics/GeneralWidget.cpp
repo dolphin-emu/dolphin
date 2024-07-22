@@ -41,7 +41,7 @@ GeneralWidget::GeneralWidget(const GraphicsWindow* parent)
   emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
   OnEmulationStateChanged(GetState(Core::System::GetInstance()) !=
@@ -151,12 +151,12 @@ void GeneralWidget::ConnectWidgets()
 {
   // Video Backend
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &GeneralWidget::SaveSettings);
-  connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](int index) {
+  connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](const int index) {
     g_Config.iAdapter = index;
     SetBaseOrCurrent(Config::GFX_ADAPTER, index);
     emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
   });
-  connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
+  connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](const int index) {
     const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
                                         (index == static_cast<int>(AspectMode::CustomStretch));
     m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
@@ -217,7 +217,7 @@ void GeneralWidget::SaveSettings()
   emit BackendChanged(QString::fromStdString(current_backend));
 }
 
-void GeneralWidget::OnEmulationStateChanged(bool running)
+void GeneralWidget::OnEmulationStateChanged(const bool running)
 {
   m_backend_combo->setEnabled(!running);
   m_render_main_window->setEnabled(!running);

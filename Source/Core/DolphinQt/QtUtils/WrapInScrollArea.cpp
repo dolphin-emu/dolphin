@@ -10,8 +10,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, int margin_width,
-                          int margin_height)
+QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, const int margin_width,
+                          const int margin_height)
 {
   auto* scroll = new QScrollArea;
   scroll->setWidget(wrapped_widget);

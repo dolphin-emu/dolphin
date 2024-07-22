@@ -129,7 +129,7 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
 
   using ciface::ExpressionParser::TokenType;
 
-  const auto set_block_format = [this](int start, int count, const QTextCharFormat& format) {
+  const auto set_block_format = [this](const int start, int count, const QTextCharFormat& format) {
     if (start + count <= currentBlock().position() ||
         start >= currentBlock().position() + currentBlock().length())
     {
@@ -361,7 +361,7 @@ void IOWindow::CreateMainLayout()
     m_option_list->setColumnWidth(1, 64);
     m_option_list->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
 
-    m_option_list->setItemDelegate(new InputStateDelegate(this, 1, [&](int row) {
+    m_option_list->setItemDelegate(new InputStateDelegate(this, 1, [&](const int row) {
       std::lock_guard lock(m_selected_device_mutex);
       // Clamp off negative values but allow greater than one in the text display.
       return std::max(GetSelectedDevice()->Inputs()[row]->GetState(), 0.0);
@@ -463,7 +463,7 @@ void IOWindow::ConnectWidgets()
   connect(m_expression_text, &QPlainTextEdit::textChanged,
           [this] { UpdateExpression(m_expression_text->toPlainText().toStdString()); });
 
-  connect(m_variables_combo, &QComboBox::activated, [this](int index) {
+  connect(m_variables_combo, &QComboBox::activated, [this](const int index) {
     if (index == 0)
       return;
 
@@ -481,7 +481,7 @@ void IOWindow::ConnectWidgets()
     m_variables_combo->setCurrentIndex(0);
   });
 
-  connect(m_operators_combo, &QComboBox::activated, [this](int index) {
+  connect(m_operators_combo, &QComboBox::activated, [this](const int index) {
     if (index == 0)
       return;
 
@@ -490,7 +490,7 @@ void IOWindow::ConnectWidgets()
     m_operators_combo->setCurrentIndex(0);
   });
 
-  connect(m_functions_combo, &QComboBox::activated, [this](int index) {
+  connect(m_functions_combo, &QComboBox::activated, [this](const int index) {
     if (index == 0)
       return;
 
@@ -567,7 +567,7 @@ void IOWindow::OnTestButtonPressed() const
   MappingCommon::TestOutput(m_test_button, static_cast<OutputReference*>(m_reference));
 }
 
-void IOWindow::OnRangeChanged(int value) const
+void IOWindow::OnRangeChanged(const int value) const
 {
   m_reference->range = value / 100.0;
 }
@@ -668,7 +668,7 @@ void IOWindow::UpdateDeviceList()
   OnDeviceChanged();
 }
 
-void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode) const
+void IOWindow::UpdateExpression(std::string new_expression, const UpdateMode mode) const
 {
   const auto lock = m_controller->GetStateLock();
   if (mode != UpdateMode::Force && new_expression == m_reference->GetExpression())
@@ -710,7 +710,7 @@ void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode) con
   }
 }
 
-InputStateDelegate::InputStateDelegate(IOWindow* parent, int column,
+InputStateDelegate::InputStateDelegate(IOWindow* parent, const int column,
                                        std::function<ControlState(int row)> state_evaluator)
     : QItemDelegate(parent), m_state_evaluator(std::move(state_evaluator)), m_column(column)
 {
@@ -721,7 +721,7 @@ InputStateLineEdit::InputStateLineEdit(std::function<ControlState()> state_evalu
 {
 }
 
-static void PaintStateIndicator(QPainter& painter, const QRect& region, ControlState state)
+static void PaintStateIndicator(QPainter& painter, const QRect& region, const ControlState state)
 {
   const QString state_string = QString::number(state, 'g', 4);
 
@@ -758,7 +758,7 @@ void InputStateDelegate::paint(QPainter* painter, const QStyleOptionViewItem& op
   painter->restore();
 }
 
-void InputStateLineEdit::SetShouldPaintStateIndicator(bool value)
+void InputStateLineEdit::SetShouldPaintStateIndicator(const bool value)
 {
   m_should_paint_state_indicator = value;
 }

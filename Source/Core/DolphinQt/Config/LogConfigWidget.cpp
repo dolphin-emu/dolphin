@@ -125,7 +125,7 @@ void LogConfigWidget::ConnectWidgets()
   connect(m_types_list, &QListWidget::itemChanged, this, &LogConfigWidget::SaveSettings);
 
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 }
 
 void LogConfigWidget::LoadSettings()

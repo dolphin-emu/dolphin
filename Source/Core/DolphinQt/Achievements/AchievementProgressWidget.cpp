@@ -37,7 +37,7 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   setLayout(layout);
 }
 
-void AchievementProgressWidget::UpdateData(bool clean_all)
+void AchievementProgressWidget::UpdateData(const bool clean_all)
 {
   if (clean_all)
   {

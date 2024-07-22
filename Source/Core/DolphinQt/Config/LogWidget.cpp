@@ -24,7 +24,7 @@ constexpr size_t MAX_LOG_LINES_TO_UPDATE = 200;
 constexpr size_t TIMESTAMP_LENGTH = 10;
 
 // A helper function to construct QString from std::string_view in one line
-static QString QStringFromStringView(std::string_view str)
+static QString QStringFromStringView(const std::string_view str)
 {
   return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
 }
@@ -43,7 +43,7 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
   ConnectWidgets();
 
   connect(m_timer, &QTimer::timeout, this, &LogWidget::UpdateLog);
-  connect(this, &QDockWidget::visibilityChanged, [this](bool visible) {
+  connect(this, &QDockWidget::visibilityChanged, [this](const bool visible) {
     if (visible)
       m_timer->start(UPDATE_LOG_DELAY);
     else

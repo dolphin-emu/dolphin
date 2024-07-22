@@ -11,7 +11,7 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigBool::ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
+ConfigBool::ConfigBool(const QString& label, const Config::Info<bool>& setting, const bool reverse)
     : ToolTipCheckBox(label), m_setting(setting), m_reverse(reverse)
 {
   connect(this, &QCheckBox::toggled, this, &ConfigBool::Update);

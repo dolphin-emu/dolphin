@@ -73,7 +73,7 @@ IPCReply ESDevice::OpenContent(const u32 uid, const IOCtlVRequest& request) cons
 
 IPCReply ESDevice::OpenActiveTitleContent(const u32 caller_uid, const IOCtlVRequest& request) const
 {
-  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](Ticks ticks) -> s32 {
+  return MakeIPCReply(IPC_OVERHEAD_TICKS, [&](const Ticks ticks) -> s32 {
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 

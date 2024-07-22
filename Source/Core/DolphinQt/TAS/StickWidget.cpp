@@ -13,7 +13,7 @@
 
 constexpr int PADDING = 1;
 
-StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y)
+StickWidget::StickWidget(QWidget* parent, const u16 max_x, const u16 max_y)
     : QWidget(parent), m_max_x(max_x), m_max_y(max_y)
 {
   setMouseTracking(false);
@@ -24,14 +24,14 @@ StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y)
   setMinimumSize(QSize(64, 64));
 }
 
-void StickWidget::SetX(u16 x)
+void StickWidget::SetX(const u16 x)
 {
   m_x = std::min(m_max_x, x);
 
   update();
 }
 
-void StickWidget::SetY(u16 y)
+void StickWidget::SetY(const u16 y)
 {
   m_y = std::min(m_max_y, y);
 

@@ -59,7 +59,7 @@
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"
 
-MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
+MappingWindow::MappingWindow(QWidget* parent, const Type type, const int port_num)
     : QDialog(parent), m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
@@ -388,7 +388,7 @@ void MappingWindow::OnGlobalDevicesChanged() const
   }
 }
 
-void MappingWindow::SetMappingType(Type type)
+void MappingWindow::SetMappingType(const Type type)
 {
   MappingWidget* widget;
 
@@ -555,7 +555,7 @@ void MappingWindow::OnClearFieldsPressed()
   emit Save();
 }
 
-void MappingWindow::ShowExtensionMotionTabs(bool show) const
+void MappingWindow::ShowExtensionMotionTabs(const bool show) const
 {
   if (show)
   {

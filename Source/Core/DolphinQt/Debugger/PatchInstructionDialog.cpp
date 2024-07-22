@@ -11,7 +11,7 @@
 
 #include "Common/GekkoDisassembler.h"
 
-PatchInstructionDialog::PatchInstructionDialog(QWidget* parent, u32 address, u32 value)
+PatchInstructionDialog::PatchInstructionDialog(QWidget* parent, const u32 address, const u32 value)
     : QDialog(parent), m_address(address)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

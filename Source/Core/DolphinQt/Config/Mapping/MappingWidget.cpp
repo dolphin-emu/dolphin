@@ -197,7 +197,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 }
 
 void MappingWidget::AddSettingWidgets(QFormLayout* layout, const ControllerEmu::ControlGroup* group,
-                                      ControllerEmu::SettingVisibility visibility)
+                                      const ControllerEmu::SettingVisibility visibility)
 {
   for (auto& setting : group->numeric_settings)
   {
@@ -287,7 +287,7 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
 }
 
 QGroupBox* MappingWidget::CreateControlsBox(const QString& name, const ControllerEmu::ControlGroup* group,
-                                            int columns)
+                                            const int columns)
 {
   auto* group_box = new QGroupBox(name);
   auto* hbox_layout = new QHBoxLayout();
@@ -310,7 +310,7 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, const Controlle
 }
 
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
-                                  bool indicator)
+                                  const bool indicator)
 {
   auto* button = new MappingButton(this, control->control_ref.get(), indicator);
 

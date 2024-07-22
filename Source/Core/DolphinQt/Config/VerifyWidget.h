@@ -33,13 +33,13 @@ public:
 private:
   void OnEmulationStateChanged(Core::State state) const;
   void CreateWidgets();
-  std::pair<QCheckBox*, QLineEdit*> AddHashLine(QFormLayout* layout, QString text);
+  std::pair<QCheckBox*, QLineEdit*> AddHashLine(QFormLayout* layout, const QString& text);
   void ConnectWidgets();
 
   bool CanVerifyRedump() const;
   void UpdateRedumpEnabled() const;
   void Verify();
-  void SetProblemCellText(int row, int column, QString text) const;
+  void SetProblemCellText(int row, int column, const QString& text) const;
 
   std::shared_ptr<DiscIO::Volume> m_volume;
   QTableWidget* m_problems;

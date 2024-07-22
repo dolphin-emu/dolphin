@@ -94,7 +94,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddHelpMenu();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [=, this](Core::State state) { OnEmulationStateChanged(state); });
+          [=, this](const Core::State state) { OnEmulationStateChanged(state); });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
           [this] { OnEmulationStateChanged(GetState(Core::System::GetInstance())); });
 
@@ -106,7 +106,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(this, &MenuBar::ReadOnlyModeChanged, this, &MenuBar::OnReadOnlyModeChanged);
 }
 
-void MenuBar::OnEmulationStateChanged(Core::State state)
+void MenuBar::OnEmulationStateChanged(const Core::State state)
 {
   bool running = state != Core::State::Uninitialized;
   bool playing = running && state != Core::State::Paused;
@@ -164,7 +164,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
 }
 
-void MenuBar::OnDebugModeToggled(bool enabled)
+void MenuBar::OnDebugModeToggled(const bool enabled)
 {
   // Options
   m_boot_to_pause->setVisible(enabled);
@@ -587,7 +587,7 @@ void MenuBar::AddOptionsMenu()
   m_boot_to_pause->setChecked(SConfig::GetInstance().bBootToPause);
 
   connect(m_boot_to_pause, &QAction::toggled, this,
-          [](bool enable) { SConfig::GetInstance().bBootToPause = enable; });
+          [](const bool enable) { SConfig::GetInstance().bBootToPause = enable; });
 
   m_reset_ignore_panic_handler = options_menu->addAction(tr("Reset Ignore Panic Handler"));
 
@@ -691,7 +691,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
     QAction* action = column_group->addAction(m_cols_menu->addAction(key));
     action->setCheckable(true);
     action->setChecked(Get(*config));
-    connect(action, &QAction::toggled, [this, config, key](bool value) {
+    connect(action, &QAction::toggled, [this, config, key](const bool value) {
       SetBase(*config, value);
       emit ColumnVisibilityToggled(key, value);
     });
@@ -716,7 +716,7 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
     QAction* action = platform_group->addAction(plat_menu->addAction(key));
     action->setCheckable(true);
     action->setChecked(Get(*config));
-    connect(action, &QAction::toggled, [this, config, key](bool value) {
+    connect(action, &QAction::toggled, [this, config, key](const bool value) {
       SetBase(*config, value);
       emit GameListPlatformVisibilityToggled(key, value);
     });
@@ -753,7 +753,7 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
     menu_item->setCheckable(true);
     menu_item->setChecked(Get(*config));
 
-    const auto set_visibility = [this, config, key, menu_item](bool visibility) {
+    const auto set_visibility = [this, config, key, menu_item](const bool visibility) {
       menu_item->setChecked(visibility);
       SetBase(*config, visibility);
       emit GameListRegionVisibilityToggled(key, visibility);
@@ -788,7 +788,7 @@ void MenuBar::AddMovieMenu()
   m_recording_read_only->setCheckable(true);
   m_recording_read_only->setChecked(Core::System::GetInstance().GetMovie().IsReadOnly());
   connect(m_recording_read_only, &QAction::toggled,
-          [](bool value) { Core::System::GetInstance().GetMovie().SetReadOnly(value); });
+          [](const bool value) { Core::System::GetInstance().GetMovie().SetReadOnly(value); });
 
   movie_menu->addAction(tr("TAS Input"), this, [this] { emit ShowTASInput(); });
 
@@ -798,30 +798,30 @@ void MenuBar::AddMovieMenu()
   pause_at_end->setCheckable(true);
   pause_at_end->setChecked(Get(Config::MAIN_MOVIE_PAUSE_MOVIE));
   connect(pause_at_end, &QAction::toggled,
-          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_PAUSE_MOVIE, value); });
+          [](const bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_PAUSE_MOVIE, value); });
 
   auto* rerecord_counter = movie_menu->addAction(tr("Show Rerecord Counter"));
   rerecord_counter->setCheckable(true);
   rerecord_counter->setChecked(Get(Config::MAIN_MOVIE_SHOW_RERECORD));
   connect(rerecord_counter, &QAction::toggled,
-          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RERECORD, value); });
+          [](const bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RERECORD, value); });
 
   auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
   lag_counter->setCheckable(true);
   lag_counter->setChecked(Get(Config::MAIN_SHOW_LAG));
   connect(lag_counter, &QAction::toggled,
-          [](bool value) { SetBaseOrCurrent(Config::MAIN_SHOW_LAG, value); });
+          [](const bool value) { SetBaseOrCurrent(Config::MAIN_SHOW_LAG, value); });
 
   auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
   frame_counter->setCheckable(true);
   frame_counter->setChecked(Get(Config::MAIN_SHOW_FRAME_COUNT));
   connect(frame_counter, &QAction::toggled,
-          [](bool value) { SetBaseOrCurrent(Config::MAIN_SHOW_FRAME_COUNT, value); });
+          [](const bool value) { SetBaseOrCurrent(Config::MAIN_SHOW_FRAME_COUNT, value); });
 
   auto* input_display = movie_menu->addAction(tr("Show Input Display"));
   input_display->setCheckable(true);
   input_display->setChecked(Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY));
-  connect(input_display, &QAction::toggled, [](bool value) {
+  connect(input_display, &QAction::toggled, [](const bool value) {
     SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY, value);
   });
 
@@ -829,7 +829,7 @@ void MenuBar::AddMovieMenu()
   system_clock->setCheckable(true);
   system_clock->setChecked(Get(Config::MAIN_MOVIE_SHOW_RTC));
   connect(system_clock, &QAction::toggled,
-          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RTC, value); });
+          [](const bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RTC, value); });
 
   movie_menu->addSeparator();
 
@@ -837,13 +837,13 @@ void MenuBar::AddMovieMenu()
   dump_frames->setCheckable(true);
   dump_frames->setChecked(Get(Config::MAIN_MOVIE_DUMP_FRAMES));
   connect(dump_frames, &QAction::toggled,
-          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, value); });
+          [](const bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, value); });
 
   auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
   dump_audio->setCheckable(true);
   dump_audio->setChecked(Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
-          [](bool value) { SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
+          [](const bool value) { SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
 }
 
 void MenuBar::AddJITMenu()
@@ -855,7 +855,7 @@ void MenuBar::AddJITMenu()
   m_jit_interpreter_core->setChecked(Get(Config::MAIN_CPU_CORE) ==
                                      PowerPC::CPUCore::Interpreter);
 
-  connect(m_jit_interpreter_core, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_interpreter_core, &QAction::toggled, [](const bool enabled) {
     Core::System::GetInstance().GetPowerPC().SetMode(enabled ? PowerPC::CoreMode::Interpreter :
                                                                PowerPC::CoreMode::JIT);
   });
@@ -865,7 +865,7 @@ void MenuBar::AddJITMenu()
   m_jit_block_linking = m_jit->addAction(tr("JIT Block Linking Off"));
   m_jit_block_linking->setCheckable(true);
   m_jit_block_linking->setChecked(SConfig::GetInstance().bJITNoBlockLinking);
-  connect(m_jit_block_linking, &QAction::toggled, [this](bool enabled) {
+  connect(m_jit_block_linking, &QAction::toggled, [this](const bool enabled) {
     SConfig::GetInstance().bJITNoBlockLinking = enabled;
     ClearCache();
   });
@@ -873,7 +873,7 @@ void MenuBar::AddJITMenu()
   m_jit_disable_cache = m_jit->addAction(tr("Disable JIT Cache"));
   m_jit_disable_cache->setCheckable(true);
   m_jit_disable_cache->setChecked(SConfig::GetInstance().bJITNoBlockCache);
-  connect(m_jit_disable_cache, &QAction::toggled, [this](bool enabled) {
+  connect(m_jit_disable_cache, &QAction::toggled, [this](const bool enabled) {
     SConfig::GetInstance().bJITNoBlockCache = enabled;
     ClearCache();
   });
@@ -882,19 +882,19 @@ void MenuBar::AddJITMenu()
   m_jit_disable_fastmem->setCheckable(true);
   m_jit_disable_fastmem->setChecked(!Get(Config::MAIN_FASTMEM));
   connect(m_jit_disable_fastmem, &QAction::toggled,
-          [](bool enabled) { SetBaseOrCurrent(Config::MAIN_FASTMEM, !enabled); });
+          [](const bool enabled) { SetBaseOrCurrent(Config::MAIN_FASTMEM, !enabled); });
 
   m_jit_disable_fastmem_arena = m_jit->addAction(tr("Disable Fastmem Arena"));
   m_jit_disable_fastmem_arena->setCheckable(true);
   m_jit_disable_fastmem_arena->setChecked(!Get(Config::MAIN_FASTMEM_ARENA));
   connect(m_jit_disable_fastmem_arena, &QAction::toggled,
-          [](bool enabled) { SetBaseOrCurrent(Config::MAIN_FASTMEM_ARENA, !enabled); });
+          [](const bool enabled) { SetBaseOrCurrent(Config::MAIN_FASTMEM_ARENA, !enabled); });
 
   m_jit_disable_large_entry_points_map = m_jit->addAction(tr("Disable Large Entry Points Map"));
   m_jit_disable_large_entry_points_map->setCheckable(true);
   m_jit_disable_large_entry_points_map->setChecked(
       !Get(Config::MAIN_LARGE_ENTRY_POINTS_MAP));
-  connect(m_jit_disable_large_entry_points_map, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_disable_large_entry_points_map, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_LARGE_ENTRY_POINTS_MAP, !enabled);
   });
 
@@ -912,7 +912,7 @@ void MenuBar::AddJITMenu()
   m_jit_profile_blocks = m_jit->addAction(tr("Enable JIT Block Profiling"));
   m_jit_profile_blocks->setCheckable(true);
   m_jit_profile_blocks->setChecked(Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
-  connect(m_jit_profile_blocks, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_profile_blocks, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING, enabled);
   });
   m_jit_write_cache_log_dump =
@@ -924,33 +924,33 @@ void MenuBar::AddJITMenu()
   m_jit_off->setCheckable(true);
   m_jit_off->setChecked(Get(Config::MAIN_DEBUG_JIT_OFF));
   connect(m_jit_off, &QAction::toggled,
-          [](bool enabled) { SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_OFF, enabled); });
+          [](const bool enabled) { SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_OFF, enabled); });
 
   m_jit_loadstore_off = m_jit->addAction(tr("JIT LoadStore Off"));
   m_jit_loadstore_off->setCheckable(true);
   m_jit_loadstore_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF));
-  connect(m_jit_loadstore_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_loadstore_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF, enabled);
   });
 
   m_jit_loadstore_lbzx_off = m_jit->addAction(tr("JIT LoadStore lbzx Off"));
   m_jit_loadstore_lbzx_off->setCheckable(true);
   m_jit_loadstore_lbzx_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF));
-  connect(m_jit_loadstore_lbzx_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_loadstore_lbzx_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF, enabled);
   });
 
   m_jit_loadstore_lxz_off = m_jit->addAction(tr("JIT LoadStore lXz Off"));
   m_jit_loadstore_lxz_off->setCheckable(true);
   m_jit_loadstore_lxz_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF));
-  connect(m_jit_loadstore_lxz_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_loadstore_lxz_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF, enabled);
   });
 
   m_jit_loadstore_lwz_off = m_jit->addAction(tr("JIT LoadStore lwz Off"));
   m_jit_loadstore_lwz_off->setCheckable(true);
   m_jit_loadstore_lwz_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF));
-  connect(m_jit_loadstore_lwz_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_loadstore_lwz_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF, enabled);
   });
 
@@ -958,56 +958,57 @@ void MenuBar::AddJITMenu()
   m_jit_loadstore_floating_off->setCheckable(true);
   m_jit_loadstore_floating_off->setChecked(
       Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF));
-  connect(m_jit_loadstore_floating_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_loadstore_floating_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF, enabled);
   });
 
   m_jit_loadstore_paired_off = m_jit->addAction(tr("JIT LoadStore Paired Off"));
   m_jit_loadstore_paired_off->setCheckable(true);
   m_jit_loadstore_paired_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF));
-  connect(m_jit_loadstore_paired_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_loadstore_paired_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF, enabled);
   });
 
   m_jit_floatingpoint_off = m_jit->addAction(tr("JIT FloatingPoint Off"));
   m_jit_floatingpoint_off->setCheckable(true);
   m_jit_floatingpoint_off->setChecked(Get(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF));
-  connect(m_jit_floatingpoint_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_floatingpoint_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF, enabled);
+
   });
 
   m_jit_integer_off = m_jit->addAction(tr("JIT Integer Off"));
   m_jit_integer_off->setCheckable(true);
   m_jit_integer_off->setChecked(Get(Config::MAIN_DEBUG_JIT_INTEGER_OFF));
-  connect(m_jit_integer_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_integer_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_INTEGER_OFF, enabled);
   });
 
   m_jit_paired_off = m_jit->addAction(tr("JIT Paired Off"));
   m_jit_paired_off->setCheckable(true);
   m_jit_paired_off->setChecked(Get(Config::MAIN_DEBUG_JIT_PAIRED_OFF));
-  connect(m_jit_paired_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_paired_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_PAIRED_OFF, enabled);
   });
 
   m_jit_systemregisters_off = m_jit->addAction(tr("JIT SystemRegisters Off"));
   m_jit_systemregisters_off->setCheckable(true);
   m_jit_systemregisters_off->setChecked(Get(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF));
-  connect(m_jit_systemregisters_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_systemregisters_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF, enabled);
   });
 
   m_jit_branch_off = m_jit->addAction(tr("JIT Branch Off"));
   m_jit_branch_off->setCheckable(true);
   m_jit_branch_off->setChecked(Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF));
-  connect(m_jit_branch_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_branch_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_BRANCH_OFF, enabled);
   });
 
   m_jit_register_cache_off = m_jit->addAction(tr("JIT Register Cache Off"));
   m_jit_register_cache_off->setCheckable(true);
   m_jit_register_cache_off->setChecked(Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF));
-  connect(m_jit_register_cache_off, &QAction::toggled, [](bool enabled) {
+  connect(m_jit_register_cache_off, &QAction::toggled, [](const bool enabled) {
     SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF, enabled);
   });
 }
@@ -1047,7 +1048,7 @@ void MenuBar::AddSymbolsMenu()
   m_symbols->addAction(tr("&Patch HLE Functions"), this, &MenuBar::PatchHLEFunctions);
 }
 
-void MenuBar::UpdateToolsMenu(bool emulation_started) const
+void MenuBar::UpdateToolsMenu(const bool emulation_started) const
 {
   m_boot_sysmenu->setEnabled(!emulation_started);
   m_perform_online_update_menu->setEnabled(!emulation_started);
@@ -1249,7 +1250,7 @@ void MenuBar::NANDExtractCertificates()
   }
 }
 
-void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file)
+void MenuBar::OnSelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file)
 {
   m_game_selected = !!game_file;
 
@@ -1260,7 +1261,7 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
                                 !system.GetMovie().IsPlayingInput());
 }
 
-void MenuBar::OnRecordingStatusChanged(bool recording) const
+void MenuBar::OnRecordingStatusChanged(const bool recording) const
 {
   auto& system = Core::System::GetInstance();
   m_recording_start->setEnabled(!recording && (m_game_selected || IsRunning(system)));
@@ -1268,7 +1269,7 @@ void MenuBar::OnRecordingStatusChanged(bool recording) const
   m_recording_export->setEnabled(recording);
 }
 
-void MenuBar::OnReadOnlyModeChanged(bool read_only) const
+void MenuBar::OnReadOnlyModeChanged(const bool read_only) const
 {
   m_recording_read_only->setChecked(read_only);
 }

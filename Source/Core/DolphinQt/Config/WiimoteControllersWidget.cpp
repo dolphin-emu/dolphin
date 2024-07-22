@@ -48,7 +48,7 @@ WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(pa
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
           [this] { LoadSettings(GetState(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { LoadSettings(state); });
+          [this](const Core::State state) { LoadSettings(state); });
   LoadSettings(GetState(Core::System::GetInstance()));
 }
 
@@ -245,7 +245,7 @@ void WiimoteControllersWidget::OnWiimoteRefreshPressed()
   WiimoteReal::Refresh();
 }
 
-void WiimoteControllersWidget::OnWiimoteConfigure(size_t index)
+void WiimoteControllersWidget::OnWiimoteConfigure(const size_t index)
 {
   MappingWindow::Type type;
   switch (m_wiimote_boxes[index]->currentIndex())
@@ -267,7 +267,7 @@ void WiimoteControllersWidget::OnWiimoteConfigure(size_t index)
   window->show();
 }
 
-void WiimoteControllersWidget::LoadSettings(Core::State state) const
+void WiimoteControllersWidget::LoadSettings(const Core::State state) const
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {

@@ -412,7 +412,7 @@ void MainWindow::ShutdownControllers() const
 
 void MainWindow::InitCoreCallbacks()
 {
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     if (state == Core::State::Uninitialized)
       OnStopComplete();
 
@@ -472,15 +472,15 @@ void MainWindow::CreateComponents()
   m_cheats_manager = new CheatsManager(Core::System::GetInstance(), this);
   m_assembler_widget = new AssemblerWidget(this);
 
-  const auto request_watch = [this](QString name, u32 addr) {
+  const auto request_watch = [this](const QString& name, const u32 addr) {
     m_watch_widget->AddWatch(name, addr);
   };
-  const auto request_breakpoint = [this](u32 addr) { m_breakpoint_widget->AddBP(addr); };
-  const auto request_memory_breakpoint = [this](u32 addr) {
+  const auto request_breakpoint = [this](const u32 addr) { m_breakpoint_widget->AddBP(addr); };
+  const auto request_memory_breakpoint = [this](const u32 addr) {
     m_breakpoint_widget->AddAddressMBP(addr);
   };
-  const auto request_view_in_memory = [this](u32 addr) { m_memory_widget->SetAddress(addr); };
-  const auto request_view_in_code = [this](u32 addr) {
+  const auto request_view_in_memory = [this](const u32 addr) { m_memory_widget->SetAddress(addr); };
+  const auto request_view_in_code = [this](const u32 addr) {
     m_code_widget->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   };
 
@@ -502,7 +502,7 @@ void MainWindow::CreateComponents()
   connect(m_code_widget, &CodeWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
-  connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](u32 address) {
+  connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](const u32 address) {
     m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
   connect(m_memory_widget, &MemoryWidget::RequestWatch, request_watch);
@@ -511,7 +511,7 @@ void MainWindow::CreateComponents()
           &CodeWidget::Update);
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
           &MemoryWidget::Update);
-  connect(m_breakpoint_widget, &BreakpointWidget::ShowCode, [this](u32 address) {
+  connect(m_breakpoint_widget, &BreakpointWidget::ShowCode, [this](const u32 address) {
     if (GetState(Core::System::GetInstance()) == Core::State::Paused)
       m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
@@ -722,7 +722,7 @@ void MainWindow::ConnectRenderWidget()
   m_rendering_to_main = false;
   m_render_widget->hide();
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-  connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
+  connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](const bool focus) {
     if (m_render_widget->isFullScreen())
       SetFullScreenResolution(focus);
   });
@@ -1083,13 +1083,13 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
   StartGame(paths, std::move(boot_session_data));
 }
 
-void MainWindow::StartGame(const QString& path, ScanForSecondDisc scan,
+void MainWindow::StartGame(const QString& path, const ScanForSecondDisc scan,
                            std::unique_ptr<BootSessionData> boot_session_data)
 {
   StartGame(path.toStdString(), scan, std::move(boot_session_data));
 }
 
-void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
+void MainWindow::StartGame(const std::string& path, const ScanForSecondDisc scan,
                            std::unique_ptr<BootSessionData> boot_session_data)
 {
   if (scan == ScanForSecondDisc::Yes)
@@ -1107,7 +1107,7 @@ void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
 }
 
 void MainWindow::StartGame(const std::vector<std::string>& paths,
-                           std::unique_ptr<BootSessionData> boot_session_data)
+                           const std::unique_ptr<BootSessionData>& boot_session_data)
 {
   StartGame(BootParameters::GenerateFromFile(
       paths, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
@@ -1211,7 +1211,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
+void MainWindow::HideRenderWidget(const bool reinit, const bool is_exit)
 {
   if (m_rendering_to_main)
   {
@@ -1240,7 +1240,7 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 
     m_render_widget->installEventFilter(this);
     connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-    connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
+    connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](const bool focus) {
       if (m_render_widget->isFullScreen())
         SetFullScreenResolution(focus);
     });
@@ -1450,17 +1450,17 @@ void MainWindow::StateSaveSlot() const
   State::Save(Core::System::GetInstance(), m_state_slot);
 }
 
-void MainWindow::StateLoadSlotAt(int slot)
+void MainWindow::StateLoadSlotAt(const int slot)
 {
   State::Load(Core::System::GetInstance(), slot);
 }
 
-void MainWindow::StateLoadLastSavedAt(int slot)
+void MainWindow::StateLoadLastSavedAt(const int slot)
 {
   State::LoadLastSaved(Core::System::GetInstance(), slot);
 }
 
-void MainWindow::StateSaveSlotAt(int slot)
+void MainWindow::StateSaveSlotAt(const int slot)
 {
   State::Save(Core::System::GetInstance(), slot);
 }
@@ -1480,7 +1480,7 @@ void MainWindow::StateSaveOldest()
   State::SaveFirstSaved(Core::System::GetInstance());
 }
 
-void MainWindow::SetStateSlot(int slot)
+void MainWindow::SetStateSlot(const int slot)
 {
   Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
@@ -1802,7 +1802,7 @@ bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr
 }
 #endif
 
-void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
+void MainWindow::OnBootGameCubeIPL(const DiscIO::Region region)
 {
   StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
 }
@@ -2002,7 +2002,7 @@ void MainWindow::ShowTASInput() const
   }
 }
 
-void MainWindow::OnConnectWiiRemote(int id)
+void MainWindow::OnConnectWiiRemote(const int id)
 {
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (const auto bt = WiiUtils::GetBluetoothEmuDevice())

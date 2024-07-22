@@ -46,7 +46,7 @@ WatchWidget::WatchWidget(QWidget* parent)
 
   ConnectWidgets();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     UpdateButtonsEnabled();
     if (state != Core::State::Starting)
       Update();
@@ -55,10 +55,10 @@ WatchWidget::WatchWidget(QWidget* parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &WatchWidget::Update);
 
   connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsWatchVisible()); });
+          [this](const bool enabled) { setHidden(!enabled || !Settings::Instance().IsWatchVisible()); });
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &WatchWidget::UpdateIcons);
   UpdateIcons();
@@ -229,7 +229,7 @@ void WatchWidget::Update()
   m_updating = false;
 }
 
-void WatchWidget::SetEmptyRow(int row) const
+void WatchWidget::SetEmptyRow(const int row) const
 {
   auto* label = new QTableWidgetItem;
   label->setData(Qt::UserRole, -1);
@@ -451,7 +451,7 @@ void WatchWidget::OnItemChanged(const QTableWidgetItem* item)
   }
 }
 
-void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address) const
+void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, const u32 address) const
 {
   const std::string memory_data_as_string = PowerPC::MMU::HostGetString(guard, address, 4);
 
@@ -490,14 +490,14 @@ void WatchWidget::DeleteSelectedWatches()
   Update();
 }
 
-void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, int row) const
+void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, const int row) const
 {
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
   debug_interface.UnsetPatch(guard, debug_interface.GetWatch(row).address);
   debug_interface.RemoveWatch(row);
 }
 
-void WatchWidget::DeleteWatchAndUpdate(int row)
+void WatchWidget::DeleteWatchAndUpdate(const int row)
 {
   {
     Core::CPUThreadGuard guard(m_system);
@@ -507,17 +507,17 @@ void WatchWidget::DeleteWatchAndUpdate(int row)
   Update();
 }
 
-void WatchWidget::AddWatchBreakpoint(int row)
+void WatchWidget::AddWatchBreakpoint(const int row)
 {
   emit RequestMemoryBreakpoint(m_system.GetPowerPC().GetDebugInterface().GetWatch(row).address);
 }
 
-void WatchWidget::ShowInMemory(int row)
+void WatchWidget::ShowInMemory(const int row)
 {
   emit ShowMemory(m_system.GetPowerPC().GetDebugInterface().GetWatch(row).address);
 }
 
-void WatchWidget::AddWatch(QString name, u32 addr)
+void WatchWidget::AddWatch(const QString& name, const u32 addr)
 {
   m_system.GetPowerPC().GetDebugInterface().SetWatch(addr, name.toStdString());
   Update();

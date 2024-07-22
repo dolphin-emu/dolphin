@@ -73,7 +73,7 @@ void HotkeyScheduler::Stop()
     m_thread.join();
 }
 
-static bool IsHotkey(int id, bool held = false)
+static bool IsHotkey(const int id, const bool held = false)
 {
   return HotkeyManagerEmu::IsPressed(id, held);
 }

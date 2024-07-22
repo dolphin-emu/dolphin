@@ -28,7 +28,7 @@
 
 #include "UICommon/GameFile.h"
 
-ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
+ARCodeWidget::ARCodeWidget(std::string game_id, const u16 game_revision, const bool restart_required)
     : m_game_id(std::move(game_id)), m_game_revision(game_revision),
       m_restart_required(restart_required)
 {

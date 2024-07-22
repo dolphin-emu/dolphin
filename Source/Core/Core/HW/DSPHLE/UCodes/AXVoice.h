@@ -409,7 +409,7 @@ s16 LowPassFilter(s16* samples, const u32 count, s16 yn1, const u16 a0, const u1
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
-void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, u16 count,
+void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, const u16 count,
                   const AXMixControl mctrl, const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
@@ -535,7 +535,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
 
     // We use ratio 0x55555 == (5 * 65536 + 21845) / 65536 == 5.3333 which
     // is the nearest we can get to 96/18
-    u32 curr_pos = ResampleAudio([&samples](u32 i) { return samples[i]; }, wm_samples, wm_count,
+    u32 curr_pos = ResampleAudio([&samples](const u32 i) { return samples[i]; }, wm_samples, wm_count,
                                  pb.remote_src.last_samples, pb.remote_src.cur_addr_frac, 0x55555,
                                  SRCTYPE_POLYPHASE, coeffs);
     pb.remote_src.cur_addr_frac = curr_pos & 0xFFFF;

@@ -9,8 +9,8 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
-                                     const Config::Info<float>& setting, float step)
+ConfigFloatSlider::ConfigFloatSlider(const float minimum, const float maximum,
+                                     const Config::Info<float>& setting, const float step)
     : ToolTipSlider(Qt::Horizontal), m_minimum(minimum), m_step(step), m_setting(setting)
 {
   const float range = maximum - minimum;
@@ -36,7 +36,7 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
   });
 }
 
-void ConfigFloatSlider::Update(int value) const
+void ConfigFloatSlider::Update(const int value) const
 {
   const float current_value = (m_step * value) + m_minimum;
   SetBaseOrCurrent(m_setting, current_value);

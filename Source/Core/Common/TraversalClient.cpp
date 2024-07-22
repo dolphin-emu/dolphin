@@ -440,8 +440,8 @@ static u16 g_OldServerPort;
 static u16 g_OldServerPortAlt;
 static u16 g_OldListenPort;
 
-bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 server_port_alt,
-                           u16 listen_port)
+bool EnsureTraversalClient(const std::string& server, const u16 server_port,
+                           const u16 server_port_alt, const u16 listen_port)
 {
   if (!g_MainNetHost || !g_TraversalClient || server != g_OldServer ||
       server_port != g_OldServerPort || server_port_alt != g_OldServerPortAlt ||

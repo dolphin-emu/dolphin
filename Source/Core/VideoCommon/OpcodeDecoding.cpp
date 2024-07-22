@@ -39,7 +39,7 @@ template <bool is_preprocess>
 class RunCallback final : public Callback
 {
 public:
-  OPCODE_CALLBACK(void OnXF(u16 address, u8 count, const u8* data))
+  OPCODE_CALLBACK(void OnXF(const u16 address, const u8 count, const u8* data))
   {
     m_cycles += 18 + 6 * count;
 
@@ -50,7 +50,7 @@ public:
       INCSTAT(g_stats.this_frame.num_xf_loads);
     }
   }
-  OPCODE_CALLBACK(void OnCP(u8 command, u32 value))
+  OPCODE_CALLBACK(void OnCP(const u8 command, const u32 value))
   {
     m_cycles += 12;
     const u8 sub_command = command & CP_COMMAND_MASK;
@@ -101,7 +101,7 @@ public:
     }
     GetCPState().LoadCPReg(command, value);
   }
-  OPCODE_CALLBACK(void OnBP(u8 command, u32 value))
+  OPCODE_CALLBACK(void OnBP(const u8 command, const u32 value))
   {
     m_cycles += 12;
 
@@ -115,7 +115,7 @@ public:
       INCSTAT(g_stats.this_frame.num_bp_loads);
     }
   }
-  OPCODE_CALLBACK(void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size))
+  OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address, const u8 size))
   {
     m_cycles += 6;
 
@@ -124,8 +124,8 @@ public:
     else
       LoadIndexedXF(array, index, address, size);
   }
-  OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
-                                          u32 vertex_size, u16 num_vertices, const u8* vertex_data))
+  OPCODE_CALLBACK(void OnPrimitiveCommand(const OpcodeDecoder::Primitive primitive, const u8 vat,
+                                          const u32 vertex_size, const u16 num_vertices, const u8* vertex_data))
   {
     // load vertices
     const u32 size = vertex_size * num_vertices;
@@ -141,7 +141,7 @@ public:
   // This can't be inlined since it calls Run, which makes it recursive
   // m_in_display_list prevents it from actually recursing infinitely, but there's no real benefit
   // to inlining Run for the display list directly.
-  OPCODE_CALLBACK_NOINLINE(void OnDisplayList(u32 address, u32 size))
+  OPCODE_CALLBACK_NOINLINE(void OnDisplayList(const u32 address, u32 size))
   {
     m_cycles += 6;
 
@@ -199,7 +199,7 @@ public:
       m_in_display_list = false;
     }
   }
-  OPCODE_CALLBACK(void OnNop(u32 count))
+  OPCODE_CALLBACK(void OnNop(const u32 count))
   {
     m_cycles += 6 * count;  // Hm, this means that we scan over nop streams pretty slowly...
   }
@@ -225,7 +225,7 @@ public:
     }
   }
 
-  OPCODE_CALLBACK(void OnCommand(const u8* data, u32 size))
+  OPCODE_CALLBACK(void OnCommand(const u8* data, const u32 size))
   {
     ASSERT(size >= 1);
     if constexpr (!is_preprocess)
@@ -247,7 +247,7 @@ public:
       return g_main_cp_state;
   }
 
-  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  OPCODE_CALLBACK(u32 GetVertexSize(const u8 vat))
   {
     VertexLoaderBase* loader = VertexLoaderManager::RefreshLoader<is_preprocess>(vat);
     return loader->m_vertex_size;

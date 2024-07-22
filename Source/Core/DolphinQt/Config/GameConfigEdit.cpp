@@ -21,7 +21,7 @@
 #include "DolphinQt/Config/GameConfigHighlighter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, bool read_only)
+GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, const bool read_only)
     : QWidget{parent}, m_path(std::move(path)), m_read_only(read_only)
 {
   CreateWidgets();

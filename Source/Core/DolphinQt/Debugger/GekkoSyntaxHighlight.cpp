@@ -31,7 +31,7 @@ public:
     HighlightCurToken(HighlightFormat::Mnemonic);
   }
 
-  void OnTerminal(Terminal type, const AssemblerToken& val) override
+  void OnTerminal(const Terminal type, const AssemblerToken& val) override
   {
     switch (type)
     {
@@ -87,7 +87,7 @@ public:
                               static_cast<int>(ha_tok.token_val.length()), HighlightFormat::HaLa);
   }
 
-  void OnLoaddr(std::string_view id) override { OnHiaddr(id); }
+  void OnLoaddr(const std::string_view id) override { OnHiaddr(id); }
 
   void OnOpenParen(ParenType type) override
   {
@@ -119,7 +119,7 @@ public:
     m_formatting.emplace_back(len, off, HighlightFormat::Symbol);
   }
 
-  void OnVarDecl(std::string_view name) override { OnLabelDecl(name); }
+  void OnVarDecl(const std::string_view name) override { OnLabelDecl(name); }
 
 private:
   std::vector<int> m_paren_stack;
@@ -179,15 +179,15 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
   }
 }
 
-GekkoSyntaxHighlight::GekkoSyntaxHighlight(QTextDocument* document, QTextCharFormat base_format,
-                                           bool dark_scheme)
+GekkoSyntaxHighlight::GekkoSyntaxHighlight(QTextDocument* document, const QTextCharFormat& base_format,
+                                           const bool dark_scheme)
     : QSyntaxHighlighter(document), m_base_format(base_format)
 {
   QPalette base_scheme;
   m_theme_idx = dark_scheme ? 1 : 0;
 }
 
-void GekkoSyntaxHighlight::HighlightSubstr(int start, int len, HighlightFormat format)
+void GekkoSyntaxHighlight::HighlightSubstr(const int start, const int len, const HighlightFormat format)
 {
   QTextCharFormat hl_format = m_base_format;
   const QColor DIRECTIVE_COLOR[2] = {QColor(0x9d, 0x00, 0x06),

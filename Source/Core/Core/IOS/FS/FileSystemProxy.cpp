@@ -214,7 +214,7 @@ std::optional<IPCReply> FSDevice::Close(const u32 fd)
   return MakeIPCReply([&](const Ticks t) { return m_core.Close(static_cast<u64>(fd), t); });
 }
 
-s32 FSCore::Close(const u64 fd, Ticks ticks)
+s32 FSCore::Close(const u64 fd, const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -331,7 +331,8 @@ std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
   });
 }
 
-s32 FSCore::Read(const u64 fd, u8* data, u32 size, const std::optional<u32> ipc_buffer_addr, Ticks ticks)
+s32 FSCore::Read(const u64 fd, u8* data, u32 size, const std::optional<u32> ipc_buffer_addr,
+                 const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -362,7 +363,8 @@ std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
   });
 }
 
-s32 FSCore::Write(const u64 fd, const u8* data, u32 size, const std::optional<u32> ipc_buffer_addr, Ticks ticks)
+s32 FSCore::Write(const u64 fd, const u8* data, u32 size, const std::optional<u32> ipc_buffer_addr,
+                  const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -390,7 +392,7 @@ std::optional<IPCReply> FSDevice::Seek(const SeekRequest& request)
   });
 }
 
-s32 FSCore::Seek(const u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
+s32 FSCore::Seek(const u64 fd, u32 offset, FS::SeekMode mode, const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -638,7 +640,7 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
-ResultCode FSCore::DeleteFile(const Uid uid, const Gid gid, const std::string& path, Ticks ticks) const
+ResultCode FSCore::DeleteFile(const Uid uid, const Gid gid, const std::string& path, const Ticks ticks) const
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -663,7 +665,7 @@ IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
 }
 
 ResultCode FSCore::RenameFile(const Uid uid, const Gid gid, const std::string& old_path,
-                              const std::string& new_path, Ticks ticks) const
+                              const std::string& new_path, const Ticks ticks) const
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -689,7 +691,7 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
 }
 
 ResultCode FSCore::CreateFile(const Uid uid, const Gid gid, const std::string& path,
-                              const FileAttribute attribute, const Modes modes, Ticks ticks) const
+                              const FileAttribute attribute, const Modes modes, const Ticks ticks) const
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
@@ -743,7 +745,7 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
   });
 }
 
-Result<FileStatus> FSCore::GetFileStatus(const u64 fd, Ticks ticks)
+Result<FileStatus> FSCore::GetFileStatus(const u64 fd, const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
   const auto& handle = m_fd_map[fd];

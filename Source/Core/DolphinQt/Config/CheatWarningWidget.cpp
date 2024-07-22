@@ -15,7 +15,7 @@
 
 #include "DolphinQt/Settings.h"
 
-CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_required,
+CheatWarningWidget::CheatWarningWidget(const std::string& game_id, const bool restart_required,
                                        QWidget* parent)
     : QWidget(parent), m_game_id(game_id), m_restart_required(restart_required)
 {
@@ -25,7 +25,7 @@ CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, this,
           [this] { Update(IsRunning(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { Update(state == Core::State::Running); });
+          [this](const Core::State state) { Update(state == Core::State::Running); });
 
   Update(IsRunning(Core::System::GetInstance()));
 }
@@ -56,7 +56,7 @@ void CheatWarningWidget::CreateWidgets()
   setLayout(layout);
 }
 
-void CheatWarningWidget::Update(bool running)
+void CheatWarningWidget::Update(const bool running)
 {
   bool hide_widget = true;
   bool hide_config_button = true;

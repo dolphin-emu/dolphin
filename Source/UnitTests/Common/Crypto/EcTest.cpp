@@ -24,8 +24,8 @@ TEST(ec, Sign)
                                             0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9}};
   const std::array<u8, 60> sig = Common::ec::Sign(PRIVATE_KEY.data(), HASH.data());
   // r and s must be non-null.
-  EXPECT_FALSE(std::all_of(sig.cbegin(), sig.cbegin() + 30, [](u8 b) { return b == 0; }));
-  EXPECT_FALSE(std::all_of(sig.cbegin() + 30, sig.cend(), [](u8 b) { return b == 0; }));
+  EXPECT_FALSE(std::all_of(sig.cbegin(), sig.cbegin() + 30, [](const u8 b) { return b == 0; }));
+  EXPECT_FALSE(std::all_of(sig.cbegin() + 30, sig.cend(), [](const u8 b) { return b == 0; }));
 }
 
 TEST(ec, PrivToPub)

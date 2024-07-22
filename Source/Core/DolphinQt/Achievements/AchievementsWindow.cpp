@@ -77,7 +77,7 @@ void AchievementsWindow::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
-void AchievementsWindow::UpdateData(AchievementManager::UpdatedItems updated_items)
+void AchievementsWindow::UpdateData(const AchievementManager::UpdatedItems& updated_items)
 {
   m_settings_widget->UpdateData();
   if (updated_items.all)

@@ -44,10 +44,10 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
       settings.value(QStringLiteral("jitwidget/asmsplitter")).toByteArray());
 
   connect(&Settings::Instance(), &Settings::JITVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
+          [this](const bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &JITWidget::Update);
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &JITWidget::Update);
@@ -121,7 +121,7 @@ void JITWidget::ConnectWidgets()
   connect(m_refresh_button, &QPushButton::clicked, this, &JITWidget::Update);
 }
 
-void JITWidget::Compare(u32 address)
+void JITWidget::Compare(const u32 address)
 {
   m_address = address;
 

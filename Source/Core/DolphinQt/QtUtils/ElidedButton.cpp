@@ -6,7 +6,7 @@
 #include <QStyleOptionButton>
 #include <QStylePainter>
 
-ElidedButton::ElidedButton(const QString& text, Qt::TextElideMode elide_mode)
+ElidedButton::ElidedButton(const QString& text, const Qt::TextElideMode elide_mode)
     : QPushButton(text, nullptr), m_elide_mode{elide_mode}
 {
 }
@@ -16,7 +16,7 @@ Qt::TextElideMode ElidedButton::elideMode() const
   return m_elide_mode;
 }
 
-void ElidedButton::setElideMode(Qt::TextElideMode elide_mode)
+void ElidedButton::setElideMode(const Qt::TextElideMode elide_mode)
 {
   if (elide_mode == m_elide_mode)
     return;

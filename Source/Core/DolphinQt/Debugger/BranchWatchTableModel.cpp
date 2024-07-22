@@ -15,7 +15,7 @@
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
-QVariant BranchWatchTableModel::data(const QModelIndex& index, int role) const
+QVariant BranchWatchTableModel::data(const QModelIndex& index, const int role) const
 {
   if (!index.isValid())
     return QVariant();
@@ -38,7 +38,7 @@ QVariant BranchWatchTableModel::data(const QModelIndex& index, int role) const
   return QVariant();
 }
 
-QVariant BranchWatchTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant BranchWatchTableModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
   if (orientation == Qt::Vertical || role != Qt::DisplayRole)
     return QVariant();
@@ -65,7 +65,7 @@ int BranchWatchTableModel::columnCount(const QModelIndex& parent) const
   return Column::NumberOfColumns;
 }
 
-bool BranchWatchTableModel::removeRows(int row, int count, const QModelIndex& parent)
+bool BranchWatchTableModel::removeRows(const int row, const int count, const QModelIndex& parent)
 {
   if (parent.isValid() || row < 0)
     return false;
@@ -200,7 +200,7 @@ void BranchWatchTableModel::SetInspected(const QModelIndex& index)
   }
 }
 
-void BranchWatchTableModel::SetOriginInspected(u32 origin_addr)
+void BranchWatchTableModel::SetOriginInspected(const u32 origin_addr)
 {
   using Inspection = Core::BranchWatchSelectionInspection;
   static const QList<int> roles = {Qt::FontRole, Qt::ForegroundRole};
@@ -216,7 +216,7 @@ void BranchWatchTableModel::SetOriginInspected(u32 origin_addr)
   }
 }
 
-void BranchWatchTableModel::SetDestinInspected(u32 destin_addr, bool nested)
+void BranchWatchTableModel::SetDestinInspected(const u32 destin_addr, const bool nested)
 {
   using Inspection = Core::BranchWatchSelectionInspection;
   static const QList<int> roles = {Qt::FontRole, Qt::ForegroundRole};
@@ -236,7 +236,7 @@ void BranchWatchTableModel::SetDestinInspected(u32 destin_addr, bool nested)
   SetSymbolInspected(destin_addr, true);
 }
 
-void BranchWatchTableModel::SetSymbolInspected(u32 symbol_addr, bool nested)
+void BranchWatchTableModel::SetSymbolInspected(const u32 symbol_addr, const bool nested)
 {
   using Inspection = Core::BranchWatchSelectionInspection;
   static const QList<int> roles = {Qt::FontRole, Qt::ForegroundRole};
@@ -286,7 +286,7 @@ static QVariant GetValidSymbolStringVariant(const QVariant& symbol_name_v)
   return QStringLiteral(" --- ");
 }
 
-static QString GetInstructionMnemonic(u32 hex)
+static QString GetInstructionMnemonic(const u32 hex)
 {
   const std::string disas = Common::GekkoDisassembler::Disassemble(hex, 0);
   const std::string::size_type split = disas.find('\t');

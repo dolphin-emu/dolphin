@@ -14,7 +14,7 @@
 
 #include "InputCommon/GCAdapter.h"
 
-GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(int port, QWidget* parent)
+GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(const int port, QWidget* parent)
     : QDialog(parent), m_port{port}
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

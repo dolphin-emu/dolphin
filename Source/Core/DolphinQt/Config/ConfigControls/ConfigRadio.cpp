@@ -9,7 +9,7 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigRadioInt::ConfigRadioInt(const QString& label, const Config::Info<int>& setting, int value)
+ConfigRadioInt::ConfigRadioInt(const QString& label, const Config::Info<int>& setting, const int value)
     : ToolTipRadioButton(label), m_setting(setting), m_value(value)
 {
   setChecked(Get(m_setting) == m_value);

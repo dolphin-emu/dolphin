@@ -51,7 +51,7 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
   m_game_tags = settings.value(QStringLiteral("gamelist/game_tags")).toMap();
 }
 
-QVariant GameListModel::data(const QModelIndex& index, int role) const
+QVariant GameListModel::data(const QModelIndex& index, const int role) const
 {
   if (!index.isValid())
     return QVariant();
@@ -203,7 +203,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   return QVariant();
 }
 
-QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant GameListModel::headerData(int section, const Qt::Orientation orientation, const int role) const
 {
   if (orientation == Qt::Vertical || role != Qt::DisplayRole)
     return QVariant();
@@ -254,7 +254,7 @@ int GameListModel::columnCount(const QModelIndex& parent) const
   return static_cast<int>(Column::Count);
 }
 
-bool GameListModel::ShouldDisplayGameListItem(int index) const
+bool GameListModel::ShouldDisplayGameListItem(const int index) const
 {
   const UICommon::GameFile& game = *m_games[index];
 
@@ -326,7 +326,7 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
   }
 }
 
-std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) const
+std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(const int index) const
 {
   return m_games[index];
 }
@@ -412,7 +412,7 @@ void GameListModel::SetSearchTerm(const QString& term)
   m_term = term;
 }
 
-void GameListModel::SetScale(float scale)
+void GameListModel::SetScale(const float scale)
 {
   m_scale = scale;
 }

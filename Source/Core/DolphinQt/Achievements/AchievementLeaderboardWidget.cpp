@@ -34,7 +34,7 @@ AchievementLeaderboardWidget::AchievementLeaderboardWidget(QWidget* parent) : QW
   setLayout(layout);
 }
 
-void AchievementLeaderboardWidget::UpdateData(bool clean_all)
+void AchievementLeaderboardWidget::UpdateData(const bool clean_all)
 {
   if (clean_all)
   {
@@ -103,7 +103,7 @@ void AchievementLeaderboardWidget::UpdateData(
   }
 }
 
-void AchievementLeaderboardWidget::UpdateRow(AchievementManager::AchievementId leaderboard_id)
+void AchievementLeaderboardWidget::UpdateRow(const AchievementManager::AchievementId leaderboard_id)
 {
   const auto leaderboard_itr = m_leaderboard_order.find(leaderboard_id);
   if (leaderboard_itr == m_leaderboard_order.end())

@@ -105,7 +105,7 @@ void InfinityBaseWindow::CreateMainWindow()
   setLayout(main_layout);
 }
 
-void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, FigureUIPosition slot)
+void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, const QString& name, FigureUIPosition slot)
 {
   auto* hbox_infinity = new QHBoxLayout();
 
@@ -139,7 +139,7 @@ void InfinityBaseWindow::ClearFigure(FigureUIPosition slot) const
   system.GetInfinityBase().RemoveFigure(slot);
 }
 
-void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
+void InfinityBaseWindow::LoadFigure(const FigureUIPosition slot)
 {
   const QString file_path =
       DolphinFileDialog::getOpenFileName(this, tr("Select Figure File"), s_last_figure_path,
@@ -154,7 +154,7 @@ void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
   LoadFigurePath(slot, file_path);
 }
 
-void InfinityBaseWindow::CreateFigure(FigureUIPosition slot)
+void InfinityBaseWindow::CreateFigure(const FigureUIPosition slot)
 {
   CreateFigureDialog create_dlg(this, slot);
   SetQWidgetWindowDecorations(&create_dlg);
@@ -193,7 +193,7 @@ void InfinityBaseWindow::LoadFigurePath(FigureUIPosition slot, const QString& pa
       system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file), slot)));
 }
 
-CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) : QDialog(parent)
+CreateFigureDialog::CreateFigureDialog(QWidget* parent, const FigureUIPosition slot) : QDialog(parent)
 {
   setWindowTitle(tr("Infinity Figure Creator"));
   setObjectName(QStringLiteral("infinity_creator"));
@@ -258,7 +258,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
 
   setLayout(layout);
 
-  connect(combo_figlist, &QComboBox::currentIndexChanged, [=](int index) {
+  connect(combo_figlist, &QComboBox::currentIndexChanged, [=](const int index) {
     const u32 char_info = combo_figlist->itemData(index).toUInt();
     if (char_info != 0xFFFFFFFF)
     {
@@ -325,13 +325,13 @@ QString CreateFigureDialog::GetFilePath() const
   return m_file_path;
 }
 
-void InfinityBaseWindow::EmulateBase(bool emulate) const
+void InfinityBaseWindow::EmulateBase(const bool emulate) const
 {
   SetBaseOrCurrent(Config::MAIN_EMULATE_INFINITY_BASE, emulate);
   m_group_figures->setVisible(emulate);
 }
 
-void InfinityBaseWindow::OnEmulationStateChanged(Core::State state) const
+void InfinityBaseWindow::OnEmulationStateChanged(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 

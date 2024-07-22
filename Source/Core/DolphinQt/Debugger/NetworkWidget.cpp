@@ -33,7 +33,7 @@
 
 namespace
 {
-QTableWidgetItem* GetSocketDomain(s32 host_fd)
+QTableWidgetItem* GetSocketDomain(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -55,7 +55,7 @@ QTableWidgetItem* GetSocketDomain(s32 host_fd)
   }
 }
 
-QTableWidgetItem* GetSocketType(s32 host_fd)
+QTableWidgetItem* GetSocketType(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -78,7 +78,7 @@ QTableWidgetItem* GetSocketType(s32 host_fd)
   }
 }
 
-QTableWidgetItem* GetSocketState(s32 host_fd)
+QTableWidgetItem* GetSocketState(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -97,7 +97,7 @@ QTableWidgetItem* GetSocketState(s32 host_fd)
   return new QTableWidgetItem(QTableWidget::tr("Unbound"));
 }
 
-static QTableWidgetItem* GetSocketBlocking(const IOS::HLE::WiiSockMan& socket_manager, s32 wii_fd)
+static QTableWidgetItem* GetSocketBlocking(const IOS::HLE::WiiSockMan& socket_manager, const s32 wii_fd)
 {
   if (socket_manager.GetHostSocket(wii_fd) < 0)
     return new QTableWidgetItem();
@@ -115,7 +115,7 @@ static QString GetAddressAndPort(const sockaddr_in& addr)
   return QStringLiteral("%1:%2").arg(QString::fromLatin1(addr_str)).arg(ntohs(addr.sin_port));
 }
 
-QTableWidgetItem* GetSocketName(s32 host_fd)
+QTableWidgetItem* GetSocketName(const s32 host_fd)
 {
   if (host_fd < 0)
     return new QTableWidgetItem();
@@ -165,9 +165,9 @@ NetworkWidget::NetworkWidget(QWidget* parent) : QDockWidget(parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &NetworkWidget::Update);
 
   connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsNetworkVisible());
   });
 }
@@ -209,22 +209,22 @@ void NetworkWidget::ConnectWidgets()
 {
   connect(m_dump_format_combo, &QComboBox::currentIndexChanged, this,
           &NetworkWidget::OnDumpFormatComboChanged);
-  connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](const int state) {
     SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
   });
-  connect(m_dump_ssl_write_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_ssl_write_checkbox, &QCheckBox::stateChanged, [](const int state) {
     SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
   });
-  connect(m_dump_root_ca_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_root_ca_checkbox, &QCheckBox::stateChanged, [](const int state) {
     SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
   });
-  connect(m_dump_peer_cert_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_peer_cert_checkbox, &QCheckBox::stateChanged, [](const int state) {
     SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
   });
-  connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](const int state) {
     SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
   });
-  connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](const int state) {
     SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
   });
   connect(m_open_dump_folder, &QPushButton::clicked, [] {

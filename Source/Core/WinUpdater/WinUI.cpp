@@ -260,7 +260,7 @@ bool IsTestMode()
   return std::getenv("DOLPHIN_UPDATE_SERVER_URL") != nullptr;
 }
 
-void LaunchApplication(std::string path)
+void LaunchApplication(const std::string path)
 {
   const auto wpath = UTF8ToWString(path);
   if (IsUserAnAdmin())

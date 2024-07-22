@@ -21,7 +21,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 
-GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
+GBATASInputWindow::GBATASInputWindow(QWidget* parent, const int controller_id)
     : TASInputWindow(parent), m_controller_id(controller_id)
 {
   setWindowTitle(tr("GBA TAS Input %1").arg(controller_id + 1));

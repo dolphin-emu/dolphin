@@ -44,9 +44,9 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &ThreadWidget::Update);
 
   connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsThreadsVisible());
   });
 }
@@ -269,7 +269,7 @@ void ThreadWidget::Update()
   if (emu_state != Core::State::Paused)
     return;
 
-  const auto format_hex = [](u32 value) {
+  const auto format_hex = [](const u32 value) {
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
   };
   const auto format_hex_from = [&format_hex](const Core::CPUThreadGuard& guard, u32 addr) {
@@ -277,7 +277,7 @@ void ThreadWidget::Update()
         PowerPC::MMU::HostIsRAMAddress(guard, addr) ? PowerPC::MMU::HostRead_U32(guard, addr) : 0;
     return format_hex(addr);
   };
-  const auto get_state = [](u16 thread_state) {
+  const auto get_state = [](const u16 thread_state) {
     QString state_name;
     switch (thread_state)
     {
@@ -298,10 +298,10 @@ void ThreadWidget::Update()
     }
     return QStringLiteral("%1 (%2)").arg(QString::number(thread_state), state_name);
   };
-  const auto get_priority = [](u16 base, u16 effective) {
+  const auto get_priority = [](const u16 base, const u16 effective) {
     return QStringLiteral("%1 (%2)").arg(QString::number(base), QString::number(effective));
   };
-  const auto get_stack = [](u32 end, u32 start) {
+  const auto get_stack = [](const u32 end, const u32 start) {
     return QStringLiteral("%1\n%2")
         .arg(end, 8, 16, QLatin1Char('0'))
         .arg(start, 8, 16, QLatin1Char('0'));
@@ -447,7 +447,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
   if (!context.gpr)
     return;
 
-  const auto format_hex = [](u32 value) {
+  const auto format_hex = [](const u32 value) {
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
   };
 
@@ -476,7 +476,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
   }
 }
 
-void ThreadWidget::OnSelectionChanged(int row) const
+void ThreadWidget::OnSelectionChanged(const int row) const
 {
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   Common::Debug::PartialContext context;

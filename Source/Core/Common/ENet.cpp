@@ -37,7 +37,7 @@ int ENET_CALLBACK InterceptCallback(const ENetHost* host, ENetEvent* event)
   return 0;
 }
 
-bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id)
+bool SendPacket(ENetPeer* socket, const sf::Packet& packet, const u8 channel_id)
 {
   if (!socket)
   {

@@ -25,7 +25,7 @@
 
 namespace WiiUpdate
 {
-static void ShowResult(QWidget* parent, WiiUtils::UpdateResult result)
+static void ShowResult(QWidget* parent, const WiiUtils::UpdateResult result)
 {
   switch (result)
   {

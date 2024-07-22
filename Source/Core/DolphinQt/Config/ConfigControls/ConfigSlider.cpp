@@ -9,7 +9,7 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
+ConfigSlider::ConfigSlider(const int minimum, const int maximum, const Config::Info<int>& setting, const int tick)
     : ToolTipSlider(Qt::Horizontal), m_setting(setting)
 {
   setMinimum(minimum);
@@ -30,7 +30,7 @@ ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& se
   });
 }
 
-void ConfigSlider::Update(int value) const
+void ConfigSlider::Update(const int value) const
 {
   SetBaseOrCurrent(m_setting, value);
 }

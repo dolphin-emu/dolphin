@@ -221,7 +221,7 @@ void MemoryViewWidget::UpdateFont(const QFont& font)
   CreateTable();
 }
 
-constexpr int GetTypeSize(MemoryViewWidget::Type type)
+constexpr int GetTypeSize(const MemoryViewWidget::Type type)
 {
   switch (type)
   {
@@ -247,7 +247,7 @@ constexpr int GetTypeSize(MemoryViewWidget::Type type)
   }
 }
 
-constexpr int GetCharacterCount(MemoryViewWidget::Type type)
+constexpr int GetCharacterCount(const MemoryViewWidget::Type type)
 {
   // Max number of characters +1 for spacing between columns.
   switch (type)
@@ -482,7 +482,7 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard) const
 }
 
 // May only be called if we have taken on the role of the CPU thread
-QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type) const
+QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, const u32 address, const Type type) const
 {
   const AddressSpace::Accessors* accessors = GetAccessors(m_address_space);
   if (!accessors->IsValidAddress(guard, address))
@@ -596,7 +596,7 @@ void MemoryViewWidget::UpdateBreakpointTags() const
   }
 }
 
-void MemoryViewWidget::SetAddressSpace(AddressSpace::Type address_space)
+void MemoryViewWidget::SetAddressSpace(const AddressSpace::Type address_space)
 {
   if (m_address_space == address_space)
   {
@@ -612,7 +612,7 @@ AddressSpace::Type MemoryViewWidget::GetAddressSpace() const
   return m_address_space;
 }
 
-std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView input_text) const
+std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStringView input_text) const
 {
   if (type == Type::Null)
     return {};
@@ -765,7 +765,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
   return {};
 }
 
-void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view)
+void MemoryViewWidget::SetDisplay(const Type type, const int bytes_per_row, const int alignment, const bool dual_view)
 {
   m_type = type;
   m_bytes_per_row = bytes_per_row;
@@ -778,12 +778,12 @@ void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment, b
   CreateTable();
 }
 
-void MemoryViewWidget::SetBPType(BPType type)
+void MemoryViewWidget::SetBPType(const BPType type)
 {
   m_bp_type = type;
 }
 
-void MemoryViewWidget::SetAddress(u32 address)
+void MemoryViewWidget::SetAddress(const u32 address)
 {
   m_address_highlight = address;
   if (m_address == address)
@@ -794,12 +794,12 @@ void MemoryViewWidget::SetAddress(u32 address)
   Update();
 }
 
-void MemoryViewWidget::SetBPLoggingEnabled(bool enabled)
+void MemoryViewWidget::SetBPLoggingEnabled(const bool enabled)
 {
   m_do_log = enabled;
 }
 
-void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
+void MemoryViewWidget::ToggleBreakpoint(const u32 addr, const bool row)
 {
   if (m_address_space != AddressSpace::Type::Effective)
     return;
@@ -844,12 +844,12 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
   Update();
 }
 
-void MemoryViewWidget::OnCopyAddress(u32 addr)
+void MemoryViewWidget::OnCopyAddress(const u32 addr)
 {
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 }
 
-void MemoryViewWidget::OnCopyHex(u32 addr) const
+void MemoryViewWidget::OnCopyHex(const u32 addr) const
 {
   const auto length = GetTypeSize(m_type);
 

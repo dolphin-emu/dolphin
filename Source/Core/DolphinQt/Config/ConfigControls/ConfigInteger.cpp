@@ -9,7 +9,8 @@
 
 #include "DolphinQt/Settings.h"
 
-ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting, int step)
+ConfigInteger::ConfigInteger(const int minimum, const int maximum, const Config::Info<int>& setting,
+                             const int step)
     : ToolTipSpinBox(), m_setting(setting)
 {
   setMinimum(minimum);
@@ -29,7 +30,7 @@ ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& 
   });
 }
 
-void ConfigInteger::Update(int value) const
+void ConfigInteger::Update(const int value) const
 {
   SetBaseOrCurrent(m_setting, value);
 }

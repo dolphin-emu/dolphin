@@ -52,7 +52,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setPalette(p);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
-  connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
+  connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](const int w, const int h) {
     if (!Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
       return;
 
@@ -61,7 +61,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
     resize(w / dpr, h / dpr);
   });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     if (state == Core::State::Running)
       SetPresenterKeyMap();
   });
@@ -182,7 +182,7 @@ void RenderWidget::UpdateCursor()
   }
 }
 
-void RenderWidget::OnKeepOnTopChanged(bool top)
+void RenderWidget::OnKeepOnTopChanged(const bool top)
 {
   const bool was_visible = isVisible();
 
@@ -220,7 +220,7 @@ void RenderWidget::showFullScreen()
 }
 
 // Lock the cursor within the window/widget internal borders, including the aspect ratio if wanted
-void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
+void RenderWidget::SetCursorLocked(const bool locked, const bool follow_aspect_ratio)
 {
   // It seems like QT doesn't scale the window frame correctly with some DPIs
   // so it might happen that the locked cursor can be on the frame of the window,
@@ -333,7 +333,7 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
   }
 }
 
-void RenderWidget::SetCursorLockedOnNextActivation(bool locked)
+void RenderWidget::SetCursorLockedOnNextActivation(const bool locked)
 {
   if (Settings::Instance().GetLockCursor())
   {
@@ -343,7 +343,7 @@ void RenderWidget::SetCursorLockedOnNextActivation(bool locked)
   m_lock_cursor_on_next_activation = false;
 }
 
-void RenderWidget::SetWaitingForMessageBox(bool waiting_for_message_box)
+void RenderWidget::SetWaitingForMessageBox(const bool waiting_for_message_box)
 {
   if (m_waiting_for_message_box == waiting_for_message_box)
   {

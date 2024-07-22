@@ -256,7 +256,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddBool(PostProcessingConfigWindow*
   m_checkbox = new QCheckBox();
   m_checkbox->setChecked(m_config_option->m_bool_value);
   connect(m_checkbox, &QCheckBox::toggled,
-                   [this, parent](bool checked) { parent->UpdateBool(this, checked); });
+                   [this, parent](const bool checked) { parent->UpdateBool(this, checked); });
   grid->addWidget(m_checkbox, row, 2);
 
   return row + 1;
@@ -287,7 +287,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddInteger(PostProcessingConfigWind
     slider->setValue(current_value);
     slider->setTickInterval(range / steps);
     connect(slider, &QSlider::valueChanged,
-                     [this, parent](int value) { parent->UpdateInteger(this, value); });
+                     [this, parent](const int value) { parent->UpdateInteger(this, value); });
 
     auto* const value_box = new QLineEdit(QString::number(m_config_option->m_integer_values[i]));
     value_box->setEnabled(false);
@@ -326,7 +326,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddFloat(PostProcessingConfigWindow
     slider->setValue(current_value);
     slider->setTickInterval(range / steps);
     connect(slider, &QSlider::valueChanged,
-                     [this, parent](int value) { parent->UpdateFloat(this, value); });
+                     [this, parent](const int value) { parent->UpdateFloat(this, value); });
 
     auto* const value_box =
         new QLineEdit(QString::asprintf("%f", m_config_option->m_float_values[i]));
@@ -370,12 +370,12 @@ int PostProcessingConfigWindow::ConfigGroup::GetCheckboxValue() const
   return m_checkbox->isChecked();
 }
 
-int PostProcessingConfigWindow::ConfigGroup::GetSliderValue(size_t index) const
+int PostProcessingConfigWindow::ConfigGroup::GetSliderValue(const size_t index) const
 {
   return m_sliders[index]->value();
 }
 
-void PostProcessingConfigWindow::ConfigGroup::SetSliderText(size_t index, const QString& text) const
+void PostProcessingConfigWindow::ConfigGroup::SetSliderText(const size_t index, const QString& text) const
 {
   m_value_boxes[index]->setText(text);
 }

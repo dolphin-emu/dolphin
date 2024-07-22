@@ -24,7 +24,7 @@ void AsmEditor::LineNumberArea::paintEvent(QPaintEvent* event)
   asm_editor->LineNumberAreaPaintEvent(event);
 }
 
-AsmEditor::AsmEditor(const QString& path, int editor_num, bool dark_scheme, QWidget* parent)
+AsmEditor::AsmEditor(const QString& path, const int editor_num, const bool dark_scheme, QWidget* parent)
     : QPlainTextEdit(parent), m_path(path), m_base_address(QStringLiteral("0")),
       m_editor_num(editor_num), m_dirty(false), m_dark_scheme(dark_scheme)
 {
@@ -132,7 +132,7 @@ bool AsmEditor::PathsMatch(const QString& path) const
   return std::filesystem::path(m_path.toStdString()) == std::filesystem::path(path.toStdString());
 }
 
-void AsmEditor::Zoom(int amount)
+void AsmEditor::Zoom(const int amount)
 {
   if (amount > 0)
   {
@@ -181,7 +181,7 @@ void AsmEditor::UpdateLineNumberAreaWidth(int)
   setViewportMargins(LineNumberAreaWidth(), 0, 0, 0);
 }
 
-void AsmEditor::UpdateLineNumberArea(const QRect& rect, int dy)
+void AsmEditor::UpdateLineNumberArea(const QRect& rect, const int dy)
 {
   if (dy != 0)
   {

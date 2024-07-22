@@ -67,7 +67,7 @@ public:
 
 protected:
   void DrawReshapableInput(ControllerEmu::ReshapableInput& group, QColor gate_color,
-                           std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
+                           const std::optional<ControllerEmu::ReshapableInput::ReshapeData>& adj_coord);
 
   virtual void DrawUnderGate(QPainter&) {}
 

@@ -34,7 +34,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   UpdateIcons();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { OnEmulationStateChanged(state); });
+          [this](const Core::State state) { OnEmulationStateChanged(state); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
           [this] { OnEmulationStateChanged(GetState(Core::System::GetInstance())); });
@@ -45,7 +45,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::SetToolBarVisible);
 
   connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
-          [this](bool locked) { setMovable(!locked); });
+          [this](const bool locked) { setMovable(!locked); });
 
   connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
           [this] { m_refresh_action->setEnabled(false); });
@@ -56,7 +56,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
 }
 
-void ToolBar::OnEmulationStateChanged(Core::State state)
+void ToolBar::OnEmulationStateChanged(const Core::State state)
 {
   bool running = state != Core::State::Uninitialized;
   m_stop_action->setEnabled(running);
@@ -79,7 +79,7 @@ void ToolBar::closeEvent(QCloseEvent*)
   Settings::Instance().SetToolBarVisible(false);
 }
 
-void ToolBar::OnDebugModeToggled(bool enabled) const
+void ToolBar::OnDebugModeToggled(const bool enabled) const
 {
   m_step_action->setVisible(enabled);
   m_step_over_action->setVisible(enabled);

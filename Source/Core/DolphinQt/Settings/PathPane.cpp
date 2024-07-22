@@ -155,7 +155,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   vlayout->addWidget(recursive_checkbox);
   vlayout->addWidget(auto_checkbox);
 
-  connect(recursive_checkbox, &QCheckBox::toggled, [](bool checked) {
+  connect(recursive_checkbox, &QCheckBox::toggled, [](const bool checked) {
     SetBase(Config::MAIN_RECURSIVE_ISO_PATHS, checked);
     Settings::Instance().RefreshGameList();
   });

@@ -253,7 +253,7 @@ const GraphicsModGroupConfig& GraphicsModListWidget::GetGraphicsModConfig() cons
   return m_mod_group;
 }
 
-void GraphicsModListWidget::CalculateGameRunning(Core::State state)
+void GraphicsModListWidget::CalculateGameRunning(const Core::State state)
 {
   m_loaded_game_is_running =
       state == Core::State::Running ? m_game_id == SConfig::GetInstance().GetGameID() : false;

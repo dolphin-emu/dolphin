@@ -613,7 +613,7 @@ struct Options
   std::optional<std::string> log_file;
 };
 
-std::optional<Options> ParseCommandLine(const std::vector<std::string>& args)
+std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
 {
   using optparse::OptionParser;
 

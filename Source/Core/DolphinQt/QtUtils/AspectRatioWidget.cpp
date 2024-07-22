@@ -9,7 +9,7 @@
 #include <QBoxLayout>
 #include <QResizeEvent>
 
-AspectRatioWidget::AspectRatioWidget(QWidget* widget, float width, float height, QWidget* parent)
+AspectRatioWidget::AspectRatioWidget(QWidget* widget, const float width, const float height, QWidget* parent)
     : QWidget(parent), m_ar_width(width), m_ar_height(height)
 {
   m_layout = new QBoxLayout(QBoxLayout::LeftToRight, this);

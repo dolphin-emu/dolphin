@@ -41,7 +41,7 @@
 
 using namespace WiimoteCommon;
 
-WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
+WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, const int num) : TASInputWindow(parent), m_num(num)
 {
   const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
   const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);

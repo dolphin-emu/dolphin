@@ -34,7 +34,7 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
   connect(m_manual_texture_sampling, &QCheckBox::toggled, [this, parent] {
@@ -251,7 +251,7 @@ void AdvancedWidget::OnBackendChanged() const
   AddDescriptions();
 }
 
-void AdvancedWidget::OnEmulationStateChanged(bool running) const
+void AdvancedWidget::OnEmulationStateChanged(const bool running) const
 {
   m_enable_prog_scan->setEnabled(!running);
 }

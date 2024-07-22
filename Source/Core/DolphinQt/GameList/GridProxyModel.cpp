@@ -22,7 +22,7 @@ GridProxyModel::GridProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
   sort(static_cast<int>(GameListModel::Column::Title));
 }
 
-QVariant GridProxyModel::data(const QModelIndex& i, int role) const
+QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
 {
   QModelIndex source_index = mapToSource(i);
   if (role == Qt::DisplayRole)
@@ -71,7 +71,7 @@ QVariant GridProxyModel::data(const QModelIndex& i, int role) const
   return QVariant();
 }
 
-bool GridProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
+bool GridProxyModel::filterAcceptsRow(const int source_row, const QModelIndex& source_parent) const
 {
   GameListModel* glm = qobject_cast<GameListModel*>(sourceModel());
   return glm->ShouldDisplayGameListItem(source_row);

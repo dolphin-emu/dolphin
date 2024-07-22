@@ -26,7 +26,7 @@ ConfigChoice::ConfigChoice(const QStringList& options, const Config::Info<int>& 
   });
 }
 
-void ConfigChoice::Update(int choice) const
+void ConfigChoice::Update(const int choice) const
 {
   SetBaseOrCurrent(m_setting, choice);
 }
@@ -67,7 +67,7 @@ void ConfigStringChoice::Connect()
   connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
-void ConfigStringChoice::Update(int index) const
+void ConfigStringChoice::Update(const int index) const
 {
   if (m_text_is_data)
   {

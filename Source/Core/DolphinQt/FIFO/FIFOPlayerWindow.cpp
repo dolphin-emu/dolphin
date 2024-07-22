@@ -58,7 +58,7 @@ FIFOPlayerWindow::FIFOPlayerWindow(FifoPlayer& fifo_player, FifoRecorder& fifo_r
     });
   });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     if (state == Core::State::Running && m_emu_state != Core::State::Paused)
       OnEmulationStarted();
     else if (state == Core::State::Uninitialized)

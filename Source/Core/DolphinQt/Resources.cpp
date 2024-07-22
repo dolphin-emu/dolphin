@@ -20,7 +20,7 @@ QList<QIcon> Resources::m_platforms;
 QList<QIcon> Resources::m_countries;
 QList<QIcon> Resources::m_misc;
 
-QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
+QIcon Resources::LoadNamedIcon(const std::string_view name, const QString& dir)
 {
   const QString base_path = dir + QLatin1Char{'/'} + QString::fromLatin1(name);
   const QString svg_path = base_path + QStringLiteral(".svg");
@@ -31,7 +31,7 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
 
   QIcon icon;
 
-  auto load_png = [&](int scale) {
+  auto load_png = [&](const int scale) {
     QString suffix = QStringLiteral(".png");
     if (scale > 1)
       suffix = QString::fromLatin1("@%1x.png").arg(scale);
@@ -65,12 +65,12 @@ static QString GetResourcesDir()
   return QString::fromStdString(File::GetSysDirectory() + "Resources");
 }
 
-QIcon Resources::GetResourceIcon(std::string_view name)
+QIcon Resources::GetResourceIcon(const std::string_view name)
 {
   return LoadNamedIcon(name, GetResourcesDir());
 }
 
-QIcon Resources::GetThemeIcon(std::string_view name)
+QIcon Resources::GetThemeIcon(const std::string_view name)
 {
   return LoadNamedIcon(name, GetCurrentThemeDir());
 }

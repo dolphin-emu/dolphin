@@ -470,7 +470,7 @@ void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
 }
 
 // UI
-void SkylanderPortalWindow::EmulatePortal(bool emulate)
+void SkylanderPortalWindow::EmulatePortal(const bool emulate)
 {
   SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
   m_group_skylanders->setVisible(emulate);
@@ -654,7 +654,7 @@ void SkylanderPortalWindow::ModifySkylander()
   }
 }
 
-void SkylanderPortalWindow::ClearSlot(u8 slot)
+void SkylanderPortalWindow::ClearSlot(const u8 slot)
 {
   auto& system = Core::System::GetInstance();
   if (auto slot_infos = m_sky_slots[slot])
@@ -681,7 +681,7 @@ void SkylanderPortalWindow::OnCollectionPathChanged()
   RefreshList();
 }
 
-void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state) const
+void SkylanderPortalWindow::OnEmulationStateChanged(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -778,7 +778,7 @@ void SkylanderPortalWindow::RefreshList() const
   }
 }
 
-void SkylanderPortalWindow::CreateSkyfile(const QString& path, bool load_after)
+void SkylanderPortalWindow::CreateSkyfile(const QString& path, const bool load_after)
 {
   {
     IOS::HLE::USB::SkylanderFigure figure(path.toStdString());
@@ -799,7 +799,7 @@ void SkylanderPortalWindow::CreateSkyfile(const QString& path, bool load_after)
     LoadSkyfilePath(GetCurrentSlot(), path);
 }
 
-void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
+void SkylanderPortalWindow::LoadSkyfilePath(const u8 slot, const QString& path)
 {
   File::IOFile sky_file(path.toStdString(), "r+b");
   if (!sky_file)
@@ -908,7 +908,7 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
   return true;
 }
 
-QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var) const
+QString SkylanderPortalWindow::GetFilePath(const u16 id, const u16 var) const
 {
   const QDir collection = QDir(m_collection_path);
   auto& system = Core::System::GetInstance();
@@ -971,7 +971,7 @@ int SkylanderPortalWindow::GetTypeRadio() const
   return -1;
 }
 
-QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme)
+QBrush SkylanderPortalWindow::GetBaseColor(const std::pair<const u16, const u16> ids, const bool dark_theme)
 {
   auto skylander = IOS::HLE::USB::list_skylanders.find(ids);
 

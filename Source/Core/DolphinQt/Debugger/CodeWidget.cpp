@@ -57,7 +57,7 @@ CodeWidget::CodeWidget(QWidget* parent)
   setFloating(settings.value(QStringLiteral("codewidget/floating")).toBool());
 
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     if (GetState(m_system) == Core::State::Paused)
@@ -66,7 +66,7 @@ CodeWidget::CodeWidget(QWidget* parent)
   });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
+          [this](const bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
 
@@ -304,7 +304,7 @@ void CodeWidget::OnSelectFunctionCallers() const
   Update();
 }
 
-void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update)
+void CodeWidget::SetAddress(const u32 address, const CodeViewWidget::SetAddressUpdate update)
 {
   m_code_view->SetAddress(address, update);
 

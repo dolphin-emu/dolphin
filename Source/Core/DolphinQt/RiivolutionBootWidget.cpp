@@ -39,8 +39,8 @@ struct GuiRiivolutionPatchIndex
 
 Q_DECLARE_METATYPE(GuiRiivolutionPatchIndex);
 
-RiivolutionBootWidget::RiivolutionBootWidget(std::string game_id, std::optional<u16> revision,
-                                             std::optional<u8> disc, std::string base_game_path,
+RiivolutionBootWidget::RiivolutionBootWidget(std::string game_id, const std::optional<u16> revision,
+                                             const std::optional<u8> disc, std::string base_game_path,
                                              QWidget* parent)
     : QDialog(parent), m_game_id(std::move(game_id)), m_revision(revision), m_disc_number(disc),
       m_base_game_path(std::move(base_game_path))

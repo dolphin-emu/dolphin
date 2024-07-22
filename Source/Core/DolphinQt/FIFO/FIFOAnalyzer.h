@@ -64,7 +64,7 @@ private:
 
   struct SearchResult
   {
-    constexpr SearchResult(u32 frame, u32 object_idx, u32 cmd)
+    constexpr SearchResult(const u32 frame, const u32 object_idx, const u32 cmd)
         : m_frame(frame), m_object_idx(object_idx), m_cmd(cmd)
     {
     }

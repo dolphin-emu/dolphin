@@ -61,10 +61,10 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
   m_splitter->restoreState(settings.value(QStringLiteral("codewidget/splitter")).toByteArray());
 
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
+          [this](const bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryWidget::Update);
@@ -484,7 +484,7 @@ void MemoryWidget::OnBPTypeChanged() const
   SaveSettings();
 }
 
-void MemoryWidget::SetAddress(u32 address)
+void MemoryWidget::SetAddress(const u32 address)
 {
   // Store current and target address in combo box
   const QSignalBlocker blocker(m_search_address);
@@ -725,7 +725,7 @@ void MemoryWidget::OnSetValueFromFile()
   Update();
 }
 
-static void DumpArray(const std::string& filename, const u8* data, size_t length)
+static void DumpArray(const std::string& filename, const u8* data, const size_t length)
 {
   if (!data)
     return;
@@ -801,7 +801,7 @@ MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
   return target;
 }
 
-void MemoryWidget::FindValue(bool next) const
+void MemoryWidget::FindValue(const bool next) const
 {
   auto target_addr = GetTargetAddress();
 

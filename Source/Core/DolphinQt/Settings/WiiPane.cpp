@@ -47,7 +47,7 @@
 // the other order in the GUI so that Top will be above Bottom,
 // matching the respective physical placements of the sensor bar.
 // This also matches the layout of the settings in the Wii Menu.
-static int TranslateSensorBarPosition(int position)
+static int TranslateSensorBarPosition(const int position)
 {
   if (position == 0)
     return 1;
@@ -64,11 +64,11 @@ struct SDSizeComboEntry
   u64 size;
   const char* name;
 };
-static constexpr u64 MebibytesToBytes(u64 mebibytes)
+static constexpr u64 MebibytesToBytes(const u64 mebibytes)
 {
   return mebibytes * 1024u * 1024u;
 }
-static constexpr u64 GibibytesToBytes(u64 gibibytes)
+static constexpr u64 GibibytesToBytes(const u64 gibibytes)
 {
   return MebibytesToBytes(gibibytes * 1024u);
 }
@@ -144,7 +144,7 @@ void WiiPane::ConnectLayout()
   connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // Emulation State
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
 }
@@ -381,7 +381,7 @@ void WiiPane::CreateWiiRemoteSettings()
   wii_remote_settings_group_layout->addWidget(m_wiimote_motor, 3, 0, 1, -1);
 }
 
-void WiiPane::OnEmulationStateChanged(bool running) const
+void WiiPane::OnEmulationStateChanged(const bool running) const
 {
   m_screensaver_checkbox->setEnabled(!running);
   m_pal60_mode_checkbox->setEnabled(!running);

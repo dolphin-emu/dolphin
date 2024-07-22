@@ -37,7 +37,7 @@ protected:
 
 private:
   void CreateMainWindow();
-  void AddFigureSlot(QVBoxLayout* vbox_group, QString name, IOS::HLE::USB::FigureUIPosition slot);
+  void AddFigureSlot(QVBoxLayout* vbox_group, const QString& name, IOS::HLE::USB::FigureUIPosition slot);
   void OnEmulationStateChanged(Core::State state) const;
   void EmulateBase(bool emulate) const;
   void ClearFigure(IOS::HLE::USB::FigureUIPosition slot) const;

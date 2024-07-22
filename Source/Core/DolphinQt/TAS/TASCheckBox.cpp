@@ -32,7 +32,7 @@ bool TASCheckBox::GetValue() const
   return check_state != Qt::Unchecked;
 }
 
-void TASCheckBox::OnControllerValueChanged(bool new_value)
+void TASCheckBox::OnControllerValueChanged(const bool new_value)
 {
   if (m_state.OnControllerValueChanged(new_value ? Qt::Checked : Qt::Unchecked))
     QueueOnObject(this, &TASCheckBox::ApplyControllerValueChange);
@@ -58,7 +58,7 @@ void TASCheckBox::mousePressEvent(QMouseEvent* event)
   setCheckState(Qt::PartiallyChecked);
 }
 
-void TASCheckBox::OnUIValueChanged(int new_value)
+void TASCheckBox::OnUIValueChanged(const int new_value)
 {
   m_state.OnUIValueChanged(new_value);
 }

@@ -73,7 +73,7 @@ bool MappingButton::IsInput() const
   return m_reference->IsInput();
 }
 
-MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator)
+MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, const bool indicator)
     : ElidedButton(RefToDisplayString(ref)), m_parent(parent), m_reference(ref)
 {
   if (IsInput())

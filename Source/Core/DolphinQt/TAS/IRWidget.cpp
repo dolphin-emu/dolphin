@@ -23,14 +23,14 @@ IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
   setMinimumSize(QSize(64, 48));
 }
 
-void IRWidget::SetX(u16 x)
+void IRWidget::SetX(const u16 x)
 {
   m_x = std::min(ir_max_x, x);
 
   update();
 }
 
-void IRWidget::SetY(u16 y)
+void IRWidget::SetY(const u16 y)
 {
   m_y = std::min(ir_max_y, y);
 

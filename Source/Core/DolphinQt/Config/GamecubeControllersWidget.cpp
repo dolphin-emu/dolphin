@@ -68,7 +68,7 @@ GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
           [this] { LoadSettings(GetState(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { LoadSettings(state); });
+          [this](const Core::State state) { LoadSettings(state); });
   LoadSettings(GetState(Core::System::GetInstance()));
 }
 
@@ -116,7 +116,7 @@ void GamecubeControllersWidget::ConnectWidgets()
   }
 }
 
-void GamecubeControllersWidget::OnGCTypeChanged(size_t index) const
+void GamecubeControllersWidget::OnGCTypeChanged(const size_t index) const
 {
   const SerialInterface::SIDevices si_device =
       FromGCMenuIndex(m_gc_controller_boxes[index]->currentIndex());
@@ -124,7 +124,7 @@ void GamecubeControllersWidget::OnGCTypeChanged(size_t index) const
                                   si_device != SerialInterface::SIDEVICE_GC_GBA);
 }
 
-void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
+void GamecubeControllersWidget::OnGCPadConfigure(const size_t index)
 {
   MappingWindow::Type type;
 
@@ -169,7 +169,7 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
   window->show();
 }
 
-void GamecubeControllersWidget::LoadSettings(Core::State state) const
+void GamecubeControllersWidget::LoadSettings(const Core::State state) const
 {
   const bool running = state != Core::State::Uninitialized;
   for (size_t i = 0; i < m_gc_groups.size(); i++)

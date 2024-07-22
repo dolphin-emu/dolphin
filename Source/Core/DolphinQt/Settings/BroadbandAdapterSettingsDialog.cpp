@@ -16,7 +16,7 @@
 #include "Core/Config/MainSettings.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-BroadbandAdapterSettingsDialog::BroadbandAdapterSettingsDialog(QWidget* parent, Type bba_type)
+BroadbandAdapterSettingsDialog::BroadbandAdapterSettingsDialog(QWidget* parent, const Type bba_type)
     : QDialog(parent)
 {
   m_bba_type = bba_type;

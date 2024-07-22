@@ -315,7 +315,7 @@ void GameCubePane::OnEmulationStateChanged() const
 #endif
 }
 
-void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
+void GameCubePane::UpdateButton(const ExpansionInterface::Slot slot)
 {
   const auto device =
       static_cast<ExpansionInterface::EXIDeviceType>(m_slot_combos[slot]->currentData().toInt());
@@ -429,7 +429,7 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   }
 }
 
-void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
+void GameCubePane::BrowseMemcard(const ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
 
@@ -533,7 +533,7 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
   return true;
 }
 
-void GameCubePane::BrowseGCIFolder(ExpansionInterface::Slot slot)
+void GameCubePane::BrowseGCIFolder(const ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
 
@@ -544,7 +544,7 @@ void GameCubePane::BrowseGCIFolder(ExpansionInterface::Slot slot)
     SetGCIFolder(slot, path);
 }
 
-bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& path)
+bool GameCubePane::SetGCIFolder(const ExpansionInterface::Slot slot, const QString& path)
 {
   if (path.isEmpty())
   {
@@ -639,7 +639,7 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
   return true;
 }
 
-void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
+void GameCubePane::BrowseAGPRom(const ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
 
@@ -651,7 +651,7 @@ void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
     SetAGPRom(slot, filename);
 }
 
-void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filename)
+void GameCubePane::SetAGPRom(const ExpansionInterface::Slot slot, const QString& filename)
 {
   QString path_abs = filename.isEmpty() ? QString() : QFileInfo(filename).absoluteFilePath();
 
@@ -686,7 +686,7 @@ void GameCubePane::BrowseGBABios()
   }
 }
 
-void GameCubePane::BrowseGBARom(size_t index)
+void GameCubePane::BrowseGBARom(const size_t index)
 {
   QString file = QString::fromStdString(GetOpenGBARom({}));
   if (!file.isEmpty())
@@ -824,7 +824,7 @@ void GameCubePane::SaveSettings()
   LoadSettings();
 }
 
-std::string GameCubePane::GetOpenGBARom(std::string_view title)
+std::string GameCubePane::GetOpenGBARom(const std::string_view title)
 {
   QString caption = tr("Select GBA ROM");
   if (!title.empty())

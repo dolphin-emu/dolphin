@@ -75,7 +75,7 @@ QString HtmlFormatMessage(const AssemblerError& err)
   return QStringLiteral("<span>%1</span>").arg(QString::fromStdString(err.message).toHtmlEscaped());
 }
 
-void DeserializeBlock(const CodeBlock& blk, std::ostringstream& out_str, bool pad4)
+void DeserializeBlock(const CodeBlock& blk, std::ostringstream& out_str, const bool pad4)
 {
   size_t i = 0;
   for (; i < blk.instructions.size(); i++)
@@ -245,9 +245,9 @@ AssemblerWidget::AssemblerWidget(QWidget* parent)
   setFloating(Settings::GetQSettings().value(QStringLiteral("assemblerwidget/floating")).toBool());
 
   connect(&Settings::Instance(), &Settings::AssemblerVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsAssemblerVisible());
   });
 
@@ -683,7 +683,7 @@ void AssemblerWidget::OnBaseAddressChanged() const
   active_editor->SetBaseAddress(m_address_line->text());
 }
 
-void AssemblerWidget::OnTabChange(int index) const
+void AssemblerWidget::OnTabChange(const int index) const
 {
   if (index == -1)
   {
@@ -695,7 +695,7 @@ void AssemblerWidget::OnTabChange(int index) const
   m_address_line->setText(active_editor->BaseAddress());
 }
 
-QString AssemblerWidget::TabTextForEditor(const AsmEditor* editor, bool with_dirty)
+QString AssemblerWidget::TabTextForEditor(const AsmEditor* editor, const bool with_dirty)
 {
   ASSERT(editor != nullptr);
 
@@ -717,7 +717,7 @@ QString AssemblerWidget::TabTextForEditor(const AsmEditor* editor, bool with_dir
   return result;
 }
 
-AsmEditor* AssemblerWidget::GetEditor(int idx) const
+AsmEditor* AssemblerWidget::GetEditor(const int idx) const
 {
   return qobject_cast<AsmEditor*>(m_asm_tabs->widget(idx));
 }
@@ -789,12 +789,12 @@ bool AssemblerWidget::SaveEditor(AsmEditor* editor)
   return true;
 }
 
-void AssemblerWidget::OnEmulationStateChanged(Core::State state) const
+void AssemblerWidget::OnEmulationStateChanged(const Core::State state) const
 {
   m_inject->setEnabled(state != Core::State::Uninitialized);
 }
 
-void AssemblerWidget::OnTabClose(int index)
+void AssemblerWidget::OnTabClose(const int index)
 {
   ASSERT(index < m_asm_tabs->count());
   AsmEditor* editor = GetEditor(index);
@@ -828,7 +828,7 @@ void AssemblerWidget::OnTabClose(int index)
   CloseTab(index, editor);
 }
 
-void AssemblerWidget::CloseTab(int index, AsmEditor* editor)
+void AssemblerWidget::CloseTab(const int index, AsmEditor* editor)
 {
   FreeTabNum(editor->EditorNum());
 
@@ -857,7 +857,7 @@ int AssemblerWidget::AllocateTabNum()
   return min;
 }
 
-void AssemblerWidget::FreeTabNum(int num)
+void AssemblerWidget::FreeTabNum(const int num)
 {
   if (num != INVALID_EDITOR_NUM)
   {
@@ -944,7 +944,7 @@ void AssemblerWidget::UpdateIcons() const
   m_copy_output_button->setIcon(Resources::GetThemeIcon("assembler_clipboard"));
 }
 
-void AssemblerWidget::ZoomAllEditors(int amount)
+void AssemblerWidget::ZoomAllEditors(const int amount)
 {
   if (amount != 0)
   {

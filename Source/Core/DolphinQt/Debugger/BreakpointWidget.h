@@ -54,8 +54,8 @@ protected:
 private:
   void CreateWidgets();
 
-  void EditBreakpoint(u32 address, int edit, std::optional<QString> = std::nullopt);
-  void EditMBP(u32 address, int edit, std::optional<QString> = std::nullopt);
+  void EditBreakpoint(u32 address, int edit, const std::optional<QString>& = std::nullopt);
+  void EditMBP(u32 address, int edit, const std::optional<QString>& = std::nullopt);
 
   void OnClear();
   void OnClicked(const QTableWidgetItem* item);

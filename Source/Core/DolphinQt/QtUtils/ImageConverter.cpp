@@ -15,7 +15,7 @@ QPixmap ToQPixmap(const UICommon::GameBanner& banner)
   return ToQPixmap(banner.buffer, banner.width, banner.height);
 }
 
-QPixmap ToQPixmap(const std::vector<u32>& buffer, int width, int height)
+QPixmap ToQPixmap(const std::vector<u32>& buffer, const int width, const int height)
 {
   QImage image(width, height, QImage::Format_RGB888);
   for (int y = 0; y < height; y++)

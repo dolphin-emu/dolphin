@@ -42,7 +42,7 @@ public:
                          StartGameCallback start_game_callback, QWidget* parent = nullptr);
   ~NetPlayDialog();
 
-  void show(std::string nickname, bool use_traversal);
+  void show(const std::string& nickname, bool use_traversal);
   void reject() override;
 
   // NetPlayUI methods

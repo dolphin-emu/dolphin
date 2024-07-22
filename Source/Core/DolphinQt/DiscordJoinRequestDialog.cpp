@@ -81,7 +81,7 @@ void DiscordJoinRequestDialog::ConnectWidgets()
   connect(this, &QDialog::rejected, [this] { Reply(DISCORD_REPLY_IGNORE); });
 }
 
-void DiscordJoinRequestDialog::Reply(int reply)
+void DiscordJoinRequestDialog::Reply(const int reply)
 {
   Discord_Respond(m_user_id.c_str(), reply);
   close();

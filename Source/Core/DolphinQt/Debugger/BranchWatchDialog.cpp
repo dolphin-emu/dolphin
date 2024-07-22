@@ -80,7 +80,7 @@ public:
   bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override;
 
   template <bool BranchWatchProxyModel::*member>
-  void OnToggled(bool enabled)
+  void OnToggled(const bool enabled)
   {
     this->*member = enabled;
     invalidateRowsFilter();
@@ -115,7 +115,7 @@ private:
   bool m_cond_true = {}, m_cond_false = {};
 };
 
-bool BranchWatchProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) const
+bool BranchWatchProxyModel::filterAcceptsRow(const int source_row, const QModelIndex&) const
 {
   const Core::BranchWatch::Selection::value_type& value = m_branch_watch.GetSelection()[source_row];
   if (value.condition)
@@ -270,7 +270,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       auto* const menu = new QMenu();
       for (int column = 0; column < Column::NumberOfColumns; ++column)
       {
-        QAction* action = menu->addAction(tr(headers[column]), [this, column](bool enabled) {
+        QAction* action = menu->addAction(tr(headers[column]), [this, column](const bool enabled) {
           m_table_view->setColumnHidden(column, !enabled);
         });
         action->setChecked(!m_table_view->isColumnHidden(column));
@@ -365,12 +365,12 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     m_control_toolbar->addWidget([this]() {
       auto* const layout = new QGridLayout;
 
-      const auto routine = [this, layout](const QString& text, const QString& tooltip, int row,
-                                          int column, void (BranchWatchProxyModel::*slot)(bool)) {
+      const auto routine = [this, layout](const QString& text, const QString& tooltip, const int row,
+                                          const int column, void (BranchWatchProxyModel::*slot)(bool)) {
         QCheckBox* const check_box = new QCheckBox(text);
         check_box->setToolTip(tooltip);
         layout->addWidget(check_box, row, column);
-        connect(check_box, &QCheckBox::toggled, [this, slot](bool checked) {
+        connect(check_box, &QCheckBox::toggled, [this, slot](const bool checked) {
           (m_table_proxy->*slot)(checked);
           UpdateStatus();
         });
@@ -403,8 +403,8 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     m_control_toolbar->addWidget([this]() {
       auto* const layout = new QGridLayout;
 
-      const auto routine = [this, layout](const QString& placeholder_text, int row, int column,
-                                          int width,
+      const auto routine = [this, layout](const QString& placeholder_text, const int row, const int column,
+                                          const int width,
                                           void (BranchWatchProxyModel::*slot)(const QString&)) {
         QLineEdit* const line_edit = new QLineEdit;
         layout->addWidget(line_edit, row, column, 1, width);
@@ -441,7 +441,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
                                           void (BranchWatchProxyModel::*slot)(bool)) {
         QCheckBox* const check_box = new QCheckBox(text);
         layout->addWidget(check_box);
-        connect(check_box, &QCheckBox::toggled, [this, slot](bool checked) {
+        connect(check_box, &QCheckBox::toggled, [this, slot](const bool checked) {
           (m_table_proxy->*slot)(checked);
           UpdateStatus();
         });
@@ -516,7 +516,7 @@ BranchWatchDialog::~BranchWatchDialog()
 static constexpr int BRANCH_WATCH_TOOL_TIMER_DELAY_MS = 100;
 static constexpr int BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS = 200;
 
-static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State state)
+static bool TimerCondition(const Core::BranchWatch& branch_watch, const Core::State state)
 {
   return branch_watch.GetRecordingActive() && state > Core::State::Paused;
 }
@@ -535,7 +535,7 @@ void BranchWatchDialog::showEvent(QShowEvent* event)
   QDialog::showEvent(event);
 }
 
-void BranchWatchDialog::OnStartPause(bool checked) const
+void BranchWatchDialog::OnStartPause(const bool checked) const
 {
   if (checked)
   {
@@ -687,7 +687,7 @@ void BranchWatchDialog::OnTimeout() const
   Update();
 }
 
-void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state) const
+void BranchWatchDialog::OnEmulationStateChanged(const Core::State new_state) const
 {
   if (!isVisible())
     return;
@@ -767,7 +767,7 @@ void BranchWatchDialog::OnHelp()
          "All context menus have the action to delete the selected row(s) from the candidates."));
 }
 
-void BranchWatchDialog::OnToggleAutoSave(bool checked)
+void BranchWatchDialog::OnToggleAutoSave(const bool checked)
 {
   if (!checked)
     return;
@@ -784,7 +784,7 @@ void BranchWatchDialog::OnToggleAutoSave(bool checked)
     m_autosave_filepath = filepath.toStdString();
 }
 
-void BranchWatchDialog::OnHideShowControls(bool checked) const
+void BranchWatchDialog::OnHideShowControls(const bool checked) const
 {
   if (checked)
     m_control_toolbar->hide();
@@ -792,7 +792,7 @@ void BranchWatchDialog::OnHideShowControls(bool checked) const
     m_control_toolbar->show();
 }
 
-void BranchWatchDialog::OnToggleIgnoreApploader(bool checked) const
+void BranchWatchDialog::OnToggleIgnoreApploader(const bool checked) const
 {
   m_system.SetIsBranchWatchIgnoreApploader(checked);
 }
@@ -996,7 +996,7 @@ void BranchWatchDialog::AutoSave(const Core::CPUThreadGuard& guard)
   Save(guard, m_autosave_filepath ? m_autosave_filepath.value() : GetSnapshotDefaultFilepath());
 }
 
-void BranchWatchDialog::SetStubPatches(u32 value) const
+void BranchWatchDialog::SetStubPatches(const u32 value) const
 {
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
   for (const Core::CPUThreadGuard guard(m_system); const QModelIndex& index : m_index_list_temp)
@@ -1015,7 +1015,7 @@ void BranchWatchDialog::SetStubPatches(u32 value) const
   m_code_widget->Update();
 }
 
-void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
+void BranchWatchDialog::SetBreakpoints(const bool break_on_hit, const bool log_on_hit) const
 {
   auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
   for (const QModelIndex& index : m_index_list_temp)

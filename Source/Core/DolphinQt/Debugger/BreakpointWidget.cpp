@@ -110,7 +110,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
   // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](const Core::State state) {
     UpdateButtonsEnabled();
     if (state == Core::State::Uninitialized)
       Update();
@@ -119,9 +119,9 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
   connect(m_table, &QTableWidget::itemChanged, this, &BreakpointWidget::OnItemChanged);
 
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+          [this](const bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](const bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsBreakpointsVisible());
   });
 
@@ -443,7 +443,7 @@ void BreakpointWidget::OnNewBreakpoint()
   dialog->exec();
 }
 
-void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
+void BreakpointWidget::OnEditBreakpoint(const u32 address, const bool is_instruction_bp)
 {
   if (is_instruction_bp)
   {
@@ -604,12 +604,12 @@ void BreakpointWidget::OnItemChanged(const QTableWidgetItem* item)
   }
 }
 
-void BreakpointWidget::AddBP(u32 addr)
+void BreakpointWidget::AddBP(const u32 addr)
 {
   AddBP(addr, true, true, {});
 }
 
-void BreakpointWidget::AddBP(u32 addr, bool break_on_hit, bool log_on_hit, const QString& condition)
+void BreakpointWidget::AddBP(const u32 addr, const bool break_on_hit, const bool log_on_hit, const QString& condition)
 {
   m_system.GetPowerPC().GetBreakPoints().Add(
       addr, break_on_hit, log_on_hit,
@@ -619,7 +619,7 @@ void BreakpointWidget::AddBP(u32 addr, bool break_on_hit, bool log_on_hit, const
   Update();
 }
 
-void BreakpointWidget::EditBreakpoint(u32 address, int edit, std::optional<QString> string)
+void BreakpointWidget::EditBreakpoint(const u32 address, const int edit, const std::optional<QString>& string)
 {
   TBreakPoint bp;
   const TBreakPoint* old_bp = m_system.GetPowerPC().GetBreakPoints().GetRegularBreakpoint(address);
@@ -654,8 +654,8 @@ void BreakpointWidget::EditBreakpoint(u32 address, int edit, std::optional<QStri
   Update();
 }
 
-void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool do_log,
-                                     bool do_break, const QString& condition)
+void BreakpointWidget::AddAddressMBP(const u32 addr, const bool on_read, const bool on_write, const bool do_log,
+                                     const bool do_break, const QString& condition)
 {
   TMemCheck check;
 
@@ -677,8 +677,8 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   Update();
 }
 
-void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_write, bool do_log,
-                                    bool do_break, const QString& condition)
+void BreakpointWidget::AddRangedMBP(const u32 from, const u32 to, const bool on_read, const bool on_write, const bool do_log,
+                                    const bool do_break, const QString& condition)
 {
   TMemCheck check;
 
@@ -700,7 +700,7 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   Update();
 }
 
-void BreakpointWidget::EditMBP(u32 address, int edit, std::optional<QString> string)
+void BreakpointWidget::EditMBP(const u32 address, const int edit, const std::optional<QString>& string)
 {
   bool address_changed = false;
 

@@ -34,7 +34,7 @@
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/GameCubePane.h"
 
-static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_view rom_path = {})
+static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, const std::string_view rom_path = {})
 {
   RunOnCPUThread(
       Core::System::GetInstance(),
@@ -55,7 +55,7 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
       false);
 }
 
-static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::string_view card_path)
+static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, const std::string_view card_path)
 {
   RunOnCPUThread(
       Core::System::GetInstance(),
@@ -108,7 +108,7 @@ void GBAWidget::GameChanged(const HW::GBA::CoreInfo& info)
   update();
 }
 
-void GBAWidget::SetVideoBuffer(std::span<const u32> video_buffer)
+void GBAWidget::SetVideoBuffer(const std::span<const u32> video_buffer)
 {
   m_previous_frame = std::move(m_last_frame);
   if (video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
@@ -125,7 +125,7 @@ void GBAWidget::SetVideoBuffer(std::span<const u32> video_buffer)
   update();
 }
 
-void GBAWidget::SetVolume(int volume)
+void GBAWidget::SetVolume(const int volume)
 {
   m_muted = false;
   m_volume = std::clamp(volume, 0, 100);
@@ -268,7 +268,7 @@ void GBAWidget::ImportExportSave(bool export_save)
       false);
 }
 
-void GBAWidget::Resize(int scale)
+void GBAWidget::Resize(const int scale)
 {
   showNormal();
   resize(m_core_info.width * scale, m_core_info.height * scale);
@@ -280,7 +280,7 @@ bool GBAWidget::IsBorderless() const
          windowState().testFlag(Qt::WindowFullScreen);
 }
 
-void GBAWidget::SetBorderless(bool enable)
+void GBAWidget::SetBorderless(const bool enable)
 {
   if (windowState().testFlag(Qt::WindowFullScreen))
   {
@@ -306,7 +306,7 @@ bool GBAWidget::IsAlwaysOnTop() const
   return windowFlags().testFlag(Qt::WindowStaysOnTopHint);
 }
 
-void GBAWidget::SetAlwaysOnTop(bool enable)
+void GBAWidget::SetAlwaysOnTop(const bool enable)
 {
   if (windowFlags().testFlag(Qt::WindowStaysOnTopHint) == enable)
     return;
@@ -339,7 +339,7 @@ void GBAWidget::UpdateVolume()
   UpdateTitle();
 }
 
-Qt::WindowFlags GBAWidget::LoadWindowFlags(int device_number)
+Qt::WindowFlags GBAWidget::LoadWindowFlags(const int device_number)
 {
   const QSettings& settings = Settings::GetQSettings();
   const QString key = QStringLiteral("gbawidget/flags%1").arg(device_number + 1);
@@ -613,7 +613,7 @@ void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info) const
   m_widget->GameChanged(info);
 }
 
-void GBAWidgetController::FrameEnded(std::span<const u32> video_buffer) const
+void GBAWidgetController::FrameEnded(const std::span<const u32> video_buffer) const
 {
   m_widget->SetVideoBuffer(video_buffer);
 }

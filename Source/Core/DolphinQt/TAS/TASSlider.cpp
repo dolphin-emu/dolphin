@@ -5,11 +5,11 @@
 
 #include <QMouseEvent>
 
-TASSlider::TASSlider(int default_, QWidget* parent) : QSlider(parent), m_default(default_)
+TASSlider::TASSlider(const int default_, QWidget* parent) : QSlider(parent), m_default(default_)
 {
 }
 
-TASSlider::TASSlider(int default_, Qt::Orientation orientation, QWidget* parent)
+TASSlider::TASSlider(const int default_, const Qt::Orientation orientation, QWidget* parent)
     : QSlider(orientation, parent), m_default(default_)
 {
 }

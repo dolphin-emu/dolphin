@@ -26,7 +26,7 @@ public:
   const QString& EditorTitle() const { return m_title_ambiguous ? Path() : FileName(); }
   const QString& BaseAddress() const { return m_base_address; }
   void SetBaseAddress(const QString& ba);
-  void SetAmbiguous(bool b) { m_title_ambiguous = b; }
+  void SetAmbiguous(const bool b) { m_title_ambiguous = b; }
   int EditorNum() const { return m_editor_num; }
   bool LoadFromPath();
   bool IsDirty() const { return m_dirty; }

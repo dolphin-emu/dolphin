@@ -21,7 +21,7 @@
 
 #include "DolphinQt/Settings.h"
 
-static QString GetPlayerNameFromPID(int pid)
+static QString GetPlayerNameFromPID(const int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
   auto client = Settings::Instance().GetNetPlayClient();

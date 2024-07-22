@@ -21,7 +21,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 
-GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
+GCTASInputWindow::GCTASInputWindow(QWidget* parent, const int controller_id)
     : TASInputWindow(parent), m_controller_id(controller_id)
 {
   setWindowTitle(tr("GameCube TAS Input %1").arg(controller_id + 1));

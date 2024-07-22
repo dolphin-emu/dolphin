@@ -18,7 +18,7 @@
 
 #include "DolphinQt/Settings.h"
 
-static QString GetPlayerNameFromPID(int pid)
+static QString GetPlayerNameFromPID(const int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
   auto client = Settings::Instance().GetNetPlayClient();
@@ -118,7 +118,7 @@ void GameDigestDialog::show(const QString& title)
   QDialog::show();
 }
 
-void GameDigestDialog::SetProgress(int pid, int progress)
+void GameDigestDialog::SetProgress(const int pid, const int progress)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
@@ -130,7 +130,7 @@ void GameDigestDialog::SetProgress(int pid, int progress)
   m_progress_bars[pid]->setValue(progress);
 }
 
-void GameDigestDialog::SetResult(int pid, const std::string& result)
+void GameDigestDialog::SetResult(const int pid, const std::string& result)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 

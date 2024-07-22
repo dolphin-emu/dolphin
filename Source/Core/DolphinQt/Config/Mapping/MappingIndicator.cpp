@@ -172,8 +172,8 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter)
 
 // Constructs a polygon by querying a radius at varying angles:
 template <typename F>
-QPolygonF GetPolygonSegmentFromRadiusGetter(F&& radius_getter, double direction,
-                                            double segment_size, double segment_depth)
+QPolygonF GetPolygonSegmentFromRadiusGetter(F&& radius_getter, const double direction,
+                                            const double segment_size, const double segment_depth)
 {
   constexpr int shape_point_count = 6;
   QPolygonF shape{shape_point_count};
@@ -238,7 +238,7 @@ bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::Calibration
 }
 
 // Used to test for a miscalibrated stick so the user can be informed.
-bool IsPointOutsideCalibration(Common::DVec2 point, const ControllerEmu::ReshapableInput& input)
+bool IsPointOutsideCalibration(const Common::DVec2 point, const ControllerEmu::ReshapableInput& input)
 {
   const auto center = input.GetCenter();
   const double current_radius = (point - center).Length();
@@ -250,7 +250,7 @@ bool IsPointOutsideCalibration(Common::DVec2 point, const ControllerEmu::Reshapa
   return current_radius > input_radius * ALLOWED_ERROR;
 }
 
-void DrawVirtualNotches(QPainter& p, ControllerEmu::ReshapableInput& stick, QColor notch_color)
+void DrawVirtualNotches(QPainter& p, ControllerEmu::ReshapableInput& stick, const QColor notch_color)
 {
   const double segment_size = stick.GetVirtualNotchSize();
   if (segment_size <= 0.0)
@@ -263,13 +263,13 @@ void DrawVirtualNotches(QPainter& p, ControllerEmu::ReshapableInput& stick, QCol
     const double segment_gap = MathUtil::TAU / 8.0;
     const double direction = segment_gap * i;
     p.drawPolygon(GetPolygonSegmentFromRadiusGetter(
-        [&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }, direction, segment_size,
+        [&stick](const double ang) { return stick.GetGateRadiusAtAngle(ang); }, direction, segment_size,
         segment_depth));
   }
 }
 
 template <typename F>
-void GenerateFibonacciSphere(int point_count, F&& callback)
+void GenerateFibonacciSphere(const int point_count, F&& callback)
 {
   const float golden_angle = MathUtil::PI * (3.f - std::sqrt(5.f));
 
@@ -327,7 +327,7 @@ void SquareIndicator::TransformPainter(QPainter& p) const
 
 void ReshapableInputIndicator::DrawReshapableInput(
     ControllerEmu::ReshapableInput& stick, QColor gate_brush_color,
-    std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord)
+    const std::optional<ControllerEmu::ReshapableInput::ReshapeData>& adj_coord)
 {
   QPainter p(this);
   DrawBoundingBox(p);
@@ -357,7 +357,7 @@ void ReshapableInputIndicator::DrawReshapableInput(
   p.setPen(QPen(gate_pen_color, 0));
   p.setBrush(gate_brush_color);
   p.drawPolygon(
-      GetPolygonFromRadiusGetter([&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }));
+      GetPolygonFromRadiusGetter([&stick](const double ang) { return stick.GetGateRadiusAtAngle(ang); }));
 
   DrawVirtualNotches(p, stick, gate_pen_color);
 
@@ -370,13 +370,13 @@ void ReshapableInputIndicator::DrawReshapableInput(
   p.setPen(GetDeadZonePen());
   p.setBrush(GetDeadZoneBrush(p));
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }));
+      [&stick](const double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }));
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }));
+      [&stick](const double ang) { return stick.GetInputRadiusAtAngle(ang); }));
 
   // Center.
   if (center.x || center.y)
@@ -854,7 +854,7 @@ void IRPassthroughMappingIndicator::Draw()
   }
 }
 
-void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point) const
+void ReshapableInputIndicator::DrawCalibration(QPainter& p, const Common::DVec2 point) const
 {
   const auto center = m_calibration_widget->GetCenter();
 
@@ -865,7 +865,7 @@ void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [this](double angle) { return m_calibration_widget->GetCalibrationRadiusAtAngle(angle); }));
+      [this](const double angle) { return m_calibration_widget->GetCalibrationRadiusAtAngle(angle); }));
 
   // Center.
   if (center.x || center.y)
@@ -881,7 +881,7 @@ void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
   p.drawPoint(QPointF{point.x, point.y});
 }
 
-void ReshapableInputIndicator::UpdateCalibrationWidget(Common::DVec2 point) const
+void ReshapableInputIndicator::UpdateCalibrationWidget(const Common::DVec2 point) const
 {
   if (m_calibration_widget)
     m_calibration_widget->Update(point);
@@ -1019,7 +1019,7 @@ bool CalibrationWidget::IsCalibrating() const
   return !m_calibration_data.empty();
 }
 
-double CalibrationWidget::GetCalibrationRadiusAtAngle(double angle) const
+double CalibrationWidget::GetCalibrationRadiusAtAngle(const double angle) const
 {
   return m_input.GetCalibrationDataRadiusAtAngle(m_calibration_data, angle);
 }
