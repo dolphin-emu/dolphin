@@ -391,7 +391,7 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
 
   if (auto_disc_change_paths)
   {
-    ASSERT_MSG(DISCIO, (*auto_disc_change_paths).size() != 1,
+    ASSERT_MSG(DISCIO, auto_disc_change_paths->size() != 1,
                "Cannot automatically change between one disc");
 
     m_auto_disc_change_paths = *auto_disc_change_paths;
