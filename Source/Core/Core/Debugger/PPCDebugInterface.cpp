@@ -253,7 +253,7 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
   const auto insert_threads = [&guard, &threads, &visited_addrs](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::MMU::HostIsRAMAddress(guard, addr))
     {
-      if (std::find(visited_addrs.begin(), visited_addrs.end(), addr) != visited_addrs.end())
+      if (std::ranges::find(visited_addrs, addr) != visited_addrs.end())
         break;
       visited_addrs.push_back(addr);
       auto thread = std::make_unique<Core::Debug::OSThreadView>(guard, addr);
@@ -266,7 +266,7 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
 
   const u32 prev_addr = active_thread->Data().thread_link.prev;
   insert_threads(prev_addr, [](const auto& thread) { return thread.Data().thread_link.prev; });
-  std::reverse(threads.begin(), threads.end());
+  std::ranges::reverse(threads);
 
   const u32 next_addr = active_thread->Data().thread_link.next;
   threads.emplace_back(std::move(active_thread));

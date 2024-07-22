@@ -1119,7 +1119,7 @@ bool WIARVZFileReader<RVZ>::TryReuse(std::map<ReuseID, GroupEntry>* reusable_gro
 
 static bool AllAre(const std::vector<u8>& data, u8 x)
 {
-  return std::all_of(data.begin(), data.end(), [x](const u8 y) { return x == y; });
+  return std::ranges::all_of(data, [x](const u8 y) { return x == y; });
 };
 
 static bool AllAre(const u8* begin, const u8* end, u8 x)

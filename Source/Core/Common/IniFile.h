@@ -22,9 +22,9 @@ struct CaseInsensitiveStringCompare
 
   bool operator()(std::string_view a, std::string_view b) const
   {
-    return std::lexicographical_compare(
-        a.begin(), a.end(), b.begin(), b.end(),
-        [](const char lhs, const char rhs) { return ToLower(lhs) < ToLower(rhs); });
+    return std::ranges::lexicographical_compare(a, b, [](const char lhs, const char rhs) {
+      return ToLower(lhs) < ToLower(rhs);
+    });
   }
 
   static bool IsEqual(std::string_view a, std::string_view b)
@@ -32,7 +32,7 @@ struct CaseInsensitiveStringCompare
     if (a.size() != b.size())
       return false;
 
-    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](const char lhs, const char rhs) {
+    return std::ranges::equal(a, b, [](const char lhs, const char rhs) {
       return ToLower(lhs) == ToLower(rhs);
     });
   }

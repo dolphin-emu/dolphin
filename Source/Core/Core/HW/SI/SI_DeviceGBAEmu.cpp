@@ -93,7 +93,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     std::vector<u8> response = m_core->GetJoybusResponse();
     if (response.empty())
       return -1;
-    std::copy(response.begin(), response.end(), buffer);
+    std::ranges::copy(response, buffer);
 
 #ifdef _DEBUG
     const Common::Log::LogLevel log_level =

@@ -105,14 +105,15 @@ bool IsTitlePath(const std::string& path, const std::optional<FromWhichRoot> fro
 static bool IsIllegalCharacter(const char c)
 {
   static constexpr auto illegal_chars = {'\"', '*', '/', ':', '<', '>', '?', '\\', '|', '\x7f'};
-  return static_cast<unsigned char>(c) <= 0x1F ||
-         std::find(illegal_chars.begin(), illegal_chars.end(), c) != illegal_chars.end();
+  return
+      static_cast<unsigned char>(c) <= 0x1F ||
+      std::ranges::find(illegal_chars, c) != illegal_chars.end();
 }
 
 std::string EscapeFileName(const std::string& filename)
 {
   // Prevent paths from containing special names like ., .., ..., ...., and so on
-  if (std::all_of(filename.begin(), filename.end(), [](const char c) { return c == '.'; }))
+  if (std::ranges::all_of(filename, [](const char c) { return c == '.'; }))
     return ReplaceAll(filename, ".", "__2e__");
 
   // Escape all double underscores since we will use double underscores for our escape sequences
@@ -170,7 +171,7 @@ std::string UnescapeFileName(const std::string& filename)
 bool IsFileNameSafe(const std::string_view filename)
 {
   return !filename.empty() &&
-         !std::all_of(filename.begin(), filename.end(), [](const char c) { return c == '.'; }) &&
-         std::none_of(filename.begin(), filename.end(), IsIllegalCharacter);
+         !std::ranges::all_of(filename, [](const char c) { return c == '.'; }) &&
+         std::ranges::none_of(filename, IsIllegalCharacter);
 }
 }  // namespace Common

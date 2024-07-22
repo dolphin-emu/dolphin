@@ -212,8 +212,7 @@ void VideoConfig::VerifyValidity()
   if (iAdapter < 0 || iAdapter > (static_cast<int>(backend_info.Adapters.size()) - 1))
     iAdapter = 0;
 
-  if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
-      backend_info.AAModes.end())
+  if (std::ranges::find(backend_info.AAModes, iMultisamples) == backend_info.AAModes.end())
     iMultisamples = 1;
 
   if (stereo_mode != StereoMode::Off)

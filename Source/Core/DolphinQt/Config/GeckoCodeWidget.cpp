@@ -287,7 +287,7 @@ void GeckoCodeWidget::SortAlphabetically()
 
 void GeckoCodeWidget::SortEnabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
+  std::ranges::stable_sort(m_gecko_codes, [](const auto& a, const auto& b) {
     return a.enabled && a.enabled != b.enabled;
   });
 
@@ -297,7 +297,7 @@ void GeckoCodeWidget::SortEnabledCodesFirst()
 
 void GeckoCodeWidget::SortDisabledCodesFirst()
 {
-  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
+  std::ranges::stable_sort(m_gecko_codes, [](const auto& a, const auto& b) {
     return !a.enabled && a.enabled != b.enabled;
   });
 
@@ -369,7 +369,7 @@ void GeckoCodeWidget::DownloadCodes()
 
   for (const auto& code : codes)
   {
-    auto it = std::find(m_gecko_codes.begin(), m_gecko_codes.end(), code);
+    auto it = std::ranges::find(m_gecko_codes, code);
 
     if (it == m_gecko_codes.end())
     {

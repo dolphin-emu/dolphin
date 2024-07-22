@@ -169,11 +169,10 @@ IPCReply USB_HIDv5::GetDeviceInfo(const USBV5Device& device, const IOCtlRequest&
   memory.CopyToEmu(request.buffer_out + 56, &config_descriptor, sizeof(config_descriptor));
 
   std::vector<USB::InterfaceDescriptor> interfaces = host_device->GetInterfaces(0);
-  const auto it = std::find_if(interfaces.begin(), interfaces.end(),
-                               [&](const USB::InterfaceDescriptor& interface) {
-                                 return interface.bInterfaceNumber == device.interface_number &&
-                                        interface.bAlternateSetting == alt_setting;
-                               });
+  const auto it = std::ranges::find_if(interfaces, [&](const USB::InterfaceDescriptor& interface) {
+    return interface.bInterfaceNumber == device.interface_number && interface.bAlternateSetting ==
+           alt_setting;
+  });
   if (it == interfaces.end())
     return IPCReply(IPC_EINVAL);
   it->Swap();

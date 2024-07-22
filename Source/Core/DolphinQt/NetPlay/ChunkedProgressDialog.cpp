@@ -108,7 +108,7 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
 
   for (const auto* player : client->GetPlayers())
   {
-    if (std::find(players.begin(), players.end(), player->pid) == players.end())
+    if (std::ranges::find(players, player->pid) == players.end())
       continue;
 
     m_progress_bars[player->pid] = new QProgressBar;

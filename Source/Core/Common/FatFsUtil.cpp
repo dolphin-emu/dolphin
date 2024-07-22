@@ -485,10 +485,11 @@ static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& e
 
 static void SortFST(File::FSTEntry* root)
 {
-  std::sort(root->children.begin(), root->children.end(),
-            [](const File::FSTEntry& lhs, const File::FSTEntry& rhs) {
-              return lhs.virtualName < rhs.virtualName;
-            });
+  std::ranges::sort(
+      root->children,
+      [](const File::FSTEntry& lhs, const File::FSTEntry& rhs) {
+        return lhs.virtualName < rhs.virtualName;
+      });
   for (auto& child : root->children)
     SortFST(&child);
 }
@@ -729,7 +730,7 @@ static bool Unpack(const std::function<bool()>& cancelled, const std::string pat
     const bool is_path_traversal_attack =
         (childname.find("\\") != std::string_view::npos) ||
         (childname.find('/') != std::string_view::npos) ||
-        std::all_of(childname.begin(), childname.end(), [](const char c) { return c == '.'; });
+        std::ranges::all_of(childname, [](const char c) { return c == '.'; });
     if (is_path_traversal_attack)
     {
       ERROR_LOG_FMT(

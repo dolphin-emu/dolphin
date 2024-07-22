@@ -553,7 +553,7 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, cons
   // Sign the data.
   const auto data_digest = Common::SHA1::CalculateDigest(data, data_size);
   const auto signature = Common::ec::Sign(ap_priv.data(), data_digest.data());
-  std::copy(signature.cbegin(), signature.cend(), sig_out);
+  std::ranges::copy(signature, sig_out);
 }
 
 void IOSC::LoadDefaultEntries()
@@ -671,8 +671,7 @@ IOSC::KeyEntry::KeyEntry(const ObjectType type_, const ObjectSubType subtype_, s
 
 IOSC::KeyEntries::iterator IOSC::FindFreeEntry()
 {
-  return std::find_if(m_key_entries.begin(), m_key_entries.end(),
-                      [](const auto& entry) { return !entry.in_use; });
+  return std::ranges::find_if(m_key_entries, [](const auto& entry) { return !entry.in_use; });
 }
 
 IOSC::KeyEntry* IOSC::FindEntry(const Handle handle)

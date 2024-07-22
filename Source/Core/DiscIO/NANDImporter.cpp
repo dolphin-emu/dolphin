@@ -241,8 +241,7 @@ bool NANDImporter::ExtractCertificates() const
   for (const PEMCertificate& certificate : certificates)
   {
     const auto search_result =
-        std::search(content_bytes.begin(), content_bytes.end(), certificate.search_bytes.begin(),
-                    certificate.search_bytes.end());
+        std::ranges::search(content_bytes, certificate.search_bytes).begin();
 
     if (search_result == content_bytes.end())
     {

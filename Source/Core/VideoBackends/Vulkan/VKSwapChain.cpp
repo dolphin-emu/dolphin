@@ -243,8 +243,9 @@ bool SwapChain::SelectPresentMode()
 
   // Checks if a particular mode is supported, if it is, returns that mode.
   auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
-    const auto it = std::find_if(present_modes.begin(), present_modes.end(),
-                                 [check_mode](const VkPresentModeKHR mode) { return check_mode == mode; });
+    const auto it = std::ranges::find_if(present_modes, [check_mode](const VkPresentModeKHR mode) {
+      return check_mode == mode;
+    });
     return it != present_modes.end();
   };
 

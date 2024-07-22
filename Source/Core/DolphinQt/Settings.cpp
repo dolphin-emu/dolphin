@@ -322,7 +322,7 @@ void Settings::AddPath(const QString& qpath)
   std::string path = qpath.toStdString();
   std::vector<std::string> paths = Config::GetIsoPaths();
 
-  if (std::find(paths.begin(), paths.end(), path) != paths.end())
+  if (std::ranges::find(paths, path) != paths.end())
     return;
 
   paths.emplace_back(path);
@@ -335,7 +335,7 @@ void Settings::RemovePath(const QString& qpath)
   const std::string path = qpath.toStdString();
   std::vector<std::string> paths = Config::GetIsoPaths();
 
-  const auto new_end = std::remove(paths.begin(), paths.end(), path);
+  const auto new_end = std::ranges::remove(paths, path).begin();
   if (new_end == paths.end())
     return;
 

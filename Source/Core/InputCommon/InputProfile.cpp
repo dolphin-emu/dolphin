@@ -111,8 +111,7 @@ ProfileCycler::GetMatchingProfilesFromSetting(const std::string& setting,
   }
 
   std::vector<std::string> result;
-  std::set_intersection(profiles.begin(), profiles.end(), profiles_from_setting.begin(),
-                        profiles_from_setting.end(), std::back_inserter(result));
+  std::ranges::set_intersection(profiles, profiles_from_setting, std::back_inserter(result));
   return result;
 }
 

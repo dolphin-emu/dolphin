@@ -410,7 +410,7 @@ void AudioPane::CheckNeedForLatencyControl()
 {
   const std::vector<std::string> backends = AudioCommon::GetSoundBackends();
   m_latency_control_supported =
-      std::any_of(backends.cbegin(), backends.cend(), AudioCommon::SupportsLatencyControl);
+      std::ranges::any_of(std::as_const(backends), AudioCommon::SupportsLatencyControl);
 }
 
 QString AudioPane::GetDPL2QualityLabel(const AudioCommon::DPL2Quality value) const

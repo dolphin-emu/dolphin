@@ -49,8 +49,9 @@ const TBreakPoint* BreakPoints::GetBreakpoint(const u32 address) const
 
 const TBreakPoint* BreakPoints::GetRegularBreakpoint(u32 address) const
 {
-  const auto bp = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                               [address](const auto& bp_) { return bp_.address == address; });
+  const auto bp = std::ranges::find_if(m_breakpoints, [address](const auto& bp_) {
+    return bp_.address == address;
+  });
 
   if (bp == m_breakpoints.end())
     return nullptr;
@@ -127,8 +128,9 @@ void BreakPoints::Add(u32 address, const bool break_on_hit, const bool log_on_hi
 {
   // Check for existing breakpoint, and overwrite with new info.
   // This is assuming we usually want the new breakpoint over an old one.
-  const auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                                 [address](const auto& bp) { return bp.address == address; });
+  const auto iter = std::ranges::find_if(m_breakpoints, [address](const auto& bp) {
+    return bp.address == address;
+  });
 
   TBreakPoint bp;  // breakpoint settings
   bp.is_enabled = true;
@@ -176,8 +178,9 @@ bool BreakPoints::ToggleBreakPoint(const u32 address)
 
 bool BreakPoints::ToggleEnable(u32 address)
 {
-  const auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                                 [address](const auto& bp) { return bp.address == address; });
+  const auto iter = std::ranges::find_if(m_breakpoints, [address](const auto& bp) {
+    return bp.address == address;
+  });
 
   if (iter == m_breakpoints.end())
     return false;
@@ -188,8 +191,9 @@ bool BreakPoints::ToggleEnable(u32 address)
 
 bool BreakPoints::Remove(u32 address)
 {
-  const auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                                 [address](const auto& bp) { return bp.address == address; });
+  const auto iter = std::ranges::find_if(m_breakpoints, [address](const auto& bp) {
+    return bp.address == address;
+  });
 
   if (iter == m_breakpoints.cend())
     return false;
@@ -293,9 +297,9 @@ void MemChecks::Add(TMemCheck memory_check)
   // Check for existing breakpoint, and overwrite with new info.
   // This is assuming we usually want the new breakpoint over an old one.
   const u32 address = memory_check.start_address;
-  const auto old_mem_check =
-      std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
-                   [address](const auto& check) { return check.start_address == address; });
+  const auto old_mem_check = std::ranges::find_if(m_mem_checks, [address](const auto& check) {
+    return check.start_address == address;
+  });
   if (old_mem_check != m_mem_checks.end())
   {
     memory_check.is_enabled = old_mem_check->is_enabled;  // Preserve enabled status
@@ -315,8 +319,9 @@ void MemChecks::Add(TMemCheck memory_check)
 
 bool MemChecks::ToggleEnable(u32 address)
 {
-  const auto iter = std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
-                                 [address](const auto& bp) { return bp.start_address == address; });
+  const auto iter = std::ranges::find_if(m_mem_checks, [address](const auto& bp) {
+    return bp.start_address == address;
+  });
 
   if (iter == m_mem_checks.end())
     return false;
@@ -327,9 +332,9 @@ bool MemChecks::ToggleEnable(u32 address)
 
 bool MemChecks::Remove(u32 address)
 {
-  const auto iter =
-      std::find_if(m_mem_checks.cbegin(), m_mem_checks.cend(),
-                   [address](const auto& check) { return check.start_address == address; });
+  const auto iter = std::ranges::find_if(std::as_const(m_mem_checks), [address](const auto& check) {
+    return check.start_address == address;
+  });
 
   if (iter == m_mem_checks.cend())
     return false;
@@ -353,7 +358,7 @@ void MemChecks::Clear()
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
   const auto iter =
-      std::find_if(m_mem_checks.begin(), m_mem_checks.end(), [address, size](const auto& mc) {
+      std::ranges::find_if(m_mem_checks, [address, size](const auto& mc) {
         return mc.end_address >= address && address + size - 1 >= mc.start_address;
       });
 
@@ -372,7 +377,7 @@ bool MemChecks::OverlapsMemcheck(const u32 address, const u32 length) const
   const u32 page_end_suffix = length - 1;
   const u32 page_end_address = address | page_end_suffix;
 
-  return std::any_of(m_mem_checks.cbegin(), m_mem_checks.cend(), [&](const auto& mc) {
+  return std::ranges::any_of(m_mem_checks, [&](const auto& mc) {
     return ((mc.start_address | page_end_suffix) == page_end_address ||
             (mc.end_address | page_end_suffix) == page_end_address) ||
            ((mc.start_address | page_end_suffix) < page_end_address &&

@@ -86,8 +86,7 @@ static void LoadPatchSection(const Common::IniFile& ini)
 static bool IsWC24Channel()
 {
   const auto& sconfig = SConfig::GetInstance();
-  const auto found =
-      std::find(s_wc24_channels.begin(), s_wc24_channels.end(), sconfig.GetTitleID());
+  const auto found = std::ranges::find(s_wc24_channels, sconfig.GetTitleID());
 
   return found != s_wc24_channels.end();
 }
@@ -117,10 +116,9 @@ void Reload()
 
 std::optional<std::string> GetNetworkPatch(std::string_view source, IsKD is_kd)
 {
-  const auto patch =
-      std::find_if(s_patches.begin(), s_patches.end(), [&source, &is_kd](const NetworkPatch& p) {
-        return p.source == source && p.is_kd == is_kd && p.enabled;
-      });
+  const auto patch = std::ranges::find_if(s_patches, [&source, &is_kd](const NetworkPatch& p) {
+    return p.source == source && p.is_kd == is_kd && p.enabled;
+  });
   if (patch == s_patches.end())
     return std::nullopt;
 

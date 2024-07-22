@@ -40,7 +40,7 @@ DSPEmitter::DSPEmitter(DSPCore& dsp)
   m_stub_entry_point = CompileStub();
 
   // Clear all of the block references
-  std::fill(m_blocks.begin(), m_blocks.end(), (DSPCompiledCode)m_stub_entry_point);
+  std::ranges::fill(m_blocks, (DSPCompiledCode)m_stub_entry_point);
 }
 
 DSPEmitter::~DSPEmitter()

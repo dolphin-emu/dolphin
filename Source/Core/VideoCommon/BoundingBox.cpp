@@ -34,7 +34,7 @@ void BoundingBox::Flush()
 
   m_is_valid = false;
 
-  if (std::none_of(m_dirty.begin(), m_dirty.end(), [](const bool dirty) { return dirty; }))
+  if (std::ranges::none_of(m_dirty, [](const bool dirty) { return dirty; }))
     return;
 
   // TODO: Does this make any difference over just writing all the values?

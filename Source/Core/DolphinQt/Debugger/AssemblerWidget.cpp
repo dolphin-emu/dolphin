@@ -846,7 +846,7 @@ void AssemblerWidget::CloseTab(const int index, AsmEditor* editor)
 
 int AssemblerWidget::AllocateTabNum()
 {
-  const auto min_it = std::min_element(m_free_editor_nums.begin(), m_free_editor_nums.end());
+  const auto min_it = std::ranges::min_element(m_free_editor_nums);
   if (min_it == m_free_editor_nums.end())
   {
     return m_unnamed_editor_count++;

@@ -371,7 +371,7 @@ void RegCache::Discard(const BitSet32 pregs)
 {
   ASSERT_MSG(
       DYNA_REC,
-      std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }),
+      std::ranges::none_of(m_xregs, [](const auto& x) { return x.IsLocked(); }),
       "Someone forgot to unlock a X64 reg");
 
   for (preg_t i : pregs)
@@ -395,7 +395,7 @@ void RegCache::Flush(const BitSet32 pregs)
 {
   ASSERT_MSG(
       DYNA_REC,
-      std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }),
+      std::ranges::none_of(m_xregs, [](const auto& x) { return x.IsLocked(); }),
       "Someone forgot to unlock a X64 reg");
 
   for (preg_t i : pregs)
@@ -458,8 +458,8 @@ void RegCache::Commit()
 
 bool RegCache::IsAllUnlocked() const
 {
-  return std::none_of(m_regs.begin(), m_regs.end(), [](const auto& r) { return r.IsLocked(); }) &&
-         std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }) &&
+  return std::ranges::none_of(m_regs, [](const auto& r) { return r.IsLocked(); }) &&
+         std::ranges::none_of(m_xregs, [](const auto& x) { return x.IsLocked(); }) &&
          !IsAnyConstraintActive();
 }
 
@@ -524,12 +524,10 @@ void RegCache::BindToRegister(const preg_t i, const bool doLoad, const bool make
       LoadRegister(i, xr);
     }
 
-    ASSERT_MSG(DYNA_REC,
-               std::none_of(m_regs.begin(), m_regs.end(),
-                            [xr](const auto& r) {
-                              return r.Location().has_value() && r.Location()->IsSimpleReg(xr);
-                            }),
-               "Xreg {} already bound", Common::ToUnderlying(xr));
+    ASSERT_MSG(
+        DYNA_REC,
+        std::ranges::none_of(m_regs,[xr](const auto& r) {return r.Location().has_value() && r.
+          Location()->IsSimpleReg(xr);}), "Xreg {} already bound", Common::ToUnderlying(xr));
 
     m_regs[i].SetBoundTo(xr);
   }
@@ -753,6 +751,5 @@ void RegCache::Realize(const preg_t preg)
 
 bool RegCache::IsAnyConstraintActive() const
 {
-  return std::any_of(m_constraints.begin(), m_constraints.end(),
-                     [](const auto& c) { return c.IsActive(); });
+  return std::ranges::any_of(m_constraints, [](const auto& c) { return c.IsActive(); });
 }

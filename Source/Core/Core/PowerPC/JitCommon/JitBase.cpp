@@ -112,7 +112,7 @@ JitBase::~JitBase()
 
 bool JitBase::DoesConfigNeedRefresh()
 {
-  return std::any_of(JIT_SETTINGS.begin(), JIT_SETTINGS.end(), [this](const auto& pair) {
+  return std::ranges::any_of(JIT_SETTINGS, [this](const auto& pair) {
     return this->*pair.first != Config::Get(*pair.second);
   });
 }

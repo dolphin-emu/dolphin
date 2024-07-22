@@ -695,8 +695,7 @@ void PrintInstructionRunCounts()
     const GekkoOPInfo& info = s_tables.all_instructions[i];
     temp[i] = std::make_pair(info.opname, info.stats->run_count);
   }
-  std::sort(temp.begin(), temp.end(),
-            [](const OpInfo& a, const OpInfo& b) { return a.second > b.second; });
+  std::ranges::sort(temp, [](const OpInfo& a, const OpInfo& b) { return a.second > b.second; });
 
   for (auto& inst : temp)
   {

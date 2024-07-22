@@ -207,8 +207,9 @@ Result<FileStatus> HostFileSystem::GetFileStatus(const Fd fd)
 
 HostFileSystem::Handle* HostFileSystem::AssignFreeHandle()
 {
-  const auto it = std::find_if(m_handles.begin(), m_handles.end(),
-                               [](const Handle& handle) { return !handle.opened; });
+  const auto it = std::ranges::find_if(m_handles, [](const Handle& handle) {
+    return !handle.opened;
+  });
   if (it == m_handles.end())
     return nullptr;
 

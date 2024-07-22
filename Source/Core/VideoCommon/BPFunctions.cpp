@@ -151,7 +151,7 @@ ScissorResult::ScissorResult(const BPMemory& bpmemory, const std::pair<float, fl
   }
 
   auto cmp = [&](const ScissorRect& lhs, const ScissorRect& rhs) { return IsWorse(lhs, rhs); };
-  std::sort(m_result.begin(), m_result.end(), cmp);
+  std::ranges::sort(m_result, cmp);
 }
 
 ScissorRect ScissorResult::Best() const

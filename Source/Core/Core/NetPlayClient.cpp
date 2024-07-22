@@ -1536,10 +1536,9 @@ void NetPlayClient::DisplayPlayersPing() const
 
 u32 NetPlayClient::GetPlayersMaxPing() const
 {
-  return std::max_element(
-             m_players.begin(), m_players.end(),
-             [](const auto& a, const auto& b) { return a.second.ping < b.second.ping; })
-      ->second.ping;
+  return std::ranges::max_element(m_players, [](const auto& a, const auto& b) {
+    return a.second.ping < b.second.ping;
+  })->second.ping;
 }
 
 void NetPlayClient::Disconnect()
@@ -2408,7 +2407,7 @@ bool NetPlayClient::IsFirstInGamePad(const int ingame_pad) const
 static int CountLocalPads(const PadMappingArray& pad_map, const PlayerId& local_player_pid)
 {
   return static_cast<int>(
-      std::count_if(pad_map.begin(), pad_map.end(), [&local_player_pid](const auto& mapping) {
+      std::ranges::count_if(pad_map, [&local_player_pid](const auto& mapping) {
         return mapping == local_player_pid;
       }));
 }
@@ -2484,8 +2483,8 @@ bool NetPlayClient::PlayerHasControllerMapped(const PlayerId pid) const
 {
   const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
 
-  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
-         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+  return std::ranges::any_of(m_pad_map, mapping_matches_player_id) ||
+         std::ranges::any_of(m_wiimote_map, mapping_matches_player_id);
 }
 
 bool NetPlayClient::IsLocalPlayer(const PlayerId pid) const
@@ -2541,7 +2540,7 @@ bool NetPlayClient::DoAllPlayersHaveGame()
 {
   std::lock_guard lkp(m_crit.players);
 
-  return std::all_of(std::begin(m_players), std::end(m_players), [](auto entry) {
+  return std::ranges::all_of(m_players, [](auto entry) {
     return entry.second.game_status == SyncIdentifierComparison::SameGame;
   });
 }

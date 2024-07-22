@@ -51,8 +51,8 @@ BluetoothEmuDevice::BluetoothEmuDevice(EmulationKernel& ios, const std::string& 
     const bdaddr_t tmp_bd = {0x11, 0x02, 0x19, 0x79, 0, i};
 
     // Previous records can be safely overwritten, since they are backed up
-    std::copy(tmp_bd.begin(), tmp_bd.end(), std::rbegin(bt_dinf.active[i].bdaddr));
-    std::copy(tmp_bd.begin(), tmp_bd.end(), std::rbegin(bt_dinf.registered[i].bdaddr));
+    std::ranges::copy(tmp_bd, std::rbegin(bt_dinf.active[i].bdaddr));
+    std::ranges::copy(tmp_bd, std::rbegin(bt_dinf.registered[i].bdaddr));
 
     const auto& wm_name =
         (i == WIIMOTE_BALANCE_BOARD) ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01";
@@ -473,8 +473,8 @@ bool BluetoothEmuDevice::SendEventInquiryResponse()
   static_assert(
       sizeof(SHCIEventInquiryResult) - 2 + (num_responses * sizeof(hci_inquiry_response)) < 256);
 
-  const auto iter = std::find_if(m_wiimotes.begin(), m_wiimotes.end(),
-                                 std::mem_fn(&WiimoteDevice::IsInquiryScanEnabled));
+  const auto iter =
+      std::ranges::find_if(m_wiimotes, std::mem_fn(&WiimoteDevice::IsInquiryScanEnabled));
   if (iter == m_wiimotes.end())
   {
     // No remotes are discoverable.

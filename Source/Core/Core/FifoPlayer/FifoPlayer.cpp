@@ -503,7 +503,7 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate) const
   else
     mem = &memory.GetRAM()[memUpdate.address & memory.GetRamMask()];
 
-  std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
+  std::ranges::copy(memUpdate.data, mem);
 }
 
 void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)

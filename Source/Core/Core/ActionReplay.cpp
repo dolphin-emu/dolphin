@@ -120,8 +120,8 @@ void ApplyCodes(std::span<const ARCode> codes)
   std::lock_guard guard(s_lock);
   s_disable_logging = false;
   s_active_codes.clear();
-  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-               [](const ARCode& code) { return code.enabled; });
+  std::ranges::copy_if(codes, std::back_inserter(s_active_codes),
+                       [](const ARCode& code) { return code.enabled; });
   s_active_codes.shrink_to_fit();
 }
 
@@ -136,8 +136,8 @@ void UpdateSyncedCodes(std::span<const ARCode> codes)
 {
   s_synced_codes.clear();
   s_synced_codes.reserve(codes.size());
-  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_synced_codes),
-               [](const ARCode& code) { return code.enabled; });
+  std::ranges::copy_if(codes, std::back_inserter(s_synced_codes),
+                       [](const ARCode& code) { return code.enabled; });
   s_synced_codes.shrink_to_fit();
 }
 
@@ -148,8 +148,8 @@ std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes)
     std::lock_guard guard(s_lock);
     s_disable_logging = false;
     s_active_codes.clear();
-    std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-                 [](const ARCode& code) { return code.enabled; });
+    std::ranges::copy_if(codes, std::back_inserter(s_active_codes),
+                         [](const ARCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
