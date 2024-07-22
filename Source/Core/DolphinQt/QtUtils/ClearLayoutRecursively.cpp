@@ -17,7 +17,7 @@ void ClearLayoutRecursively(QLayout* layout)
     if (child->widget())
     {
       layout->removeWidget(child->widget());
-      delete child->widget();
+      child->widget()->deleteLater();
     }
     else if (child->layout())
     {
