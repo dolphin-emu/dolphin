@@ -92,57 +92,57 @@ constexpr std::array<const char*, 32> trap_condition{
     "ne",    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 };
 
-constexpr std::array<const char*, 4> cmpname{
+constexpr std::array cmpname{
     "cmpw",
     "cmpd",
     "cmplw",
     "cmpld",
 };
 
-constexpr std::array<const char*, 4> ps_cmpname{
+constexpr std::array ps_cmpname{
     "ps_cmpu0",
     "ps_cmpo0",
     "ps_cmpu1",
     "ps_cmpo1",
 };
 
-constexpr std::array<const char*, 4> b_ext{
+constexpr std::array b_ext{
     "",
     "l",
     "a",
     "la",
 };
 
-constexpr std::array<const char*, 8> b_condition{
+constexpr std::array b_condition{
     "ge", "le", "ne", "ns", "lt", "gt", "eq", "so",
 };
 
-constexpr std::array<const char*, 16> b_decr{
+constexpr std::array b_decr{
     "nzf", "zf", nullptr, nullptr, "nzt", "zt", nullptr, nullptr,
     "nz",  "z",  nullptr, nullptr, "nz",  "z",  nullptr, nullptr,
 };
 
-constexpr std::array<const char*, 2> regsel{
+constexpr std::array regsel{
     "",
     "r",
 };
 
-constexpr std::array<const char*, 2> oesel{
+constexpr std::array oesel{
     "",
     "o",
 };
 
-constexpr std::array<const char*, 2> rcsel{
+constexpr std::array rcsel{
     "",
     ".",
 };
 
-constexpr std::array<const char*, 24> ldstnames{
+constexpr std::array ldstnames{
     "lwz", "lwzu", "lbz", "lbzu", "stw", "stwu", "stb", "stbu", "lhz",  "lhzu",  "lha",  "lhau",
     "sth", "sthu", "lmw", "stmw", "lfs", "lfsu", "lfd", "lfdu", "stfs", "stfsu", "stfd", "stfdu",
 };
 
-constexpr std::array<const char*, 32> regnames{
+constexpr std::array regnames{
     "r0",  "sp",  "rtoc", "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",  "r10",
     "r11", "r12", "r13",  "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
     "r22", "r23", "r24",  "r25", "r26", "r27", "r28", "r29", "r30", "r31",
@@ -2288,7 +2288,7 @@ std::string GekkoDisassembler::Disassemble(const u32 opcode, const u32 current_i
   return m_opcode.append("\t").append(m_operands);
 }
 
-constexpr std::array<const char*, 32> gpr_names{
+constexpr std::array gpr_names{
     " r0", " r1 (sp)", " r2 (rtoc)", " r3", " r4", " r5", " r6", " r7", " r8", " r9", "r10",
     "r11", "r12",      "r13",        "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
     "r22", "r23",      "r24",        "r25", "r26", "r27", "r28", "r29", "r30", "r31",
@@ -2302,7 +2302,7 @@ const char* GekkoDisassembler::GetGPRName(const u32 index)
   return nullptr;
 }
 
-constexpr std::array<const char*, 32> fpr_names{
+constexpr std::array fpr_names{
     " f0", " f1", " f2", " f3", " f4", " f5", " f6", " f7", " f8", " f9", "f10",
     "f11", "f12", "f13", "f14", "f15", "f16", "f17", "f18", "f19", "f20", "f21",
     "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",

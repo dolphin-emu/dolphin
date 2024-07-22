@@ -127,7 +127,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     if (ImGui::Begin("PerformanceGraphs", nullptr, imgui_flags))
     {
       static constexpr std::size_t num_ticks = 17;
-      static constexpr std::array<double, num_ticks> tick_marks = {0.0,
+      static constexpr std::array tick_marks = {0.0,
                                                                    1000.0 / 360.0,
                                                                    1000.0 / 240.0,
                                                                    1000.0 / 180.0,

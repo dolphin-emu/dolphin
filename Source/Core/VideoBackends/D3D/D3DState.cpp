@@ -307,7 +307,7 @@ StateCache::~StateCache() = default;
 
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
+  std::lock_guard guard(m_lock);
   auto it = m_sampler.find(state);
   if (it != m_sampler.end())
     return it->second.Get();
@@ -358,7 +358,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
 ID3D11BlendState* StateCache::Get(BlendingState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
+  std::lock_guard guard(m_lock);
   auto it = m_blend.find(state.hex);
   if (it != m_blend.end())
     return it->second.Get();
@@ -435,7 +435,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
 
 ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
+  std::lock_guard guard(m_lock);
   auto it = m_raster.find(state.hex);
   if (it != m_raster.end())
     return it->second.Get();
@@ -456,7 +456,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 
 ID3D11DepthStencilState* StateCache::Get(DepthState state)
 {
-  std::lock_guard<std::mutex> guard(m_lock);
+  std::lock_guard guard(m_lock);
   auto it = m_depth.find(state.hex);
   if (it != m_depth.end())
     return it->second.Get();

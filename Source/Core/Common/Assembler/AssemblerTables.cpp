@@ -673,7 +673,7 @@ extern const CaseInsensitiveDict<ParseInfo, '.', '_', '+', '-'> extended_mnemoni
       EMIT_MNEMONIC_ENTRY(opcode_val, ((extra_bits) | InsertVal(0b11, 30, 31)), __VA_ARGS__)
 
 // Defines all basic mnemonics that Broadway/Gekko supports
-extern const std::array<MnemonicDesc, NUM_MNEMONICS* VARIANT_PERMUTATIONS> mnemonics = {
+extern const std::array mnemonics = {
     // A-2
     OERC_MNEMONIC(31, InsertVal(266, 22, 30), OpDesc_D, OpDesc_A, OpDesc_B),  // add
     OERC_MNEMONIC(31, InsertVal(10, 22, 30), OpDesc_D, OpDesc_A, OpDesc_B),   // addc
@@ -1064,7 +1064,7 @@ void FillMfsprBatAndBitswap(OperandList& operands)
   PSEUDO(base, PLAIN_MNEMONIC, cb), PSEUDO(base, LINK_BIT, cb),                                    \
       PSEUDO(base, ABSOLUTE_ADDRESS_BIT, cb), PSEUDO(base, (LINK_BIT | ABSOLUTE_ADDRESS_BIT), cb)
 
-extern const std::array<ExtendedMnemonicDesc, NUM_EXT_MNEMONICS* VARIANT_PERMUTATIONS>
+extern const std::array
     extended_mnemonics = {
         // E.2.1
         PLAIN_PSEUDO(GekkoMnemonic::Addi, NegateSIMM),      // subi

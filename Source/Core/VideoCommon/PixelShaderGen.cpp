@@ -1550,7 +1550,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     // Wrapping
     // ---------
 
-    static constexpr std::array<const char*, 5> tev_ind_wrap_start{
+    static constexpr std::array tev_ind_wrap_start{
         "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)",
     };
 
@@ -2021,7 +2021,7 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
 static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
-  static constexpr std::array<const char*, 16> logic_op_mode{
+  static constexpr std::array logic_op_mode{
       "int4(0, 0, 0, 0)",          // CLEAR
       "prev & fb_value",           // AND
       "prev & ~fb_value",          // AND_REVERSE

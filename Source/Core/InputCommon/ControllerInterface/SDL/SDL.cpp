@@ -539,7 +539,7 @@ struct SDLMotionAxis
 using SDLMotionAxisList = std::array<SDLMotionAxis, 6>;
 
 // clang-format off
-static constexpr std::array<const char*, 21> s_sdl_button_names = {
+static constexpr std::array s_sdl_button_names = {
     "Button S",    // SDL_CONTROLLER_BUTTON_A
     "Button E",    // SDL_CONTROLLER_BUTTON_B
     "Button W",    // SDL_CONTROLLER_BUTTON_X
@@ -562,7 +562,7 @@ static constexpr std::array<const char*, 21> s_sdl_button_names = {
     "Paddle 4",     // SDL_CONTROLLER_BUTTON_PADDLE4
     "Touchpad",    // SDL_CONTROLLER_BUTTON_TOUCHPAD
 };
-static constexpr std::array<const char*, 6> s_sdl_axis_names = {
+static constexpr std::array s_sdl_axis_names = {
     "Left X",     // SDL_CONTROLLER_AXIS_LEFTX
     "Left Y",     // SDL_CONTROLLER_AXIS_LEFTY
     "Right X",    // SDL_CONTROLLER_AXIS_RIGHTX

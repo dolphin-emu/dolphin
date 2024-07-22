@@ -1498,7 +1498,7 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 
         const auto lookup_addr = (*found_addr - max_name_length) + i;
 
-        const std::array<u8, 4> ref = {
+        const std::array ref = {
             static_cast<u8>(lookup_addr >> 24), static_cast<u8>(lookup_addr >> 16),
             static_cast<u8>(lookup_addr >> 8), static_cast<u8>(lookup_addr)};
 

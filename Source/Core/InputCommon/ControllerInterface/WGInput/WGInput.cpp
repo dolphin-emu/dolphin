@@ -501,7 +501,7 @@ private:
     // using std::vector<bool> would create a bit-packed array, which isn't wanted. So, we keep
     // vector<u8> and view it as array<bool>.
     auto buttons =
-        winrt::array_view<bool>(reinterpret_cast<winrt::array_view<bool>::pointer>(&m_buttons[0]),
+        winrt::array_view(reinterpret_cast<winrt::array_view<bool>::pointer>(&m_buttons[0]),
                                 static_cast<winrt::array_view<bool>::size_type>(m_buttons.size()));
     try
     {

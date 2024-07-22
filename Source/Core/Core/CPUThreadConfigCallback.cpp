@@ -11,7 +11,7 @@
 
 namespace
 {
-std::atomic<bool> s_should_run_callbacks = false;
+std::atomic s_should_run_callbacks = false;
 
 static std::vector<
     std::pair<CPUThreadConfigCallback::ConfigChangedCallbackID, Config::ConfigChangedCallback>>

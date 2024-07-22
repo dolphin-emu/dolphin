@@ -1055,7 +1055,7 @@ std::optional<std::vector<u8>> WIARVZFileReader<RVZ>::Compress(Compressor* compr
     size = compressor->GetSize();
   }
 
-  return std::vector<u8>(data, data + size);
+  return std::vector(data, data + size);
 }
 
 template <bool RVZ>

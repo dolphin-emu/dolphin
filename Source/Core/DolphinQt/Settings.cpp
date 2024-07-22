@@ -68,7 +68,7 @@ Settings::Settings()
   });
 
   Config::AddConfigChangedCallback([this] {
-    static std::atomic<bool> do_once{true};
+    static std::atomic do_once{true};
     if (do_once.exchange(false))
     {
       // Calling ConfigChanged() with a "delay" can have risks, for example, if from

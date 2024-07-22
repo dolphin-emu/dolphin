@@ -139,7 +139,7 @@ void Wiimote::Reset()
 
     // Accel calibration:
     // Last byte is a checksum.
-    std::array<u8, 10> accel_calibration = {
+    std::array accel_calibration = {
         ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0,
     };
     UpdateCalibrationDataChecksum(accel_calibration, 1);

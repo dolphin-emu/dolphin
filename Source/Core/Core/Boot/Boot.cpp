@@ -182,7 +182,7 @@ BootParameters::BootParameters(Parameters&& parameters_, BootSessionData boot_se
 std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::string boot_path,
                                                                  BootSessionData boot_session_data_)
 {
-  return GenerateFromFile(std::vector<std::string>{std::move(boot_path)},
+  return GenerateFromFile(std::vector{std::move(boot_path)},
                           std::move(boot_session_data_));
 }
 

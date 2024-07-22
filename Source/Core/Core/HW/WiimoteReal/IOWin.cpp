@@ -569,7 +569,7 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
     if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr,
                                         &device_info_data))
     {
-      std::basic_string<TCHAR> device_path(detail_data->DevicePath);
+      std::basic_string device_path(detail_data->DevicePath);
       bool IsUsingToshibaStack = CheckForToshibaStack(device_info_data.DevInst);
 
       WinWriteMethod write_method = GetInitialWriteMethod(IsUsingToshibaStack);

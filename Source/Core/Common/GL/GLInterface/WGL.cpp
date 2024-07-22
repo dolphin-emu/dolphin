@@ -379,7 +379,7 @@ HGLRC GLContextWGL::CreateCoreContext(const HDC dc, const HGLRC share_context)
   for (const auto& version : s_desktop_opengl_versions)
   {
     // Construct list of attributes. Prefer a forward-compatible, core context.
-    std::array<int, 5 * 2> attribs = {WGL_CONTEXT_PROFILE_MASK_ARB,
+    std::array attribs = {WGL_CONTEXT_PROFILE_MASK_ARB,
                                       WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 #ifdef _DEBUG
                                       WGL_CONTEXT_FLAGS_ARB,
@@ -419,7 +419,7 @@ bool GLContextWGL::CreatePBuffer(const HDC onscreen_dc, const int width, const i
     return false;
   }
 
-  static constexpr std::array<int, 7 * 2> pf_iattribs = {
+  static constexpr std::array pf_iattribs = {
       WGL_DRAW_TO_PBUFFER_ARB,
       1,  // Pixel format compatible with pbuffer rendering
       WGL_RED_BITS_ARB,

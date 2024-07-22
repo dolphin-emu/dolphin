@@ -267,7 +267,7 @@ void CustomPipeline::UpdatePixelData(
             texture_asset = CachedTextureAsset{};
           }
           const auto loaded_time = asset->GetLastLoadedTime();
-          texture_asset->m_cached_asset = VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{
+          texture_asset->m_cached_asset = VideoCommon::CachedAsset{
               std::move(asset), loaded_time};
           texture_asset->m_texture.reset();
 

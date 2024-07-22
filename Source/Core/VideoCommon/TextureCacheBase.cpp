@@ -1583,7 +1583,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       auto asset = hires_texture->GetAsset();
       const auto loaded_time = asset->GetLastLoadedTime();
       cached_game_assets.push_back(
-          VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{std::move(asset), loaded_time});
+          VideoCommon::CachedAsset{std::move(asset), loaded_time});
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
       skip_texture_dump = true;
     }
@@ -2566,7 +2566,7 @@ void TextureCacheBase::FlushStaleBinds()
 void TextureCacheBase::WriteEFBCopyToRAM(u8* dst_ptr, const u32 width, const u32 height, const u32 stride,
                                          std::unique_ptr<AbstractStagingTexture> staging_texture)
 {
-  MathUtil::Rectangle<int> copy_rect(0, 0, static_cast<int>(width), static_cast<int>(height));
+  MathUtil::Rectangle copy_rect(0, 0, static_cast<int>(width), static_cast<int>(height));
   staging_texture->ReadTexels(copy_rect, dst_ptr, stride);
   ReleaseEFBCopyStagingTexture(std::move(staging_texture));
 }

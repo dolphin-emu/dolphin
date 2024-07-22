@@ -24,13 +24,13 @@
 
 namespace Common::Log
 {
-const Config::Info<bool> LOGGER_WRITE_TO_FILE{{Config::System::Logger, "Options", "WriteToFile"},
+const Config::Info LOGGER_WRITE_TO_FILE{{Config::System::Logger, "Options", "WriteToFile"},
                                               false};
-const Config::Info<bool> LOGGER_WRITE_TO_CONSOLE{
+const Config::Info LOGGER_WRITE_TO_CONSOLE{
     {Config::System::Logger, "Options", "WriteToConsole"}, true};
-const Config::Info<bool> LOGGER_WRITE_TO_WINDOW{
+const Config::Info LOGGER_WRITE_TO_WINDOW{
     {Config::System::Logger, "Options", "WriteToWindow"}, true};
-const Config::Info<LogLevel> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"},
+const Config::Info LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"},
                                               LogLevel::LNOTICE};
 
 class FileLogListener : public LogListener
@@ -47,7 +47,7 @@ public:
     if (!IsEnabled() || !IsValid())
       return;
 
-    std::lock_guard<std::mutex> lk(m_log_lock);
+    std::lock_guard lk(m_log_lock);
     m_logfile << msg << std::flush;
   }
 
@@ -165,7 +165,7 @@ LogManager::LogManager()
   for (auto& container : m_log)
   {
     container.m_enable = Get(
-        Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
+        Config::Info{{Config::System::Logger, "Logs", container.m_short_name}, false});
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
@@ -191,7 +191,7 @@ void LogManager::SaveSettings()
 
   for (const auto& container : m_log)
   {
-    const Config::Info<bool> info{{Config::System::Logger, "Logs", container.m_short_name}, false};
+    const Config::Info info{{Config::System::Logger, "Logs", container.m_short_name}, false};
     SetBaseOrCurrent(info, container.m_enable);
   }
 

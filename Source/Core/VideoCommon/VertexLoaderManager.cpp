@@ -71,7 +71,7 @@ void Init()
 
 void Clear()
 {
-  std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
+  std::lock_guard lk(s_vertex_loader_map_lock);
   s_vertex_loader_map.clear();
   s_native_vertex_map.clear();
 }
@@ -221,7 +221,7 @@ VertexLoaderBase* GetOrCreateLoader(const int vtx_attr_group)
   bool check_for_native_format = !IsPreprocess;
 
   VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-  std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
+  std::lock_guard lk(s_vertex_loader_map_lock);
   VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
   if (iter != s_vertex_loader_map.end())
   {

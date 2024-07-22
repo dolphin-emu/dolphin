@@ -31,7 +31,7 @@ D3D_FEATURE_LEVEL feature_level;
 
 static ComPtr<ID3D11Debug> s_debug;
 
-constexpr std::array<D3D_FEATURE_LEVEL, 3> s_supported_feature_levels{
+constexpr std::array s_supported_feature_levels{
     D3D_FEATURE_LEVEL_11_0,
     D3D_FEATURE_LEVEL_10_1,
     D3D_FEATURE_LEVEL_10_0,

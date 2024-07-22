@@ -397,7 +397,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* mail_flag, u32* interval)
   std::array<u8, 20> hashed{};
   Common::HMAC::HMACWithSHA1(
       MAIL_CHECK_KEY,
-      std::span<const u8>(reinterpret_cast<const u8*>(hmac_message.data()), hmac_message.size()),
+      std::span(reinterpret_cast<const u8*>(hmac_message.data()), hmac_message.size()),
       hashed.data());
 
   // On a real Wii, strncmp is used to compare both hashes. This means that it is a case-sensitive
@@ -738,7 +738,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     NWC24::WC24File wc24_file;
     std::memcpy(&wc24_file, response->data(), sizeof(NWC24::WC24File));
 
-    std::vector<u8> temp_buffer(response->begin() + 320, response->end());
+    std::vector temp_buffer(response->begin() + 320, response->end());
 
     if (m_dl_list.IsEncrypted(entry_index))
     {

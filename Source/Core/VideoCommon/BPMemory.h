@@ -1400,7 +1400,7 @@ struct fmt::formatter<BlendMode>
   template <typename FormatContext>
   auto format(const BlendMode& mode, FormatContext& ctx) const
   {
-    static constexpr std::array<const char*, 2> no_yes = {"No", "Yes"};
+    static constexpr std::array no_yes = {"No", "Yes"};
     return fmt::format_to(ctx.out(),
                           "Enable: {}\n"
                           "Logic ops: {}\n"
@@ -2160,7 +2160,7 @@ struct fmt::formatter<UPE_Copy>
   template <typename FormatContext>
   auto format(const UPE_Copy& copy, FormatContext& ctx) const
   {
-    static constexpr std::array<const char*, 2> no_yes = {"No", "Yes"};
+    static constexpr std::array no_yes = {"No", "Yes"};
     std::string_view clamp;
     if (copy.clamp_top)
     {

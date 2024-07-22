@@ -1076,7 +1076,7 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
 {
   auto second_game = m_game_list->FindSecondDisc(game);
 
-  std::vector<std::string> paths = {game.GetFilePath()};
+  std::vector paths = {game.GetFilePath()};
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
 
@@ -2059,7 +2059,7 @@ void MainWindow::ShowCheatsManager() const
 void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
 {
   auto second_game = m_game_list->FindSecondDisc(game);
-  std::vector<std::string> paths = {game.GetFilePath()};
+  std::vector paths = {game.GetFilePath()};
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
   std::unique_ptr<BootParameters> boot_params = BootParameters::GenerateFromFile(paths);

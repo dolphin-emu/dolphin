@@ -379,7 +379,7 @@ void BluetoothEmuDevice::Update()
       if (batch_count > 0)
       {
         NetPlay_GetWiimoteData(
-            std::span<NetPlay::NetPlayClient::WiimoteDataBatchEntry>(batch.data(), batch_count));
+            std::span(batch.data(), batch_count));
 
         for (size_t i = 0; i < batch_count; ++i)
         {

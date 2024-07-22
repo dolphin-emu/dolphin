@@ -153,7 +153,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   };
 
   for (auto& button : button_masks)
-    AddInput(new Button<u16>(&m_core_data.hex, button.first, button.second));
+    AddInput(new Button(&m_core_data.hex, button.first, button.second));
 
   static constexpr u16 dpad_masks[] = {
       EmuWiimote::PAD_UP,
@@ -173,7 +173,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
 
   // Raw accelerometer.
   for (std::size_t i = 0; i != std::size(dpad_masks); ++i)
-    AddInput(new Button<u16>(&m_core_data.hex, dpad_masks[i], named_directions[i]));
+    AddInput(new Button(&m_core_data.hex, dpad_masks[i], named_directions[i]));
 
   static constexpr std::array<std::array<const char*, 2>, 3> accel_names = {{
       {"Accel Left", "Accel Right"},
@@ -183,8 +183,8 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
 
   for (std::size_t i = 0; i != m_accel_data.data.size(); ++i)
   {
-    AddInput(new UndetectableAnalogInput<float>(&m_accel_data.data[i], accel_names[i][0], 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_accel_data.data[i], accel_names[i][1], -1));
+    AddInput(new UndetectableAnalogInput(&m_accel_data.data[i], accel_names[i][0], 1));
+    AddInput(new UndetectableAnalogInput(&m_accel_data.data[i], accel_names[i][1], -1));
   }
 
   // IR data.
@@ -197,18 +197,18 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
         new UndetectableSignedAnalogInput(&m_ir_state.center_position.data[i], ir_names[i], 1.f));
   }
 
-  AddInput(new UndetectableAnalogInput<bool>(&m_ir_state.is_hidden, "IR Hidden", 1));
+  AddInput(new UndetectableAnalogInput(&m_ir_state.is_hidden, "IR Hidden", 1));
 
-  AddInput(new UndetectableAnalogInput<float>(&m_ir_state.distance, "IR Distance", 1));
+  AddInput(new UndetectableAnalogInput(&m_ir_state.distance, "IR Distance", 1));
 
   // Raw IR Objects.
   for (std::size_t i = 0; i < 4; ++i)
   {
-    AddInput(new UndetectableAnalogInput<float>(&m_ir_state.raw_ir_object_position[i].x,
+    AddInput(new UndetectableAnalogInput(&m_ir_state.raw_ir_object_position[i].x,
                                                 fmt::format("IR Object {} X", i + 1), 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_ir_state.raw_ir_object_position[i].y,
+    AddInput(new UndetectableAnalogInput(&m_ir_state.raw_ir_object_position[i].y,
                                                 fmt::format("IR Object {} Y", i + 1), 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_ir_state.raw_ir_object_size[i],
+    AddInput(new UndetectableAnalogInput(&m_ir_state.raw_ir_object_size[i],
                                                 fmt::format("IR Object {} Size", i + 1), 1));
   }
 
@@ -222,17 +222,17 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   for (std::size_t i = 0; i != m_accel_data.data.size(); ++i)
   {
     AddInput(
-        new UndetectableAnalogInput<float>(&m_mplus_state.gyro_data.data[i], gyro_names[i][0], 1));
+        new UndetectableAnalogInput(&m_mplus_state.gyro_data.data[i], gyro_names[i][0], 1));
     AddInput(
-        new UndetectableAnalogInput<float>(&m_mplus_state.gyro_data.data[i], gyro_names[i][1], -1));
+        new UndetectableAnalogInput(&m_mplus_state.gyro_data.data[i], gyro_names[i][1], -1));
   }
 
   using WiimoteEmu::Nunchuk;
   const std::string nunchuk_prefix = "Nunchuk ";
 
   // Buttons.
-  AddInput(new Button<u8>(&m_nunchuk_state.buttons, Nunchuk::BUTTON_C, nunchuk_prefix + "C"));
-  AddInput(new Button<u8>(&m_nunchuk_state.buttons, Nunchuk::BUTTON_Z, nunchuk_prefix + "Z"));
+  AddInput(new Button(&m_nunchuk_state.buttons, Nunchuk::BUTTON_C, nunchuk_prefix + "C"));
+  AddInput(new Button(&m_nunchuk_state.buttons, Nunchuk::BUTTON_Z, nunchuk_prefix + "Z"));
 
   // Stick.
   static constexpr const char* const nunchuk_stick_names[] = {"X", "Y"};
@@ -247,9 +247,9 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   // Raw accelerometer.
   for (std::size_t i = 0; i != m_accel_data.data.size(); ++i)
   {
-    AddInput(new UndetectableAnalogInput<float>(&m_nunchuk_state.accel.data[i],
+    AddInput(new UndetectableAnalogInput(&m_nunchuk_state.accel.data[i],
                                                 nunchuk_prefix + accel_names[i][0], 1));
-    AddInput(new UndetectableAnalogInput<float>(&m_nunchuk_state.accel.data[i],
+    AddInput(new UndetectableAnalogInput(&m_nunchuk_state.accel.data[i],
                                                 nunchuk_prefix + accel_names[i][1], -1));
   }
 
@@ -265,7 +265,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   };
 
   for (std::size_t i = 0; i != std::size(classic_dpad_masks); ++i)
-    AddInput(new Button<u16>(&m_classic_state.buttons, classic_dpad_masks[i],
+    AddInput(new Button(&m_classic_state.buttons, classic_dpad_masks[i],
                              classic_prefix + named_directions[i]));
 
   static constexpr u16 classic_button_masks[] = {
@@ -279,7 +279,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   };
 
   for (std::size_t i = 0; i != std::size(classic_button_masks); ++i)
-    AddInput(new Button<u16>(&m_classic_state.buttons, classic_button_masks[i],
+    AddInput(new Button(&m_classic_state.buttons, classic_button_masks[i],
                              classic_prefix + classic_button_names[i]));
 
   // Sticks.
@@ -298,14 +298,14 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   }
 
   // Triggers.
-  AddInput(new AnalogInput<float>(&m_classic_state.triggers[0], classic_prefix + "L-Analog", 1.f));
-  AddInput(new AnalogInput<float>(&m_classic_state.triggers[1], classic_prefix + "R-Analog", 1.f));
+  AddInput(new AnalogInput(&m_classic_state.triggers[0], classic_prefix + "L-Analog", 1.f));
+  AddInput(new AnalogInput(&m_classic_state.triggers[1], classic_prefix + "R-Analog", 1.f));
 
   // Specialty inputs:
-  AddInput(new UndetectableAnalogInput<float>(&m_battery, "Battery", 1.f));
-  AddInput(new UndetectableAnalogInput<WiimoteEmu::ExtensionNumber>(
+  AddInput(new UndetectableAnalogInput(&m_battery, "Battery", 1.f));
+  AddInput(new UndetectableAnalogInput(
       &m_extension_number_input, "Attached Extension", WiimoteEmu::ExtensionNumber(1)));
-  AddInput(new UndetectableAnalogInput<bool>(&m_mplus_attached_input, "Attached MotionPlus", 1));
+  AddInput(new UndetectableAnalogInput(&m_mplus_attached_input, "Attached MotionPlus", 1));
 
   AddOutput(new Motor(&m_rumble_level));
 }
@@ -347,7 +347,7 @@ void Device::RunTasks()
   {
     QueueReport(OutputReportRequestStatus());
 
-    AddReportHandler(std::function<void(const InputReportStatus& status)>(
+    AddReportHandler(std::function(
         [this](const InputReportStatus& status) {
           DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Received requested status.");
           ProcessStatusReport(status);
@@ -1566,7 +1566,7 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
   };
 
   AddReportHandler(
-      std::function<ReportHandler::HandlerResult(const InputReportReadDataReply& reply)>(
+      std::function(
           std::move(read_handler)),
       std::move(ack_handler));
 }

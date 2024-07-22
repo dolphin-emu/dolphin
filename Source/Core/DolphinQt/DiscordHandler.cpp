@@ -58,7 +58,7 @@ void DiscordHandler::DiscordJoin()
 void DiscordHandler::ShowNewJoinRequest(const std::string& id, const std::string& discord_tag,
                                         const std::string& avatar)
 {
-  std::lock_guard<std::mutex> lock(m_request_dialogs_mutex);
+  std::lock_guard lock(m_request_dialogs_mutex);
   m_request_dialogs.emplace_front(m_parent, id, discord_tag, avatar);
   DiscordJoinRequestDialog& request_dialog = m_request_dialogs.front();
   SetQWidgetWindowDecorations(&request_dialog);
@@ -78,7 +78,7 @@ void DiscordHandler::Run()
 
     // close and remove dead requests
     {
-      std::lock_guard<std::mutex> lock(m_request_dialogs_mutex);
+      std::lock_guard lock(m_request_dialogs_mutex);
       for (auto request_dialog = m_request_dialogs.begin();
            request_dialog != m_request_dialogs.end();)
       {

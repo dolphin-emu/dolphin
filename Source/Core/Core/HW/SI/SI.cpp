@@ -141,7 +141,7 @@ void SerialInterfaceManager::RunSIBuffer(u64 user_data, const s64 cycles_late)
   {
     const s32 request_length = ConvertSILengthField(m_com_csr.OUTLNGTH);
     const s32 expected_response_length = ConvertSILengthField(m_com_csr.INLNGTH);
-    const std::vector<u8> request_copy(m_si_buffer.data(), m_si_buffer.data() + request_length);
+    const std::vector request_copy(m_si_buffer.data(), m_si_buffer.data() + request_length);
 
     const std::unique_ptr<ISIDevice>& device = m_channel[m_com_csr.CHANNEL].device;
     const s32 actual_response_length = device->RunBuffer(m_si_buffer.data(), request_length);
@@ -229,7 +229,7 @@ void SerialInterfaceManager::RegisterEvents()
   m_event_type_change_device = core_timing.RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
   m_event_type_tranfer_pending = core_timing.RegisterEvent("SITransferPending", GlobalRunSIBuffer);
 
-  constexpr std::array<CoreTiming::TimedCallback, MAX_SI_CHANNELS> event_callbacks = {
+  constexpr std::array event_callbacks = {
       DeviceEventCallback<0>,
       DeviceEventCallback<1>,
       DeviceEventCallback<2>,

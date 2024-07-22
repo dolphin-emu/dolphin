@@ -174,7 +174,7 @@ void AnalyticsReporter::ThreadProc()
 
     while (!m_reports_queue.Empty())
     {
-      std::shared_ptr<AnalyticsReportingBackend> backend(m_backend);
+      std::shared_ptr backend(m_backend);
 
       if (backend)
       {

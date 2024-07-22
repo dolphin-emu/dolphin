@@ -79,5 +79,5 @@ bool AbstractFramebuffer::ValidateConfig(
 
 MathUtil::Rectangle<int> AbstractFramebuffer::GetRect() const
 {
-  return MathUtil::Rectangle<int>(0, 0, static_cast<int>(m_width), static_cast<int>(m_height));
+  return MathUtil::Rectangle(0, 0, static_cast<int>(m_width), static_cast<int>(m_height));
 }

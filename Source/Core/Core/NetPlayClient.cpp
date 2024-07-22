@@ -2551,7 +2551,7 @@ static std::string SHA1Sum(const std::string& file_path, std::function<bool(int)
   std::vector<u8> data(8 * 1024 * 1024);
   u64 read_offset = 0;
 
-  std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(file_path));
+  std::unique_ptr file(DiscIO::CreateBlobReader(file_path));
   u64 game_size = file->GetDataSize();
 
   auto ctx = Common::SHA1::CreateContext();

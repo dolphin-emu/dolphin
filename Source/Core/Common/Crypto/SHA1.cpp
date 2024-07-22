@@ -125,7 +125,7 @@ protected:
       std::memset(&block[block_used], 0, MSG_LEN_POS - block_used);
     }
 
-    BigEndianValue<u64> msg_bitlen(msg_len * 8);
+    BigEndianValue msg_bitlen(msg_len * 8);
     std::memcpy(&block[MSG_LEN_POS], &msg_bitlen, sizeof(msg_bitlen));
 
     ProcessBlock(&block[0]);
@@ -388,7 +388,7 @@ Digest CalculateDigest(const u8* msg, const size_t len)
 
 std::string DigestToString(const Digest& digest)
 {
-  static constexpr std::array<char, 16> lookup = {'0', '1', '2', '3', '4', '5', '6', '7',
+  static constexpr std::array lookup = {'0', '1', '2', '3', '4', '5', '6', '7',
                                                   '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
   std::string hash;
   hash.reserve(digest.size() * 2);

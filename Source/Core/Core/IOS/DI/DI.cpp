@@ -335,7 +335,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     // (start, end) as 32-bit offsets
     // Older IOS versions only accept the first range.  Later versions added the extra ranges to
     // check how the drive responds to out of bounds reads (an error 001 check).
-    constexpr std::array<DiscRange, 3> valid_ranges = {
+    constexpr std::array valid_ranges = {
         DiscRange{0, 0x14000, false},  // "System area"
         DiscRange{0x460A0000, 0x460A0008, true},
         DiscRange{0x7ED40000, 0x7ED40008, true},

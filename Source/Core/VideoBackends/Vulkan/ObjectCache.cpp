@@ -248,21 +248,21 @@ bool ObjectCache::CreatePipelineLayouts()
   // Descriptor sets for each pipeline layout.
   // In the standard set, the SSBO must be the last descriptor, as we do not include it
   // when fragment stores and atomics are not supported by the device.
-  const std::array<VkDescriptorSetLayout, 3> standard_sets{
+  const std::array standard_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
   };
-  const std::array<VkDescriptorSetLayout, 3> uber_sets{
+  const std::array uber_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
   };
-  const std::array<VkDescriptorSetLayout, 2> utility_sets{
+  const std::array utility_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_UNIFORM_BUFFER],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_SAMPLERS],
   };
-  const std::array<VkDescriptorSetLayout, 1> compute_sets{
+  const std::array compute_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_COMPUTE],
   };
 

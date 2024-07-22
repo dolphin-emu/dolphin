@@ -88,7 +88,7 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
     }
     else
     {
-      std::vector<u8> contents(m_whole_file.data() + data_offset,
+      std::vector contents(m_whole_file.data() + data_offset,
                                m_whole_file.data() + data_offset + size);
       callback(fullname, contents);
     }

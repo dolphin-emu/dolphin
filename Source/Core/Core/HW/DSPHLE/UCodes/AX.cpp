@@ -57,7 +57,7 @@ bool AXUCode::LoadResamplingCoefficients(const bool require_same_checksum, const
   constexpr size_t raw_coeffs_size = 0x800 * 2;
   m_coeffs_checksum = std::nullopt;
 
-  const std::array<std::string, 2> filenames{
+  const std::array filenames{
       File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
       File::GetSysDirectory() + "/GC/dsp_coef.bin",
   };
@@ -652,13 +652,13 @@ void AXUCode::SendAUXAndMix(const u32 auxa_lrs_up, const u32 auxb_s_up, const u3
     *ptr++ = Common::swap32(sample);
 
   // Download buffers and addresses
-  const std::array<int*, 4> dl_buffers{
+  const std::array dl_buffers{
       m_samples_main_left,
       m_samples_main_right,
       m_samples_auxB_left,
       m_samples_auxB_right,
   };
-  const std::array<u32, 4> dl_addrs{
+  const std::array dl_addrs{
       main_l_dl,
       main_r_dl,
       auxb_l_dl,

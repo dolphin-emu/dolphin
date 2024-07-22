@@ -1526,7 +1526,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   if (use_framebuffer_fetch)
   {
-    static constexpr std::array<const char*, 16> logic_op_mode{
+    static constexpr std::array logic_op_mode{
         "int4(0, 0, 0, 0)",          // CLEAR
         "TevResult & fb_value",      // AND
         "TevResult & ~fb_value",     // AND_REVERSE

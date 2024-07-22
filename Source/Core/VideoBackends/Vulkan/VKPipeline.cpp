@@ -382,7 +382,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   };
 
   // Set viewport and scissor dynamic state so we can change it elsewhere.
-  static const std::array<VkDynamicState, 2> dynamic_states{
+  static const std::array dynamic_states{
       VK_DYNAMIC_STATE_VIEWPORT,
       VK_DYNAMIC_STATE_SCISSOR,
   };

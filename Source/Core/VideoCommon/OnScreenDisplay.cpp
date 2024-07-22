@@ -31,8 +31,8 @@ constexpr float WINDOW_PADDING = 4.0f;       // Pixels between subsequent OSD me
 constexpr float MESSAGE_FADE_TIME = 1000.f;  // Ms to fade OSD messages at the end of their life.
 constexpr float MESSAGE_DROP_TIME = 5000.f;  // Ms to drop OSD messages that has yet to ever render.
 
-static std::atomic<int> s_obscured_pixels_left = 0;
-static std::atomic<int> s_obscured_pixels_top = 0;
+static std::atomic s_obscured_pixels_left = 0;
+static std::atomic s_obscured_pixels_top = 0;
 
 struct Message
 {

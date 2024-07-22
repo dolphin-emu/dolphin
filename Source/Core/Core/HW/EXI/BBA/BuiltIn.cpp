@@ -216,7 +216,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   to.sin_port = udp_header.source_port;
 
   const u8* router_ip_ptr = reinterpret_cast<const u8*>(&m_router_ip);
-  const std::vector<u8> ip_part(router_ip_ptr, router_ip_ptr + sizeof(m_router_ip));
+  const std::vector ip_part(router_ip_ptr, router_ip_ptr + sizeof(m_router_ip));
 
   const std::vector<u8> timeout_24h = {0, 1, 0x51, 0x80};
 
@@ -263,7 +263,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
       const u32 remote_ip = htonl(ref->target.toInteger());
       ref->from.sin_addr.s_addr = remote_ip;
       ref->my_mac = ResolveAddress(remote_ip);
-      const std::vector<u8> udp_data(buffer.begin(), buffer.begin() + datasize);
+      const std::vector udp_data(buffer.begin(), buffer.begin() + datasize);
       const Common::UDPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, udp_data);
       return packet.Build();
     }
@@ -311,7 +311,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
     {
       Common::TCPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
                                ref->ack_num, TCP_FLAG_ACK | TCP_FLAG_PSH);
-      packet.data = std::vector<u8>(buffer.begin(), buffer.begin() + datasize);
+      packet.data = std::vector(buffer.begin(), buffer.begin() + datasize);
 
       // build buffer
       tcp_buffer->seq_id = ref->seq_num;
@@ -601,7 +601,7 @@ const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 
 
 bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 {
-  std::lock_guard<std::mutex> lock(m_mtx);
+  std::lock_guard lock(m_mtx);
   const Common::PacketView view(frame, size);
 
   const std::optional<u16> ethertype = view.GetEtherType();
@@ -660,7 +660,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
     case IPPROTO_IGMP:
     {
       // Acknowledge IGMP packet
-      const std::vector<u8> data(frame, frame + size);
+      const std::vector data(frame, frame + size);
       WriteToQueue(data);
       break;
     }
@@ -716,7 +716,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(BuiltInBBAInterface* s
     if ((wp - rp) >= 8)
       continue;
 
-    std::lock_guard<std::mutex> lock(self->m_mtx);
+    std::lock_guard lock(self->m_mtx);
     // process queue file first
     if (self->m_queue_read != self->m_queue_write)
     {

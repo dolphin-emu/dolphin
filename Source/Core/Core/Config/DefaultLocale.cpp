@@ -151,7 +151,7 @@ static std::optional<u8> ComputeDefaultCountry()
 
 static DiscIO::Region ComputeDefaultRegion()
 {
-  const std::optional<u8> country = GetDefaultCountry();
+  const std::optional country = GetDefaultCountry();
 
   if (country)
   {

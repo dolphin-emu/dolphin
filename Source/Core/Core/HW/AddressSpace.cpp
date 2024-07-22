@@ -189,7 +189,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
         {
           if (Matches(guard, haystack_address, needle_start, needle_size))
           {
-            return std::optional<u32>(haystack_address);
+            return std::optional(haystack_address);
           }
           haystack_address += haystack_offset_change;
         } while ((haystack_address & 0xfff) != haystack_offset_limit);
@@ -320,7 +320,7 @@ struct CompositeAddressSpaceAccessors : Accessors
           mapping.accessors->Search(guard, mapping_offset, needle_start, needle_size, forward);
       if (result.has_value())
       {
-        return std::optional<u32>(*result + mapping.base);
+        return std::optional(*result + mapping.base);
       }
     }
     return std::nullopt;

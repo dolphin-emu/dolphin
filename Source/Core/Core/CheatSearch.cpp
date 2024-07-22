@@ -147,7 +147,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr
   auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s8>(tmp->translated, std::bit_cast<s8>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s8>(tmp->value));
 }
 
 template <>
@@ -158,7 +158,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr
   auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s16>(tmp->translated, std::bit_cast<s16>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s16>(tmp->value));
 }
 
 template <>
@@ -169,7 +169,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr
   auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s32>(tmp->translated, std::bit_cast<s32>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s32>(tmp->value));
 }
 
 template <>
@@ -180,7 +180,7 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr
   auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
   if (!tmp)
     return std::nullopt;
-  return PowerPC::ReadResult<s64>(tmp->translated, std::bit_cast<s64>(tmp->value));
+  return PowerPC::ReadResult(tmp->translated, std::bit_cast<s64>(tmp->value));
 }
 
 template <>

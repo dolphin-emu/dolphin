@@ -461,7 +461,7 @@ struct ARMBinary final
   std::vector<u8> GetElf() const
   {
     const auto iterator = m_bytes.cbegin() + GetHeaderSize() + GetElfOffset();
-    return std::vector<u8>(iterator, iterator + GetElfSize());
+    return std::vector(iterator, iterator + GetElfSize());
   }
 
   u32 GetHeaderSize() const { return Common::swap32(m_bytes.data()); }

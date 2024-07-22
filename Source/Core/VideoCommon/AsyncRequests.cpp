@@ -28,7 +28,7 @@ void AsyncRequests::PullEventsInternal()
   // So just flush the pipeline to get accurate results.
   g_vertex_manager->Flush();
 
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_empty.Set();
 
   while (!m_queue.empty())
@@ -79,7 +79,7 @@ void AsyncRequests::PullEventsInternal()
 
 void AsyncRequests::PushEvent(const Event& event, const bool blocking)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
 
   if (m_passthrough)
   {
@@ -105,13 +105,13 @@ void AsyncRequests::PushEvent(const Event& event, const bool blocking)
 
 void AsyncRequests::WaitForEmptyQueue()
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_cond.wait(lock, [this] { return m_queue.empty(); });
 }
 
 void AsyncRequests::SetEnable(const bool enable)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_enable = enable;
 
   if (!enable)
@@ -180,6 +180,6 @@ void AsyncRequests::HandleEvent(const Event& e)
 
 void AsyncRequests::SetPassthrough(const bool enable)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
+  std::unique_lock lock(m_mutex);
   m_passthrough = enable;
 }

@@ -280,7 +280,7 @@ void Statistics::DisplayScissor()
       draw_list->AddLine(vec(x1, y1), vec(x1, y1, 0, -8), col);
     }
   };
-  static std::array<ImVec4, 6> COLORS = {
+  static std::array COLORS = {
       ImVec4(1, 0, 0, 1), ImVec4(1, 1, 0, 1), ImVec4(0, 1, 0, 1),
       ImVec4(0, 1, 1, 1), ImVec4(0, 0, 1, 1), ImVec4(1, 0, 1, 1),
   };

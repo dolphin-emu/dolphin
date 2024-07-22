@@ -228,7 +228,7 @@ bool TMDReader::IsValid() const
 std::vector<u8> TMDReader::GetRawView() const
 {
   // Base fields
-  std::vector<u8> view(m_bytes.cbegin() + offsetof(TMDHeader, tmd_version),
+  std::vector view(m_bytes.cbegin() + offsetof(TMDHeader, tmd_version),
                        m_bytes.cbegin() + offsetof(TMDHeader, access_rights));
 
   const auto version = m_bytes.cbegin() + offsetof(TMDHeader, title_version);
@@ -793,7 +793,7 @@ std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain)
   size_t processed = 0;
   while (processed != chain.size())
   {
-    CertReader cert_reader{std::vector<u8>(chain.begin() + processed, chain.end())};
+    CertReader cert_reader{std::vector(chain.begin() + processed, chain.end())};
     if (!cert_reader.IsValid())
       return certs;
 

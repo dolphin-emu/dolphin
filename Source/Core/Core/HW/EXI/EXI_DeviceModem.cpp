@@ -222,7 +222,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
   else if ((m_transfer_descriptor & 0x0F000000) == 0x08000000)
   {
     // Packet receive buffer
-    std::lock_guard<std::mutex> g(m_receive_buffer_lock);
+    std::lock_guard g(m_receive_buffer_lock);
     const std::size_t bytes_to_copy = std::min<std::size_t>(size, m_receive_buffer.size());
     std::memcpy(data, m_receive_buffer.data(), bytes_to_copy);
     m_receive_buffer = m_receive_buffer.substr(bytes_to_copy);
@@ -336,7 +336,7 @@ void CEXIModem::SendComplete()
 
 void CEXIModem::AddToReceiveBuffer(std::string&& data)
 {
-  std::lock_guard<std::mutex> g(m_receive_buffer_lock);
+  std::lock_guard g(m_receive_buffer_lock);
   if (m_receive_buffer.empty())
   {
     m_receive_buffer = std::move(data);

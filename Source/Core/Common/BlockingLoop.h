@@ -59,7 +59,7 @@ public:
     // notifying this event will only wake up one thread, so use a mutex here to
     // allow only one waiting thread. And in this way, we get an event free wakeup
     // but for the first thread for free
-    std::lock_guard<std::mutex> lk(m_wait_lock);
+    std::lock_guard lk(m_wait_lock);
 
     // Wait for the worker thread to finish.
     while (!IsDone())
@@ -85,7 +85,7 @@ public:
     // notifying this event will only wake up one thread, so use a mutex here to
     // allow only one waiting thread. And in this way, we get an event free wakeup
     // but for the first thread for free
-    std::lock_guard<std::mutex> lk(m_wait_lock);
+    std::lock_guard lk(m_wait_lock);
 
     // Wait for the worker thread to finish.
     while (!IsDone())
@@ -107,7 +107,7 @@ public:
   {
     // There is a race condition if the other threads call this function while
     // the loop thread is initializing. Using this lock will ensure a valid state.
-    std::lock_guard<std::mutex> lk(m_prepare_lock);
+    std::lock_guard lk(m_prepare_lock);
 
     if (!m_stopped.TestAndClear())
       return;

@@ -273,7 +273,7 @@ struct fmt::formatter<TVtxDesc::Low>
   template <typename FormatContext>
   auto format(const TVtxDesc::Low& desc, FormatContext& ctx) const
   {
-    static constexpr std::array<const char*, 2> present = {"Not present", "Present"};
+    static constexpr std::array present = {"Not present", "Present"};
 
     return fmt::format_to(
         ctx.out(),
@@ -358,9 +358,9 @@ struct fmt::formatter<UVAT_group0>
   template <typename FormatContext>
   auto format(const UVAT_group0& g0, FormatContext& ctx) const
   {
-    static constexpr std::array<const char*, 2> byte_dequant = {
+    static constexpr std::array byte_dequant = {
         "shift does not apply to u8/s8 components", "shift applies to u8/s8 components"};
-    static constexpr std::array<const char*, 2> normalindex3 = {
+    static constexpr std::array normalindex3 = {
         "single index shared by normal, tangent, and binormal",
         "three indices, one each for normal, tangent, and binormal"};
 

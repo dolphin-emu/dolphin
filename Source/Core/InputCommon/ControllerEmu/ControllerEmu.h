@@ -54,7 +54,7 @@ struct TwoPointCalibration
     else
     {
       return std::equal(std::begin(max.data), std::end(max.data), std::begin(zero.data),
-                        std::not_equal_to<>());
+                        std::not_equal_to());
     }
   }
 

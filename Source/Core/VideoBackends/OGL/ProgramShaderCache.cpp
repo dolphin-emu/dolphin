@@ -341,7 +341,7 @@ GLuint ProgramShaderCache::CompileSingleShader(const GLenum type, std::string_vi
       s_glsl_header.data(),
       code.data(),
   };
-  const std::array<GLint, num_strings> src_sizes{
+  const std::array src_sizes{
       static_cast<GLint>(s_glsl_header.size()),
       static_cast<GLint>(code.size()),
   };

@@ -106,7 +106,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
   m_file_name = PathToFileName(m_file_path);
 
   {
-    std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(m_file_path));
+    std::unique_ptr volume(DiscIO::CreateVolume(m_file_path));
     if (volume != nullptr)
     {
       m_platform = volume->GetVolumeType();

@@ -77,7 +77,7 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   if (game.GetPlatform() != DiscIO::Platform::ELFOrDOL)
   {
-    std::shared_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(game.GetFilePath());
+    std::shared_ptr volume = DiscIO::CreateVolume(game.GetFilePath());
     if (volume)
     {
       VerifyWidget* verify = new VerifyWidget(volume);

@@ -35,13 +35,13 @@ Profiler::Profiler(const std::string& name)
   m_time = Timer::NowUs();
   s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));
 
-  std::lock_guard<std::mutex> lk(s_mutex);
+  std::lock_guard lk(s_mutex);
   s_all_profilers.push_back(this);
 }
 
 Profiler::~Profiler()
 {
-  std::lock_guard<std::mutex> lk(s_mutex);
+  std::lock_guard lk(s_mutex);
   s_all_profilers.remove(this);
 }
 
@@ -60,7 +60,7 @@ std::string Profiler::ToString()
   s_lazy_delay = PROFILER_LAZY_DELAY - 1;
 
   // don't write anything if no profilation is enabled
-  std::lock_guard<std::mutex> lk(s_mutex);
+  std::lock_guard lk(s_mutex);
   if (s_all_profilers.empty())
     return "";
 

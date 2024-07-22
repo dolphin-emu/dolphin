@@ -176,7 +176,7 @@ void NetPlayBrowser::Refresh()
   if (m_check_hide_ingame->isChecked())
     filters["in_game"] = "0";
 
-  std::unique_lock<std::mutex> lock(m_refresh_filters_mutex);
+  std::unique_lock lock(m_refresh_filters_mutex);
   m_refresh_filters = std::move(filters);
   m_refresh_event.Set();
 }
@@ -187,7 +187,7 @@ void NetPlayBrowser::RefreshLoop()
   {
     m_refresh_event.Wait();
 
-    std::unique_lock<std::mutex> lock(m_refresh_filters_mutex);
+    std::unique_lock lock(m_refresh_filters_mutex);
     if (m_refresh_filters)
     {
       auto filters = std::move(*m_refresh_filters);

@@ -11,7 +11,7 @@ namespace Common
 #ifdef _WIN32
 SocketContext::SocketContext()
 {
-  std::lock_guard<std::mutex> g(s_lock);
+  std::lock_guard g(s_lock);
   if (s_num_objects == 0)
   {
     const int ret = WSAStartup(MAKEWORD(2, 2), &s_data);
@@ -36,7 +36,7 @@ SocketContext::SocketContext()
 }
 SocketContext::~SocketContext()
 {
-  std::lock_guard<std::mutex> g(s_lock);
+  std::lock_guard g(s_lock);
   s_num_objects--;
   if (s_num_objects == 0)
   {

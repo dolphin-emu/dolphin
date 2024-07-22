@@ -37,7 +37,7 @@
 static ConfigStringChoice* MakeLanguageComboBox()
 {
   using QPair = std::pair<QString, QString>;
-  std::vector<QPair> languages = {
+  std::vector languages = {
       QPair{QObject::tr("<System Language>"), QString{}},
       QPair{QStringLiteral(u"Bahasa Melayu"), QStringLiteral("ms")},      // Malay
       QPair{QStringLiteral(u"Catal\u00E0"), QStringLiteral("ca")},        // Catalan

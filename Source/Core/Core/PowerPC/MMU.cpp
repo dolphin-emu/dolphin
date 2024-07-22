@@ -521,19 +521,19 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   case RequestedAddressSpace::Effective:
   {
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
-    return ReadResult<u32>(!!mmu.m_ppc_state.msr.IR, value);
+    return ReadResult(!!mmu.m_ppc_state.msr.IR, value);
   }
   case RequestedAddressSpace::Physical:
   {
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address);
-    return ReadResult<u32>(false, value);
+    return ReadResult(false, value);
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!mmu.m_ppc_state.msr.IR)
       return std::nullopt;
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
-    return ReadResult<u32>(true, value);
+    return ReadResult(true, value);
   }
   }
 
@@ -674,7 +674,7 @@ std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard&
   const auto result = HostTryReadUX<u32>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<float>(result->translated, std::bit_cast<float>(result->value));
+  return ReadResult(result->translated, std::bit_cast<float>(result->value));
 }
 
 std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard& guard,
@@ -684,7 +684,7 @@ std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard
   const auto result = HostTryReadUX<u64>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<double>(result->translated, std::bit_cast<double>(result->value));
+  return ReadResult(result->translated, std::bit_cast<double>(result->value));
 }
 
 void MMU::Write_U8(const u32 var, const u32 address)
@@ -928,7 +928,7 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
       break;
     s += static_cast<char>(res->value);
   }
-  return ReadResult<std::string>(c->translated, std::move(s));
+  return ReadResult(c->translated, std::move(s));
 }
 
 bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) const
@@ -1698,7 +1698,7 @@ std::optional<u32> MMU::GetTranslatedAddress(const u32 address)
   {
     return std::nullopt;
   }
-  return std::optional<u32>(result.address);
+  return std::optional(result.address);
 }
 
 void ClearDCacheLineFromJit(MMU& mmu, const u32 address)

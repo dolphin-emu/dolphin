@@ -20,7 +20,7 @@
 
 namespace WC24PatchEngine
 {
-static constexpr std::array<u64, 15> s_wc24_channels{
+static constexpr std::array s_wc24_channels{
     Titles::NINTENDO_CHANNEL_NTSC_U,
     Titles::NINTENDO_CHANNEL_NTSC_J,
     Titles::NINTENDO_CHANNEL_PAL,

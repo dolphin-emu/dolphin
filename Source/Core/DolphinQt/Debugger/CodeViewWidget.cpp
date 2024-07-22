@@ -440,7 +440,7 @@ void CodeViewWidget::CalculateBranchIndentation()
 
   // build a 2D lookup table representing the columns and rows the arrow could be drawn in
   // and try to place all branch arrows in it as far left as possible
-  std::vector<bool> arrow_space_used(columns * rows, false);
+  std::vector arrow_space_used(columns * rows, false);
   const auto index = [&](const u32 column, const u32 row) {
     ASSERT(row <= rows);
     ASSERT(column <= columns);

@@ -267,7 +267,7 @@ void DHCPPacket::AddOption(const u8 fnc, const std::vector<u8>& params)
 {
   if (params.size() > 255)
     return;
-  std::vector<u8> opt = {fnc, u8(params.size())};
+  std::vector opt = {fnc, u8(params.size())};
   opt.insert(opt.end(), params.begin(), params.end());
   options.emplace_back(std::move(opt));
 }
@@ -275,7 +275,7 @@ void DHCPPacket::AddOption(const u8 fnc, const std::vector<u8>& params)
 std::vector<u8> DHCPPacket::Build() const
 {
   const u8* body_ptr = reinterpret_cast<const u8*>(&body);
-  std::vector<u8> result(body_ptr, body_ptr + DHCPBody::SIZE);
+  std::vector result(body_ptr, body_ptr + DHCPBody::SIZE);
 
   for (auto& opt : options)
   {
@@ -489,7 +489,7 @@ std::optional<TCPPacket> PacketView::GetTCPPacket() const
   if (m_size < offset + TCPHeader::SIZE)
     return std::nullopt;
   result.ipv4_options =
-      std::vector<u8>(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
+      std::vector(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
   result.tcp_header = Common::BitCastPtr<TCPHeader>(m_ptr + offset);
   const u16 data_offset = result.tcp_header.GetHeaderSize() + offset;
 
@@ -499,8 +499,8 @@ std::optional<TCPPacket> PacketView::GetTCPPacket() const
   if (m_size < end || end < data_offset)
     return std::nullopt;
 
-  result.tcp_options = std::vector<u8>(m_ptr + offset + TCPHeader::SIZE, m_ptr + data_offset);
-  result.data = std::vector<u8>(m_ptr + data_offset, m_ptr + end);
+  result.tcp_options = std::vector(m_ptr + offset + TCPHeader::SIZE, m_ptr + data_offset);
+  result.data = std::vector(m_ptr + data_offset, m_ptr + end);
 
   return result;
 }
@@ -516,7 +516,7 @@ std::optional<UDPPacket> PacketView::GetUDPPacket() const
   if (m_size < offset + UDPHeader::SIZE)
     return std::nullopt;
   result.ipv4_options =
-      std::vector<u8>(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
+      std::vector(m_ptr + EthernetHeader::SIZE + IPv4Header::SIZE, m_ptr + offset);
   result.udp_header = Common::BitCastPtr<UDPHeader>(m_ptr + offset);
   const u16 data_offset = UDPHeader::SIZE + offset;
 
@@ -526,7 +526,7 @@ std::optional<UDPPacket> PacketView::GetUDPPacket() const
   if (m_size < end || end < data_offset)
     return std::nullopt;
 
-  result.data = std::vector<u8>(m_ptr + data_offset, m_ptr + end);
+  result.data = std::vector(m_ptr + data_offset, m_ptr + end);
 
   return result;
 }

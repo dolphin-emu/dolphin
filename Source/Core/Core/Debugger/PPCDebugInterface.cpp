@@ -249,7 +249,7 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
   if (!active_thread->IsValid(guard))
     return threads;
 
-  std::vector<u32> visited_addrs{active_thread->GetAddress()};
+  std::vector visited_addrs{active_thread->GetAddress()};
   const auto insert_threads = [&guard, &threads, &visited_addrs](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::MMU::HostIsRAMAddress(guard, addr))
     {

@@ -225,7 +225,7 @@ void FrameDumper::FrameDumpThreadFunc()
     // Save screenshot
     if (m_screenshot_request.TestAndClear())
     {
-      std::lock_guard<std::mutex> lk(m_screenshot_lock);
+      std::lock_guard lk(m_screenshot_lock);
 
       if (DumpFrameToPNG(frame, m_screenshot_name))
         OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
@@ -341,7 +341,7 @@ void FrameDumper::DumpFrameToImage(const FrameData& frame)
 
 void FrameDumper::SaveScreenshot(std::string filename)
 {
-  std::lock_guard<std::mutex> lk(m_screenshot_lock);
+  std::lock_guard lk(m_screenshot_lock);
   m_screenshot_name = std::move(filename);
   m_screenshot_request.Set();
 }

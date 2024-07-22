@@ -192,7 +192,7 @@ bool DXContext::CreateDevice(const u32 adapter_index, bool enable_debug_layer)
       info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
 
       D3D12_INFO_QUEUE_FILTER filter = {};
-      std::array<D3D12_MESSAGE_ID, 5> id_list{
+      std::array id_list{
           D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
           D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE,
           D3D12_MESSAGE_ID_CREATEGRAPHICSPIPELINESTATE_RENDERTARGETVIEW_NOT_SET,

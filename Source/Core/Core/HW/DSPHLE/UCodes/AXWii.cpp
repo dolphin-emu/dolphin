@@ -476,7 +476,7 @@ void AXWiiUCode::MixAUXSamples(const int aux_id, const u32 write_addr, const u32
   GenerateVolumeRamp(volume_ramp.data(), m_last_aux_volumes[aux_id], volume, volume_ramp.size());
   m_last_aux_volumes[aux_id] = volume;
 
-  std::array<int*, 3> main_buffers{
+  std::array main_buffers{
       m_samples_main_left,
       m_samples_main_right,
       m_samples_main_surround,

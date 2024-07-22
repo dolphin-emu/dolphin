@@ -28,7 +28,7 @@ DXGI_FORMAT VarToD3D(const ComponentFormat t, const int size, const bool integer
   using FormatMap = Common::EnumMap<DXGI_FORMAT, ComponentFormat::InvalidFloat7>;
   static constexpr auto f = [](FormatMap a) { return a; };  // Deduction helper
 
-  static constexpr std::array<FormatMap, 4> d3d_float_format_lookup = {
+  static constexpr std::array d3d_float_format_lookup = {
       f({
           DXGI_FORMAT_R8_UNORM,
           DXGI_FORMAT_R8_SNORM,
@@ -71,7 +71,7 @@ DXGI_FORMAT VarToD3D(const ComponentFormat t, const int size, const bool integer
       }),
   };
 
-  static constexpr std::array<FormatMap, 4> d3d_integer_format_lookup = {
+  static constexpr std::array d3d_integer_format_lookup = {
       f({
           DXGI_FORMAT_R8_UINT,
           DXGI_FORMAT_R8_SINT,

@@ -378,7 +378,7 @@ VolumeVerifier::~VolumeVerifier()
 
 Hashes<bool> VolumeVerifier::GetDefaultHashesToCalculate()
 {
-  Hashes<bool> hashes_to_calculate{.crc32 = true, .md5 = true, .sha1 = true};
+  Hashes hashes_to_calculate{.crc32 = true, .md5 = true, .sha1 = true};
   // If the system can compute certain hashes faster than others, only default-enable the fast ones.
   const bool sha1_hw_accel = Common::SHA1::CreateContext()->HwAccelerated();
   // For crc32, we assume zlib-ng will be fast if cpu supports crc32
@@ -1314,7 +1314,7 @@ void VolumeVerifier::Finish()
     if (m_hashes_to_calculate.sha1)
     {
       const auto digest = m_sha1_context->Finish();
-      m_result.hashes.sha1 = std::vector<u8>(digest.begin(), digest.end());
+      m_result.hashes.sha1 = std::vector(digest.begin(), digest.end());
     }
   }
 

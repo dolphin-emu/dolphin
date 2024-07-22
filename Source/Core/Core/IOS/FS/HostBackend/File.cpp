@@ -69,7 +69,7 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   std::shared_ptr<File::IOFile> file_ptr(new File::IOFile(std::move(file)), deleter);
 
   // Store a weak pointer to our newly opened file in the cache.
-  m_open_files[host_path] = std::weak_ptr<File::IOFile>(file_ptr);
+  m_open_files[host_path] = std::weak_ptr(file_ptr);
 
   return file_ptr;
 }

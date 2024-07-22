@@ -190,7 +190,7 @@ void WatchWidget::Update()
     auto* lockValue = new QTableWidgetItem;
     lockValue->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
 
-    std::array<QTableWidgetItem*, NUM_COLUMNS> items = {label,  address,    hex,      decimal,
+    std::array items = {label,  address,    hex,      decimal,
                                                         string, floatValue, lockValue};
 
     QBrush brush = QPalette().brush(QPalette::Text);

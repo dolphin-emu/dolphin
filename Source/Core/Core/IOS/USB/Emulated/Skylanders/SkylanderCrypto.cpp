@@ -69,7 +69,7 @@ u64 CalculateKeyA(const u8 sector, const std::span<const u8, 0x4> nuid)
     return 73ULL * 2017ULL * 560381651ULL;
   }
 
-  std::array<u8, 5> data = {nuid[0], nuid[1], nuid[2], nuid[3], sector};
+  std::array data = {nuid[0], nuid[1], nuid[2], nuid[3], sector};
 
   u64 big_endian_crc = ComputeCRC48(data);
   u64 little_endian_crc = Common::swap64(big_endian_crc) >> 16;

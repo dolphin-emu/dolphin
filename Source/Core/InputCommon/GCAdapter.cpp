@@ -80,8 +80,8 @@ enum class AdapterStatus
   Error,
 };
 
-static std::atomic<AdapterStatus> s_status = AdapterStatus::NotDetected;
-static std::atomic<libusb_error> s_adapter_error = LIBUSB_SUCCESS;
+static std::atomic s_status = AdapterStatus::NotDetected;
+static std::atomic s_adapter_error = LIBUSB_SUCCESS;
 static libusb_device_handle* s_handle = nullptr;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
 // Java classes
@@ -119,7 +119,7 @@ struct PortState
 static std::array<PortState, SerialInterface::MAX_SI_CHANNELS> s_port_states;
 
 static std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> s_controller_write_payload;
-static std::atomic<int> s_controller_write_payload_size{0};
+static std::atomic s_controller_write_payload_size{0};
 
 static std::thread s_read_adapter_thread;
 static Common::Flag s_read_adapter_thread_running;

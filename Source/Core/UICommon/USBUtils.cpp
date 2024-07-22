@@ -49,7 +49,7 @@ std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
   const int ret = context.GetDeviceList([&](libusb_device* device) {
     libusb_device_descriptor descr;
     libusb_get_device_descriptor(device, &descr);
-    const std::pair<u16, u16> vid_pid{descr.idVendor, descr.idProduct};
+    const std::pair vid_pid{descr.idVendor, descr.idProduct};
     devices[vid_pid] = GetDeviceName(vid_pid);
     return true;
   });

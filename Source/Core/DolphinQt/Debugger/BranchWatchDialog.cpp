@@ -262,7 +262,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     }());
 
     m_mnu_column_visibility = [this]() {
-      static constexpr std::array<const char*, Column::NumberOfColumns> headers = {
+      static constexpr std::array headers = {
           QT_TR_NOOP("Instruction"),   QT_TR_NOOP("Condition"),         QT_TR_NOOP("Origin"),
           QT_TR_NOOP("Destination"),   QT_TR_NOOP("Recent Hits"),       QT_TR_NOOP("Total Hits"),
           QT_TR_NOOP("Origin Symbol"), QT_TR_NOOP("Destination Symbol")};

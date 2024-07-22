@@ -57,7 +57,7 @@ enum
 };
 
 // Indicates which pins are accessible by broadway.  Writable by starlet only.
-static constexpr Common::Flags<GPIO> gpio_owner = {GPIO::SLOT_LED, GPIO::SLOT_IN, GPIO::SENSOR_BAR,
+static constexpr Common::Flags gpio_owner = {GPIO::SLOT_LED, GPIO::SLOT_IN, GPIO::SENSOR_BAR,
                                                    GPIO::DO_EJECT, GPIO::AVE_SCL, GPIO::AVE_SDA};
 
 WiiIPC::WiiIPC(Core::System& system) : m_system(system)

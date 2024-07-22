@@ -36,7 +36,7 @@ namespace VideoCommon
 {
 bool OnScreenUI::Initialize(const u32 width, const u32 height, const float scale)
 {
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+  std::unique_lock imgui_lock(m_imgui_mutex);
 
   if (!IMGUI_CHECKVERSION())
   {
@@ -107,7 +107,7 @@ bool OnScreenUI::Initialize(const u32 width, const u32 height, const float scale
 
 OnScreenUI::~OnScreenUI()
 {
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+  std::unique_lock imgui_lock(m_imgui_mutex);
 
   ImGui::EndFrame();
   ImPlot::DestroyContext();
@@ -182,7 +182,7 @@ bool OnScreenUI::RecompileImGuiPipeline()
 
 void OnScreenUI::BeginImGuiFrame(const u32 width, const u32 height)
 {
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+  std::unique_lock imgui_lock(m_imgui_mutex);
   BeginImGuiFrameUnlocked(width, height);
 }
 
@@ -247,7 +247,7 @@ void OnScreenUI::DrawImGui() const
       }
 
       g_gfx->SetScissorRect(g_gfx->ConvertFramebufferRectangle(
-          MathUtil::Rectangle<int>(
+          MathUtil::Rectangle(
               static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
               static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)),
           g_gfx->GetCurrentFramebuffer()));
@@ -413,7 +413,7 @@ void OnScreenUI::Finalize()
 
 std::unique_lock<std::mutex> OnScreenUI::GetImGuiLock()
 {
-  return std::unique_lock<std::mutex>(m_imgui_mutex);
+  return std::unique_lock(m_imgui_mutex);
 }
 
 void OnScreenUI::SetScale(const float backbuffer_scale)

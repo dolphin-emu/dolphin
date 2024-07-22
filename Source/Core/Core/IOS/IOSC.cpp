@@ -267,7 +267,7 @@ ReturnCode IOSC::ImportSecretKey(const Handle dest_handle, const u8* decrypted_k
   if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != ObjectSubType::AES128)
     return IOSC_INVALID_OBJTYPE;
 
-  dest_entry->data = std::vector<u8>(decrypted_key, decrypted_key + AES128_KEY_SIZE);
+  dest_entry->data = std::vector(decrypted_key, decrypted_key + AES128_KEY_SIZE);
   return IPC_SUCCESS;
 }
 
@@ -582,7 +582,7 @@ void IOSC::LoadDefaultEntries()
                                           0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7}},
                                         3};
     m_root_key_entry = {TYPE_PUBLIC_KEY, ObjectSubType::RSA4096,
-                        std::vector<u8>(ROOT_PUBLIC_KEY.begin(), ROOT_PUBLIC_KEY.end()),
+                        std::vector(ROOT_PUBLIC_KEY.begin(), ROOT_PUBLIC_KEY.end()),
                         Common::swap32(0x00010001), 0};
     // Retail keyblob are issued by CA00000001. Default to 1 even though IOSC actually defaults
     // to 2.
@@ -596,7 +596,7 @@ void IOSC::LoadDefaultEntries()
                                           0x8b, 0xec, 0x32, 0xc8, 0x16, 0xfc, 0xaa}},
                                         3};
     m_root_key_entry = {TYPE_PUBLIC_KEY, ObjectSubType::RSA4096,
-                        std::vector<u8>(ROOT_PUBLIC_KEY_DEV.begin(), ROOT_PUBLIC_KEY_DEV.end()),
+                        std::vector(ROOT_PUBLIC_KEY_DEV.begin(), ROOT_PUBLIC_KEY_DEV.end()),
                         Common::swap32(0x00010001), 0};
     m_ms_id = 3;
     m_ca_id = 2;

@@ -286,7 +286,7 @@ void GameTracker::UpdateDirectoryInternal(const QString& dir)
     else
     {
       AddPath(path);
-      m_tracked_files[path] = QSet<QString>{dir};
+      m_tracked_files[path] = QSet{dir};
       LoadGame(path);
     }
   }

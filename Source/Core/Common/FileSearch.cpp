@@ -40,7 +40,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
 
   // N.B. This avoids doing any copies
   auto ext_matches = [&native_exts](const fs::path& path) {
-    const std::basic_string_view<fs::path::value_type> native_path = path.native();
+    const std::basic_string_view native_path = path.native();
     return std::any_of(native_exts.cbegin(), native_exts.cend(), [&native_path](const auto& ext) {
       const auto compare_len = ext.native().length();
       if (native_path.length() < compare_len)

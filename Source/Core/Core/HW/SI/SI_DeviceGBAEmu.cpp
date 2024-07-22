@@ -128,7 +128,7 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
                                                                 m_device_number, &pad_status);
 
-  static constexpr std::array<PadButton, 10> buttons_map = {
+  static constexpr std::array buttons_map = {
       PAD_BUTTON_A,      // A
       PAD_BUTTON_B,      // B
       PAD_TRIGGER_Z,     // Select

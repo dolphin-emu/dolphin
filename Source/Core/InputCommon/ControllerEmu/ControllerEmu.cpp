@@ -35,7 +35,7 @@ EmulatedController::~EmulatedController() = default;
 // This is a recursive mutex because UpdateReferences is recursive.
 std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
 {
-  std::unique_lock<std::recursive_mutex> lock(s_get_state_mutex);
+  std::unique_lock lock(s_get_state_mutex);
   return lock;
 }
 

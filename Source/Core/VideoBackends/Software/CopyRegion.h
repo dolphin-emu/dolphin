@@ -46,8 +46,8 @@ template <typename T>
 void CopyRegion(const T* const source, const int src_width, const int src_height, T* destination,
                 const int dst_width, const int dst_height)
 {
-  MathUtil::Rectangle<int> srcrect{0, 0, src_width, src_height};
-  MathUtil::Rectangle<int> dstrect{0, 0, dst_width, dst_height};
+  MathUtil::Rectangle srcrect{0, 0, src_width, src_height};
+  MathUtil::Rectangle dstrect{0, 0, dst_width, dst_height};
   CopyRegion(source, srcrect, src_width, src_height, destination, dstrect, dst_width, dst_height);
 }
 }  // namespace SW

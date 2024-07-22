@@ -640,7 +640,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     {
       const u32 value = std::bit_cast<u32>(float_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -652,7 +652,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     {
       const u64 value = std::bit_cast<u64>(double_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -664,7 +664,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap8(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -674,7 +674,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap16(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -684,7 +684,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -698,7 +698,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap8(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -711,7 +711,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap16(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -724,7 +724,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }
@@ -734,7 +734,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(const Type type, const QStr
     if (good)
     {
       auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
-      return std::vector<u8>(std_array.begin(), std_array.end());
+      return std::vector(std_array.begin(), std_array.end());
     }
     break;
   }

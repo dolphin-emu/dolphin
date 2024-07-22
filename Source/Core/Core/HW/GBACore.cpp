@@ -259,7 +259,7 @@ void Core::Stop()
     Flush();
     m_exit_loop = true;
     {
-      std::lock_guard<std::mutex> lock(m_queue_mutex);
+      std::lock_guard lock(m_queue_mutex);
       m_command_cv.notify_one();
     }
     m_thread->join();
@@ -477,7 +477,7 @@ void Core::SendJoybusCommand(const u64 gc_ticks, const int transfer_time, u8* bu
 
   if (m_thread)
   {
-    std::lock_guard<std::mutex> lock(m_queue_mutex);
+    std::lock_guard lock(m_queue_mutex);
     m_command_queue.push(command);
     m_idle = false;
     m_command_cv.notify_one();
@@ -495,7 +495,7 @@ std::vector<u8> Core::GetJoybusResponse()
 
   if (m_thread)
   {
-    std::unique_lock<std::mutex> lock(m_response_mutex);
+    std::unique_lock lock(m_response_mutex);
     m_response_cv.wait(lock, [&] { return m_response_ready; });
   }
   m_response_ready = false;
@@ -506,14 +506,14 @@ void Core::Flush()
 {
   if (!IsStarted() || !m_thread)
     return;
-  std::unique_lock<std::mutex> lock(m_queue_mutex);
+  std::unique_lock lock(m_queue_mutex);
   m_response_cv.wait(lock, [&] { return m_idle; });
 }
 
 void Core::ThreadLoop()
 {
   Common::SetCurrentThreadName(fmt::format("GBA{}", m_device_number + 1).c_str());
-  std::unique_lock<std::mutex> queue_lock(m_queue_mutex);
+  std::unique_lock queue_lock(m_queue_mutex);
   while (true)
   {
     m_command_cv.wait(queue_lock, [&] { return !m_command_queue.empty() || m_exit_loop; });
@@ -549,7 +549,7 @@ void Core::RunCommand(Command& command)
 
     if (m_thread && !m_response_ready)
     {
-      std::lock_guard<std::mutex> response_lock(m_response_mutex);
+      std::lock_guard response_lock(m_response_mutex);
       m_response_ready = true;
       m_response_cv.notify_one();
     }

@@ -105,7 +105,7 @@ void MotionPlus::Reset()
   constexpr u8 IS_INTEGRATED = 0x00;
 
   // FYI: This ID changes on activation/deactivation
-  constexpr std::array<u8, 6> initial_id = {IS_INTEGRATED, 0x00, 0xA6, 0x20, 0x00, 0x05};
+  constexpr std::array initial_id = {IS_INTEGRATED, 0x00, 0xA6, 0x20, 0x00, 0x05};
   m_reg_data.ext_identifier = initial_id;
 
   // Build calibration data.

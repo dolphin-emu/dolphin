@@ -268,7 +268,7 @@ void ASndUCode::DoMixing(u32 return_mail)
       (m_current_voice.flags & FLAGS_SAMPLE_FORMAT_BYTES_MASK) >> FLAGS_SAMPLE_FORMAT_BYTES_SHIFT;
 
   // sample_selector jump table
-  static constexpr std::array<std::pair<s16, s16> (ASndUCode::*)() const, 8> sample_selector{
+  static constexpr std::array sample_selector{
       &ASndUCode::ReadSampleMono8Bits,           &ASndUCode::ReadSampleMono16Bits,
       &ASndUCode::ReadSampleStereo8Bits,         &ASndUCode::ReadSampleStereo16Bits,
       &ASndUCode::ReadSampleMono8BitsUnsigned,   &ASndUCode::ReadSampleMono16BitsLittleEndian,

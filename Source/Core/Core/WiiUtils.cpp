@@ -662,8 +662,8 @@ OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo&
   const auto tmd_begin = response->begin();
   const auto tmd_end = tmd_begin + tmd_size;
 
-  return {IOS::ES::TMDReader(std::vector<u8>(tmd_begin, tmd_end)),
-          std::vector<u8>(tmd_end, response->end())};
+  return {IOS::ES::TMDReader(std::vector(tmd_begin, tmd_end)),
+          std::vector(tmd_end, response->end())};
 }
 
 std::pair<std::vector<u8>, std::vector<u8>>
@@ -680,7 +680,7 @@ OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleIn
 
   const auto ticket_begin = response->begin();
   const auto ticket_end = ticket_begin + sizeof(IOS::ES::Ticket);
-  return {std::vector<u8>(ticket_begin, ticket_end), std::vector<u8>(ticket_end, response->end())};
+  return {std::vector(ticket_begin, ticket_end), std::vector(ticket_end, response->end())};
 }
 
 std::optional<std::vector<u8>> OnlineSystemUpdater::DownloadContent(const std::string& prefix_url,

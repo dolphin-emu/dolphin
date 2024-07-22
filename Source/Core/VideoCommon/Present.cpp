@@ -48,9 +48,9 @@ static std::tuple<int, int> FindClosestIntegerResolution(const float width, cons
   int int_height = floored_height;
 
   float min_aspect_ratio_distance = std::numeric_limits<float>::max();
-  for (const int new_width : std::array<int, 2>{ceiled_width, floored_width})
+  for (const int new_width : std::array{ceiled_width, floored_width})
   {
-    for (const int new_height : std::array<int, 2>{ceiled_height, floored_height})
+    for (const int new_height : std::array{ceiled_height, floored_height})
     {
       const float new_aspect_ratio = static_cast<float>(new_width) / new_height;
       const float aspect_ratio_distance = std::abs((new_aspect_ratio / aspect_ratio) - 1.f);
@@ -249,7 +249,7 @@ void Presenter::ProcessFrameDumping(const u64 ticks) const
       const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch);
       auto [int_width, int_height] =
           FindClosestIntegerResolution(float_width, float_height, draw_aspect_ratio);
-      target_rect = MathUtil::Rectangle<int>(0, 0, int_width, int_height);
+      target_rect = MathUtil::Rectangle(0, 0, int_width, int_height);
       break;
     }
     case FrameDumpResolutionType::XFBRawResolution:
@@ -476,14 +476,14 @@ void Presenter::ReleaseXFBContentLock() const
 
 void Presenter::ChangeSurface(void* new_surface_handle)
 {
-  std::lock_guard<std::mutex> lock(m_swap_mutex);
+  std::lock_guard lock(m_swap_mutex);
   m_new_surface_handle = new_surface_handle;
   m_surface_changed.Set();
 }
 
 void Presenter::ResizeSurface()
 {
-  std::lock_guard<std::mutex> lock(m_swap_mutex);
+  std::lock_guard lock(m_swap_mutex);
   m_surface_resized.Set();
 }
 
@@ -837,7 +837,7 @@ void Presenter::Present()
 
   // Present to the window system.
   {
-    std::lock_guard<std::mutex> guard(m_swap_mutex);
+    std::lock_guard guard(m_swap_mutex);
     g_gfx->PresentBackbuffer();
   }
 

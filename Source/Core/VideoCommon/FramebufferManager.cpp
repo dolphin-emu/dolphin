@@ -818,7 +818,7 @@ void FramebufferManager::PopulateEFBCache(const bool depth, const u32 tile_index
     // Viewport will not be TILE_SIZExTILE_SIZE for the last row of tiles, assuming a tile size of
     // 64, because 528 is not evenly divisible by 64.
     g_gfx->SetAndDiscardFramebuffer(data.framebuffer.get());
-    g_gfx->SetViewportAndScissor(MathUtil::Rectangle<int>(0, 0, rect.GetWidth(), rect.GetHeight()));
+    g_gfx->SetViewportAndScissor(MathUtil::Rectangle(0, 0, rect.GetWidth(), rect.GetHeight()));
     g_gfx->SetPipeline(data.copy_pipeline.get());
     g_gfx->SetTexture(0, src_texture);
     g_gfx->SetSamplerState(0, depth ? RenderState::GetPointSamplerState() :
@@ -828,7 +828,7 @@ void FramebufferManager::PopulateEFBCache(const bool depth, const u32 tile_index
     // Copy from EFB or copy texture to staging texture.
     // No need to call FinishedRendering() here because CopyFromTexture() transitions.
     data.readback_texture->CopyFromTexture(
-        data.texture.get(), MathUtil::Rectangle<int>(0, 0, rect.GetWidth(), rect.GetHeight()), 0, 0,
+        data.texture.get(), MathUtil::Rectangle(0, 0, rect.GetWidth(), rect.GetHeight()), 0, 0,
         rect);
 
     g_gfx->EndUtilityDrawing();
