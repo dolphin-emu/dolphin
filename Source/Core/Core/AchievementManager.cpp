@@ -33,6 +33,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/Host.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
@@ -311,6 +312,18 @@ void AchievementManager::DoFrame()
   if (!IsGameLoaded() || !Core::IsCPUThread())
     return;
   {
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    {
+      std::lock_guard lg{m_memory_lock};
+      auto& system = Core::System::GetInstance();
+      Core::CPUThreadGuard thread_guard(system);
+      u32 ram_size = Core::System::GetInstance().GetMemory().GetRamSizeReal();
+      if (m_cloned_memory.size() != ram_size)
+        m_cloned_memory.resize(ram_size);
+      Core::System::GetInstance().GetMemory().CopyFromEmu(m_cloned_memory.data(), 0x80000000U,
+                                                          m_cloned_memory.size());
+    }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
   }
@@ -1262,22 +1275,31 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
 {
   if (buffer == nullptr)
     return 0u;
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.m_memory_lock};
+  u32 bytes_read = 0;
+  for (u32 ix = address; ix < address + num_bytes && ix < instance.m_cloned_memory.size(); ix++)
+    buffer[bytes_read++] = instance.m_cloned_memory[ix];
+  return bytes_read;
+#else   // RC_CLIENT_SUPPORTS_RAINTEGRATION
   auto& system = Core::System::GetInstance();
   if (!(Core::IsHostThread() || Core::IsCPUThread()))
   {
     ASSERT_MSG(ACHIEVEMENTS, false, "MemoryPeeker called from wrong thread");
     return 0;
   }
-  Core::CPUThreadGuard threadguard(system);
+  Core::CPUThreadGuard thread_guard(system);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
-    auto value = system.GetMMU().HostTryReadU8(threadguard, address + num_read,
+    auto value = system.GetMMU().HostTryReadU8(thread_guard, address + num_read,
                                                PowerPC::RequestedAddressSpace::Physical);
     if (!value.has_value())
       return num_read;
     buffer[num_read] = value.value().value;
   }
   return num_bytes;
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 }
 
 void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_type,
@@ -1439,6 +1461,7 @@ void AchievementManager::LoadIntegrationCallback(int result, const char* error_m
     INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll found.");
     instance.m_dll_found = true;
     rc_client_raintegration_set_event_handler(instance.m_client, RAIntegrationEventHandler);
+    rc_client_raintegration_set_write_memory_function(instance.m_client, MemoryPoker);
     instance.m_dev_menu_callback();
     // TODO: hook up menu and dll event handlers
     break;
@@ -1480,6 +1503,29 @@ void AchievementManager::RAIntegrationEventHandler(const rc_client_raintegration
   default:
     WARN_LOG_FMT(ACHIEVEMENTS, "Unsupported raintegration event. {}", event->type);
     break;
+  }
+}
+
+void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+{
+  if (buffer == nullptr)
+    return;
+  auto& system = Core::System::GetInstance();
+  if (!(Core::IsHostThread() || Core::IsCPUThread()))
+  {
+    Core::QueueHostJob([address, buffer, num_bytes, client](Core::System& system) {
+      MemoryPoker(address, buffer, num_bytes, client);
+    });
+    return;
+  }
+  Core::CPUThreadGuard threadguard(system);
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.m_memory_lock};
+  for (u32 num_write = 0; num_write < num_bytes; num_write++)
+  {
+    system.GetMMU().HostTryWriteU8(threadguard, buffer[num_write], address + num_write,
+                                   PowerPC::RequestedAddressSpace::Physical);
+    instance.m_cloned_memory[address + num_write] = buffer[num_write];
   }
 }
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
