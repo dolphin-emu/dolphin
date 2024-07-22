@@ -680,10 +680,10 @@ public:
   void SetCodePtr(u8* ptr, u8* end, bool write_failed = false);
 
   void SetCodePtrUnsafe(u8* ptr, u8* end, bool write_failed = false);
-  const u8* GetCodePtr() const;
-  u8* GetWritableCodePtr();
-  const u8* GetCodeEnd() const;
-  u8* GetWritableCodeEnd();
+  const u8* GetCodePtr() const { return m_code; }
+  u8* GetWritableCodePtr() { return m_code; }
+  const u8* GetCodeEnd() const { return m_code_end; }
+  u8* GetWritableCodeEnd() { return m_code_end; }
   void ReserveCodeSpace(u32 bytes);
   u8* AlignCode16();
   u8* AlignCodePage();

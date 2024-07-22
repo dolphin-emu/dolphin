@@ -107,26 +107,6 @@ void XEmitter::SetCodePtr(u8* ptr, u8* end, bool write_failed)
   m_write_failed = write_failed;
 }
 
-const u8* XEmitter::GetCodePtr() const
-{
-  return code;
-}
-
-u8* XEmitter::GetWritableCodePtr()
-{
-  return code;
-}
-
-const u8* XEmitter::GetCodeEnd() const
-{
-  return m_code_end;
-}
-
-u8* XEmitter::GetWritableCodeEnd()
-{
-  return m_code_end;
-}
-
 void XEmitter::Write8(u8 value)
 {
   if (code >= m_code_end)
