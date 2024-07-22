@@ -55,30 +55,30 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
 
 void SaveToDTM(Movie::DTMHeader* dtm)
 {
-  dtm->bDualCore = Config::Get(Config::MAIN_CPU_THREAD);
-  dtm->bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
-  dtm->bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
-  dtm->CPUCore = static_cast<u8>(Config::Get(Config::MAIN_CPU_CORE));
-  dtm->bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
-  const std::string video_backend = Config::Get(Config::MAIN_GFX_BACKEND);
+  dtm->bDualCore = Get(Config::MAIN_CPU_THREAD);
+  dtm->bDSPHLE = Get(Config::MAIN_DSP_HLE);
+  dtm->bFastDiscSpeed = Get(Config::MAIN_FAST_DISC_SPEED);
+  dtm->CPUCore = static_cast<u8>(Get(Config::MAIN_CPU_CORE));
+  dtm->bSyncGPU = Get(Config::MAIN_SYNC_GPU);
+  const std::string video_backend = Get(Config::MAIN_GFX_BACKEND);
 
-  dtm->bProgressive = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  dtm->bPAL60 = Config::Get(Config::SYSCONF_PAL60);
+  dtm->bProgressive = Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  dtm->bPAL60 = Get(Config::SYSCONF_PAL60);
   if (dtm->bWii)
-    dtm->language = Config::Get(Config::SYSCONF_LANGUAGE);
+    dtm->language = Get(Config::SYSCONF_LANGUAGE);
   else
-    dtm->language = Config::Get(Config::MAIN_GC_LANGUAGE);
-  dtm->bWidescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
+    dtm->language = Get(Config::MAIN_GC_LANGUAGE);
+  dtm->bWidescreen = Get(Config::SYSCONF_WIDESCREEN);
 
-  dtm->bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
-  dtm->bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  dtm->bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
-  dtm->bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
-  dtm->bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  dtm->bEFBAccessEnable = Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  dtm->bSkipEFBCopyToRam = Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  dtm->bEFBEmulateFormatChanges = Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  dtm->bImmediateXFB = Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  dtm->bSkipXFBCopyToRam = Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
 
-  dtm->bUseFMA = Config::Get(Config::SESSION_USE_FMA);
+  dtm->bUseFMA = Get(Config::SESSION_USE_FMA);
 
-  dtm->bFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+  dtm->bFollowBranch = Get(Config::MAIN_JIT_FOLLOW_BRANCH);
 
   // Settings which only existed in old Dolphin versions
   dtm->bSkipIdle = true;

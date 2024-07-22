@@ -176,14 +176,14 @@ bool WASAPIStream::SetRunning(bool running)
 
     HRESULT result;
 
-    if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
+    if (Get(Config::MAIN_WASAPI_DEVICE) == "default")
     {
       result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
     }
     else
     {
       result = S_OK;
-      device = GetDeviceByName(Config::Get(Config::MAIN_WASAPI_DEVICE));
+      device = GetDeviceByName(Get(Config::MAIN_WASAPI_DEVICE));
 
       if (!device)
       {
@@ -222,7 +222,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     result = audio_client->GetDevicePeriod(nullptr, &device_period);
 
-    device_period += Config::Get(Config::MAIN_AUDIO_LATENCY) * (10000 / m_format.Format.nChannels);
+    device_period += Get(Config::MAIN_AUDIO_LATENCY) * (10000 / m_format.Format.nChannels);
     INFO_LOG_FMT(AUDIO, "Audio period set to {}", device_period);
 
     if (!HandleWinAPI("Failed to obtain device period", result))
@@ -258,7 +258,7 @@ bool WASAPIStream::SetRunning(bool running)
       device_period =
           static_cast<REFERENCE_TIME>(
               10000.0 * 1000 * m_frames_in_buffer / m_format.Format.nSamplesPerSec + 0.5) +
-          Config::Get(Config::MAIN_AUDIO_LATENCY) * 10000;
+          Get(Config::MAIN_AUDIO_LATENCY) * 10000;
 
       result = audio_client->Initialize(
           AUDCLNT_SHAREMODE_EXCLUSIVE,
@@ -334,12 +334,12 @@ void WASAPIStream::SoundLoop()
     GetMixer()->Mix(audio_data, m_frames_in_buffer);
 
     const bool is_muted =
-        Config::Get(Config::MAIN_AUDIO_MUTED) || Config::Get(Config::MAIN_AUDIO_VOLUME) == 0;
-    const bool need_volume_adjustment = Config::Get(Config::MAIN_AUDIO_VOLUME) != 100 && !is_muted;
+        Get(Config::MAIN_AUDIO_MUTED) || Get(Config::MAIN_AUDIO_VOLUME) == 0;
+    const bool need_volume_adjustment = Get(Config::MAIN_AUDIO_VOLUME) != 100 && !is_muted;
 
     if (need_volume_adjustment)
     {
-      const float volume = Config::Get(Config::MAIN_AUDIO_VOLUME) / 100.0f;
+      const float volume = Get(Config::MAIN_AUDIO_VOLUME) / 100.0f;
 
       for (u32 i = 0; i < m_frames_in_buffer * 2; i++)
         *audio_data++ *= volume;

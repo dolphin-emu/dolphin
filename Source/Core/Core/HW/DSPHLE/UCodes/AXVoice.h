@@ -150,7 +150,7 @@ void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc
 class HLEAccelerator final : public Accelerator
 {
 public:
-  explicit HLEAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp) {}
+  explicit HLEAccelerator(DSPManager& dsp) : m_dsp(dsp) {}
   HLEAccelerator(const HLEAccelerator&) = delete;
   HLEAccelerator(HLEAccelerator&&) = delete;
   HLEAccelerator& operator=(const HLEAccelerator&) = delete;
@@ -194,7 +194,7 @@ protected:
   void WriteMemory(u32 address, u8 value) override { m_dsp.WriteARAM(value, address); }
 
 private:
-  DSP::DSPManager& m_dsp;
+  DSPManager& m_dsp;
 };
 
 // Sets up the simulated accelerator.

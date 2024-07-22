@@ -11,7 +11,7 @@ namespace DX11
 {
 DXShader::DXShader(ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader,
                    std::string_view name)
-    : D3DCommon::Shader(stage, std::move(bytecode)), m_shader(shader), m_name(name)
+    : Shader(stage, std::move(bytecode)), m_shader(shader), m_name(name)
 {
   if (!m_name.empty())
   {

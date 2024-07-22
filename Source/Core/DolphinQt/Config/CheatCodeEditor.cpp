@@ -35,7 +35,7 @@ void CheatCodeEditor::SetARCode(ActionReplay::ARCode* code)
   m_code_edit->clear();
 
   for (ActionReplay::AREntry& e : code->ops)
-    m_code_edit->append(QString::fromStdString(ActionReplay::SerializeLine(e)));
+    m_code_edit->append(QString::fromStdString(SerializeLine(e)));
 
   m_creator_label->setHidden(true);
   m_creator_edit->setHidden(true);
@@ -186,7 +186,7 @@ bool CheatCodeEditor::AcceptAR()
         break;
       }
     }
-    ActionReplay::DecryptARCode(encrypted_lines, &entries);
+    DecryptARCode(encrypted_lines, &entries);
   }
 
   if (entries.empty())

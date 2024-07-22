@@ -94,7 +94,7 @@ s32 CachedInterpreter::EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlock
   const auto& [downcount, num_load_stores, num_fp_inst] = operands;
   ppc_state.pc = ppc_state.npc;
   ppc_state.downcount -= downcount;
-  PowerPC::UpdatePerformanceMonitor(downcount, num_load_stores, num_fp_inst, ppc_state);
+  UpdatePerformanceMonitor(downcount, num_load_stores, num_fp_inst, ppc_state);
   return 0;
 }
 

@@ -87,7 +87,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
   m_arp_table[m_current_ip] = m_current_mac;
   m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
-  m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+  m_router_mac = GenerateMacAddress(Common::MACConsumer::BBA);
   m_arp_table[m_router_ip] = m_router_mac;
 
   m_network_ref.Clear();
@@ -594,7 +594,7 @@ const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 
   else
   {
     return m_arp_table
-        .emplace_hint(it, inet_ip, Common::GenerateMacAddress(Common::MACConsumer::BBA))
+        .emplace_hint(it, inet_ip, GenerateMacAddress(Common::MACConsumer::BBA))
         ->second;
   }
 }
@@ -694,7 +694,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
   return true;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInBBAInterface* self)
+void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(BuiltInBBAInterface* self)
 {
   std::size_t datasize = 0;
   while (!self->m_read_thread_shutdown.IsSet())
@@ -795,7 +795,7 @@ sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, u16 port, u3
   addr.sin_addr.s_addr = net_ip;
   addr.sin_family = AF_INET;
   addr.sin_port = 0;
-  ::bind(getHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+  bind(getHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
   m_connecting_state = ConnectingState::Connecting;
   return this->connect(dest, port);
 }
@@ -806,9 +806,9 @@ sf::Socket::Status BbaTcpSocket::GetPeerName(sockaddr_in* addr) const
   if (getpeername(getHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
   {
     ERROR_LOG_FMT(SP1, "getpeername failed: {}", Common::StrNetworkError());
-    return sf::Socket::Status::Error;
+    return Error;
   }
-  return sf::Socket::Status::Done;
+  return Done;
 }
 
 sf::Socket::Status BbaTcpSocket::GetSockName(sockaddr_in* addr) const
@@ -817,9 +817,9 @@ sf::Socket::Status BbaTcpSocket::GetSockName(sockaddr_in* addr) const
   if (getsockname(getHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
   {
     ERROR_LOG_FMT(SP1, "getsockname failed: {}", Common::StrNetworkError());
-    return sf::Socket::Status::Error;
+    return Error;
   }
-  return sf::Socket::Status::Done;
+  return Done;
 }
 
 BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
@@ -945,7 +945,7 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
     if (::bind(getHandle(), reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
     {
       ERROR_LOG_FMT(SP1, "bind with SSDP port failed: {}", Common::StrNetworkError());
-      return sf::Socket::Status::Error;
+      return Error;
     }
   }
   else
@@ -960,7 +960,7 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to bind to the network interface: {}",
                   Common::StrNetworkError());
-    return sf::Socket::Status::Error;
+    return Error;
   }
 
   // Subscribe to the SSDP multicast group
@@ -973,12 +973,12 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to subscribe to SSDP multicast group: {}",
                   Common::StrNetworkError());
-    return sf::Socket::Status::Error;
+    return Error;
   }
 
   error_guard.Dismiss();
   INFO_LOG_FMT(SP1, "SSDP multicast membership successful");
-  return sf::Socket::Status::Done;
+  return Done;
 }
 
 StackRef* NetworkRef::GetAvailableSlot(u16 port)

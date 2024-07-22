@@ -112,7 +112,7 @@ bool Presenter::Initialize()
   {
     SetBackbuffer(g_gfx->GetSurfaceInfo());
 
-    m_post_processor = std::make_unique<VideoCommon::PostProcessing>();
+    m_post_processor = std::make_unique<PostProcessing>();
     if (!m_post_processor->Initialize(m_backbuffer_format))
       return false;
 
@@ -336,7 +336,7 @@ void Presenter::ConfigChanged(u32 changed_bits)
 {
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
-  if (changed_bits & ConfigChangeBits::CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER && m_post_processor)
+  if (changed_bits & CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER && m_post_processor)
   {
     // The existing shader must not be in use when it's destroyed
     g_gfx->WaitForGPUIdle();
@@ -346,7 +346,7 @@ void Presenter::ConfigChanged(u32 changed_bits)
 
   // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
   // rendering the UI.
-  if (changed_bits & ConfigChangeBits::CONFIG_CHANGE_BIT_STEREO_MODE)
+  if (changed_bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
     if (m_onscreen_ui)
       m_onscreen_ui->RecompileImGuiPipeline();
@@ -517,7 +517,7 @@ u32 Presenter::AutoIntegralScale() const
       source_height > 0 ? ((target_height + (source_height - 1)) / source_height) : 1;
   // Limit to the max to avoid creating textures larger than their max supported resolution.
   return std::min(std::max(width_scale, height_scale),
-                  static_cast<u32>(Config::Get(Config::GFX_MAX_EFB_SCALE)));
+                  static_cast<u32>(Get(Config::GFX_MAX_EFB_SCALE)));
 }
 
 void Presenter::SetSuggestedWindowSize(int width, int height)

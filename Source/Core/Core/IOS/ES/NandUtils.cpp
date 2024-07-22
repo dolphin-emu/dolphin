@@ -415,7 +415,7 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to create temporary file {}: {}", tmp_path,
                   static_cast<int>(result));
-    return FS::ConvertResult(result);
+    return ConvertResult(result);
   }
 
   auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmp_path, FS::Mode::ReadWrite, {}, ticks);
@@ -442,7 +442,7 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to move launch file to final destination ({}): {}", path,
                   static_cast<int>(result));
-    return FS::ConvertResult(result);
+    return ConvertResult(result);
   }
 
   return IPC_SUCCESS;

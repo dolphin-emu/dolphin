@@ -34,7 +34,7 @@ std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
   // Using glMapBufferRange to read back the contents of the SSBO is extremely slow
   // on nVidia drivers. This is more noticeable at higher internal resolutions.
   // Using glGetBufferSubData instead does not seem to exhibit this slowdown.
-  if (!DriverDetails::HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA) &&
+  if (!HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA) &&
       !static_cast<OGLGfx*>(g_gfx.get())->IsGLES())
   {
     // We also need to ensure the the CPU does not receive stale values which have been updated by

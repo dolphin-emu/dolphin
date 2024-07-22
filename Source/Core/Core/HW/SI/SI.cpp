@@ -276,7 +276,7 @@ void SerialInterfaceManager::Init()
       }
       else if (movie.IsUsingPad(i))
       {
-        SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
+        SIDevices current = Get(Config::GetInfoForSIDevice(i));
         // GC pad-compatible devices can be used for both playing and recording
         if (movie.IsUsingBongo(i))
           m_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
@@ -288,7 +288,7 @@ void SerialInterfaceManager::Init()
     }
     else if (!NetPlay::IsNetPlayRunning())
     {
-      m_desired_device_types[i] = Config::Get(Config::GetInfoForSIDevice(i));
+      m_desired_device_types[i] = Get(Config::GetInfoForSIDevice(i));
     }
 
     AddDevice(m_desired_device_types[i], i);

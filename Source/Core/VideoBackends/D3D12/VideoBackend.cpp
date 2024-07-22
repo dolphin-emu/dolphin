@@ -133,10 +133,10 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   // Create main wrapper instances.
-  auto gfx = std::make_unique<DX12::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
-  auto vertex_manager = std::make_unique<DX12::VertexManager>();
-  auto perf_query = std::make_unique<DX12::PerfQuery>();
-  auto bounding_box = std::make_unique<DX12::D3D12BoundingBox>();
+  auto gfx = std::make_unique<Gfx>(std::move(swap_chain), wsi.render_surface_scale);
+  auto vertex_manager = std::make_unique<VertexManager>();
+  auto perf_query = std::make_unique<PerfQuery>();
+  auto bounding_box = std::make_unique<D3D12BoundingBox>();
 
   return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
                           std::move(bounding_box));

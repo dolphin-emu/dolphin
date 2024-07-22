@@ -56,7 +56,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 
   installEventFilter(this);
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 
   connect(m_skylander_list, &QListWidget::itemSelectionChanged, this,
           &SkylanderPortalWindow::UpdateCurrentIDs);
@@ -66,14 +66,14 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   QString user_path =
       QString::fromStdString(File::GetUserPath(D_USER_IDX)) + QStringLiteral("Skylanders");
   // first time initialize path in config
-  if (Config::Get(Config::MAIN_SKYLANDERS_PATH).empty())
+  if (Get(Config::MAIN_SKYLANDERS_PATH).empty())
   {
-    Config::SetBase(Config::MAIN_SKYLANDERS_PATH, user_path.toStdString());
+    SetBase(Config::MAIN_SKYLANDERS_PATH, user_path.toStdString());
     skylanders_folder = QDir(user_path);
   }
   else
   {
-    skylanders_folder = QDir(QString::fromStdString(Config::Get(Config::MAIN_SKYLANDERS_PATH)));
+    skylanders_folder = QDir(QString::fromStdString(Get(Config::MAIN_SKYLANDERS_PATH)));
   }
   if (!skylanders_folder.exists())
     skylanders_folder.mkdir(skylanders_folder.path());
@@ -142,8 +142,8 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
   // WIDGET: Portal Enable Checkbox
   auto* checkbox_layout = new QVBoxLayout();
   m_enabled_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
-  m_enabled_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
-  m_emulating = Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL);
+  m_enabled_checkbox->setChecked(Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
+  m_emulating = Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL);
   connect(m_enabled_checkbox, &QCheckBox::toggled, this, &SkylanderPortalWindow::EmulatePortal);
   checkbox_layout->addWidget(m_enabled_checkbox);
   slot_layout->addLayout(checkbox_layout);
@@ -192,7 +192,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
   scroll_area->setWidget(m_group_skylanders);
   scroll_area->setWidgetResizable(true);
   scroll_area->setFrameStyle(QFrame::NoFrame);
-  m_group_skylanders->setVisible(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
+  m_group_skylanders->setVisible(Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
   portal_slots_layout->addWidget(scroll_area);
   portal_slots_group->setLayout(portal_slots_layout);
   slot_layout->addWidget(portal_slots_group);
@@ -472,7 +472,7 @@ void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
 // UI
 void SkylanderPortalWindow::EmulatePortal(bool emulate)
 {
-  Config::SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
+  SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
   m_group_skylanders->setVisible(emulate);
   m_command_buttons->setVisible(emulate);
   m_emulating = emulate;
@@ -488,7 +488,7 @@ void SkylanderPortalWindow::SelectCollectionPath()
     m_path_edit->setText(dir);
     m_collection_path = dir;
   }
-  Config::SetBase(Config::MAIN_SKYLANDERS_PATH, dir.toStdString());
+  SetBase(Config::MAIN_SKYLANDERS_PATH, dir.toStdString());
 
   if (m_only_show_collection->isChecked())
     RefreshList();
@@ -677,7 +677,7 @@ void SkylanderPortalWindow::ClearSlot(u8 slot)
 void SkylanderPortalWindow::OnCollectionPathChanged()
 {
   m_collection_path = m_path_edit->text();
-  Config::SetBase(Config::MAIN_SKYLANDERS_PATH, m_path_edit->text().toStdString());
+  SetBase(Config::MAIN_SKYLANDERS_PATH, m_path_edit->text().toStdString());
   RefreshList();
 }
 

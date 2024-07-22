@@ -130,7 +130,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
   // The NVIDIA Vulkan driver causes the GPU to lock up, or throw exceptions if MSAA is enabled,
   // a non-full clear rect is specified, and a clear loadop or vkCmdClearAttachments is used.
   if (g_ActiveConfig.iMultisamples > 1 &&
-      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MSAA_CLEAR))
+      HasBug(DriverDetails::BUG_BROKEN_MSAA_CLEAR))
   {
     use_clear_render_pass = false;
     use_clear_attachments = false;
@@ -138,7 +138,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
 
   // This path cannot be used if the driver implementation doesn't guarantee pixels with no drawn
   // geometry in "this" renderpass won't be cleared
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CLEAR_LOADOP_RENDERPASS))
+  if (HasBug(DriverDetails::BUG_BROKEN_CLEAR_LOADOP_RENDERPASS))
     use_clear_render_pass = false;
 
   auto* vk_frame_buffer = static_cast<VKFramebuffer*>(m_current_framebuffer);

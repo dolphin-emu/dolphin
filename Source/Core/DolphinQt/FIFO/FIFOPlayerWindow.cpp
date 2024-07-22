@@ -176,8 +176,8 @@ void FIFOPlayerWindow::CreateWidgets()
 
 void FIFOPlayerWindow::LoadSettings()
 {
-  m_early_memory_updates->setChecked(Config::Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES));
-  m_loop->setChecked(Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY));
+  m_early_memory_updates->setChecked(Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES));
+  m_loop->setChecked(Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY));
 }
 
 void FIFOPlayerWindow::ConnectWidgets()
@@ -317,7 +317,7 @@ void FIFOPlayerWindow::UpdateInfo()
     return;
   }
 
-  if (Core::IsRunning(Core::System::GetInstance()) && m_fifo_recorder.IsRecording())
+  if (IsRunning(Core::System::GetInstance()) && m_fifo_recorder.IsRecording())
   {
     m_info_label->setText(tr("Recording..."));
     return;
@@ -350,9 +350,9 @@ void FIFOPlayerWindow::OnFIFOLoaded()
 
 void FIFOPlayerWindow::OnConfigChanged()
 {
-  Config::SetBase(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES,
+  SetBase(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES,
                   m_early_memory_updates->isChecked());
-  Config::SetBase(Config::MAIN_FIFOPLAYER_LOOP_REPLAY, m_loop->isChecked());
+  SetBase(Config::MAIN_FIFOPLAYER_LOOP_REPLAY, m_loop->isChecked());
 }
 
 void FIFOPlayerWindow::OnLimitsChanged()
@@ -376,7 +376,7 @@ void FIFOPlayerWindow::UpdateLimits()
 
 void FIFOPlayerWindow::UpdateControls()
 {
-  bool running = Core::IsRunning(Core::System::GetInstance());
+  bool running = IsRunning(Core::System::GetInstance());
   bool is_recording = m_fifo_recorder.IsRecording();
   bool is_playing = m_fifo_player.IsPlaying();
 

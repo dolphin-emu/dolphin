@@ -670,12 +670,12 @@ std::string GetEscapedHtml(std::string html)
 
 void ToLower(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return ToLower(c); });
 }
 
 void ToUpper(std::string* str)
 {
-  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return ToUpper(c); });
 }
 
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
@@ -683,7 +683,7 @@ bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
   if (a.size() != b.size())
     return false;
   return std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+                    [](char ca, char cb) { return ToLower(ca) == ToLower(cb); });
 }
 
 std::string BytesToHexString(std::span<const u8> bytes)

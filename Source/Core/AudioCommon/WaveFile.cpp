@@ -34,7 +34,7 @@ bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate_divisor)
   // Ask to delete file
   if (File::Exists(filename))
   {
-    if (Config::Get(Config::MAIN_DUMP_AUDIO_SILENT) ||
+    if (Get(Config::MAIN_DUMP_AUDIO_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", filename))
     {
       File::Delete(filename);

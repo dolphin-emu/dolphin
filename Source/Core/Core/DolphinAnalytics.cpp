@@ -71,7 +71,7 @@ void DolphinAnalytics::ReloadConfig()
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
-  if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
+  if (Get(Config::MAIN_ANALYTICS_ENABLED))
   {
 #if defined(ANDROID)
     new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
@@ -82,7 +82,7 @@ void DolphinAnalytics::ReloadConfig()
   m_reporter.SetBackend(std::move(new_backend));
 
   // Load the unique ID or generate it if needed.
-  m_unique_id = Config::Get(Config::MAIN_ANALYTICS_ID);
+  m_unique_id = Get(Config::MAIN_ANALYTICS_ID);
   if (m_unique_id.empty())
   {
     GenerateNewIdentity();
@@ -96,7 +96,7 @@ void DolphinAnalytics::GenerateNewIdentity()
   m_unique_id = fmt::format("{:016x}{:016x}", id_high, id_low);
 
   // Save the new id in the configuration.
-  Config::SetBase(Config::MAIN_ANALYTICS_ID, m_unique_id);
+  SetBase(Config::MAIN_ANALYTICS_ID, m_unique_id);
   Config::Save();
 }
 
@@ -263,7 +263,7 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("version-dist", Common::GetScmDistributorStr());
 
   // Auto-Update information.
-  builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
+  builder.AddData("update-track", Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 
   // CPU information.
   builder.AddData("cpu-summary", cpu_info.Summarize());
@@ -354,16 +354,16 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
 
   // Configuration.
-  builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
-  builder.AddData("cfg-dsp-jit", Config::Get(Config::MAIN_DSP_JIT));
-  builder.AddData("cfg-dsp-thread", Config::Get(Config::MAIN_DSP_THREAD));
-  builder.AddData("cfg-cpu-thread", Config::Get(Config::MAIN_CPU_THREAD));
-  builder.AddData("cfg-fastmem", Config::Get(Config::MAIN_FASTMEM));
-  builder.AddData("cfg-syncgpu", Config::Get(Config::MAIN_SYNC_GPU));
-  builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
-  builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
-  builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
-  builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
+  builder.AddData("cfg-dsp-hle", Get(Config::MAIN_DSP_HLE));
+  builder.AddData("cfg-dsp-jit", Get(Config::MAIN_DSP_JIT));
+  builder.AddData("cfg-dsp-thread", Get(Config::MAIN_DSP_THREAD));
+  builder.AddData("cfg-cpu-thread", Get(Config::MAIN_CPU_THREAD));
+  builder.AddData("cfg-fastmem", Get(Config::MAIN_FASTMEM));
+  builder.AddData("cfg-syncgpu", Get(Config::MAIN_SYNC_GPU));
+  builder.AddData("cfg-audio-backend", Get(Config::MAIN_AUDIO_BACKEND));
+  builder.AddData("cfg-oc-enable", Get(Config::MAIN_OVERCLOCK_ENABLE));
+  builder.AddData("cfg-oc-factor", Get(Config::MAIN_OVERCLOCK));
+  builder.AddData("cfg-render-to-main", Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {
     builder.AddData("cfg-video-backend", g_video_backend->GetName());

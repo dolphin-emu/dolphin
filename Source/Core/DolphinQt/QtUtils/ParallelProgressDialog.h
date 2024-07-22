@@ -115,7 +115,7 @@ private:
                   &QProgressDialog::setMinimumDuration);
     ConnectSignal(&ParallelProgressDialog::SetRangeSignal, &QProgressDialog::setRange);
 
-    QObject::connect(this, &ParallelProgressDialog::SetValueSignal, this,
+    connect(this, &ParallelProgressDialog::SetValueSignal, this,
                      &ParallelProgressDialog::SetValueSlot);
 
     ConnectSlot(&QProgressDialog::canceled, &ParallelProgressDialog::OnCancelled);

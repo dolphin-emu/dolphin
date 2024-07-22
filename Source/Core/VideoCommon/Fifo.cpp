@@ -44,10 +44,10 @@ FifoManager::~FifoManager() = default;
 
 void FifoManager::RefreshConfig()
 {
-  m_config_sync_gpu = Config::Get(Config::MAIN_SYNC_GPU);
-  m_config_sync_gpu_max_distance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
-  m_config_sync_gpu_min_distance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
-  m_config_sync_gpu_overclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
+  m_config_sync_gpu = Get(Config::MAIN_SYNC_GPU);
+  m_config_sync_gpu_max_distance = Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
+  m_config_sync_gpu_min_distance = Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
+  m_config_sync_gpu_overclock = Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
 }
 
 void FifoManager::DoState(PointerWrap& p)
@@ -116,7 +116,7 @@ void FifoManager::Shutdown()
 
   if (m_config_callback_id)
   {
-    Config::RemoveConfigChangedCallback(*m_config_callback_id);
+    RemoveConfigChangedCallback(*m_config_callback_id);
     m_config_callback_id = std::nullopt;
   }
 }

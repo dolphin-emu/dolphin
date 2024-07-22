@@ -137,7 +137,7 @@ bool FifoDataFile::Save(const std::string& filename)
   header.fileId = FILE_ID;
   header.file_version = VERSION_NUMBER;
   // Maintain backwards compatability so long as the RAM sizes aren't overridden.
-  if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+  if (Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
     header.min_loader_version = MIN_LOADER_VERSION_FOR_RAM_OVERRIDE;
   else
     header.min_loader_version = MIN_LOADER_VERSION;
@@ -258,9 +258,9 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     // Force settings to match those used when the DFF was created.  This is sort of a hack.
     // It only works because this function gets called twice, and the first time (flagsOnly mode)
     // happens to be before HW::Init().  But the convenience is hard to deny!
-    Config::SetCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, true);
-    Config::SetCurrent(Config::MAIN_MEM1_SIZE, header.mem1_size);
-    Config::SetCurrent(Config::MAIN_MEM2_SIZE, header.mem2_size);
+    SetCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, true);
+    SetCurrent(Config::MAIN_MEM1_SIZE, header.mem1_size);
+    SetCurrent(Config::MAIN_MEM2_SIZE, header.mem2_size);
 
     return dataFile;
   }

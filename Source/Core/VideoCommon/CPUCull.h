@@ -21,7 +21,7 @@ public:
   };
 
   using TransformFunction = void (*)(void*, const void*, u32, int);
-  using CullFunction = bool (*)(const CPUCull::TransformedVertex*, int);
+  using CullFunction = bool (*)(const TransformedVertex*, int);
 
 private:
   template <typename T>

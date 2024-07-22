@@ -67,8 +67,8 @@ void DualShockUDPClientAddServerDialog::CreateWidgets()
 
 void DualShockUDPClientAddServerDialog::OnServerAdded()
 {
-  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+  const auto& servers_setting = Get(ciface::DualShockUDPClient::Settings::SERVERS);
+  SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
                            servers_setting + fmt::format("{}:{}:{};",
                                                          m_description->text().toStdString(),
                                                          m_server_address->text().toStdString(),

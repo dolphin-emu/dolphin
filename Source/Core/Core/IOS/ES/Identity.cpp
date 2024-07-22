@@ -105,7 +105,7 @@ IPCReply ESDevice::GetDeviceCertificate(const IOCtlVRequest& request)
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  const IOS::CertECC cert = GetEmulationKernel().GetIOSC().GetDeviceCertificate();
+  const CertECC cert = GetEmulationKernel().GetIOSC().GetDeviceCertificate();
   memory.CopyToEmu(request.io_vectors[0].address, &cert, sizeof(cert));
   return IPCReply(IPC_SUCCESS);
 }

@@ -7,5 +7,5 @@
 
 namespace ciface::Win32
 {
-std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
+std::unique_ptr<InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
 }  // namespace ciface::Win32

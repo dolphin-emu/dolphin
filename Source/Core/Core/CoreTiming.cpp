@@ -122,32 +122,32 @@ void CoreTimingManager::Shutdown()
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  RemoveConfigChangedCallback(m_registered_config_callback_id);
 }
 
 void CoreTimingManager::RefreshConfig()
 {
   m_config_oc_factor =
-      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
+      Get(Config::MAIN_OVERCLOCK_ENABLE) ? Get(Config::MAIN_OVERCLOCK) : 1.0f;
   m_config_oc_inv_factor = 1.0f / m_config_oc_factor;
-  m_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  m_config_sync_on_skip_idle = Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
 
   // A maximum fallback is used to prevent the system from sleeping for
   // too long or going full speed in an attempt to catch up to timings.
-  m_max_fallback = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
+  m_max_fallback = std::chrono::duration_cast<DT>(DT_ms(Get(Config::MAIN_MAX_FALLBACK)));
 
-  m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+  m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Get(Config::MAIN_TIMING_VARIANCE)));
 
   if (AchievementManager::GetInstance().IsHardcoreModeActive() &&
-      Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
-      Config::Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
+      Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
+      Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
   {
-    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
     m_emulation_speed = 1.0f;
     OSD::AddMessage("Minimum speed is 100% in Hardcore Mode");
   }
 
-  m_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  m_emulation_speed = Get(Config::MAIN_EMULATION_SPEED);
 }
 
 void CoreTimingManager::DoState(PointerWrap& p)
@@ -472,7 +472,7 @@ void CoreTimingManager::Idle()
   }
 
   auto& ppc_state = m_system.GetPPCState();
-  PowerPC::UpdatePerformanceMonitor(ppc_state.downcount, 0, 0, ppc_state);
+  UpdatePerformanceMonitor(ppc_state.downcount, 0, 0, ppc_state);
   m_idled_cycles += DowncountToCycles(ppc_state.downcount);
   ppc_state.downcount = 0;
 }

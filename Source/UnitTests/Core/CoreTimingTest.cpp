@@ -344,8 +344,8 @@ TEST(CoreTiming, Overclocking)
   CoreTiming::EventType* cb_e = core_timing.RegisterEvent("callbackE", CallbackTemplate<4>);
 
   // Overclock
-  Config::SetCurrent(Config::MAIN_OVERCLOCK_ENABLE, true);
-  Config::SetCurrent(Config::MAIN_OVERCLOCK, 2.0f);
+  SetCurrent(Config::MAIN_OVERCLOCK_ENABLE, true);
+  SetCurrent(Config::MAIN_OVERCLOCK, 2.0f);
 
   // Enter slice 0
   // Updates s_last_OC_factor.
@@ -365,7 +365,7 @@ TEST(CoreTiming, Overclocking)
   AdvanceAndCheck(system, 4, MAX_SLICE_LENGTH * 2);
 
   // Underclock
-  Config::SetCurrent(Config::MAIN_OVERCLOCK, 0.5f);
+  SetCurrent(Config::MAIN_OVERCLOCK, 0.5f);
   core_timing.Advance();
 
   core_timing.ScheduleEvent(100, cb_a, CB_IDS[0]);
@@ -382,7 +382,7 @@ TEST(CoreTiming, Overclocking)
   AdvanceAndCheck(system, 4, MAX_SLICE_LENGTH / 2);
 
   // Try switching the clock mid-emulation
-  Config::SetCurrent(Config::MAIN_OVERCLOCK, 1.0f);
+  SetCurrent(Config::MAIN_OVERCLOCK, 1.0f);
   core_timing.Advance();
 
   core_timing.ScheduleEvent(100, cb_a, CB_IDS[0]);
@@ -393,11 +393,11 @@ TEST(CoreTiming, Overclocking)
   EXPECT_EQ(100, ppc_state.downcount);
 
   AdvanceAndCheck(system, 0, 100);  // (200 - 100)
-  Config::SetCurrent(Config::MAIN_OVERCLOCK, 2.0f);
+  SetCurrent(Config::MAIN_OVERCLOCK, 2.0f);
   AdvanceAndCheck(system, 1, 400);  // (400 - 200) * 2
   AdvanceAndCheck(system, 2, 800);  // (800 - 400) * 2
-  Config::SetCurrent(Config::MAIN_OVERCLOCK, 0.1f);
+  SetCurrent(Config::MAIN_OVERCLOCK, 0.1f);
   AdvanceAndCheck(system, 3, 80);  // (1600 - 800) / 10
-  Config::SetCurrent(Config::MAIN_OVERCLOCK, 1.0f);
+  SetCurrent(Config::MAIN_OVERCLOCK, 1.0f);
   AdvanceAndCheck(system, 4, MAX_SLICE_LENGTH);
 }

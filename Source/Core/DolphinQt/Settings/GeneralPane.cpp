@@ -63,7 +63,7 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
           &GeneralPane::OnEmulationStateChanged);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GeneralPane::LoadConfig);
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
 }
 
 void GeneralPane::CreateLayout()
@@ -117,7 +117,7 @@ void GeneralPane::ConnectLayout()
 
   // Advanced
   connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this]() {
-    Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
+    SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
                              m_combobox_speedlimit->currentIndex() * 0.1f);
     Config::Save();
   });
@@ -264,9 +264,9 @@ void GeneralPane::LoadConfig()
 
 #ifdef USE_DISCORD_PRESENCE
   SignalBlocking(m_checkbox_discord_presence)
-      ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+      ->setChecked(Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
-  int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
+  int selection = qRound(Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
     SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
 

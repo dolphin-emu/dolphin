@@ -247,7 +247,7 @@ bool ResourcePack::Uninstall(const std::string& path)
     // Check if a higher priority pack already provides a given texture, don't delete it
     for (const auto& pack : GetHigherPriorityPacks(*this))
     {
-      if (::ResourcePack::IsInstalled(*pack) &&
+      if (IsInstalled(*pack) &&
           std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
               pack->GetTextures().end())
       {
@@ -262,7 +262,7 @@ bool ResourcePack::Uninstall(const std::string& path)
     // Check if a lower priority pack provides a given texture - if so, install it.
     for (auto& pack : lower)
     {
-      if (::ResourcePack::IsInstalled(*pack) &&
+      if (IsInstalled(*pack) &&
           std::find(pack->GetTextures().rbegin(), pack->GetTextures().rend(), texture) !=
               pack->GetTextures().rend())
       {

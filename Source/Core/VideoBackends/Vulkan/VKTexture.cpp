@@ -761,7 +761,7 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   // Linear image
   VkImage linear_image = VK_NULL_HANDLE;
   VmaAllocation linear_image_alloc = VK_NULL_HANDLE;
-  if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY) &&
+  if (HasBug(DriverDetails::BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY) &&
       type == StagingTextureType::Readback && config.samples == 1)
   {
     std::tie(linear_image, linear_image_alloc) = CreateLinearImage(type, config);

@@ -194,9 +194,9 @@ struct FromServer
       MessageHeader header;
       u32 message_type;
     };
-    MessageType::VersionResponse version_response;
-    MessageType::PortInfo port_info;
-    MessageType::PadDataResponse pad_data_response;
+    VersionResponse version_response;
+    PortInfo port_info;
+    PadDataResponse pad_data_response;
   };
 };
 
@@ -209,9 +209,9 @@ struct FromClient
       MessageHeader header;
       u32 message_type;
     };
-    MessageType::VersionRequest version_request;
-    MessageType::ListPorts list_ports;
-    MessageType::PadDataRequest pad_data_request;
+    VersionRequest version_request;
+    ListPorts list_ports;
+    PadDataRequest pad_data_request;
   };
 };
 }  // namespace MessageType

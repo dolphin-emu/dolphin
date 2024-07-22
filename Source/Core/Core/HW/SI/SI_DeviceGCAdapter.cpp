@@ -25,7 +25,7 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(Core::System& system, SIDevices device,
   // get the correct pad number that should rumble locally when using netplay
   const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
   if (pad_num < 4)
-    m_simulate_konga = Config::Get(Config::GetInfoForSimulateKonga(pad_num));
+    m_simulate_konga = Get(Config::GetInfoForSimulateKonga(pad_num));
 }
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()

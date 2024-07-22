@@ -50,7 +50,7 @@ std::istream& operator>>(std::istream& stream, SIDevices& device)
   }
   else
   {
-    device = SIDevices::SIDEVICE_NONE;
+    device = SIDEVICE_NONE;
   }
 
   return stream;

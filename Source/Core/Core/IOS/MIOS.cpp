@@ -46,8 +46,8 @@ static void ReinitHardware(Core::System& system)
   Wiimote::ResetAllWiimotes();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
   auto& dsp = system.GetDSP();
-  dsp.Reinit(Config::Get(Config::MAIN_DSP_HLE));
-  dsp.GetDSPEmulator()->Initialize(system.IsWii(), Config::Get(Config::MAIN_DSP_THREAD));
+  dsp.Reinit(Get(Config::MAIN_DSP_HLE));
+  dsp.GetDSPEmulator()->Initialize(system.IsWii(), Get(Config::MAIN_DSP_THREAD));
 
   system.GetSystemTimers().ChangePPCClock(SystemTimers::Mode::GC);
 }
@@ -89,7 +89,7 @@ bool Load(Core::System& system)
   PowerPC::PowerPCState& ppc_state = power_pc.GetPPCState();
   ppc_state.msr.Hex = 0;
   ppc_state.pc = 0x3400;
-  PowerPC::MSRUpdated(ppc_state);
+  MSRUpdated(ppc_state);
 
   NOTICE_LOG_FMT(IOS, "Loaded MIOS and bootstrapped PPC.");
 

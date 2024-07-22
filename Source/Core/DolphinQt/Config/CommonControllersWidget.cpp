@@ -66,11 +66,11 @@ void CommonControllersWidget::OnControllerInterfaceConfigure()
 
 void CommonControllersWidget::LoadSettings()
 {
-  SignalBlocking(m_common_bg_input)->setChecked(Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
+  SignalBlocking(m_common_bg_input)->setChecked(Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
 }
 
 void CommonControllersWidget::SaveSettings()
 {
-  Config::SetBaseOrCurrent(Config::MAIN_INPUT_BACKGROUND_INPUT, m_common_bg_input->isChecked());
+  SetBaseOrCurrent(Config::MAIN_INPUT_BACKGROUND_INPUT, m_common_bg_input->isChecked());
   Config::Save();
 }

@@ -29,7 +29,7 @@ void PlatformHeadless::MainLoop()
   while (m_running.IsSet())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs(Core::System::GetInstance());
+    HostDispatchJobs(Core::System::GetInstance());
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 }

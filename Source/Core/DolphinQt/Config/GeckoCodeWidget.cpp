@@ -202,7 +202,7 @@ void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
   m_gecko_codes[index].enabled = (item->checkState() == Qt::Checked);
 
   if (!m_restart_required)
-    Gecko::SetActiveCodes(m_gecko_codes);
+    SetActiveCodes(m_gecko_codes);
 
   SaveCodes();
 }

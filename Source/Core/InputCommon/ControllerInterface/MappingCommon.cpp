@@ -23,8 +23,8 @@ constexpr auto HOTKEY_VS_CONJUNCION_THRESHOLD = std::chrono::milliseconds(50);
 constexpr auto SPURIOUS_TRIGGER_COMBO_THRESHOLD = std::chrono::milliseconds(150);
 
 std::string GetExpressionForControl(const std::string& control_name,
-                                    const ciface::Core::DeviceQualifier& control_device,
-                                    const ciface::Core::DeviceQualifier& default_device,
+                                    const Core::DeviceQualifier& control_device,
+                                    const Core::DeviceQualifier& default_device,
                                     Quote quote)
 {
   std::string expr;
@@ -51,10 +51,10 @@ std::string GetExpressionForControl(const std::string& control_name,
 }
 
 std::string
-BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>& detections,
-                const ciface::Core::DeviceQualifier& default_device, Quote quote)
+BuildExpression(const std::vector<Core::DeviceContainer::InputDetection>& detections,
+                const Core::DeviceQualifier& default_device, Quote quote)
 {
-  std::vector<const ciface::Core::DeviceContainer::InputDetection*> pressed_inputs;
+  std::vector<const Core::DeviceContainer::InputDetection*> pressed_inputs;
 
   std::vector<std::string> alternations;
 
@@ -66,7 +66,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
                            detection.device->GetParentMostInput(detection.input) :
                            detection.input;
 
-    ciface::Core::DeviceQualifier device_qualifier;
+    Core::DeviceQualifier device_qualifier;
     device_qualifier.FromDevice(detection.device.get());
 
     return MappingCommon::GetExpressionForControl(input->GetName(), device_qualifier,
@@ -134,7 +134,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
 }
 
 void RemoveSpuriousTriggerCombinations(
-    std::vector<ciface::Core::DeviceContainer::InputDetection>* detections)
+    std::vector<Core::DeviceContainer::InputDetection>* detections)
 {
   const auto is_spurious = [&](auto& detection) {
     return std::any_of(detections->begin(), detections->end(), [&](auto& d) {

@@ -154,10 +154,10 @@ void VideoInterfaceManager::Preset(bool _bNTSC)
   DiscIO::Region region = SConfig::GetInstance().m_region;
 
   // 54MHz, capable of progressive scan
-  m_clock = DiscIO::IsNTSC(region);
+  m_clock = IsNTSC(region);
 
   // Say component cable is plugged
-  m_dtv_status.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  m_dtv_status.component_plugged = Get(Config::SYSCONF_PROGRESSIVE_SCAN);
   m_dtv_status.ntsc_j = region == DiscIO::Region::NTSC_J;
 
   m_fb_width.Hex = 0;
@@ -826,7 +826,7 @@ void VideoInterfaceManager::BeginField(FieldType field, u64 ticks)
 {
   // Outputting the frame at the beginning of scanout reduces latency. This assumes the game isn't
   // going to change the VI registers while a frame is scanning out.
-  if (Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
+  if (Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 }
 
@@ -836,12 +836,12 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
   // until the end so the last register values are used. This still isn't accurate, but it does
   // produce more acceptable results in some problematic cases.
   // Currently, this is only known to be necessary to eliminate flickering in WWE Crush Hour.
-  if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
+  if (!Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 
   g_perf_metrics.CountVBlank();
   VIEndFieldEvent::Trigger();
-  Core::OnFrameEnd(m_system);
+  OnFrameEnd(m_system);
 }
 
 // Purpose: Send VI interrupt when triggered
@@ -879,14 +879,14 @@ void VideoInterfaceManager::Update(u64 ticks)
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
-    Core::Callback_NewField(m_system);
+    Callback_NewField(m_system);
 
   // If an SI poll is scheduled to happen on this half-line, do it!
 
   if (m_half_line_of_next_si_poll == m_half_line_count)
   {
-    Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
-                          Config::Get(Config::MAIN_LOCK_CURSOR));
+    Core::UpdateInputGate(!Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
+                          Get(Config::MAIN_LOCK_CURSOR));
     auto& si = m_system.GetSerialInterface();
     si.UpdateDevices();
     m_half_line_of_next_si_poll += 2 * si.GetPollXLines();

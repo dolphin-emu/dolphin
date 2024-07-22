@@ -34,7 +34,7 @@ bool CSVSignatureDB::Load(const std::string& file_path)
     {
       if (std::getline(iss, symbol, '\t') && std::getline(iss, object_location, '\t'))
         std::getline(iss, object_name);
-      HashSignatureDB::DBFunc func;
+      DBFunc func;
       func.name = symbol;
       func.size = size;
       // Doesn't have an object location

@@ -49,7 +49,7 @@ void Jit64::GenerateConstantOverflow(bool overflow)
 }
 
 // We could do overflow branchlessly, but unlike carry it seems to be quite a bit rarer.
-void Jit64::GenerateOverflow(Gen::CCFlags cond)
+void Jit64::GenerateOverflow(CCFlags cond)
 {
   FixupBranch jno = J_CC(cond);
   // XER[OV/SO] = 1

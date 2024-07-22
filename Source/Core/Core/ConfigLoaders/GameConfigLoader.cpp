@@ -160,7 +160,7 @@ static std::pair<std::string, std::string> GetINILocationFromConfig(const Locati
   if (it2 != ini_to_section.end())
     return {it2->first, location.key};
 
-  return {Config::GetSystemName(location.system) + "." + location.section, location.key};
+  return {GetSystemName(location.system) + "." + location.section, location.key};
 }
 
 // INI Game layer configuration loader

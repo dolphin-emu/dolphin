@@ -103,39 +103,39 @@ static void CreateWFSPath(const std::string& path)
 
 static void InitCustomPaths()
 {
-  File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
-  CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
-  CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
-  CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
-  CreateWFSPath(Config::Get(Config::MAIN_WFS_PATH));
-  File::SetUserPath(F_WIISDCARDIMAGE_IDX, Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH));
+  File::SetUserPath(D_WIIROOT_IDX, Get(Config::MAIN_FS_PATH));
+  CreateLoadPath(Get(Config::MAIN_LOAD_PATH));
+  CreateDumpPath(Get(Config::MAIN_DUMP_PATH));
+  CreateResourcePackPath(Get(Config::MAIN_RESOURCEPACK_PATH));
+  CreateWFSPath(Get(Config::MAIN_WFS_PATH));
+  File::SetUserPath(F_WIISDCARDIMAGE_IDX, Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH));
   File::SetUserPath(D_WIISDCARDSYNCFOLDER_IDX,
-                    Config::Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH));
+                    Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH));
   File::CreateFullPath(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX));
 #ifdef HAS_LIBMGBA
-  File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
-  File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
+  File::SetUserPath(F_GBABIOS_IDX, Get(Config::MAIN_GBA_BIOS_PATH));
+  File::SetUserPath(D_GBASAVES_IDX, Get(Config::MAIN_GBA_SAVES_PATH));
   File::CreateFullPath(File::GetUserPath(D_GBASAVES_IDX));
 #endif
 }
 
 static void RefreshConfig()
 {
-  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
-  Common::SetAbortOnPanicAlert(Config::Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
+  Common::SetEnableAlert(Get(Config::MAIN_USE_PANIC_HANDLERS));
+  Common::SetAbortOnPanicAlert(Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
 }
 
 void Init()
 {
-  Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
+  RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
 
   Config::Init();
   Config::AddConfigChangedCallback(InitCustomPaths);
-  Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
+  AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
+  VideoBackendBase::ActivateBackend(Get(Config::MAIN_GFX_BACKEND));
 
   s_config_changed_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
   RefreshConfig();
@@ -143,7 +143,7 @@ void Init()
 
 void Shutdown()
 {
-  Config::RemoveConfigChangedCallback(s_config_changed_callback_id);
+  RemoveConfigChangedCallback(s_config_changed_callback_id);
 
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
@@ -171,7 +171,7 @@ void InitControllers(const WindowSystemInfo& wsi)
   Pad::Initialize();
   Pad::InitializeGBA();
   Keyboard::Initialize();
-  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   HotkeyManagerEmu::Initialize();
   FreeLook::Initialize();
 }

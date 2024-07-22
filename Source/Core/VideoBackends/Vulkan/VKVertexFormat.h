@@ -12,7 +12,7 @@ enum class ShaderAttrib : u32;
 
 namespace Vulkan
 {
-class VertexFormat : public ::NativeVertexFormat
+class VertexFormat : public NativeVertexFormat
 {
 public:
   VertexFormat(const PortableVertexDeclaration& vtx_decl);

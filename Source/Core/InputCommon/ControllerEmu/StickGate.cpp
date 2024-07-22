@@ -221,7 +221,7 @@ const ReshapableInput::ReshapeData& ReshapableInput::GetCenter() const
   return m_center;
 }
 
-void ReshapableInput::SetCenter(ReshapableInput::ReshapeData center)
+void ReshapableInput::SetCenter(ReshapeData center)
 {
   m_center = center;
 }

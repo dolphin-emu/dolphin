@@ -18,7 +18,7 @@ TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, c
                                  const u16 port_alt)
     : m_NetHost(netHost), m_Server(server), m_port(port), m_portAlt(port_alt)
 {
-  netHost->intercept = TraversalClient::InterceptCallback;
+  netHost->intercept = InterceptCallback;
 
   Reset();
 
@@ -423,7 +423,7 @@ int ENET_CALLBACK TraversalClient::InterceptCallback(ENetHost* host, ENetEvent* 
                                   &host->receivedAddress) ||
       (host->receivedDataLength == 1 && host->receivedData[0] == 0))
   {
-    event->type = static_cast<ENetEventType>(Common::ENet::SKIPPABLE_EVENT);
+    event->type = static_cast<ENetEventType>(ENet::SKIPPABLE_EVENT);
     return 1;
   }
   return 0;
@@ -453,7 +453,7 @@ bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 serve
     g_OldListenPort = listen_port;
 
     ENetAddress addr = {ENET_HOST_ANY, listen_port};
-    auto host = Common::ENet::ENetHostPtr{enet_host_create(&addr,                   // address
+    auto host = ENet::ENetHostPtr{enet_host_create(&addr,                   // address
                                                            50,                      // peerCount
                                                            NetPlay::CHANNEL_COUNT,  // channelLimit
                                                            0,    // incomingBandwidth

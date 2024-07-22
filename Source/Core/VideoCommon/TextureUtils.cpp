@@ -29,7 +29,7 @@ std::string BuildDumpTextureFilename(std::string basename, u32 level, bool is_ar
 }  // namespace
 namespace VideoCommon::TextureUtils
 {
-void DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 level,
+void DumpTexture(const AbstractTexture& texture, std::string basename, u32 level,
                  bool is_arbitrary)
 {
   const std::string dump_dir =
@@ -44,10 +44,10 @@ void DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 lev
   if (File::Exists(filename))
     return;
 
-  texture.Save(filename, level, Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
+  texture.Save(filename, level, Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 
-void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 level,
+void TextureDumper::DumpTexture(const AbstractTexture& texture, std::string basename, u32 level,
                                 bool is_arbitrary)
 {
   const std::string dump_dir =
@@ -75,6 +75,6 @@ void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string ba
     return;
 
   texture.Save(fmt::format("{}/{}.png", dump_dir, name), level,
-               Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
+               Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 }  // namespace VideoCommon::TextureUtils

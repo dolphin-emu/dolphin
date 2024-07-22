@@ -41,7 +41,7 @@ TEST(TMDReader, Validity)
   EXPECT_TRUE(tmd.IsValid()) << "IsValid should be true when reading a valid TMD";
 }
 
-class TMDReaderTest : public ::testing::Test
+class TMDReaderTest : public testing::Test
 {
 protected:
   virtual void SetUp() = 0;

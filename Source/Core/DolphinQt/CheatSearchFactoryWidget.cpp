@@ -159,7 +159,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
   if (m_standard_address_space->isChecked())
   {
     auto& system = Core::System::GetInstance();
-    const Core::State core_state = Core::GetState(system);
+    const Core::State core_state = GetState(system);
     if (core_state != Core::State::Running && core_state != Core::State::Paused)
     {
       ModalMessageBox::warning(
@@ -198,7 +198,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
 
   bool aligned = m_data_type_aligned->isChecked();
   auto data_type = m_data_type_dropdown->currentData().value<Cheats::DataType>();
-  auto session = Cheats::MakeSession(std::move(memory_ranges), address_space, aligned, data_type);
+  auto session = MakeSession(std::move(memory_ranges), address_space, aligned, data_type);
   if (session)
     emit NewSessionCreated(*session);
 }

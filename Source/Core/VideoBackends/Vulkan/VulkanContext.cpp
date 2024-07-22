@@ -452,16 +452,16 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
 
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
-  if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
+  if (HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
     config->backend_info.bSupportsPrimitiveRestart = false;
 
   // Reversed depth range is broken on some drivers, or is broken when used in combination
   // with depth clamping. Fall back to inverted depth range for these.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_REVERSED_DEPTH_RANGE))
+  if (HasBug(DriverDetails::BUG_BROKEN_REVERSED_DEPTH_RANGE))
     config->backend_info.bSupportsReversedDepthRange = false;
 
   // Dynamic sampler indexing locks up Intel GPUs on MoltenVK/Metal
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
+  if (HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     config->backend_info.bSupportsDynamicSamplerIndexing = false;
 }
 
@@ -965,7 +965,7 @@ void VulkanContext::InitDriverDetails()
   driver = DriverDetails::DRIVER_PORTABILITY;
 #endif
 
-  DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver,
+  Init(DriverDetails::API_VULKAN, vendor, driver,
                       static_cast<double>(m_device_properties.driverVersion),
                       DriverDetails::Family::UNKNOWN, std::move(device_name));
 }

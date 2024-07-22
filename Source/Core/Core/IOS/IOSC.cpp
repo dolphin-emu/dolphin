@@ -684,7 +684,7 @@ const IOSC::KeyEntry* IOSC::FindEntry(Handle handle, SearchMode mode) const
   return handle < m_key_entries.size() ? &m_key_entries[handle] : nullptr;
 }
 
-IOSC::Handle IOSC::GetHandleFromIterator(IOSC::KeyEntries::iterator iterator) const
+IOSC::Handle IOSC::GetHandleFromIterator(KeyEntries::iterator iterator) const
 {
   ASSERT(iterator != m_key_entries.end());
   return static_cast<Handle>(iterator - m_key_entries.begin());

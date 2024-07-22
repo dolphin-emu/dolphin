@@ -478,14 +478,14 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
 
   ppc_state.pc = 0x81200150;
 
-  PowerPC::MSRUpdated(ppc_state);
+  MSRUpdated(ppc_state);
 
   return true;
 }
 
 static void SetDefaultDisc(DVD::DVDInterface& dvd_interface)
 {
-  const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
+  const std::string default_iso = Get(Config::MAIN_DEFAULT_ISO);
   if (!default_iso.empty())
     SetDisc(dvd_interface, DiscIO::CreateDisc(default_iso));
 }
@@ -516,8 +516,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
   }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
-                                    (system.IsWii() && Config::Get(Config::SYSCONF_PAL60)));
+  system.GetVideoInterface().Preset(IsNTSC(config.m_region) ||
+                                    (system.IsWii() && Get(Config::SYSCONF_PAL60)));
 
   struct BootTitle
   {
@@ -657,7 +657,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
   if (!std::visit(BootTitle(system, guard, boot->riivolution_patches), boot->parameters))
     return false;
 
-  DiscIO::Riivolution::ApplyGeneralMemoryPatches(guard, boot->riivolution_patches);
+  ApplyGeneralMemoryPatches(guard, boot->riivolution_patches);
 
   return true;
 }
@@ -726,14 +726,14 @@ void AddRiivolutionPatches(BootParameters* boot_params,
     return;
 
   auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
-  disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
+  disc.volume = CreateDisc(DiscIO::DirectoryBlobReader::Create(
       std::move(disc.volume),
       [&](std::vector<DiscIO::FSTBuilderNode>* fst) {
-        DiscIO::Riivolution::ApplyPatchesToFiles(
+        ApplyPatchesToFiles(
             riivolution_patches, DiscIO::Riivolution::PatchIndex::DolphinSysFiles, fst, nullptr);
       },
       [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
-        DiscIO::Riivolution::ApplyPatchesToFiles(
+        ApplyPatchesToFiles(
             riivolution_patches, DiscIO::Riivolution::PatchIndex::FileSystem, fst, dol_node);
       }));
   boot_params->riivolution_patches = std::move(riivolution_patches);

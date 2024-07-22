@@ -240,7 +240,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
   // When the sensor bar position is on bottom, apply the "offset" setting negatively.
   // This is kinda odd but it does seem to maintain consistent cursor behavior.
-  const bool sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
+  const bool sensor_bar_on_top = Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
 
   const float height = ir_group->GetVerticalOffset() * (sensor_bar_on_top ? 1 : -1);
 

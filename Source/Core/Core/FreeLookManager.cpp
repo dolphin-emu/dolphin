@@ -243,7 +243,7 @@ void FreeLookController::UpdateInput(CameraControllerInput* camera_controller)
   const auto old_gate = ControlReference::GetInputGate();
   Common::ScopeGuard gate_guard{[old_gate] { ControlReference::SetInputGate(old_gate); }};
   // Switch to the free look focus gate
-  Core::UpdateInputGate(!Config::Get(Config::FREE_LOOK_BACKGROUND_INPUT));
+  Core::UpdateInputGate(!Get(Config::FREE_LOOK_BACKGROUND_INPUT));
 
   float dt = 1.0;
   if (m_last_free_look_rotate_time)
@@ -335,7 +335,7 @@ void Initialize()
 
   s_config.RegisterHotplugCallback();
 
-  FreeLook::GetConfig().Refresh();
+  GetConfig().Refresh();
 
   s_config.LoadConfig();
 }

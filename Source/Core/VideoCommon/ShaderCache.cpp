@@ -441,7 +441,7 @@ std::unique_ptr<AbstractShader>
 ShaderCache::CompileVertexUberShader(const UberShader::VertexShaderUid& uid) const
 {
   const ShaderCode source_code =
-      UberShader::GenVertexShader(m_api_type, m_host_config, uid.GetUidData());
+      GenVertexShader(m_api_type, m_host_config, uid.GetUidData());
   return g_gfx->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer(),
                                        fmt::to_string(*uid.GetUidData()));
 }
@@ -457,7 +457,7 @@ std::unique_ptr<AbstractShader>
 ShaderCache::CompilePixelUberShader(const UberShader::PixelShaderUid& uid) const
 {
   const ShaderCode source_code =
-      UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData(), {});
+      GenPixelShader(m_api_type, m_host_config, uid.GetUidData(), {});
   return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
                                        fmt::to_string(*uid.GetUidData()));
 }
@@ -640,7 +640,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   const bool benefits_from_ps_dual_source_off =
       (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
        g_ActiveConfig.backend_info.bSupportsFramebufferFetch) ||
-      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
+      HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
   if (benefits_from_ps_dual_source_off && !blend.RequiresDualSrc())
   {
     // Only use dual-source blending when required on drivers that don't support it very well.
@@ -651,7 +651,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
   {
     bool fbfetch_blend = false;
-    if ((DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z) ||
+    if ((HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z) ||
          !g_ActiveConfig.backend_info.bSupportsEarlyZ) &&
         ps->ztest == EmulatedZ::ForcedEarly)
     {
@@ -808,7 +808,7 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
     out.ps_uid.GetUidData()->no_dual_src = true;
   }
   else if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend ||
-           (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
+           (HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
             !out.blending_state.RequiresDualSrc()))
   {
     out.blending_state.usedualsrc = false;
@@ -1394,7 +1394,7 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
   if (iter != m_efb_copy_to_vram_pipelines.end())
     return iter->second.get();
 
-  auto shader_code = TextureConversionShaderGen::GeneratePixelShader(m_api_type, uid.GetUidData());
+  auto shader_code = GeneratePixelShader(m_api_type, uid.GetUidData());
   auto shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, shader_code.GetBuffer(),
       fmt::format("EFB copy to VRAM pixel shader: {}", *uid.GetUidData()));

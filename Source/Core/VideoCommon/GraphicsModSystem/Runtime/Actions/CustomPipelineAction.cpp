@@ -31,14 +31,14 @@ std::unique_ptr<CustomPipelineAction>
 CustomPipelineAction::Create(const picojson::value& json_data,
                              std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
-  std::vector<CustomPipelineAction::PipelinePassPassDescription> pipeline_passes;
+  std::vector<PipelinePassPassDescription> pipeline_passes;
 
   const auto& passes_json = json_data.get("passes");
   if (passes_json.is<picojson::array>())
   {
     for (const auto& passes_json_val : passes_json.get<picojson::array>())
     {
-      CustomPipelineAction::PipelinePassPassDescription pipeline_pass;
+      PipelinePassPassDescription pipeline_pass;
       if (!passes_json_val.is<picojson::object>())
       {
         ERROR_LOG_FMT(VIDEO,

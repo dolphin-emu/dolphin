@@ -347,7 +347,7 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
     // anything.
     m_gci_override_labels[slot]->setHidden(
         device != ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
-        Config::Get(Config::GetInfoForGCIPathOverride(slot)).empty());
+        Get(Config::GetInfoForGCIPathOverride(slot)).empty());
 
     break;
   }
@@ -512,10 +512,10 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
   }
 
   const std::string old_eu_path = Config::GetMemcardPath(slot, DiscIO::Region::PAL);
-  Config::SetBase(Config::GetInfoForMemcardPath(slot), raw_path);
+  SetBase(Config::GetInfoForMemcardPath(slot), raw_path);
 
   auto& system = Core::System::GetInstance();
-  if (Core::IsRunning(system))
+  if (IsRunning(system))
   {
     // If emulation is running and the new card is different from the old one, notify the system to
     // eject the old and insert the new card.
@@ -618,10 +618,10 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
     path_changed = eu_path != Config::GetGCIFolderPath(slot, DiscIO::Region::PAL);
   }
 
-  Config::SetBase(Config::GetInfoForGCIPath(slot), raw_path);
+  SetBase(Config::GetInfoForGCIPath(slot), raw_path);
 
   auto& system = Core::System::GetInstance();
-  if (Core::IsRunning(system))
+  if (IsRunning(system))
   {
     // If emulation is running and the new card is different from the old one, notify the system to
     // eject the old and insert the new card.
@@ -656,13 +656,13 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
   QString path_abs = filename.isEmpty() ? QString() : QFileInfo(filename).absoluteFilePath();
 
   QString path_old =
-      QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForAGPCartPath(slot))))
+      QFileInfo(QString::fromStdString(Get(Config::GetInfoForAGPCartPath(slot))))
           .absoluteFilePath();
 
-  Config::SetBase(Config::GetInfoForAGPCartPath(slot), path_abs.toStdString());
+  SetBase(Config::GetInfoForAGPCartPath(slot), path_abs.toStdString());
 
   auto& system = Core::System::GetInstance();
-  if (Core::IsRunning(system) && path_abs != path_old)
+  if (IsRunning(system) && path_abs != path_old)
   {
     // ChangeDevice unplugs the device for 1 second.  For an actual AGP, you can remove the
     // cartridge without unplugging it, and it's not clear if the AGP software actually notices
@@ -718,9 +718,9 @@ void GameCubePane::BrowseGBASaves()
 void GameCubePane::LoadSettings()
 {
   // IPL Settings
-  SignalBlocking(m_skip_main_menu)->setChecked(Config::Get(Config::MAIN_SKIP_IPL));
+  SignalBlocking(m_skip_main_menu)->setChecked(Get(Config::MAIN_SKIP_IPL));
   SignalBlocking(m_language_combo)
-      ->setCurrentIndex(m_language_combo->findData(Config::Get(Config::MAIN_GC_LANGUAGE)));
+      ->setCurrentIndex(m_language_combo->findData(Get(Config::MAIN_GC_LANGUAGE)));
 
   bool have_menu = false;
 
@@ -742,7 +742,7 @@ void GameCubePane::LoadSettings()
   for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
   {
     const ExpansionInterface::EXIDeviceType exi_device =
-        Config::Get(Config::GetInfoForEXIDevice(slot));
+        Get(Config::GetInfoForEXIDevice(slot));
     SignalBlocking(m_slot_combos[slot])
         ->setCurrentIndex(m_slot_combos[slot]->findData(static_cast<int>(exi_device)));
     UpdateButton(slot);
@@ -753,23 +753,23 @@ void GameCubePane::LoadSettings()
     SignalBlocking(m_memcard_paths[slot])
         ->setText(QString::fromStdString(Config::GetMemcardPath(slot, std::nullopt)));
     SignalBlocking(m_agp_paths[slot])
-        ->setText(QString::fromStdString(Config::Get(Config::GetInfoForAGPCartPath(slot))));
+        ->setText(QString::fromStdString(Get(Config::GetInfoForAGPCartPath(slot))));
     SignalBlocking(m_gci_paths[slot])
         ->setText(QString::fromStdString(Config::GetGCIFolderPath(slot, std::nullopt)));
   }
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
-  SignalBlocking(m_gba_threads)->setChecked(Config::Get(Config::MAIN_GBA_THREADS));
+  SignalBlocking(m_gba_threads)->setChecked(Get(Config::MAIN_GBA_THREADS));
   SignalBlocking(m_gba_bios_edit)
       ->setText(QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)));
-  SignalBlocking(m_gba_save_rom_path)->setChecked(Config::Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH));
+  SignalBlocking(m_gba_save_rom_path)->setChecked(Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH));
   SignalBlocking(m_gba_saves_edit)
       ->setText(QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX)));
   for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
   {
     SignalBlocking(m_gba_rom_edits[i])
-        ->setText(QString::fromStdString(Config::Get(Config::MAIN_GBA_ROM_PATHS[i])));
+        ->setText(QString::fromStdString(Get(Config::MAIN_GBA_ROM_PATHS[i])));
   }
 #endif
 }
@@ -779,8 +779,8 @@ void GameCubePane::SaveSettings()
   Config::ConfigChangeCallbackGuard config_guard;
 
   // IPL Settings
-  Config::SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_main_menu->isChecked());
-  Config::SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentData().toInt());
+  SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_main_menu->isChecked());
+  SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentData().toInt());
 
   auto& system = Core::System::GetInstance();
   // Device Settings
@@ -789,29 +789,29 @@ void GameCubePane::SaveSettings()
     const auto dev =
         static_cast<ExpansionInterface::EXIDeviceType>(m_slot_combos[slot]->currentData().toInt());
     const ExpansionInterface::EXIDeviceType current_exi_device =
-        Config::Get(Config::GetInfoForEXIDevice(slot));
+        Get(Config::GetInfoForEXIDevice(slot));
 
-    if (Core::IsRunning(system) && current_exi_device != dev)
+    if (IsRunning(system) && current_exi_device != dev)
     {
       system.GetExpansionInterface().ChangeDevice(slot, dev);
     }
 
-    Config::SetBaseOrCurrent(Config::GetInfoForEXIDevice(slot), dev);
+    SetBaseOrCurrent(Config::GetInfoForEXIDevice(slot), dev);
   }
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
   if (!NetPlay::IsNetPlayRunning())
   {
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_THREADS, m_gba_threads->isChecked());
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_BIOS_PATH, m_gba_bios_edit->text().toStdString());
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_SAVES_IN_ROM_PATH, m_gba_save_rom_path->isChecked());
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_SAVES_PATH, m_gba_saves_edit->text().toStdString());
-    File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
-    File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
+    SetBaseOrCurrent(Config::MAIN_GBA_THREADS, m_gba_threads->isChecked());
+    SetBaseOrCurrent(Config::MAIN_GBA_BIOS_PATH, m_gba_bios_edit->text().toStdString());
+    SetBaseOrCurrent(Config::MAIN_GBA_SAVES_IN_ROM_PATH, m_gba_save_rom_path->isChecked());
+    SetBaseOrCurrent(Config::MAIN_GBA_SAVES_PATH, m_gba_saves_edit->text().toStdString());
+    File::SetUserPath(F_GBABIOS_IDX, Get(Config::MAIN_GBA_BIOS_PATH));
+    File::SetUserPath(D_GBASAVES_IDX, Get(Config::MAIN_GBA_SAVES_PATH));
     for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
     {
-      Config::SetBaseOrCurrent(Config::MAIN_GBA_ROM_PATHS[i],
+      SetBaseOrCurrent(Config::MAIN_GBA_ROM_PATHS[i],
                                m_gba_rom_edits[i]->text().toStdString());
     }
 

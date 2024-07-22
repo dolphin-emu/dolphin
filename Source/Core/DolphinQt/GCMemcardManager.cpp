@@ -221,16 +221,16 @@ void GCMemcardManager::ConnectWidgets()
 
 void GCMemcardManager::LoadDefaultMemcards()
 {
-  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+  for (Slot slot : MEMCARD_SLOTS)
   {
-    if (Config::Get(Config::GetInfoForEXIDevice(slot)) !=
-        ExpansionInterface::EXIDeviceType::MemoryCard)
+    if (Get(Config::GetInfoForEXIDevice(slot)) !=
+        EXIDeviceType::MemoryCard)
     {
       continue;
     }
 
     const QString path = QString::fromStdString(
-        Config::GetMemcardPath(slot, Config::Get(Config::MAIN_FALLBACK_REGION)));
+        Config::GetMemcardPath(slot, Get(Config::MAIN_FALLBACK_REGION)));
     SetSlotFile(slot, path);
   }
 }
@@ -275,7 +275,7 @@ void GCMemcardManager::UpdateSlotTable(Slot slot)
     const auto file_comments = memcard->GetSaveComments(file_index);
     const u16 block_count = memcard->DEntry_BlockCount(file_index);
     const auto entry = memcard->GetDEntry(file_index);
-    const std::string filename = entry ? Memcard::GenerateFilename(*entry) : "";
+    const std::string filename = entry ? GenerateFilename(*entry) : "";
 
     const QString title =
         file_comments ? QString::fromStdString(file_comments->first).trimmed() : QString();
@@ -417,7 +417,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
   if (selected_indices.empty())
     return;
 
-  const auto savefiles = Memcard::GetSavefiles(*memcard, selected_indices);
+  const auto savefiles = GetSavefiles(*memcard, selected_indices);
   if (savefiles.empty())
   {
     ModalMessageBox::warning(this, tr("Export Failed"),
@@ -425,12 +425,12 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
     return;
   }
 
-  std::string extension = Memcard::GetDefaultExtension(format);
+  std::string extension = GetDefaultExtension(format);
 
   if (savefiles.size() == 1)
   {
     // when exporting a single save file, let user specify exact path
-    const std::string basename = Memcard::GenerateFilename(savefiles[0].dir_entry);
+    const std::string basename = GenerateFilename(savefiles[0].dir_entry);
     const QString qformatdesc = GetFormatDescription(format);
     const std::string default_path =
         fmt::format("{}/{}{}", File::GetUserPath(D_GCUSER_IDX), basename, extension);
@@ -442,7 +442,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
       return;
 
     const std::string filename = qfilename.toStdString();
-    if (!Memcard::WriteSavefile(filename, savefiles[0], format))
+    if (!WriteSavefile(filename, savefiles[0], format))
     {
       File::Delete(filename);
       ModalMessageBox::warning(this, tr("Export Failed"), tr("Failed to write savefile to disk."));
@@ -462,7 +462,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
   for (const auto& savefile : savefiles)
   {
     // find a free filename so we don't overwrite anything
-    const std::string basepath = dirpath + DIR_SEP + Memcard::GenerateFilename(savefile.dir_entry);
+    const std::string basepath = dirpath + DIR_SEP + GenerateFilename(savefile.dir_entry);
     std::string filename = basepath + extension;
     if (File::Exists(filename))
     {
@@ -476,7 +476,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
       filename = free_name;
     }
 
-    if (!Memcard::WriteSavefile(filename, savefile, format))
+    if (!WriteSavefile(filename, savefile, format))
     {
       File::Delete(filename);
       ++failures;
@@ -510,7 +510,7 @@ void GCMemcardManager::ImportFiles(Slot slot, std::span<const Memcard::Savefile>
     return;
 
   const size_t number_of_files = savefiles.size();
-  const size_t number_of_blocks = Memcard::GetBlockCount(savefiles);
+  const size_t number_of_blocks = GetBlockCount(savefiles);
   const size_t free_files = Memcard::DIRLEN - card->GetNumFiles();
   const size_t free_blocks = card->GetFreeBlocks();
 
@@ -530,7 +530,7 @@ void GCMemcardManager::ImportFiles(Slot slot, std::span<const Memcard::Savefile>
            "", static_cast<int>(number_of_blocks)));
   }
 
-  if (Memcard::HasDuplicateIdentity(savefiles))
+  if (HasDuplicateIdentity(savefiles))
   {
     error_messages.push_back(
         tr("At least two of the selected save files have the same internal filename."));
@@ -540,7 +540,7 @@ void GCMemcardManager::ImportFiles(Slot slot, std::span<const Memcard::Savefile>
   {
     if (card->TitlePresent(savefile.dir_entry))
     {
-      const std::string filename = Memcard::GenerateFilename(savefile.dir_entry);
+      const std::string filename = GenerateFilename(savefile.dir_entry);
       error_messages.push_back(tr("The target memory card already contains a file \"%1\".")
                                    .arg(QString::fromStdString(filename)));
     }
@@ -560,7 +560,7 @@ void GCMemcardManager::ImportFiles(Slot slot, std::span<const Memcard::Savefile>
     // happen if the memory card data is corrupted in some way
     if (result != Memcard::GCMemcardImportFileRetVal::SUCCESS)
     {
-      const std::string filename = Memcard::GenerateFilename(savefile.dir_entry);
+      const std::string filename = GenerateFilename(savefile.dir_entry);
       ModalMessageBox::warning(
           this, tr("Import Failed"),
           tr("Failed to import \"%1\".").arg(QString::fromStdString(filename)));
@@ -635,7 +635,7 @@ void GCMemcardManager::CopyFiles()
   if (selected_indices.empty())
     return;
 
-  const auto savefiles = Memcard::GetSavefiles(*source_card, selected_indices);
+  const auto savefiles = GetSavefiles(*source_card, selected_indices);
   if (savefiles.empty())
   {
     ModalMessageBox::warning(this, tr("Copy Failed"),
@@ -697,7 +697,7 @@ void GCMemcardManager::CreateNewCard(Slot slot)
 {
   GCMemcardCreateNewDialog dialog(this);
   SetQWidgetWindowDecorations(&dialog);
-  if (dialog.exec() == QDialog::Accepted)
+  if (dialog.exec() == Accepted)
     m_slot_file_edit[slot]->setText(QString::fromStdString(dialog.GetMemoryCardPath()));
 }
 

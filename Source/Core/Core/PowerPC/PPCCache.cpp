@@ -92,7 +92,7 @@ constexpr std::array<u32, 128> s_way_from_plru = [] {
 InstructionCache::~InstructionCache()
 {
   if (m_config_callback_id)
-    Config::RemoveConfigChangedCallback(*m_config_callback_id);
+    RemoveConfigChangedCallback(*m_config_callback_id);
 }
 
 void Cache::Reset()
@@ -376,7 +376,7 @@ void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
 }
 
 u32 InstructionCache::ReadInstruction(Memory::MemoryManager& memory,
-                                      PowerPC::PowerPCState& ppc_state, u32 addr)
+                                      PowerPCState& ppc_state, u32 addr)
 {
   if (!HID0(ppc_state).ICE || m_disable_icache)  // instruction cache is disabled
     return memory.Read_U32(addr);
@@ -417,6 +417,6 @@ void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& j
 
 void InstructionCache::RefreshConfig()
 {
-  m_disable_icache = Config::Get(Config::MAIN_DISABLE_ICACHE);
+  m_disable_icache = Get(Config::MAIN_DISABLE_ICACHE);
 }
 }  // namespace PowerPC

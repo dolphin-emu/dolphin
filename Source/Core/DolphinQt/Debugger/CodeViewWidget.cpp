@@ -145,11 +145,11 @@ CodeViewWidget::CodeViewWidget()
   setColumnCount(CODE_VIEW_COLUMNCOUNT);
   setShowGrid(false);
   setContextMenuPolicy(Qt::CustomContextMenu);
-  setSelectionMode(QAbstractItemView::SingleSelection);
-  setSelectionBehavior(QAbstractItemView::SelectRows);
+  setSelectionMode(SingleSelection);
+  setSelectionBehavior(SelectRows);
 
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  setHorizontalScrollMode(ScrollPerPixel);
 
   verticalHeader()->hide();
   horizontalHeader()->setSectionResizeMode(CODE_VIEW_COLUMN_BREAKPOINT, QHeaderView::Fixed);
@@ -269,7 +269,7 @@ void CodeViewWidget::Update()
   if (m_updating)
     return;
 
-  if (Core::GetState(m_system) == Core::State::Paused)
+  if (GetState(m_system) == Core::State::Paused)
   {
     Core::CPUThreadGuard guard(m_system);
     Update(&guard);
@@ -562,8 +562,8 @@ void CodeViewWidget::OnContextMenu()
   QMenu* menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
-  const bool running = Core::GetState(m_system) != Core::State::Uninitialized;
-  const bool paused = Core::GetState(m_system) == Core::State::Paused;
+  const bool running = GetState(m_system) != Core::State::Uninitialized;
+  const bool paused = GetState(m_system) == Core::State::Paused;
 
   const u32 addr = GetContextAddress();
 
@@ -765,7 +765,7 @@ void CodeViewWidget::OnCopyAddress()
 
 void CodeViewWidget::OnCopyTargetAddress()
 {
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
     return;
 
   const u32 addr = GetContextAddress();
@@ -795,7 +795,7 @@ void CodeViewWidget::OnShowInMemory()
 
 void CodeViewWidget::OnShowTargetInMemory()
 {
-  if (Core::GetState(m_system) != Core::State::Paused)
+  if (GetState(m_system) != Core::State::Paused)
     return;
 
   const u32 addr = GetContextAddress();

@@ -140,7 +140,7 @@ bool WiimoteDevice::IsPageScanEnabled() const
 void WiimoteDevice::SetBasebandState(BasebandState new_state)
 {
   // Prevent button press from immediately causing connection attempts.
-  m_connection_request_counter = ::Wiimote::UPDATE_FREQ;
+  m_connection_request_counter = Wiimote::UPDATE_FREQ;
 
   const bool was_connected = IsConnected();
 
@@ -371,7 +371,7 @@ WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
   {
     auto gpio_out = m_host->GetSystem().GetWiiIPC().GetGPIOOutFlags();
     m_hid_source->PrepareInput(wiimote_state,
-                               gpio_out[IOS::GPIO::SENSOR_BAR] ?
+                               gpio_out[GPIO::SENSOR_BAR] ?
                                    WiimoteCommon::HIDWiimote::SensorBarState::Enabled :
                                    WiimoteCommon::HIDWiimote::SensorBarState::Disabled);
     return NextUpdateInputCall::Update;

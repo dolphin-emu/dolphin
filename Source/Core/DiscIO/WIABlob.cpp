@@ -1191,7 +1191,7 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chun
 
     if (file_system)
     {
-      const std::unique_ptr<DiscIO::FileInfo> file_info =
+      const std::unique_ptr<FileInfo> file_info =
           file_system->FindFileInfo(data_offset + bytes_reconstructed);
 
       // If we're at a file and there's more space in this block after the file,

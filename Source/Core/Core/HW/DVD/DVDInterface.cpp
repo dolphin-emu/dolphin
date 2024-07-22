@@ -344,7 +344,7 @@ static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
   }
   else
   {
-    size = DiscIO::GetBiggestReferencedOffset(disc);
+    size = GetBiggestReferencedOffset(disc);
   }
 
   const bool should_be_mini_dvd =
@@ -379,7 +379,7 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     // avoid problems.
     const bool should_fake_error_001 =
         m_system.IsWii() && blob.GetBlobType() == DiscIO::BlobType::DIRECTORY;
-    Config::SetCurrent(Config::SESSION_SHOULD_FAKE_ERROR_001, should_fake_error_001);
+    SetCurrent(Config::SESSION_SHOULD_FAKE_ERROR_001, should_fake_error_001);
 
     if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)
     {
@@ -1086,7 +1086,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
 
     const bool force_eject = eject && !kill;
 
-    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !m_system.GetMovie().IsPlayingInput() &&
+    if (Get(Config::MAIN_AUTO_DISC_CHANGE) && !m_system.GetMovie().IsPlayingInput() &&
         m_system.GetDVDThread().IsInsertedDiscRunning() && !m_auto_disc_change_paths.empty())
     {
       m_system.GetCoreTiming().ScheduleEvent(
@@ -1344,7 +1344,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
   const u64 first_block = dvd_offset;
 
-  if (Config::Get(Config::MAIN_FAST_DISC_SPEED))
+  if (Get(Config::MAIN_FAST_DISC_SPEED))
   {
     // The SUDTR setting makes us act as if all reads are buffered
     buffer_start = std::numeric_limits<u64>::min();

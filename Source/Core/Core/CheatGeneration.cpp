@@ -22,7 +22,7 @@ constexpr int AR_SET_INT_CMD = 0x04;
 static std::vector<ActionReplay::AREntry> ResultToAREntries(u32 addr, const Cheats::SearchValue& sv)
 {
   std::vector<ActionReplay::AREntry> codes;
-  std::vector<u8> data = Cheats::GetValueAsByteVector(sv);
+  std::vector<u8> data = GetValueAsByteVector(sv);
 
   for (size_t i = 0; i < data.size(); ++i)
   {
@@ -53,19 +53,19 @@ static std::vector<ActionReplay::AREntry> ResultToAREntries(u32 addr, const Chea
 }
 
 Common::Result<Cheats::GenerateActionReplayCodeErrorCode, ActionReplay::ARCode>
-Cheats::GenerateActionReplayCode(const Cheats::CheatSearchSessionBase& session, size_t index)
+Cheats::GenerateActionReplayCode(const CheatSearchSessionBase& session, size_t index)
 {
   if (index >= session.GetResultCount())
-    return Cheats::GenerateActionReplayCodeErrorCode::IndexOutOfRange;
+    return GenerateActionReplayCodeErrorCode::IndexOutOfRange;
 
-  if (session.GetResultValueState(index) != Cheats::SearchResultValueState::ValueFromVirtualMemory)
-    return Cheats::GenerateActionReplayCodeErrorCode::NotVirtualMemory;
+  if (session.GetResultValueState(index) != SearchResultValueState::ValueFromVirtualMemory)
+    return GenerateActionReplayCodeErrorCode::NotVirtualMemory;
 
   u32 address = session.GetResultAddress(index);
 
   // check if the address is actually addressable by the ActionReplay system
   if (((address & 0x01ff'ffffu) | 0x8000'0000u) != address)
-    return Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress;
+    return GenerateActionReplayCodeErrorCode::InvalidAddress;
 
   ActionReplay::ARCode ar_code;
   ar_code.enabled = true;

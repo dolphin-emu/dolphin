@@ -38,7 +38,7 @@ CEXIAgp::~CEXIAgp()
   std::string filename;
   std::string ext;
   std::string gbapath;
-  SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
+  SplitPath(Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
   gbapath = path + filename;
 
   SaveFileFromEEPROM(gbapath + ".sav");
@@ -76,7 +76,7 @@ void CEXIAgp::LoadRom()
   std::string path;
   std::string filename;
   std::string ext;
-  SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
+  SplitPath(Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
   const std::string gbapath = path + filename;
   LoadFileToROM(gbapath + ext);
   INFO_LOG_FMT(EXPANSIONINTERFACE, "Loaded GBA rom: {} card: {}", gbapath, m_slot);

@@ -185,13 +185,13 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
                                  bool always_add_hooks)
 {
-  if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
+  if (Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
     auto skylanderportal =
         std::make_unique<USB::SkylanderUSB>(GetEmulationKernel(), "Skylander Portal");
     CheckAndAddDevice(std::move(skylanderportal), new_devices, hooks, always_add_hooks);
   }
-  if (Config::Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
+  if (Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
   {
     auto infinity_base = std::make_unique<USB::InfinityUSB>(GetEmulationKernel(), "Infinity Base");
     CheckAndAddDevice(std::move(infinity_base), new_devices, hooks, always_add_hooks);

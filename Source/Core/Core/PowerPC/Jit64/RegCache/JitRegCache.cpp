@@ -229,7 +229,7 @@ RCX64Reg::operator X64Reg() const&
 
 RCX64Reg::operator OpArg() const&
 {
-  return Gen::R(RCX64Reg::operator X64Reg());
+  return R(operator X64Reg());
 }
 
 void RCX64Reg::Unlock()
@@ -309,7 +309,7 @@ bool RegCache::SanityCheck() const
       if (m_regs[i].IsLocked() || m_regs[i].IsRevertable())
         return false;
 
-      Gen::X64Reg xr = m_regs[i].Location()->GetSimpleReg();
+      X64Reg xr = m_regs[i].Location()->GetSimpleReg();
       if (m_xregs[xr].IsLocked())
         return false;
       if (m_xregs[xr].Contents() != i)

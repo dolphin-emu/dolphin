@@ -20,7 +20,7 @@ class VKFramebuffer;
 class VKPipeline;
 class VKTexture;
 
-class VKGfx final : public ::AbstractGfx
+class VKGfx final : public AbstractGfx
 {
 public:
   VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);

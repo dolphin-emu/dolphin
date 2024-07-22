@@ -121,11 +121,11 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
   opts->core_type = DSPInitOptions::CoreType::Interpreter;
 #ifdef _M_X86_64
-  if (Config::Get(Config::MAIN_DSP_JIT))
+  if (Get(Config::MAIN_DSP_JIT))
     opts->core_type = DSPInitOptions::CoreType::JIT64;
 #endif
 
-  if (Config::Get(Config::MAIN_DSP_CAPTURE_LOG))
+  if (Get(Config::MAIN_DSP_CAPTURE_LOG))
   {
     const std::string pcap_path = File::GetUserPath(D_DUMPDSP_IDX) + "dsp.pcap";
     opts->capture_logger = new PCAPDSPCaptureLogger(pcap_path);
@@ -264,7 +264,7 @@ void DSPLLE::DSP_Update(int cycles)
       DSP_StopSoundStream();
       m_is_dsp_on_thread = false;
       m_request_disable_thread = false;
-      Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, false);
+      SetBaseOrCurrent(Config::MAIN_DSP_THREAD, false);
     }
   }
 

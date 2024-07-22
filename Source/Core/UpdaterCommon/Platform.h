@@ -16,4 +16,4 @@ namespace Platform
 {
 bool VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
                   const std::string& install_base_path, const std::string& temp_dir);
-}  // namespace Platform
+} // namespace Platform

@@ -38,7 +38,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 1;
   }
 
-  const auto test_fh = ::CreateFileW(
+  const auto test_fh = CreateFileW(
       (std::filesystem::path(*path).parent_path() / "directory_writable_check.tmp").c_str(),
       GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
       FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);

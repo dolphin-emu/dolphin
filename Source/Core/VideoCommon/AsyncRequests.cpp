@@ -77,7 +77,7 @@ void AsyncRequests::PullEventsInternal()
   }
 }
 
-void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
+void AsyncRequests::PushEvent(const Event& event, bool blocking)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -124,7 +124,7 @@ void AsyncRequests::SetEnable(bool enable)
   }
 }
 
-void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
+void AsyncRequests::HandleEvent(const Event& e)
 {
   switch (e.type)
   {

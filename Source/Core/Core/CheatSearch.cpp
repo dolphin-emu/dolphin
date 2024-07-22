@@ -23,7 +23,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-Cheats::DataType Cheats::GetDataType(const Cheats::SearchValue& value)
+Cheats::DataType Cheats::GetDataType(const SearchValue& value)
 {
   // sanity checks that our enum matches with our std::variant
   using should_be_u8 = std::remove_cv_t<
@@ -69,30 +69,30 @@ static std::vector<u8> ToByteVector(const T& val)
   return {begin, end};
 }
 
-std::vector<u8> Cheats::GetValueAsByteVector(const Cheats::SearchValue& value)
+std::vector<u8> Cheats::GetValueAsByteVector(const SearchValue& value)
 {
   DataType type = GetDataType(value);
   switch (type)
   {
-  case Cheats::DataType::U8:
+  case DataType::U8:
     return {std::get<u8>(value.m_value)};
-  case Cheats::DataType::U16:
+  case DataType::U16:
     return ToByteVector(Common::swap16(std::get<u16>(value.m_value)));
-  case Cheats::DataType::U32:
+  case DataType::U32:
     return ToByteVector(Common::swap32(std::get<u32>(value.m_value)));
-  case Cheats::DataType::U64:
+  case DataType::U64:
     return ToByteVector(Common::swap64(std::get<u64>(value.m_value)));
-  case Cheats::DataType::S8:
+  case DataType::S8:
     return {std::bit_cast<u8>(std::get<s8>(value.m_value))};
-  case Cheats::DataType::S16:
+  case DataType::S16:
     return ToByteVector(Common::swap16(std::bit_cast<u16>(std::get<s16>(value.m_value))));
-  case Cheats::DataType::S32:
+  case DataType::S32:
     return ToByteVector(Common::swap32(std::bit_cast<u32>(std::get<s32>(value.m_value))));
-  case Cheats::DataType::S64:
+  case DataType::S64:
     return ToByteVector(Common::swap64(std::bit_cast<u64>(std::get<s64>(value.m_value))));
-  case Cheats::DataType::F32:
+  case DataType::F32:
     return ToByteVector(Common::swap32(std::bit_cast<u32>(std::get<float>(value.m_value))));
-  case Cheats::DataType::F64:
+  case DataType::F64:
     return ToByteVector(Common::swap64(std::bit_cast<u64>(std::get<double>(value.m_value))));
   default:
     DEBUG_ASSERT(false);
@@ -203,23 +203,23 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
 template <typename T>
 Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
 Cheats::NewSearch(const Core::CPUThreadGuard& guard,
-                  const std::vector<Cheats::MemoryRange>& memory_ranges,
+                  const std::vector<MemoryRange>& memory_ranges,
                   PowerPC::RequestedAddressSpace address_space, bool aligned,
                   const std::function<bool(const T& value)>& validator)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+    return SearchErrorCode::DisabledInHardcoreMode;
   auto& system = guard.GetSystem();
-  std::vector<Cheats::SearchResult<T>> results;
-  const Core::State core_state = Core::GetState(system);
+  std::vector<SearchResult<T>> results;
+  const Core::State core_state = GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return Cheats::SearchErrorCode::NoEmulationActive;
+    return SearchErrorCode::NoEmulationActive;
 
   const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
+    return SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
-  for (const Cheats::MemoryRange& range : memory_ranges)
+  for (const MemoryRange& range : memory_ranges)
   {
     if (range.m_length < sizeof(T))
       continue;
@@ -244,8 +244,8 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
         auto& r = results.emplace_back();
         r.m_value = current_value->value;
         r.m_value_state = current_value->translated ?
-                              Cheats::SearchResultValueState::ValueFromVirtualMemory :
-                              Cheats::SearchResultValueState::ValueFromPhysicalMemory;
+                              SearchResultValueState::ValueFromVirtualMemory :
+                              SearchResultValueState::ValueFromPhysicalMemory;
         r.m_address = addr;
       }
     }
@@ -256,21 +256,21 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
 template <typename T>
 Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
 Cheats::NextSearch(const Core::CPUThreadGuard& guard,
-                   const std::vector<Cheats::SearchResult<T>>& previous_results,
+                   const std::vector<SearchResult<T>>& previous_results,
                    PowerPC::RequestedAddressSpace address_space,
                    const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+    return SearchErrorCode::DisabledInHardcoreMode;
   auto& system = guard.GetSystem();
-  std::vector<Cheats::SearchResult<T>> results;
-  const Core::State core_state = Core::GetState(system);
+  std::vector<SearchResult<T>> results;
+  const Core::State core_state = GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return Cheats::SearchErrorCode::NoEmulationActive;
+    return SearchErrorCode::NoEmulationActive;
 
   const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
+    return SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
   for (const auto& previous_result : previous_results)
   {
@@ -280,7 +280,7 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
     {
       auto& r = results.emplace_back();
       r.m_address = addr;
-      r.m_value_state = Cheats::SearchResultValueState::AddressNotAccessible;
+      r.m_value_state = SearchResultValueState::AddressNotAccessible;
       continue;
     }
 
@@ -291,8 +291,8 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
       auto& r = results.emplace_back();
       r.m_value = current_value->value;
       r.m_value_state = current_value->translated ?
-                            Cheats::SearchResultValueState::ValueFromVirtualMemory :
-                            Cheats::SearchResultValueState::ValueFromPhysicalMemory;
+                            SearchResultValueState::ValueFromVirtualMemory :
+                            SearchResultValueState::ValueFromPhysicalMemory;
       r.m_address = addr;
     }
   }
@@ -426,13 +426,13 @@ template <typename T>
 Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPUThreadGuard& guard)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+    return SearchErrorCode::DisabledInHardcoreMode;
   Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
-      Cheats::SearchErrorCode::InvalidParameters;
+      SearchErrorCode::InvalidParameters;
   if (m_filter_type == FilterType::CompareAgainstSpecificValue)
   {
     if (!m_value)
-      return Cheats::SearchErrorCode::InvalidParameters;
+      return SearchErrorCode::InvalidParameters;
 
     auto func = MakeCompareFunctionForSpecificValue<T>(m_compare_type, *m_value);
     if (m_first_search_done)
@@ -449,7 +449,7 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
   else if (m_filter_type == FilterType::CompareAgainstLastValue)
   {
     if (!m_first_search_done)
-      return Cheats::SearchErrorCode::InvalidParameters;
+      return SearchErrorCode::InvalidParameters;
 
     result = Cheats::NextSearch<T>(guard, m_search_results, m_address_space,
                                    MakeCompareFunctionForLastValue<T>(m_compare_type));
@@ -472,7 +472,7 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
   {
     m_search_results = std::move(*result);
     m_first_search_done = true;
-    return Cheats::SearchErrorCode::Success;
+    return SearchErrorCode::Success;
   }
 
   return result.Error();
@@ -499,7 +499,7 @@ PowerPC::RequestedAddressSpace Cheats::CheatSearchSession<T>::GetAddressSpace() 
 template <typename T>
 Cheats::DataType Cheats::CheatSearchSession<T>::GetDataType() const
 {
-  return Cheats::GetDataType(Cheats::SearchValue{T(0)});
+  return Cheats::GetDataType(SearchValue{T(0)});
 }
 
 template <typename T>
@@ -554,13 +554,13 @@ T Cheats::CheatSearchSession<T>::GetResultValue(size_t index) const
 template <typename T>
 Cheats::SearchValue Cheats::CheatSearchSession<T>::GetResultValueAsSearchValue(size_t index) const
 {
-  return Cheats::SearchValue{m_search_results[index].m_value};
+  return SearchValue{m_search_results[index].m_value};
 }
 
 template <typename T>
 std::string Cheats::CheatSearchSession<T>::GetResultValueAsString(size_t index, bool hex) const
 {
-  if (GetResultValueState(index) == Cheats::SearchResultValueState::AddressNotAccessible)
+  if (GetResultValueState(index) == SearchResultValueState::AddressNotAccessible)
     return "(inaccessible)";
 
   if (hex)
@@ -600,7 +600,7 @@ bool Cheats::CheatSearchSession<T>::WasFirstSearchDone() const
 template <typename T>
 std::unique_ptr<Cheats::CheatSearchSessionBase> Cheats::CheatSearchSession<T>::Clone() const
 {
-  return std::make_unique<Cheats::CheatSearchSession<T>>(*this);
+  return std::make_unique<CheatSearchSession<T>>(*this);
 }
 
 template <typename T>
@@ -611,7 +611,7 @@ Cheats::CheatSearchSession<T>::ClonePartial(const size_t begin_index, const size
     return Clone();
 
   auto c =
-      std::make_unique<Cheats::CheatSearchSession<T>>(m_memory_ranges, m_address_space, m_aligned);
+      std::make_unique<CheatSearchSession<T>>(m_memory_ranges, m_address_space, m_aligned);
   c->m_search_results.assign(m_search_results.begin() + begin_index,
                              m_search_results.begin() + end_index);
   c->m_compare_type = this->m_compare_type;
@@ -638,34 +638,34 @@ Cheats::MakeSession(std::vector<MemoryRange> memory_ranges,
 {
   switch (data_type)
   {
-  case Cheats::DataType::U8:
+  case DataType::U8:
     return std::make_unique<CheatSearchSession<u8>>(std::move(memory_ranges), address_space,
                                                     aligned);
-  case Cheats::DataType::U16:
+  case DataType::U16:
     return std::make_unique<CheatSearchSession<u16>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::U32:
+  case DataType::U32:
     return std::make_unique<CheatSearchSession<u32>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::U64:
+  case DataType::U64:
     return std::make_unique<CheatSearchSession<u64>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::S8:
+  case DataType::S8:
     return std::make_unique<CheatSearchSession<s8>>(std::move(memory_ranges), address_space,
                                                     aligned);
-  case Cheats::DataType::S16:
+  case DataType::S16:
     return std::make_unique<CheatSearchSession<s16>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::S32:
+  case DataType::S32:
     return std::make_unique<CheatSearchSession<s32>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::S64:
+  case DataType::S64:
     return std::make_unique<CheatSearchSession<s64>>(std::move(memory_ranges), address_space,
                                                      aligned);
-  case Cheats::DataType::F32:
+  case DataType::F32:
     return std::make_unique<CheatSearchSession<float>>(std::move(memory_ranges), address_space,
                                                        aligned);
-  case Cheats::DataType::F64:
+  case DataType::F64:
     return std::make_unique<CheatSearchSession<double>>(std::move(memory_ranges), address_space,
                                                         aligned);
   default:

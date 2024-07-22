@@ -67,11 +67,11 @@ struct ConditionRegister
 
     // LT/SO
     static_assert(CR_EMU_LT_BIT - CR_EMU_SO_BIT == CR_LT_BIT - CR_SO_BIT);
-    ppc_cr |= (cr_val >> CR_EMU_SO_BIT) & (PowerPC::CR_LT | PowerPC::CR_SO);
+    ppc_cr |= (cr_val >> CR_EMU_SO_BIT) & (CR_LT | CR_SO);
     // EQ
-    ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << PowerPC::CR_EQ_BIT;
+    ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << CR_EQ_BIT;
     // GT
-    ppc_cr |= (static_cast<s64>(cr_val) > 0) << PowerPC::CR_GT_BIT;
+    ppc_cr |= (static_cast<s64>(cr_val) > 0) << CR_GT_BIT;
 
     return ppc_cr;
   }

@@ -16,7 +16,7 @@ class SwapChain;
 class DXTexture;
 class DXFramebuffer;
 
-class Gfx final : public ::AbstractGfx
+class Gfx final : public AbstractGfx
 {
 public:
   Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);

@@ -76,7 +76,7 @@ static bool InitLibrary()
 
   if (!InitFunctions())
   {
-    ::FreeLibrary(s_openal_dll);
+    FreeLibrary(s_openal_dll);
     s_openal_dll = nullptr;
     return false;
   }
@@ -224,9 +224,9 @@ void OpenALStream::SoundLoop()
 
   u32 frames_per_buffer;
   // Can't have zero samples per buffer
-  if (Config::Get(Config::MAIN_AUDIO_LATENCY) > 0)
+  if (Get(Config::MAIN_AUDIO_LATENCY) > 0)
   {
-    frames_per_buffer = frequency / 1000 * Config::Get(Config::MAIN_AUDIO_LATENCY) / OAL_BUFFERS;
+    frames_per_buffer = frequency / 1000 * Get(Config::MAIN_AUDIO_LATENCY) / OAL_BUFFERS;
   }
   else
   {

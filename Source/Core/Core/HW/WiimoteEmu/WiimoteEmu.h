@@ -159,9 +159,9 @@ public:
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
 
-  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+  void PrepareInput(DesiredWiimoteState* target_state,
                     SensorBarState sensor_bar_state) override;
-  void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
+  void Update(const DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
   void InterruptDataOutput(const u8* data, u32 size) override;

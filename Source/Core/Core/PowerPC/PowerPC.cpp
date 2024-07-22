@@ -246,7 +246,7 @@ void PowerPCManager::RefreshConfig()
 {
   const bool old_enable_dcache = m_ppc_state.m_enable_dcache;
 
-  m_ppc_state.m_enable_dcache = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
+  m_ppc_state.m_enable_dcache = Get(Config::MAIN_ACCURATE_CPU_CACHE);
 
   if (old_enable_dcache && !m_ppc_state.m_enable_dcache)
   {
@@ -301,7 +301,7 @@ void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
 
 void PowerPCManager::Shutdown()
 {
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  RemoveConfigChangedCallback(m_registered_config_callback_id);
   InjectExternalCPUCore(nullptr);
   m_system.GetJitInterface().Shutdown();
   m_system.GetInterpreter().Shutdown();
@@ -683,7 +683,7 @@ void RoundingModeUpdated(PowerPCState& ppc_state)
   // The rounding mode is separate for each thread, so this must run on the CPU thread
   ASSERT(Core::IsCPUThread());
 
-  Common::FPU::SetSIMDMode(ppc_state.fpscr.RN, ppc_state.fpscr.NI);
+  SetSIMDMode(ppc_state.fpscr.RN, ppc_state.fpscr.NI);
 }
 
 void MSRUpdated(PowerPCState& ppc_state)

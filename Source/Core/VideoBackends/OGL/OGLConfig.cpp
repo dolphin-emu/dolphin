@@ -211,7 +211,7 @@ void InitDriverInfo()
   default:
     break;
   }
-  DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family,
+  Init(DriverDetails::API_OPENGL, vendor, driver, version, family,
                       std::string(srenderer));
 }
 
@@ -261,7 +261,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
                      "GPU: Does your video card support OpenGL 3.1?");
       bSuccess = false;
     }
-    else if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UBO))
+    else if (HasBug(DriverDetails::BUG_BROKEN_UBO))
     {
       PanicAlertFmtT(
           "Buggy GPU driver detected.\n"
@@ -286,14 +286,14 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
        GLExtensions::Supports("GL_EXT_blend_func_extended"));
   g_Config.backend_info.bSupportsPrimitiveRestart =
-      !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
+      !HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
   g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
   g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") &&
                                         GLExtensions::Supports("GL_ARB_sample_shading");
   g_Config.backend_info.bSupportsGeometryShaders =
       GLExtensions::Version() >= 320 &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_GEOMETRY_SHADERS);
+      !HasBug(DriverDetails::BUG_BROKEN_GEOMETRY_SHADERS);
   g_Config.backend_info.bSupportsPaletteConversion =
       GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
       GLExtensions::Supports("GL_OES_texture_buffer") ||
@@ -303,7 +303,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       (GLExtensions::Supports("GL_ARB_copy_image") || GLExtensions::Supports("GL_NV_copy_image") ||
        GLExtensions::Supports("GL_EXT_copy_image") ||
        GLExtensions::Supports("GL_OES_copy_image")) &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
+      !HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
   g_ogl_config.bSupportsTextureSubImage = GLExtensions::Supports("ARB_get_texture_sub_image");
 
   // Desktop OpenGL supports the binding layout if it supports 420pack
@@ -693,7 +693,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
   // Background compiling is supported only when shared contexts aren't broken.
   g_Config.backend_info.bSupportsBackgroundCompiling =
-      !DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
+      !HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
 
   // Program binaries are supported on GL4.1+, ARB_get_program_binary, or ES3.
   if (supports_glsl_cache)

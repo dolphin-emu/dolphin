@@ -66,7 +66,7 @@ public:
   void SetBoundTo(Gen::X64Reg xreg)
   {
     away = true;
-    location = Gen::R(xreg);
+    location = R(xreg);
   }
 
   void SetDiscarded()

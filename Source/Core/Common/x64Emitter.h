@@ -1144,7 +1144,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionAC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2)
+  void ABI_CallFunctionAC(int bits, FunctionPointer func, const OpArg& arg1, u32 param2)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);
@@ -1153,7 +1153,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionPAC(int bits, FunctionPointer func, const void* ptr1, const Gen::OpArg& arg2,
+  void ABI_CallFunctionPAC(int bits, FunctionPointer func, const void* ptr1, const OpArg& arg2,
                            u32 param3)
   {
     if (!arg2.IsSimpleReg(ABI_PARAM2))
@@ -1164,7 +1164,7 @@ public:
   }
 
   template <typename FunctionPointer>
-  void ABI_CallFunctionA(int bits, FunctionPointer func, const Gen::OpArg& arg1)
+  void ABI_CallFunctionA(int bits, FunctionPointer func, const OpArg& arg1)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);

@@ -97,7 +97,7 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   // Update progress while the compiles complete.
   for (;;)
   {
-    if (Core::GetState(Core::System::GetInstance()) == Core::State::Stopping)
+    if (GetState(Core::System::GetInstance()) == Core::State::Stopping)
       return false;
 
     size_t remaining_items;

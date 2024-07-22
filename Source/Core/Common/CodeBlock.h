@@ -54,9 +54,9 @@ public:
     region_size = size;
     total_region_size = size;
     if constexpr (executable)
-      region = static_cast<u8*>(Common::AllocateExecutableMemory(total_region_size));
+      region = static_cast<u8*>(AllocateExecutableMemory(total_region_size));
     else
-      region = static_cast<u8*>(Common::AllocateMemoryPages(total_region_size));
+      region = static_cast<u8*>(AllocateMemoryPages(total_region_size));
     T::SetCodePtr(region, region + size);
   }
 
@@ -72,7 +72,7 @@ public:
   void FreeCodeSpace()
   {
     ASSERT(!m_is_child);
-    Common::FreeMemoryPages(region, total_region_size);
+    FreeMemoryPages(region, total_region_size);
     region = nullptr;
     region_size = 0;
     total_region_size = 0;
@@ -91,11 +91,11 @@ public:
   }
   void WriteProtect(bool allow_execute)
   {
-    Common::WriteProtectMemory(region, region_size, allow_execute);
+    WriteProtectMemory(region, region_size, allow_execute);
   }
   void UnWriteProtect(bool allow_execute)
   {
-    Common::UnWriteProtectMemory(region, region_size, allow_execute);
+    UnWriteProtectMemory(region, region_size, allow_execute);
   }
   void ResetCodePtr() { T::SetCodePtr(region, region + region_size); }
   size_t GetSpaceLeft() const

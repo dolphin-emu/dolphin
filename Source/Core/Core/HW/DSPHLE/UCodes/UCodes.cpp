@@ -188,11 +188,11 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
         static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_next_ucode.iram_mram_addr)),
         m_next_ucode.iram_size);
 
-    if (Config::Get(Config::MAIN_DUMP_UCODE))
+    if (Get(Config::MAIN_DUMP_UCODE))
     {
       const u8* pointer =
           memory.GetPointerForRange(m_next_ucode.iram_mram_addr, m_next_ucode.iram_size);
-      DSP::DumpDSPCode(pointer, m_next_ucode.iram_size, ector_crc);
+      DumpDSPCode(pointer, m_next_ucode.iram_size, ector_crc);
     }
 
     DEBUG_LOG_FMT(DSPHLE, "PrepareBootUCode {:#010x}", ector_crc);

@@ -71,7 +71,7 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
   const bool found = it != m_cached_files.cend();
   if (!found)
   {
-    std::shared_ptr<UICommon::GameFile> game = std::make_shared<GameFile>(path);
+    std::shared_ptr<GameFile> game = std::make_shared<GameFile>(path);
     if (!game->IsValid())
       return nullptr;
     m_cached_files.emplace_back(std::move(game));

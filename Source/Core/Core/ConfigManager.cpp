@@ -186,12 +186,12 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
 
-  const bool is_running_or_starting = Core::IsRunningOrStarting(system);
+  const bool is_running_or_starting = IsRunningOrStarting(system);
   if (is_running_or_starting)
-    Core::UpdateTitle(system);
+    UpdateTitle(system);
 
-  Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
-  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+  AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+  AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
   if (is_running_or_starting)
     DolphinAnalytics::Instance().ReportGameStart();
@@ -200,7 +200,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
 void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
-  if (!Core::IsRunningOrStarting(system))
+  if (!IsRunningOrStarting(system))
     return;
 
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
@@ -347,7 +347,7 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
     return false;
 
   if (m_region == DiscIO::Region::Unknown)
-    m_region = Config::Get(Config::MAIN_FALLBACK_REGION);
+    m_region = Get(Config::MAIN_FALLBACK_REGION);
 
   // Set up paths
   const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(m_region));
@@ -361,9 +361,9 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
   DiscIO::Language language;
   if (wii)
-    language = static_cast<DiscIO::Language>(Config::Get(Config::SYSCONF_LANGUAGE));
+    language = static_cast<DiscIO::Language>(Get(Config::SYSCONF_LANGUAGE));
   else
-    language = DiscIO::FromGameCubeLanguage(Config::Get(Config::MAIN_GC_LANGUAGE));
+    language = DiscIO::FromGameCubeLanguage(Get(Config::MAIN_GC_LANGUAGE));
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
   if (language > DiscIO::Language::Unknown || language < DiscIO::Language::Japanese)
@@ -381,7 +381,7 @@ DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region 
   if (!wii && region == DiscIO::Region::NTSC_J && language == DiscIO::Language::English)
     return DiscIO::Language::Japanese;  // English and Japanese both use the value 0 in GC SRAM
 
-  if (!Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
+  if (!Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
   {
     if (region == DiscIO::Region::NTSC_J)
       return DiscIO::Language::Japanese;

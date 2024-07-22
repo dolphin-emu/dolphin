@@ -52,7 +52,7 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
   if (!readback_texture->Map())
     return false;
 
-  return Common::SavePNG(filename,
+  return SavePNG(filename,
                          reinterpret_cast<const u8*>(readback_texture->GetMappedPointer()),
                          Common::ImageByteFormat::RGBA, level_width, level_height,
                          static_cast<int>(readback_texture->GetMappedStride()), compression);

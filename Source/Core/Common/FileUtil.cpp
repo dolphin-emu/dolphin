@@ -105,11 +105,11 @@ FileInfo::FileInfo(const char* path)
   {
     const auto fs_path = StringToPath(path);
     std::error_code error;
-    m_status = fs::status(fs_path, error);
-    m_size = fs::file_size(fs_path, error);
+    m_status = status(fs_path, error);
+    m_size = file_size(fs_path, error);
     if (error)
       m_size = 0;
-    m_exists = fs::exists(m_status);
+    m_exists = exists(m_status);
   }
 }
 
@@ -120,12 +120,12 @@ bool FileInfo::Exists() const
 
 bool FileInfo::IsDirectory() const
 {
-  return fs::is_directory(m_status);
+  return is_directory(m_status);
 }
 
 bool FileInfo::IsFile() const
 {
-  return Exists() ? !fs::is_directory(m_status) : false;
+  return Exists() ? !is_directory(m_status) : false;
 }
 
 u64 FileInfo::GetSize() const
@@ -174,7 +174,7 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
   auto status = fs::status(native_path, error);
 
   // Return true because we care about the file not being there, not the actual delete.
-  if (!fs::exists(status))
+  if (!exists(status))
   {
     if (behavior == IfAbsentBehavior::ConsoleWarning)
     {
@@ -184,7 +184,7 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
   }
 
   // fs::remove can only delete an empty directory. Legacy dolphin behavior is just to bail.
-  if (fs::is_directory(status))
+  if (is_directory(status))
   {
     WARN_LOG_FMT(COMMON, "{} failed: {} is a directory", __func__, filename);
     return false;
@@ -205,10 +205,10 @@ bool CreateDir(const std::string& path)
 
   std::error_code error;
   auto native_path = StringToPath(path);
-  bool success = fs::create_directory(native_path, error);
+  bool success = create_directory(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   std::error_code error_ignored;
-  if (!success && fs::is_directory(native_path, error_ignored))
+  if (!success && is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
@@ -221,10 +221,10 @@ bool CreateDirs(std::string_view path)
 
   std::error_code error;
   auto native_path = StringToPath(path);
-  bool success = fs::create_directories(native_path, error);
+  bool success = create_directories(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   std::error_code error_ignored;
-  if (!success && fs::is_directory(native_path, error_ignored))
+  if (!success && is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
@@ -237,10 +237,10 @@ bool CreateFullPath(std::string_view fullPath)
 
   std::error_code error;
   auto native_path = StringToPath(fullPath).parent_path();
-  bool success = fs::create_directories(native_path, error);
+  bool success = create_directories(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   std::error_code error_ignored;
-  if (!success && fs::is_directory(native_path, error_ignored))
+  if (!success && is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, fullPath, error.message());
@@ -257,7 +257,7 @@ bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
   auto status = fs::status(native_path, error);
 
   // Return true because we care about the directory not being there, not the actual delete.
-  if (!fs::exists(status))
+  if (!exists(status))
   {
     if (behavior == IfAbsentBehavior::ConsoleWarning)
     {
@@ -267,7 +267,7 @@ bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
   }
 
   // check if a directory
-  if (!fs::is_directory(status))
+  if (!is_directory(status))
   {
     ERROR_LOG_FMT(COMMON, "{}: Not a directory {}", __func__, filename);
     return false;
@@ -342,7 +342,7 @@ bool CopyRegularFile(std::string_view source_path, std::string_view destination_
   auto src_path = StringToPath(source_path);
   auto dst_path = StringToPath(destination_path);
   std::error_code error;
-  bool copied = fs::copy_file(src_path, dst_path, fs::copy_options::overwrite_existing, error);
+  bool copied = copy_file(src_path, dst_path, fs::copy_options::overwrite_existing, error);
   if (!copied)
   {
     ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, destination_path,
@@ -383,7 +383,7 @@ bool CreateEmptyFile(const std::string& filename)
 {
   DEBUG_LOG_FMT(COMMON, "CreateEmptyFile: {}", filename);
 
-  if (!File::IOFile(filename, "wb"))
+  if (!IOFile(filename, "wb"))
   {
     ERROR_LOG_FMT(COMMON, "CreateEmptyFile: failed {}: {}", filename, Common::LastStrerrorString());
     return false;
@@ -473,7 +473,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 
   FSTEntry parent_entry;
   parent_entry.physicalName = path_to_physical_name(directory_path);
-  parent_entry.isDirectory = fs::is_directory(directory_path);
+  parent_entry.isDirectory = is_directory(directory_path);
   parent_entry.size = 0;
 
   std::error_code error;
@@ -532,7 +532,7 @@ bool DeleteDirRecursively(const std::string& directory)
   DEBUG_LOG_FMT(COMMON, "{}: {}", __func__, directory);
 
   std::error_code error;
-  const std::uintmax_t num_removed = std::filesystem::remove_all(StringToPath(directory), error);
+  const std::uintmax_t num_removed = remove_all(StringToPath(directory), error);
   const bool success = num_removed != 0 && !error;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: {} failed {}", __func__, directory, error.message());
@@ -554,7 +554,7 @@ bool Copy(std::string_view source_path, std::string_view dest_path, bool overwri
   if (error)
   {
     std::error_code error_ignored;
-    if (fs::equivalent(src_path, dst_path, error_ignored))
+    if (equivalent(src_path, dst_path, error_ignored))
       return true;
 
     ERROR_LOG_FMT(COMMON, "{}: failed {} --> {} ({}): {}", __func__, source_path, dest_path,
@@ -573,10 +573,10 @@ static bool MoveWithOverwrite(const std::filesystem::path& src, const std::files
 
   // rename failed, try fallbacks
 
-  if (!fs::is_directory(src))
+  if (!is_directory(src))
   {
     // src is not a directory (ie, probably a file), try to copy file + delete
-    if (!fs::copy_file(src, dst, fs::copy_options::overwrite_existing, error))
+    if (!copy_file(src, dst, fs::copy_options::overwrite_existing, error))
       return false;
     if (!fs::remove(src, error))
       return false;
@@ -633,7 +633,7 @@ std::string GetCurrentDir()
 bool SetCurrentDir(const std::string& directory)
 {
   std::error_code error;
-  fs::current_path(StringToPath(directory), error);
+  current_path(StringToPath(directory), error);
   if (error)
   {
     ERROR_LOG_FMT(COMMON, "{} failed: {}", __func__, error.message());
@@ -676,7 +676,7 @@ std::string CreateTempDir()
 std::string GetTempFilenameForAtomicWrite(std::string path)
 {
   std::error_code error;
-  auto absolute_path = fs::absolute(StringToPath(path), error);
+  auto absolute_path = absolute(StringToPath(path), error);
   if (!error)
     path = PathToString(absolute_path);
   return std::move(path) + ".xxx";
@@ -920,7 +920,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.
-    File::DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
+    DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
     break;
 
   case D_CONFIG_IDX:
@@ -1020,7 +1020,7 @@ void SetUserPath(unsigned int dir_index, std::string path)
 
 std::string GetThemeDir(const std::string& theme_name)
 {
-  std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
+  std::string dir = GetUserPath(D_THEMES_IDX) + theme_name + "/";
   if (Exists(dir))
     return dir;
 
@@ -1035,12 +1035,12 @@ std::string GetThemeDir(const std::string& theme_name)
 
 bool WriteStringToFile(const std::string& filename, std::string_view str)
 {
-  return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
+  return IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
 
 bool ReadFileToString(const std::string& filename, std::string& str)
 {
-  File::IOFile file(filename, "rb");
+  IOFile file(filename, "rb");
 
   if (!file)
     return false;

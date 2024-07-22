@@ -246,7 +246,7 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   }
 
   curl_mime* form = nullptr;
-  Common::ScopeGuard multiform_guard{[&form] { curl_mime_free(form); }};
+  ScopeGuard multiform_guard{[&form] { curl_mime_free(form); }};
   if (!multiform.empty())
   {
     form = curl_mime_init(m_curl.get());
@@ -261,7 +261,7 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   }
 
   curl_slist* list = nullptr;
-  Common::ScopeGuard list_guard{[&list] { curl_slist_free_all(list); }};
+  ScopeGuard list_guard{[&list] { curl_slist_free_all(list); }};
   for (const auto& [name, value] : headers)
   {
     if (!value)

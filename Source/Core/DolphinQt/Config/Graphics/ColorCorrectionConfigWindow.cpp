@@ -113,7 +113,7 @@ void ColorCorrectionConfigWindow::Create()
   gamma_layout->addWidget(gamma_target_box, 2, 0, 1, 3);
 
   m_sdr_display_target_srgb->setEnabled(m_correct_gamma->isChecked());
-  m_sdr_display_target_srgb->setChecked(Config::Get(Config::GFX_CC_SDR_DISPLAY_GAMMA_SRGB));
+  m_sdr_display_target_srgb->setChecked(Get(Config::GFX_CC_SDR_DISPLAY_GAMMA_SRGB));
 
   m_sdr_display_target_custom->setEnabled(m_correct_gamma->isChecked());
   m_sdr_display_target_custom->setChecked(!m_sdr_display_target_srgb->isChecked());
@@ -182,7 +182,7 @@ void ColorCorrectionConfigWindow::ConnectWidgets()
   });
 
   connect(m_sdr_display_target_srgb, &QRadioButton::toggled, this, [this] {
-    Config::SetBaseOrCurrent(Config::GFX_CC_SDR_DISPLAY_GAMMA_SRGB,
+    SetBaseOrCurrent(Config::GFX_CC_SDR_DISPLAY_GAMMA_SRGB,
                              m_sdr_display_target_srgb->isChecked());
     m_sdr_display_custom_gamma->setEnabled(!m_sdr_display_target_srgb->isChecked());
   });

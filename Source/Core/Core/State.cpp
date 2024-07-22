@@ -218,7 +218,7 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
     return;
   }
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         u8* ptr = buffer.data();
@@ -230,7 +230,7 @@ void LoadFromBuffer(Core::System& system, std::vector<u8>& buffer)
 
 void SaveToBuffer(Core::System& system, std::vector<u8>& buffer)
 {
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         u8* ptr = nullptr;
@@ -355,7 +355,7 @@ static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t un
   StateExtendedBaseHeader& base_header = extended_header.base_header;
   base_header.header_version = EXTENDED_HEADER_VERSION;
   base_header.compression_type =
-      s_use_compression ? CompressionType::LZ4 : CompressionType::Uncompressed;
+      s_use_compression ? LZ4 : Uncompressed;
   base_header.payload_offset = COMPRESSED_DATA_OFFSET;
   base_header.uncompressed_size = uncompressed_size;
 
@@ -476,7 +476,7 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
   if (!lk)
     return;
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         {
@@ -649,7 +649,7 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   if (!File::Exists(filename))
     return translate ? Common::GetStringT("Empty") : "Empty";
 
-  State::StateHeader header;
+  StateHeader header;
   if (!ReadHeader(filename, header))
     return translate ? Common::GetStringT("Unknown") : "Unknown";
 
@@ -658,7 +658,7 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
 
 u64 GetUnixTimeOfSlot(int slot)
 {
-  State::StateHeader header;
+  StateHeader header;
   if (!ReadHeader(MakeStateFilename(slot), header))
     return 0;
 
@@ -812,7 +812,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
   switch (extended_header.base_header.compression_type)
   {
-  case CompressionType::LZ4:
+  case LZ4:
   {
     Core::DisplayMessage("Decompressing State...", 500);
     if (!DecompressLZ4(buffer, extended_header.base_header.uncompressed_size, f))
@@ -820,7 +820,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
     break;
   }
-  case CompressionType::Uncompressed:
+  case Uncompressed:
   {
     u64 header_len = sizeof(StateHeaderLegacy) + sizeof(StateHeaderVersion) +
                      header.version_header.version_string_length + sizeof(StateExtendedBaseHeader) +
@@ -854,7 +854,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 void LoadAs(Core::System& system, const std::string& filename)
 {
-  if (!Core::IsRunningOrStarting(system))
+  if (!IsRunningOrStarting(system))
     return;
 
   if (NetPlay::IsNetPlayRunning())
@@ -873,7 +873,7 @@ void LoadAs(Core::System& system, const std::string& filename)
   if (!lk)
     return;
 
-  Core::RunOnCPUThread(
+  RunOnCPUThread(
       system,
       [&] {
         // Save temp buffer for undo load state

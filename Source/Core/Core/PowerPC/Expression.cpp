@@ -127,7 +127,7 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
   {
     Core::CPUThreadGuard guard(Core::System::GetInstance());
-    const bool success = Dolphin_Debugger::GetCallstack(guard, stack);
+    const bool success = GetCallstack(guard, stack);
     if (!success)
       return 0;
   }
@@ -230,10 +230,10 @@ void ExprVarListDeleter::operator()(expr_var_list* vars) const
 Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer vars)
     : m_text(text), m_expr(std::move(ex)), m_vars(std::move(vars))
 {
-  using LookupKV = std::pair<std::string_view, Expression::VarBinding>;
+  using LookupKV = std::pair<std::string_view, VarBinding>;
   static constexpr auto sorted_lookup = []() consteval
   {
-    using enum Expression::VarBindingType;
+    using enum VarBindingType;
     auto unsorted_lookup = std::to_array<LookupKV>({
         {"r0", {GPR, 0}},
         {"r1", {GPR, 1}},

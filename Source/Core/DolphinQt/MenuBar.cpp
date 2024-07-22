@@ -96,9 +96,9 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=, this](Core::State state) { OnEmulationStateChanged(state); });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
-          [this] { OnEmulationStateChanged(Core::GetState(Core::System::GetInstance())); });
+          [this] { OnEmulationStateChanged(GetState(Core::System::GetInstance())); });
 
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()));
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
@@ -592,7 +592,7 @@ void MenuBar::AddOptionsMenu()
   m_reset_ignore_panic_handler = options_menu->addAction(tr("Reset Ignore Panic Handler"));
 
   connect(m_reset_ignore_panic_handler, &QAction::triggered, this, []() {
-    Config::DeleteKey(Config::LayerType::CurrentRun, Config::MAIN_USE_PANIC_HANDLERS);
+    DeleteKey(Config::LayerType::CurrentRun, Config::MAIN_USE_PANIC_HANDLERS);
   });
 
   m_change_font = options_menu->addAction(tr("&Font..."), this, &MenuBar::ChangeDebugFont);
@@ -600,10 +600,10 @@ void MenuBar::AddOptionsMenu()
 
 void MenuBar::InstallUpdateManually()
 {
-  const std::string autoupdate_track = Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK);
+  const std::string autoupdate_track = Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK);
   const std::string manual_track = autoupdate_track.empty() ? "dev" : autoupdate_track;
   auto* const updater = new Updater(this->parentWidget(), manual_track,
-                                    Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+                                    Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
 
   updater->CheckForUpdate();
 }
@@ -690,9 +690,9 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
     const Config::Info<bool>* const config = columns[key];
     QAction* action = column_group->addAction(m_cols_menu->addAction(key));
     action->setCheckable(true);
-    action->setChecked(Config::Get(*config));
+    action->setChecked(Get(*config));
     connect(action, &QAction::toggled, [this, config, key](bool value) {
-      Config::SetBase(*config, value);
+      SetBase(*config, value);
       emit ColumnVisibilityToggled(key, value);
     });
   }
@@ -715,9 +715,9 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
     const Config::Info<bool>* const config = platform_map[key];
     QAction* action = platform_group->addAction(plat_menu->addAction(key));
     action->setCheckable(true);
-    action->setChecked(Config::Get(*config));
+    action->setChecked(Get(*config));
     connect(action, &QAction::toggled, [this, config, key](bool value) {
-      Config::SetBase(*config, value);
+      SetBase(*config, value);
       emit GameListPlatformVisibilityToggled(key, value);
     });
   }
@@ -751,11 +751,11 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
     const Config::Info<bool>* const config = region_map[key];
     QAction* const menu_item = region_menu->addAction(key);
     menu_item->setCheckable(true);
-    menu_item->setChecked(Config::Get(*config));
+    menu_item->setChecked(Get(*config));
 
     const auto set_visibility = [this, config, key, menu_item](bool visibility) {
       menu_item->setChecked(visibility);
-      Config::SetBase(*config, visibility);
+      SetBase(*config, visibility);
       emit GameListRegionVisibilityToggled(key, visibility);
     };
     const auto set_visible = std::bind(set_visibility, true);
@@ -796,54 +796,54 @@ void MenuBar::AddMovieMenu()
 
   auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
   pause_at_end->setCheckable(true);
-  pause_at_end->setChecked(Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE));
+  pause_at_end->setChecked(Get(Config::MAIN_MOVIE_PAUSE_MOVIE));
   connect(pause_at_end, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_PAUSE_MOVIE, value); });
+          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_PAUSE_MOVIE, value); });
 
   auto* rerecord_counter = movie_menu->addAction(tr("Show Rerecord Counter"));
   rerecord_counter->setCheckable(true);
-  rerecord_counter->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD));
+  rerecord_counter->setChecked(Get(Config::MAIN_MOVIE_SHOW_RERECORD));
   connect(rerecord_counter, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RERECORD, value); });
+          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RERECORD, value); });
 
   auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
   lag_counter->setCheckable(true);
-  lag_counter->setChecked(Config::Get(Config::MAIN_SHOW_LAG));
+  lag_counter->setChecked(Get(Config::MAIN_SHOW_LAG));
   connect(lag_counter, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_SHOW_LAG, value); });
+          [](bool value) { SetBaseOrCurrent(Config::MAIN_SHOW_LAG, value); });
 
   auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
   frame_counter->setCheckable(true);
-  frame_counter->setChecked(Config::Get(Config::MAIN_SHOW_FRAME_COUNT));
+  frame_counter->setChecked(Get(Config::MAIN_SHOW_FRAME_COUNT));
   connect(frame_counter, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_SHOW_FRAME_COUNT, value); });
+          [](bool value) { SetBaseOrCurrent(Config::MAIN_SHOW_FRAME_COUNT, value); });
 
   auto* input_display = movie_menu->addAction(tr("Show Input Display"));
   input_display->setCheckable(true);
-  input_display->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY));
+  input_display->setChecked(Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY));
   connect(input_display, &QAction::toggled, [](bool value) {
-    Config::SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY, value);
+    SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY, value);
   });
 
   auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
   system_clock->setCheckable(true);
-  system_clock->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_RTC));
+  system_clock->setChecked(Get(Config::MAIN_MOVIE_SHOW_RTC));
   connect(system_clock, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RTC, value); });
+          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RTC, value); });
 
   movie_menu->addSeparator();
 
   auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
   dump_frames->setCheckable(true);
-  dump_frames->setChecked(Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES));
+  dump_frames->setChecked(Get(Config::MAIN_MOVIE_DUMP_FRAMES));
   connect(dump_frames, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, value); });
+          [](bool value) { SetBaseOrCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, value); });
 
   auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
   dump_audio->setCheckable(true);
-  dump_audio->setChecked(Config::Get(Config::MAIN_DUMP_AUDIO));
+  dump_audio->setChecked(Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
+          [](bool value) { SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
 }
 
 void MenuBar::AddJITMenu()
@@ -852,7 +852,7 @@ void MenuBar::AddJITMenu()
 
   m_jit_interpreter_core = m_jit->addAction(tr("Interpreter Core"));
   m_jit_interpreter_core->setCheckable(true);
-  m_jit_interpreter_core->setChecked(Config::Get(Config::MAIN_CPU_CORE) ==
+  m_jit_interpreter_core->setChecked(Get(Config::MAIN_CPU_CORE) ==
                                      PowerPC::CPUCore::Interpreter);
 
   connect(m_jit_interpreter_core, &QAction::toggled, [](bool enabled) {
@@ -880,22 +880,22 @@ void MenuBar::AddJITMenu()
 
   m_jit_disable_fastmem = m_jit->addAction(tr("Disable Fastmem"));
   m_jit_disable_fastmem->setCheckable(true);
-  m_jit_disable_fastmem->setChecked(!Config::Get(Config::MAIN_FASTMEM));
+  m_jit_disable_fastmem->setChecked(!Get(Config::MAIN_FASTMEM));
   connect(m_jit_disable_fastmem, &QAction::toggled,
-          [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_FASTMEM, !enabled); });
+          [](bool enabled) { SetBaseOrCurrent(Config::MAIN_FASTMEM, !enabled); });
 
   m_jit_disable_fastmem_arena = m_jit->addAction(tr("Disable Fastmem Arena"));
   m_jit_disable_fastmem_arena->setCheckable(true);
-  m_jit_disable_fastmem_arena->setChecked(!Config::Get(Config::MAIN_FASTMEM_ARENA));
+  m_jit_disable_fastmem_arena->setChecked(!Get(Config::MAIN_FASTMEM_ARENA));
   connect(m_jit_disable_fastmem_arena, &QAction::toggled,
-          [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_FASTMEM_ARENA, !enabled); });
+          [](bool enabled) { SetBaseOrCurrent(Config::MAIN_FASTMEM_ARENA, !enabled); });
 
   m_jit_disable_large_entry_points_map = m_jit->addAction(tr("Disable Large Entry Points Map"));
   m_jit_disable_large_entry_points_map->setCheckable(true);
   m_jit_disable_large_entry_points_map->setChecked(
-      !Config::Get(Config::MAIN_LARGE_ENTRY_POINTS_MAP));
+      !Get(Config::MAIN_LARGE_ENTRY_POINTS_MAP));
   connect(m_jit_disable_large_entry_points_map, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_LARGE_ENTRY_POINTS_MAP, !enabled);
+    SetBaseOrCurrent(Config::MAIN_LARGE_ENTRY_POINTS_MAP, !enabled);
   });
 
   m_jit_clear_cache = m_jit->addAction(tr("Clear Cache"), this, &MenuBar::ClearCache);
@@ -911,9 +911,9 @@ void MenuBar::AddJITMenu()
 
   m_jit_profile_blocks = m_jit->addAction(tr("Enable JIT Block Profiling"));
   m_jit_profile_blocks->setCheckable(true);
-  m_jit_profile_blocks->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
+  m_jit_profile_blocks->setChecked(Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
   connect(m_jit_profile_blocks, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING, enabled);
   });
   m_jit_write_cache_log_dump =
       m_jit->addAction(tr("Write JIT Block Log Dump"), this, &MenuBar::OnWriteJitBlockLogDump);
@@ -922,93 +922,93 @@ void MenuBar::AddJITMenu()
 
   m_jit_off = m_jit->addAction(tr("JIT Off (JIT Core)"));
   m_jit_off->setCheckable(true);
-  m_jit_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_OFF));
+  m_jit_off->setChecked(Get(Config::MAIN_DEBUG_JIT_OFF));
   connect(m_jit_off, &QAction::toggled,
-          [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_OFF, enabled); });
+          [](bool enabled) { SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_OFF, enabled); });
 
   m_jit_loadstore_off = m_jit->addAction(tr("JIT LoadStore Off"));
   m_jit_loadstore_off->setCheckable(true);
-  m_jit_loadstore_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF));
+  m_jit_loadstore_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF));
   connect(m_jit_loadstore_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF, enabled);
   });
 
   m_jit_loadstore_lbzx_off = m_jit->addAction(tr("JIT LoadStore lbzx Off"));
   m_jit_loadstore_lbzx_off->setCheckable(true);
-  m_jit_loadstore_lbzx_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF));
+  m_jit_loadstore_lbzx_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF));
   connect(m_jit_loadstore_lbzx_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF, enabled);
   });
 
   m_jit_loadstore_lxz_off = m_jit->addAction(tr("JIT LoadStore lXz Off"));
   m_jit_loadstore_lxz_off->setCheckable(true);
-  m_jit_loadstore_lxz_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF));
+  m_jit_loadstore_lxz_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF));
   connect(m_jit_loadstore_lxz_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF, enabled);
   });
 
   m_jit_loadstore_lwz_off = m_jit->addAction(tr("JIT LoadStore lwz Off"));
   m_jit_loadstore_lwz_off->setCheckable(true);
-  m_jit_loadstore_lwz_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF));
+  m_jit_loadstore_lwz_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF));
   connect(m_jit_loadstore_lwz_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF, enabled);
   });
 
   m_jit_loadstore_floating_off = m_jit->addAction(tr("JIT LoadStore Floating Off"));
   m_jit_loadstore_floating_off->setCheckable(true);
   m_jit_loadstore_floating_off->setChecked(
-      Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF));
+      Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF));
   connect(m_jit_loadstore_floating_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF, enabled);
   });
 
   m_jit_loadstore_paired_off = m_jit->addAction(tr("JIT LoadStore Paired Off"));
   m_jit_loadstore_paired_off->setCheckable(true);
-  m_jit_loadstore_paired_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF));
+  m_jit_loadstore_paired_off->setChecked(Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF));
   connect(m_jit_loadstore_paired_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF, enabled);
   });
 
   m_jit_floatingpoint_off = m_jit->addAction(tr("JIT FloatingPoint Off"));
   m_jit_floatingpoint_off->setCheckable(true);
-  m_jit_floatingpoint_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF));
+  m_jit_floatingpoint_off->setChecked(Get(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF));
   connect(m_jit_floatingpoint_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF, enabled);
   });
 
   m_jit_integer_off = m_jit->addAction(tr("JIT Integer Off"));
   m_jit_integer_off->setCheckable(true);
-  m_jit_integer_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_INTEGER_OFF));
+  m_jit_integer_off->setChecked(Get(Config::MAIN_DEBUG_JIT_INTEGER_OFF));
   connect(m_jit_integer_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_INTEGER_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_INTEGER_OFF, enabled);
   });
 
   m_jit_paired_off = m_jit->addAction(tr("JIT Paired Off"));
   m_jit_paired_off->setCheckable(true);
-  m_jit_paired_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_PAIRED_OFF));
+  m_jit_paired_off->setChecked(Get(Config::MAIN_DEBUG_JIT_PAIRED_OFF));
   connect(m_jit_paired_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_PAIRED_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_PAIRED_OFF, enabled);
   });
 
   m_jit_systemregisters_off = m_jit->addAction(tr("JIT SystemRegisters Off"));
   m_jit_systemregisters_off->setCheckable(true);
-  m_jit_systemregisters_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF));
+  m_jit_systemregisters_off->setChecked(Get(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF));
   connect(m_jit_systemregisters_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF, enabled);
   });
 
   m_jit_branch_off = m_jit->addAction(tr("JIT Branch Off"));
   m_jit_branch_off->setCheckable(true);
-  m_jit_branch_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF));
+  m_jit_branch_off->setChecked(Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF));
   connect(m_jit_branch_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_BRANCH_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_BRANCH_OFF, enabled);
   });
 
   m_jit_register_cache_off = m_jit->addAction(tr("JIT Register Cache Off"));
   m_jit_register_cache_off->setCheckable(true);
-  m_jit_register_cache_off->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF));
+  m_jit_register_cache_off->setChecked(Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF));
   connect(m_jit_register_cache_off, &QAction::toggled, [](bool enabled) {
-    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF, enabled);
+    SetBaseOrCurrent(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF, enabled);
   });
 }
 
@@ -1254,7 +1254,7 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
   m_game_selected = !!game_file;
 
   auto& system = Core::System::GetInstance();
-  const bool core_is_running = Core::IsRunning(system);
+  const bool core_is_running = IsRunning(system);
   m_recording_play->setEnabled(m_game_selected && !core_is_running);
   m_recording_start->setEnabled((m_game_selected || core_is_running) &&
                                 !system.GetMovie().IsPlayingInput());
@@ -1263,7 +1263,7 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
 void MenuBar::OnRecordingStatusChanged(bool recording)
 {
   auto& system = Core::System::GetInstance();
-  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning(system)));
+  m_recording_start->setEnabled(!recording && (m_game_selected || IsRunning(system)));
   m_recording_stop->setEnabled(recording);
   m_recording_export->setEnabled(recording);
 }
@@ -1437,7 +1437,7 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
   constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
 
   const AddressSpace::Accessors* accessors =
-      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+      GetAccessors(AddressSpace::Type::Effective);
 
   RSOVector matches;
 

@@ -414,7 +414,7 @@ void AnalogStickIndicator::Draw()
 
 void TiltIndicator::Draw()
 {
-  WiimoteEmu::EmulateTilt(&m_motion_state, &m_group, 1.f / INDICATOR_UPDATE_FREQ);
+  EmulateTilt(&m_motion_state, &m_group, 1.f / INDICATOR_UPDATE_FREQ);
 
   auto adj_coord = Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
 
@@ -566,7 +566,7 @@ void SwingIndicator::DrawUnderGate(QPainter& p)
 void SwingIndicator::Draw()
 {
   auto& force = m_swing_group;
-  WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
+  EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
 
   DrawReshapableInput(force, SWING_GATE_COLOR,
                       Common::DVec2{-m_motion_state.position.x, m_motion_state.position.z});
@@ -576,7 +576,7 @@ void ShakeMappingIndicator::Draw()
 {
   constexpr std::size_t HISTORY_COUNT = INDICATOR_UPDATE_FREQ;
 
-  WiimoteEmu::EmulateShake(&m_motion_state, &m_shake_group, 1.f / INDICATOR_UPDATE_FREQ);
+  EmulateShake(&m_motion_state, &m_shake_group, 1.f / INDICATOR_UPDATE_FREQ);
 
   constexpr float MAX_DISTANCE = 0.5f;
 
@@ -904,7 +904,7 @@ CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
   m_indicator.SetCalibrationWidget(this);
 
   // Make it more apparent that this is a menu with more options.
-  setPopupMode(ToolButtonPopupMode::MenuButtonPopup);
+  setPopupMode(MenuButtonPopup);
 
   SetupActions();
 

@@ -41,13 +41,13 @@ public:
 private:
   struct AsyncTask
   {
-    IOS::HLE::Request request;
+    Request request;
     std::function<IPCReply()> handler;
   };
 
   struct AsyncReply
   {
-    IOS::HLE::Request request;
+    Request request;
     s32 return_value;
   };
 

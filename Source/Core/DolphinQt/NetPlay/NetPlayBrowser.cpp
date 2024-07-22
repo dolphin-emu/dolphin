@@ -304,7 +304,7 @@ void NetPlayBrowser::accept()
     dialog.setTextEchoMode(QLineEdit::Password);
 
     SetQWidgetWindowDecorations(&dialog);
-    if (dialog.exec() != QDialog::Accepted)
+    if (dialog.exec() != Accepted)
       return;
 
     const std::string password = dialog.textValue().toStdString();
@@ -322,14 +322,14 @@ void NetPlayBrowser::accept()
 
   QDialog::accept();
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, session.method);
+  SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, session.method);
 
-  Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT, session.port);
+  SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT, session.port);
 
   if (session.method == "traversal")
-    Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, server_id);
+    SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, server_id);
   else
-    Config::SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
+    SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
 
   emit Join();
 }

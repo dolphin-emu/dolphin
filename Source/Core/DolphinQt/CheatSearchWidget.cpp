@@ -521,7 +521,7 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
     return;
 
   // If the game is running CheatsManager::OnFrameEnd will update values automatically.
-  if (Core::GetState(m_system) != Core::State::Running)
+  if (GetState(m_system) != Core::State::Running)
     UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
@@ -537,7 +537,7 @@ void CheatSearchWidget::GenerateARCodes()
   for (auto* const item : m_address_table->selectedItems())
   {
     const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
-    auto result = Cheats::GenerateActionReplayCode(*m_session, index);
+    auto result = GenerateActionReplayCode(*m_session, index);
     if (result)
     {
       emit ActionReplayCodeGenerated(*result);

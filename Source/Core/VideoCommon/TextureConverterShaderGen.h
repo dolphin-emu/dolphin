@@ -53,7 +53,7 @@ struct fmt::formatter<TextureConversionShaderGen::UidData>
     if (uid.dst_format == EFBCopyFormat::XFB)
       dst_format = "XFB";
     else
-      dst_format = fmt::to_string(uid.dst_format);
+      dst_format = to_string(uid.dst_format);
     return fmt::format_to(ctx.out(),
                           "dst_format: {}, efb_has_alpha: {}, is_depth_copy: {}, is_intensity: {}, "
                           "scale_by_half: {}, all_copy_filter_coefs_needed: {}, "

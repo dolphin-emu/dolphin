@@ -47,10 +47,10 @@ void Init(Core::System& system, const Sram* override_sram)
   system.GetMemory().Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
   system.GetMemoryInterface().Init();
-  system.GetDSP().Init(Config::Get(Config::MAIN_DSP_HLE));
+  system.GetDSP().Init(Get(Config::MAIN_DSP_HLE));
   system.GetDVDInterface().Init();
   system.GetGPFifo().Init();
-  system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
+  system.GetCPU().Init(Get(Config::MAIN_CPU_CORE));
   system.GetSystemTimers().Init();
 
   if (system.IsWii())

@@ -116,7 +116,7 @@ void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
   m_ar_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
 
   if (!m_restart_required)
-    ActionReplay::ApplyCodes(m_ar_codes);
+    ApplyCodes(m_ar_codes);
 
   UpdateList();
   SaveCodes();

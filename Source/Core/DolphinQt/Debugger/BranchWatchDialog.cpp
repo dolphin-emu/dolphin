@@ -530,7 +530,7 @@ void BranchWatchDialog::hideEvent(QHideEvent* event)
 
 void BranchWatchDialog::showEvent(QShowEvent* event)
 {
-  if (TimerCondition(m_branch_watch, Core::GetState(m_system)))
+  if (TimerCondition(m_branch_watch, GetState(m_system)))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   QDialog::showEvent(event);
 }
@@ -543,7 +543,7 @@ void BranchWatchDialog::OnStartPause(bool checked)
     m_btn_start_pause->setText(tr("Pause Branch Watch"));
     // Restart the timer if the situation calls for it, but always turn off single-shot.
     m_timer->setSingleShot(false);
-    if (Core::GetState(m_system) > Core::State::Paused)
+    if (GetState(m_system) > Core::State::Paused)
       m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   }
   else
@@ -551,7 +551,7 @@ void BranchWatchDialog::OnStartPause(bool checked)
     m_branch_watch.Pause();
     m_btn_start_pause->setText(tr("Start Branch Watch"));
     // Schedule one last update in the future in case Branch Watch is in the middle of a hit.
-    if (Core::GetState(m_system) > Core::State::Paused)
+    if (GetState(m_system) > Core::State::Paused)
       m_timer->setInterval(BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS);
     m_timer->setSingleShot(true);
   }
@@ -644,7 +644,7 @@ void BranchWatchDialog::OnCodePathNotTaken()
 
 void BranchWatchDialog::OnBranchWasOverwritten()
 {
-  if (Core::GetState(m_system) == Core::State::Uninitialized)
+  if (GetState(m_system) == Core::State::Uninitialized)
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
     return;
@@ -659,7 +659,7 @@ void BranchWatchDialog::OnBranchWasOverwritten()
 
 void BranchWatchDialog::OnBranchNotOverwritten()
 {
-  if (Core::GetState(m_system) == Core::State::Uninitialized)
+  if (GetState(m_system) == Core::State::Uninitialized)
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Core is uninitialized."));
     return;
@@ -1050,7 +1050,7 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
     m_mnu_table_context->addMenu(m_mnu_set_breakpoint);
   }
 
-  const bool core_initialized = Core::GetState(m_system) != Core::State::Uninitialized;
+  const bool core_initialized = GetState(m_system) != Core::State::Uninitialized;
 
   bool supported_column = true;
   switch (index.column())

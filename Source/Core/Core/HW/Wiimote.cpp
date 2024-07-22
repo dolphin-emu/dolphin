@@ -57,7 +57,7 @@ void OnSourceChanged(unsigned int index, WiimoteSource source)
 void RefreshConfig()
 {
   for (int i = 0; i < MAX_BBMOTES; ++i)
-    OnSourceChanged(i, Config::Get(Config::GetInfoForWiimoteSource(i)));
+    OnSourceChanged(i, Get(Config::GetInfoForWiimoteSource(i)));
 }
 
 }  // namespace
@@ -80,7 +80,7 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
   switch (GetSource(index))
   {
   case WiimoteSource::Emulated:
-    hid_source = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(index));
+    hid_source = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(index));
     break;
 
   case WiimoteSource::Real:
@@ -170,7 +170,7 @@ void Shutdown()
 
   if (s_config_callback_id)
   {
-    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    RemoveConfigChangedCallback(*s_config_callback_id);
     s_config_callback_id = std::nullopt;
   }
 }

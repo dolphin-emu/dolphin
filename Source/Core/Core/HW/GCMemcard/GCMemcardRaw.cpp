@@ -94,7 +94,7 @@ MemoryCard::~MemoryCard()
 
 void MemoryCard::FlushThread()
 {
-  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
+  if (!Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
     return;
   }

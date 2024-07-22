@@ -32,7 +32,7 @@ void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsign
   // We were given actual_samples number of samples, and num_samples were requested from us.
   double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
 
-  const double max_latency = Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY);
+  const double max_latency = Get(Config::MAIN_AUDIO_STRETCH_LATENCY);
   const double max_backlog = m_sample_rate * max_latency / 1000.0 / m_stretch_ratio;
   const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
   if (backlog_fullness > 5.0)

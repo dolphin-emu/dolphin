@@ -198,7 +198,7 @@ void BranchWatch::IsolateNotExecuted(const CPUThreadGuard&)
 
 void BranchWatch::IsolateWasOverwritten(const CPUThreadGuard& guard)
 {
-  if (Core::GetState(guard.GetSystem()) == Core::State::Uninitialized)
+  if (GetState(guard.GetSystem()) == State::Uninitialized)
   {
     ASSERT_MSG(CORE, false, "Core is uninitialized.");
     return;
@@ -246,7 +246,7 @@ void BranchWatch::IsolateWasOverwritten(const CPUThreadGuard& guard)
 
 void BranchWatch::IsolateNotOverwritten(const CPUThreadGuard& guard)
 {
-  if (Core::GetState(guard.GetSystem()) == Core::State::Uninitialized)
+  if (GetState(guard.GetSystem()) == State::Uninitialized)
   {
     ASSERT_MSG(CORE, false, "Core is uninitialized.");
     return;

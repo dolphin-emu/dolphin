@@ -49,7 +49,7 @@ static u32 GetCoreFrequency(mCore* core)
   if (core->platform(core) != mPLATFORM_GB)
     return static_cast<u32>(core->frequency(core));
 
-  switch (static_cast<::GB*>(core->board)->model)
+  switch (static_cast<GB*>(core->board)->model)
   {
   case GB_MODEL_CGB:
   case GB_MODEL_SCGB:
@@ -173,7 +173,7 @@ bool Core::Start(u64 gc_ticks)
       rom->close(rom);
   }};
 
-  m_rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[m_device_number]);
+  m_rom_path = Get(Config::MAIN_GBA_ROM_PATHS[m_device_number]);
   if (!m_rom_path.empty())
   {
     rom = OpenROM(m_rom_path.c_str());
@@ -242,7 +242,7 @@ bool Core::Start(u64 gc_ticks)
   // Notify the host and handle a dimension change if that happened after reset()
   SetVideoBuffer();
 
-  if (Config::Get(Config::MAIN_GBA_THREADS))
+  if (Get(Config::MAIN_GBA_THREADS))
   {
     m_idle = true;
     m_exit_loop = false;
@@ -302,7 +302,7 @@ CoreInfo Core::GetCoreInfo() const
   if (!IsStarted())
     return info;
 
-  info.is_gba = m_core->platform(m_core) == mPlatform::mPLATFORM_GBA;
+  info.is_gba = m_core->platform(m_core) == mPLATFORM_GBA;
   info.has_rom = !m_rom_path.empty();
   info.has_ereader =
       info.is_gba && static_cast<::GBA*>(m_core->board)->memory.hw.devices & HW_EREADER;
@@ -456,7 +456,7 @@ void Core::SetupEvent()
     if (core->m_core->platform(core->m_core) == mPLATFORM_GBA)
       static_cast<::GBA*>(core->m_core->board)->earlyExit = true;
     else if (core->m_core->platform(core->m_core) == mPLATFORM_GB)
-      static_cast<::GB*>(core->m_core->board)->earlyExit = true;
+      static_cast<GB*>(core->m_core->board)->earlyExit = true;
     core->m_waiting_for_event = false;
   };
   m_event.priority = 0x80;
@@ -737,7 +737,7 @@ std::string Core::GetSavePath(std::string_view rom_path, int device_number)
   std::string save_path =
       fmt::format("{}-{}.sav", rom_path.substr(0, rom_path.find_last_of('.')), device_number + 1);
 
-  if (!Config::Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH))
+  if (!Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH))
   {
     save_path =
         File::GetUserPath(D_GBASAVES_IDX) + save_path.substr(save_path.find_last_of("\\/") + 1);

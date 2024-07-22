@@ -147,7 +147,7 @@ public:
 
   typedef u32 (*Operation)(u32 a, u32 b);
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
-                void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
+                void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
                 bool Rc = false, bool carry = false);
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
   void UpdateMXCSR();

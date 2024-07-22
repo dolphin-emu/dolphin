@@ -316,7 +316,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
   {
     // Assumes data contains all information for the command
     // Calls FifoRecorder::UseMemory
-    const u32 analyzed_size = OpcodeDecoder::RunCommand(data, size, *m_record_analyzer);
+    const u32 analyzed_size = RunCommand(data, size, *m_record_analyzer);
 
     // Make sure FifoPlayer's command analyzer agrees about the size of the command.
     if (analyzed_size != size)

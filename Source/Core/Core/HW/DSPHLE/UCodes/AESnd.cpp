@@ -96,7 +96,7 @@ void AESndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 
@@ -240,7 +240,7 @@ void AESndUCode::DMAOutParameterBlock()
   HLEMemory_Write_U32(memory, m_parameter_block_addr + 40, m_parameter_block.flags);
 }
 
-AESndAccelerator::AESndAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp)
+AESndAccelerator::AESndAccelerator(DSPManager& dsp) : m_dsp(dsp)
 {
 }
 

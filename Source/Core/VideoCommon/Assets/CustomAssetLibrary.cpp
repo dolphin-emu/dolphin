@@ -43,7 +43,7 @@ CustomAssetLibrary::LoadInfo CustomAssetLibrary::LoadGameTexture(const AssetID& 
         current_mip_width = std::max(current_mip_width / 2, 1u);
         current_mip_height = std::max(current_mip_height / 2, 1u);
 
-        const VideoCommon::CustomTextureData::ArraySlice::Level& level = slice.m_levels[mip_level];
+        const CustomTextureData::ArraySlice::Level& level = slice.m_levels[mip_level];
         if (current_mip_width == level.width && current_mip_height == level.height)
           continue;
 
@@ -70,7 +70,7 @@ CustomAssetLibrary::LoadInfo CustomAssetLibrary::LoadGameTexture(const AssetID& 
 
     // All levels have to have the same format.
     if (std::any_of(slice.m_levels.begin(), slice.m_levels.end(),
-                    [&first_mip](const VideoCommon::CustomTextureData::ArraySlice::Level& l) {
+                    [&first_mip](const CustomTextureData::ArraySlice::Level& l) {
                       return l.format != first_mip.format;
                     }))
     {

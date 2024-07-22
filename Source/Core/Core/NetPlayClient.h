@@ -57,7 +57,7 @@ public:
 
   virtual void OnMsgChangeGame(const SyncIdentifier& sync_identifier,
                                const std::string& netplay_name) = 0;
-  virtual void OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config) = 0;
+  virtual void OnMsgChangeGBARom(int pad, const GBAConfig& config) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
   virtual void OnMsgPowerButton() = 0;

@@ -471,7 +471,7 @@ bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData
   return ReadGLTFMaterials(mesh_file, model, data);
 }
 }  // namespace
-bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+bool MeshData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                         const picojson::object& json, MeshData* data)
 {
   if (const auto iter = json.find("material_mapping"); iter != json.end())

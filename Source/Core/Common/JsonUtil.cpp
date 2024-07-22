@@ -63,6 +63,6 @@ bool JsonFromFile(const std::string& filename, picojson::value* root, std::strin
     return false;
   }
 
-  *error = picojson::parse(*root, json_data);
+  *error = parse(*root, json_data);
   return error->empty();
 }

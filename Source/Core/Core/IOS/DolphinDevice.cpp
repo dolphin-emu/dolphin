@@ -68,8 +68,8 @@ IPCReply GetCPUSpeed(Core::System& system, const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const bool overclock_enabled = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
-  const float oc = overclock_enabled ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
+  const bool overclock_enabled = Get(Config::MAIN_OVERCLOCK_ENABLE);
+  const float oc = overclock_enabled ? Get(Config::MAIN_OVERCLOCK) : 1.0f;
 
   const u32 core_clock = u32(float(system.GetSystemTimers().GetTicksPerSecond()) * oc);
 
@@ -92,7 +92,7 @@ IPCReply GetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const u32 speed_percent = Config::Get(Config::MAIN_EMULATION_SPEED) * 100;
+  const u32 speed_percent = Get(Config::MAIN_EMULATION_SPEED) * 100;
 
   auto& memory = system.GetMemory();
   memory.Write_U32(speed_percent, request.io_vectors[0].address);
@@ -115,7 +115,7 @@ IPCReply SetSpeedLimit(Core::System& system, const IOCtlVRequest& request)
 
   auto& memory = system.GetMemory();
   const float speed = float(memory.Read_U32(request.in_vectors[0].address)) / 100.0f;
-  Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
+  SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
 
   return IPCReply(IPC_SUCCESS);
 }
@@ -153,7 +153,7 @@ IPCReply GetRealProductCode(Core::System& system, const IOCtlVRequest& request)
 
 IPCReply SetDiscordClient(Core::System& system, const IOCtlVRequest& request)
 {
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return IPCReply(IPC_EACCES);
 
   if (!request.HasNumberOfValidVectors(1, 0))
@@ -170,7 +170,7 @@ IPCReply SetDiscordClient(Core::System& system, const IOCtlVRequest& request)
 
 IPCReply SetDiscordPresence(Core::System& system, const IOCtlVRequest& request)
 {
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return IPCReply(IPC_EACCES);
 
   if (!request.HasNumberOfValidVectors(10, 0))
@@ -206,7 +206,7 @@ IPCReply SetDiscordPresence(Core::System& system, const IOCtlVRequest& request)
 
 IPCReply ResetDiscord(const IOCtlVRequest& request)
 {
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+  if (!Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return IPCReply(IPC_EACCES);
 
   Host_UpdateDiscordClientID();

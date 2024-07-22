@@ -43,10 +43,10 @@ private:
 
   HWND m_hwnd{};
 
-  int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
-  int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
-  int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
-  int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
+  int m_window_x = Get(Config::MAIN_RENDER_WINDOW_XPOS);
+  int m_window_y = Get(Config::MAIN_RENDER_WINDOW_YPOS);
+  int m_window_width = Get(Config::MAIN_RENDER_WINDOW_WIDTH);
+  int m_window_height = Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
 };
 
 PlatformWin32::~PlatformWin32()
@@ -103,12 +103,12 @@ bool PlatformWin32::Init()
     return false;
 
   // TODO: Enter fullscreen if enabled.
-  if (Config::Get(Config::MAIN_FULLSCREEN))
+  if (Get(Config::MAIN_FULLSCREEN))
   {
     ProcessEvents();
   }
 
-  if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
+  if (Get(Config::MAIN_DISABLE_SCREENSAVER))
     SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 
   UpdateWindowPosition();
@@ -125,7 +125,7 @@ void PlatformWin32::MainLoop()
   while (IsRunning())
   {
     UpdateRunningFlag();
-    Core::HostDispatchJobs(Core::System::GetInstance());
+    HostDispatchJobs(Core::System::GetInstance());
     ProcessEvents();
     UpdateWindowPosition();
 

@@ -224,7 +224,7 @@ static void ReleasePPCAncast(Core::System& system)
 void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type)
 {
   // Don't touch anything if the feature isn't enabled.
-  if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+  if (!Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
     return;
 
   // Some unstated constants that can be inferred.
@@ -288,7 +288,7 @@ Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
   if (m_is_responsible_for_nand_root)
     Core::InitializeWiiRoot(false);
 
-  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
+  m_fs = MakeFileSystem(FS::Location::Session, Core::GetActiveNandRedirects());
   ASSERT(m_fs);
 
   m_fs_core = std::make_unique<FSCore>(*this);
@@ -319,7 +319,7 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
     return;
   }
 
-  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
+  m_fs = MakeFileSystem(FS::Location::Session, Core::GetActiveNandRedirects());
   ASSERT(m_fs);
 
   AddDevice(std::make_unique<AesDevice>(*this, "/dev/aes"));
@@ -518,7 +518,7 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
   if (hang_ppc == HangPPC::Yes)
     ResetAndPausePPC(m_system);
 
-  if (Core::IsRunning(m_system))
+  if (IsRunning(m_system))
   {
     m_system.GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
                                            ios_title_id);
@@ -533,7 +533,7 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
 
 void EmulationKernel::InitIPC()
 {
-  if (Core::GetState(m_system) == Core::State::Uninitialized)
+  if (GetState(m_system) == Core::State::Uninitialized)
     return;
 
   INFO_LOG_FMT(IOS, "IPC initialised.");
@@ -555,7 +555,7 @@ void EmulationKernel::AddStaticDevices()
 
   // OH1 (Bluetooth)
   AddDevice(std::make_unique<DeviceStub>(*this, "/dev/usb/oh1"));
-  if (!Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  if (!Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     AddDevice(std::make_unique<BluetoothEmuDevice>(*this, "/dev/usb/oh1/57e/305"));
   else
     AddDevice(std::make_unique<BluetoothRealDevice>(*this, "/dev/usb/oh1/57e/305"));
@@ -571,7 +571,7 @@ void EmulationKernel::AddStaticDevices()
   if (HasFeature(features, Feature::KD) || HasFeature(features, Feature::SO) ||
       HasFeature(features, Feature::SSL))
   {
-    m_socket_manager = std::make_shared<IOS::HLE::WiiSockMan>(*this);
+    m_socket_manager = std::make_shared<WiiSockMan>(*this);
   }
   if (HasFeature(features, Feature::KD))
   {
@@ -916,7 +916,7 @@ void EmulationKernel::DoState(PointerWrap& p)
       {
         auto device_type = descriptor->GetDeviceType();
         p.Do(device_type);
-        if (device_type == Device::Device::DeviceType::Static)
+        if (device_type == Device::DeviceType::Static)
         {
           std::string device_name = descriptor->GetDeviceName();
           p.Do(device_name);

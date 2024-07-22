@@ -453,16 +453,16 @@ Interpreter::Instruction Interpreter::GetInterpreterOp(UGeckoInstruction inst)
   // Check for the appropriate subtable ahead of time.
   // (This is used by the cached interpreter and JIT, and called once per instruction, so spending a
   // bit of extra time to optimise is worthwhile)
-  Interpreter::Instruction result = s_interpreter_op_table[inst.OPCD];
-  if (result == Interpreter::RunTable4)
+  Instruction result = s_interpreter_op_table[inst.OPCD];
+  if (result == RunTable4)
     return s_interpreter_op_table4[inst.SUBOP10];
-  else if (result == Interpreter::RunTable19)
+  else if (result == RunTable19)
     return s_interpreter_op_table19[inst.SUBOP10];
-  else if (result == Interpreter::RunTable31)
+  else if (result == RunTable31)
     return s_interpreter_op_table31[inst.SUBOP10];
-  else if (result == Interpreter::RunTable59)
+  else if (result == RunTable59)
     return s_interpreter_op_table59[inst.SUBOP5];
-  else if (result == Interpreter::RunTable63)
+  else if (result == RunTable63)
     return s_interpreter_op_table63[inst.SUBOP10];
   else
     return result;

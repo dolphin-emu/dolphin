@@ -24,7 +24,7 @@ struct CaseInsensitiveStringCompare
   {
     return std::lexicographical_compare(
         a.begin(), a.end(), b.begin(), b.end(),
-        [](char lhs, char rhs) { return Common::ToLower(lhs) < Common::ToLower(rhs); });
+        [](char lhs, char rhs) { return ToLower(lhs) < ToLower(rhs); });
   }
 
   static bool IsEqual(std::string_view a, std::string_view b)
@@ -33,7 +33,7 @@ struct CaseInsensitiveStringCompare
       return false;
 
     return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char lhs, char rhs) {
-      return Common::ToLower(lhs) == Common::ToLower(rhs);
+      return ToLower(lhs) == ToLower(rhs);
     });
   }
 };

@@ -6,22 +6,22 @@
 namespace PowerPC
 {
 const std::array<u64, 16> ConditionRegister::s_crTable = {{
-    ConditionRegister::PPCToInternal(0x0),
-    ConditionRegister::PPCToInternal(0x1),
-    ConditionRegister::PPCToInternal(0x2),
-    ConditionRegister::PPCToInternal(0x3),
-    ConditionRegister::PPCToInternal(0x4),
-    ConditionRegister::PPCToInternal(0x5),
-    ConditionRegister::PPCToInternal(0x6),
-    ConditionRegister::PPCToInternal(0x7),
-    ConditionRegister::PPCToInternal(0x8),
-    ConditionRegister::PPCToInternal(0x9),
-    ConditionRegister::PPCToInternal(0xA),
-    ConditionRegister::PPCToInternal(0xB),
-    ConditionRegister::PPCToInternal(0xC),
-    ConditionRegister::PPCToInternal(0xD),
-    ConditionRegister::PPCToInternal(0xE),
-    ConditionRegister::PPCToInternal(0xF),
+    PPCToInternal(0x0),
+    PPCToInternal(0x1),
+    PPCToInternal(0x2),
+    PPCToInternal(0x3),
+    PPCToInternal(0x4),
+    PPCToInternal(0x5),
+    PPCToInternal(0x6),
+    PPCToInternal(0x7),
+    PPCToInternal(0x8),
+    PPCToInternal(0x9),
+    PPCToInternal(0xA),
+    PPCToInternal(0xB),
+    PPCToInternal(0xC),
+    PPCToInternal(0xD),
+    PPCToInternal(0xE),
+    PPCToInternal(0xF),
 }};
 
 u32 ConditionRegister::Get() const

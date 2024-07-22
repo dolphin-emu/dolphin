@@ -139,7 +139,7 @@ u32 WC24SendList::GetMailSize(u32 index) const
 ErrorCode WC24SendList::DeleteMessage(u32 index)
 {
   ASSERT(!IsDisabled());
-  ErrorCode error = NWC24::DeleteFileFromVFF(NWC24::Mail::SEND_BOX_PATH, GetMailPath(index), m_fs);
+  ErrorCode error = DeleteFileFromVFF(SEND_BOX_PATH, GetMailPath(index), m_fs);
   if (error != WC24_OK)
     return error;
 

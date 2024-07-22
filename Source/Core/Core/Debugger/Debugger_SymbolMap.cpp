@@ -59,7 +59,7 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
   auto& power_pc = system.GetPowerPC();
   const auto& ppc_state = power_pc.GetPPCState();
 
-  if (!Core::IsRunning(system) || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
+  if (!IsRunning(system) || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
     return false;
 
   if (LR(ppc_state) == 0)

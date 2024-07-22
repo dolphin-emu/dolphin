@@ -74,14 +74,14 @@ void MemoryManager::InitMMIO(bool is_wii)
 void MemoryManager::Init()
 {
   const auto get_mem1_size = [] {
-    if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
-      return Config::Get(Config::MAIN_MEM1_SIZE);
-    return Memory::MEM1_SIZE_RETAIL;
+    if (Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+      return Get(Config::MAIN_MEM1_SIZE);
+    return MEM1_SIZE_RETAIL;
   };
   const auto get_mem2_size = [] {
-    if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
-      return Config::Get(Config::MAIN_MEM2_SIZE);
-    return Memory::MEM2_SIZE_RETAIL;
+    if (Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+      return Get(Config::MAIN_MEM2_SIZE);
+    return MEM2_SIZE_RETAIL;
   };
   m_ram_size_real = get_mem1_size();
   m_ram_size = MathUtil::NextPowerOf2(GetRamSizeReal());

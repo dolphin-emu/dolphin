@@ -74,7 +74,7 @@ private:
   std::unique_ptr<UCodeInterface> m_ucode;
   std::unique_ptr<UCodeInterface> m_last_ucode;
 
-  DSP::UDSPControl m_dsp_control;
+  UDSPControl m_dsp_control;
   u64 m_control_reg_init_code_clear_time = 0;
   CMailHandler m_mail_handler;
 

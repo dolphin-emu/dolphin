@@ -10,7 +10,7 @@ namespace ResourcePack
 Manifest::Manifest(const std::string& json)
 {
   picojson::value out;
-  auto error = picojson::parse(out, json);
+  auto error = parse(out, json);
 
   if (!error.empty())
   {

@@ -370,7 +370,7 @@ void BluetoothEmuDevice::Update()
       {
         if (next_call[i] == WiimoteDevice::NextUpdateInputCall::None)
           continue;
-        serialized[i] = WiimoteEmu::SerializeDesiredState(wiimote_states[i]);
+        serialized[i] = SerializeDesiredState(wiimote_states[i]);
         batch[batch_count].state = &serialized[i];
         batch[batch_count].wiimote = static_cast<int>(i);
         ++batch_count;
@@ -378,13 +378,13 @@ void BluetoothEmuDevice::Update()
 
       if (batch_count > 0)
       {
-        NetPlay::NetPlay_GetWiimoteData(
+        NetPlay_GetWiimoteData(
             std::span<NetPlay::NetPlayClient::WiimoteDataBatchEntry>(batch.data(), batch_count));
 
         for (size_t i = 0; i < batch_count; ++i)
         {
           const int wiimote = batch[i].wiimote;
-          if (!WiimoteEmu::DeserializeDesiredState(&wiimote_states[wiimote], serialized[wiimote]))
+          if (!DeserializeDesiredState(&wiimote_states[wiimote], serialized[wiimote]))
             PanicAlertFmtT("Received invalid Wii Remote data from Netplay.");
         }
       }

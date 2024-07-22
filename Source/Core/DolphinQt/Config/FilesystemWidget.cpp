@@ -326,7 +326,7 @@ void FilesystemWidget::ExtractPartition(const DiscIO::Partition& partition, cons
 
 bool FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, const QString& out)
 {
-  return DiscIO::ExportSystemData(*m_volume, partition, out.toStdString());
+  return ExportSystemData(*m_volume, partition, out.toStdString());
 }
 
 void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, const QString& path,
@@ -349,7 +349,7 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   std::future<void> future = std::async(std::launch::async, [&] {
     int progress = 0;
 
-    DiscIO::ExportDirectory(
+    ExportDirectory(
         *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
         [all, &dialog, &progress](const std::string& current) {
           dialog.SetLabelText(
@@ -377,7 +377,7 @@ void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QSt
   if (!filesystem)
     return;
 
-  bool success = DiscIO::ExportFile(
+  bool success = ExportFile(
       *m_volume, partition, filesystem->FindFileInfo(path.toStdString()).get(), out.toStdString());
 
   if (success)

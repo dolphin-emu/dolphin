@@ -153,10 +153,10 @@ public:
   ExtensionPort& GetExtPort();
 
   // Vec3 is interpreted as radians/s about the x,y,z axes following the "right-hand rule".
-  static MotionPlus::DataFormat::Data GetGyroscopeData(const Common::Vec3& angular_velocity);
-  static MotionPlus::DataFormat::Data GetDefaultGyroscopeData();
+  static DataFormat::Data GetGyroscopeData(const Common::Vec3& angular_velocity);
+  static DataFormat::Data GetDefaultGyroscopeData();
 
-  void PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data);
+  void PrepareInput(const DataFormat::Data& gyroscope_data);
 
   // Pointer to 6 bytes is expected.
   static void ApplyPassthroughModifications(PassthroughMode, u8* data);

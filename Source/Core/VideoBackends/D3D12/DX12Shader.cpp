@@ -12,7 +12,7 @@
 namespace DX12
 {
 DXShader::DXShader(ShaderStage stage, BinaryData bytecode, std::string_view name)
-    : D3DCommon::Shader(stage, std::move(bytecode)), m_name(UTF8ToWString(name))
+    : Shader(stage, std::move(bytecode)), m_name(UTF8ToWString(name))
 {
 }
 

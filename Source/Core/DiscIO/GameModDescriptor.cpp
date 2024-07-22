@@ -23,7 +23,7 @@ static std::string MakeAbsolute(const std::string& directory, const std::string&
 
 std::optional<GameModDescriptor> ParseGameModDescriptorFile(const std::string& filename)
 {
-  ::File::IOFile f(filename, "rb");
+  File::IOFile f(filename, "rb");
   if (!f)
     return std::nullopt;
 
@@ -102,7 +102,7 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
 
   picojson::value json_root;
   std::string err;
-  picojson::parse(json_root, json.begin(), json.end(), &err);
+  parse(json_root, json.begin(), json.end(), &err);
   if (!err.empty())
     return std::nullopt;
   if (!json_root.is<picojson::object>())
@@ -212,7 +212,7 @@ bool WriteGameModDescriptorFile(const std::string& filename, const GameModDescri
   if (json.empty())
     return false;
 
-  ::File::IOFile f(filename, "wb");
+  File::IOFile f(filename, "wb");
   if (!f)
     return false;
 

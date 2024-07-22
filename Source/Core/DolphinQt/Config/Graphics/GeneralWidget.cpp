@@ -38,13 +38,13 @@ GeneralWidget::GeneralWidget(GraphicsWindow* parent)
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
-  emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
+  OnEmulationStateChanged(GetState(Core::System::GetInstance()) !=
                           Core::State::Uninitialized);
 }
 
@@ -153,8 +153,8 @@ void GeneralWidget::ConnectWidgets()
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &GeneralWidget::SaveSettings);
   connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](int index) {
     g_Config.iAdapter = index;
-    Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
-    emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+    SetBaseOrCurrent(Config::GFX_ADAPTER, index);
+    emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
   });
   connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
     const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
@@ -171,11 +171,11 @@ void GeneralWidget::LoadSettings()
 {
   // Video Backend
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
-      QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
+      QVariant(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)))));
 
   const bool is_custom_aspect_ratio =
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
-      (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
+      (Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom) ||
+      (Get(Config::GFX_ASPECT_RATIO) == AspectMode::CustomStretch);
   m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
   m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
@@ -187,10 +187,10 @@ void GeneralWidget::SaveSettings()
 {
   // Video Backend
   const auto current_backend = m_backend_combo->currentData().toString().toStdString();
-  if (Config::Get(Config::MAIN_GFX_BACKEND) == current_backend)
+  if (Get(Config::MAIN_GFX_BACKEND) == current_backend)
     return;
 
-  if (Config::GetActiveLayerForConfig(Config::MAIN_GFX_BACKEND) == Config::LayerType::Base)
+  if (GetActiveLayerForConfig(Config::MAIN_GFX_BACKEND) == Config::LayerType::Base)
   {
     auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
                               ->GetWarningMessage();
@@ -207,13 +207,13 @@ void GeneralWidget::SaveSettings()
       if (confirm_sw.exec() != QMessageBox::Yes)
       {
         m_backend_combo->setCurrentIndex(m_backend_combo->findData(
-            QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
+            QVariant(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)))));
         return;
       }
     }
   }
 
-  Config::SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, current_backend);
+  SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, current_backend);
   emit BackendChanged(QString::fromStdString(current_backend));
 }
 
@@ -227,8 +227,8 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   m_adapter_combo->setEnabled(!running && supports_adapters);
 
   std::string current_backend = m_backend_combo->currentData().toString().toStdString();
-  if (Config::Get(Config::MAIN_GFX_BACKEND) != current_backend)
-    emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  if (Get(Config::MAIN_GFX_BACKEND) != current_backend)
+    emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 }
 
 void GeneralWidget::AddDescriptions()
@@ -361,7 +361,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   const bool supports_adapters = !adapters.empty();
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning(Core::System::GetInstance()));
+  m_adapter_combo->setEnabled(supports_adapters && !IsRunning(Core::System::GetInstance()));
 
   static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"

@@ -230,7 +230,7 @@ Signature Sign(const u8* key, const u8* hash)
   do
   {
     // Generate 240 bits and keep 233.
-    Common::Random::Generate(m, sizeof(m));
+    Random::Generate(m, sizeof(m));
     m[0] &= 1;
   } while (bn_compare(m, ec_N, sizeof(m)) >= 0);
 

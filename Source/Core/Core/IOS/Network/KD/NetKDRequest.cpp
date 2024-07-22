@@ -686,7 +686,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   }
 
   if (std::optional<std::string> patch =
-          WC24PatchEngine::GetNetworkPatch(parts[2], WC24PatchEngine::IsKD{true}))
+          GetNetworkPatch(parts[2], WC24PatchEngine::IsKD{true}))
   {
     const size_t index = url.find(parts[2]);
     url.replace(index, parts[2].size(), patch.value());
@@ -761,7 +761,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     }
   }
 
-  NWC24::ErrorCode reply = IOS::HLE::NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index),
+  NWC24::ErrorCode reply = NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index),
                                                        content_name, m_ios.GetFS(), file_data);
 
   if (reply != NWC24::WC24_OK)
@@ -875,7 +875,7 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   return IPCReply(IPC_SUCCESS);
 }
 
-IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRequest& request)
+IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOCtlRequest& request)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();

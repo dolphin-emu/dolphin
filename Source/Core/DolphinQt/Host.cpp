@@ -60,7 +60,7 @@ Host* Host::GetInstance()
 
 void Host::SetRenderHandle(void* handle)
 {
-  m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
+  m_render_to_main = Get(Config::MAIN_RENDER_TO_MAIN);
 
   if (m_render_handle == handle)
     return;
@@ -104,7 +104,7 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     // the CPU and GPU threads are the same thread, and we already checked for the GPU thread.)
 
     auto& system = Core::System::GetInstance();
-    const bool was_running = Core::GetState(system) == Core::State::Running;
+    const bool was_running = GetState(system) == Core::State::Running;
     auto& fifo = system.GetFifo();
     fifo.PauseAndLock(true, was_running);
     f();
@@ -142,7 +142,7 @@ void Host::SetRenderFocus(bool focus)
   if (g_gfx && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
   {
     RunWithGPUThreadInactive([focus] {
-      if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
+      if (!Get(Config::MAIN_RENDER_TO_MAIN))
         g_gfx->SetFullscreen(focus);
     });
   }

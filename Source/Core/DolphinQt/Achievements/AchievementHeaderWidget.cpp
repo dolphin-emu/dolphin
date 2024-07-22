@@ -69,7 +69,7 @@ void AchievementHeaderWidget::UpdateData()
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   auto& instance = AchievementManager::GetInstance();
-  if (!Config::Get(Config::RA_ENABLED) || !instance.HasAPIToken())
+  if (!Get(Config::RA_ENABLED) || !instance.HasAPIToken())
   {
     m_header_box->setVisible(false);
     return;

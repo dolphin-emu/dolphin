@@ -250,7 +250,7 @@ void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp
   int X = !(indexReg & 8);
   int B = !(offsetOrBaseReg & 8);
 
-  int vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
+  int vvvv = (regOp2 == INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
 
   // do we need any VEX fields that only appear in the three-byte form?
   if (X == 1 && B == 1 && W == 0 && mmmmm == 1)

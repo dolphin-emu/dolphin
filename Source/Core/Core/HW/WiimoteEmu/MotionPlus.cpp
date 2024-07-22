@@ -280,14 +280,14 @@ int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
         {
           // Preparing y0 on the real M+ is almost instant (30ms maybe).
           constexpr int PREPARE_Y0_MS = 30;
-          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y0_MS / 1000;
+          m_progress_timer = Wiimote::UPDATE_FREQ * PREPARE_Y0_MS / 1000;
         }
         else
         {
           // A real M+ takes about 1200ms to prepare y1.
           // Games seem to not care that we don't take that long.
           constexpr int PREPARE_Y1_MS = 500;
-          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y1_MS / 1000;
+          m_progress_timer = Wiimote::UPDATE_FREQ * PREPARE_Y1_MS / 1000;
         }
 
         // Games give the M+ a bit of time to compute the value.
@@ -355,7 +355,7 @@ void MotionPlus::Activate()
   // M+ takes a bit of time to activate. During which it is completely unresponsive.
   // This also affects the device detect pin which results in wiimote status reports.
   constexpr int ACTIVATION_MS = 20;
-  m_progress_timer = ::Wiimote::UPDATE_FREQ * ACTIVATION_MS / 1000;
+  m_progress_timer = Wiimote::UPDATE_FREQ * ACTIVATION_MS / 1000;
 }
 
 void MotionPlus::Deactivate()
@@ -367,7 +367,7 @@ void MotionPlus::Deactivate()
   // M+ takes a bit of time to deactivate. During which it is completely unresponsive.
   // This also affects the device detect pin which results in wiimote status reports.
   constexpr int DEACTIVATION_MS = 20;
-  m_progress_timer = ::Wiimote::UPDATE_FREQ * DEACTIVATION_MS / 1000;
+  m_progress_timer = Wiimote::UPDATE_FREQ * DEACTIVATION_MS / 1000;
 }
 
 bool MotionPlus::ReadDeviceDetectPin() const
@@ -410,7 +410,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
     // So we must use at least a small delay.
     // Note: This does not delay game start. The challenge takes place in the background.
     constexpr int PREPARE_X_MS = 500;
-    m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_X_MS / 1000;
+    m_progress_timer = Wiimote::UPDATE_FREQ * PREPARE_X_MS / 1000;
   }
 
   if (ActivationStatus::Active != GetActivationStatus())
@@ -549,23 +549,23 @@ MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& an
   const u16 clamped_pitch_value =
       u16(std::llround(std::clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE)));
 
-  return MotionPlus::DataFormat::Data{
-      MotionPlus::DataFormat::GyroRawValue{MotionPlus::DataFormat::GyroType(
+  return DataFormat::Data{
+      DataFormat::GyroRawValue{DataFormat::GyroType(
           clamped_pitch_value, clamped_roll_value, clamped_yaw_value)},
-      MotionPlus::DataFormat::SlowType(pitch_slow, roll_slow, yaw_slow)};
+      DataFormat::SlowType(pitch_slow, roll_slow, yaw_slow)};
 }
 
 MotionPlus::DataFormat::Data MotionPlus::GetDefaultGyroscopeData()
 {
-  return MotionPlus::DataFormat::Data{
-      MotionPlus::DataFormat::GyroRawValue{
-          MotionPlus::DataFormat::GyroType(u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE))},
-      MotionPlus::DataFormat::SlowType(true, true, true)};
+  return DataFormat::Data{
+      DataFormat::GyroRawValue{
+          DataFormat::GyroType(u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE))},
+      DataFormat::SlowType(true, true, true)};
 }
 
 // This is something that is triggered by a read of 0x00 on real hardware.
 // But we do it here for determinism reasons.
-void MotionPlus::PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data)
+void MotionPlus::PrepareInput(const DataFormat::Data& gyroscope_data)
 {
   if (GetActivationStatus() != ActivationStatus::Active)
     return;

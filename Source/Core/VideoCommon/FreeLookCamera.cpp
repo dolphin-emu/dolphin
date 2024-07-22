@@ -121,7 +121,7 @@ public:
 
   void Rotate(const Common::Quaternion& quat) override
   {
-    Rotate(Common::FromQuaternionToEuler(quat));
+    Rotate(FromQuaternionToEuler(quat));
   }
 
   void Reset() override
@@ -179,7 +179,7 @@ public:
 
   void Rotate(const Common::Quaternion& quat) override
   {
-    Rotate(Common::FromQuaternionToEuler(quat));
+    Rotate(FromQuaternionToEuler(quat));
   }
 
   void Reset() override

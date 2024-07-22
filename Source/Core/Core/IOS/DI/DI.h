@@ -119,8 +119,8 @@ private:
     bool m_copy_diimmbuf = false;
   };
 
-  friend class ::CBoot;
-  friend void ::IOS::HLE::Init(Core::System&);
+  friend class CBoot;
+  friend void HLE::Init(Core::System&);
 
   void ProcessQueuedIOCtl();
   std::optional<DIResult> StartIOCtl(const IOCtlRequest& request);

@@ -46,10 +46,10 @@ WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(pa
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          [this] { LoadSettings(Core::GetState(Core::System::GetInstance())); });
+          [this] { LoadSettings(GetState(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this](Core::State state) { LoadSettings(state); });
-  LoadSettings(Core::GetState(Core::System::GetInstance()));
+  LoadSettings(GetState(Core::System::GetInstance()));
 }
 
 void WiimoteControllersWidget::UpdateBluetoothAvailableStatus()
@@ -173,16 +173,16 @@ void WiimoteControllersWidget::ConnectWidgets()
 {
   connect(m_wiimote_passthrough, &QRadioButton::toggled, this, [this] {
     SaveSettings();
-    LoadSettings(Core::GetState(Core::System::GetInstance()));
+    LoadSettings(GetState(Core::System::GetInstance()));
   });
   connect(m_wiimote_ciface, &QCheckBox::toggled, this, [this] {
     SaveSettings();
-    LoadSettings(Core::GetState(Core::System::GetInstance()));
+    LoadSettings(GetState(Core::System::GetInstance()));
     WiimoteReal::HandleWiimotesInControllerInterfaceSettingChange();
   });
   connect(m_wiimote_continuous_scanning, &QCheckBox::toggled, this, [this] {
     SaveSettings();
-    LoadSettings(Core::GetState(Core::System::GetInstance()));
+    LoadSettings(GetState(Core::System::GetInstance()));
   });
 
   connect(m_wiimote_real_balance_board, &QCheckBox::toggled, this,
@@ -200,7 +200,7 @@ void WiimoteControllersWidget::ConnectWidgets()
   {
     connect(m_wiimote_boxes[i], &QComboBox::currentIndexChanged, this, [this] {
       SaveSettings();
-      LoadSettings(Core::GetState(Core::System::GetInstance()));
+      LoadSettings(GetState(Core::System::GetInstance()));
     });
     connect(m_wiimote_buttons[i], &QPushButton::clicked, this,
             [this, i] { OnWiimoteConfigure(i); });
@@ -272,24 +272,24 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     SignalBlocking(m_wiimote_boxes[i])
-        ->setCurrentIndex(int(Config::Get(Config::GetInfoForWiimoteSource(int(i)))));
+        ->setCurrentIndex(int(Get(Config::GetInfoForWiimoteSource(int(i)))));
   }
   SignalBlocking(m_wiimote_real_balance_board)
-      ->setChecked(Config::Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real);
+      ->setChecked(Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real);
   SignalBlocking(m_wiimote_speaker_data)
-      ->setChecked(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
+      ->setChecked(Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
   SignalBlocking(m_wiimote_ciface)
-      ->setChecked(Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE));
+      ->setChecked(Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE));
   SignalBlocking(m_wiimote_continuous_scanning)
-      ->setChecked(Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING));
+      ->setChecked(Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING));
 
-  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
+  if (Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     SignalBlocking(m_wiimote_passthrough)->setChecked(true);
   else
     SignalBlocking(m_wiimote_emu)->setChecked(true);
 
   // Make sure continuous scanning setting is applied.
-  WiimoteReal::Initialize(::Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  WiimoteReal::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
 
   const bool running = state != Core::State::Uninitialized;
 
@@ -333,23 +333,23 @@ void WiimoteControllersWidget::SaveSettings()
 {
   {
     Config::ConfigChangeCallbackGuard config_guard;
-    Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_ENABLE_SPEAKER,
+    SetBaseOrCurrent(Config::MAIN_WIIMOTE_ENABLE_SPEAKER,
                              m_wiimote_speaker_data->isChecked());
-    Config::SetBaseOrCurrent(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE,
+    SetBaseOrCurrent(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE,
                              m_wiimote_ciface->isChecked());
-    Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING,
+    SetBaseOrCurrent(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING,
                              m_wiimote_continuous_scanning->isChecked());
-    Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED,
+    SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED,
                              m_wiimote_passthrough->isChecked());
 
     const WiimoteSource bb_source =
         m_wiimote_real_balance_board->isChecked() ? WiimoteSource::Real : WiimoteSource::None;
-    Config::SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
+    SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
 
     for (size_t i = 0; i < m_wiimote_groups.size(); i++)
     {
       const int index = m_wiimote_boxes[i]->currentIndex();
-      Config::SetBaseOrCurrent(Config::GetInfoForWiimoteSource(int(i)), WiimoteSource(index));
+      SetBaseOrCurrent(Config::GetInfoForWiimoteSource(int(i)), WiimoteSource(index));
     }
   }
 

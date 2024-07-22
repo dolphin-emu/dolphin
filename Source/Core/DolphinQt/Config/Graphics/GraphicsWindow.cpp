@@ -31,7 +31,7 @@ GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent), m_main_win
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  OnBackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 }
 
 void GraphicsWindow::CreateMainLayout()

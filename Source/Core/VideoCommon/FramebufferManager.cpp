@@ -134,7 +134,7 @@ AbstractTextureFormat FramebufferManager::GetEFBDepthFormat()
   // 32-bit depth clears are broken in the Adreno Vulkan driver, and have no effect.
   // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
   // We still resolve this to a R32F texture, as there is no 24-bit format.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_D32F_CLEAR))
+  if (HasBug(DriverDetails::BUG_BROKEN_D32F_CLEAR))
     return AbstractTextureFormat::D24_S8;
   else
     return AbstractTextureFormat::D32F;
@@ -1104,7 +1104,7 @@ void FramebufferManager::DoState(PointerWrap& p)
   FlushEFBPokes();
   p.Do(m_prev_efb_format);
 
-  bool save_efb_state = Config::Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
+  bool save_efb_state = Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
   p.Do(save_efb_state);
   if (!save_efb_state)
     return;

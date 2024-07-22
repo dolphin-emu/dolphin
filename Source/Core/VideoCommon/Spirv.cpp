@@ -139,7 +139,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
     options.stripDebugInfo = true;
   }
 
-  glslang::GlslangToSpv(*intermediate, out_code, &logger, &options);
+  GlslangToSpv(*intermediate, out_code, &logger, &options);
 
   // Write out messages
   // Temporary: skip if it contains "Warning, version 450 is not yet complete; most version-specific

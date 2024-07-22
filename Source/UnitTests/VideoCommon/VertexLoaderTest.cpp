@@ -111,7 +111,7 @@ protected:
 
 class VertexLoaderParamTest
     : public VertexLoaderTest,
-      public ::testing::WithParamInterface<
+      public testing::WithParamInterface<
           std::tuple<VertexComponentFormat, ComponentFormat, CoordComponentCount, int>>
 {
 };
@@ -266,7 +266,7 @@ TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
 }
 
 class VertexLoaderSpeedTest : public VertexLoaderTest,
-                              public ::testing::WithParamInterface<std::tuple<ComponentFormat, int>>
+                              public testing::WithParamInterface<std::tuple<ComponentFormat, int>>
 {
 };
 INSTANTIATE_TEST_SUITE_P(
@@ -543,7 +543,7 @@ TEST_F(VertexLoaderTest, DirectAllComponents)
 
 class VertexLoaderNormalTest
     : public VertexLoaderTest,
-      public ::testing::WithParamInterface<
+      public testing::WithParamInterface<
           std::tuple<VertexComponentFormat, ComponentFormat, NormalComponentCount, bool>>
 {
 };
@@ -774,7 +774,7 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
 }
 
 class VertexLoaderSkippedColorsTest : public VertexLoaderTest,
-                                      public ::testing::WithParamInterface<std::tuple<bool, bool>>
+                                      public testing::WithParamInterface<std::tuple<bool, bool>>
 {
 };
 INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedColorsTest,
@@ -886,7 +886,7 @@ TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
 }
 
 class VertexLoaderSkippedTexCoordsTest : public VertexLoaderTest,
-                                         public ::testing::WithParamInterface<u32>
+                                         public testing::WithParamInterface<u32>
 {
 public:
   static constexpr u32 NUM_COMPONENTS_TO_TEST = 3;

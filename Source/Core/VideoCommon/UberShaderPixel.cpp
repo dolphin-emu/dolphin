@@ -302,7 +302,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   if (host_config.backend_shader_framebuffer_fetch || !host_config.backend_dual_source_blend)
     uid_data->no_dual_src = 1;
   // Dual source is always enabled in the shader if this bug is not present
-  else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
+  else if (!HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
     uid_data->no_dual_src = 0;
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
@@ -1390,7 +1390,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("  // Alpha Test\n");
 
-  if (early_depth && DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+  if (early_depth && HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
   {
     // Instead of using discard, fetch the framebuffer's color value and use it as the output
     // for this fragment.

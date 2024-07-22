@@ -61,7 +61,7 @@ std::optional<bool> WidescreenManager::GetWidescreenOverride() const
 
   auto& system = Core::System::GetInstance();
   if (system.IsWii())
-    is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
+    is_game_widescreen = Get(Config::SYSCONF_WIDESCREEN);
 
   // suggested_aspect_mode overrides SYSCONF_WIDESCREEN
   if (g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceStandard)

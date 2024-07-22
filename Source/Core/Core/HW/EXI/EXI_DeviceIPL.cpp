@@ -106,7 +106,7 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
 
   // Load whole ROM dump
   // Note: The Wii doesn't have a copy of the IPL, only fonts.
-  if (!system.IsWii() && Config::Get(Config::SESSION_LOAD_IPL_DUMP) &&
+  if (!system.IsWii() && Get(Config::SESSION_LOAD_IPL_DUMP) &&
       LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
   {
     // Descramble the encrypted section (contains BS1 and BS2)
@@ -121,7 +121,7 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
     // If we are in Wii mode or if loading the GC IPL fails, we should still try to load fonts.
 
     // Copy header
-    if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))
+    if (IsNTSC(SConfig::GetInstance().m_region))
       memcpy(&m_rom[0], iplverNTSC, sizeof(iplverNTSC));
     else
       memcpy(&m_rom[0], iplverPAL, sizeof(iplverPAL));
@@ -138,7 +138,7 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
 
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
-  sram.settings.language = Config::Get(Config::MAIN_GC_LANGUAGE);
+  sram.settings.language = Get(Config::MAIN_GC_LANGUAGE);
   sram.settings.rtc_bias = 0;
   FixSRAMChecksums(&sram);
 }
@@ -207,7 +207,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   // in some titles. This function check if the user has IPL dumps available and load the fonts
   // from those dumps instead of loading the bundled fonts
 
-  if (!Config::Get(Config::SESSION_LOAD_IPL_DUMP))
+  if (!Get(Config::SESSION_LOAD_IPL_DUMP))
   {
     // IPL loading disabled, load bundled font instead
     LoadFileToIPL(filename, offset);

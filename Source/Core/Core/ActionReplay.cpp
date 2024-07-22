@@ -255,7 +255,7 @@ void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes)
   std::vector<std::string> enabled_lines;
   std::vector<std::string> disabled_lines;
 
-  for (const ActionReplay::ARCode& code : codes)
+  for (const ARCode& code : codes)
   {
     if (code.enabled != code.default_enabled)
       (code.enabled ? enabled_lines : disabled_lines).emplace_back('$' + code.name);
@@ -263,7 +263,7 @@ void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes)
     if (code.user_defined)
     {
       lines.emplace_back('$' + code.name);
-      for (const ActionReplay::AREntry& op : code.ops)
+      for (const AREntry& op : code.ops)
       {
         lines.emplace_back(SerializeLine(op));
       }

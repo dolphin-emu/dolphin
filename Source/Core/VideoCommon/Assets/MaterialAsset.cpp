@@ -147,7 +147,7 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
 {
   for (const auto& value_data : values_data)
   {
-    VideoCommon::MaterialProperty property;
+    MaterialProperty property;
     if (!value_data.is<picojson::object>())
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse the json, value is not the right json type",

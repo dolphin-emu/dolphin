@@ -496,7 +496,7 @@ void MemoryWidget::SetAddress(u32 address)
   if (good)
   {
     AddressSpace::Accessors* accessors =
-        AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+        GetAccessors(m_memory_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_system);
     good = accessors->IsValidAddress(guard, current_addr);
@@ -629,7 +629,7 @@ QByteArray MemoryWidget::GetInputData() const
 
 void MemoryWidget::OnSetValue()
 {
-  if (!Core::IsRunning(m_system))
+  if (!IsRunning(m_system))
     return;
 
   auto target_addr = GetTargetAddress();
@@ -657,7 +657,7 @@ void MemoryWidget::OnSetValue()
 
   const Core::CPUThreadGuard guard(m_system);
 
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+  AddressSpace::Accessors* accessors = GetAccessors(m_memory_view->GetAddressSpace());
   u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
 
   if (!accessors->IsValidAddress(guard, target_addr.address) ||
@@ -675,7 +675,7 @@ void MemoryWidget::OnSetValue()
 
 void MemoryWidget::OnSetValueFromFile()
 {
-  if (!Core::IsRunning(m_system))
+  if (!IsRunning(m_system))
     return;
 
   auto target_addr = GetTargetAddress();
@@ -715,7 +715,7 @@ void MemoryWidget::OnSetValueFromFile()
     return;
   }
 
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+  AddressSpace::Accessors* accessors = GetAccessors(m_memory_view->GetAddressSpace());
 
   const Core::CPUThreadGuard guard(m_system);
 
@@ -750,28 +750,28 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 
 void MemoryWidget::OnDumpMRAM()
 {
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Mem1);
+  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Mem1);
   DumpArray(File::GetUserPath(F_MEM1DUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpExRAM()
 {
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Mem2);
+  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Mem2);
   DumpArray(File::GetUserPath(F_MEM2DUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpARAM()
 {
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Auxiliary);
+  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Auxiliary);
   DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpFakeVMEM()
 {
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Fake);
+  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Fake);
   DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
@@ -833,7 +833,7 @@ void MemoryWidget::FindValue(bool next)
 
   const std::optional<u32> found_addr = [&] {
     AddressSpace::Accessors* accessors =
-        AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+        GetAccessors(m_memory_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_system);
     return accessors->Search(guard, target_addr.address,

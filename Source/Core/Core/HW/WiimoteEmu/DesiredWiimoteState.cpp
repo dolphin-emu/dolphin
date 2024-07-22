@@ -164,7 +164,7 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
   const u8 has_motion_plus = (d[0] >> 3) & 1;
   const u8 extension = (d[0] >> 4);
 
-  if (extension >= ExtensionNumber::MAX)
+  if (extension >= MAX)
   {
     // invalid extension
     return false;
@@ -184,33 +184,33 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
       s += 6;
     switch (extension)
     {
-    case ExtensionNumber::NONE:
+    case NONE:
       break;
-    case ExtensionNumber::NUNCHUK:
+    case NUNCHUK:
       s += sizeof(Nunchuk::DataFormat);
       break;
-    case ExtensionNumber::CLASSIC:
+    case CLASSIC:
       s += sizeof(Classic::DataFormat);
       break;
-    case ExtensionNumber::GUITAR:
+    case GUITAR:
       s += sizeof(Guitar::DataFormat);
       break;
-    case ExtensionNumber::DRUMS:
+    case DRUMS:
       s += sizeof(Drums::DesiredState);
       break;
-    case ExtensionNumber::TURNTABLE:
+    case TURNTABLE:
       s += sizeof(Turntable::DataFormat);
       break;
-    case ExtensionNumber::UDRAW_TABLET:
+    case UDRAW_TABLET:
       s += sizeof(UDrawTablet::DataFormat);
       break;
-    case ExtensionNumber::DRAWSOME_TABLET:
+    case DRAWSOME_TABLET:
       s += sizeof(DrawsomeTablet::DataFormat);
       break;
-    case ExtensionNumber::TATACON:
+    case TATACON:
       s += sizeof(TaTaCon::DataFormat);
       break;
-    case ExtensionNumber::SHINKANSEN:
+    case SHINKANSEN:
       s += sizeof(Shinkansen::DesiredState);
       break;
     default:
@@ -299,25 +299,25 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
 
   switch (extension)
   {
-  case ExtensionNumber::NONE:
+  case NONE:
     return true;
-  case ExtensionNumber::NUNCHUK:
+  case NUNCHUK:
     return DeserializeExtensionState<Nunchuk::DataFormat>(state, serialized, pos);
-  case ExtensionNumber::CLASSIC:
+  case CLASSIC:
     return DeserializeExtensionState<Classic::DataFormat>(state, serialized, pos);
-  case ExtensionNumber::GUITAR:
+  case GUITAR:
     return DeserializeExtensionState<Guitar::DataFormat>(state, serialized, pos);
-  case ExtensionNumber::DRUMS:
+  case DRUMS:
     return DeserializeExtensionState<Drums::DesiredState>(state, serialized, pos);
-  case ExtensionNumber::TURNTABLE:
+  case TURNTABLE:
     return DeserializeExtensionState<Turntable::DataFormat>(state, serialized, pos);
-  case ExtensionNumber::UDRAW_TABLET:
+  case UDRAW_TABLET:
     return DeserializeExtensionState<UDrawTablet::DataFormat>(state, serialized, pos);
-  case ExtensionNumber::DRAWSOME_TABLET:
+  case DRAWSOME_TABLET:
     return DeserializeExtensionState<DrawsomeTablet::DataFormat>(state, serialized, pos);
-  case ExtensionNumber::TATACON:
+  case TATACON:
     return DeserializeExtensionState<TaTaCon::DataFormat>(state, serialized, pos);
-  case ExtensionNumber::SHINKANSEN:
+  case SHINKANSEN:
     return DeserializeExtensionState<Shinkansen::DesiredState>(state, serialized, pos);
   default:
     break;

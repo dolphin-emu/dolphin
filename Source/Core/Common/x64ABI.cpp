@@ -96,8 +96,8 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignmen
     POP(RBP);
 }
 
-void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1, Gen::X64Reg dst2,
-                      Gen::X64Reg src2)
+void XEmitter::MOVTwo(int bits, X64Reg dst1, X64Reg src1, s32 offset1, X64Reg dst2,
+                      X64Reg src2)
 {
   if (dst1 == src2 && dst2 == src1)
   {

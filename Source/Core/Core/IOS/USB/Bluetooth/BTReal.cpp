@@ -40,8 +40,8 @@ constexpr u8 REQUEST_TYPE = static_cast<u8>(LIBUSB_ENDPOINT_OUT) |
 
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
-  const int vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
-  const int pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
+  const int vid = Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
+  const int pid = Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
   if (vid == -1 || pid == -1)
     return true;
   return descriptor.idVendor == vid && descriptor.idProduct == pid;
@@ -51,8 +51,8 @@ static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
 {
   constexpr u8 SUBCLASS = 0x01;
   constexpr u8 PROTOCOL_BLUETOOTH = 0x01;
-  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID) != -1 &&
-      Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID) != -1)
+  if (Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID) != -1 &&
+      Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID) != -1)
   {
     return true;
   }
@@ -177,7 +177,7 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
           "The emulated console will now stop.",
           m_last_open_error);
     }
-    Core::QueueHostJob(&Core::Stop);
+    QueueHostJob(&Core::Stop);
     return IPCReply(IPC_ENOENT);
   }
 
@@ -577,7 +577,7 @@ void BluetoothRealDevice::FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl)
 
 void BluetoothRealDevice::LoadLinkKeys()
 {
-  std::string entries = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS);
+  std::string entries = Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS);
   if (entries.empty())
     return;
   for (const auto& pair : SplitString(entries, ','))
@@ -634,7 +634,7 @@ void BluetoothRealDevice::SaveLinkKeys()
   std::string config_string = oss.str();
   if (!config_string.empty())
     config_string.pop_back();
-  Config::SetBase(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS, config_string);
+  SetBase(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS, config_string);
 }
 
 bool BluetoothRealDevice::OpenDevice(libusb_device* device)

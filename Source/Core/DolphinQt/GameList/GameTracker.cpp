@@ -244,7 +244,7 @@ void GameTracker::AddDirectoryInternal(const QString& dir)
 static std::unique_ptr<QDirIterator> GetIterator(const QString& dir)
 {
   return std::make_unique<QDirIterator>(dir, game_filters, QDir::NoFilter,
-                                        Config::Get(Config::MAIN_RECURSIVE_ISO_PATHS) ?
+                                        Get(Config::MAIN_RECURSIVE_ISO_PATHS) ?
                                             QDirIterator::Subdirectories :
                                             QDirIterator::NoIteratorFlags);
 }

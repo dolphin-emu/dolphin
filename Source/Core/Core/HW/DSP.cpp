@@ -444,7 +444,7 @@ void DSPManager::UpdateAudioDMA()
       m_audio_dma.current_source_address = m_audio_dma.SourceAddress;
       m_audio_dma.remaining_blocks_count = m_audio_dma.AudioDMAControl.NumBlocks;
 
-      GenerateDSPInterrupt(DSP::INT_AID, 0);
+      GenerateDSPInterrupt(INT_AID, 0);
     }
   }
   else

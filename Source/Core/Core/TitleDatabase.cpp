@@ -97,7 +97,7 @@ const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
   if (it != m_user_title_map.end())
     return it->second;
 
-  if (!Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE))
+  if (!Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE))
     return EMPTY_STRING;
 
   const Map& map = *m_title_maps.at(language);

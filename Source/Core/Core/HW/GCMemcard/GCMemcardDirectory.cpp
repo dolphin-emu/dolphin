@@ -148,7 +148,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
 
     const auto same_identity_save_it = std::find_if(
         loaded_saves.begin(), loaded_saves.end(), [&gci](const Memcard::DEntry& entry) {
-          return Memcard::HasSameIdentity(gci.m_gci_header, entry);
+          return HasSameIdentity(gci.m_gci_header, entry);
         });
     if (same_identity_save_it != loaded_saves.end())
       continue;
@@ -189,7 +189,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionIn
     File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
   }
 
-  const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
+  const bool current_game_only = Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
   std::vector<std::string> filenames = Common::DoFileSearch({m_save_directory}, {".gci"});
 
   // split up into files for current games we should definitely load,
@@ -261,7 +261,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionIn
 
 void GCMemcardDirectory::FlushThread()
 {
-  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
+  if (!Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
     return;
   }
@@ -748,8 +748,8 @@ void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterfac
           continue;
 
         std::string filepath =
-            directory_name + DIR_SEP + Memcard::GenerateFilename(savefile->dir_entry) + ".gci";
-        Memcard::WriteSavefile(filepath, *savefile, Memcard::SavefileFormat::GCI);
+            directory_name + DIR_SEP + GenerateFilename(savefile->dir_entry) + ".gci";
+        WriteSavefile(filepath, *savefile, Memcard::SavefileFormat::GCI);
       }
     }
   }

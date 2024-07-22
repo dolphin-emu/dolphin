@@ -266,10 +266,10 @@ void SystemTimersManager::Init()
 
   Common::Timer::IncreaseResolution();
   // store and convert localtime at boot to timebase ticks
-  if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
+  if (Get(Config::MAIN_CUSTOM_RTC_ENABLE))
   {
     m_localtime_rtc_offset =
-        Common::Timer::GetLocalTimeSinceJan1970() - Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
+        Common::Timer::GetLocalTimeSinceJan1970() - Get(Config::MAIN_CUSTOM_RTC_VALUE);
   }
 
   auto& core_timing = m_system.GetCoreTiming();

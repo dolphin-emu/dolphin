@@ -150,7 +150,7 @@ void Jit64::SetCRFieldBit(int field, int bit)
   MOV(64, CROffset(field), R(RSCRATCH));
 }
 
-void Jit64::FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg)
+void Jit64::FixGTBeforeSettingCRFieldBit(X64Reg reg)
 {
   // GT is considered unset if the internal representation is <= 0, or in other words,
   // if the internal representation either has bit 63 set or has all bits set to zero.

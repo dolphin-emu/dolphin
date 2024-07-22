@@ -57,7 +57,7 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
 
 static QString GetCurrentThemeDir()
 {
-  return QString::fromStdString(File::GetThemeDir(Config::Get(Config::MAIN_THEME_NAME)));
+  return QString::fromStdString(File::GetThemeDir(Get(Config::MAIN_THEME_NAME)));
 }
 
 static QString GetResourcesDir()

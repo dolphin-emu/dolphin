@@ -156,7 +156,7 @@ Manifest::Hash ComputeHash(const std::string& contents)
 
 bool VerifySignature(const std::string& data, const std::string& b64_signature)
 {
-  u8 signature[64];  // ed25519 sig size.
+  u8 signature[64]; // ed25519 sig size.
   size_t sig_size;
 
   if (mbedtls_base64_decode(signature, sizeof(signature), &sig_size,
@@ -580,8 +580,8 @@ std::optional<Manifest> FetchAndParseManifest(const std::string& url)
     return {};
   }
 
-  std::string signature_block = decompressed.substr(boundary + 2);  // 2 for "\n\n".
-  decompressed.resize(boundary + 1);                                // 1 to keep the final "\n".
+  std::string signature_block = decompressed.substr(boundary + 2); // 2 for "\n\n".
+  decompressed.resize(boundary + 1);                               // 1 to keep the final "\n".
 
   std::vector<std::string> signatures = SplitString(signature_block, '\n');
   bool found_valid_signature = false;
@@ -621,35 +621,35 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
       OptionParser().prog("Dolphin Updater").description("Dolphin Updater binary");
 
   parser.add_option("--this-manifest-url")
-      .dest("this-manifest-url")
-      .help("URL to the update manifest for the currently installed version.")
-      .metavar("URL");
+        .dest("this-manifest-url")
+        .help("URL to the update manifest for the currently installed version.")
+        .metavar("URL");
   parser.add_option("--next-manifest-url")
-      .dest("next-manifest-url")
-      .help("URL to the update manifest for the to-be-installed version.")
-      .metavar("URL");
+        .dest("next-manifest-url")
+        .help("URL to the update manifest for the to-be-installed version.")
+        .metavar("URL");
   parser.add_option("--content-store-url")
-      .dest("content-store-url")
-      .help("Base URL of the content store where files to download are stored.")
-      .metavar("URL");
+        .dest("content-store-url")
+        .help("Base URL of the content store where files to download are stored.")
+        .metavar("URL");
   parser.add_option("--install-base-path")
-      .dest("install-base-path")
-      .help("Base path of the Dolphin install to be updated.")
-      .metavar("PATH");
+        .dest("install-base-path")
+        .help("Base path of the Dolphin install to be updated.")
+        .metavar("PATH");
   parser.add_option("--binary-to-restart")
-      .dest("binary-to-restart")
-      .help("Binary to restart after the update is over.")
-      .metavar("PATH");
+        .dest("binary-to-restart")
+        .help("Binary to restart after the update is over.")
+        .metavar("PATH");
   parser.add_option("--log-file")
-      .dest("log-file")
-      .help("File where to log updater debug output.")
-      .metavar("PATH");
+        .dest("log-file")
+        .help("File where to log updater debug output.")
+        .metavar("PATH");
   parser.add_option("--parent-pid")
-      .dest("parent-pid")
-      .type("int")
-      .help("(optional) PID of the parent process. The updater will wait for this process to "
+        .dest("parent-pid")
+        .type("int")
+        .help("(optional) PID of the parent process. The updater will wait for this process to "
             "complete before proceeding.")
-      .metavar("PID");
+        .metavar("PID");
 
   optparse::Values options = parser.parse_args(args);
 

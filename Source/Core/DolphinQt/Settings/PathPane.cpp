@@ -57,7 +57,7 @@ void PathPane::BrowseDefaultGame()
 void PathPane::BrowseWiiNAND()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select Wii NAND Root"), QString::fromStdString(Config::Get(Config::MAIN_FS_PATH))));
+      this, tr("Select Wii NAND Root"), QString::fromStdString(Get(Config::MAIN_FS_PATH))));
   if (!dir.isEmpty())
   {
     m_nand_edit->setText(dir);
@@ -68,22 +68,22 @@ void PathPane::BrowseWiiNAND()
 void PathPane::BrowseDump()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select Dump Path"), QString::fromStdString(Config::Get(Config::MAIN_DUMP_PATH))));
+      this, tr("Select Dump Path"), QString::fromStdString(Get(Config::MAIN_DUMP_PATH))));
   if (!dir.isEmpty())
   {
     m_dump_edit->setText(dir);
-    Config::SetBase(Config::MAIN_DUMP_PATH, dir.toStdString());
+    SetBase(Config::MAIN_DUMP_PATH, dir.toStdString());
   }
 }
 
 void PathPane::BrowseLoad()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select Load Path"), QString::fromStdString(Config::Get(Config::MAIN_LOAD_PATH))));
+      this, tr("Select Load Path"), QString::fromStdString(Get(Config::MAIN_LOAD_PATH))));
   if (!dir.isEmpty())
   {
     m_load_edit->setText(dir);
-    Config::SetBase(Config::MAIN_LOAD_PATH, dir.toStdString());
+    SetBase(Config::MAIN_LOAD_PATH, dir.toStdString());
   }
 }
 
@@ -91,28 +91,28 @@ void PathPane::BrowseResourcePack()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Resource Pack Path"),
-      QString::fromStdString(Config::Get(Config::MAIN_RESOURCEPACK_PATH))));
+      QString::fromStdString(Get(Config::MAIN_RESOURCEPACK_PATH))));
   if (!dir.isEmpty())
   {
     m_resource_pack_edit->setText(dir);
-    Config::SetBase(Config::MAIN_RESOURCEPACK_PATH, dir.toStdString());
+    SetBase(Config::MAIN_RESOURCEPACK_PATH, dir.toStdString());
   }
 }
 
 void PathPane::BrowseWFS()
 {
   const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select WFS Path"), QString::fromStdString(Config::Get(Config::MAIN_WFS_PATH))));
+      this, tr("Select WFS Path"), QString::fromStdString(Get(Config::MAIN_WFS_PATH))));
   if (!dir.isEmpty())
   {
     m_wfs_edit->setText(dir);
-    Config::SetBase(Config::MAIN_WFS_PATH, dir.toStdString());
+    SetBase(Config::MAIN_WFS_PATH, dir.toStdString());
   }
 }
 
 void PathPane::OnNANDPathChanged()
 {
-  Config::SetBase(Config::MAIN_FS_PATH, m_nand_edit->text().toStdString());
+  SetBase(Config::MAIN_FS_PATH, m_nand_edit->text().toStdString());
 }
 
 QGroupBox* PathPane::MakeGameFolderBox()
@@ -144,7 +144,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   m_remove_path->setEnabled(false);
 
   auto* recursive_checkbox = new QCheckBox(tr("Search Subfolders"));
-  recursive_checkbox->setChecked(Config::Get(Config::MAIN_RECURSIVE_ISO_PATHS));
+  recursive_checkbox->setChecked(Get(Config::MAIN_RECURSIVE_ISO_PATHS));
 
   auto* auto_checkbox = new QCheckBox(tr("Check for Game List Changes in the Background"));
   auto_checkbox->setChecked(Settings::Instance().IsAutoRefreshEnabled());
@@ -156,7 +156,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   vlayout->addWidget(auto_checkbox);
 
   connect(recursive_checkbox, &QCheckBox::toggled, [](bool checked) {
-    Config::SetBase(Config::MAIN_RECURSIVE_ISO_PATHS, checked);
+    SetBase(Config::MAIN_RECURSIVE_ISO_PATHS, checked);
     Settings::Instance().RefreshGameList();
   });
 
@@ -196,7 +196,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_dump_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_DUMP_IDX)));
   connect(m_dump_edit, &QLineEdit::editingFinished,
-          [this] { Config::SetBase(Config::MAIN_DUMP_PATH, m_dump_edit->text().toStdString()); });
+          [this] { SetBase(Config::MAIN_DUMP_PATH, m_dump_edit->text().toStdString()); });
   QPushButton* dump_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(dump_open, &QPushButton::clicked, this, &PathPane::BrowseDump);
   layout->addWidget(new QLabel(tr("Dump Path:")), 2, 0);
@@ -205,7 +205,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_load_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_LOAD_IDX)));
   connect(m_load_edit, &QLineEdit::editingFinished,
-          [this] { Config::SetBase(Config::MAIN_LOAD_PATH, m_load_edit->text().toStdString()); });
+          [this] { SetBase(Config::MAIN_LOAD_PATH, m_load_edit->text().toStdString()); });
   QPushButton* load_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(load_open, &QPushButton::clicked, this, &PathPane::BrowseLoad);
   layout->addWidget(new QLabel(tr("Load Path:")), 3, 0);
@@ -215,7 +215,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_resource_pack_edit =
       new QLineEdit(QString::fromStdString(File::GetUserPath(D_RESOURCEPACK_IDX)));
   connect(m_resource_pack_edit, &QLineEdit::editingFinished, [this] {
-    Config::SetBase(Config::MAIN_RESOURCEPACK_PATH, m_resource_pack_edit->text().toStdString());
+    SetBase(Config::MAIN_RESOURCEPACK_PATH, m_resource_pack_edit->text().toStdString());
   });
   QPushButton* resource_pack_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(resource_pack_open, &QPushButton::clicked, this, &PathPane::BrowseResourcePack);
@@ -225,7 +225,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_wfs_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_WFSROOT_IDX)));
   connect(m_load_edit, &QLineEdit::editingFinished,
-          [this] { Config::SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
+          [this] { SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
   QPushButton* wfs_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(wfs_open, &QPushButton::clicked, this, &PathPane::BrowseWFS);
   layout->addWidget(new QLabel(tr("WFS Path:")), 5, 0);

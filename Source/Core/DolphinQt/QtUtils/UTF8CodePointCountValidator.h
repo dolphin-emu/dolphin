@@ -14,7 +14,7 @@ class UTF8CodePointCountValidator : public QValidator
 public:
   explicit UTF8CodePointCountValidator(std::size_t max_count, QObject* parent = nullptr);
 
-  QValidator::State validate(QString& input, int& pos) const override;
+  State validate(QString& input, int& pos) const override;
 
 private:
   std::size_t m_max_count;

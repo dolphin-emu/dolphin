@@ -137,7 +137,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::SendFrame(const u8* frame, u32 size)
 }
 
 void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
-    CEXIETHERNET::XLinkNetworkInterface* self)
+    XLinkNetworkInterface* self)
 {
   sf::IpAddress sender;
   u16 port;

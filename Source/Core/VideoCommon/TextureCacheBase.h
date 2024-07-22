@@ -108,7 +108,7 @@ struct fmt::formatter<EFBCopyParams>
     if (uid.copy_format == EFBCopyFormat::XFB)
       copy_format = "XFB";
     else
-      copy_format = fmt::to_string(uid.copy_format);
+      copy_format = to_string(uid.copy_format);
     return fmt::format_to(ctx.out(),
                           "format: {}, copy format: {}, depth: {}, yuv: {}, apply_gamma: {}, "
                           "all_copy_filter_coefs_needed: {}, copy_filter_can_overflow: {}",

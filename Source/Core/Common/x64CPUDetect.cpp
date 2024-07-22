@@ -71,7 +71,7 @@ static void WarnIfRunningUnderEmulation()
     // Possibly we are running on version of windows which doesn't support ProcessMachineTypeInfo.
     return;
   }
-  if (info.MachineAttributes & MACHINE_ATTRIBUTES::KernelEnabled)
+  if (info.MachineAttributes & KernelEnabled)
   {
     // KernelEnabled will be set if process arch matches the kernel arch - how we want people to run
     // dolphin.

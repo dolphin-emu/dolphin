@@ -53,7 +53,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
   connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
-    if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
+    if (!Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
       return;
 
     const auto dpr = window()->windowHandle()->screen()->devicePixelRatio();
@@ -170,7 +170,7 @@ void RenderWidget::UpdateCursor()
     const bool keep_on_top = (windowFlags() & Qt::WindowStaysOnTopHint) != 0;
     const bool should_hide =
         (Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) &&
-        (keep_on_top || Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
+        (keep_on_top || Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
     setCursor(should_hide ? Qt::BlankCursor : Qt::ArrowCursor);
   }
   else
@@ -422,9 +422,9 @@ bool RenderWidget::event(QEvent* event)
   // it's the window that has keyboard and mouse focus
   case QEvent::WindowActivate:
     if (m_should_unpause_on_focus &&
-        Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
+        GetState(Core::System::GetInstance()) == Core::State::Paused)
     {
-      Core::SetState(Core::System::GetInstance(), Core::State::Running);
+      SetState(Core::System::GetInstance(), Core::State::Running);
     }
 
     m_should_unpause_on_focus = false;
@@ -448,8 +448,8 @@ bool RenderWidget::event(QEvent* event)
 
     UpdateCursor();
 
-    if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) &&
-        Core::GetState(Core::System::GetInstance()) == Core::State::Running)
+    if (Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) &&
+        GetState(Core::System::GetInstance()) == Core::State::Running)
     {
       // If we are declared as the CPU or GPU thread, it means that the real CPU or GPU thread
       // is waiting for us to finish showing a panic alert (with that panic alert likely being
@@ -457,7 +457,7 @@ bool RenderWidget::event(QEvent* event)
       if (!Core::IsCPUThread() && !Core::IsGPUThread())
       {
         m_should_unpause_on_focus = true;
-        Core::SetState(Core::System::GetInstance(), Core::State::Paused);
+        SetState(Core::System::GetInstance(), Core::State::Paused);
       }
     }
 
@@ -513,7 +513,7 @@ bool RenderWidget::event(QEvent* event)
 
 void RenderWidget::PassEventToPresenter(const QEvent* event)
 {
-  if (!Core::IsRunning(Core::System::GetInstance()))
+  if (!IsRunning(Core::System::GetInstance()))
     return;
 
   switch (event->type())

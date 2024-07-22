@@ -255,7 +255,7 @@ void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(Core::System& syste
 
 void ProcessorInterfaceManager::ResetButton_Tap()
 {
-  if (!Core::IsRunning(m_system))
+  if (!IsRunning(m_system))
     return;
 
   auto& core_timing = m_system.GetCoreTiming();
@@ -268,7 +268,7 @@ void ProcessorInterfaceManager::ResetButton_Tap()
 
 void ProcessorInterfaceManager::PowerButton_Tap()
 {
-  if (!Core::IsRunning(m_system))
+  if (!IsRunning(m_system))
     return;
 
   auto& core_timing = m_system.GetCoreTiming();

@@ -49,7 +49,7 @@ std::vector<BBoxType> SWBoundingBox::Read(u32 index, u32 length)
 
   for (u32 i = 0; i < length; i++)
   {
-    values[i] = BBoxManager::GetCoordinate(static_cast<BBoxManager::Coordinate>(index + i));
+    values[i] = GetCoordinate(static_cast<BBoxManager::Coordinate>(index + i));
   }
 
   return values;
@@ -59,7 +59,7 @@ void SWBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   for (size_t i = 0; i < values.size(); i++)
   {
-    BBoxManager::SetCoordinate(static_cast<BBoxManager::Coordinate>(index + i), values[i]);
+    SetCoordinate(static_cast<BBoxManager::Coordinate>(index + i), values[i]);
   }
 }
 

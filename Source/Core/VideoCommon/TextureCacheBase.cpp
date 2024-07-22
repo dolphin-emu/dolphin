@@ -318,7 +318,7 @@ RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const 
   const u32 palette_size = entry->format == TextureFormat::I4 ? 32 : 512;
   u32 texel_buffer_offset;
   if (g_vertex_manager->UploadTexelBuffer(palette, palette_size,
-                                          TexelBufferFormat::TEXEL_BUFFER_FORMAT_R16_UINT,
+                                          TEXEL_BUFFER_FORMAT_R16_UINT,
                                           &texel_buffer_offset))
   {
     struct Uniforms
@@ -608,7 +608,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   std::vector<std::pair<u32, u32>> textures_by_address_list;
   std::vector<std::pair<u64, u32>> textures_by_hash_list;
   std::vector<std::pair<u32, u32>> bound_textures_list;
-  if (Config::Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE))
+  if (Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE))
   {
     for (const auto& it : m_textures_by_address)
     {
@@ -3073,7 +3073,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, c
   g_gfx->SetComputeImageTexture(0, m_decoding_texture.get(), false, true);
 
   auto dispatch_groups =
-      TextureConversionShaderTiled::GetDispatchCount(info, aligned_width, aligned_height);
+      GetDispatchCount(info, aligned_width, aligned_height);
   g_gfx->DispatchComputeShader(shader, info->group_size_x, info->group_size_y, 1,
                                dispatch_groups.first, dispatch_groups.second, 1);
 

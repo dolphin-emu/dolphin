@@ -26,7 +26,7 @@ public:
   virtual void PopulateDevices() = 0;
   // Do NOT directly add/remove devices within here,
   // just add them to the removal list if necessary.
-  virtual void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove);
+  virtual void UpdateInput(std::vector<std::weak_ptr<Core::Device>>& devices_to_remove);
 
   virtual void HandleWindowChange();
 

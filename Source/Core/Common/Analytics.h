@@ -162,8 +162,8 @@ protected:
   AnalyticsReportBuilder m_base_builder;
 
   std::thread m_reporter_thread;
-  Common::Event m_reporter_event;
-  Common::Flag m_reporter_stop_request;
+  Event m_reporter_event;
+  Flag m_reporter_stop_request;
   SPSCQueue<std::string> m_reports_queue;
 };
 

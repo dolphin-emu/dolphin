@@ -68,7 +68,7 @@ TEST(PatchAllowlist, VerifyHashes)
     ini_file.Load(file.physicalName, true);
     std::string game_id = file.virtualName.substr(0, file.virtualName.find_first_of('.'));
     std::vector<PatchEngine::Patch> patches;
-    PatchEngine::LoadPatchSection("OnFrame", &patches, ini_file, Common::IniFile());
+    LoadPatchSection("OnFrame", &patches, ini_file, Common::IniFile());
     // Filter patches for RetroAchievements approved
     ReadEnabledOrDisabled<PatchEngine::Patch>(ini_file, "OnFrame", false, &patches);
     ReadEnabledOrDisabled<PatchEngine::Patch>(ini_file, "Patches_RetroAchievements_Verified", true,

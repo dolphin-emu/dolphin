@@ -64,7 +64,7 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 
   for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
   {
-    char c = Common::ToLower(mac_string.at(i));
+    char c = ToLower(mac_string.at(i));
     if (c >= '0' && c <= '9')
     {
       mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);
@@ -226,7 +226,7 @@ DHCPBody::DHCPBody() = default;
 DHCPBody::DHCPBody(u32 transaction, const MACAddress& client_address, u32 new_ip, u32 serv_ip)
 {
   transaction_id = transaction;
-  message_type = DHCPConst::MESSAGE_REPLY;
+  message_type = MESSAGE_REPLY;
   hardware_type = BBA_HARDWARE_TYPE;
   hardware_addr = MAC_ADDRESS_SIZE;
   client_mac = client_address;
@@ -353,7 +353,7 @@ TCPPacket::TCPPacket() = default;
 TCPPacket::TCPPacket(const MACAddress& destination, const MACAddress& source,
                      const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags)
     : eth_header(destination, source, IPV4_ETHERTYPE),
-      ip_header(Common::TCPHeader::SIZE, IPPROTO_TCP, from, to),
+      ip_header(TCPHeader::SIZE, IPPROTO_TCP, from, to),
       tcp_header(from, to, seq, ack, flags)
 {
 }
@@ -387,7 +387,7 @@ std::vector<u8> TCPPacket::Build() const
   auto ip_checksum_bitcast_ptr =
       Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
   ip_checksum_bitcast_ptr = u16(0);
-  ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
+  ip_checksum_bitcast_ptr = htons(ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(tcp_ptr + offsetof(TCPHeader, checksum));
   checksum_bitcast_ptr = u16(0);
@@ -407,7 +407,7 @@ UDPPacket::UDPPacket() = default;
 UDPPacket::UDPPacket(const MACAddress& destination, const MACAddress& source,
                      const sockaddr_in& from, const sockaddr_in& to, const std::vector<u8>& payload)
     : eth_header(destination, source, IPV4_ETHERTYPE),
-      ip_header(static_cast<u16>(payload.size() + Common::UDPHeader::SIZE), IPPROTO_UDP, from, to),
+      ip_header(static_cast<u16>(payload.size() + UDPHeader::SIZE), IPPROTO_UDP, from, to),
       udp_header(from, to, static_cast<u16>(payload.size())), data(payload)
 {
 }
@@ -437,7 +437,7 @@ std::vector<u8> UDPPacket::Build() const
   auto ip_checksum_bitcast_ptr =
       Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
   ip_checksum_bitcast_ptr = u16(0);
-  ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
+  ip_checksum_bitcast_ptr = htons(ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(udp_ptr + offsetof(UDPHeader, checksum));
   checksum_bitcast_ptr = u16(0);
