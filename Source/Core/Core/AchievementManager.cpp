@@ -33,6 +33,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/Host.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
@@ -308,15 +309,26 @@ void AchievementManager::FetchGameBadges()
 
 void AchievementManager::DoFrame()
 {
-  if (!IsGameLoaded() || !Core::IsCPUThread())
+  if (!(IsGameLoaded() || m_dll_found) || !Core::IsCPUThread())
     return;
   {
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    if (m_dll_found)
+    {
+      std::lock_guard lg{m_memory_lock};
+      Core::System* system = m_system.load(std::memory_order_acquire);
+      if (!system)
+        return;
+      Core::CPUThreadGuard thread_guard(*system);
+      u32 ram_size = system->GetMemory().GetRamSizeReal();
+      if (m_cloned_memory.size() != ram_size)
+        m_cloned_memory.resize(ram_size);
+      system->GetMemory().CopyFromEmu(m_cloned_memory.data(), 0, m_cloned_memory.size());
+    }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
   }
-  Core::System* system = m_system.load(std::memory_order_acquire);
-  if (!system)
-    return;
   auto current_time = std::chrono::steady_clock::now();
   if (current_time - m_last_rp_time > std::chrono::seconds{10})
   {
@@ -1262,16 +1274,33 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
 {
   if (buffer == nullptr)
     return 0u;
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  auto& instance = AchievementManager::GetInstance();
+  if (instance.m_dll_found)
+  {
+    std::lock_guard lg{instance.m_memory_lock};
+    if (u64(address) + num_bytes >= instance.m_cloned_memory.size())
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS,
+                    "Attempt to read past memory size: size {} address {} write length {}",
+                    instance.m_cloned_memory.size(), address, num_bytes);
+      return 0;
+    }
+    std::copy(instance.m_cloned_memory.begin() + address,
+              instance.m_cloned_memory.begin() + address + num_bytes, buffer);
+    return num_bytes;
+  }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   auto& system = Core::System::GetInstance();
   if (!(Core::IsHostThread() || Core::IsCPUThread()))
   {
     ASSERT_MSG(ACHIEVEMENTS, false, "MemoryPeeker called from wrong thread");
     return 0;
   }
-  Core::CPUThreadGuard threadguard(system);
+  Core::CPUThreadGuard thread_guard(system);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
-    auto value = system.GetMMU().HostTryReadU8(threadguard, address + num_read,
+    auto value = system.GetMMU().HostTryReadU8(thread_guard, address + num_read,
                                                PowerPC::RequestedAddressSpace::Physical);
     if (!value.has_value())
       return num_read;
@@ -1439,6 +1468,7 @@ void AchievementManager::LoadIntegrationCallback(int result, const char* error_m
     INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll found.");
     instance.m_dll_found = true;
     rc_client_raintegration_set_event_handler(instance.m_client, RAIntegrationEventHandler);
+    rc_client_raintegration_set_write_memory_function(instance.m_client, MemoryPoker);
     instance.m_dev_menu_callback();
     // TODO: hook up menu and dll event handlers
     break;
@@ -1481,6 +1511,34 @@ void AchievementManager::RAIntegrationEventHandler(const rc_client_raintegration
     WARN_LOG_FMT(ACHIEVEMENTS, "Unsupported raintegration event. {}", event->type);
     break;
   }
+}
+
+void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
+{
+  if (buffer == nullptr)
+    return;
+  if (!(Core::IsHostThread() || Core::IsCPUThread()))
+  {
+    Core::QueueHostJob([address, buffer, num_bytes, client](Core::System& system) {
+      MemoryPoker(address, buffer, num_bytes, client);
+    });
+    return;
+  }
+  auto& instance = AchievementManager::GetInstance();
+  if (u64(address) + num_bytes >= instance.m_cloned_memory.size())
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS,
+                  "Attempt to write past memory size: size {} address {} write length {}",
+                  instance.m_cloned_memory.size(), address, num_bytes);
+    return;
+  }
+  Core::System* system = instance.m_system.load(std::memory_order_acquire);
+  if (!system)
+    return;
+  Core::CPUThreadGuard thread_guard(*system);
+  std::lock_guard lg{instance.m_memory_lock};
+  system->GetMemory().CopyToEmu(address, buffer, num_bytes);
+  std::copy(buffer, buffer + num_bytes, instance.m_cloned_memory.begin() + address);
 }
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
