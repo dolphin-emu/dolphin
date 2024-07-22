@@ -251,6 +251,8 @@ private:
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
   static void LoadIntegrationCallback(int result, const char* error_message, rc_client_t* client,
                                       void* userdata);
+  static void RAIntegrationEventHandler(const rc_client_raintegration_event_t* event,
+                                        rc_client_t* client);
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   rc_runtime_t m_runtime{};
