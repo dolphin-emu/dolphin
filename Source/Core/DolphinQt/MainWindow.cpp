@@ -942,7 +942,11 @@ bool MainWindow::RequestStop()
   else
     FullScreen();
 
-  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
+  bool confirm_on_stop = Config::Get(Config::MAIN_CONFIRM_ON_STOP);
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  confirm_on_stop = confirm_on_stop || AchievementManager::GetInstance().CheckForModifications();
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+  if (confirm_on_stop)
   {
     if (std::exchange(m_stop_confirm_showing, true))
       return true;
@@ -967,13 +971,27 @@ bool MainWindow::RequestStop()
     // This is to avoid any "race conditions" between the "Window Activate" message and the
     // message box returning, which could break cursor locking depending on the order
     m_render_widget->SetWaitingForMessageBox(true);
-    auto confirm = ModalMessageBox::question(
-        confirm_parent, tr("Confirm"),
-        m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
-                              "may be lost if you stop the current emulation "
-                              "before it completes. Force stop?") :
-                           tr("Do you want to stop the current emulation?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+    QString message;
+    if (m_stop_requested)
+    {
+      message = tr("A shutdown is already in progress. Unsaved data "
+                   "may be lost if you stop the current emulation "
+                   "before it completes. Force stop?");
+    }
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    else if (AchievementManager::GetInstance().CheckForModifications())
+    {
+      message = tr(
+          "Do you want to stop the current emulation? Unsaved achievement modifications detected.");
+    }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+    else
+    {
+      message = tr("Do you want to stop the current emulation?");
+    }
+    auto confirm = ModalMessageBox::question(confirm_parent, tr("Confirm"), message,
+                                             QMessageBox::Yes | QMessageBox::No,
+                                             QMessageBox::NoButton, Qt::ApplicationModal);
 
     // If a user confirmed stopping the emulation, we do not capture the cursor again,
     // even if the render widget will stay alive for a while.
