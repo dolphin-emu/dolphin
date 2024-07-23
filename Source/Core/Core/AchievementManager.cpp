@@ -1175,7 +1175,7 @@ void AchievementManager::FetchBadge(AchievementManager::Badge* badge, u32 badge_
       }
       auto http_response = http_request.Get(api_request.url, USER_AGENT_HEADER,
                                             Common::HttpRequest::AllowedReturnCodes::All);
-      if (http_response.has_value() && http_response->size() <= 0)
+      if (!http_response.has_value() || http_response->empty())
       {
         WARN_LOG_FMT(ACHIEVEMENTS,
                      "RetroAchievements connection failed on image request.\n URL: {}",
