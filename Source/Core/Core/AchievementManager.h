@@ -172,6 +172,7 @@ public:
   {
     m_dev_menu_callback = callback;
   };
+  bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); };
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   void DoState(PointerWrap& p);
