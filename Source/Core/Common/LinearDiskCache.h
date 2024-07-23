@@ -142,7 +142,7 @@ private:
     char file_header[sizeof(Header)];
 
     return (m_file.ReadArray(file_header, sizeof(Header)) &&
-            !memcmp((const char*)&m_header, file_header, sizeof(Header)));
+            !memcmp(static_cast<const char*>(&m_header), file_header, sizeof(Header)));
   }
 
   struct Header

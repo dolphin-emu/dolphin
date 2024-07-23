@@ -940,5 +940,5 @@ constexpr s32 SignExt16(const s16 x)
 }
 constexpr s32 SignExt26(const u32 x)
 {
-  return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);
+  return x & 0x2000000 ? static_cast<s32>(x | 0xFC000000) : static_cast<s32>(x);
 }

@@ -96,7 +96,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
     while (offset < frame.fifoData.size())
     {
       const u32 cmd_size = RunCommand(&frame.fifoData[offset],
-                                                     u32(frame.fifoData.size()) - offset, analyzer);
+                                                     static_cast<u32>(frame.fifoData.size()) - offset, analyzer);
 
       if (analyzer.m_start_of_primitives)
       {
@@ -417,7 +417,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   // Skip all memory updates if early memory updates are enabled, as we already wrote them
   if (m_EarlyMemoryUpdates)
   {
-    memory_update = (u32)(frame.memoryUpdates.size());
+    memory_update = static_cast<u32>(frame.memoryUpdates.size());
   }
 
   for (const FramePart& part : info.parts)
@@ -536,7 +536,7 @@ void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
     gpfifo.Write8(data[written++]);
 
     // Advance core timing
-    u32 elapsedCycles = u32(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
+    u32 elapsedCycles = static_cast<u32>(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
     u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
     m_ElapsedCycles = elapsedCycles;
 

@@ -1176,8 +1176,8 @@ WiiSockAddrIn WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, const socklen_t a
 {
   WiiSockAddrIn result;
 
-  result.len = u8(addrlen > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
-  result.family = u8(from.sin_family & 0xFF);
+  result.len = static_cast<u8>(addrlen > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
+  result.family = static_cast<u8>(from.sin_family & 0xFF);
   result.port = from.sin_port;
   result.addr.addr = from.sin_addr.s_addr;
 

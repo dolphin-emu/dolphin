@@ -32,7 +32,7 @@ static s16 ADPDecodeSample(const s32 bits, const s32 q, s32& hist1, s32& hist2)
   }
   hist = std::clamp((hist + 0x20) >> 6, -0x200000, 0x1fffff);
 
-  s32 cur = (((s16)(bits << 12) >> (q & 0xf)) << 6) + hist;
+  s32 cur = ((static_cast<s16>(bits << 12) >> (q & 0xf)) << 6) + hist;
 
   hist2 = hist1;
   hist1 = cur;
@@ -40,7 +40,7 @@ static s16 ADPDecodeSample(const s32 bits, const s32 q, s32& hist1, s32& hist2)
   cur >>= 6;
   cur = std::clamp(cur, -0x8000, 0x7fff);
 
-  return (s16)cur;
+  return static_cast<s16>(cur);
 }
 
 void ADPCMDecoder::ResetFilter()

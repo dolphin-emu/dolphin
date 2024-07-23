@@ -248,7 +248,7 @@ void RenderWidget::SetCursorLocked(const bool locked, const bool follow_aspect_r
     Common::Vec2 aspect_ratio = g_controller_interface.GetWindowInputScale();
     if (aspect_ratio.x > 1.f)
     {
-      const float new_half_width = float(render_rect.width()) / (aspect_ratio.x * 2.f);
+      const float new_half_width = static_cast<float>(render_rect.width()) / (aspect_ratio.x * 2.f);
       // Only ceil if it was >= 0.25
       const float ceiled_new_half_width = std::ceil(std::round(new_half_width * 2.f) / 2.f);
       const int x_center = render_rect.center().x();

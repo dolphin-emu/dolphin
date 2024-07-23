@@ -123,10 +123,10 @@ struct RawValue
   auto GetNormalizedValue(const TwoPointCalibration<OtherT, OtherBits>& calibration) const
   {
     const auto value_expansion =
-        std::max(0, int(calibration.BITS_OF_PRECISION) - int(BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(calibration.BITS_OF_PRECISION) - static_cast<int>(BITS_OF_PRECISION));
 
     const auto calibration_expansion =
-        std::max(0, int(BITS_OF_PRECISION) - int(calibration.BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(BITS_OF_PRECISION) - static_cast<int>(calibration.BITS_OF_PRECISION));
 
     const auto calibration_zero = ExpandValue(calibration.zero, calibration_expansion) * 1.f;
     const auto calibration_max = ExpandValue(calibration.max, calibration_expansion) * 1.f;
@@ -140,10 +140,10 @@ struct RawValue
   auto GetNormalizedValue(const ThreePointCalibration<OtherT, OtherBits>& calibration) const
   {
     const auto value_expansion =
-        std::max(0, int(calibration.BITS_OF_PRECISION) - int(BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(calibration.BITS_OF_PRECISION) - static_cast<int>(BITS_OF_PRECISION));
 
     const auto calibration_expansion =
-        std::max(0, int(BITS_OF_PRECISION) - int(calibration.BITS_OF_PRECISION));
+        std::max(0, static_cast<int>(BITS_OF_PRECISION) - static_cast<int>(calibration.BITS_OF_PRECISION));
 
     const auto calibration_min = ExpandValue(calibration.min, calibration_expansion) * 1.f;
     const auto calibration_zero = ExpandValue(calibration.zero, calibration_expansion) * 1.f;

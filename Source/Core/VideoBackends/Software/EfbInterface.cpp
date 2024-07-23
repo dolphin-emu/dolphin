@@ -389,7 +389,7 @@ static void SubtractBlend(const u8* srcClr, u8* dstClr)
 {
   for (int i = 0; i < 4; i++)
   {
-    int c = (int)dstClr[i] - (int)srcClr[i];
+    int c = static_cast<int>(dstClr[i]) - static_cast<int>(srcClr[i]);
     dstClr[i] = (c < 0) ? 0 : c;
   }
 }

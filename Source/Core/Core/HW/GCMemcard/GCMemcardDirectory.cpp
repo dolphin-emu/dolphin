@@ -115,7 +115,7 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
   }
 
   // actually load save file into memory card
-  int idx = (int)m_saves.size();
+  int idx = static_cast<int>(m_saves.size());
   m_dir1.Replace(gci.m_gci_header, idx);
   m_saves.push_back(std::move(gci));
   SetUsedBlocks(idx);

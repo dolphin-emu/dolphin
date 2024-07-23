@@ -40,7 +40,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::Activate()
   std::string cmd =
       "connect;" + m_client_identifier + ";dolphin;000000000000000000000000000000000000000000";
 
-  const auto size = u32(cmd.length());
+  const auto size = static_cast<u32>(cmd.length());
   memmove(buffer, cmd.c_str(), size);
 
   DEBUG_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", size, ArrayToString(buffer, size, 0x10));
@@ -65,7 +65,7 @@ void CEXIETHERNET::XLinkNetworkInterface::Deactivate()
   // disconnect;optional_locally_unique_name;optional_padding
   std::string cmd =
       "disconnect;" + m_client_identifier + ";0000000000000000000000000000000000000000000";
-  const auto size = u32(cmd.length());
+  const auto size = static_cast<u32>(cmd.length());
   u8 buffer[255] = {};
   memmove(buffer, cmd.c_str(), size);
 
@@ -185,7 +185,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
           // Only uncomment for debugging, the performance hit is too big otherwise
           // DEBUG_LOG_FMT(SP1, "Read data: {}", ArrayToString(self->m_eth_ref->mRecvBuffer.get(),
           // u32(bytes_read - 4), 0x10));
-          self->m_eth_ref->mRecvBufferLength = u32(bytes_read - 4);
+          self->m_eth_ref->mRecvBufferLength = static_cast<u32>(bytes_read - 4);
           self->m_eth_ref->RecvHandlePacket();
         }
       }
@@ -210,7 +210,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         if (self->m_chat_osd_enabled)
         {
           constexpr std::string_view cmd = "setting;chat;true;";
-          const auto size = u32(cmd.length());
+          const auto size = static_cast<u32>(cmd.length());
           u8 buffer[255] = {};
           memmove(buffer, cmd.data(), size);
 

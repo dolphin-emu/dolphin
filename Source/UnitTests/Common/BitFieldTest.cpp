@@ -56,7 +56,7 @@ TEST(BitField, Storage)
 {
   TestUnion object;
 
-  EXPECT_EQ((void*)&object.hex, (void*)&object.regular_field_unsigned);
+  EXPECT_EQ(static_cast<void*>(&object.hex), static_cast<void*>(&object.regular_field_unsigned));
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.hex));
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.full_u64));
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.full_s64));
@@ -91,14 +91,14 @@ TEST(BitField, Read)
     object.hex = val;
 
     // Make sure reading/casting does not behave completely idiotic
-    EXPECT_EQ(object.full_u64, (u64)object.full_u64);
-    EXPECT_EQ(object.full_s64, (s64)object.full_s64);
-    EXPECT_EQ(object.regular_field_unsigned, (u64)object.regular_field_unsigned);
-    EXPECT_EQ(object.regular_field_unsigned2, (u64)object.regular_field_unsigned2);
-    EXPECT_EQ(object.regular_field_signed, (s64)object.regular_field_signed);
-    EXPECT_EQ(object.at_dword_boundary, (s64)object.at_dword_boundary);
-    EXPECT_EQ(object.signed_1bit, (s64)object.signed_1bit);
-    EXPECT_EQ(object.flag, (bool)object.flag);
+    EXPECT_EQ(object.full_u64, static_cast<u64>(object.full_u64));
+    EXPECT_EQ(object.full_s64, static_cast<s64>(object.full_s64));
+    EXPECT_EQ(object.regular_field_unsigned, static_cast<u64>(object.regular_field_unsigned));
+    EXPECT_EQ(object.regular_field_unsigned2, static_cast<u64>(object.regular_field_unsigned2));
+    EXPECT_EQ(object.regular_field_signed, static_cast<s64>(object.regular_field_signed));
+    EXPECT_EQ(object.at_dword_boundary, static_cast<s64>(object.at_dword_boundary));
+    EXPECT_EQ(object.signed_1bit, static_cast<s64>(object.signed_1bit));
+    EXPECT_EQ(object.flag, static_cast<bool>(object.flag));
     EXPECT_EQ(object.enum_1, static_cast<TestEnum>(object.enum_1));
     EXPECT_EQ(object.enum_2, static_cast<TestEnum>(object.enum_2));
 
@@ -107,10 +107,10 @@ TEST(BitField, Read)
     EXPECT_EQ(*(s64*)&val, object.full_s64);
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned);
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned2);
-    EXPECT_EQ(((s64)(object.hex << 52)) >> 61, object.regular_field_signed);
-    EXPECT_EQ(((s64)(object.hex << 30)) >> 60, object.at_dword_boundary);
+    EXPECT_EQ((static_cast<s64>(object.hex << 52)) >> 61, object.regular_field_signed);
+    EXPECT_EQ((static_cast<s64>(object.hex << 30)) >> 60, object.at_dword_boundary);
     EXPECT_EQ(((object.hex >> 15) & 1) ? -1 : 0, object.signed_1bit);
-    EXPECT_EQ((bool)object.flag, ((object.hex >> 63) & 1));
+    EXPECT_EQ(static_cast<bool>(object.flag), ((object.hex >> 63) & 1));
     EXPECT_EQ(static_cast<TestEnum>((object.hex >> 16) & 3), object.enum_1);
     EXPECT_EQ(static_cast<TestEnum>((object.hex >> 48) & 3), object.enum_2);
   }
@@ -126,20 +126,20 @@ TEST(BitField, Assignment)
     object.full_u64 = val;
     EXPECT_EQ(val, object.full_u64);
 
-    object.full_s64 = (s64)val;
+    object.full_s64 = static_cast<s64>(val);
     EXPECT_EQ(val, object.full_u64);
 
     object.regular_field_unsigned = val;
     EXPECT_EQ(val & 0x7, object.regular_field_unsigned);
 
     object.at_dword_boundary = val;
-    EXPECT_EQ(((s64)(val << 60)) >> 60, object.at_dword_boundary);
+    EXPECT_EQ((static_cast<s64>(val << 60)) >> 60, object.at_dword_boundary);
 
     object.signed_1bit = val;
     EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit);
 
     object.regular_field_signed = val;
-    EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed);
+    EXPECT_EQ((static_cast<s64>(object.hex << 61)) >> 61, object.regular_field_signed);
 
     // Assignment from other BitField
     object.at_dword_boundary = object.regular_field_signed;
@@ -173,20 +173,20 @@ TEST(BitField, Alignment)
     object.full_u64 = val;
     EXPECT_EQ(val, object.full_u64);
 
-    object.full_s64 = (s64)val;
+    object.full_s64 = static_cast<s64>(val);
     EXPECT_EQ(val, object.full_u64);
 
     object.regular_field_unsigned = val;
     EXPECT_EQ(val & 0x7, object.regular_field_unsigned);
 
     object.at_dword_boundary = val;
-    EXPECT_EQ(((s64)(val << 60)) >> 60, object.at_dword_boundary);
+    EXPECT_EQ((static_cast<s64>(val << 60)) >> 60, object.at_dword_boundary);
 
     object.signed_1bit = val;
     EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit);
 
     object.regular_field_signed = val;
-    EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed);
+    EXPECT_EQ((static_cast<s64>(object.hex << 61)) >> 61, object.regular_field_signed);
 
     // Assignment from other BitField
     object.at_dword_boundary = object.regular_field_signed;

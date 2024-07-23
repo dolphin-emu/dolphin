@@ -114,7 +114,7 @@ public:
   // Jordan: I calculate the FOV at 42 degrees horizontally and having a 4:3 aspect ratio.
   // This is 31.5 degrees vertically.
   static constexpr float CAMERA_AR = 4.f / 3;
-  static constexpr float CAMERA_FOV_X = 42 * float(MathUtil::TAU) / 360;
+  static constexpr float CAMERA_FOV_X = 42 * static_cast<float>(MathUtil::TAU) / 360;
   static constexpr float CAMERA_FOV_Y = CAMERA_FOV_X / CAMERA_AR;
 
   enum : u8

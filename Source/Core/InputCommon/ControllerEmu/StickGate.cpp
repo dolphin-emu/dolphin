@@ -158,7 +158,7 @@ ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationD
 {
   const auto sample_pos = angle / MathUtil::TAU * data.size();
   // Interpolate the radius between 2 calibration samples.
-  const u32 sample1_index = u32(sample_pos) % data.size();
+  const u32 sample1_index = static_cast<u32>(sample_pos) % data.size();
   const u32 sample2_index = (sample1_index + 1) % data.size();
   const double sample1_angle = sample1_index * MathUtil::TAU / data.size();
   const double sample2_angle = sample2_index * MathUtil::TAU / data.size();

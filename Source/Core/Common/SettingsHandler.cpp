@@ -65,7 +65,7 @@ void SettingsHandler::Decrypt()
 {
   while (m_position < m_buffer.size())
   {
-    decoded.push_back((u8)(m_buffer[m_position] ^ m_key));
+    decoded.push_back(static_cast<u8>(m_buffer[m_position] ^ m_key));
     m_position++;
     m_key = (m_key >> 31) | (m_key << 1);
   }

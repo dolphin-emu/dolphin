@@ -469,7 +469,7 @@ void ZeldaUCode::RunPendingCommands()
       m_renderer.SetVPBBaseAddress(Read32());
 
       auto& memory = m_dsphle->GetSystem().GetMemory();
-      u16* data_ptr = (u16*)HLEMemory_Get_Pointer(memory, Read32());
+      u16* data_ptr = static_cast<u16*>(HLEMemory_Get_Pointer(memory, Read32()));
 
       std::array<s16, 0x100> resampling_coeffs;
       for (size_t i = 0; i < 0x100; ++i)
@@ -491,7 +491,7 @@ void ZeldaUCode::RunPendingCommands()
         m_renderer.SetSineTable(std::move(sine_table));
       }
 
-      u16* afc_coeffs_ptr = (u16*)HLEMemory_Get_Pointer(memory, Read32());
+      u16* afc_coeffs_ptr = static_cast<u16*>(HLEMemory_Get_Pointer(memory, Read32()));
       std::array<s16, 0x20> afc_coeffs;
       for (size_t i = 0; i < 0x20; ++i)
         afc_coeffs[i] = Common::swap16(afc_coeffs_ptr[i]);
@@ -1055,7 +1055,7 @@ void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
   };
 
   auto& memory = m_system.GetMemory();
-  u16* rpb_base_ptr = (u16*)HLEMemory_Get_Pointer(memory, m_reverb_pb_base_addr);
+  u16* rpb_base_ptr = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_reverb_pb_base_addr));
   for (u16 rpb_idx = 0; rpb_idx < 4; ++rpb_idx)
   {
     ReverbPB rpb;
@@ -1069,7 +1069,7 @@ void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
     u16 mram_buffer_idx = m_reverb_pb_frames_count[rpb_idx];
 
     u32 mram_addr = rpb.GetCircularBufferBase() + mram_buffer_idx * 0x50 * sizeof(s16);
-    s16* mram_ptr = (s16*)HLEMemory_Get_Pointer(memory, mram_addr);
+    s16* mram_ptr = static_cast<s16*>(HLEMemory_Get_Pointer(memory, mram_addr));
 
     if (!post_rendering)
     {
@@ -1091,7 +1091,7 @@ void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
         {
           s32 sample = 0;
           for (u16 j = 0; j < 8; ++j)
-            sample += (s32)buffer[i + j] * rpb.filter_coeffs[j];
+            sample += static_cast<s32>(buffer[i + j]) * rpb.filter_coeffs[j];
           sample >>= 15;
           buffer[i] = std::clamp(sample, -0x8000, 0x7FFF);
         }
@@ -1206,10 +1206,10 @@ void ZeldaAudioRenderer::AddVoice(const u16 voice_id)
     // Compute volume for each quadrant.
     u16 shift_factor = (m_flags & MAKE_DOLBY_LOUDER) ? 15 : 16;
     s16 quadrant_volumes[4] = {
-        (s16)((left_volume * front_volume) >> shift_factor),
-        (s16)((left_volume * back_volume) >> shift_factor),
-        (s16)((right_volume * front_volume) >> shift_factor),
-        (s16)((right_volume * back_volume) >> shift_factor),
+        static_cast<s16>((left_volume * front_volume) >> shift_factor),
+        static_cast<s16>((left_volume * back_volume) >> shift_factor),
+        static_cast<s16>((right_volume * front_volume) >> shift_factor),
+        static_cast<s16>((right_volume * back_volume) >> shift_factor),
     };
 
     // Compute the volume delta for each sample to match the difference
@@ -1217,7 +1217,7 @@ void ZeldaAudioRenderer::AddVoice(const u16 voice_id)
     s16 delta = vpb.dolby_volume_target - vpb.dolby_volume_current;
     s16 volume_deltas[4];
     for (size_t i = 0; i < 4; ++i)
-      volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> shift_factor;
+      volume_deltas[i] = (static_cast<u16>(quadrant_volumes[i]) * delta) >> shift_factor;
 
     // Apply master volume to each quadrant.
     for (s16& quadrant_volume : quadrant_volumes)
@@ -1250,7 +1250,7 @@ void ZeldaAudioRenderer::AddVoice(const u16 voice_id)
     for (const auto& buffer : buffers)
     {
       AddBuffersWithVolumeRamp(buffer.buffer, input_samples, buffer.volume << 16,
-                               (buffer.volume_delta << 16) / (s32)buffer.buffer->size());
+                               (buffer.volume_delta << 16) / static_cast<s32>(buffer.buffer->size()));
     }
 
     vpb.dolby_volume_current = vpb.dolby_volume_target;
@@ -1285,7 +1285,7 @@ void ZeldaAudioRenderer::AddVoice(const u16 voice_id)
       else
         volume_delta = vpb.channels[i].target_volume - vpb.channels[i].current_volume;
 
-      s32 volume_step = (volume_delta << 16) / (s32)input_samples.size();  // In 1.31 format.
+      s32 volume_step = (volume_delta << 16) / static_cast<s32>(input_samples.size());  // In 1.31 format.
 
       // TODO: The last value of each channel structure is used to
       // determine whether a channel should be skipped or not. Not
@@ -1325,15 +1325,15 @@ void ZeldaAudioRenderer::FinalizeFrame()
   ApplyVolumeInPlace_4_12(&m_buf_front_right, m_output_volume);
 
   auto& memory = m_system.GetMemory();
-  u16* ram_left_buffer = (u16*)HLEMemory_Get_Pointer(memory, m_output_lbuf_addr);
-  u16* ram_right_buffer = (u16*)HLEMemory_Get_Pointer(memory, m_output_rbuf_addr);
+  u16* ram_left_buffer = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_output_lbuf_addr));
+  u16* ram_right_buffer = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_output_rbuf_addr));
   for (size_t i = 0; i < m_buf_front_left.size(); ++i)
   {
     ram_left_buffer[i] = Common::swap16(m_buf_front_left[i]);
     ram_right_buffer[i] = Common::swap16(m_buf_front_right[i]);
   }
-  m_output_lbuf_addr += sizeof(u16) * (u32)m_buf_front_left.size();
-  m_output_rbuf_addr += sizeof(u16) * (u32)m_buf_front_right.size();
+  m_output_lbuf_addr += sizeof(u16) * static_cast<u32>(m_buf_front_left.size());
+  m_output_rbuf_addr += sizeof(u16) * static_cast<u32>(m_buf_front_right.size());
 
   // TODO: Some more Dolby mixing.
 
@@ -1346,7 +1346,7 @@ void ZeldaAudioRenderer::FetchVPB(const u16 voice_id, VPB* vpb) const
 {
   auto& memory = m_system.GetMemory();
   u16* vpb_words = (u16*)vpb;
-  u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(memory, m_vpb_base_addr);
+  u16* ram_vpbs = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_vpb_base_addr));
 
   // A few versions of the UCode have VPB of size 0x80 (vs. the standard
   // 0xC0). The whole 0x40-0x80 part is gone. Handle that by moving things
@@ -1365,7 +1365,7 @@ void ZeldaAudioRenderer::StoreVPB(const u16 voice_id, VPB* vpb) const
 {
   auto& memory = m_system.GetMemory();
   u16* vpb_words = (u16*)vpb;
-  u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(memory, m_vpb_base_addr);
+  u16* ram_vpbs = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_vpb_base_addr));
 
   size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
   size_t base_idx = voice_id * vpb_size;
@@ -1531,10 +1531,10 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst) c
 
       s64 dst_sample_unclamped = 0;
       for (size_t i = 0; i < 4; ++i)
-        dst_sample_unclamped += (s64)2 * coeffs[i] * input[i];
+        dst_sample_unclamped += static_cast<s64>(2) * coeffs[i] * input[i];
       dst_sample_unclamped >>= 16;
 
-      dst_sample = (s16)std::clamp<s64>(dst_sample_unclamped, -0x8000, 0x7FFF);
+      dst_sample = static_cast<s16>(std::clamp<s64>(dst_sample_unclamped, -0x8000, 0x7FFF));
 
       pos += ratio;
     }
@@ -1588,8 +1588,8 @@ void ZeldaAudioRenderer::DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
       vpb->SetCurrentARAMAddr(vpb->GetBaseAddress() + vpb->GetCurrentPosition() * sizeof(T));
     }
 
-    T* src_ptr = (T*)GetARAMPtr(vpb->GetCurrentARAMAddr());
-    u16 samples_to_download = std::min(vpb->GetRemainingLength(), (u32)requested_samples_count);
+    T* src_ptr = static_cast<T*>(GetARAMPtr(vpb->GetCurrentARAMAddr()));
+    u16 samples_to_download = std::min(vpb->GetRemainingLength(), static_cast<u32>(requested_samples_count));
 
     for (u16 i = 0; i < samples_to_download; ++i)
       *dst++ = Common::FromBigEndian<T>(*src_ptr++) << (16 - 8 * sizeof(T));
@@ -1723,8 +1723,8 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
 void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, const size_t block_count) const
 {
   u32 addr = vpb->GetCurrentARAMAddr();
-  u8* src = (u8*)GetARAMPtr(addr);
-  vpb->SetCurrentARAMAddr(addr + (u32)block_count * vpb->samples_source_type);
+  u8* src = static_cast<u8*>(GetARAMPtr(addr));
+  vpb->SetCurrentARAMAddr(addr + static_cast<u32>(block_count) * vpb->samples_source_type);
 
   for (size_t b = 0; b < block_count; ++b)
   {
@@ -1743,7 +1743,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, const size_t block_count)
         src++;
       }
       for (auto& nibble : nibbles)
-        nibble = s16(nibble << 12) >> 1;
+        nibble = static_cast<s16>(nibble << 12) >> 1;
     }
     else
     {
@@ -1757,7 +1757,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, const size_t block_count)
         src++;
       }
       for (auto& nibble : nibbles)
-        nibble = s16(nibble << 14) >> 1;
+        nibble = static_cast<s16>(nibble << 14) >> 1;
     }
 
     s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();
@@ -1766,7 +1766,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, const size_t block_count)
       s32 sample = delta * nibble + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
       sample >>= 11;
       sample = std::clamp(sample, -0x8000, 0x7fff);
-      *dst++ = (s16)sample;
+      *dst++ = static_cast<s16>(sample);
       yn2 = yn1;
       yn1 = sample;
     }
@@ -1780,7 +1780,7 @@ void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, const u1
 {
   auto& memory = m_system.GetMemory();
   u32 addr = vpb->GetBaseAddress() + vpb->current_position_h * sizeof(u16);
-  s16* src_ptr = (s16*)HLEMemory_Get_Pointer(memory, addr);
+  s16* src_ptr = static_cast<s16*>(HLEMemory_Get_Pointer(memory, addr));
 
   if (requested_samples_count > vpb->GetRemainingLength())
   {
@@ -1809,7 +1809,7 @@ void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, const u1
       for (u16 i = 0; i < vpb->samples_before_loop; ++i)
         *dst++ = Common::swap16(*src_ptr++);
       vpb->SetBaseAddress(vpb->GetLoopAddress());
-      src_ptr = (s16*)HLEMemory_Get_Pointer(memory, vpb->GetLoopAddress());
+      src_ptr = static_cast<s16*>(HLEMemory_Get_Pointer(memory, vpb->GetLoopAddress()));
       for (u16 i = vpb->samples_before_loop; i < requested_samples_count; ++i)
         *dst++ = Common::swap16(*src_ptr++);
       vpb->current_position_h = requested_samples_count - vpb->samples_before_loop;

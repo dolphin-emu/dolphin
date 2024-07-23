@@ -37,20 +37,20 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
   // encoding so that typical extensions (None, Nunchuk, Classic Controller) still fit into the
   // initial 4 bits.
   static_assert(std::variant_size_v<DesiredExtensionState::ExtensionData> <= (1 << 4));
-  const u8 extension = u8(state.extension.data.index());
+  const u8 extension = static_cast<u8>(state.extension.data.index());
 
   SerializedWiimoteState s;
   s.length = 0;
-  s.data[s.length++] = u8(has_buttons | (has_accel << 1) | (has_camera << 2) |
-                          (has_motion_plus << 3) | (extension << 4));
+  s.data[s.length++] = static_cast<u8>(has_buttons | (has_accel << 1) | (has_camera << 2) |
+                                       (has_motion_plus << 3) | (extension << 4));
 
   if (has_buttons)
   {
-    const u8 buttons = u8((state.buttons.a) | (state.buttons.b << 1) | (state.buttons.plus << 2) |
-                          (state.buttons.minus << 3) | (state.buttons.one << 4) |
-                          (state.buttons.two << 5) | (state.buttons.home << 6));
-    const u8 dpad = u8((state.buttons.up) | (state.buttons.down << 1) | (state.buttons.left << 2) |
-                       (state.buttons.right << 3));
+    const u8 buttons = static_cast<u8>((state.buttons.a) | (state.buttons.b << 1) | (state.buttons.plus << 2) |
+                                       (state.buttons.minus << 3) | (state.buttons.one << 4) |
+                                       (state.buttons.two << 5) | (state.buttons.home << 6));
+    const u8 dpad = static_cast<u8>((state.buttons.up) | (state.buttons.down << 1) | (state.buttons.left << 2) |
+                                    (state.buttons.right << 3));
     s.data[s.length++] = buttons;
     s.data[s.length++] = dpad;
   }
@@ -60,20 +60,20 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
     const u16 accel_x = state.acceleration.value.x;  // 10 bits
     const u16 accel_y = state.acceleration.value.y;  // 9 bits (ignore lowest bit)
     const u16 accel_z = state.acceleration.value.z;  // 9 bits (ignore lowest bit)
-    const u8 accel_x_high = u8(accel_x >> 2);
-    const u8 accel_y_high = u8(accel_y >> 2);
-    const u8 accel_z_high = u8(accel_z >> 2);
-    const u8 accel_low = u8((accel_x & 0b11) | (Common::ExtractBit<1>(accel_y) << 2) |
-                            (Common::ExtractBit<1>(accel_z) << 3));
+    const u8 accel_x_high = static_cast<u8>(accel_x >> 2);
+    const u8 accel_y_high = static_cast<u8>(accel_y >> 2);
+    const u8 accel_z_high = static_cast<u8>(accel_z >> 2);
+    const u8 accel_low = static_cast<u8>((accel_x & 0b11) | (Common::ExtractBit<1>(accel_y) << 2) |
+                                         (Common::ExtractBit<1>(accel_z) << 3));
 
     if (has_buttons)
     {
       // can use the high bits of the dpad field from buttons
-      s.data[s.length - 1] |= u8(accel_low << 4);
+      s.data[s.length - 1] |= static_cast<u8>(accel_low << 4);
     }
     else
     {
-      s.data[s.length++] = u8(accel_low << 4);
+      s.data[s.length++] = static_cast<u8>(accel_low << 4);
     }
 
     s.data[s.length++] = accel_x_high;
@@ -88,9 +88,9 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
       const u16 camera_x = state.camera_points[i].position.x;  // 10 bits
       const u16 camera_y = state.camera_points[i].position.y;  // 10 bits
       const u8 camera_size = state.camera_points[i].size;      // 4 bits
-      s.data[s.length++] = u8((camera_x & 0b11) | ((camera_y & 0b11) << 2) | (camera_size << 4));
-      s.data[s.length++] = u8(camera_x >> 2);
-      s.data[s.length++] = u8(camera_y >> 2);
+      s.data[s.length++] = static_cast<u8>((camera_x & 0b11) | ((camera_y & 0b11) << 2) | (camera_size << 4));
+      s.data[s.length++] = static_cast<u8>(camera_x >> 2);
+      s.data[s.length++] = static_cast<u8>(camera_y >> 2);
     }
   }
 
@@ -102,12 +102,12 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
     const u16 pitch_value = state.motion_plus->gyro.value.x;  // 14 bits
     const u16 roll_value = state.motion_plus->gyro.value.y;   // 14 bits
     const u16 yaw_value = state.motion_plus->gyro.value.z;    // 14 bits
-    s.data[s.length++] = u8(pitch_value);
-    s.data[s.length++] = u8(((pitch_value >> 8) & 0x3f) | (pitch_slow << 7));
-    s.data[s.length++] = u8(roll_value);
-    s.data[s.length++] = u8(((roll_value >> 8) & 0x3f) | (roll_slow << 7));
-    s.data[s.length++] = u8(yaw_value);
-    s.data[s.length++] = u8(((yaw_value >> 8) & 0x3f) | (yaw_slow << 7));
+    s.data[s.length++] = static_cast<u8>(pitch_value);
+    s.data[s.length++] = static_cast<u8>(((pitch_value >> 8) & 0x3f) | (pitch_slow << 7));
+    s.data[s.length++] = static_cast<u8>(roll_value);
+    s.data[s.length++] = static_cast<u8>(((roll_value >> 8) & 0x3f) | (roll_slow << 7));
+    s.data[s.length++] = static_cast<u8>(yaw_value);
+    s.data[s.length++] = static_cast<u8>(((yaw_value >> 8) & 0x3f) | (yaw_slow << 7));
   }
 
   if (extension)

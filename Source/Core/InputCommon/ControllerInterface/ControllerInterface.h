@@ -150,7 +150,7 @@ class RelativeInputState
 public:
   void Update()
   {
-    const auto channel = int(ControllerInterface::GetCurrentInputChannel());
+    const auto channel = static_cast<int>(ControllerInterface::GetCurrentInputChannel());
 
     m_value[channel] = m_delta[channel];
     m_delta[channel] = {};
@@ -158,7 +158,7 @@ public:
 
   T GetValue() const
   {
-    const auto channel = int(ControllerInterface::GetCurrentInputChannel());
+    const auto channel = static_cast<int>(ControllerInterface::GetCurrentInputChannel());
 
     return m_value[channel];
   }
@@ -170,8 +170,8 @@ public:
   }
 
 private:
-  std::array<T, int(InputChannel::Count)> m_value;
-  std::array<T, int(InputChannel::Count)> m_delta;
+  std::array<T, static_cast<int>(InputChannel::Count)> m_value;
+  std::array<T, static_cast<int>(InputChannel::Count)> m_delta;
 };
 }  // namespace ciface
 

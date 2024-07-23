@@ -1539,7 +1539,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   // different ones
   if (textureCacheSafetyColorSampleSize == 0 ||
       std::max(texture_info.GetTextureSize(), palette_size) <=
-          (u32)textureCacheSafetyColorSampleSize * 8)
+          static_cast<u32>(textureCacheSafetyColorSampleSize) * 8)
   {
     auto hash_range = m_textures_by_hash.equal_range(full_hash);
     TexHashCache::iterator hash_iter = hash_range.first;
@@ -1674,7 +1674,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
           });
       return (*max_element)->m_texture.m_slices[0].m_levels.size();
     };
-    const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
+    const u32 texLevels = no_mips ? 1 : static_cast<u32>(calculate_max_levels());
     const auto& first_level = assets_data[0]->m_texture.m_slices[0].m_levels[0];
     const TextureConfig config(first_level.width, first_level.height, texLevels,
                                static_cast<u32>(assets_data.size()), 1, first_level.format, 0,
@@ -1828,7 +1828,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
   const auto iter = m_textures_by_address.emplace(texture_info.GetRawAddress(), entry);
   if (safety_color_sample_size == 0 ||
       std::max(texture_info.GetTextureSize(), creation_info.palette_size) <=
-          (u32)safety_color_sample_size * 8)
+          static_cast<u32>(safety_color_sample_size) * 8)
   {
     entry->textures_by_hash_iter = m_textures_by_hash.emplace(creation_info.full_hash, entry);
   }
@@ -2659,7 +2659,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, const u32 stride, const u3
   // like is done in the EFB path.
 
 #if defined(_M_X86_64)
-  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
+  __m128i sixteenBytes = _mm_set1_epi16(static_cast<s16>((u16)0xFE01));
 #endif
 
   for (u32 i = 0; i < num_blocks_y; i++)

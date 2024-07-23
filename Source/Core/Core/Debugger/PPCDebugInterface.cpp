@@ -457,8 +457,8 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
   // match[1]: negative sign for offset or no match.
   // match[2]: 0xNNNN, 0, or rNN. Check next for 'r' to see if a gpr needs to be loaded.
   // match[3]: will either be p, toc, or NN. Always a gpr.
-  const std::string_view offset_match{&*match[2].first, size_t(match[2].length())};
-  const std::string_view register_match{&*match[3].first, size_t(match[3].length())};
+  const std::string_view offset_match{&*match[2].first, static_cast<size_t>(match[2].length())};
+  const std::string_view register_match{&*match[3].first, static_cast<size_t>(match[3].length())};
   constexpr char is_reg = 'r';
   u32 offset = 0;
 
@@ -487,7 +487,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
 
   const u32 base_address = m_system.GetPPCState().gpr[i];
 
-  if (std::string_view sign{&*match[1].first, size_t(match[1].length())}; !sign.empty())
+  if (std::string_view sign{&*match[1].first, static_cast<size_t>(match[1].length())}; !sign.empty())
     return base_address - offset;
 
   return base_address + offset;

@@ -131,7 +131,7 @@ public:
 
   static constexpr u16 VALUE_SCALE =
       (CALIBRATION_SCALE_OFFSET >> (CALIBRATION_BITS - BITS_OF_PRECISION));
-  static constexpr float VALUE_SCALE_DEGREES = VALUE_SCALE / float(MathUtil::TAU) * 360;
+  static constexpr float VALUE_SCALE_DEGREES = VALUE_SCALE / static_cast<float>(MathUtil::TAU) * 360;
 
   static constexpr float SLOW_SCALE = VALUE_SCALE_DEGREES / CALIBRATION_SLOW_SCALE_DEGREES;
   static constexpr float FAST_SCALE = VALUE_SCALE_DEGREES / CALIBRATION_FAST_SCALE_DEGREES;

@@ -1648,7 +1648,7 @@ void NetPlayClient::ThreadFunc()
         if (static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
           INFO_LOG_FMT(NETPLAY, "enet_host_service: skippable packet event");
         else
-          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
+          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", static_cast<int>(netEvent.type));
         break;
       }
     }

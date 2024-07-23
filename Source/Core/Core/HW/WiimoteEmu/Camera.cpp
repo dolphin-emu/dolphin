@@ -66,7 +66,7 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, const Common::Ve
 
   const auto camera_view =
       Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
-      Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
+      Matrix44::FromMatrix33(Matrix33::RotateX(static_cast<float>(MathUtil::TAU / 4))) * transform;
 
   std::array<CameraPoint, NUM_POINTS> camera_points;
 
@@ -78,8 +78,8 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, const Common::Ve
       return CameraPoint();
 
     // FYI: truncating vs. rounding seems to produce more symmetrical cursor positioning.
-    const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
-    const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
+    const auto x = static_cast<s32>((1 - point.x / point.w) * CAMERA_RES_X / 2);
+    const auto y = static_cast<s32>((1 - point.y / point.w) * CAMERA_RES_Y / 2);
 
     // Check if LED is outside of view.
     if (x < 0 || y < 0 || x >= CAMERA_RES_X || y >= CAMERA_RES_Y)
@@ -91,7 +91,7 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, const Common::Ve
 
     const auto clamped_point_size = std::clamp<s32>(std::lround(point_size), 1, MAX_POINT_SIZE);
 
-    return CameraPoint({u16(x), u16(y)}, u8(clamped_point_size));
+    return CameraPoint({static_cast<u16>(x), static_cast<u16>(y)}, static_cast<u8>(clamped_point_size));
   });
 
   return camera_points;
@@ -166,7 +166,7 @@ void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_point
             std::lround((irdata.xmax - irdata.xmin) * (irdata.ymax - irdata.ymin) /
                         SUBPIXEL_RESOLUTION / SUBPIXEL_RESOLUTION * MathUtil::TAU / 8);
 
-        irdata.intensity = u8(std::min(MAX_INTENSITY, intensity));
+        irdata.intensity = static_cast<u8>(std::min(MAX_INTENSITY, intensity));
 
         Common::BitCastPtr<IRFull>(&data[i * sizeof(IRFull)]) = irdata;
       }

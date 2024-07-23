@@ -68,23 +68,23 @@ TEST(BitUtils, IsValidLowMask)
   EXPECT_FALSE(Common::IsValidLowMask(0b10000u));
   EXPECT_FALSE(Common::IsValidLowMask(0b101111u));
 
-  EXPECT_TRUE(Common::IsValidLowMask((u8)~0b0));
-  EXPECT_FALSE(Common::IsValidLowMask((u8)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u8) ~(0b10000)));
-  EXPECT_FALSE(Common::IsValidLowMask((u8)(~((u8)(~0b0) >> 1) | 0b1111)));
+  EXPECT_TRUE(Common::IsValidLowMask(static_cast<u8>(~0b0)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u8>(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u8>(~(0b10000))));
+  EXPECT_FALSE(Common::IsValidLowMask((u8)(~(static_cast<u8>(~0b0) >> 1) | 0b1111)));
 
-  EXPECT_TRUE(Common::IsValidLowMask((u16)~0b0));
-  EXPECT_FALSE(Common::IsValidLowMask((u16)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u16) ~(0b10000)));
-  EXPECT_FALSE(Common::IsValidLowMask((u16)(~((u16)(~0b0) >> 1) | 0b1111)));
+  EXPECT_TRUE(Common::IsValidLowMask(static_cast<u16>(~0b0)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u16>(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u16>(~(0b10000))));
+  EXPECT_FALSE(Common::IsValidLowMask((u16)(~(static_cast<u16>(~0b0) >> 1) | 0b1111)));
 
-  EXPECT_TRUE(Common::IsValidLowMask((u32)~0b0));
-  EXPECT_FALSE(Common::IsValidLowMask((u32)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u32) ~(0b10000)));
-  EXPECT_FALSE(Common::IsValidLowMask((u32)(~((u32)(~0b0) >> 1) | 0b1111)));
+  EXPECT_TRUE(Common::IsValidLowMask(static_cast<u32>(~0b0)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u32>(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u32>(~(0b10000))));
+  EXPECT_FALSE(Common::IsValidLowMask((u32)(~(static_cast<u32>(~0b0) >> 1) | 0b1111)));
 
-  EXPECT_TRUE(Common::IsValidLowMask((u64)~0b0));
-  EXPECT_FALSE(Common::IsValidLowMask((u64)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u64) ~(0b10000)));
-  EXPECT_FALSE(Common::IsValidLowMask((u64)(~((u64)(~0b0) >> 1) | 0b1111)));
+  EXPECT_TRUE(Common::IsValidLowMask(static_cast<u64>(~0b0)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u64>(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask(static_cast<u64>(~(0b10000))));
+  EXPECT_FALSE(Common::IsValidLowMask((u64)(~(static_cast<u64>(~0b0) >> 1) | 0b1111)));
 }

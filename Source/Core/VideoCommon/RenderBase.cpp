@@ -132,7 +132,7 @@ void Renderer::PokeEFB(const EFBAccessType type, const EfbPokeData* points, cons
     {
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
-      float depth = float(point.data & 0xFFFFFF) / 16777216.0f;
+      float depth = static_cast<float>(point.data & 0xFFFFFF) / 16777216.0f;
       if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
         depth = 1.0f - depth;
 

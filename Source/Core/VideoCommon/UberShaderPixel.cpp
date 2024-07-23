@@ -109,8 +109,8 @@ void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, const bool per
     out->Write("\t\tss.order = bpmem_tevorder(stage>>1);\n");
     out->Write("\t\tif ((stage & 1u) == 1u)\n");
     out->Write("\t\t\tss.order = ss.order >> {};\n\n",
-               int(TwoTevStageOrders().enable_tex_odd.StartBit() -
-                   TwoTevStageOrders().enable_tex_even.StartBit()));
+               static_cast<int>(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                                TwoTevStageOrders().enable_tex_even.StartBit()));
     out->Write("\t\tuint texmap = {};\n",
                BitfieldExtract<&TwoTevStageOrders::texcoord_even>("ss.order"));
     // Shader compilation is weird, shader arrays can't use indexing by variable
@@ -956,8 +956,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    ss.order = bpmem_tevorder(stage>>1);\n"
             "    if ((stage & 1u) == 1u)\n"
             "      ss.order = ss.order >> {};\n\n",
-            int(TwoTevStageOrders().enable_tex_odd.StartBit() -
-                TwoTevStageOrders().enable_tex_even.StartBit()));
+            static_cast<int>(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                             TwoTevStageOrders().enable_tex_even.StartBit()));
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)

@@ -209,7 +209,7 @@ u32 SystemTimersManager::GetFakeDecrementer() const
 {
   const auto& core_timing = m_system.GetCoreTiming();
   return (core_timing.GetFakeDecStartValue() -
-          (u32)((core_timing.GetTicks() - core_timing.GetFakeDecStartTicks()) / TIMER_RATIO));
+          static_cast<u32>((core_timing.GetTicks() - core_timing.GetFakeDecStartTicks()) / TIMER_RATIO));
 }
 
 void SystemTimersManager::TimeBaseSet() const

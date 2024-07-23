@@ -29,7 +29,7 @@ class RelativeMouseAxis final : public Core::Device::RelativeInput
 public:
   std::string GetName() const override
   {
-    return fmt::format("RelativeMouse {}{}", char('X' + m_index), (m_scale > 0) ? '+' : '-');
+    return fmt::format("RelativeMouse {}{}", static_cast<char>('X' + m_index), (m_scale > 0) ? '+' : '-');
   }
 
   RelativeMouseAxis(const u8 index, const bool positive, const RelativeMouseState* state)
@@ -39,7 +39,7 @@ public:
 
   ControlState GetState() const override
   {
-    return ControlState(m_state.GetValue().data[m_index] * m_scale);
+    return static_cast<ControlState>(m_state.GetValue().data[m_index] * m_scale);
   }
 
 private:
@@ -211,8 +211,8 @@ void KeyboardMouse::UpdateCursorInput()
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
   // Convert the cursor position to a range from -1 to 1.
-  m_state_in.cursor.x = (ControlState(point.x) / win_width * 2 - 1) * window_scale.x;
-  m_state_in.cursor.y = (ControlState(point.y) / win_height * 2 - 1) * window_scale.y;
+  m_state_in.cursor.x = (static_cast<ControlState>(point.x) / win_width * 2 - 1) * window_scale.x;
+  m_state_in.cursor.y = (static_cast<ControlState>(point.y) / win_height * 2 - 1) * window_scale.y;
 }
 
 Core::DeviceRemoval KeyboardMouse::UpdateInput()
@@ -297,13 +297,13 @@ std::string KeyboardMouse::Key::GetName() const
 
 std::string KeyboardMouse::Button::GetName() const
 {
-  return std::string("Click ") + char('0' + m_index);
+  return std::string("Click ") + static_cast<char>('0' + m_index);
 }
 
 std::string KeyboardMouse::Axis::GetName() const
 {
   char tmpstr[] = "Axis ..";
-  tmpstr[5] = (char)('X' + m_index);
+  tmpstr[5] = static_cast<char>('X' + m_index);
   tmpstr[6] = (m_range < 0 ? '-' : '+');
   return tmpstr;
 }
@@ -311,7 +311,7 @@ std::string KeyboardMouse::Axis::GetName() const
 std::string KeyboardMouse::Cursor::GetName() const
 {
   char tmpstr[] = "Cursor ..";
-  tmpstr[7] = (char)('X' + m_index);
+  tmpstr[7] = static_cast<char>('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;
 }
@@ -329,7 +329,7 @@ ControlState KeyboardMouse::Button::GetState() const
 
 ControlState KeyboardMouse::Axis::GetState() const
 {
-  return ControlState(m_axis) / m_range;
+  return static_cast<ControlState>(m_axis) / m_range;
 }
 
 ControlState KeyboardMouse::Cursor::GetState() const

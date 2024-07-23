@@ -70,8 +70,8 @@ double PerformanceMetrics::GetSpeed() const
 double PerformanceMetrics::GetMaxSpeed() const
 {
   std::shared_lock lock(m_time_lock);
-  return DT_s(m_cpu_times[u8(m_time_index - 1)] - m_cpu_times[m_time_index]) /
-         DT_s(m_real_times[u8(m_time_index - 1)] - m_real_times[m_time_index]);
+  return DT_s(m_cpu_times[static_cast<u8>(m_time_index - 1)] - m_cpu_times[m_time_index]) /
+         DT_s(m_real_times[static_cast<u8>(m_time_index - 1)] - m_real_times[m_time_index]);
 }
 
 double PerformanceMetrics::GetLastSpeedDenominator() const

@@ -382,7 +382,7 @@ struct VideoConfig final
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
 
-  float GetCustomAspectRatio() const { return (float)custom_aspect_width / custom_aspect_height; }
+  float GetCustomAspectRatio() const { return static_cast<float>(custom_aspect_width) / custom_aspect_height; }
 };
 
 extern VideoConfig g_Config;

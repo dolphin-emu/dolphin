@@ -942,11 +942,11 @@ int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
     if (!s_on_state_changed_callbacks[i])
     {
       s_on_state_changed_callbacks[i] = std::move(callback);
-      return int(i);
+      return static_cast<int>(i);
     }
   }
   s_on_state_changed_callbacks.emplace_back(std::move(callback));
-  return int(s_on_state_changed_callbacks.size()) - 1;
+  return static_cast<int>(s_on_state_changed_callbacks.size()) - 1;
 }
 
 bool RemoveOnStateChangedCallback(int* handle)

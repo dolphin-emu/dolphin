@@ -184,7 +184,7 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
     }
 
     if (char_format.has_value())
-      set_block_format(int(token.string_position), int(token.string_length), *char_format);
+      set_block_format(static_cast<int>(token.string_position), static_cast<int>(token.string_length), *char_format);
   }
 
   // This doesn't need to be run for every "block", but it works.
@@ -196,7 +196,7 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
     if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)
     {
       const auto token = *parse_status.token;
-      set_block_format(int(token.string_position), int(token.string_length),
+      set_block_format(static_cast<int>(token.string_position), static_cast<int>(token.string_length),
                        GetInvalidCharFormat());
     }
   }

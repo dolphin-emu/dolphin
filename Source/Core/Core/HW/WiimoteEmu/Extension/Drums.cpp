@@ -101,7 +101,7 @@ void Drums::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   state.drum_pads = 0;
   m_pads->GetState(&state.drum_pads, drum_pad_bitmasks.data(), m_input_override_function);
 
-  state.softness = u8(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
+  state.softness = static_cast<u8>(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
 }
 
 void Drums::Update(const DesiredExtensionState& target_state)
@@ -131,7 +131,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
   drum_data.unk5 = 0b11;
 
   // Send no velocity data by default.
-  drum_data.velocity_id = u8(VelocityID::None);
+  drum_data.velocity_id = static_cast<u8>(VelocityID::None);
   drum_data.no_velocity_data_1 = 1;
   drum_data.no_velocity_data_2 = 1;
   drum_data.softness = 7;
@@ -159,7 +159,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
       // Clear the bit so velocity data is not sent again until the next hit.
       m_new_pad_hits &= ~drum_pad;
 
-      drum_data.velocity_id = u8(drum_pad_velocity_ids[i]);
+      drum_data.velocity_id = static_cast<u8>(drum_pad_velocity_ids[i]);
 
       drum_data.no_velocity_data_1 = 0;
       drum_data.no_velocity_data_2 = 0;

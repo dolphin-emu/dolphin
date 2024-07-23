@@ -75,7 +75,7 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, const 
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
 
   // Gradually fade old messages away (except in their first frame)
-  const float fade_time = std::max(std::min(MESSAGE_FADE_TIME, (float)msg.duration), 1.f);
+  const float fade_time = std::max(std::min(MESSAGE_FADE_TIME, static_cast<float>(msg.duration)), 1.f);
   const float alpha = std::clamp(time_left / fade_time, 0.f, 1.f);
   ImGui::PushStyleVar(ImGuiStyleVar_Alpha, msg.ever_drawn ? alpha : 1.0);
 

@@ -389,12 +389,12 @@ void MixAdd(int* out, const s16* input, const u32 count, VolumeData* vd, s16* dp
     s64 sample = input[i];
     sample *= volume;
     sample >>= 15;
-    sample = std::clamp((s32)sample, -32767, 32767);  // -32768 ?
+    sample = std::clamp(static_cast<s32>(sample), -32767, 32767);  // -32768 ?
 
-    out[i] += (s16)sample;
+    out[i] += static_cast<s16>(sample);
     volume += volume_delta;
 
-    *dpop = (s16)sample;
+    *dpop = static_cast<s16>(sample);
   }
 }
 
@@ -403,7 +403,7 @@ void MixAdd(int* out, const s16* input, const u32 count, VolumeData* vd, s16* dp
 s16 LowPassFilter(s16* samples, const u32 count, s16 yn1, const u16 a0, const u16 b0)
 {
   for (u32 i = 0; i < count; ++i)
-    yn1 = samples[i] = (a0 * (s32)samples[i] + b0 * (s32)yn1) >> 15;
+    yn1 = samples[i] = (a0 * static_cast<s32>(samples[i]) + b0 * static_cast<s32>(yn1)) >> 15;
   return yn1;
 }
 
@@ -428,9 +428,9 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
     const s32 volume = (s16)pb.vol_env.cur_volume;
 #else
     // unsigned on Wii
-    const s32 volume = (u16)pb.vol_env.cur_volume;
+    const s32 volume = static_cast<u16>(pb.vol_env.cur_volume);
 #endif
-    const s32 sample = ((s32)samples[i] * volume) >> 15;
+    const s32 sample = (static_cast<s32>(samples[i]) * volume) >> 15;
     samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }

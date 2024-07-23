@@ -425,7 +425,7 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
     return fd.Get();
   }
 
-  if (fs.Write(fd.Get(), data.data(), u32(data.size()), {}, ticks) != s32(data.size()))
+  if (fs.Write(fd.Get(), data.data(), static_cast<u32>(data.size()), {}, ticks) != static_cast<s32>(data.size()))
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to write to temporary file {}", tmp_path);
     return ES_EIO;

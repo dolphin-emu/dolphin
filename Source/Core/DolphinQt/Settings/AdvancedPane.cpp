@@ -249,7 +249,7 @@ void AdvancedPane::Update() const
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
     if (available_cpu_cores[i] == cpu_core)
-      m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
+      m_cpu_emulation_engine_combobox->setCurrentIndex(static_cast<int>(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
   m_enable_mmu_checkbox->setEnabled(!running);

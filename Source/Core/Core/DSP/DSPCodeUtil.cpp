@@ -141,7 +141,7 @@ std::vector<u16> BinaryStringBEToCode(const std::string& str)
 
   for (size_t i = 0; i < code.size(); i++)
   {
-    code[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
+    code[i] = (static_cast<u16>((u8)str[i * 2 + 0]) << 8) | static_cast<u16>((u8)str[i * 2 + 1]);
   }
 
   return code;

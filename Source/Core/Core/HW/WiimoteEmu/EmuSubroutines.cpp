@@ -305,7 +305,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     }
 
     // Top byte of address is ignored on the bus.
-    auto const bytes_written = m_i2c_bus.BusWrite(wd.slave_address, (u8)address, wd.size, wd.data);
+    auto const bytes_written = m_i2c_bus.BusWrite(wd.slave_address, static_cast<u8>(address), wd.size, wd.data);
     if (bytes_written != wd.size)
     {
       // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
@@ -505,7 +505,7 @@ bool Wiimote::ProcessReadDataRequest()
 
     // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
     auto const bytes_read = m_i2c_bus.BusRead(
-        m_read_request.slave_address, (u8)m_read_request.address, bytes_to_read, reply.data);
+        m_read_request.slave_address, static_cast<u8>(m_read_request.address), bytes_to_read, reply.data);
 
     if (bytes_read != bytes_to_read)
     {
@@ -520,7 +520,7 @@ bool Wiimote::ProcessReadDataRequest()
   break;
 
   default:
-    WARN_LOG_FMT(WIIMOTE, "ReadData: invalid address space: {:#x}", int(m_read_request.space));
+    WARN_LOG_FMT(WIIMOTE, "ReadData: invalid address space: {:#x}", static_cast<int>(m_read_request.space));
     // A real wiimote gives error 6:
     error_code = ErrorCode::InvalidSpace;
     break;

@@ -305,7 +305,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     // occasionally used as MOV - emulate, with immediate propagation
     if (a != 0 && d != a && gpr.IsImm(a))
     {
-      gpr.SetImmediate32(d, gpr.Imm32(a) + (u32)(s32)inst.SIMM_16);
+      gpr.SetImmediate32(d, gpr.Imm32(a) + static_cast<u32>((s32)inst.SIMM_16));
     }
     else if (a != 0 && d != a && inst.SIMM_16 == 0)
     {
@@ -316,11 +316,11 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     }
     else
     {
-      regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD);  // addi
+      regimmop(d, a, false, static_cast<u32>((s32)inst.SIMM_16), Add, &XEmitter::ADD);  // addi
     }
     break;
   case 15:  // addis
-    regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
+    regimmop(d, a, false, static_cast<u32>(inst.SIMM_16) << 16, Add, &XEmitter::ADD);
     break;
   case 24:  // ori
   case 25:  // oris
@@ -358,10 +358,10 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     break;
   }
   case 12:  // addic
-    regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true);
+    regimmop(d, a, false, static_cast<u32>((s32)inst.SIMM_16), Add, &XEmitter::ADD, false, true);
     break;
   case 13:  // addic_rc
-    regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, true, true);
+    regimmop(d, a, true, static_cast<u32>((s32)inst.SIMM_16), Add, &XEmitter::ADD, true, true);
     break;
   default:
     FALLBACK_IF(true);
@@ -593,7 +593,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   // cmpi
   case 11:
     signedCompare = true;
-    comparand = RCOpArg::Imm32((u32)(s32)(s16)inst.UIMM);
+    comparand = RCOpArg::Imm32(static_cast<u32>((s32)(s16)inst.UIMM));
     break;
 
   default:
@@ -604,11 +604,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   if (gpr.IsImm(a) && comparand.IsImm())
   {
     // Both registers contain immediate values, so we can pre-compile the compare result
-    s64 compareResult = signedCompare ? (s64)gpr.SImm32(a) - (s64)comparand.SImm32() :
-                                        (u64)gpr.Imm32(a) - (u64)comparand.Imm32();
-    if (compareResult == (s32)compareResult)
+    s64 compareResult = signedCompare ? static_cast<s64>(gpr.SImm32(a)) - static_cast<s64>(comparand.SImm32()) :
+                                        static_cast<u64>(gpr.Imm32(a)) - static_cast<u64>(comparand.Imm32());
+    if (compareResult == static_cast<s32>(compareResult))
     {
-      MOV(64, PPCSTATE_CR(crf), Imm32((u32)compareResult));
+      MOV(64, PPCSTATE_CR(crf), Imm32(static_cast<u32>(compareResult)));
     }
     else
     {
@@ -767,7 +767,7 @@ void Jit64::boolX(UGeckoInstruction inst)
       {
         XOR(32, Ra, Imm32(imm));
       }
-      else if (s32(imm) >= -128 && s32(imm) <= 127)
+      else if (static_cast<s32>(imm) >= -128 && static_cast<s32>(imm) <= 127)
       {
         MOV(32, Ra, Rj);
         XOR(32, Ra, Imm32(imm));
@@ -811,7 +811,7 @@ void Jit64::boolX(UGeckoInstruction inst)
           {
             AND(32, Ra, Imm32(imm));
           }
-          else if (s32(imm) >= -128 && s32(imm) <= 127)
+          else if (static_cast<s32>(imm) >= -128 && static_cast<s32>(imm) <= 127)
           {
             MOV(32, Ra, Rj);
             AND(32, Ra, Imm32(imm));
@@ -857,7 +857,7 @@ void Jit64::boolX(UGeckoInstruction inst)
         {
           OR(32, Ra, Imm32(imm));
         }
-        else if (s32(imm) >= -128 && s32(imm) <= 127)
+        else if (static_cast<s32>(imm) >= -128 && static_cast<s32>(imm) <= 127)
         {
           MOV(32, Ra, Rj);
           OR(32, Ra, Imm32(imm));
@@ -1081,7 +1081,7 @@ void Jit64::extsXx(UGeckoInstruction inst)
 
   if (gpr.IsImm(s))
   {
-    gpr.SetImmediate32(a, (u32)(s32)(size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s)));
+    gpr.SetImmediate32(a, static_cast<u32>((s32)(size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s))));
   }
   else
   {
@@ -1168,9 +1168,9 @@ void Jit64::subfx(UGeckoInstruction inst)
     s32 i = gpr.SImm32(b), j = gpr.SImm32(a);
     gpr.SetImmediate32(d, i - j);
     if (carry)
-      FinalizeCarry(j == 0 || Interpreter::Helper_Carry((u32)i, 0u - (u32)j));
+      FinalizeCarry(j == 0 || Interpreter::Helper_Carry(static_cast<u32>(i), 0u - static_cast<u32>(j)));
     if (inst.OE)
-      GenerateConstantOverflow((s64)i - (s64)j);
+      GenerateConstantOverflow(static_cast<s64>(i) - static_cast<s64>(j));
   }
   else if (gpr.IsImm(a))
   {
@@ -1266,7 +1266,7 @@ void Jit64::MultiplyImmediate(const u32 imm, const int a, const int d, const boo
     return;
   }
 
-  if (imm == (u32)-1)
+  if (imm == static_cast<u32>(-1))
   {
     if (d != a)
       MOV(32, Rd, Ra);
@@ -1341,7 +1341,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
     s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
     gpr.SetImmediate32(d, i * j);
     if (inst.OE)
-      GenerateConstantOverflow((s64)i * (s64)j);
+      GenerateConstantOverflow(static_cast<s64>(i) * static_cast<s64>(j));
   }
   else if (gpr.IsImm(a) || gpr.IsImm(b))
   {
@@ -1388,9 +1388,9 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
   if (gpr.IsImm(a, b))
   {
     if (sign)
-      gpr.SetImmediate32(d, (u32)((u64)(((s64)gpr.SImm32(a) * (s64)gpr.SImm32(b))) >> 32));
+      gpr.SetImmediate32(d, static_cast<u32>((u64)(((s64)gpr.SImm32(a) * (s64)gpr.SImm32(b))) >> 32));
     else
-      gpr.SetImmediate32(d, (u32)(((u64)gpr.Imm32(a) * (u64)gpr.Imm32(b)) >> 32));
+      gpr.SetImmediate32(d, static_cast<u32>(((u64)gpr.Imm32(a) * (u64)gpr.Imm32(b)) >> 32));
   }
   else if (sign)
   {
@@ -1562,7 +1562,7 @@ void Jit64::divwx(UGeckoInstruction inst)
   if (gpr.IsImm(a, b))
   {
     s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
-    if (j == 0 || (i == (s32)0x80000000 && j == -1))
+    if (j == 0 || (i == static_cast<s32>(0x80000000) && j == -1))
     {
       const u32 result = i < 0 ? 0xFFFFFFFF : 0x00000000;
       gpr.SetImmediate32(d, result);
@@ -1886,7 +1886,7 @@ void Jit64::addx(UGeckoInstruction inst)
     if (carry)
       FinalizeCarry(Interpreter::Helper_Carry(i, j));
     if (inst.OE)
-      GenerateConstantOverflow((s64)i + (s64)j);
+      GenerateConstantOverflow(static_cast<s64>(i) + static_cast<s64>(j));
   }
   else if (gpr.IsImm(a) || gpr.IsImm(b))
   {
@@ -2544,7 +2544,7 @@ void Jit64::srawx(UGeckoInstruction inst)
     {
       amount &= 0x1F;
       gpr.SetImmediate32(a, i >> amount);
-      FinalizeCarry(amount != 0 && i < 0 && (u32(i) << (32 - amount)));
+      FinalizeCarry(amount != 0 && i < 0 && (static_cast<u32>(i) << (32 - amount)));
     }
   }
   else if (gpr.IsImm(b))
@@ -2656,7 +2656,7 @@ void Jit64::srawix(UGeckoInstruction inst)
   {
     s32 imm = gpr.SImm32(s);
     gpr.SetImmediate32(a, imm >> amount);
-    FinalizeCarry(amount != 0 && imm < 0 && (u32(imm) << (32 - amount)));
+    FinalizeCarry(amount != 0 && imm < 0 && (static_cast<u32>(imm) << (32 - amount)));
   }
   else if (amount != 0)
   {
@@ -2756,7 +2756,7 @@ void Jit64::twX(UGeckoInstruction inst)
   {
     RCOpArg Ra = gpr.UseNoImm(a, RCMode::Read);
     RegCache::Realize(Ra);
-    CMP(32, Ra, Imm32((s32)(s16)inst.SIMM_16));
+    CMP(32, Ra, Imm32((s32)static_cast<s16>(inst.SIMM_16)));
   }
   else  // tw
   {

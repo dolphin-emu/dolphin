@@ -189,7 +189,7 @@ FSCore::ScopedFd FSCore::Open(const Uid uid, const Gid gid, const std::string& p
   if (path.size() >= 64)
     return {this, ConvertResult(ResultCode::Invalid), ticks};
 
-  const u64 fd = ipc_fd.has_value() ? u64(*ipc_fd) : m_next_fd++;
+  const u64 fd = ipc_fd.has_value() ? static_cast<u64>(*ipc_fd) : m_next_fd++;
 
   if (path == "/dev/fs")
   {
@@ -388,7 +388,7 @@ s32 FSCore::Write(const u64 fd, const u8* data, u32 size, const std::optional<u3
 std::optional<IPCReply> FSDevice::Seek(const SeekRequest& request)
 {
   return MakeIPCReply([&](const Ticks t) {
-    return m_core.Seek(request.fd, request.offset, FS::SeekMode(request.mode), t);
+    return m_core.Seek(request.fd, request.offset, static_cast<FS::SeekMode>(request.mode), t);
   });
 }
 

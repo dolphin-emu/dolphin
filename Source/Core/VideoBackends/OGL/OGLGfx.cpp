@@ -380,14 +380,14 @@ void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, const bool c
   if (colorEnable || alphaEnable)
   {
     glColorMask(colorEnable, colorEnable, colorEnable, alphaEnable);
-    glClearColor(float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
-                 float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
+    glClearColor(static_cast<float>((color >> 16) & 0xFF) / 255.0f, static_cast<float>((color >> 8) & 0xFF) / 255.0f,
+                 static_cast<float>((color >> 0) & 0xFF) / 255.0f, static_cast<float>((color >> 24) & 0xFF) / 255.0f);
     clear_mask = GL_COLOR_BUFFER_BIT;
   }
   if (zEnable)
   {
     glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
-    glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
+    glClearDepthf(static_cast<float>(z & 0xFFFFFF) / 16777216.0f);
     clear_mask |= GL_DEPTH_BUFFER_BIT;
   }
 
@@ -535,7 +535,7 @@ void OGLGfx::ApplyDepthState(const DepthState state)
   {
     glEnable(GL_DEPTH_TEST);
     glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[u32(state.func.Value())]);
+    glDepthFunc(glCmpFuncs[static_cast<u32>(state.func.Value())]);
   }
   else
   {
@@ -560,18 +560,18 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
                                  GL_ONE,
                                  GL_DST_COLOR,
                                  GL_ONE_MINUS_DST_COLOR,
-                                 useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                 useDualSource ? GL_SRC1_ALPHA : static_cast<GLenum>(GL_SRC_ALPHA),
                                  useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                 (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                                 static_cast<GLenum>(GL_ONE_MINUS_SRC_ALPHA),
                                  GL_DST_ALPHA,
                                  GL_ONE_MINUS_DST_ALPHA};
   const GLenum dst_factors[8] = {GL_ZERO,
                                  GL_ONE,
                                  GL_SRC_COLOR,
                                  GL_ONE_MINUS_SRC_COLOR,
-                                 useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                 useDualSource ? GL_SRC1_ALPHA : static_cast<GLenum>(GL_SRC_ALPHA),
                                  useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                 (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                                 static_cast<GLenum>(GL_ONE_MINUS_SRC_ALPHA),
                                  GL_DST_ALPHA,
                                  GL_ONE_MINUS_DST_ALPHA};
 
@@ -587,10 +587,10 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
   GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
   glBlendEquationSeparate(equation, equationAlpha);
-  glBlendFuncSeparate(src_factors[u32(state.srcfactor.Value())],
-                      dst_factors[u32(state.dstfactor.Value())],
-                      src_factors[u32(state.srcfactoralpha.Value())],
-                      dst_factors[u32(state.dstfactoralpha.Value())]);
+  glBlendFuncSeparate(src_factors[static_cast<u32>(state.srcfactor.Value())],
+                      dst_factors[static_cast<u32>(state.dstfactor.Value())],
+                      src_factors[static_cast<u32>(state.srcfactoralpha.Value())],
+                      dst_factors[static_cast<u32>(state.dstfactoralpha.Value())]);
 
   const GLenum logic_op_codes[16] = {
       GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
@@ -603,7 +603,7 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
     if (state.logicopenable)
     {
       glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(logic_op_codes[u32(state.logicmode.Value())]);
+      glLogicOp(logic_op_codes[static_cast<u32>(state.logicmode.Value())]);
     }
     else
     {

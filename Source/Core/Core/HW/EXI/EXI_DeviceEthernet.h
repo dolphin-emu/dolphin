@@ -291,7 +291,7 @@ private:
 
   inline u16 page_ptr(int const index) const
   {
-    return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
+    return (static_cast<u16>(mBbaMem[index + 1]) << 8) | mBbaMem[index];
   }
 
   bool IsMXCommand(u32 const data);

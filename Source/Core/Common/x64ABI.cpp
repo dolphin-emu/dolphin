@@ -55,14 +55,14 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, const size_t rsp
     MOV(64, R(RBP), R(RSP));
   }
   for (int r : (mask & ABI_ALL_GPRS & ~BitSet32{RBP}))
-    PUSH((X64Reg)r);
+    PUSH(static_cast<X64Reg>(r));
 
   if (subtraction)
-    SUB(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
+    SUB(64, R(RSP), subtraction >= 0x80 ? Imm32(static_cast<u32>(subtraction)) : Imm8(static_cast<u8>(subtraction)));
 
   for (int x : (mask & ABI_ALL_FPRS))
   {
-    MOVAPD(MDisp(RSP, (int)xmm_offset), (X64Reg)(x - 16));
+    MOVAPD(MDisp(RSP, static_cast<int>(xmm_offset)), static_cast<X64Reg>(x - 16));
     xmm_offset += 16;
   }
 
@@ -79,17 +79,17 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, const size_t rsp_al
 
   for (int x : (mask & ABI_ALL_FPRS))
   {
-    MOVAPD((X64Reg)(x - 16), MDisp(RSP, (int)xmm_offset));
+    MOVAPD(static_cast<X64Reg>(x - 16), MDisp(RSP, static_cast<int>(xmm_offset)));
     xmm_offset += 16;
   }
 
   if (subtraction)
-    ADD(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
+    ADD(64, R(RSP), subtraction >= 0x80 ? Imm32(static_cast<u32>(subtraction)) : Imm8(static_cast<u8>(subtraction)));
 
   for (int r = 15; r >= 0; r--)
   {
     if (r != RBP && mask[r])
-      POP((X64Reg)r);
+      POP(static_cast<X64Reg>(r));
   }
   // RSP is pushed first and popped last to make debuggers/profilers happy
   if (mask[RBP])

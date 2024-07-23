@@ -282,7 +282,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
   RegCache::Realize(Rd, Ra, Rarg2);
 
-  X64Reg dest = X64Reg(Rd);
+  X64Reg dest = static_cast<X64Reg>(Rd);
   if (preserve_inputs && (a == d || arg2 == d))
     dest = XMM1;
   if (round_rhs)
@@ -408,12 +408,12 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     {
       result_xmm_guard = fpr.Scratch();
       RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard, result_xmm_guard);
-      result_xmm = X64Reg(result_xmm_guard);
+      result_xmm = static_cast<X64Reg>(result_xmm_guard);
     }
     else
     {
       RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard);
-      result_xmm = packed ? X64Reg(Rd) : XMM0;
+      result_xmm = packed ? static_cast<X64Reg>(Rd) : XMM0;
     }
   }
   else

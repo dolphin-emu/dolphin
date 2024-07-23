@@ -885,7 +885,7 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
   // Check against active game filters
   for (size_t i = 0; i < NUM_SKYLANDER_GAMES; i++)
   {
-    if (m_game_filters[i]->isChecked() && character.game == (Game)i)
+    if (m_game_filters[i]->isChecked() && character.game == static_cast<Game>(i))
     {
       pass = true;
     }
@@ -898,11 +898,11 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
     return false;
 
   // Check against active element filter
-  if ((Element)GetElementRadio() != character.element && GetElementRadio() != 0)
+  if (static_cast<Element>(GetElementRadio()) != character.element && GetElementRadio() != 0)
     return false;
 
   // Check against active type filter
-  if ((Type)GetTypeRadio() != character.type && GetTypeRadio() != 0)
+  if (static_cast<Type>(GetTypeRadio()) != character.type && GetTypeRadio() != 0)
     return false;
 
   return true;
@@ -997,15 +997,15 @@ QBrush SkylanderPortalWindow::GetBaseColor(const std::pair<const u16, const u16>
 
 int SkylanderPortalWindow::GetGameID(Game game)
 {
-  return (int)game;
+  return static_cast<int>(game);
 }
 
 int SkylanderPortalWindow::GetElementID(Element elem)
 {
-  return (int)elem;
+  return static_cast<int>(elem);
 }
 
 int SkylanderPortalWindow::GetTypeID(Type type)
 {
-  return (int)type;
+  return static_cast<int>(type);
 }

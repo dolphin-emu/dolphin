@@ -231,7 +231,7 @@ void AudioPane::LoadSettings() const
 
   // DPL2
   m_dolby_pro_logic->setChecked(Get(Config::MAIN_DPL2_DECODER));
-  m_dolby_quality_slider->setValue(int(Get(Config::MAIN_DPL2_QUALITY)));
+  m_dolby_quality_slider->setValue(static_cast<int>(Get(Config::MAIN_DPL2_QUALITY)));
   m_dolby_quality_latency_label->setText(
       GetDPL2ApproximateLatencyLabel(Get(Config::MAIN_DPL2_QUALITY)));
   if (AudioCommon::SupportsDPL2Decoder(current) && !m_dsp_hle->isChecked())

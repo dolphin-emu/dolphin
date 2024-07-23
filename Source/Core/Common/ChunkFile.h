@@ -67,7 +67,7 @@ public:
   template <typename K, class V>
   void Do(std::map<K, V>& x)
   {
-    u32 count = (u32)x.size();
+    u32 count = static_cast<u32>(x.size());
     Do(count);
 
     switch (m_mode)
@@ -97,7 +97,7 @@ public:
   template <typename V>
   void Do(std::set<V>& x)
   {
-    u32 count = (u32)x.size();
+    u32 count = static_cast<u32>(x.size());
     Do(count);
 
     switch (m_mode)
@@ -270,7 +270,7 @@ public:
     // Usually we can just use x = **ptr, etc.  However, this doesn't work
     // for unions containing BitFields (long story, stupid language rules)
     // or arrays.  This will get optimized anyway.
-    DoVoid((void*)&x, sizeof(x));
+    DoVoid(static_cast<void*>(&x), sizeof(x));
   }
 
   void Do(bool& x)

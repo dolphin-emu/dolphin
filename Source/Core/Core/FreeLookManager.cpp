@@ -115,7 +115,7 @@ FreeLookController::FreeLookController(const unsigned int index) : m_index(index
 
 std::string FreeLookController::GetName() const
 {
-  return std::string("FreeLook") + char('1' + m_index);
+  return std::string("FreeLook") + static_cast<char>('1' + m_index);
 }
 
 InputConfig* FreeLookController::GetConfig() const

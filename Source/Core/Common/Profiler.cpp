@@ -33,7 +33,7 @@ Profiler::Profiler(const std::string& name)
       m_calls(0), m_depth(0)
 {
   m_time = Timer::NowUs();
-  s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));
+  s_max_length = std::max<u32>(s_max_length, static_cast<u32>(m_name.length()));
 
   std::lock_guard lk(s_mutex);
   s_all_profilers.push_back(this);
@@ -128,8 +128,8 @@ std::string Profiler::Read()
   double time_rel = 0;
   if (m_calls)
   {
-    avg = double(m_usecs) / m_calls;
-    stdev = std::sqrt(double(m_usecs_quad) / m_calls - avg * avg);
+    avg = static_cast<double>(m_usecs) / m_calls;
+    stdev = std::sqrt(static_cast<double>(m_usecs_quad) / m_calls - avg * avg);
   }
   else
   {
@@ -137,7 +137,7 @@ std::string Profiler::Read()
   }
   if (s_usecs_frame)
   {
-    time_rel = double(m_usecs) * 100 / s_usecs_frame;
+    time_rel = static_cast<double>(m_usecs) * 100 / s_usecs_frame;
   }
 
   std::ostringstream buffer;

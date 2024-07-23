@@ -147,7 +147,7 @@ OpenALStream::~OpenALStream()
 
 void OpenALStream::SetVolume(const int volume)
 {
-  m_volume = (float)volume / 100.0f;
+  m_volume = static_cast<float>(volume) / 100.0f;
 
   if (m_source)
     palSourcef(m_source, AL_GAIN, m_volume);

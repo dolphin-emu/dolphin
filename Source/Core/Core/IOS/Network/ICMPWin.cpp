@@ -50,7 +50,7 @@ u16 cksum(const u16* buffer, int length)
   sum = (sum & 0xffff) + (sum >> 16);
   sum += sum >> 16;
 
-  return (u16)~sum;
+  return static_cast<u16>(~sum);
 }
 
 int icmp_echo_req(const u32 s, const sockaddr_in* addr, const u8* data, const u32 data_length)

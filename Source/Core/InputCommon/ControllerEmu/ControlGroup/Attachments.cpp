@@ -20,7 +20,7 @@ u32 Attachments::GetSelectedAttachment() const
   const int value = m_selection_value.GetValue();
 
   if (value > 0 && static_cast<size_t>(value) < m_attachments.size())
-    return u32(value);
+    return static_cast<u32>(value);
 
   return 0;
 }

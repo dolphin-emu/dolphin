@@ -98,7 +98,7 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, const unsigned int numSamples
     aid_sample_rate = (aid_sample_rate + offset) * emulationspeed;
   }
 
-  const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
+  const u32 ratio = static_cast<u32>(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
 
   s32 lvolume = m_LVolume.load();
   s32 rvolume = m_RVolume.load();
@@ -114,20 +114,20 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, const unsigned int numSamples
 
     s16 l1 = read_buffer(indexR & INDEX_MASK);   // current
     s16 l2 = read_buffer(indexR2 & INDEX_MASK);  // next
-    int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
+    int sampleL = ((l1 << 16) + (l2 - l1) * static_cast<u16>(m_frac)) >> 16;
     sampleL = (sampleL * lvolume) >> 8;
     sampleL += samples[currentSample + 1];
     samples[currentSample + 1] = std::clamp(sampleL, -32767, 32767);
 
     s16 r1 = read_buffer((indexR + 1) & INDEX_MASK);   // current
     s16 r2 = read_buffer((indexR2 + 1) & INDEX_MASK);  // next
-    int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
+    int sampleR = ((r1 << 16) + (r2 - r1) * static_cast<u16>(m_frac)) >> 16;
     sampleR = (sampleR * rvolume) >> 8;
     sampleR += samples[currentSample];
     samples[currentSample] = std::clamp(sampleR, -32767, 32767);
 
     m_frac += ratio;
-    indexR += 2 * (u16)(m_frac >> 16);
+    indexR += 2 * static_cast<u16>(m_frac >> 16);
     m_frac &= 0xffff;
   }
 

@@ -209,7 +209,7 @@ void VideoConfig::Refresh()
 void VideoConfig::VerifyValidity()
 {
   // TODO: Check iMaxAnisotropy value
-  if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
+  if (iAdapter < 0 || iAdapter > (static_cast<int>(backend_info.Adapters.size()) - 1))
     iAdapter = 0;
 
   if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==

@@ -535,7 +535,7 @@ void AchievementManager::DoState(PointerWrap& p) const
       return;
     }
   }
-  p.DoArray(buffer.get(), (u32)size);
+  p.DoArray(buffer.get(), static_cast<u32>(size));
   if (p.IsReadMode())
   {
     int result = rc_client_deserialize_progress_sized(m_client, buffer.get(), size);

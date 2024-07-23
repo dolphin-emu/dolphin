@@ -120,7 +120,7 @@ u64 NFSFileReader::CalculateExpectedDataSize(const std::vector<NFSLBARange>& lba
   for (const NFSLBARange& range : lba_ranges)
     greatest_block_index = std::max(greatest_block_index, range.start_block + range.num_blocks);
 
-  return u64(greatest_block_index) * BLOCK_SIZE;
+  return static_cast<u64>(greatest_block_index) * BLOCK_SIZE;
 }
 
 std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,

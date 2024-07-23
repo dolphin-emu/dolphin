@@ -80,7 +80,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, const int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Get Origin");
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
-    for (int i = 0; i < (int)sizeof(SOrigin); i++)
+    for (int i = 0; i < static_cast<int>(sizeof(SOrigin)); i++)
     {
       buffer[i] = *calibration++;
     }
@@ -93,7 +93,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, const int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Recalibrate");
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
-    for (int i = 0; i < (int)sizeof(SOrigin); i++)
+    for (int i = 0; i < static_cast<int>(sizeof(SOrigin)); i++)
     {
       buffer[i] = *calibration++;
     }
@@ -266,7 +266,7 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   {
     const u64 current_time = m_system.GetCoreTiming().GetTicks();
     const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
-    if (u32(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
+    if (static_cast<u32>(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {

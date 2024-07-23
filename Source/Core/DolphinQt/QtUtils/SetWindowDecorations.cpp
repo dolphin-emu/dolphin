@@ -18,8 +18,8 @@ void SetQWidgetWindowDecorations(const QWidget* widget)
     return;
 
   BOOL use_dark_title_bar = TRUE;
-  DwmSetWindowAttribute(HWND(widget->winId()),
+  DwmSetWindowAttribute(reinterpret_cast<HWND>(widget->winId()),
                         20 /* DWMWINDOWATTRIBUTE::DWMWA_USE_IMMERSIVE_DARK_MODE */,
-                        &use_dark_title_bar, DWORD(sizeof(use_dark_title_bar)));
+                        &use_dark_title_bar, static_cast<DWORD>(sizeof(use_dark_title_bar)));
 #endif
 }

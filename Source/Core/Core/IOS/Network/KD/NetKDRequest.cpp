@@ -97,7 +97,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
       0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3, 0xC, 0x2, 0x6, 0xE, 0x8, 0x0, 0xA, 0x5,
   };
 
-  constexpr auto u64_get_byte = [](const u64 value, const u32 shift) -> u8 { return u8(value >> (shift * 8)); };
+  constexpr auto u64_get_byte = [](const u64 value, const u32 shift) -> u8 { return static_cast<u8>(value >> (shift * 8)); };
 
   constexpr auto u64_insert_byte = [](const u64 value, const u32 shift, u8 byte) -> u64 {
     const u64 mask = 0x00000000000000FFULL << (shift * 8);
@@ -105,7 +105,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
     return (value & ~mask) | inst;
   };
 
-  u64 mix_id = (u64{area_code} << 50) | (u64(hardware_model) << 47) | (u64{hollywood_id} << 15) |
+  u64 mix_id = (u64{area_code} << 50) | (static_cast<u64>(hardware_model) << 47) | (u64{hollywood_id} << 15) |
                (u64{id_ctr} << 10);
   const u64 mix_id_copy1 = mix_id;
 
@@ -126,7 +126,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
   for (ctr = 0; ctr <= 5; ctr++)
   {
     const u8 ret = u64_get_byte(mix_id, ctr);
-    const u8 foobar = u8((u32{table1[(ret >> 4) & 0xF]} << 4) | table1[ret & 0xF]);
+    const u8 foobar = static_cast<u8>((u32{table1[(ret >> 4) & 0xF]} << 4) | table1[ret & 0xF]);
     mix_id = u64_insert_byte(mix_id, ctr, foobar & 0xff);
   }
 
@@ -1088,7 +1088,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
       if (!area.empty() && !model.empty())
       {
         const u8 area_code = GetAreaCode(area);
-        const u8 id_ctr = u8(m_config.IdGen());
+        const u8 id_ctr = static_cast<u8>(m_config.IdGen());
         const HardwareModel hardware_model = GetHardwareModel(model);
 
         const u32 hollywood_id = m_ios.GetIOSC().GetDeviceId();
@@ -1119,7 +1119,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
       WriteReturnValue(memory, NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
     }
     memory.Write_U64(m_config.Id(), request.buffer_out + 4);
-    memory.Write_U32(u32(m_config.CreationStage()), request.buffer_out + 0xC);
+    memory.Write_U32(static_cast<u32>(m_config.CreationStage()), request.buffer_out + 0xC);
     break;
 
   case IOCTL_NWC24_GET_SCHEDULER_STAT:

@@ -348,7 +348,7 @@ void* MemArena::MapInMemoryRegion(const s64 offset, const size_t size, void* bas
     return rv;
   }
 
-  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, static_cast<DWORD>((u64)offset), size, base);
 }
 
 bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)

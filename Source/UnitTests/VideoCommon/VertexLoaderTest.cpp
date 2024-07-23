@@ -65,7 +65,7 @@ protected:
   {
     m_loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
     ASSERT_EQ(input_size, m_loader->m_vertex_size);
-    ASSERT_EQ((int)output_size, m_loader->m_native_vtx_decl.stride);
+    ASSERT_EQ(static_cast<int>(output_size), m_loader->m_native_vtx_decl.stride);
   }
 
   template <typename T>
@@ -166,7 +166,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   ASSERT_EQ(0u, values.size() % 2);
   ASSERT_EQ(0u, values.size() % 3);
 
-  int count = (int)values.size() / elem_count;
+  int count = static_cast<int>(values.size()) / elem_count;
   size_t input_size = elem_count * elem_size;
   if (IsIndexed(addr))
   {
@@ -963,7 +963,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
   {
     if (enable_matrix[i])
-      Input<u8>(u8(20 + i));
+      Input<u8>(static_cast<u8>(20 + i));
   }
   Input<u8>(1);  // Position
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
@@ -975,7 +975,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
   {
     if (enable_matrix[i])
-      Input<u8>(u8(10 + i));
+      Input<u8>(static_cast<u8>(10 + i));
   }
   Input<u8>(0);  // Position
   for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)

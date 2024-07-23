@@ -109,7 +109,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, co
         {
           // Left and right shifts function essentially as a single shift by a 7-bit signed value,
           // but are split into two intructions for clarity.
-          buf += fmt::format("#{}", (val & 0x20) != 0 ? (int(val) - 64) : int(val));
+          buf += fmt::format("#{}", (val & 0x20) != 0 ? (static_cast<int>(val) - 64) : static_cast<int>(val));
         }
         else
         {
@@ -124,7 +124,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, co
 
     case P_MEM:
       if (opc.params[j].size != 2)
-        val = (u16)(s16)(s8)val;
+        val = static_cast<u16>((s16)(s8)val);
 
       if (settings_.decode_names)
         buf += fmt::format("@{}", pdname(val));

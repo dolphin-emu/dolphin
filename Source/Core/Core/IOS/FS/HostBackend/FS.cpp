@@ -141,7 +141,7 @@ bool HostFileSystem::FstEntry::CheckPermission(const Uid caller_uid, const Gid c
     file_mode = data.modes.owner;
   else if (data.gid == caller_gid)
     file_mode = data.modes.group;
-  return (u8(requested_mode) & u8(file_mode)) == u8(requested_mode);
+  return (static_cast<u8>(requested_mode) & static_cast<u8>(file_mode)) == static_cast<u8>(requested_mode);
 }
 
 HostFileSystem::HostFileSystem(const std::string& root_path,
@@ -215,7 +215,7 @@ void HostFileSystem::SaveFst() const
     SerializedFstEntry& serialized = to_write.emplace_back();
     serialized.SetName(entry.name);
     GetMetadataFields(serialized) = GetMetadataFields(entry.data);
-    serialized.num_children = u32(entry.children.size());
+    serialized.num_children = static_cast<u32>(entry.children.size());
     for (const FstEntry& child : entry.children)
       collect(collect, child);
   };
@@ -349,7 +349,7 @@ void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_dir
     }
     else
     {
-      u32 size = (u32)entry.size;
+      u32 size = static_cast<u32>(entry.size);
       p.Do(size);
 
       File::IOFile handle(entry.physicalName, "rb");
@@ -467,7 +467,7 @@ ResultCode HostFileSystem::CreateFileOrDirectory(const Uid uid, const Gid gid, c
     return ResultCode::Invalid;
   }
 
-  if (!is_file && std::count(path.begin(), path.end(), '/') > int(MaxPathDepth))
+  if (!is_file && std::count(path.begin(), path.end(), '/') > static_cast<int>(MaxPathDepth))
     return ResultCode::TooManyPathComponents;
 
   const auto split_path = SplitPathAndBasename(path);
@@ -684,7 +684,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(const Uid uid, co
   std::unordered_map<std::string_view, int> sort_keys;
   sort_keys.reserve(entry->children.size());
   for (size_t i = 0; i < entry->children.size(); ++i)
-    sort_keys.emplace(entry->children[i].name, int(i));
+    sort_keys.emplace(entry->children[i].name, static_cast<int>(i));
 
   const auto get_key = [&sort_keys](const std::string_view key) {
     const auto it = sort_keys.find(key);

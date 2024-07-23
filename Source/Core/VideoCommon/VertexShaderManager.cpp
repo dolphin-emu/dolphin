@@ -259,9 +259,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
         else
           return f;
       };
-      double norm = double(light.ddir[0]) * double(light.ddir[0]) +
-                    double(light.ddir[1]) * double(light.ddir[1]) +
-                    double(light.ddir[2]) * double(light.ddir[2]);
+      double norm = static_cast<double>(light.ddir[0]) * static_cast<double>(light.ddir[0]) +
+                    static_cast<double>(light.ddir[1]) * static_cast<double>(light.ddir[1]) +
+                    static_cast<double>(light.ddir[2]) * static_cast<double>(light.ddir[2]);
       norm = 1.0 / sqrt(norm);
       dstlight.dir[0] = sanitize(static_cast<float>(light.ddir[0] * norm));
       dstlight.dir[1] = sanitize(static_cast<float>(light.ddir[1] * norm));

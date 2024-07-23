@@ -271,8 +271,8 @@ void WiimoteControllersWidget::LoadSettings(const Core::State state) const
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    SignalBlocking(m_wiimote_boxes[i])
-        ->setCurrentIndex(int(Get(Config::GetInfoForWiimoteSource(int(i)))));
+    SignalBlocking(m_wiimote_boxes[i])->setCurrentIndex(
+        static_cast<int>(Get(Config::GetInfoForWiimoteSource(static_cast<int>(i)))));
   }
   SignalBlocking(m_wiimote_real_balance_board)
       ->setChecked(Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real);
@@ -349,7 +349,8 @@ void WiimoteControllersWidget::SaveSettings() const
     for (size_t i = 0; i < m_wiimote_groups.size(); i++)
     {
       const int index = m_wiimote_boxes[i]->currentIndex();
-      SetBaseOrCurrent(Config::GetInfoForWiimoteSource(int(i)), WiimoteSource(index));
+      SetBaseOrCurrent(Config::GetInfoForWiimoteSource(static_cast<int>(i)),
+                       static_cast<WiimoteSource>(index));
     }
   }
 

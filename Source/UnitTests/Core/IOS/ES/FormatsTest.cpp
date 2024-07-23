@@ -141,7 +141,7 @@ TEST_F(GameTMDReaderTest, ContentInfo)
   EXPECT_FALSE(m_tmd.GetContent(1, &content)) << "Content with index 1 should not exist";
 
   const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
-  ASSERT_EQ(contents.size(), size_t(1));
+  ASSERT_EQ(contents.size(), static_cast<size_t>(1));
   check_is_expected_content(contents.at(0));
 }
 
@@ -205,7 +205,7 @@ TEST_F(IOSTMDReaderTest, ContentInfo)
   };
 
   const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
-  ASSERT_EQ(contents.size(), size_t(23));
+  ASSERT_EQ(contents.size(), static_cast<size_t>(23));
 
   IOS::ES::Content content;
 

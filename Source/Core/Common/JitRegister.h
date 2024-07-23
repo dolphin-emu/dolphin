@@ -27,7 +27,7 @@ template <typename... Args>
 inline void Register(const void* start, const void* end, fmt::format_string<Args...> format,
                      Args&&... args)
 {
-  u32 code_size = (u32)((const char*)end - (const char*)start);
+  u32 code_size = static_cast<u32>((const char*)end - (const char*)start);
   Register(start, code_size, fmt::format(format, std::forward<Args>(args)...));
 }
 }  // namespace Common::JitRegister

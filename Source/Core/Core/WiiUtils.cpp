@@ -329,7 +329,7 @@ std::string SystemUpdater::GetDeviceId() const
   u32 ios_device_id;
   if (m_ios.GetESCore().GetDeviceId(&ios_device_id) < 0)
     return "";
-  return std::to_string((u64(1) << 32) | ios_device_id);
+  return std::to_string((static_cast<u64>(1) << 32) | ios_device_id);
 }
 
 class OnlineSystemUpdater final : public SystemUpdater

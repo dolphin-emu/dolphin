@@ -62,7 +62,7 @@ public:
 
 static void ASAN_DISABLE perform_invalid_access(void* data)
 {
-  *(volatile int*)data = 5;
+  *static_cast<volatile int*>(data) = 5;
 }
 
 TEST(PageFault, PageFault)

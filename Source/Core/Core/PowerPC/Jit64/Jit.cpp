@@ -472,7 +472,7 @@ void Jit64::FakeBLCall(const u32 after)
 
   // We may need to fake the BLR stack on inlined CALL instructions.
   // Else we can't return to this location any more.
-  MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
+  MOV(64, R(RSCRATCH2), Imm64(static_cast<u64>(m_ppc_state.feature_flags) << 32 | after));
   PUSH(RSCRATCH2);
   FixupBranch skip_exit = CALL();
   POP(RSCRATCH2);
@@ -535,7 +535,7 @@ void Jit64::WriteExit(const u32 destination, bool bl, const u32 after)
 
   if (bl)
   {
-    MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
+    MOV(64, R(RSCRATCH2), Imm64(static_cast<u64>(m_ppc_state.feature_flags) << 32 | after));
     PUSH(RSCRATCH2);
   }
 
@@ -592,7 +592,7 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, const u32 after)
 
   if (bl)
   {
-    MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
+    MOV(64, R(RSCRATCH2), Imm64(static_cast<u64>(m_ppc_state.feature_flags) << 32 | after));
     PUSH(RSCRATCH2);
   }
 

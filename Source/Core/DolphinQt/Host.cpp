@@ -124,8 +124,8 @@ bool Host::GetRenderFocus() const
   // Unfortunately Qt calls SetRenderFocus() with a slight delay compared to what we actually need
   // to avoid inputs that cause a focus loss to be processed by the emulation
   if (m_render_to_main && !m_render_fullscreen)
-    return GetForegroundWindow() == (HWND)m_main_window_handle.load();
-  return GetForegroundWindow() == (HWND)m_render_handle.load();
+    return GetForegroundWindow() == static_cast<HWND>(m_main_window_handle.load());
+  return GetForegroundWindow() == static_cast<HWND>(m_render_handle.load());
 #else
   return m_render_focus;
 #endif

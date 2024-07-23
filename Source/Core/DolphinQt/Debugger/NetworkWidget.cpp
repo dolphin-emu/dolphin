@@ -305,7 +305,7 @@ void NetworkWidget::Update() const
   m_verify_certificates_checkbox->setChecked(
       Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES));
 
-  const int combo_index = int([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
+  const int combo_index = static_cast<int>([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
     if (is_pcap)
       return FormatComboId::PCAP;
     else if (is_ssl_read && is_ssl_write)
@@ -421,12 +421,12 @@ QComboBox* NetworkWidget::CreateDumpFormatCombo()
 {
   auto* combo = new QComboBox();
 
-  combo->insertItem(int(FormatComboId::None), tr("None"));
+  combo->insertItem(static_cast<int>(FormatComboId::None), tr("None"));
   // i18n: PCAP is a file format
-  combo->insertItem(int(FormatComboId::PCAP), tr("PCAP"));
-  combo->insertItem(int(FormatComboId::BinarySSL), tr("Binary SSL"));
-  combo->insertItem(int(FormatComboId::BinarySSLRead), tr("Binary SSL (read)"));
-  combo->insertItem(int(FormatComboId::BinarySSLWrite), tr("Binary SSL (write)"));
+  combo->insertItem(static_cast<int>(FormatComboId::PCAP), tr("PCAP"));
+  combo->insertItem(static_cast<int>(FormatComboId::BinarySSL), tr("Binary SSL"));
+  combo->insertItem(static_cast<int>(FormatComboId::BinarySSLRead), tr("Binary SSL (read)"));
+  combo->insertItem(static_cast<int>(FormatComboId::BinarySSLWrite), tr("Binary SSL (write)"));
 
   return combo;
 }

@@ -226,10 +226,10 @@ void DoState(PointerWrap& p)
   for (int i = 0; i < MAX_BBMOTES; ++i)
   {
     const WiimoteSource source = GetSource(i);
-    auto state_wiimote_source = u8(source);
+    auto state_wiimote_source = static_cast<u8>(source);
     p.Do(state_wiimote_source);
 
-    if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated)
+    if (static_cast<WiimoteSource>(state_wiimote_source) == WiimoteSource::Emulated)
     {
       // Sync complete state of emulated wiimotes.
       static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
@@ -239,7 +239,7 @@ void DoState(PointerWrap& p)
     {
       // If using a real wiimote or the save-state source does not match the current source,
       // then force a reconnection on load.
-      if (source == WiimoteSource::Real || source != WiimoteSource(state_wiimote_source))
+      if (source == WiimoteSource::Real || source != static_cast<WiimoteSource>(state_wiimote_source))
         WiimoteCommon::UpdateSource(i);
     }
   }

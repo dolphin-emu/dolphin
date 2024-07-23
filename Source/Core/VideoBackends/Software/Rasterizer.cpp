@@ -34,8 +34,8 @@ struct SlopeContext
     // adjust a little less than 0.5
     const float adjust = 0.495f;
 
-    xOff = ((float)x0_ - (v0->screenPosition.x - x_off)) + adjust;
-    yOff = ((float)y0_ - (v0->screenPosition.y - y_off)) + adjust;
+    xOff = (static_cast<float>(x0_) - (v0->screenPosition.x - x_off)) + adjust;
+    yOff = (static_cast<float>(y0_) - (v0->screenPosition.y - y_off)) + adjust;
 
     dx10 = v1->screenPosition.x - v0->screenPosition.x;
     dx20 = v2->screenPosition.x - v0->screenPosition.x;
@@ -90,8 +90,8 @@ struct Slope
 
   float GetValue(const s32 x, const s32 y) const
   {
-    float dx = xOff + (float)(x - x0);
-    float dy = yOff + (float)(y - y0);
+    float dx = xOff + static_cast<float>(x - x0);
+    float dy = yOff + static_cast<float>(y - y0);
     return f0 + (dfdx * dx) + (dfdy * dy);
   }
 };
@@ -133,7 +133,7 @@ static s32 FixedLog2(const float f)
 
 static inline int iround(const float x)
 {
-  int t = (int)x;
+  int t = static_cast<int>(x);
   if ((x - t) >= 0.5)
     return t + 1;
 
@@ -149,7 +149,7 @@ static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
 {
   INCSTAT(g_stats.this_frame.rasterized_pixels);
 
-  s32 z = (s32)std::clamp<float>(ZSlope.GetValue(x, y), 0.0f, 16777215.0f);
+  s32 z = static_cast<s32>(std::clamp<float>(ZSlope.GetValue(x, y), 0.0f, 16777215.0f));
 
   if (bpmem.GetEmulatedZ() == EmulatedZ::Early)
   {
@@ -175,7 +175,7 @@ static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
   {
     for (int comp = 0; comp < 4; comp++)
     {
-      u16 color = (u16)ColorSlopes[i][comp].GetValue(x, y);
+      u16 color = static_cast<u16>(ColorSlopes[i][comp].GetValue(x, y));
 
       // clamp color value to 0
       u16 mask = ~(color >> 8);
@@ -188,8 +188,8 @@ static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
   for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
   {
     // multiply by 128 because TEV stores UVs as s17.7
-    tev.Uv[i].s = (s32)(pixel.Uv[i][0] * 128);
-    tev.Uv[i].t = (s32)(pixel.Uv[i][1] * 128);
+    tev.Uv[i].s = static_cast<s32>(pixel.Uv[i][0] * 128);
+    tev.Uv[i].t = static_cast<s32>(pixel.Uv[i][1] * 128);
   }
 
   for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)

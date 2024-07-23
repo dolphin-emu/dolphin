@@ -43,7 +43,7 @@ MemoryCard::MemoryCard(const std::string& filename, const ExpansionInterface::Sl
   if (file)
   {
     // Measure size of the existing memcard file.
-    m_memory_card_size = (u32)file.GetSize();
+    m_memory_card_size = static_cast<u32>(file.GetSize());
     m_nintendo_card_id = m_memory_card_size / SIZE_TO_Mb;
     m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
     memset(&m_memcard_data[0], 0xFF, m_memory_card_size);

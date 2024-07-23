@@ -1155,9 +1155,9 @@ void DirectoryBlobPartition::BuildFST(std::vector<FSTBuilderNode> root_nodes, co
   ASSERT(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
-  Write32((u32)(fst_address >> m_address_shift), 0x0424, disc_header);
-  Write32((u32)(fst_data.size() >> m_address_shift), 0x0428, disc_header);
-  Write32((u32)(fst_data.size() >> m_address_shift), 0x042c, disc_header);
+  Write32(static_cast<u32>(fst_address >> m_address_shift), 0x0424, disc_header);
+  Write32(static_cast<u32>(fst_data.size() >> m_address_shift), 0x0428, disc_header);
+  Write32(static_cast<u32>(fst_data.size() >> m_address_shift), 0x042c, disc_header);
 
   m_contents.Add(fst_address, std::move(fst_data));
 
@@ -1174,10 +1174,10 @@ void DirectoryBlobPartition::WriteEntryData(std::vector<u8>* fst_data, u32* entr
   (*fst_data)[(*entry_offset)++] = (name_offset >> 8) & 0xff;
   (*fst_data)[(*entry_offset)++] = (name_offset)&0xff;
 
-  Write32((u32)(data_offset >> address_shift), *entry_offset, fst_data);
+  Write32(static_cast<u32>(data_offset >> address_shift), *entry_offset, fst_data);
   *entry_offset += 4;
 
-  Write32((u32)length, *entry_offset, fst_data);
+  Write32(static_cast<u32>(length), *entry_offset, fst_data);
   *entry_offset += 4;
 }
 
@@ -1186,7 +1186,7 @@ void DirectoryBlobPartition::WriteEntryName(std::vector<u8>* fst_data, u32* name
 {
   strncpy((char*)&(*fst_data)[*name_offset + name_table_offset], name.c_str(), name.length() + 1);
 
-  *name_offset += (u32)(name.length() + 1);
+  *name_offset += static_cast<u32>(name.length() + 1);
 }
 
 void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,

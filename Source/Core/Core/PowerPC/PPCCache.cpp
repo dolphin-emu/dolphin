@@ -45,7 +45,7 @@ constexpr std::array<u32, 128> s_way_from_plru = [] {
   {
     std::array<u32, 7> b{};
     for (size_t i = 0; i < b.size(); i++)
-      b[i] = u32(m & (size_t{1} << i));
+      b[i] = static_cast<u32>(m & (size_t{1} << i));
 
     u32 w = 0;
     if (b[0] != 0)

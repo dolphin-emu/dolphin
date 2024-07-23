@@ -573,7 +573,7 @@ void VertexManagerBase::Flush()
         const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
         if (!cache_entry)
           continue;
-        const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
+        const float custom_tex_scale = cache_entry->GetWidth() / static_cast<float>(cache_entry->native_width);
         samplers[i] = TextureCacheBase::GetSamplerState(
             i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
       }
@@ -592,7 +592,7 @@ void VertexManagerBase::Flush()
             texture_units.push_back(i);
           }
 
-          const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
+          const float custom_tex_scale = cache_entry->GetWidth() / static_cast<float>(cache_entry->native_width);
           samplers[i] = TextureCacheBase::GetSamplerState(
               i, custom_tex_scale, cache_entry->is_custom_tex, cache_entry->has_arbitrary_mips);
         }

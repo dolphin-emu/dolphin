@@ -61,7 +61,7 @@ public:
   {
     return std::string(named_axes[m_index]) + (m_range < 0 ? '-' : '+');
   }
-  ControlState GetState() const override { return ControlState(m_axis) / m_range; }
+  ControlState GetState() const override { return static_cast<ControlState>(m_axis) / m_range; }
 
 private:
   const SHORT& m_axis;
@@ -77,7 +77,7 @@ public:
   {
   }
   std::string GetName() const override { return named_triggers[m_index]; }
-  ControlState GetState() const override { return ControlState(m_trigger) / m_range; }
+  ControlState GetState() const override { return static_cast<ControlState>(m_trigger) / m_range; }
 
 private:
   const BYTE& m_trigger;
@@ -97,7 +97,7 @@ public:
   void SetState(const ControlState state) override
   {
     const auto old_value = m_motor;
-    m_motor = (WORD)(state * m_range);
+    m_motor = static_cast<WORD>(state * m_range);
 
     // Only update if the state changed.
     if (m_motor != old_value)
@@ -212,12 +212,12 @@ Device::Device(const XINPUT_CAPABILITIES& caps, const u8 index) : m_subtype(caps
     if (named_buttons[i].bitmask == XINPUT_GAMEPAD_GUIDE && !s_have_guide_button)
       continue;
 
-    AddInput(new Button(u8(i), m_state_in.Gamepad.wButtons));
+    AddInput(new Button(static_cast<u8>(i), m_state_in.Gamepad.wButtons));
   }
 
   // Triggers.
   for (size_t i = 0; i != size(named_triggers); ++i)
-    AddInput(new Trigger(u8(i), (&m_state_in.Gamepad.bLeftTrigger)[i], 255));
+    AddInput(new Trigger(static_cast<u8>(i), (&m_state_in.Gamepad.bLeftTrigger)[i], 255));
 
   // Axes.
   for (size_t i = 0; i != size(named_axes); ++i)
@@ -225,13 +225,13 @@ Device::Device(const XINPUT_CAPABILITIES& caps, const u8 index) : m_subtype(caps
     const SHORT& ax = (&m_state_in.Gamepad.sThumbLX)[i];
 
     // Each axis gets a negative and a positive input instance associated with it.
-    AddInput(new Axis(u8(i), ax, -32768));
-    AddInput(new Axis(u8(i), ax, 32767));
+    AddInput(new Axis(static_cast<u8>(i), ax, -32768));
+    AddInput(new Axis(static_cast<u8>(i), ax, 32767));
   }
 
   // Rumble motors.
   for (size_t i = 0; i != size(named_motors); ++i)
-    AddOutput(new Motor(u8(i), this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
+    AddOutput(new Motor(static_cast<u8>(i), this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
 
   AddInput(new Battery(&m_battery_level));
 }
@@ -282,7 +282,7 @@ Core::DeviceRemoval Device::UpdateInput()
       break;
     default:
       m_battery_level =
-          battery_info.BatteryLevel / ControlState(BATTERY_LEVEL_FULL) * BATTERY_INPUT_MAX_VALUE;
+          battery_info.BatteryLevel / static_cast<ControlState>(BATTERY_LEVEL_FULL) * BATTERY_INPUT_MAX_VALUE;
       break;
     }
   }

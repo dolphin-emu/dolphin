@@ -343,39 +343,39 @@ inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, const double a, const 
 // used by stfsXX instructions and ps_rsqrte
 inline u32 ConvertToSingle(const u64 x)
 {
-  const u32 exp = u32((x >> 52) & 0x7ff);
+  const u32 exp = static_cast<u32>((x >> 52) & 0x7ff);
 
   if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
   else if (exp >= 874)
   {
-    u32 t = u32(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
+    u32 t = static_cast<u32>(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
     t = t >> (905 - exp);
-    t |= u32((x >> 32) & 0x80000000);
+    t |= static_cast<u32>((x >> 32) & 0x80000000);
     return t;
   }
   else
   {
     // This is said to be undefined.
     // The code is based on hardware tests.
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
 }
 
 // used by psq_stXX operations.
 inline u32 ConvertToSingleFTZ(const u64 x)
 {
-  const u32 exp = u32((x >> 52) & 0x7ff);
+  const u32 exp = static_cast<u32>((x >> 52) & 0x7ff);
 
   if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
-    return u32(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
+    return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
   else
   {
-    return u32((x >> 32) & 0x80000000);
+    return static_cast<u32>((x >> 32) & 0x80000000);
   }
 }
 

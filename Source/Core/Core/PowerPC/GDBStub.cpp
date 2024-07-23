@@ -285,7 +285,7 @@ static void SendReply(const char* reply)
 
   memset(s_cmd_bfr, 0, sizeof s_cmd_bfr);
 
-  s_cmd_len = (u32)strlen(reply);
+  s_cmd_len = static_cast<u32>(strlen(reply));
   if (s_cmd_len + 4 > sizeof s_cmd_bfr)
     ERROR_LOG_FMT(GDB_STUB, "cmd_bfr overflow in gdb_reply");
 

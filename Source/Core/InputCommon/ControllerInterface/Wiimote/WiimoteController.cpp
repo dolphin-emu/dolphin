@@ -51,7 +51,7 @@ public:
 
   std::string GetName() const override { return m_name; }
 
-  ControlState GetState() const final override { return ControlState(m_value) / m_extent; }
+  ControlState GetState() const final override { return static_cast<ControlState>(m_value) / m_extent; }
 
 protected:
   const T& m_value;
@@ -304,7 +304,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   // Specialty inputs:
   AddInput(new UndetectableAnalogInput(&m_battery, "Battery", 1.f));
   AddInput(new UndetectableAnalogInput(
-      &m_extension_number_input, "Attached Extension", WiimoteEmu::ExtensionNumber(1)));
+      &m_extension_number_input, "Attached Extension", static_cast<WiimoteEmu::ExtensionNumber>(1)));
   AddInput(new UndetectableAnalogInput(&m_mplus_attached_input, "Attached MotionPlus", 1));
 
   AddOutput(new Motor(&m_rumble_level));
@@ -480,7 +480,7 @@ void Device::RunTasks()
     // Note that this signal also DE-activates a M+.
     WriteData(AddressSpace::I2CBus, WiimoteEmu::ExtensionPort::REPORT_I2C_SLAVE, INIT_ADDR,
               {INIT_VALUE}, [this](ErrorCode result) {
-                DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Initialized extension: {}.", int(result));
+                DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Initialized extension: {}.", static_cast<int>(result));
                 m_extension_id = std::nullopt;
               });
 
@@ -515,7 +515,7 @@ void Device::RunTasks()
 
                WriteData(AddressSpace::I2CBus, WiimoteEmu::MotionPlus::INACTIVE_DEVICE_ADDR,
                          INIT_ADDR, {INIT_VALUE}, [this](ErrorCode result) {
-                           DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ initialization: {}.", int(result));
+                           DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ initialization: {}.", static_cast<int>(result));
                            if (result != ErrorCode::Success)
                            {
                              HandleMotionPlusNonResponse();
@@ -863,11 +863,11 @@ void Device::ReadActiveExtensionID()
              // Check for M+ ID.
              if (identifier[5] == 0x05)
              {
-               const auto passthrough_mode = MotionPlusState::PassthroughMode(identifier[4]);
+               const auto passthrough_mode = static_cast<MotionPlusState::PassthroughMode>(identifier[4]);
 
                m_mplus_state.current_mode = passthrough_mode;
 
-               INFO_LOG_FMT(WIIMOTE, "WiiRemote: M+ is active in mode: {}.", int(passthrough_mode));
+               INFO_LOG_FMT(WIIMOTE, "WiiRemote: M+ is active in mode: {}.", static_cast<int>(passthrough_mode));
              }
              else
              {
@@ -1051,14 +1051,14 @@ void Device::TriggerMotionPlusModeChange()
   if (!m_mplus_desired_mode.has_value())
     return;
 
-  const u8 passthrough_mode = u8(*m_mplus_desired_mode);
+  const u8 passthrough_mode = static_cast<u8>(*m_mplus_desired_mode);
 
   const u8 device_addr = IsMotionPlusActive() ? WiimoteEmu::MotionPlus::ACTIVE_DEVICE_ADDR :
                                                 WiimoteEmu::MotionPlus::INACTIVE_DEVICE_ADDR;
 
   WriteData(AddressSpace::I2CBus, device_addr, WiimoteEmu::MotionPlus::PASSTHROUGH_MODE_OFFSET,
             {passthrough_mode}, [this](ErrorCode activation_result) {
-              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ activation: {}.", int(activation_result));
+              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ activation: {}.", static_cast<int>(activation_result));
 
               WaitForMotionPlus();
 
@@ -1079,7 +1079,7 @@ void Device::TriggerMotionPlusCalibration()
   // It seems we're better off just manually determining "zero".
   WriteData(AddressSpace::I2CBus, WiimoteEmu::MotionPlus::ACTIVE_DEVICE_ADDR,
             CALIBRATION_TRIGGER_ADDR, {CALIBRATION_TRIGGER_VALUE}, [](ErrorCode result) {
-              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ calibration trigger done: {}.", int(result));
+              DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ calibration trigger done: {}.", static_cast<int>(result));
             });
 }
 
@@ -1107,7 +1107,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     return;
   }
 
-  auto report_id = InputReportID(report[WiimoteReal::REPORT_HID_HEADER_SIZE]);
+  auto report_id = static_cast<InputReportID>(report[WiimoteReal::REPORT_HID_HEADER_SIZE]);
 
   for (auto it = m_report_handlers.begin(); true;)
   {
@@ -1128,7 +1128,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
       else if (report_id < InputReportID::ReportCore)
       {
         WARN_LOG_FMT(WIIMOTE, "WiiRemote: Unhandled input report: {}.",
-                     ArrayToString(report.data(), u32(report.size())));
+                     ArrayToString(report.data(), static_cast<u32>(report.size())));
       }
 
       break;
@@ -1160,7 +1160,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
   {
     // We can assume the last received input report is the current reporting mode.
     // FYI: This logic fails to properly handle the (never used) "interleaved" reports.
-    m_reporting_mode = InputReportID(report_id);
+    m_reporting_mode = static_cast<InputReportID>(report_id);
   }
 
   auto manipulator = MakeDataReportManipulator(
@@ -1183,7 +1183,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     manipulator->GetAccelData(&accel_data);
 
     m_accel_data =
-        accel_data.GetNormalizedValue(*m_accel_calibration) * float(MathUtil::GRAVITY_ACCELERATION);
+        accel_data.GetNormalizedValue(*m_accel_calibration) * static_cast<float>(MathUtil::GRAVITY_ACCELERATION);
   }
 
   // Process IR data.
@@ -1258,7 +1258,7 @@ void Device::UpdateOrientation()
   m_rotation_inputs =
       Common::Vec3{WiimoteEmu::GetPitch(m_orientation), WiimoteEmu::GetRoll(m_orientation),
                    WiimoteEmu::GetYaw(m_orientation)} /
-      float(MathUtil::PI);
+      static_cast<float>(MathUtil::PI);
 }
 
 void Device::IRState::ProcessData(const DataReportManipulator& manipulator)
@@ -1391,7 +1391,7 @@ void Device::ProcessMotionPlusExtensionData(const u8* ext_data, const u32 ext_si
   // Undo bit-hacks of M+ passthrough.
   WiimoteEmu::MotionPlus::ReversePassthroughModifications(*m_mplus_state.current_mode, data.data());
 
-  ProcessNormalExtensionData(data.data(), u32(data.size()));
+  ProcessNormalExtensionData(data.data(), static_cast<u32>(data.size()));
 }
 
 void Device::ProcessNormalExtensionData(const u8* ext_data, const u32 ext_size)
@@ -1489,7 +1489,7 @@ void Device::NunchukState::ProcessData(const WiimoteEmu::Nunchuk::DataFormat& da
 
   stick = data.GetStick().GetNormalizedValue(calibration->stick);
   accel = data.GetAccel().GetNormalizedValue(calibration->accel) *
-          float(MathUtil::GRAVITY_ACCELERATION);
+          static_cast<float>(MathUtil::GRAVITY_ACCELERATION);
 }
 
 void Device::ClassicState::ProcessData(const WiimoteEmu::Classic::DataFormat& data)
@@ -1510,12 +1510,12 @@ void Device::ReadData(AddressSpace space, const u8 slave, const u16 address, con
                       std::function<void(ReadResponse)> callback)
 {
   OutputReportReadData read_data{};
-  read_data.space = u8(space);
+  read_data.space = static_cast<u8>(space);
   read_data.slave_address = slave;
-  read_data.address[0] = u8(address >> 8);
-  read_data.address[1] = u8(address);
-  read_data.size[0] = u8(size >> 8);
-  read_data.size[1] = u8(size);
+  read_data.address[0] = static_cast<u8>(address >> 8);
+  read_data.address[1] = static_cast<u8>(address);
+  read_data.size[0] = static_cast<u8>(size >> 8);
+  read_data.size[1] = static_cast<u8>(size);
   QueueReport(read_data);
 
   AddReadDataReplyHandler(space, slave, address, size, {}, std::move(callback));
@@ -1527,7 +1527,7 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
 {
   // Data read may return a busy ack.
   auto ack_handler = MakeAckHandler(OutputReportID::ReadData, [callback](ErrorCode result) {
-    DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read ack error: {}.", int(result));
+    DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read ack error: {}.", static_cast<int>(result));
     callback(ReadResponse{});
   });
 
@@ -1538,9 +1538,9 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
     if (Common::swap16(reply.address) != address)
       return ReportHandler::HandlerResult::NotHandled;
 
-    if (reply.error != u8(ErrorCode::Success))
+    if (reply.error != static_cast<u8>(ErrorCode::Success))
     {
-      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", int(reply.error));
+      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", static_cast<int>(reply.error));
       callback(ReadResponse{});
 
       return ReportHandler::HandlerResult::Handled;
@@ -1575,13 +1575,13 @@ template <typename T, typename C>
 void Device::WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& callback)
 {
   OutputReportWriteData write_data = {};
-  write_data.space = u8(space);
+  write_data.space = static_cast<u8>(space);
   write_data.slave_address = slave;
-  write_data.address[0] = u8(address >> 8);
-  write_data.address[1] = u8(address);
+  write_data.address[0] = static_cast<u8>(address >> 8);
+  write_data.address[1] = static_cast<u8>(address);
 
   static constexpr auto MAX_DATA_SIZE = std::size(write_data.data);
-  write_data.size = u8(std::min(std::size(data), MAX_DATA_SIZE));
+  write_data.size = static_cast<u8>(std::min(std::size(data), MAX_DATA_SIZE));
 
   std::copy_n(std::begin(data), write_data.size, write_data.data);
 
@@ -1621,7 +1621,7 @@ template <typename R, typename T>
 void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
 {
   m_callbacks.emplace_back([handler = std::move(handler)](const WiimoteReal::Report& report) {
-    if (report[WiimoteReal::REPORT_HID_HEADER_SIZE] != u8(T::REPORT_ID))
+    if (report[WiimoteReal::REPORT_HID_HEADER_SIZE] != static_cast<u8>(T::REPORT_ID))
       return HandlerResult::NotHandled;
 
     T data;
@@ -1630,7 +1630,7 @@ void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
     {
       // Off-brand "NEW 2in1" Wii Remote likes to shorten read data replies.
       WARN_LOG_FMT(WIIMOTE, "WiiRemote: Bad report size ({}) for report {:#x}. Zero-filling.",
-                   report.size(), int(T::REPORT_ID));
+                   report.size(), static_cast<int>(T::REPORT_ID));
 
       data = {};
       std::memcpy(&data, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + 1,

@@ -1557,7 +1557,7 @@ void MMU::UpdateBATs(BatTable& bat_table, const u32 base_spr) const
       // implemented this way for invalid BATs as well.
       WARN_LOG_FMT(POWERPC, "Bad BAT setup: BPRN overlaps BL");
     }
-    if (!Common::IsValidLowMask((u32)batu.BL))
+    if (!Common::IsValidLowMask(static_cast<u32>(batu.BL)))
     {
       // With a valid BAT, the simplest way of masking is
       // (input & ~BL_mask) for matching and (input & BL_mask) for

@@ -186,7 +186,7 @@ void FifoManager::SyncGPU(SyncGPUReason reason, const bool may_move_read_ptr)
 
 void FifoManager::PushFifoAuxBuffer(const void* ptr, const size_t size)
 {
-  if (size > (size_t)(m_fifo_aux_data + FIFO_SIZE - m_fifo_aux_write_ptr))
+  if (size > static_cast<size_t>(m_fifo_aux_data + FIFO_SIZE - m_fifo_aux_write_ptr))
   {
     SyncGPU(SyncGPUReason::AuxSpace, /* may_move_read_ptr */ false);
     if (!m_gpu_mainloop.IsRunning())
@@ -194,7 +194,7 @@ void FifoManager::PushFifoAuxBuffer(const void* ptr, const size_t size)
       // GPU is shutting down
       return;
     }
-    if (size > (size_t)(m_fifo_aux_data + FIFO_SIZE - m_fifo_aux_write_ptr))
+    if (size > static_cast<size_t>(m_fifo_aux_data + FIFO_SIZE - m_fifo_aux_write_ptr))
     {
       // That will sync us up to the last 32 bytes, so this short region
       // of FIFO would have to point to a 2MB display list or something.
@@ -360,10 +360,10 @@ void FifoManager::RunGpuLoop()
 
             if (m_config_sync_gpu)
             {
-              cyclesExecuted = (int)(cyclesExecuted / m_config_sync_gpu_overclock);
+              cyclesExecuted = static_cast<int>(cyclesExecuted / m_config_sync_gpu_overclock);
               int old = m_sync_ticks.fetch_sub(cyclesExecuted);
               if (old >= m_config_sync_gpu_max_distance &&
-                  old - (int)cyclesExecuted < m_config_sync_gpu_max_distance)
+                  old - static_cast<int>(cyclesExecuted) < m_config_sync_gpu_max_distance)
               {
                 m_sync_wakeup_event.Set();
               }
@@ -445,7 +445,7 @@ int FifoManager::RunGpuOnCpu(const int ticks)
   auto& command_processor = m_system.GetCommandProcessor();
   auto& fifo = command_processor.GetFifo();
   bool reset_simd_state = false;
-  int available_ticks = int(ticks * m_config_sync_gpu_overclock) + m_sync_ticks.load();
+  int available_ticks = static_cast<int>(ticks * m_config_sync_gpu_overclock) + m_sync_ticks.load();
   while (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
          fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint(m_system) &&
          available_ticks >= 0)
@@ -572,11 +572,11 @@ void FifoManager::SyncGPUCallback(const Core::System& system, u64 ticks, const s
   auto& fifo = system.GetFifo();
   if (!system.IsDualCoreMode() || fifo.m_use_deterministic_gpu_thread)
   {
-    next = fifo.RunGpuOnCpu(int(ticks));
+    next = fifo.RunGpuOnCpu(static_cast<int>(ticks));
   }
   else if (fifo.m_config_sync_gpu)
   {
-    next = fifo.WaitForGpuThread(int(ticks));
+    next = fifo.WaitForGpuThread(static_cast<int>(ticks));
   }
 
   fifo.m_syncing_suspended = next < 0;

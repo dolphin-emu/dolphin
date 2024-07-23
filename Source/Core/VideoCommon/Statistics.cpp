@@ -244,8 +244,9 @@ void Statistics::DisplayScissor()
   constexpr int DRAW_END = DRAW_START + 3 * 1024;
 
   const auto vec = [&](const int x, const int y, const int xoff = 0, const int yoff = 0) {
-    return ImVec2(p.x + int(float(x - DRAW_START) / scissor_scale) + xoff,
-                  p.y + int(float(y - DRAW_START) / scissor_scale) + yoff);
+    return ImVec2(p.x + static_cast<int>(static_cast<float>(x - DRAW_START) / scissor_scale) + xoff,
+                  p.y + static_cast<int>(static_cast<float>(y - DRAW_START) / scissor_scale) +
+                  yoff);
   };
 
   const auto light_grey = ImGui::GetColorU32(ImVec4(.5f, .5f, .5f, 1.f));
@@ -380,7 +381,7 @@ void Statistics::DisplayScissor()
     draw_list->AddRect(
         p2, ImVec2(p2.x + EFB_WIDTH * scale_height, p2.y + EFB_HEIGHT * scale_height), light_grey);
     ImGui::SameLine();
-    ImGui::Text("%d", int(info.m_result.size()));
+    ImGui::Text("%d", static_cast<int>(info.m_result.size()));
 
     if (show_raw_scissors)
     {

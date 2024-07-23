@@ -448,10 +448,10 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
   m_dolphin_to_imgui_map.clear();
   for (int dolphin_key = 0; dolphin_key <= static_cast<int>(DolphinKey::Z); dolphin_key++)
   {
-    const int imgui_key = dolphin_to_imgui_map[DolphinKey(dolphin_key)];
+    const int imgui_key = dolphin_to_imgui_map[static_cast<DolphinKey>(dolphin_key)];
     if (imgui_key >= 0)
     {
-      const int mapped_key = key_map[DolphinKey(dolphin_key)];
+      const int mapped_key = key_map[static_cast<DolphinKey>(dolphin_key)];
       m_dolphin_to_imgui_map[mapped_key & 0x1FF] = imgui_key;
     }
   }
@@ -461,7 +461,7 @@ void OnScreenUI::SetKey(const u32 key, const bool is_down, const char* chars)
 {
   auto lock = GetImGuiLock();
   if (auto iter = m_dolphin_to_imgui_map.find(key); iter != m_dolphin_to_imgui_map.end())
-    ImGui::GetIO().AddKeyEvent((ImGuiKey)iter->second, is_down);
+    ImGui::GetIO().AddKeyEvent(static_cast<ImGuiKey>(iter->second), is_down);
 
   if (chars)
     ImGui::GetIO().AddInputCharactersUTF8(chars);

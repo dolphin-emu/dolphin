@@ -87,7 +87,7 @@ Force::StateData Force::GetState(const bool adjusted) const
     z = ApplyDeadzone(z, GetDeadzonePercentage()) * GetMaxDistance();
   }
 
-  return {float(state.x), float(state.y), float(z)};
+  return {static_cast<float>(state.x), static_cast<float>(state.y), static_cast<float>(z)};
 }
 
 ControlState Force::GetGateRadiusAtAngle(double) const

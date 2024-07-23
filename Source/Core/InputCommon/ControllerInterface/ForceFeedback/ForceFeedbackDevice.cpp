@@ -90,7 +90,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, c
   eff.dwGain = DI_FFNOMINALMAX;
   eff.dwTriggerButton = DIEB_NOTRIGGER;
   eff.dwTriggerRepeatInterval = 0;
-  eff.cAxes = DWORD(rgdwAxes.size());
+  eff.cAxes = static_cast<DWORD>(rgdwAxes.size());
   eff.rgdwAxes = rgdwAxes.data();
   eff.rglDirection = rglDirection.data();
   eff.dwStartDelay = 0;
@@ -236,7 +236,7 @@ ForceFeedbackDevice::Force::Force(ForceFeedbackDevice* parent, const char* name,
 
 void ForceFeedbackDevice::Force::SetState(const ControlState state)
 {
-  const auto new_val = int(DI_FFNOMINALMAX * state);
+  const auto new_val = static_cast<int>(DI_FFNOMINALMAX * state);
 
   if (m_desired_magnitude.exchange(new_val) != new_val)
     m_parent.SignalUpdateThread();

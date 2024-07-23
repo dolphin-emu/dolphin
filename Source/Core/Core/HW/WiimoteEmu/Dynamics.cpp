@@ -83,7 +83,7 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
 void EmulateShake(PositionalState* state, const ControllerEmu::Shake* const shake_group,
                   const float time_elapsed)
 {
-  auto target_position = shake_group->GetState() * float(shake_group->GetIntensity() / 2);
+  auto target_position = shake_group->GetState() * static_cast<float>(shake_group->GetIntensity() / 2);
   for (std::size_t i = 0; i != target_position.data.size(); ++i)
   {
     if (state->velocity.data[i] * std::copysign(1.f, target_position.data[i]) < 0 ||
@@ -122,7 +122,7 @@ void EmulateTilt(RotationalState* state, const ControllerEmu::Tilt* const tilt_g
   for (std::size_t i = 0; i != target_angle.data.size(); ++i)
   {
     auto& angle = state->angle.data[i];
-    if (std::abs(angle - target_angle.data[i]) > float(MathUtil::PI))
+    if (std::abs(angle - target_angle.data[i]) > static_cast<float>(MathUtil::PI))
       angle -= std::copysign(MathUtil::TAU, angle);
   }
 
@@ -146,8 +146,8 @@ void EmulateSwing(MotionState* state, const ControllerEmu::Force* swing_group, c
   const auto xz_target_dist = Common::Vec2{target_position.x, target_position.z}.Length();
   const auto y_target_dist = std::abs(target_position.y);
   const auto target_dist = Common::Vec3{xz_target_dist, y_target_dist, xz_target_dist};
-  const auto speed = MathUtil::Lerp(Common::Vec3{1, 1, 1} * float(swing_group->GetReturnSpeed()),
-                                    Common::Vec3{1, 1, 1} * float(swing_group->GetSpeed()),
+  const auto speed = MathUtil::Lerp(Common::Vec3{1, 1, 1} * static_cast<float>(swing_group->GetReturnSpeed()),
+                                    Common::Vec3{1, 1, 1} * static_cast<float>(swing_group->GetSpeed()),
                                     target_dist / max_distance);
 
   // Convert our m/s "speed" to the jerk required to reach this speed when traveling 1 meter.
@@ -211,15 +211,15 @@ void EmulateSwing(MotionState* state, const ControllerEmu::Force* swing_group, c
 
 WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, const u16 zero_g, const u16 one_g)
 {
-  const auto scaled_accel = accel * (one_g - zero_g) / float(GRAVITY_ACCELERATION);
+  const auto scaled_accel = accel * (one_g - zero_g) / static_cast<float>(GRAVITY_ACCELERATION);
 
   // 10-bit integers.
   constexpr long MAX_VALUE = (1 << 10) - 1;
 
   return WiimoteCommon::AccelData(
-      {u16(std::clamp(std::lround(scaled_accel.x + zero_g), 0l, MAX_VALUE)),
-       u16(std::clamp(std::lround(scaled_accel.y + zero_g), 0l, MAX_VALUE)),
-       u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
+      {static_cast<u16>(std::clamp(std::lround(scaled_accel.x + zero_g), 0l, MAX_VALUE)),
+       static_cast<u16>(std::clamp(std::lround(scaled_accel.y + zero_g), 0l, MAX_VALUE)),
+       static_cast<u16>(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
 }
 
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
@@ -266,7 +266,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
   // Higher values will be more responsive but increase rate of M+ "desync".
   // I'd rather not expose this value in the UI if not needed.
   // At this value, sync is very good and responsiveness still appears instant.
-  constexpr auto MAX_ACCEL = float(MathUtil::TAU * 8);
+  constexpr auto MAX_ACCEL = static_cast<float>(MathUtil::TAU * 8);
 
   ApproachAngleWithAccel(state, target_angle, MAX_ACCEL, time_elapsed);
 }
@@ -329,7 +329,7 @@ void EmulateIMUCursor(IMUCursorState* state, const ControllerEmu::IMUCursor* imu
 
   // Clamp yaw within configured bounds.
   const auto yaw = GetYaw(state->rotation);
-  const auto max_yaw = float(imu_ir_group->GetTotalYaw() / 2);
+  const auto max_yaw = static_cast<float>(imu_ir_group->GetTotalYaw() / 2);
   auto target_yaw = std::clamp(yaw, -max_yaw, max_yaw);
 
   // Handle the "Recenter" button being pressed.

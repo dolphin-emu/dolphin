@@ -244,12 +244,12 @@ private:
 
   static constexpr FS::Modes GetFsMode(const u8 bin_mode)
   {
-    return {FS::Mode(bin_mode >> 4 & 3), FS::Mode(bin_mode >> 2 & 3), FS::Mode(bin_mode >> 0 & 3)};
+    return {static_cast<FS::Mode>(bin_mode >> 4 & 3), static_cast<FS::Mode>(bin_mode >> 2 & 3), static_cast<FS::Mode>(bin_mode >> 0 & 3)};
   }
 
   static constexpr u8 GetBinMode(const FS::Modes& modes)
   {
-    return u8(modes.owner) << 4 | u8(modes.group) << 2 | u8(modes.other) << 0;
+    return static_cast<u8>(modes.owner) << 4 | static_cast<u8>(modes.group) << 2 | static_cast<u8>(modes.other) << 0;
   }
 
   u8 GetBinMode(const std::string& path) const

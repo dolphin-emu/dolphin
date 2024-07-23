@@ -53,36 +53,36 @@ void XFStateManager::DoState(PointerWrap& p)
 
 void XFStateManager::InvalidateXFRange(const int start, const int end)
 {
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 + 12) ||
-      ((u32)start >=
-           XFMEM_NORMALMATRICES + ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 &&
-       (u32)start < XFMEM_NORMALMATRICES +
-                        ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 + 9))
+  if ((static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >=
+           XFMEM_NORMALMATRICES + (static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) & 31) * 3 &&
+       static_cast<u32>(start) < XFMEM_NORMALMATRICES +
+                        (static_cast<u32>(g_main_cp_state.matrix_index_a.PosNormalMtxIdx) & 31) * 3 + 9))
   {
     m_pos_normal_matrix_changed = true;
   }
 
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 + 12))
+  if ((static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex0MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex0MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex1MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex1MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex2MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex2MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_a.Tex3MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_a.Tex3MtxIdx) * 4 + 12))
   {
     m_tex_matrices_changed[0] = true;
   }
 
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 + 12))
+  if ((static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex4MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex4MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex5MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex5MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex6MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex6MtxIdx) * 4 + 12) ||
+      (static_cast<u32>(start) >= static_cast<u32>(g_main_cp_state.matrix_index_b.Tex7MtxIdx) * 4 &&
+       static_cast<u32>(start) < static_cast<u32>(g_main_cp_state.matrix_index_b.Tex7MtxIdx) * 4 + 12))
   {
     m_tex_matrices_changed[1] = true;
   }

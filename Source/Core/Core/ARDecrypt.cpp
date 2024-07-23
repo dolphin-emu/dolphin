@@ -150,8 +150,8 @@ constexpr Seeds genseeds = [] {
 
   for (size_t i = 0; i < array0.size(); ++i)
   {
-    const auto tmp = u8(gentable0[i] - 1);
-    array0[i] = (u32(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31);
+    const auto tmp = static_cast<u8>(gentable0[i] - 1);
+    array0[i] = (static_cast<u32>(0 - (gensubtable[tmp >> 3] & gentable1[tmp & 7])) >> 31);
   }
 
   for (int i = 0; i < 0x10; ++i)
@@ -163,7 +163,7 @@ constexpr Seeds genseeds = [] {
 
     for (u32 j = 0; j < 0x38; j++)
     {
-      auto tmp = u8(tmp2 + j);
+      auto tmp = static_cast<u8>(tmp2 + j);
 
       if (j > 0x1B)
       {
@@ -394,7 +394,7 @@ static bool batchdecrypt(u32* codes, const u16 size)
 
 static int GetVal(const char* flt, const char chr)
 {
-  int ret = (int)(strchr(flt, chr) - flt);
+  int ret = static_cast<int>(strchr(flt, chr) - flt);
   switch (ret)
   {
   case 32:  // 'I'
@@ -466,7 +466,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     Common::ToUpper(&s);
   }
 
-  const u32 ret = alphatobin(uCodes.data(), vCodes, (int)vCodes.size());
+  const u32 ret = alphatobin(uCodes.data(), vCodes, static_cast<int>(vCodes.size()));
   if (ret)
   {
     // Return value is index + 1, 0 being the success flag value.
@@ -474,7 +474,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
         "Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n{0}",
         vCodes[ret - 1]);
   }
-  else if (!batchdecrypt(uCodes.data(), (u16)vCodes.size() << 1))
+  else if (!batchdecrypt(uCodes.data(), static_cast<u16>(vCodes.size()) << 1))
   {
     // Commented out since we just send the code anyways and hope for the best XD
     // PanicAlertFmt("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"

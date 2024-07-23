@@ -202,7 +202,7 @@ bool TAPServerConnection::SendAndRemoveAllHDLCFrames(std::string* send_buf) cons
     }
     const int written_bytes =
         send(m_fd, send_buf->data() + start_offset, static_cast<int>(size), SEND_FLAGS);
-    if (u32(written_bytes) != size)
+    if (static_cast<u32>(written_bytes) != size)
     {
       ERROR_LOG_FMT(SP1,
                     "SendAndRemoveAllHDLCFrames(): expected to write {} bytes, instead wrote {}",
@@ -229,7 +229,7 @@ bool TAPServerConnection::SendFrame(const u8* frame, const u32 size) const
   }
   const int written_bytes =
       send(m_fd, reinterpret_cast<const char*>(frame), static_cast<ws_ssize_t>(size), SEND_FLAGS);
-  if (u32(written_bytes) != size)
+  if (static_cast<u32>(written_bytes) != size)
   {
     ERROR_LOG_FMT(SP1, "SendFrame(): expected to write {} bytes, instead wrote {}", size,
                   written_bytes);

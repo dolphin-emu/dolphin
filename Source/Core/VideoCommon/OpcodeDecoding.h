@@ -162,7 +162,7 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, const u32 available, 
     ASSERT_MSG(VIDEO, stream_size_temp < 16, "cmd2 = 0x{:08X}", cmd2);
     const u8 stream_size = (stream_size_temp & 0xf) + 1;
 
-    if (available < u32(5 + stream_size * 4))
+    if (available < static_cast<u32>(5 + stream_size * 4))
       return 0;
 
     callback.OnXF(base_address, stream_size, &data[5]);

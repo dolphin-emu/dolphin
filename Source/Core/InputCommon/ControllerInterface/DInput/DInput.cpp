@@ -20,13 +20,13 @@ static IDirectInput8* s_idi8 = nullptr;
 
 BOOL CALLBACK DIEnumDeviceObjectsCallback(const LPCDIDEVICEOBJECTINSTANCE lpddoi, const LPVOID pvRef)
 {
-  ((std::list<DIDEVICEOBJECTINSTANCE>*)pvRef)->push_back(*lpddoi);
+  static_cast<std::list<DIDEVICEOBJECTINSTANCE>*>(pvRef)->push_back(*lpddoi);
   return DIENUM_CONTINUE;
 }
 
 BOOL CALLBACK DIEnumDevicesCallback(const LPCDIDEVICEINSTANCE lpddi, const LPVOID pvRef)
 {
-  ((std::list<DIDEVICEINSTANCE>*)pvRef)->push_back(*lpddi);
+  static_cast<std::list<DIDEVICEINSTANCE>*>(pvRef)->push_back(*lpddi);
   return DIENUM_CONTINUE;
 }
 

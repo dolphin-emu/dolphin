@@ -129,7 +129,7 @@ private:
     void ProcessData(const DataReportManipulator& manipulator);
     bool IsFullyConfigured() const;
 
-    u32 current_sensitivity = u32(-1);
+    u32 current_sensitivity = static_cast<u32>(-1);
     bool enabled = false;
     bool mode_set = false;
 

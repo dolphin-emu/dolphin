@@ -18,8 +18,10 @@ SocketContext::SocketContext()
     if (ret == 0)
     {
       INFO_LOG_FMT(COMMON, "WSAStartup succeeded, wVersion={}.{}, wHighVersion={}.{}",
-                   int(LOBYTE(s_data.wVersion)), int(HIBYTE(s_data.wVersion)),
-                   int(LOBYTE(s_data.wHighVersion)), int(HIBYTE(s_data.wHighVersion)));
+                   static_cast<int>(LOBYTE(s_data.wVersion)),
+                   static_cast<int>(HIBYTE(s_data.wVersion)),
+                   static_cast<int>(LOBYTE(s_data.wHighVersion)),
+                   static_cast<int>(HIBYTE(s_data.wHighVersion)));
     }
     else
     {

@@ -47,7 +47,7 @@ void DSPEmitter::lri(const UDSPInstruction opc)
 void DSPEmitter::lris(const UDSPInstruction opc)
 {
   u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
-  u16 imm = (s8)opc;
+  u16 imm = static_cast<s8>(opc);
   dsp_op_write_reg_imm(reg, imm);
   dsp_conditional_extend_accum_imm(reg, imm);
 }

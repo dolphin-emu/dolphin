@@ -263,7 +263,7 @@ void TraversalClient::HandleResends()
   const u32 now = enet_time_get();
   for (auto& tpi : m_OutgoingTraversalPackets)
   {
-    if (now - tpi.sendTime >= (u32)(300 * tpi.tries))
+    if (now - tpi.sendTime >= static_cast<u32>(300 * tpi.tries))
     {
       if (tpi.tries >= 5)
       {
@@ -373,7 +373,7 @@ void TraversalClient::HandleTraversalTest()
           waitCondition = 0;
           break;
         }
-        else if (rv < int(sizeof(packet)) || raddr.host != m_ServerAddress.host ||
+        else if (rv < static_cast<int>(sizeof(packet)) || raddr.host != m_ServerAddress.host ||
                  raddr.host != m_portAlt || packet.requestId != m_TestRequestId)
         {
           // irrelevant packet, ignore
