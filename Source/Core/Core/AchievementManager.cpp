@@ -22,6 +22,7 @@
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/ActionReplay.h"
@@ -180,12 +181,17 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   rc_client_set_unofficial_enabled(m_client, Config::Get(Config::RA_UNOFFICIAL_ENABLED));
   rc_client_set_encore_mode_enabled(m_client, Config::Get(Config::RA_ENCORE_ENABLED));
   rc_client_set_spectator_mode_enabled(m_client, Config::Get(Config::RA_SPECTATOR_ENABLED));
-  if (volume)
   {
     std::lock_guard lg{m_lock};
-    if (!m_loading_volume)
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    SplitPath(file_path, nullptr, &m_title_estimate, nullptr);
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+    if (volume)
     {
-      m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+      if (!m_loading_volume)
+      {
+        m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+      }
     }
   }
   std::lock_guard lg{m_filereader_lock};
@@ -1494,6 +1500,7 @@ void AchievementManager::LoadIntegrationCallback(int result, const char* error_m
     instance.m_dll_found = true;
     rc_client_raintegration_set_event_handler(instance.m_client, RAIntegrationEventHandler);
     rc_client_raintegration_set_write_memory_function(instance.m_client, MemoryPoker);
+    rc_client_raintegration_set_get_game_name_function(instance.m_client, GameTitleEstimateHandler);
     instance.m_dev_menu_callback();
     // TODO: hook up menu and dll event handlers
     break;
@@ -1564,6 +1571,13 @@ void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_
   std::lock_guard lg{instance.m_memory_lock};
   system->GetMemory().CopyToEmu(address, buffer, num_bytes);
   std::copy(buffer, buffer + num_bytes, instance.m_cloned_memory.begin() + address);
+}
+void AchievementManager::GameTitleEstimateHandler(char* buffer, u32 buffer_size,
+                                                  rc_client_t* client)
+{
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.m_lock};
+  strncpy(buffer, instance.m_title_estimate.c_str(), static_cast<size_t>(buffer_size));
 }
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 

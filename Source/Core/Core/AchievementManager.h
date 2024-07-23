@@ -254,6 +254,7 @@ private:
   static void RAIntegrationEventHandler(const rc_client_raintegration_event_t* event,
                                         rc_client_t* client);
   static void MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
+  static void GameTitleEstimateHandler(char* buffer, u32 buffer_size, rc_client_t* client);
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   rc_runtime_t m_runtime{};
@@ -292,6 +293,7 @@ private:
   std::function<void(void)> m_dev_menu_callback;
   std::vector<u8> m_cloned_memory;
   std::recursive_mutex m_memory_lock;
+  std::string m_title_estimate;
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
