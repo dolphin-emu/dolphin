@@ -1080,6 +1080,7 @@ void AchievementManager::DisplayWelcomeMessage()
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
 {
   const auto& instance = AchievementManager::GetInstance();
+
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", client_event->achievement->title,
                               client_event->achievement->points),
                   OSD::Duration::VERY_LONG,
@@ -1088,6 +1089,30 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
                   &instance.GetAchievementBadge(client_event->achievement->id, false));
   AchievementManager::GetInstance().m_update_callback(
       UpdatedItems{.achievements = {client_event->achievement->id}});
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  switch (rc_client_raintegration_get_achievement_state(instance.m_client,
+                                                        client_event->achievement->id))
+  {
+  case RC_CLIENT_RAINTEGRATION_ACHIEVEMENT_STATE_LOCAL:
+    // Achievement only exists locally and has not been uploaded.
+    OSD::AddMessage("Local achievement; not submitted to site.", OSD::Duration::VERY_LONG,
+                    OSD::Color::GREEN);
+    break;
+  case RC_CLIENT_RAINTEGRATION_ACHIEVEMENT_STATE_MODIFIED:
+    // Achievement has been modified locally and differs from the one on the site.
+    OSD::AddMessage("Modified achievement; not submitted to site.", OSD::Duration::VERY_LONG,
+                    OSD::Color::GREEN);
+    break;
+  case RC_CLIENT_RAINTEGRATION_ACHIEVEMENT_STATE_INSECURE:
+    // The player has done something that we consider cheating like modifying the RAM while playing.
+    // Just indicate that the achievement was only unlocked locally, but don't clarify why.
+    OSD::AddMessage("Achievement not submitted to site.", OSD::Duration::VERY_LONG,
+                    OSD::Color::GREEN);
+    break;
+  default:
+    break;
+  }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
