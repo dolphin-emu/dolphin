@@ -59,10 +59,10 @@ void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& 
   if (default_value != DefaultValue::AlwaysEnabled)
     sec->Get(group + "Enabled", &enabled, default_value != DefaultValue::Disabled);
 
-  for (auto& setting : numeric_settings)
+  for (const auto& setting : numeric_settings)
     setting->LoadFromIni(*sec, group);
 
-  for (auto& c : controls)
+  for (const auto& c : controls)
   {
     {
       // control expression
@@ -111,10 +111,10 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
   // enabled
   sec->Set(group + "Enabled", enabled, default_value != DefaultValue::Disabled);
 
-  for (auto& setting : numeric_settings)
+  for (const auto& setting : numeric_settings)
     setting->SaveToIni(*sec, group);
 
-  for (auto& c : controls)
+  for (const auto& c : controls)
   {
     // control expression
     std::string expression = c->control_ref->GetExpression();

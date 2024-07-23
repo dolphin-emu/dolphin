@@ -32,7 +32,7 @@ public:
 private:
   bool IsAddressInBounds(const u32 address, const u32 length) const
   {
-    u64 end_address = static_cast<u64>(address) + static_cast<u64>(length);
+    const u64 end_address = static_cast<u64>(address) + static_cast<u64>(length);
     return end_address <= static_cast<u64>(m_memory_card_size);
   }
 

@@ -134,7 +134,7 @@ void SWGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 
 SurfaceInfo SWGfx::GetSurfaceInfo() const
 {
-  GLContext* context = m_window->GetContext();
+  const GLContext* context = m_window->GetContext();
   return {std::max(context->GetBackBufferWidth(), 1u), std::max(context->GetBackBufferHeight(), 1u),
           1.0f, AbstractTextureFormat::RGBA8};
 }

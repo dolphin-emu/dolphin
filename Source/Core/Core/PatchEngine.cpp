@@ -55,7 +55,7 @@ const char* PatchTypeAsString(PatchType type)
 
 std::optional<PatchEntry> DeserializeLine(std::string line)
 {
-  std::string::size_type loc = line.find('=');
+  const std::string::size_type loc = line.find('=');
   if (loc != std::string::npos)
     line[loc] = ':';
 
@@ -177,8 +177,8 @@ void LoadPatches()
 {
   const auto& sconfig = SConfig::GetInstance();
   Common::IniFile merged = sconfig.LoadGameIni();
-  Common::IniFile globalIni = sconfig.LoadDefaultGameIni();
-  Common::IniFile localIni = sconfig.LoadLocalGameIni();
+  const Common::IniFile globalIni = sconfig.LoadDefaultGameIni();
+  const Common::IniFile localIni = sconfig.LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
 
@@ -210,9 +210,9 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
     {
       for (const PatchEntry& entry : patch.entries)
       {
-        u32 addr = entry.address;
-        u32 value = entry.value;
-        u32 comparand = entry.comparand;
+        const u32 addr = entry.address;
+        const u32 value = entry.value;
+        const u32 comparand = entry.comparand;
         switch (entry.type)
         {
         case PatchType::Patch8Bit:
@@ -249,7 +249,7 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
     return;
 
   std::lock_guard lock(s_on_frame_memory_mutex);
-  for (std::size_t index : memory_patch_indices)
+  for (const std::size_t index : memory_patch_indices)
   {
     guard.GetSystem().GetPowerPC().GetDebugInterface().ApplyExistingPatch(guard, index);
   }
@@ -300,7 +300,7 @@ bool ApplyFramePatches(Core::System& system)
   const auto& ppc_state = system.GetPPCState();
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard(system);
+  const Core::CPUThreadGuard guard(system);
 
   // Because we're using the VI Interrupt to time this instead of patching the game with a
   // callback hook we can end up catching the game in an exception vector.

@@ -54,7 +54,7 @@ void AchievementManager::Init()
       std::lock_guard lg{m_lock};
       m_client = rc_client_create(MemoryVerifier, Request);
     }
-    std::string host_url = Get(Config::RA_HOST_URL);
+    const std::string host_url = Get(Config::RA_HOST_URL);
     if (!host_url.empty())
       rc_client_set_host(m_client, host_url.c_str());
     rc_client_set_event_handler(m_client, EventHandler);
@@ -84,9 +84,9 @@ picojson::value AchievementManager::LoadApprovedList()
     WARN_LOG_FMT(ACHIEVEMENTS, "Error: {}", error);
     return {};
   }
-  auto context = Common::SHA1::CreateContext();
+  const auto context = Common::SHA1::CreateContext();
   context->Update(temp.serialize());
-  auto digest = context->Finish();
+  const auto digest = context->Finish();
   if (digest != APPROVED_LIST_HASH)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to verify approved game settings list {}",
@@ -196,7 +196,7 @@ void AchievementManager::SetBackgroundExecutionAllowed(const bool allowed)
 {
   m_background_execution_allowed = allowed;
 
-  Core::System* system = m_system.load(std::memory_order_acquire);
+  const Core::System* system = m_system.load(std::memory_order_acquire);
   if (!system)
     return;
 
@@ -239,7 +239,7 @@ void AchievementManager::FetchGameBadges()
   }
   for (u32 bx = 0; bx < achievement_list->num_buckets; bx++)
   {
-    auto& bucket = achievement_list->buckets[bx];
+    const auto& bucket = achievement_list->buckets[bx];
     for (u32 achievement = 0; achievement < bucket.num_achievements; achievement++)
     {
       u32 achievement_id = bucket.achievements[achievement]->id;
@@ -275,10 +275,10 @@ void AchievementManager::DoFrame()
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
   }
-  Core::System* system = m_system.load(std::memory_order_acquire);
+  const Core::System* system = m_system.load(std::memory_order_acquire);
   if (!system)
     return;
-  auto current_time = std::chrono::steady_clock::now();
+  const auto current_time = std::chrono::steady_clock::now();
   if (current_time - m_last_rp_time > std::chrono::seconds{10})
   {
     m_last_rp_time = current_time;
@@ -292,7 +292,7 @@ void AchievementManager::DoFrame()
 bool AchievementManager::CanPause() const
 {
   u32 frames_to_next_pause = 0;
-  bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
+  const bool can_pause = rc_client_can_pause(m_client, &frames_to_next_pause);
   if (!can_pause)
   {
     OSD::AddMessage(
@@ -313,7 +313,7 @@ void AchievementManager::DoIdle() const
       Common::SleepCurrentThread(1000);
       {
         std::lock_guard lg{m_lock};
-        Core::System* system = m_system.load(std::memory_order_acquire);
+        const Core::System* system = m_system.load(std::memory_order_acquire);
         if (!system || GetState(*system) != Core::State::Paused)
           return;
         if (!m_background_execution_allowed)
@@ -323,7 +323,7 @@ void AchievementManager::DoIdle() const
       }
       // rc_client_idle peeks at memory to recalculate rich presence and therefore
       // needs to be on host or CPU thread to access memory.
-      Core::QueueHostJob([this](Core::System& system) {
+      Core::QueueHostJob([this](const Core::System& system) {
         std::lock_guard lg{m_lock};
         if (GetState(system) != Core::State::Paused)
           return;
@@ -382,7 +382,7 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
 
     if (known_id)
     {
-      auto context = Common::SHA1::CreateContext();
+      const auto context = Common::SHA1::CreateContext();
       context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch_itr->entries.size())));
       for (const auto& entry : patch_itr->entries)
       {
@@ -467,7 +467,7 @@ const AchievementManager::Badge& AchievementManager::GetAchievementBadge(const A
                                                                          const bool locked) const
 {
   auto& badge_list = locked ? m_locked_badges : m_unlocked_badges;
-  auto itr = badge_list.find(id);
+  const auto itr = badge_list.find(id);
   return (itr != badge_list.end() && itr->second.data.size() > 0) ?
              itr->second :
              (locked ? m_default_locked_badge : m_default_unlocked_badge);
@@ -524,10 +524,10 @@ void AchievementManager::DoState(PointerWrap& p) const
   if (!p.IsReadMode())
     size = rc_client_progress_size(m_client);
   p.Do(size);
-  auto buffer = std::make_unique<u8[]>(size);
+  const auto buffer = std::make_unique<u8[]>(size);
   if (!p.IsReadMode())
   {
-    int result = rc_client_serialize_progress_sized(m_client, buffer.get(), size);
+    const int result = rc_client_serialize_progress_sized(m_client, buffer.get(), size);
     if (result != RC_OK)
     {
       ERROR_LOG_FMT(ACHIEVEMENTS, "Failed serializing achievement client with error code {}",
@@ -538,14 +538,14 @@ void AchievementManager::DoState(PointerWrap& p) const
   p.DoArray(buffer.get(), static_cast<u32>(size));
   if (p.IsReadMode())
   {
-    int result = rc_client_deserialize_progress_sized(m_client, buffer.get(), size);
+    const int result = rc_client_deserialize_progress_sized(m_client, buffer.get(), size);
     if (result != RC_OK)
     {
       ERROR_LOG_FMT(ACHIEVEMENTS, "Failed deserializing achievement client with error code {}",
                     result);
       return;
     }
-    size_t new_size = rc_client_progress_size(m_client);
+    const size_t new_size = rc_client_progress_size(m_client);
     if (size != new_size)
     {
       ERROR_LOG_FMT(ACHIEVEMENTS, "Loaded client size {} does not match size in state {}", new_size,
@@ -661,8 +661,8 @@ int64_t AchievementManager::FilereaderTell(void* file_handle)
 size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, const size_t requested_bytes)
 {
   FilereaderState* filereader_state = static_cast<FilereaderState*>(file_handle);
-  bool success = (filereader_state->volume->Read(filereader_state->position, requested_bytes,
-                                                 static_cast<u8*>(buffer), DiscIO::PARTITION_NONE));
+  const bool success = (filereader_state->volume->Read(filereader_state->position, requested_bytes,
+                                                       static_cast<u8*>(buffer), DiscIO::PARTITION_NONE));
   if (success)
   {
     filereader_state->position += requested_bytes;
@@ -747,7 +747,7 @@ void AchievementManager::LoginCallback(const int result, const char* error_messa
     return;
   }
 
-  std::string config_username = Get(Config::RA_USERNAME);
+  const std::string config_username = Get(Config::RA_USERNAME);
   if (config_username != user->username)
   {
     if (Common::CaseInsensitiveEquals(config_username, user->username))
@@ -888,7 +888,7 @@ void AchievementManager::DisplayWelcomeMessage()
       rc_client_get_hardcore_enabled(m_client) ? OSD::Color::YELLOW : OSD::Color::CYAN;
 
   OSD::AddMessage("", OSD::Duration::VERY_LONG, OSD::Color::GREEN, &GetGameBadge());
-  auto info = rc_client_get_game_info(m_client);
+  const auto info = rc_client_get_game_info(m_client);
   if (!info)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS, "Attempting to welcome player to game not running.");
@@ -1005,7 +1005,7 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
     const rc_client_event_t* client_event)
 {
   auto& instance = GetInstance();
-  auto current_time = std::chrono::steady_clock::now();
+  const auto current_time = std::chrono::steady_clock::now();
   const auto message_wait_time = std::chrono::milliseconds{OSD::Duration::SHORT};
   if (current_time - instance.m_last_progress_message < message_wait_time)
     return;
@@ -1028,7 +1028,7 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
     WARN_LOG_FMT(ACHIEVEMENTS, "Received Game Completed event when game not running.");
     return;
   }
-  bool hardcore = rc_client_get_hardcore_enabled(client);
+  const bool hardcore = rc_client_get_hardcore_enabled(client);
   OSD::AddMessage(fmt::format("Congratulations! {} has {} {}", user_info->display_name,
                               hardcore ? "mastered" : "completed", game_info->title),
                   OSD::Duration::VERY_LONG, hardcore ? OSD::Color::YELLOW : OSD::Color::CYAN,
@@ -1056,7 +1056,7 @@ void AchievementManager::Request(const rc_api_request_t* request,
   GetInstance().m_queue.EmplaceItem(
       [url = std::move(url), post_data = std::move(post_data), callback = std::move(callback),
        callback_data = std::move(callback_data)] {
-        Common::HttpRequest http_request;
+        const Common::HttpRequest http_request;
         Common::HttpRequest::Response http_response;
         if (!post_data.empty())
         {
@@ -1101,8 +1101,8 @@ void AchievementManager::Request(const rc_api_request_t* request,
 // future synchronous calls.
 u32 AchievementManager::MemoryVerifier(const u32 address, u8* buffer, const u32 num_bytes, rc_client_t* client)
 {
-  auto& system = Core::System::GetInstance();
-  u32 ram_size = system.GetMemory().GetRamSizeReal();
+  const auto& system = Core::System::GetInstance();
+  const u32 ram_size = system.GetMemory().GetRamSizeReal();
   if (address >= ram_size)
     return 0;
   return std::min(ram_size - address, num_bytes);
@@ -1118,7 +1118,7 @@ u32 AchievementManager::MemoryPeeker(const u32 address, u8* buffer, const u32 nu
     ASSERT_MSG(ACHIEVEMENTS, false, "MemoryPeeker called from wrong thread");
     return 0;
   }
-  Core::CPUThreadGuard threadguard(system);
+  const Core::CPUThreadGuard threadguard(system);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
     auto value = system.GetMMU().HostTryReadU8(threadguard, address + num_read,
@@ -1224,7 +1224,7 @@ void AchievementManager::FetchBadge(Badge* badge, u32 badge_type,
   });
 }
 
-void AchievementManager::EventHandler(const rc_client_event_t* event, rc_client_t* client)
+void AchievementManager::EventHandler(const rc_client_event_t* event, const rc_client_t* client)
 {
   switch (event->type)
   {

@@ -302,7 +302,7 @@ inline OpArg ImmPtr(const void* imm)
 
 inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
 {
-  s64 distance = (s64)ptr - (s64)base;
+  const s64 distance = (s64)ptr - (s64)base;
   if (distance >= 0x80000000LL || distance < -0x80000000LL)
   {
     ASSERT_MSG(DYNA_REC, 0, "pointer offset out of range");

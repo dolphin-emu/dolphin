@@ -48,11 +48,11 @@ int ScissorRect::GetArea() const
 
 int ScissorResult::GetViewportArea(const ScissorRect& rect) const
 {
-  int x0 = std::clamp<int>(rect.rect.left + rect.x_off, viewport_left, viewport_right);
-  int x1 = std::clamp<int>(rect.rect.right + rect.x_off, viewport_left, viewport_right);
+  const int x0 = std::clamp<int>(rect.rect.left + rect.x_off, viewport_left, viewport_right);
+  const int x1 = std::clamp<int>(rect.rect.right + rect.x_off, viewport_left, viewport_right);
 
-  int y0 = std::clamp<int>(rect.rect.top + rect.y_off, viewport_top, viewport_bottom);
-  int y1 = std::clamp<int>(rect.rect.bottom + rect.y_off, viewport_top, viewport_bottom);
+  const int y0 = std::clamp<int>(rect.rect.top + rect.y_off, viewport_top, viewport_bottom);
+  const int y1 = std::clamp<int>(rect.rect.bottom + rect.y_off, viewport_top, viewport_bottom);
 
   return (x1 - x0) * (y1 - y0);
 }
@@ -65,8 +65,8 @@ int ScissorResult::GetViewportArea(const ScissorRect& rect) const
 bool ScissorResult::IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) const
 {
   // First, penalize any rect that is not in the viewport
-  int lhs_area = GetViewportArea(lhs);
-  int rhs_area = GetViewportArea(rhs);
+  const int lhs_area = GetViewportArea(lhs);
+  const int rhs_area = GetViewportArea(rhs);
 
   if (lhs_area != rhs_area)
     return lhs_area < rhs_area;
@@ -179,10 +179,10 @@ ScissorResult ComputeScissorRects()
 
 void SetScissorAndViewport()
 {
-  auto native_rc = ComputeScissorRects().Best();
+  const auto native_rc = ComputeScissorRects().Best();
 
-  auto target_rc = g_framebuffer_manager->ConvertEFBRectangle(native_rc.rect);
-  auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
+  const auto target_rc = g_framebuffer_manager->ConvertEFBRectangle(native_rc.rect);
+  const auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
   g_gfx->SetScissorRect(converted_rc);
 
   float raw_x = (xfmem.viewport.xOrig - native_rc.x_off) - xfmem.viewport.wd;
@@ -298,10 +298,10 @@ void SetBlendMode()
 */
 void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
-  bool colorEnable = (bpmem.blendmode.colorupdate != 0);
+  const bool colorEnable = (bpmem.blendmode.colorupdate != 0);
   bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);
-  bool zEnable = (bpmem.zmode.updateenable != 0);
-  auto pixel_format = bpmem.zcontrol.pixel_format;
+  const bool zEnable = (bpmem.zmode.updateenable != 0);
+  const auto pixel_format = bpmem.zcontrol.pixel_format;
 
   // (1): Disable unused color channels
   if (pixel_format == PixelFormat::RGB8_Z24 || pixel_format == PixelFormat::RGB565_Z16 ||

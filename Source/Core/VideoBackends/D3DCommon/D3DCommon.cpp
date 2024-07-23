@@ -87,7 +87,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(const bool debug_device)
   }
 
   // Fallback to original version, without debug support.
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
+  const HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
   if (FAILED(hr))
   {
     PanicAlertFmt("CreateDXGIFactory() failed: {}", Common::HRWrap(hr));
@@ -100,7 +100,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(const bool debug_device)
 std::vector<std::string> GetAdapterNames()
 {
   Microsoft::WRL::ComPtr<IDXGIFactory> factory;
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
+  const HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
   if (FAILED(hr))
     return {};
 

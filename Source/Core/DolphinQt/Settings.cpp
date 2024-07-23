@@ -332,10 +332,10 @@ void Settings::AddPath(const QString& qpath)
 
 void Settings::RemovePath(const QString& qpath)
 {
-  std::string path = qpath.toStdString();
+  const std::string path = qpath.toStdString();
   std::vector<std::string> paths = Config::GetIsoPaths();
 
-  auto new_end = std::remove(paths.begin(), paths.end(), path);
+  const auto new_end = std::remove(paths.begin(), paths.end(), path);
   if (new_end == paths.end())
     return;
 

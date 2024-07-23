@@ -73,7 +73,7 @@ std::string ProfileCycler::GetProfile(CycleDirection cycle_direction, int& profi
 
 void ProfileCycler::UpdateToProfile(const std::string& profile_filename,
                                     ControllerEmu::EmulatedController* controller,
-                                    InputConfig* device_configuration)
+                                    const InputConfig* device_configuration)
 {
   std::string base;
   SplitPath(profile_filename, nullptr, &base, nullptr);
@@ -116,7 +116,7 @@ ProfileCycler::GetMatchingProfilesFromSetting(const std::string& setting,
   return result;
 }
 
-void ProfileCycler::CycleProfile(const CycleDirection cycle_direction, InputConfig* device_configuration,
+void ProfileCycler::CycleProfile(const CycleDirection cycle_direction, const InputConfig* device_configuration,
                                  int& profile_index, const int controller_index)
 {
   const auto& profiles = GetProfilesForDevice(device_configuration);
@@ -140,7 +140,7 @@ void ProfileCycler::CycleProfile(const CycleDirection cycle_direction, InputConf
 }
 
 void ProfileCycler::CycleProfileForGame(const CycleDirection cycle_direction,
-                                        InputConfig* device_configuration, int& profile_index,
+                                        const InputConfig* device_configuration, int& profile_index,
                                         const std::string& setting, const int controller_index)
 {
   const auto& profiles = GetProfilesForDevice(device_configuration);

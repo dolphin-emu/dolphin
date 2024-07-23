@@ -110,7 +110,7 @@ void FixSRAMChecksums(Sram* sram)
   for (auto p = reinterpret_cast<u16*>(&sram->settings.rtc_bias);
        p != reinterpret_cast<u16*>(&sram->settings_ex); p++)
   {
-    u16 value = Common::FromBigEndian(*p);
+    const u16 value = Common::FromBigEndian(*p);
     checksum += value;
     checksum_inv += ~value;
   }

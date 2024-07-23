@@ -170,7 +170,7 @@ void LogWidget::ConnectWidgets()
 
 void LogWidget::LoadSettings()
 {
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("logwidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("logwidget/floating")).toBool());

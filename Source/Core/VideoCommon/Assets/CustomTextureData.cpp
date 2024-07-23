@@ -299,7 +299,7 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   }
 
   // Handle fourcc formats vs uncompressed formats.
-  bool has_fourcc = (header.ddspf.dwFlags & DDS_FOURCC) != 0;
+  const bool has_fourcc = (header.ddspf.dwFlags & DDS_FOURCC) != 0;
   bool needs_s3tc = false;
   if (has_fourcc)
   {
@@ -422,8 +422,8 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     return false;
 
   // Mip levels smaller than the block size are padded to multiples of the block size.
-  u32 blocks_wide = GetBlockCount(info->width, info->block_size);
-  u32 blocks_high = GetBlockCount(info->height, info->block_size);
+  const u32 blocks_wide = GetBlockCount(info->width, info->block_size);
+  const u32 blocks_high = GetBlockCount(info->height, info->block_size);
 
   // Pitch can be specified in the header, otherwise we can derive it from the dimensions. For
   // compressed formats, both DDS_HEADER_FLAGS_LINEARSIZE and DDS_HEADER_FLAGS_PITCH should be
@@ -531,10 +531,10 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
       mip_height = std::max(mip_height / 2, 1u);
 
       // Pitch can't be specified with each mip level, so we have to calculate it ourselves.
-      u32 blocks_wide = GetBlockCount(mip_width, info.block_size);
-      u32 blocks_high = GetBlockCount(mip_height, info.block_size);
-      u32 mip_row_length = blocks_wide * info.block_size;
-      size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
+      const u32 blocks_wide = GetBlockCount(mip_width, info.block_size);
+      const u32 blocks_high = GetBlockCount(mip_height, info.block_size);
+      const u32 mip_row_length = blocks_wide * info.block_size;
+      const size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
       CustomTextureData::ArraySlice::Level level;
       if (!ReadMipLevel(&level, file, filename, i, info, mip_width, mip_height, mip_row_length,
                         mip_size))

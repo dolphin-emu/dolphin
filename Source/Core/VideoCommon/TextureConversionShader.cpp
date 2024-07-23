@@ -1036,7 +1036,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
 const DecodingShaderInfo* GetDecodingShaderInfo(const TextureFormat format)
 {
-  auto iter = s_decoding_shader_info.find(format);
+  const auto iter = s_decoding_shader_info.find(format);
   return iter != s_decoding_shader_info.end() ? &iter->second : nullptr;
 }
 

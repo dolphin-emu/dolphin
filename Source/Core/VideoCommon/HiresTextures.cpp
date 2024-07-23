@@ -47,7 +47,7 @@ std::pair<std::string, bool> GetNameArbPair(const TextureInfo& texture_info)
   const auto texture_name_details = texture_info.CalculateTextureName();
   // look for an exact match first
   const std::string full_name = texture_name_details.GetFullName();
-  if (auto iter = s_hires_texture_id_to_arbmipmap.find(full_name);
+  if (const auto iter = s_hires_texture_id_to_arbmipmap.find(full_name);
       iter != s_hires_texture_id_to_arbmipmap.end())
   {
     return {full_name, iter->second};
@@ -57,7 +57,7 @@ std::pair<std::string, bool> GetNameArbPair(const TextureInfo& texture_info)
   const std::string texture_name_single_wildcard_tlut =
       fmt::format("{}_{}_$_{}", texture_name_details.base_name, texture_name_details.texture_name,
                   texture_name_details.format_name);
-  if (auto iter = s_hires_texture_id_to_arbmipmap.find(texture_name_single_wildcard_tlut);
+  if (const auto iter = s_hires_texture_id_to_arbmipmap.find(texture_name_single_wildcard_tlut);
       iter != s_hires_texture_id_to_arbmipmap.end())
   {
     return {texture_name_single_wildcard_tlut, iter->second};
@@ -67,7 +67,7 @@ std::pair<std::string, bool> GetNameArbPair(const TextureInfo& texture_info)
   const std::string texture_name_single_wildcard_tex =
       fmt::format("{}_${}_{}", texture_name_details.base_name, texture_name_details.tlut_name,
                   texture_name_details.format_name);
-  if (auto iter = s_hires_texture_id_to_arbmipmap.find(texture_name_single_wildcard_tex);
+  if (const auto iter = s_hires_texture_id_to_arbmipmap.find(texture_name_single_wildcard_tex);
       iter != s_hires_texture_id_to_arbmipmap.end())
   {
     return {texture_name_single_wildcard_tex, iter->second};
@@ -100,7 +100,7 @@ void HiresTexture::Update()
       GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
   const std::vector<std::string> extensions{".png", ".dds"};
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
 
   for (const auto& texture_directory : texture_directories)
   {
@@ -176,13 +176,13 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_in
   if (base_filename == "")
     return nullptr;
 
-  if (auto iter = s_hires_texture_cache.find(base_filename); iter != s_hires_texture_cache.end())
+  if (const auto iter = s_hires_texture_cache.find(base_filename); iter != s_hires_texture_cache.end())
   {
     return iter->second;
   }
   else
   {
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     auto hires_texture = std::make_shared<HiresTexture>(
         has_arb_mipmaps,
         system.GetCustomAssetLoader().LoadGameTexture(base_filename, s_file_library));

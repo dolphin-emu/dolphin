@@ -54,7 +54,7 @@ static void LdrObserverRun(const LdrObserver& observer, const PCUNICODE_STRING m
   {
     // Like RtlCompareUnicodeString, but saves dynamically resolving it.
     // NOTE: Does not compare null terminator.
-    auto compare_length = module_name->Length / sizeof(wchar_t);
+    const auto compare_length = module_name->Length / sizeof(wchar_t);
     if (!_wcsnicmp(needle.c_str(), module_name->Buffer, compare_length))
       observer.action({needle, base_address});
   }
@@ -66,7 +66,7 @@ static VOID DllNotificationCallback(const ULONG NotificationReason,
   if (NotificationReason != LDR_DLL_NOTIFICATION_REASON_LOADED)
     return;
   auto& data = NotificationData->Loaded;
-  auto observer = static_cast<const LdrObserver*>(Context);
+  const auto observer = static_cast<const LdrObserver*>(Context);
   LdrObserverRun(*observer, data.BaseDllName, reinterpret_cast<uintptr_t>(data.DllBase));
 }
 
@@ -97,7 +97,7 @@ LdrDllNotifier::LdrDllNotifier()
 
 bool LdrDllNotifier::Init()
 {
-  auto ntdll = GetModuleHandleW(L"ntdll");
+  const auto ntdll = GetModuleHandleW(L"ntdll");
   if (!ntdll)
     return false;
   LdrRegisterDllNotification = reinterpret_cast<decltype(LdrRegisterDllNotification)>(
@@ -144,7 +144,7 @@ bool LdrWatcher::InjectCurrentModules(const LdrObserver& observer)
 {
   // Use TlHelp32 instead of psapi functions to reduce dolphin's dependency on psapi
   // (revisit this when Win7 support is dropped).
-  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
+  const HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
   if (snapshot == INVALID_HANDLE_VALUE)
     return false;
   MODULEENTRY32 entry;

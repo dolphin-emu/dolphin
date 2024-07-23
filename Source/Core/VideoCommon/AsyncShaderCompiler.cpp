@@ -224,7 +224,7 @@ void AsyncShaderCompiler::WorkerThreadRun()
     while (!m_pending_work.empty() && !m_exit_flag.IsSet())
     {
       m_busy_workers++;
-      auto iter = m_pending_work.begin();
+      const auto iter = m_pending_work.begin();
       WorkItemPtr item(std::move(iter->second));
       m_pending_work.erase(iter);
       pending_lock.unlock();

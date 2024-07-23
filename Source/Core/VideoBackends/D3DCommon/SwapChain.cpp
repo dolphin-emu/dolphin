@@ -274,7 +274,7 @@ bool SwapChain::CheckForFullscreenChange()
 {
   if (m_fullscreen_request != m_has_fullscreen)
   {
-    HRESULT hr = m_swap_chain->SetFullscreenState(m_fullscreen_request, nullptr);
+    const HRESULT hr = m_swap_chain->SetFullscreenState(m_fullscreen_request, nullptr);
     if (SUCCEEDED(hr))
     {
       m_has_fullscreen = m_fullscreen_request;
@@ -302,7 +302,7 @@ bool SwapChain::Present()
   if (m_allow_tearing_supported && !g_ActiveConfig.bVSyncActive && !m_has_fullscreen)
     present_flags |= DXGI_PRESENT_ALLOW_TEARING;
 
-  HRESULT hr = m_swap_chain->Present(static_cast<UINT>(g_ActiveConfig.bVSyncActive), present_flags);
+  const HRESULT hr = m_swap_chain->Present(static_cast<UINT>(g_ActiveConfig.bVSyncActive), present_flags);
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "Swap chain present failed: {}", Common::HRWrap(hr));

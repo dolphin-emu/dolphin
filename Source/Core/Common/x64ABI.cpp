@@ -18,17 +18,17 @@ void XEmitter::ABI_CalculateFrameSize(const BitSet32 mask, size_t rsp_alignment,
   shadow = 0x20;
 #endif
 
-  int count = (mask & ABI_ALL_GPRS).Count();
+  const int count = (mask & ABI_ALL_GPRS).Count();
   rsp_alignment -= count * 8;
   size_t subtraction = 0;
-  int fpr_count = (mask & ABI_ALL_FPRS).Count();
+  const int fpr_count = (mask & ABI_ALL_FPRS).Count();
   if (fpr_count)
   {
     // If we have any XMMs to save, we must align the stack here.
     subtraction = rsp_alignment & 0xf;
   }
   subtraction += 16 * fpr_count;
-  size_t xmm_base_subtraction = subtraction;
+  const size_t xmm_base_subtraction = subtraction;
   subtraction += needed_frame_size;
   subtraction += shadow;
   // Final alignment.
@@ -60,7 +60,7 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, const size_t rsp
   if (subtraction)
     SUB(64, R(RSP), subtraction >= 0x80 ? Imm32(static_cast<u32>(subtraction)) : Imm8(static_cast<u8>(subtraction)));
 
-  for (int x : (mask & ABI_ALL_FPRS))
+  for (const int x : (mask & ABI_ALL_FPRS))
   {
     MOVAPD(MDisp(RSP, static_cast<int>(xmm_offset)), static_cast<X64Reg>(x - 16));
     xmm_offset += 16;
@@ -77,7 +77,7 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, const size_t rsp_al
   ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction,
                          &xmm_offset);
 
-  for (int x : (mask & ABI_ALL_FPRS))
+  for (const int x : (mask & ABI_ALL_FPRS))
   {
     MOVAPD(static_cast<X64Reg>(x - 16), MDisp(RSP, static_cast<int>(xmm_offset)));
     xmm_offset += 16;

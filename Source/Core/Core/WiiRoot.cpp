@@ -334,7 +334,7 @@ void InitializeWiiFileSystemContents(
   if (is_temp_nand)
   {
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
-    SysConf sysconf{fs};
+    const SysConf sysconf{fs};
     sysconf.Save();
 
     InitializeDeterministicWiiSaves(fs.get(), boot_session_data);

@@ -29,11 +29,11 @@ void NetNCDManageDevice::DoState(PointerWrap& p)
 
 std::optional<IPCReply> NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
 {
-  s32 return_value = IPC_SUCCESS;
+  const s32 return_value = IPC_SUCCESS;
   u32 common_result = 0;
   u32 common_vector = 0;
 
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   switch (request.request)

@@ -208,7 +208,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   // Invalidate the icache and any asm codes
   auto& ppc_state = guard.GetSystem().GetPPCState();
-  auto& memory = guard.GetSystem().GetMemory();
+  const auto& memory = guard.GetSystem().GetMemory();
   auto& jit_interface = guard.GetSystem().GetJitInterface();
   for (u32 j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
   {
@@ -266,13 +266,13 @@ void RunCodeHandler(const Core::CPUThreadGuard& guard)
   // The codehandler will STMW all of the GPR registers, but we need to fix the Stack's Red
   // Zone, the LR, PC (return address) and the volatile floating point registers.
   // Build a function call stack frame.
-  u32 SFP = ppc_state.gpr[1];                     // Stack Frame Pointer
+  const u32 SFP = ppc_state.gpr[1];                     // Stack Frame Pointer
   ppc_state.gpr[1] -= 256;                        // Stack's Red Zone
   ppc_state.gpr[1] -= 16 + 2 * 14 * sizeof(u64);  // Our stack frame
                                                   // (HLE_Misc::GeckoReturnTrampoline)
-  ppc_state.gpr[1] -= 8;                          // Fake stack frame for codehandler
-  ppc_state.gpr[1] &= 0xFFFFFFF0;                 // Align stack to 16bytes
-  u32 SP = ppc_state.gpr[1];                      // Stack Pointer
+  ppc_state.gpr[1] -= 8;           // Fake stack frame for codehandler
+  ppc_state.gpr[1] &= 0xFFFFFFF0;  // Align stack to 16bytes
+  const u32 SP = ppc_state.gpr[1]; // Stack Pointer
   PowerPC::MMU::HostWrite_U32(guard, SP + 8, SP);
   // SP + 4 is reserved for the codehandler to save LR to the stack.
   PowerPC::MMU::HostWrite_U32(guard, SFP, SP + 8);  // Real stack frame

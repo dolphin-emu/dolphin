@@ -432,11 +432,11 @@ void Init()
     return;
 #endif
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   if (const Core::State state = GetState(system);
       state != Core::State::Uninitialized && state != Core::State::Starting)
   {
-    auto& core_timing = system.GetCoreTiming();
+    const auto& core_timing = system.GetCoreTiming();
     if ((core_timing.GetTicks() - s_last_init) < system.GetSystemTimers().GetTicksPerSecond())
       return;
 
@@ -953,7 +953,7 @@ void Output(const int chan, const u8 rumble_command)
       s_port_states[chan].controller_type != ControllerType::Wireless)
   {
     s_controller_rumble[chan] = rumble_command;
-    std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
+    const std::array<u8, CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
         0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
         s_controller_rumble[3]};
     {

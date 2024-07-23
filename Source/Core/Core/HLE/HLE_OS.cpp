@@ -36,7 +36,7 @@ static std::string GetStringVA(const Core::System& system, const Core::CPUThread
 
 void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   std::string error = GetStringVA(system, guard);
@@ -55,7 +55,7 @@ void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 // Generalized function for printing formatted string.
 static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   std::string report_message;
@@ -111,7 +111,7 @@ void HLE_GeneralDebugVPrint(const Core::CPUThreadGuard& guard)
 // __write_console(int fd, const void* buffer, const u32* size)
 void HLE_write_console(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   std::string report_message = GetStringVA(system, guard, 4);
@@ -139,7 +139,7 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
 static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   if (ppc_state.gpr[3] != 1 && ppc_state.gpr[3] != 2)
@@ -168,7 +168,7 @@ void HLE_LogVDPrint(const Core::CPUThreadGuard& guard)
 // Log (v)fprintf message if FILE is stdout or stderr
 static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, const ParameterType parameter_type)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
 
   // The structure FILE is implementation defined.
@@ -245,8 +245,8 @@ static std::string GetStringVA(const Core::System& system, const Core::CPUThread
 {
   auto& ppc_state = system.GetPPCState();
 
-  std::string string = PowerPC::MMU::HostGetString(guard, ppc_state.gpr[str_reg]);
-  std::unique_ptr<HLE::SystemVABI::VAList> ap =
+  const std::string string = PowerPC::MMU::HostGetString(guard, ppc_state.gpr[str_reg]);
+  const std::unique_ptr<HLE::SystemVABI::VAList> ap =
       parameter_type == ParameterType::VariableArgumentList ?
           std::make_unique<HLE::SystemVABI::VAListStruct>(guard, ppc_state.gpr[str_reg + 1]) :
           std::make_unique<HLE::SystemVABI::VAList>(guard, ppc_state.gpr[1] + 0x8, str_reg + 1);

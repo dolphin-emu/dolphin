@@ -377,7 +377,7 @@ void RSOView::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) c
 {
   for (const RSOExport& rso_export : GetExports())
   {
-    u32 address = GetExportAddress(rso_export);
+    const u32 address = GetExportAddress(rso_export);
     if (address != 0)
     {
       Common::Symbol* symbol = symbol_db->AddFunction(guard, address);

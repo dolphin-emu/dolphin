@@ -2047,7 +2047,7 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
     return false;
   }
 
-  std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(infile_path);
+  const std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(infile_path);
 
   const auto convert = rvz ? RVZFileReader::Convert : WIAFileReader::Convert;
   const ConversionResultCode result =

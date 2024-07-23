@@ -20,7 +20,7 @@ u8* g_vertex_manager_write_ptr;
 
 static void PosMtx_ReadDirect_UByte(const VertexLoader* loader)
 {
-  u32 posmtx = DataRead<u8>() & 0x3f;
+  const u32 posmtx = DataRead<u8>() & 0x3f;
   if (loader->m_remaining < 3)
     VertexLoaderManager::position_matrix_index_cache[loader->m_remaining] = posmtx;
   DataWrite<u32>(posmtx);
@@ -102,7 +102,7 @@ void VertexLoader::CompileVertexTranslator()
   WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat,
                                                m_VtxAttr.g0.PosElements));
 
-  int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
+  const int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
   m_native_vtx_decl.position.components = pos_elements;
   m_native_vtx_decl.position.enable = true;
   m_native_vtx_decl.position.offset = nat_offset;
@@ -113,7 +113,7 @@ void VertexLoader::CompileVertexTranslator()
   // Normals
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    TPipelineFunction pFunc =
+    const TPipelineFunction pFunc =
         VertexLoader_Normal::GetFunction(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat,
                                          m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
 
@@ -142,7 +142,7 @@ void VertexLoader::CompileVertexTranslator()
     m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
     m_native_vtx_decl.colors[i].integer = false;
 
-    TPipelineFunction pFunc =
+    const TPipelineFunction pFunc =
         VertexLoader_Color::GetFunction(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
 
     if (pFunc != nullptr)
@@ -266,7 +266,7 @@ int VertexLoader::RunVertices(const u8* src, u8* dst, const int count)
     m_tcIndex = 0;
     m_colIndex = 0;
     m_texmtxwrite = m_texmtxread = 0;
-    for (TPipelineFunction& func : m_PipelineStages)
+    for (const TPipelineFunction& func : m_PipelineStages)
       func(this);
     PRIM_LOG("\n");
   }

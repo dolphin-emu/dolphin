@@ -586,7 +586,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
 
 const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 inet_ip)
 {
-  auto it = m_arp_table.lower_bound(inet_ip);
+  const auto it = m_arp_table.lower_bound(inet_ip);
   if (it != m_arp_table.end() && it->first == inet_ip)
   {
     return it->second;
@@ -834,7 +834,7 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
     fd_set read_fds;
     fd_set write_fds;
     fd_set except_fds;
-    struct timeval t = {0, 0};
+    const struct timeval t = {0, 0};
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);

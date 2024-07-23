@@ -76,11 +76,11 @@ u16 Accelerator::Read(const s16* coefs)
   {
   case 0x00:  // ADPCM audio
   {
-    int scale = 1 << (m_pred_scale & 0xF);
-    int coef_idx = (m_pred_scale >> 4) & 0x7;
+    const int scale = 1 << (m_pred_scale & 0xF);
+    const int coef_idx = (m_pred_scale >> 4) & 0x7;
 
-    s32 coef1 = coefs[coef_idx * 2 + 0];
-    s32 coef2 = coefs[coef_idx * 2 + 1];
+    const s32 coef1 = coefs[coef_idx * 2 + 0];
+    const s32 coef2 = coefs[coef_idx * 2 + 1];
 
     int temp = (m_current_address & 1) ? (ReadMemory(m_current_address >> 1) & 0xF) :
                                          (ReadMemory(m_current_address >> 1) >> 4);
@@ -88,7 +88,7 @@ u16 Accelerator::Read(const s16* coefs)
     if (temp >= 8)
       temp -= 16;
 
-    s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
+    const s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
     val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
     step_size_bytes = 2;
 

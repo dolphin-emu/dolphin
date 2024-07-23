@@ -1120,8 +1120,8 @@ void FramebufferManager::DoSaveState(PointerWrap& p) const
   // For multisampling, we need to resolve first before we can save.
   // This won't be bit-exact when loading, which could cause interesting rendering side-effects for
   // a frame. But whatever, MSAA doesn't exactly behave that well anyway.
-  AbstractTexture* color_texture = ResolveEFBColorTexture(m_efb_color_texture->GetRect());
-  AbstractTexture* depth_texture = ResolveEFBDepthTexture(m_efb_depth_texture->GetRect(), true);
+  const AbstractTexture* color_texture = ResolveEFBColorTexture(m_efb_color_texture->GetRect());
+  const AbstractTexture* depth_texture = ResolveEFBDepthTexture(m_efb_depth_texture->GetRect(), true);
 
   // We don't want to save these as rendertarget textures, just the data itself when deserializing.
   const TextureConfig color_texture_config(
@@ -1142,8 +1142,8 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
   InvalidatePeekCache(true);
 
   // Deserialize the color and depth textures. This could fail.
-  auto color_tex = g_texture_cache->DeserializeTexture(p);
-  auto depth_tex = g_texture_cache->DeserializeTexture(p);
+  const auto color_tex = g_texture_cache->DeserializeTexture(p);
+  const auto depth_tex = g_texture_cache->DeserializeTexture(p);
 
   // If the stereo mode is different in the save state, throw it away.
   if (!color_tex || !depth_tex ||

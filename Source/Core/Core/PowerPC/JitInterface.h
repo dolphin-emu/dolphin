@@ -75,8 +75,8 @@ public:
   void InvalidateICache(u32 address, u32 size, bool forced) const;
   void InvalidateICacheLine(u32 address) const;
   void InvalidateICacheLines(u32 address, u32 count) const;
-  static void InvalidateICacheLineFromJIT(JitInterface& jit_interface, u32 address);
-  static void InvalidateICacheLinesFromJIT(JitInterface& jit_interface, u32 address, u32 count);
+  static void InvalidateICacheLineFromJIT(const JitInterface& jit_interface, u32 address);
+  static void InvalidateICacheLinesFromJIT(const JitInterface& jit_interface, u32 address, u32 count);
 
   enum class ExceptionType
   {
@@ -85,7 +85,7 @@ public:
     SpeculativeConstants
   };
   void CompileExceptionCheck(ExceptionType type) const;
-  static void CompileExceptionCheckFromJIT(JitInterface& jit_interface, ExceptionType type);
+  static void CompileExceptionCheckFromJIT(const JitInterface& jit_interface, ExceptionType type);
 
   /// used for the page fault unit test, don't use outside of tests!
   void SetJit(std::unique_ptr<JitBase> jit);

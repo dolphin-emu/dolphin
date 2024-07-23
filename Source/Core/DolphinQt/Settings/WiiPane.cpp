@@ -269,7 +269,7 @@ void WiiPane::CreateSDCard()
   m_sd_pack_button = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
   m_sd_unpack_button = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
   connect(m_sd_pack_button, &QPushButton::clicked, [this] {
-    auto result = ModalMessageBox::warning(
+    const auto result = ModalMessageBox::warning(
         this, tr("Convert Folder to File Now"),
         tr("You are about to convert the content of the folder at %1 into the file at %2. All "
            "current content of the file will be deleted. Are you sure you want to continue?")
@@ -294,7 +294,7 @@ void WiiPane::CreateSDCard()
     }
   });
   connect(m_sd_unpack_button, &QPushButton::clicked, [this] {
-    auto result = ModalMessageBox::warning(
+    const auto result = ModalMessageBox::warning(
         this, tr("Convert File to Folder Now"),
         tr("You are about to convert the content of the file at %2 into the folder at %1. All "
            "current content of the folder will be deleted. Are you sure you want to continue?")
@@ -475,10 +475,10 @@ void WiiPane::OnUSBWhitelistAddButton()
 
 void WiiPane::OnUSBWhitelistRemoveButton() const
 {
-  QString device = m_whitelist_usb_list->currentItem()->text().left(9);
+  const QString device = m_whitelist_usb_list->currentItem()->text().left(9);
   QStringList split = device.split(QString::fromStdString(":"));
-  QString vid = QString(split[0]);
-  QString pid = QString(split[1]);
+  const QString vid = QString(split[0]);
+  const QString pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
   auto whitelist = Config::GetUSBDeviceWhitelist();
@@ -490,7 +490,7 @@ void WiiPane::OnUSBWhitelistRemoveButton() const
 void WiiPane::PopulateUSBPassthroughListWidget() const
 {
   m_whitelist_usb_list->clear();
-  auto whitelist = Config::GetUSBDeviceWhitelist();
+  const auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : whitelist)
   {
     QListWidgetItem* usb_lwi =
@@ -502,11 +502,10 @@ void WiiPane::PopulateUSBPassthroughListWidget() const
 
 void WiiPane::BrowseSDRaw()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
+  const QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this, tr("Select SD Card Image"),
-      QString::fromStdString(Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)),
-      tr("SD Card Image (*.raw);;"
-         "All Files (*)")));
+      QString::fromStdString(Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)), tr("SD Card Image (*.raw);;"
+          "All Files (*)")));
   if (!file.isEmpty())
     SetSDRaw(file);
 }
@@ -519,7 +518,7 @@ void WiiPane::SetSDRaw(const QString& path) const
 
 void WiiPane::BrowseSDSyncFolder()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+  const QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select a Folder to Sync with the SD Card Image"),
       QString::fromStdString(Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH))));
   if (!file.isEmpty())

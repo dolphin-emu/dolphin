@@ -37,7 +37,7 @@
 static ConfigStringChoice* MakeLanguageComboBox()
 {
   using QPair = std::pair<QString, QString>;
-  std::vector languages = {
+  const std::vector languages = {
       QPair{QObject::tr("<System Language>"), QString{}},
       QPair{QStringLiteral(u"Bahasa Melayu"), QStringLiteral("ms")},      // Malay
       QPair{QStringLiteral(u"Catal\u00E0"), QStringLiteral("ca")},        // Catalan
@@ -126,7 +126,7 @@ void InterfacePane::CreateUI()
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
   // List avalable themes
-  auto theme_paths =
+  const auto theme_paths =
       Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
   std::vector<std::string> theme_names;
   theme_names.reserve(theme_paths.size());
@@ -142,7 +142,7 @@ void InterfacePane::CreateUI()
   m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
-  auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
+  const auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
 
@@ -268,7 +268,7 @@ void InterfacePane::UpdateShowDebuggingCheckbox() const
   static constexpr char TR_DISABLED_IN_HARDCORE_DESCRIPTION[] =
       QT_TR_NOOP("<dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>");
 
-  bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
+  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
   if (hardcore)
   {

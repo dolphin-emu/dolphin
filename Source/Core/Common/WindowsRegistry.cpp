@@ -60,7 +60,7 @@ OSVERSIONINFOW GetOSVersion()
   {
     // Fallback to version from PEB
     typedef DWORD(WINAPI * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
-    auto RtlGetVersion =
+    const auto RtlGetVersion =
         (RtlGetVersion_t)GetProcAddress(GetModuleHandle(TEXT("ntdll")), "RtlGetVersion");
     RtlGetVersion(&info);
     // Clear fields which would not be filled in by registry query

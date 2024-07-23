@@ -175,7 +175,7 @@ u8* XEmitter::AlignCodeTo(const size_t alignment)
 {
   ASSERT_MSG(DYNA_REC, alignment != 0 && (alignment & (alignment - 1)) == 0,
              "Alignment must be power of two");
-  u64 c = reinterpret_cast<u64>(code) & (alignment - 1);
+  const u64 c = reinterpret_cast<u64>(code) & (alignment - 1);
   if (c)
     ReserveCodeSpace(static_cast<int>(alignment - c));
   return code;
@@ -246,23 +246,23 @@ void OpArg::WriteREX(XEmitter* emit, const int opBits, const int bits, int custo
 void OpArg::WriteVEX(XEmitter* emit, const X64Reg regOp1, const X64Reg regOp2, const int L, const int pp, const int mmmmm,
                      const int W) const
 {
-  int R = !(regOp1 & 8);
-  int X = !(indexReg & 8);
-  int B = !(offsetOrBaseReg & 8);
+  const int R = !(regOp1 & 8);
+  const int X = !(indexReg & 8);
+  const int B = !(offsetOrBaseReg & 8);
 
-  int vvvv = (regOp2 == INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
+  const int vvvv = (regOp2 == INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
 
   // do we need any VEX fields that only appear in the three-byte form?
   if (X == 1 && B == 1 && W == 0 && mmmmm == 1)
   {
-    u8 RvvvvLpp = (R << 7) | (vvvv << 3) | (L << 2) | pp;
+    const u8 RvvvvLpp = (R << 7) | (vvvv << 3) | (L << 2) | pp;
     emit->Write8(0xC5);
     emit->Write8(RvvvvLpp);
   }
   else
   {
-    u8 RXBmmmmm = (R << 7) | (X << 6) | (B << 5) | mmmmm;
-    u8 WvvvvLpp = (W << 7) | (vvvv << 3) | (L << 2) | pp;
+    const u8 RXBmmmmm = (R << 7) | (X << 6) | (B << 5) | mmmmm;
+    const u8 WvvvvLpp = (W << 7) | (vvvv << 3) | (L << 2) | pp;
     emit->Write8(0xC4);
     emit->Write8(RXBmmmmm);
     emit->Write8(WvvvvLpp);
@@ -285,12 +285,12 @@ void OpArg::WriteRest(XEmitter* emit, const int extraBytes, X64Reg _operandReg,
     _offsetOrBaseReg = 5;
     emit->WriteModRM(0, _operandReg, _offsetOrBaseReg);
     // TODO : add some checks
-    u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
-    s64 distance = static_cast<s64>(offset) - static_cast<s64>(ripAddr);
+    const u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
+    const s64 distance = static_cast<s64>(offset) - static_cast<s64>(ripAddr);
     ASSERT_MSG(DYNA_REC,
                (distance < 0x80000000LL && distance >= -0x80000000LL) || !warn_64bit_offset,
                "WriteRest: op out of range ({:#x} uses {:#x})", ripAddr, offset);
-    s32 offs = static_cast<s32>(distance);
+    const s32 offs = static_cast<s32>(distance);
     emit->Write32(static_cast<u32>(offs));
     return;
   }
@@ -322,7 +322,7 @@ void OpArg::WriteRest(XEmitter* emit, const int extraBytes, X64Reg _operandReg,
 
     // Okay, we're fine. Just disp encoding.
     // We need displacement. Which size?
-    int ioff = static_cast<int>((s64)offset);
+    const int ioff = static_cast<int>((s64)offset);
     if (ioff == 0 && (_offsetOrBaseReg & 7) != 5)
     {
       mod = 0;  // No displacement
@@ -407,17 +407,17 @@ void XEmitter::Rex(int w, int r, int x, int b)
   r = r ? 1 : 0;
   x = x ? 1 : 0;
   b = b ? 1 : 0;
-  u8 rx = static_cast<u8>(0x40 | (w << 3) | (r << 2) | (x << 1) | (b));
+  const u8 rx = static_cast<u8>(0x40 | (w << 3) | (r << 2) | (x << 1) | (b));
   if (rx != 0x40)
     Write8(rx);
 }
 
 void XEmitter::JMP(const u8* addr, const Jump jump)
 {
-  u64 fn = (u64)addr;
+  const u64 fn = (u64)addr;
   if (jump == Jump::Short)
   {
-    s64 distance = static_cast<s64>(fn - ((u64)code + 2));
+    const s64 distance = static_cast<s64>(fn - ((u64)code + 2));
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump::Short target too far away ({}), needs Jump::Near", distance);
     // 8 bits will do
@@ -426,7 +426,7 @@ void XEmitter::JMP(const u8* addr, const Jump jump)
   }
   else
   {
-    s64 distance = static_cast<s64>(fn - ((u64)code + 5));
+    const s64 distance = static_cast<s64>(fn - ((u64)code + 5));
 
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
                "Jump::Near target too far away ({}), needs indirect register", distance);
@@ -466,7 +466,7 @@ void XEmitter::CALLptr(OpArg arg)
 
 void XEmitter::CALL(const void* fnptr)
 {
-  u64 distance = reinterpret_cast<u64>(fnptr) - (reinterpret_cast<u64>(code) + 5);
+  const u64 distance = reinterpret_cast<u64>(fnptr) - (reinterpret_cast<u64>(code) + 5);
   ASSERT_MSG(DYNA_REC, distance < 0x0000000080000000ULL || distance >= 0xFFFFFFFF80000000ULL,
              "CALL out of range ({} calls {})", fmt::ptr(code), fmt::ptr(fnptr));
   Write8(0xE8);
@@ -547,7 +547,7 @@ FixupBranch XEmitter::J_CC(const CCFlags conditionCode, const Jump jump)
 
 void XEmitter::J_CC(const CCFlags conditionCode, const u8* addr)
 {
-  u64 fn = (u64)addr;
+  const u64 fn = (u64)addr;
   s64 distance = static_cast<s64>(fn - ((u64)code + 2));
   if (distance < -0x80 || distance >= 0x80)
   {
@@ -572,18 +572,18 @@ void XEmitter::SetJumpTarget(const FixupBranch& branch) const
 
   if (branch.type == FixupBranch::Type::Branch8Bit)
   {
-    s64 distance = (s64)(code - branch.ptr);
+    const s64 distance = (s64)(code - branch.ptr);
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump::Short target too far away ({}), needs Jump::Near", distance);
     branch.ptr[-1] = static_cast<u8>((s8)distance);
   }
   else if (branch.type == FixupBranch::Type::Branch32Bit)
   {
-    s64 distance = (s64)(code - branch.ptr);
+    const s64 distance = (s64)(code - branch.ptr);
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
                "Jump::Near target too far away ({}), needs indirect register", distance);
 
-    s32 valid_distance = static_cast<s32>(distance);
+    const s32 valid_distance = static_cast<s32>(distance);
     std::memcpy(&branch.ptr[-4], &valid_distance, sizeof(s32));
   }
 }
@@ -1212,7 +1212,7 @@ void XEmitter::WriteShift(const int bits, OpArg dest, const OpArg& shift, const 
   if (shift.GetImmBits() == 8)
   {
     // ok an imm
-    u8 imm = static_cast<u8>(shift.offset);
+    const u8 imm = static_cast<u8>(shift.offset);
     if (imm == 1)
     {
       Write8(bits == 8 ? 0xD0 : 0xD1);
@@ -1287,7 +1287,7 @@ void XEmitter::WriteBitTest(const int bits, const OpArg& dest, const OpArg& inde
   }
   else
   {
-    X64Reg operand = index.GetSimpleReg();
+    const X64Reg operand = index.GetSimpleReg();
     dest.WriteREX(this, bits, bits, operand);
     Write8(0x0F);
     Write8(0x83 + 8 * ext);
@@ -1331,7 +1331,7 @@ void XEmitter::SHRD(const int bits, const OpArg& dest, const OpArg& src, const O
   }
   if (bits == 16)
     Write8(0x66);
-  X64Reg operand = src.GetSimpleReg();
+  const X64Reg operand = src.GetSimpleReg();
   dest.WriteREX(this, bits, bits, operand);
   if (shift.GetImmBits() == 8)
   {
@@ -1366,7 +1366,7 @@ void XEmitter::SHLD(const int bits, const OpArg& dest, const OpArg& src, const O
   }
   if (bits == 16)
     Write8(0x66);
-  X64Reg operand = src.GetSimpleReg();
+  const X64Reg operand = src.GetSimpleReg();
   dest.WriteREX(this, bits, bits, operand);
   if (shift.GetImmBits() == 8)
   {
@@ -1842,8 +1842,8 @@ static int GetVEXpp(const u8 opPrefix)
 void XEmitter::WriteVEXOp(const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg,
                           const int W, const int extrabytes)
 {
-  int mmmmm = GetVEXmmmmm(op);
-  int pp = GetVEXpp(opPrefix);
+  const int mmmmm = GetVEXmmmmm(op);
+  const int pp = GetVEXpp(opPrefix);
   // FIXME: we currently don't support 256-bit instructions, and "size" is not the vector size here
   arg.WriteVEX(this, regOp1, regOp2, 0, pp, mmmmm, W);
   Write8(op & 0xFF);

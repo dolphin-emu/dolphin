@@ -42,7 +42,7 @@ std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
   std::map<std::pair<u16, u16>, std::string> devices;
 
 #ifdef __LIBUSB__
-  LibusbUtils::Context context;
+  const LibusbUtils::Context context;
   if (!context.IsValid())
     return devices;
 

@@ -185,7 +185,7 @@ private:
   static void SetupMSR(PowerPC::PowerPCState& ppc_state);
   static void SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii);
   static void SetupBAT(const Core::System& system, bool is_wii);
-  static bool RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
+  static bool RunApploader(const Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
                            const DiscIO::VolumeDisc& volume,
                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
   static bool EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& guard,
@@ -199,7 +199,7 @@ private:
                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
   static bool Load_BS2(const Core::System& system, const std::string& boot_rom_filename);
 
-  static void SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guard);
+  static void SetupGCMemory(const Core::System& system, const Core::CPUThreadGuard& guard);
   static bool SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType console_type);
 };
 

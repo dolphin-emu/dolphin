@@ -100,7 +100,7 @@ std::vector<ResourcePack*> GetLowerPriorityPacks(const ResourcePack& pack)
 std::vector<ResourcePack*> GetHigherPriorityPacks(const ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
-  auto end = std::find(packs.begin(), packs.end(), pack);
+  const auto end = std::find(packs.begin(), packs.end(), pack);
 
   for (auto it = packs.begin(); it != end; ++it)
   {
@@ -134,7 +134,7 @@ ResourcePack* Add(const std::string& path, int offset)
 
   file.Save(packs_path);
 
-  auto it = packs.insert(packs.begin() + offset, std::move(pack));
+  const auto it = packs.insert(packs.begin() + offset, std::move(pack));
   return &*it;
 }
 
@@ -145,7 +145,7 @@ bool Remove(ResourcePack& pack)
   if (!result)
     return false;
 
-  auto pack_iterator = std::find(packs.begin(), packs.end(), pack);
+  const auto pack_iterator = std::find(packs.begin(), packs.end(), pack);
 
   if (pack_iterator == packs.end())
     return false;
@@ -156,7 +156,7 @@ bool Remove(ResourcePack& pack)
 
   order->Delete(pack.GetManifest()->GetID());
 
-  int offset = pack_iterator - packs.begin();
+  const int offset = pack_iterator - packs.begin();
 
   for (int i = offset + 1; i < static_cast<int>(packs.size()); i++)
     order->Set(packs[i].GetManifest()->GetID(), i - 1);
@@ -186,7 +186,7 @@ bool IsInstalled(const ResourcePack& pack)
 {
   Common::IniFile file = GetPackConfig();
 
-  auto* install = file.GetOrCreateSection("Installed");
+  const auto* install = file.GetOrCreateSection("Installed");
 
   bool installed;
 

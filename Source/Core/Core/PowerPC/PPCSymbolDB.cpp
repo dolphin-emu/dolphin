@@ -51,7 +51,7 @@ Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 
 void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, const u32 size,
                                  const std::string& name, const Common::Symbol::Type type)
 {
-  auto iter = m_functions.find(startAddr);
+  const auto iter = m_functions.find(startAddr);
   if (iter != m_functions.end())
   {
     // already got it, let's just update name, checksum & size to be sure.
@@ -187,7 +187,7 @@ void PPCSymbolDB::PrintCallers(const u32 funcAddr) const
 
 void PPCSymbolDB::LogFunctionCall(const u32 addr)
 {
-  auto iter = m_functions.find(addr);
+  const auto iter = m_functions.find(addr);
   if (iter == m_functions.end())
     return;
 

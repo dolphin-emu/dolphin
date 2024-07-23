@@ -22,7 +22,7 @@ constexpr int AR_SET_INT_CMD = 0x04;
 static std::vector<ActionReplay::AREntry> ResultToAREntries(const u32 addr, const Cheats::SearchValue& sv)
 {
   std::vector<ActionReplay::AREntry> codes;
-  std::vector<u8> data = GetValueAsByteVector(sv);
+  const std::vector<u8> data = GetValueAsByteVector(sv);
 
   for (size_t i = 0; i < data.size(); ++i)
   {

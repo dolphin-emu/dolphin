@@ -84,7 +84,7 @@ u64 WC24FriendList::ConvertEmailToFriendCode(const std::string_view email)
   u32 lower{};
 
   u32 idx{};
-  for (char chr : email)
+  for (const char chr : email)
   {
     if (idx == 7)
     {

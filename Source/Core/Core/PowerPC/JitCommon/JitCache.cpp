@@ -132,7 +132,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(const u32 em_address)
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, const bool block_link,
                                       const std::set<u32>& physical_addresses)
 {
-  size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
+  const size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
   if (m_entry_points_ptr)
   {
     m_entry_points_arena.EnsureMemoryPageWritable(index * sizeof(u8*));
@@ -146,8 +146,8 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, const bool block_link,
 
   block.physical_addresses = physical_addresses;
 
-  u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
-  for (u32 addr : physical_addresses)
+  const u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+  for (const u32 addr : physical_addresses)
   {
     valid_block.Set(addr / 32);
     block_range_map[addr & range_mask].insert(&block);
@@ -163,7 +163,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, const bool block_link,
     LinkBlock(block);
   }
 
-  Common::Symbol* symbol = nullptr;
+  const Common::Symbol* symbol = nullptr;
   if (Common::JitRegister::IsEnabled() &&
       (symbol = m_jit.m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
@@ -182,7 +182,7 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(const u32 addr, const CPUE
   u32 translated_addr = addr;
   if (feature_flags & FEATURE_FLAG_MSR_IR)
   {
-    auto translated = m_jit.m_mmu.JitCache_TranslateAddress(addr);
+    const auto translated = m_jit.m_mmu.JitCache_TranslateAddress(addr);
     if (!translated.valid)
     {
       return nullptr;
@@ -206,7 +206,7 @@ const u8* JitBaseBlockCache::Dispatch()
   const auto& ppc_state = m_jit.m_ppc_state;
   if (m_entry_points_ptr)
   {
-    u8* entry_point =
+    const u8* entry_point =
         m_entry_points_ptr[FastLookupIndexForAddress(ppc_state.pc, ppc_state.feature_flags)];
     if (entry_point)
     {
@@ -214,7 +214,7 @@ const u8* JitBaseBlockCache::Dispatch()
     }
     else
     {
-      JitBlock* block = MoveBlockIntoFastCache(ppc_state.pc, ppc_state.feature_flags);
+      const JitBlock* block = MoveBlockIntoFastCache(ppc_state.pc, ppc_state.feature_flags);
 
       if (!block)
         return nullptr;
@@ -223,7 +223,7 @@ const u8* JitBaseBlockCache::Dispatch()
     }
   }
 
-  JitBlock* block =
+  const JitBlock* block =
       m_fast_block_map_fallback[FastLookupIndexForAddress(ppc_state.pc, ppc_state.feature_flags)];
 
   if (!block || block->effectiveAddress != ppc_state.pc ||
@@ -324,9 +324,9 @@ void JitBaseBlockCache::InvalidateICacheInternal(const u32 physical_address, con
 void JitBaseBlockCache::ErasePhysicalRange(const u32 address, const u32 length)
 {
   // Iterate over all macro blocks which overlap the given range.
-  u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+  const u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
   auto start = block_range_map.lower_bound(address & range_mask);
-  auto end = block_range_map.lower_bound(address + length);
+  const auto end = block_range_map.lower_bound(address + length);
   while (start != end)
   {
     // Iterate over all blocks in the macro block.
@@ -338,7 +338,7 @@ void JitBaseBlockCache::ErasePhysicalRange(const u32 address, const u32 length)
       {
         // If the block overlaps, also remove all other occupied slots in the other macro blocks.
         // This will leak empty macro blocks, but they may be reused or cleared later on.
-        for (u32 addr : block->physical_addresses)
+        for (const u32 addr : block->physical_addresses)
           if ((addr & range_mask) != start->first)
             block_range_map[addr & range_mask].erase(block);
 
@@ -391,7 +391,7 @@ void JitBaseBlockCache::LinkBlockExits(JitBlock& block)
   {
     if (!e.linkStatus)
     {
-      JitBlock* destinationBlock = GetBlockFromStartAddress(e.exitAddress, block.feature_flags);
+      const JitBlock* destinationBlock = GetBlockFromStartAddress(e.exitAddress, block.feature_flags);
       if (destinationBlock)
       {
         WriteLinkBlock(e, destinationBlock);
@@ -501,7 +501,7 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(const u32 addr, const CPUEmu
   }
 
   // And create a new one
-  size_t index = FastLookupIndexForAddress(addr, feature_flags);
+  const size_t index = FastLookupIndexForAddress(addr, feature_flags);
   if (m_entry_points_ptr)
   {
     m_entry_points_arena.EnsureMemoryPageWritable(index * sizeof(u8*));

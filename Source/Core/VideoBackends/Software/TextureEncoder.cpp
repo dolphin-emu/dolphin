@@ -22,7 +22,7 @@ namespace TextureEncoder
 {
 static inline void RGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8* a)
 {
-  u32 srcColor = *(u32*)src;
+  const u32 srcColor = *(u32*)src;
   *a = Convert6To8(srcColor & 0x3f);
   *b = Convert6To8((srcColor >> 6) & 0x3f);
   *g = Convert6To8((srcColor >> 12) & 0x3f);
@@ -31,7 +31,7 @@ static inline void RGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8* a)
 
 static inline void RGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
 {
-  u32 srcColor = *(u32*)src;
+  const u32 srcColor = *(u32*)src;
   *b = Convert6To8((srcColor >> 6) & 0x3f);
   *g = Convert6To8((srcColor >> 12) & 0x3f);
   *r = Convert6To8((srcColor >> 18) & 0x3f);
@@ -40,7 +40,7 @@ static inline void RGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
 static inline u8 RGB8_to_I(const u8 r, const u8 g, const u8 b)
 {
   // values multiplied by 256 to keep math integer
-  u16 val = 4096 + 66 * r + 129 * g + 25 * b;
+  const u16 val = 4096 + 66 * r + 129 * g + 25 * b;
   return val >> 8;
 }
 
@@ -55,7 +55,7 @@ static inline void BoxfilterRGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       a16 += srcColor & 0x3f;
       b16 += (srcColor >> 6) & 0x3f;
@@ -81,7 +81,7 @@ static inline void BoxfilterRGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       b16 += (srcColor >> 6) & 0x3f;
       g16 += (srcColor >> 12) & 0x3f;
@@ -105,7 +105,7 @@ static inline void BoxfilterRGBA_to_x8(const u8* src, u8* x8, const int shift)
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       x16 += (srcColor >> shift) & 0x3f;
 
@@ -126,7 +126,7 @@ static inline void BoxfilterRGBA_to_xx8(const u8* src, u8* x1, u8* x2, const int
   {
     for (int x = 0; x < 2; x++)
     {
-      u32 srcColor = *(u32*)src;
+      const u32 srcColor = *(u32*)src;
 
       x16_1 += (srcColor >> shift1) & 0x3f;
       x16_2 += (srcColor >> shift2) & 0x3f;
@@ -205,8 +205,8 @@ static void SetBlockDimensions(const int blkWidthLog2, const int blkHeightLog2, 
                                u16* sBlkSize, u16* tBlkSize)
 {
   // if half_scale is 1 then the size is cut in half
-  u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
-  u32 height = bpmem.copyTexSrcWH.y >> bpmem.triggerEFBCopy.half_scale;
+  const u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
+  const u32 height = bpmem.copyTexSrcWH.y >> bpmem.triggerEFBCopy.half_scale;
 
   *sBlkCount = (width >> blkWidthLog2) + 1;
   *tBlkCount = (height >> blkHeightLog2) + 1;
@@ -219,10 +219,10 @@ static void SetSpans(const int sBlkSize, const int tBlkSize, s32* tSpan, s32* sB
                      s32* writeStride)
 {
   // width is 1 less than the number of pixels of width
-  u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
-  u32 alignedWidth = Common::AlignUp(width + 1, sBlkSize);
+  const u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
+  const u32 alignedWidth = Common::AlignUp(width + 1, sBlkSize);
 
-  u32 readStride = 3 << bpmem.triggerEFBCopy.half_scale;
+  const u32 readStride = 3 << bpmem.triggerEFBCopy.half_scale;
 
   *tSpan = (640 - sBlkSize) *
            readStride;  // bytes to advance src pointer after each row of texels in a block

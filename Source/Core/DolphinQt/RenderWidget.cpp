@@ -116,9 +116,9 @@ void RenderWidget::dropEvent(QDropEvent* event)
     return;
 
   const auto& url = urls[0];
-  QFileInfo file_info(url.toLocalFile());
+  const QFileInfo file_info(url.toLocalFile());
 
-  auto path = file_info.filePath();
+  const auto path = file_info.filePath();
 
   if (!file_info.exists() || !file_info.isReadable())
   {
@@ -212,7 +212,7 @@ void RenderWidget::showFullScreen()
 {
   QWidget::showFullScreen();
 
-  QScreen* screen = window()->windowHandle()->screen();
+  const QScreen* screen = window()->windowHandle()->screen();
 
   const auto dpr = screen->devicePixelRatio();
 
@@ -232,7 +232,7 @@ void RenderWidget::SetCursorLocked(const bool locked, const bool follow_aspect_r
   {
     render_rect.moveTopLeft(parentWidget()->mapToGlobal(render_rect.topLeft()));
   }
-  auto scale = devicePixelRatioF();  // Seems to always be rounded on Win. Should we round results?
+  const auto scale = devicePixelRatioF();  // Seems to always be rounded on Win. Should we round results?
   QPoint screen_offset = QPoint(0, 0);
   if (window()->windowHandle() && window()->windowHandle()->screen())
   {
@@ -245,7 +245,7 @@ void RenderWidget::SetCursorLocked(const bool locked, const bool follow_aspect_r
   {
     // TODO: SetCursorLocked() should be re-called every time this value is changed?
     // This might cause imprecisions of one pixel (but it won't cause the cursor to go over borders)
-    Common::Vec2 aspect_ratio = g_controller_interface.GetWindowInputScale();
+    const Common::Vec2 aspect_ratio = g_controller_interface.GetWindowInputScale();
     if (aspect_ratio.x > 1.f)
     {
       const float new_half_width = static_cast<float>(render_rect.width()) / (aspect_ratio.x * 2.f);
@@ -368,7 +368,7 @@ bool RenderWidget::event(QEvent* event)
   {
   case QEvent::KeyPress:
   {
-    QKeyEvent* ke = static_cast<QKeyEvent*>(event);
+    const QKeyEvent* ke = static_cast<QKeyEvent*>(event);
     if (ke->key() == Qt::Key_Escape)
       emit EscapePressed();
 
@@ -475,9 +475,9 @@ bool RenderWidget::event(QEvent* event)
     SetCursorLocked(m_cursor_locked);
 
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
-    QSize new_size = se->size();
+    const QSize new_size = se->size();
 
-    QScreen* screen = window()->windowHandle()->screen();
+    const QScreen* screen = window()->windowHandle()->screen();
 
     const float dpr = screen->devicePixelRatio();
     const int width = new_size.width() * dpr;
@@ -551,8 +551,8 @@ void RenderWidget::PassEventToPresenter(const QEvent* event) const
     // coordinates (as if the screen was standard dpi). We need to update the mouse position in
     // native coordinates, as the UI (and game) is rendered at native resolution.
     const float scale = devicePixelRatio();
-    float x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
-    float y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
+    const float x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
+    const float y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
 
     g_presenter->SetMousePos(x, y);
   }

@@ -90,7 +90,7 @@ void CheatSearchWidget::CreateWidgets()
   QLabel* session_info_label = new QLabel();
   {
     QString ranges;
-    size_t range_count = m_session->GetMemoryRangeCount();
+    const size_t range_count = m_session->GetMemoryRangeCount();
     switch (range_count)
     {
     case 1:
@@ -173,7 +173,7 @@ void CheatSearchWidget::CreateWidgets()
       type = tr("Unknown data type");
       break;
     }
-    QString aligned = m_session->GetAligned() ? tr("aligned") : tr("unaligned");
+    const QString aligned = m_session->GetAligned() ? tr("aligned") : tr("unaligned");
     session_info_label->setText(tr("%1, %2, %3, %4").arg(ranges).arg(space).arg(type).arg(aligned));
     session_info_label->setWordWrap(true);
   }
@@ -213,7 +213,7 @@ void CheatSearchWidget::CreateWidgets()
   m_given_value_text = new QLineEdit();
   value_layout->addWidget(m_given_value_text);
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
   m_parse_values_as_hex_checkbox = new QCheckBox(tr("Parse as Hex"));
   if (m_session->IsIntegerType())
   {
@@ -389,7 +389,7 @@ bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const
 {
   const bool update_status_text = source == UpdateSource::User;
 
-  auto tmp = m_session->ClonePartial(begin_index, end_index);
+  const auto tmp = m_session->ClonePartial(begin_index, end_index);
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
 
   const Cheats::SearchErrorCode error_code = tmp->RunSearch(guard);
@@ -491,7 +491,7 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   if (m_address_table->selectedItems().isEmpty())
     return;
 
-  auto* item = m_address_table->selectedItems()[0];
+  const auto* item = m_address_table->selectedItems()[0];
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
 
   QMenu* menu = new QMenu(this);
@@ -534,7 +534,7 @@ void CheatSearchWidget::GenerateARCodes()
   bool had_error = false;
   std::optional<Cheats::GenerateActionReplayCodeErrorCode> error_code;
 
-  for (auto* const item : m_address_table->selectedItems())
+  for (const auto* const item : m_address_table->selectedItems())
   {
     const u32 index = item->data(ADDRESS_TABLE_RESULT_INDEX_ROLE).toUInt();
     auto result = GenerateActionReplayCode(*m_session, index);

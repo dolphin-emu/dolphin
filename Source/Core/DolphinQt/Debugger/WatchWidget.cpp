@@ -37,7 +37,7 @@ WatchWidget::WatchWidget(QWidget* parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("watchwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -168,10 +168,10 @@ void WatchWidget::Update()
   m_table->setDisabled(false);
   m_table->clearContents();
 
-  Core::CPUThreadGuard guard(m_system);
-  auto& debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
+  const Core::CPUThreadGuard guard(m_system);
+  const auto& debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
 
-  int size = static_cast<int>(debug_interface.GetWatches().size());
+  const int size = static_cast<int>(debug_interface.GetWatches().size());
 
   m_table->setRowCount(size + 1);
 
@@ -299,7 +299,7 @@ void WatchWidget::OnLoad()
     return;
   }
 
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   if (ini.GetLines("Watches", &watches, false))
   {
@@ -346,7 +346,7 @@ void WatchWidget::ShowContextMenu()
     }
     else if (count == 1)
     {
-      auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
+      const auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
 
       if (!row_variant.isNull())
       {
@@ -377,8 +377,8 @@ void WatchWidget::OnItemChanged(const QTableWidgetItem* item)
   if (m_updating || item->data(Qt::UserRole).isNull())
     return;
 
-  int row = item->data(Qt::UserRole).toInt();
-  int column = item->data(Qt::UserRole + 1).toInt();
+  const int row = item->data(Qt::UserRole).toInt();
+  const int column = item->data(Qt::UserRole + 1).toInt();
 
   if (row == -1)
   {
@@ -407,11 +407,11 @@ void WatchWidget::OnItemChanged(const QTableWidgetItem* item)
       bool good;
       const bool column_uses_hex_formatting =
           column == COLUMN_INDEX_ADDRESS || column == COLUMN_INDEX_HEX;
-      quint32 value = item->text().toUInt(&good, column_uses_hex_formatting ? 16 : 10);
+      const quint32 value = item->text().toUInt(&good, column_uses_hex_formatting ? 16 : 10);
 
       if (good)
       {
-        Core::CPUThreadGuard guard(m_system);
+        const Core::CPUThreadGuard guard(m_system);
 
         auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
         if (column == COLUMN_INDEX_ADDRESS)
@@ -438,7 +438,7 @@ void WatchWidget::OnItemChanged(const QTableWidgetItem* item)
       auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
       debug_interface.UpdateWatchLockedState(row, item->checkState() == Qt::Checked);
       const auto& watch = debug_interface.GetWatch(row);
-      Core::CPUThreadGuard guard(m_system);
+      const Core::CPUThreadGuard guard(m_system);
       if (watch.locked)
         LockWatchAddress(guard, watch.address);
       else
@@ -467,7 +467,7 @@ void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, const u32 
 void WatchWidget::DeleteSelectedWatches()
 {
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     std::vector<int> row_indices;
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
@@ -500,7 +500,7 @@ void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, const int row) 
 void WatchWidget::DeleteWatchAndUpdate(const int row)
 {
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     DeleteWatch(guard, row);
   }
 
@@ -526,7 +526,7 @@ void WatchWidget::AddWatch(const QString& name, const u32 addr)
 void WatchWidget::LockSelectedWatches()
 {
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
@@ -550,7 +550,7 @@ void WatchWidget::UnlockSelectedWatches()
 {
   {
     auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
       const auto* item = m_table->item(index.row(), index.column());

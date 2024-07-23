@@ -45,7 +45,7 @@ FIFOAnalyzer::FIFOAnalyzer(FifoPlayer& fifo_player) : m_fifo_player(fifo_player)
 
   UpdateTree();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   m_object_splitter->restoreState(
       settings.value(QStringLiteral("fifoanalyzer/objectsplitter")).toByteArray());
@@ -145,7 +145,7 @@ void FIFOAnalyzer::UpdateTree() const
 
   m_tree_widget->addTopLevelItem(recording_item);
 
-  auto* file = m_fifo_player.GetFile();
+  const auto* file = m_fifo_player.GetFile();
 
   const u32 frame_count = file->GetFrameCount();
 
@@ -474,7 +474,7 @@ void FIFOAnalyzer::FindNext()
   const int index = m_detail_list->currentRow();
   ASSERT(index >= 0);
 
-  auto next_result =
+  const auto next_result =
       std::find_if(m_search_results.begin(), m_search_results.end(),
                    [index](auto& result) { return result.m_cmd > static_cast<u32>(index); });
   if (next_result != m_search_results.end())
@@ -488,7 +488,7 @@ void FIFOAnalyzer::FindPrevious()
   const int index = m_detail_list->currentRow();
   ASSERT(index >= 0);
 
-  auto prev_result =
+  const auto prev_result =
       std::find_if(m_search_results.rbegin(), m_search_results.rend(),
                    [index](auto& result) { return result.m_cmd < static_cast<u32>(index); });
   if (prev_result != m_search_results.rend())

@@ -165,7 +165,7 @@ std::string FileInfoGCWii::GetPath() const
 
   if (IsDirectory())
   {
-    u32 parent_directory_index = Get(EntryProperty::FILE_OFFSET);
+    const u32 parent_directory_index = Get(EntryProperty::FILE_OFFSET);
     return FileInfoGCWii(*this, parent_directory_index).GetPath() + GetName() + "/";
   }
   else
@@ -345,7 +345,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const u64 disc_offset) c
   // Build a cache (unless there already is one)
   if (m_offset_file_info_cache.empty())
   {
-    u32 fst_entries = m_root.GetSize();
+    const u32 fst_entries = m_root.GetSize();
     for (u32 i = 0; i < fst_entries; i++)
     {
       FileInfoGCWii file_info(m_root, i);

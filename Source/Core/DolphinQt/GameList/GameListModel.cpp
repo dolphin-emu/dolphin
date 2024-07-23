@@ -45,7 +45,7 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     emit layoutChanged();
   });
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   m_tag_list = settings.value(QStringLiteral("gamelist/tags")).toStringList();
   m_game_tags = settings.value(QStringLiteral("gamelist/game_tags")).toMap();
@@ -345,7 +345,7 @@ void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& gam
 
 void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
-  int index = FindGameIndex(game->GetFilePath());
+  const int index = FindGameIndex(game->GetFilePath());
   if (index < 0)
   {
     AddGame(game);
@@ -359,7 +359,7 @@ void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& 
 
 void GameListModel::RemoveGame(const std::string& path)
 {
-  int entry = FindGameIndex(path);
+  const int entry = FindGameIndex(path);
   if (entry < 0)
     return;
 

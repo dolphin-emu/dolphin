@@ -30,7 +30,7 @@ TextureInfo TextureInfo::FromStage(const u32 stage)
   const u32 address = (tex.texImage3.image_base /* & 0x1FFFFF*/) << 5;
 
   const u32 tlutaddr = tex.texTlut.tmem_offset << 9;
-  std::span<const u8> tlut_data = TexDecoder_GetTmemSpan(tlutaddr);
+  const std::span<const u8> tlut_data = TexDecoder_GetTmemSpan(tlutaddr);
 
   std::optional<u32> mip_count;
   const bool has_mipmaps = tex.texMode0.mipmap_filter != MipMode::None;
@@ -51,8 +51,8 @@ TextureInfo TextureInfo::FromStage(const u32 stage)
                        TexDecoder_GetTmemSpan(tmem_address_even), mip_count);
   }
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   return TextureInfo(stage, memory.GetSpanForAddress(address), tlut_data, address, texture_format,
                      tlut_format, width, height, false, {}, {}, mip_count);
 }

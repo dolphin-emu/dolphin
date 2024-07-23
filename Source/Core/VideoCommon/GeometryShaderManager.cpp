@@ -54,8 +54,8 @@ void GeometryShaderManager::SetConstants(const PrimitiveType prim)
 
     if (xfmem.projection.type == ProjectionType::Perspective)
     {
-      float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
-                     (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+      const float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
+                           (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
       constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
       constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
     }
@@ -112,8 +112,8 @@ void GeometryShaderManager::SetLinePtWidthChanged()
 
 void GeometryShaderManager::SetTexCoordChanged(const u8 texmapid)
 {
-  TCoordInfo& tc = bpmem.texcoords[texmapid];
-  int bitmask = 1 << texmapid;
+  const TCoordInfo& tc = bpmem.texcoords[texmapid];
+  const int bitmask = 1 << texmapid;
   constants.texoffset[0] &= ~bitmask;
   constants.texoffset[0] |= tc.s.line_offset << texmapid;
   constants.texoffset[1] &= ~bitmask;

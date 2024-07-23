@@ -79,7 +79,7 @@ private:
     QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, 0);
 
     // Draw pixmap at the center of the tablewidget cell
-    QPixmap pix = qvariant_cast<QPixmap>(index.data(Qt::DecorationRole));
+    const QPixmap pix = qvariant_cast<QPixmap>(index.data(Qt::DecorationRole));
     if (!pix.isNull())
     {
       const QRect r = option.rect;
@@ -103,7 +103,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("breakpointwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation

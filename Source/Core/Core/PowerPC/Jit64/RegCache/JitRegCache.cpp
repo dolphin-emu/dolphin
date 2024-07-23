@@ -309,7 +309,7 @@ bool RegCache::SanityCheck() const
       if (m_regs[i].IsLocked() || m_regs[i].IsRevertable())
         return false;
 
-      X64Reg xr = m_regs[i].Location()->GetSimpleReg();
+      const X64Reg xr = m_regs[i].Location()->GetSimpleReg();
       if (m_xregs[xr].IsLocked())
         return false;
       if (m_xregs[xr].Contents() != i)
@@ -383,7 +383,7 @@ void RegCache::Discard(const BitSet32 pregs)
 
     if (m_regs[i].IsBound())
     {
-      X64Reg xr = RX(i);
+      const X64Reg xr = RX(i);
       m_xregs[xr].Unbind();
     }
 
@@ -428,7 +428,7 @@ void RegCache::Flush(const BitSet32 pregs)
 
 void RegCache::Reset(const BitSet32 pregs)
 {
-  for (preg_t i : pregs)
+  for (const preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsAway(),
                "Attempted to reset a loaded register (did you mean to flush it?)");
@@ -465,7 +465,7 @@ bool RegCache::IsAllUnlocked() const
 
 void RegCache::PreloadRegisters(const BitSet32 to_preload)
 {
-  for (preg_t preg : to_preload)
+  for (const preg_t preg : to_preload)
   {
     if (NumFreeRegisters() < 2)
       return;
@@ -500,7 +500,7 @@ void RegCache::DiscardRegContentsIfCached(const preg_t preg)
 {
   if (m_regs[preg].IsBound())
   {
-    X64Reg xr = m_regs[preg].Location()->GetSimpleReg();
+    const X64Reg xr = m_regs[preg].Location()->GetSimpleReg();
     m_xregs[xr].Unbind();
     m_regs[preg].SetFlushed();
   }
@@ -560,7 +560,7 @@ void RegCache::StoreFromRegister(const preg_t i, const FlushMode mode)
     return;
   case PPCCachedReg::LocationType::Bound:
   {
-    X64Reg xr = RX(i);
+    const X64Reg xr = RX(i);
     doStore = m_xregs[xr].IsDirty();
     if (mode == FlushMode::Full)
       m_xregs[xr].Unbind();
@@ -632,7 +632,7 @@ int RegCache::NumFreeRegisters() const
 // means more bad.
 float RegCache::ScoreRegister(const X64Reg xreg) const
 {
-  preg_t preg = m_xregs[xreg].Contents();
+  const preg_t preg = m_xregs[xreg].Contents();
   float score = 0;
 
   // If it's not dirty, we don't need a store to write it back to the register file, so
@@ -649,9 +649,9 @@ float RegCache::ScoreRegister(const X64Reg xreg) const
     // Don't look too far ahead; we don't want to have quadratic compilation times for
     // enormous block sizes!
     // This actually improves register allocation a tiny bit; I'm not sure why.
-    u32 lookahead = std::min(m_jit.js.instructionsLeft, 64);
+    const u32 lookahead = std::min(m_jit.js.instructionsLeft, 64);
     // Count how many other registers are going to be used before we need this one again.
-    u32 regs_in_count = CountRegsIn(preg, lookahead).Count();
+    const u32 regs_in_count = CountRegsIn(preg, lookahead).Count();
     // Totally ad-hoc heuristic to bias based on how many other registers we'll need
     // before this one gets used again.
     score += 1 + 2 * (5 - log2f(1 + static_cast<float>(regs_in_count)));

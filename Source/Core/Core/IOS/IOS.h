@@ -113,9 +113,9 @@ enum class HangPPC : bool
   Yes = true,
 };
 
-void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type);
+void RAMOverrideForIOSMemoryValues(const Memory::MemoryManager& memory, MemorySetupType setup_type);
 
-void WriteReturnValue(Memory::MemoryManager& memory, s32 value, u32 address);
+void WriteReturnValue(const Memory::MemoryManager& memory, s32 value, u32 address);
 
 // HLE for the IOS kernel: IPC, device management, syscalls, and Dolphin-specific, IOS-wide calls.
 class Kernel
@@ -217,6 +217,6 @@ private:
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.
 void Init(Core::System& system);
-void Shutdown(Core::System& system);
+void Shutdown(const Core::System& system);
 
 }  // namespace IOS::HLE

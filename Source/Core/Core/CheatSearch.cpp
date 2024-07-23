@@ -71,7 +71,7 @@ static std::vector<u8> ToByteVector(const T& val)
 
 std::vector<u8> Cheats::GetValueAsByteVector(const SearchValue& value)
 {
-  DataType type = GetDataType(value);
+  const DataType type = GetDataType(value);
   switch (type)
   {
   case DataType::U8:
@@ -144,7 +144,7 @@ std::optional<PowerPC::ReadResult<s8>>
 TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
                                const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult(tmp->translated, std::bit_cast<s8>(tmp->value));
@@ -155,7 +155,7 @@ std::optional<PowerPC::ReadResult<s16>>
 TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
                                const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult(tmp->translated, std::bit_cast<s16>(tmp->value));
@@ -166,7 +166,7 @@ std::optional<PowerPC::ReadResult<s32>>
 TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
                                const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult(tmp->translated, std::bit_cast<s32>(tmp->value));
@@ -177,7 +177,7 @@ std::optional<PowerPC::ReadResult<s64>>
 TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, const u32 addr,
                                const PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
+  const auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult(tmp->translated, std::bit_cast<s64>(tmp->value));
@@ -209,7 +209,7 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return SearchErrorCode::DisabledInHardcoreMode;
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   std::vector<SearchResult<T>> results;
   const Core::State core_state = GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
@@ -262,7 +262,7 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return SearchErrorCode::DisabledInHardcoreMode;
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   std::vector<SearchResult<T>> results;
   const Core::State core_state = GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)

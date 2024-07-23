@@ -147,14 +147,14 @@ bool CPUCull::AreAllVerticesCulled(const VertexLoaderBase* loader, const OpcodeD
   const bool perVertexPosMtx = loader->m_native_vtx_decl.posmtx.enable;
   if (m_transform_buffer_size < count) [[unlikely]]
   {
-    u32 new_size = MathUtil::NextPowerOf2(count);
+    const u32 new_size = MathUtil::NextPowerOf2(count);
     m_transform_buffer_size = new_size;
     m_transform_buffer.reset(static_cast<TransformedVertex*>(
         Common::AllocateAlignedMemory(new_size * sizeof(TransformedVertex), 32)));
   }
 
   // transform functions need the projection matrix to tranform to clip space
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetVertexShaderManager().SetProjectionMatrix(system.GetXFStateManager());
 
   static constexpr Common::EnumMap<CullMode, CullMode::All> cullmode_invert = {

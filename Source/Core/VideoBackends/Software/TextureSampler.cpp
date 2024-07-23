@@ -76,7 +76,7 @@ void Sample(const s32 s, const s32 t, const s32 lod, const bool linear, const u8
   bool mipLinear = false;
 
 #if (ALLOW_MIPMAP)
-  auto texUnit = bpmem.tex.GetUnit(texmap);
+  const auto texUnit = bpmem.tex.GetUnit(texmap);
   const TexMode0& tm0 = texUnit.texMode0;
 
   const s32 lodFract = lod & 0xf;

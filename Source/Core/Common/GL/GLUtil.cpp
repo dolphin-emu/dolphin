@@ -14,9 +14,9 @@ namespace GLUtil
 GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader)
 {
   // generate objects
-  GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-  GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-  GLuint programID = glCreateProgram();
+  const GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+  const GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+  const GLuint programID = glCreateProgram();
 
   // compile vertex shader
   const char* shader = vertexShader.c_str();

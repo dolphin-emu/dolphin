@@ -84,9 +84,9 @@ TEST(PageFault, PageFault)
   system.GetJitInterface().SetJit(std::move(unique_pfjit));
   pfjit.m_data = data;
 
-  auto start = std::chrono::high_resolution_clock::now();
+  const auto start = std::chrono::high_resolution_clock::now();
   perform_invalid_access(data);
-  auto end = std::chrono::high_resolution_clock::now();
+  const auto end = std::chrono::high_resolution_clock::now();
 
   auto difference_in_nanoseconds = [](auto start, auto end) {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();

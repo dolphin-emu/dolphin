@@ -207,7 +207,7 @@ private:
               // Somewhat hacky support for IPL.SADR. The setting only stores the
               // first 4 bytes even thought the SYSCONF entry is much bigger.
               u32 value = info->GetDefaultValue();
-              SysConf::Entry* entry = sysconf.GetEntry(key);
+              const SysConf::Entry* entry = sysconf.GetEntry(key);
               if (entry)
               {
                 std::memcpy(&value, entry->bytes.data(),

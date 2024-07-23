@@ -52,8 +52,8 @@ bool Disassemble(const std::vector<u16>& code, const bool line_numbers, std::str
   settings.decode_names = true;
   settings.decode_registers = true;
 
-  DSPDisassembler disasm(settings);
-  bool success = disasm.Disassemble(code, text);
+  const DSPDisassembler disasm(settings);
+  const bool success = disasm.Disassemble(code, text);
   return success;
 }
 
@@ -66,8 +66,8 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   u32 count_equal = 0;
   const u16 min_size = static_cast<u16>(std::min(code1.size(), code2.size()));
 
-  AssemblerSettings settings;
-  DSPDisassembler disassembler(settings);
+  const AssemblerSettings settings;
+  const DSPDisassembler disassembler(settings);
   for (u16 i = 0; i < min_size; i++)
   {
     if (code1[i] == code2[i])

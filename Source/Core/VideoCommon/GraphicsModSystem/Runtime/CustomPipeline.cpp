@@ -60,7 +60,7 @@ std::vector<std::string> GlobalConflicts(const std::string_view source)
         if (!Common::IsAlpha(source[i]) && source[i] != '_' && !std::isdigit(source[i]))
           break;
       }
-      u32 end = i;
+      const u32 end = i;
       i--;  // unwind
       return source.substr(start, end - start);
     };

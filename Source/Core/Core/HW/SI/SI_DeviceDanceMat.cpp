@@ -24,7 +24,7 @@ int CSIDevice_DanceMat::RunBuffer(u8* buffer, const int request_length)
   {
     ISIDevice::RunBuffer(buffer, request_length);
 
-    u32 id = Common::swap32(SI_DANCEMAT);
+    const u32 id = Common::swap32(SI_DANCEMAT);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }

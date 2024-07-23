@@ -51,10 +51,10 @@ void Jit64::GenerateConstantOverflow(const bool overflow)
 // We could do overflow branchlessly, but unlike carry it seems to be quite a bit rarer.
 void Jit64::GenerateOverflow(const CCFlags cond)
 {
-  FixupBranch jno = J_CC(cond);
+  const FixupBranch jno = J_CC(cond);
   // XER[OV/SO] = 1
   MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
-  FixupBranch exit = J();
+  const FixupBranch exit = J();
   SetJumpTarget(jno);
   // XER[OV] = 0
   // We need to do this without modifying flags so as not to break stuff that assumes flags
@@ -166,7 +166,7 @@ void Jit64::ComputeRC(const preg_t preg, const bool needs_test, const bool needs
   {
     if (arg.IsImm())
     {
-      s32 offset = arg.SImm32();
+      const s32 offset = arg.SImm32();
       arg.Unlock();
       DoMergedBranchImmediate(offset);
     }
@@ -253,7 +253,7 @@ static u32 Xor(const u32 a, const u32 b)
 void Jit64::regimmop(const int d, const int a, const bool binary, const u32 value, const Operation doop,
                      void (XEmitter::*op)(int, const OpArg&, const OpArg&), const bool Rc, bool carry)
 {
-  bool needs_test = doop == Add;
+  const bool needs_test = doop == Add;
   // Be careful; addic treats r0 as r0, but addi treats r0 as zero.
   if (a || binary || carry)
   {
@@ -454,8 +454,8 @@ void Jit64::DoMergedBranchCondition()
   js.downcountAmount++;
   js.skipInstructions = 1;
   const UGeckoInstruction& next = js.op[1].inst;
-  int test_bit = 3 - (next.BI & 3);
-  bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
+  const int test_bit = 3 - (next.BI & 3);
+  const bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
   ASSERT(gpr.IsAllUnlocked());
@@ -516,8 +516,8 @@ void Jit64::DoMergedBranchImmediate(const s64 val)
   js.downcountAmount++;
   js.skipInstructions = 1;
   const UGeckoInstruction& next = js.op[1].inst;
-  int test_bit = 3 - (next.BI & 3);
-  bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
+  const int test_bit = 3 - (next.BI & 3);
+  const bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
   ASSERT(gpr.IsAllUnlocked());
@@ -1280,7 +1280,7 @@ void Jit64::MultiplyImmediate(const u32 imm, const int a, const int d, const boo
     // power of 2; just a shift
     if (MathUtil::IsPow2(imm))
     {
-      u32 shift = MathUtil::IntLog2(imm);
+      const u32 shift = MathUtil::IntLog2(imm);
       // use LEA if it saves an op
       if (d != a && shift <= 3 && shift >= 1 && Ra.IsSimpleReg())
       {

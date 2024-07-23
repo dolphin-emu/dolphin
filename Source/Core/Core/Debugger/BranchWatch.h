@@ -129,7 +129,7 @@ public:
   void IsolateNotExecuted(const CPUThreadGuard& guard);
   void IsolateWasOverwritten(const CPUThreadGuard& guard);
   void IsolateNotOverwritten(const CPUThreadGuard& guard);
-  void UpdateHitsSnapshot();
+  void UpdateHitsSnapshot() const;
   void ClearSelectionInspection();
   void SetSelectedInspected(std::size_t idx, SelectionInspection inspection);
 

@@ -158,16 +158,16 @@ protected:
   template <int Millis, size_t BufCount>
   void InitMixingBuffers(u32 init_addr, const std::array<BufferDesc, BufCount>& buffers)
   {
-    auto& system = m_dsphle->GetSystem();
+    const auto& system = m_dsphle->GetSystem();
     auto& memory = system.GetMemory();
     std::array<u16, 3 * BufCount> init_array;
     memory.CopyFromEmuSwapped(init_array.data(), init_addr, sizeof(init_array));
     for (size_t i = 0; i < BufCount; ++i)
     {
       const BufferDesc& buf = buffers[i];
-      s32 value = static_cast<s32>((static_cast<u32>(init_array[3 * i]) << 16) | init_array[
-                                     3 * i + 1]);
-      s16 delta = init_array[3 * i + 2];
+      const s32 value = static_cast<s32>((static_cast<u32>(init_array[3 * i]) << 16) | init_array[
+                                           3 * i + 1]);
+      const s16 delta = init_array[3 * i + 2];
       if (value == 0)
       {
         memset(buf.ptr, 0, Millis * buf.samples_per_milli * sizeof(int));

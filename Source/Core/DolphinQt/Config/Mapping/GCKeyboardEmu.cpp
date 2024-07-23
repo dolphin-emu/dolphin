@@ -42,7 +42,7 @@ void GCKeyboardEmu::CreateMainLayout()
   const auto layout = new QHBoxLayout;
 
   using KG = KeyboardGroup;
-  for (auto kbg : {KG::Kb0x, KG::Kb1x, KG::Kb2x, KG::Kb3x, KG::Kb4x, KG::Kb5x})
+  for (const auto kbg : {KG::Kb0x, KG::Kb1x, KG::Kb2x, KG::Kb3x, KG::Kb4x, KG::Kb5x})
     layout->addWidget(CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), kbg)));
 
   vbox_layout->addLayout(layout);

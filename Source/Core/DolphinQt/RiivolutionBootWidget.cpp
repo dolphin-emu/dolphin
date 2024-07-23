@@ -188,7 +188,7 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
   xml_root_layout->addWidget(xml_root_open, 0);
   disc_layout->addLayout(xml_root_layout);
   connect(xml_root_open, &QPushButton::clicked, this, [this, xml_root_line_edit, disc_index]() {
-    QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+    const QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
         this, tr("Select the Virtual SD Card Root"), xml_root_line_edit->text()));
     if (!dir.isEmpty())
     {
@@ -260,7 +260,7 @@ void RiivolutionBootWidget::SaveConfigXMLs() const
   std::unordered_map<std::string, DiscIO::Riivolution::Config> map;
   for (const auto& disc : m_discs)
   {
-    auto config = map.try_emplace(disc.root);
+    const auto config = map.try_emplace(disc.root);
     auto& config_options = config.first->second.m_options;
     for (const auto& section : disc.disc.m_sections)
     {
@@ -338,16 +338,16 @@ void RiivolutionBootWidget::SaveAsPreset()
   if (!riivolution_descriptor.patches.empty())
     descriptor.riivolution = std::move(riivolution_descriptor);
 
-  QDir dir = QFileInfo(QString::fromStdString(m_base_game_path)).dir();
-  QString target_path = QFileDialog::getSaveFileName(this, tr("Save Preset"), dir.absolutePath(),
-                                                     QStringLiteral("%1 (*.json);;%2 (*)")
-                                                         .arg(tr("Dolphin Game Mod Preset"))
-                                                         .arg(tr("All Files")));
+  const QDir dir = QFileInfo(QString::fromStdString(m_base_game_path)).dir();
+  const QString target_path = QFileDialog::getSaveFileName(this, tr("Save Preset"), dir.absolutePath(),
+                                                           QStringLiteral("%1 (*.json);;%2 (*)")
+                                                           .arg(tr("Dolphin Game Mod Preset"))
+                                                           .arg(tr("All Files")));
   if (target_path.isEmpty())
     return;
 
   descriptor.display_name = QFileInfo(target_path).fileName().toStdString();
-  auto dot = descriptor.display_name.rfind('.');
+  const auto dot = descriptor.display_name.rfind('.');
   if (dot != std::string::npos)
     descriptor.display_name = descriptor.display_name.substr(0, dot);
   WriteGameModDescriptorFile(target_path.toStdString(), descriptor, true);

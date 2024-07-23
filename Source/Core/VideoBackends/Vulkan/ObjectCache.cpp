@@ -222,8 +222,8 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 
   for (size_t i = 0; i < create_infos.size(); i++)
   {
-    VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
-                                               nullptr, &m_descriptor_set_layouts[i]);
+    const VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
+                                                     nullptr, &m_descriptor_set_layouts[i]);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
@@ -236,7 +236,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 
 void ObjectCache::DestroyDescriptorSetLayouts() const
 {
-  for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
+  for (const VkDescriptorSetLayout layout : m_descriptor_set_layouts)
   {
     if (layout != VK_NULL_HANDLE)
       vkDestroyDescriptorSetLayout(g_vulkan_context->GetDevice(), layout, nullptr);
@@ -311,7 +311,7 @@ bool ObjectCache::CreatePipelineLayouts()
 
 void ObjectCache::DestroyPipelineLayouts() const
 {
-  for (VkPipelineLayout layout : m_pipeline_layouts)
+  for (const VkPipelineLayout layout : m_pipeline_layouts)
   {
     if (layout != VK_NULL_HANDLE)
       vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), layout, nullptr);
@@ -365,7 +365,7 @@ bool ObjectCache::CreateStaticSamplers()
 
 VkSampler ObjectCache::GetSampler(const SamplerState& info)
 {
-  auto iter = m_sampler_cache.find(info);
+  const auto iter = m_sampler_cache.find(info);
   if (iter != m_sampler_cache.end())
     return iter->second;
 
@@ -407,7 +407,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   }
 
   VkSampler sampler = VK_NULL_HANDLE;
-  VkResult res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &sampler);
+  const VkResult res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &sampler);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
 
@@ -422,7 +422,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
 {
   auto key =
       std::tie(color_format, depth_format, multisamples, load_op, additional_attachment_count);
-  auto it = m_render_pass_cache.find(key);
+  const auto it = m_render_pass_cache.find(key);
   if (it != m_render_pass_cache.end())
     return it->second;
 
@@ -478,18 +478,18 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
       depth_reference_ptr,
       0,
       nullptr};
-  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                      nullptr,
-                                      0,
-                                      static_cast<uint32_t>(attachments.size()),
-                                      attachments.data(),
-                                      1,
-                                      &subpass,
-                                      0,
-                                      nullptr};
+  const VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                            nullptr,
+                                            0,
+                                            static_cast<uint32_t>(attachments.size()),
+                                            attachments.data(),
+                                            1,
+                                            &subpass,
+                                            0,
+                                            nullptr};
 
   VkRenderPass pass;
-  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
+  const VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
@@ -502,7 +502,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
 
 void ObjectCache::DestroyRenderPassCache()
 {
-  for (auto& it : m_render_pass_cache)
+  for (const auto& it : m_render_pass_cache)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), it.second, nullptr);
   m_render_pass_cache.clear();
 }
@@ -535,7 +535,7 @@ bool ObjectCache::CreatePipelineCache()
   // when a lookup occurs that matches a pipeline (or pipeline data) in the cache.
   m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
 
-  VkPipelineCacheCreateInfo info = {
+  const VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                       // const void*                pNext
       0,                                             // VkPipelineCacheCreateFlags flags
@@ -543,7 +543,7 @@ bool ObjectCache::CreatePipelineCache()
       nullptr                                        // const void*                pInitialData
   };
 
-  VkResult res =
+  const VkResult res =
       vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;
@@ -571,7 +571,7 @@ bool ObjectCache::LoadPipelineCache()
     return CreatePipelineCache();
   }
 
-  VkPipelineCacheCreateInfo info = {
+  const VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                       // const void*                pNext
       0,                                             // VkPipelineCacheCreateFlags flags
@@ -579,7 +579,7 @@ bool ObjectCache::LoadPipelineCache()
       disk_data.data()                               // const void*                pInitialData
   };
 
-  VkResult res =
+  const VkResult res =
       vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;

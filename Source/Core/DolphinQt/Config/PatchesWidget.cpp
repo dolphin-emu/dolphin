@@ -26,7 +26,7 @@ PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
   Common::IniFile game_ini_local;
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
-  Common::IniFile game_ini_default =
+  const Common::IniFile game_ini_default =
       SConfig::GetInstance().LoadDefaultGameIni(m_game_id, m_game_revision);
 
   LoadPatchSection("OnFrame", &m_patches, game_ini_default, game_ini_local);
@@ -110,7 +110,7 @@ void PatchesWidget::OnEdit()
   if (m_list->selectedItems().isEmpty())
     return;
 
-  auto* item = m_list->selectedItems()[0];
+  const auto* item = m_list->selectedItems()[0];
 
   auto patch = m_patches[m_list->row(item)];
 
@@ -181,11 +181,11 @@ void PatchesWidget::Update() const
 
 void PatchesWidget::UpdateActions() const
 {
-  bool selected = !m_list->selectedItems().isEmpty();
+  const bool selected = !m_list->selectedItems().isEmpty();
 
-  auto* item = selected ? m_list->selectedItems()[0] : nullptr;
+  const auto* item = selected ? m_list->selectedItems()[0] : nullptr;
 
-  bool user_defined = selected ? item->data(Qt::UserRole).toBool() : true;
+  const bool user_defined = selected ? item->data(Qt::UserRole).toBool() : true;
 
   m_edit_button->setEnabled(selected);
   m_edit_button->setText(user_defined ? tr("&Edit...") : tr("&Clone..."));

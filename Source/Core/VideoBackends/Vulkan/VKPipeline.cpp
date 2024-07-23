@@ -46,7 +46,7 @@ GetVulkanRasterizationState(const RasterizationState& state)
       {VK_CULL_MODE_NONE, VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT,
        VK_CULL_MODE_FRONT_AND_BACK}};
 
-  bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
+  const bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
 
   return {
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,  // VkStructureType sType
@@ -85,7 +85,7 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
 {
   // Less/greater are swapped due to inverted depth.
   VkCompareOp compare_op;
-  bool inverted_depth = !g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
+  const bool inverted_depth = !g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
   switch (state.func)
   {
   case CompareMode::Never:
@@ -139,7 +139,7 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 {
   VkPipelineColorBlendAttachmentState vk_state = {};
 
-  bool use_dual_source = state.usedualsrc;
+  const bool use_dual_source = state.usedualsrc;
 
   vk_state.blendEnable = static_cast<VkBool32>(state.blendenable);
   vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
@@ -223,10 +223,10 @@ GetVulkanColorBlendState(const BlendingState& state,
     vk_logic_op_enable = VK_FALSE;
   }
 
-  VkLogicOp vk_logic_op =
+  const VkLogicOp vk_logic_op =
       vk_logic_op_enable ? vk_logic_ops[static_cast<u32>(state.logicmode.Value())] : VK_LOGIC_OP_CLEAR;
 
-  VkPipelineColorBlendStateCreateInfo vk_state = {
+  const VkPipelineColorBlendStateCreateInfo vk_state = {
       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,                  // const void*                                   pNext
       0,                        // VkPipelineColorBlendStateCreateFlags          flags

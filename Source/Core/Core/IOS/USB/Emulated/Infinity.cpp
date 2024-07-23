@@ -241,10 +241,10 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={:04x} endpoint={:02x}", m_vid,
                 m_pid, m_active_interface, cmd->length, cmd->endpoint);
 
-  auto& system = m_ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = m_ios.GetSystem();
+  const auto& memory = system.GetMemory();
   auto& infinity_base = system.GetInfinityBase();
-  u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
+  const u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
   if (cmd->length != 32 || buf == nullptr)
   {
     ERROR_LOG_FMT(IOS_USB, "Infinity Base command invalid");
@@ -289,8 +289,8 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
     // <length of packet data> includes <command>, <sequence> and <optional attached data>, but
     // not FF or <checksum>
 
-    u8 command = buf[2];
-    u8 sequence = buf[3];
+    const u8 command = buf[2];
+    const u8 sequence = buf[3];
 
     switch (command)
     {
@@ -426,7 +426,7 @@ bool InfinityBase::HasFigureBeenAddedRemoved() const
 
 std::array<u8, 32> InfinityBase::PopAddedRemovedResponse()
 {
-  std::array<u8, 32> response = m_figure_added_removed_response.front();
+  const std::array<u8, 32> response = m_figure_added_removed_response.front();
   m_figure_added_removed_response.pop();
   return response;
 }
@@ -454,7 +454,7 @@ void InfinityBase::GetPresentFigures(const u8 sequence, std::array<u8, 32>& repl
   int x = 3;
   for (u8 i = 0; i < m_figures.size(); i++)
   {
-    u8 slot = i == 0 ? 0x10 : (i > 0 && i < 4) ? 0x20 : 0x30;
+    const u8 slot = i == 0 ? 0x10 : (i > 0 && i < 4) ? 0x20 : 0x30;
     if (m_figures[i].present)
     {
       reply_buf[x] = slot + m_figures[i].order_added;
@@ -472,7 +472,7 @@ void InfinityBase::GetFigureIdentifier(const u8 fig_num, const u8 sequence, std:
 {
   std::lock_guard lock(m_infinity_mutex);
 
-  InfinityFigure& figure = GetFigureByOrder(fig_num);
+  const InfinityFigure& figure = GetFigureByOrder(fig_num);
 
   reply_buf[0] = 0xaa;
   reply_buf[1] = 0x09;
@@ -490,7 +490,7 @@ void InfinityBase::QueryBlock(const u8 fig_num, const u8 block, std::array<u8, 3
 {
   std::lock_guard lock(m_infinity_mutex);
 
-  InfinityFigure& figure = GetFigureByOrder(fig_num);
+  const InfinityFigure& figure = GetFigureByOrder(fig_num);
 
   reply_buf[0] = 0xaa;
   reply_buf[1] = 0x12;
@@ -585,7 +585,7 @@ static u32 InfinityCRC32(const std::array<u8, 16>& buffer)
   u32 ret = 0;
   for (u32 i = 0; i < 12; ++i)
   {
-    u8 index = static_cast<u8>(ret & 0xFF) ^ buffer[i];
+    const u8 index = static_cast<u8>(ret & 0xFF) ^ buffer[i];
     ret = ((ret >> 8) ^ CRC32_TABLE[index]);
   }
 
@@ -605,14 +605,14 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
     sha1_calc.push_back(buf[i]);
   }
 
-  std::array<u8, 16> key = GenerateInfinityFigureKey(sha1_calc);
+  const std::array<u8, 16> key = GenerateInfinityFigureKey(sha1_calc);
 
-  std::unique_ptr<Common::AES::Context> ctx = Common::AES::CreateContextDecrypt(key.data());
+  const std::unique_ptr<Common::AES::Context> ctx = Common::AES::CreateContextDecrypt(key.data());
   std::array<u8, 16> infinity_decrypted_block = {};
   ctx->CryptIvZero(&buf[16], infinity_decrypted_block.data(), 16);
 
-  u32 number = static_cast<u32>(infinity_decrypted_block[1]) << 16 | static_cast<u32>(infinity_decrypted_block[2]) << 8 |
-               static_cast<u32>(infinity_decrypted_block[3]);
+  const u32 number = static_cast<u32>(infinity_decrypted_block[1]) << 16 | static_cast<u32>(infinity_decrypted_block[2]) << 8 |
+                     static_cast<u32>(infinity_decrypted_block[3]);
   DEBUG_LOG_FMT(IOS_USB, "Toy Number: {}", number);
 
   InfinityFigure& figure = m_figures[static_cast<u8>(position)];
@@ -681,8 +681,8 @@ bool InfinityBase::CreateFigure(const std::string& file_path, const u32 figure_n
 
   // Create a 320 byte file with standard NFC read/write permissions
   std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE> file_data{};
-  u32 first_block = 0x17878E;
-  u32 other_blocks = 0x778788;
+  const u32 first_block = 0x17878E;
+  const u32 other_blocks = 0x778788;
   for (s8 i = 2; i >= 0; i--)
   {
     file_data[0x38 - i] = static_cast<u8>((first_block >> i * 8) & 0xFF);
@@ -704,16 +704,16 @@ bool InfinityBase::CreateFigure(const std::string& file_path, const u32 figure_n
   {
     sha1_calc.push_back(uid_data[i]);
   }
-  std::array<u8, 16> figure_data = GenerateBlankFigureData(figure_num);
+  const std::array<u8, 16> figure_data = GenerateBlankFigureData(figure_num);
 
   if (figure_data[1] == 0x00)
     return false;
 
-  std::array<u8, 16> key = GenerateInfinityFigureKey(sha1_calc);
+  const std::array<u8, 16> key = GenerateInfinityFigureKey(sha1_calc);
 
   // Create AES Encrypt context based on AES key, use this to encrypt the character data and 4 blank
   // blocks
-  std::unique_ptr<Common::AES::Context> ctx = Common::AES::CreateContextEncrypt(key.data());
+  const std::unique_ptr<Common::AES::Context> ctx = Common::AES::CreateContextEncrypt(key.data());
   std::array<u8, 16> encrypted_block = {};
   std::array<u8, 16> encrypted_blank = {};
 
@@ -800,7 +800,7 @@ InfinityFigure& InfinityBase::GetFigureByOrder(const u8 order_added)
 
 std::array<u8, 16> InfinityBase::GenerateInfinityFigureKey(const std::vector<u8>& sha1_data)
 {
-  Common::SHA1::Digest digest = Common::SHA1::CalculateDigest(sha1_data);
+  const Common::SHA1::Digest digest = Common::SHA1::CalculateDigest(sha1_data);
   // Infinity AES keys are the first 16 bytes of the SHA1 Digest, every set of 4 bytes need to be
   // reversed due to endianness
   std::array<u8, 16> key = {};
@@ -829,7 +829,7 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(const u32 figure_num)
   figure_data[5] = 0x08;
   figure_data[6] = 0x12;
 
-  u32 checksum = InfinityCRC32(figure_data);
+  const u32 checksum = InfinityCRC32(figure_data);
   for (s8 i = 3; i >= 0; i--)
   {
     figure_data[15 - i] = static_cast<u8>((checksum >> i * 8) & 0xFF);
@@ -840,17 +840,17 @@ std::array<u8, 16> InfinityBase::GenerateBlankFigureData(const u32 figure_num)
 
 void InfinityBase::DescrambleAndSeed(const u8* buf, const u8 sequence, std::array<u8, 32>& reply_buf)
 {
-  u64 value = static_cast<u64>(buf[4]) << 56 | static_cast<u64>(buf[5]) << 48 | static_cast<u64>(buf[6]) << 40 | static_cast<u64>(buf[7]) << 32 |
-              static_cast<u64>(buf[8]) << 24 | static_cast<u64>(buf[9]) << 16 | static_cast<u64>(buf[10]) << 8 | static_cast<u64>(buf[11]);
-  u32 seed = Descramble(value);
+  const u64 value = static_cast<u64>(buf[4]) << 56 | static_cast<u64>(buf[5]) << 48 | static_cast<u64>(buf[6]) << 40 | static_cast<u64>(buf[7]) << 32 |
+                    static_cast<u64>(buf[8]) << 24 | static_cast<u64>(buf[9]) << 16 | static_cast<u64>(buf[10]) << 8 | static_cast<u64>(buf[11]);
+  const u32 seed = Descramble(value);
   GenerateSeed(seed);
   GetBlankResponse(sequence, reply_buf);
 }
 
 void InfinityBase::GetNextAndScramble(const u8 sequence, std::array<u8, 32>& reply_buf)
 {
-  u32 next_random = GetNext();
-  u64 scrambled_next_random = Scramble(next_random, 0);
+  const u32 next_random = GetNext();
+  const u64 scrambled_next_random = Scramble(next_random, 0);
   reply_buf = {0xAA, 0x09, sequence};
   reply_buf[3] = static_cast<u8>((scrambled_next_random >> 56) & 0xFF);
   reply_buf[4] = static_cast<u8>((scrambled_next_random >> 48) & 0xFF);
@@ -883,7 +883,7 @@ u32 InfinityBase::GetNext()
   u32 c = m_random_c;
   u32 ret = std::rotl(m_random_b, 27);
 
-  u32 temp = (a + ((ret ^ 0xFFFFFFFF) + 1));
+  const u32 temp = (a + ((ret ^ 0xFFFFFFFF) + 1));
   b ^= std::rotl(c, 17);
   a = m_random_d;
   c += a;

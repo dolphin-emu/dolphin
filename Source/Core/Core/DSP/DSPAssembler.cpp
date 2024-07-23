@@ -273,7 +273,7 @@ s32 DSPAssembler::ParseValue(const char* str)
 //
 char* DSPAssembler::FindBrackets(char* src, char* dst)
 {
-  s32 len = static_cast<s32>(strlen(src));
+  const s32 len = static_cast<s32>(strlen(src));
   s32 first = -1;
   s32 count = 0;
   s32 i, j;
@@ -337,7 +337,7 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
   int j = 0;
   for (int i = 0; i < (static_cast<s32>(strlen(s_buffer)) + 1); i++)
   {
-    char c = s_buffer[i];
+    const char c = s_buffer[i];
     if (c != ' ')
       d_buffer[j++] = c;
   }
@@ -536,7 +536,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, const s
         case P_REG1A:
         case P_REG1C:
         {
-          int value = (opc->params[i].type >> 8) & 0x1f;
+          const int value = (opc->params[i].type >> 8) & 0x1f;
           if (static_cast<int>(par[i].val) < value ||
               static_cast<int>(par[i].val) > value + get_mask_shifted_down(opc->params[i].mask))
           {
@@ -734,7 +734,7 @@ void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, const param_t* par, cons
     // Ignore the "reverse" parameters since they are implicit.
     if (opc->params[i].type != P_ACC_D && opc->params[i].type != P_ACCM_D)
     {
-      u16 t16 = outbuf[m_cur_addr + opc->params[i].loc];
+      const u16 t16 = outbuf[m_cur_addr + opc->params[i].loc];
       u16 v16 = par[i].val;
       if (opc->params[i].lshift > 0)
         v16 <<= opc->params[i].lshift;

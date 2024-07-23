@@ -66,7 +66,7 @@ constexpr std::array<Hook, 23> os_patches{{
 void Patch(const Core::System& system, const u32 addr, const std::string_view func_name)
 {
   auto& ppc_state = system.GetPPCState();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
   for (u32 i = 1; i < os_patches.size(); ++i)
   {
@@ -79,7 +79,7 @@ void Patch(const Core::System& system, const u32 addr, const std::string_view fu
   }
 }
 
-void PatchFixedFunctions(Core::System& system)
+void PatchFixedFunctions(const Core::System& system)
 {
   // MIOS puts patch data in low MEM1 (0x1800-0x3000) for its own use.
   // Overwriting data in this range can cause the IPL to crash when launching games
@@ -94,7 +94,7 @@ void PatchFixedFunctions(Core::System& system)
   if (!Config::AreCheatsEnabled())
   {
     Patch(system, 0x80001800, "HBReload");
-    auto& memory = system.GetMemory();
+    const auto& memory = system.GetMemory();
     memory.CopyToEmu(0x00001804, "STUBHAXX", 8);
   }
 
@@ -110,7 +110,7 @@ void PatchFunctions(const Core::System& system)
 {
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
 
@@ -174,13 +174,13 @@ void Execute(const Core::CPUThreadGuard& guard, u32 current_pc, u32 hook_index)
 void ExecuteFromJIT(const u32 current_pc, const u32 hook_index, Core::System& system)
 {
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard(system);
+  const Core::CPUThreadGuard guard(system);
   Execute(guard, current_pc, hook_index);
 }
 
 u32 GetHookByAddress(const u32 address)
 {
-  auto iter = s_hooked_addresses.find(address);
+  const auto iter = s_hooked_addresses.find(address);
   return (iter != s_hooked_addresses.end()) ? iter->second : 0;
 }
 
@@ -238,7 +238,7 @@ u32 UnPatch(const Core::System& system, const std::string_view patch_name)
 
   auto& power_pc = system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
 
   if (patch->flags == HookFlag::Fixed)
@@ -280,7 +280,7 @@ u32 UnPatch(const Core::System& system, const std::string_view patch_name)
 u32 UnpatchRange(const Core::System& system, const u32 start_addr, const u32 end_addr)
 {
   auto& ppc_state = system.GetPPCState();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
 
   u32 count = 0;

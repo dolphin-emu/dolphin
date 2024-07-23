@@ -39,14 +39,14 @@ void WriteHostMemory(const u8 value, const u32 addr)
 
 void DMAToDSP(u16* dst, const u32 addr, const u32 size)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   memory.CopyFromEmuSwapped(dst, addr, size);
 }
 
 void DMAFromDSP(const u16* src, const u32 addr, const u32 size)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyToEmuSwapped(addr, src, size);
 }
@@ -74,8 +74,8 @@ void InterruptRequest()
 
 void CodeLoaded(DSPCore& dsp, const u32 addr, const size_t size)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   CodeLoaded(dsp, memory.GetPointerForRange(addr, size), size);
 }
 

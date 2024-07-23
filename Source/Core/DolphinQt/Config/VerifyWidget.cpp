@@ -185,7 +185,7 @@ void VerifyWidget::Verify()
   SetQWidgetWindowDecorations(progress.GetRaw());
   progress.GetRaw()->exec();
 
-  std::optional<DiscIO::VolumeVerifier::Result> result = future.get();
+  const std::optional<DiscIO::VolumeVerifier::Result> result = future.get();
   if (!result)
     return;
 

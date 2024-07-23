@@ -144,7 +144,7 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
     setCurrentBlockUserData(info);
   }
 
-  qsizetype comment_idx = text.indexOf(QLatin1Char('#'));
+  const qsizetype comment_idx = text.indexOf(QLatin1Char('#'));
   if (comment_idx != -1)
   {
     HighlightSubstr(comment_idx, text.length() - comment_idx, HighlightFormat::Comment);
@@ -162,10 +162,10 @@ void GekkoSyntaxHighlight::highlightBlock(const QString& text)
   }
   else if (m_mode == 1)
   {
-    auto paren_it = std::find_if(info->parens.begin(), info->parens.end(),
-                                 [this](const std::pair<int, int>& p) {
-                                   return p.first == m_cursor_loc || p.second == m_cursor_loc;
-                                 });
+    const auto paren_it = std::find_if(info->parens.begin(), info->parens.end(),
+                                       [this](const std::pair<int, int>& p) {
+                                         return p.first == m_cursor_loc || p.second == m_cursor_loc;
+                                       });
     if (paren_it != info->parens.end())
     {
       HighlightSubstr(paren_it->first, 1, HighlightFormat::Paren);

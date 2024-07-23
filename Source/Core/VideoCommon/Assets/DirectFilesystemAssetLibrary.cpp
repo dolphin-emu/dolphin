@@ -54,7 +54,7 @@ CustomAssetLibrary::TimeType
 DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) const
 {
   std::lock_guard lk(m_lock);
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
+  if (const auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
     const auto& asset_map_path = iter->second;
@@ -496,7 +496,7 @@ DirectFilesystemAssetLibrary::AssetMap
 DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
 {
   std::lock_guard lk(m_lock);
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
+  if (const auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
     return iter->second;

@@ -168,7 +168,7 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
   if (partition == PARTITION_NONE)
     return m_reader->Read(offset, length, buffer);
 
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
   const PartitionDetails& partition_details = it->second;
@@ -185,7 +185,7 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
     return m_reader->Read(partition_data_offset + offset, length, buffer);
   }
 
-  Common::AES::Context* aes_context = nullptr;
+  const Common::AES::Context* aes_context = nullptr;
   std::unique_ptr<u8[]> read_buffer = nullptr;
   if (m_has_encryption)
   {
@@ -199,8 +199,8 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
   while (length > 0)
   {
     // Calculate offsets
-    u64 block_offset_on_disc = partition_data_offset + offset / BLOCK_DATA_SIZE * BLOCK_TOTAL_SIZE;
-    u64 data_offset_in_block = offset % BLOCK_DATA_SIZE;
+    const u64 block_offset_on_disc = partition_data_offset + offset / BLOCK_DATA_SIZE * BLOCK_TOTAL_SIZE;
+    const u64 data_offset_in_block = offset % BLOCK_DATA_SIZE;
 
     if (m_last_decrypted_block != block_offset_on_disc)
     {
@@ -227,7 +227,7 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
     }
 
     // Copy the decrypted data
-    u64 copy_size = std::min(length, BLOCK_DATA_SIZE - data_offset_in_block);
+    const u64 copy_size = std::min(length, BLOCK_DATA_SIZE - data_offset_in_block);
     memcpy(buffer, &m_last_decrypted_block_data[data_offset_in_block],
            static_cast<size_t>(copy_size));
 
@@ -265,7 +265,7 @@ Partition VolumeWii::GetGamePartition() const
 
 std::optional<u32> VolumeWii::GetPartitionType(const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   return it != m_partitions.end() ? it->second.type : std::optional<u32>();
 }
 
@@ -279,25 +279,25 @@ std::optional<u64> VolumeWii::GetTitleID(const Partition& partition) const
 
 const IOS::ES::TicketReader& VolumeWii::GetTicket(const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   return it != m_partitions.end() ? *it->second.ticket : INVALID_TICKET;
 }
 
 const IOS::ES::TMDReader& VolumeWii::GetTMD(const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   return it != m_partitions.end() ? *it->second.tmd : INVALID_TMD;
 }
 
 const std::vector<u8>& VolumeWii::GetCertificateChain(const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   return it != m_partitions.end() ? *it->second.cert_chain : INVALID_CERT_CHAIN;
 }
 
 const FileSystem* VolumeWii::GetFileSystem(const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   return it != m_partitions.end() ? it->second.file_system->get() : nullptr;
 }
 
@@ -313,7 +313,7 @@ u64 VolumeWii::OffsetInHashedPartitionToRawOffset(const u64 offset, const Partit
 
 u64 VolumeWii::PartitionOffsetToRawOffset(const u64 offset, const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return offset;
   const u64 data_offset = *it->second.data_offset;
@@ -391,7 +391,7 @@ const BlobReader& VolumeWii::GetBlobReader() const
 
 std::array<u8, 20> VolumeWii::GetSyncHash() const
 {
-  auto context = Common::SHA1::CreateContext();
+  const auto context = Common::SHA1::CreateContext();
 
   // Disc header
   ReadAndAddToSyncHash(context.get(), 0, 0x80, PARTITION_NONE);
@@ -414,7 +414,7 @@ std::array<u8, 20> VolumeWii::GetSyncHash() const
 
 bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
   const PartitionDetails& partition_details = it->second;
@@ -437,7 +437,7 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
 bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_data,
                                     const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
   const PartitionDetails& partition_details = it->second;
@@ -454,7 +454,7 @@ bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_d
 
   if (m_has_encryption)
   {
-    Common::AES::Context* aes_context = partition_details.key->get();
+    const Common::AES::Context* aes_context = partition_details.key->get();
     if (!aes_context)
       return false;
 
@@ -484,7 +484,7 @@ bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_d
     return false;
 
   Common::SHA1::Digest h3_digest;
-  auto h3_digest_ptr =
+  const auto h3_digest_ptr =
       partition_details.h3_table->data() + block_index / 64 * Common::SHA1::DIGEST_LEN;
   memcpy(h3_digest.data(), h3_digest_ptr, sizeof(h3_digest));
   if (Common::SHA1::CalculateDigest(hashes.h2) != h3_digest)
@@ -495,7 +495,7 @@ bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_d
 
 bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const Partition& partition) const
 {
-  auto it = m_partitions.find(partition);
+  const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
   const PartitionDetails& partition_details = it->second;

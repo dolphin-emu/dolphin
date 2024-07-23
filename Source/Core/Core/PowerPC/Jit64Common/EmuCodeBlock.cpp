@@ -140,7 +140,7 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, const X64Reg reg_addr, c
     info->nonAtomicSwapStore = false;
   }
 
-  OpArg dest = MComplex(RMEM, reg_addr, SCALE_1, offset);
+  const OpArg dest = MComplex(RMEM, reg_addr, SCALE_1, offset);
   if (reg_value.IsImm())
   {
     if (swap)
@@ -234,7 +234,7 @@ private:
   {
     if (m_sign_extend)
     {
-      u32 sign = !!(value & (1 << (sbits - 1)));
+      const u32 sign = !!(value & (1 << (sbits - 1)));
       value |= sign * ((0xFFFFFFFF >> sbits) << sbits);
     }
     m_code->MOV(32, R(m_dst_reg), Imm32(value));
@@ -256,7 +256,7 @@ private:
     // If we do not need to mask, we can do the sign extend while loading
     // from memory. If masking is required, we have to first zero extend,
     // then mask, then sign extend if needed (1 instr vs. 2/3).
-    u32 all_ones = (1ULL << sbits) - 1;
+    const u32 all_ones = (1ULL << sbits) - 1;
     if ((all_ones & mask) == all_ones)
     {
       MoveOpArgToReg(sbits, MatR(RSCRATCH));
@@ -319,7 +319,7 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, const X64Reg reg_value,
 void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress, const int accessSize,
                                  const s32 offset, BitSet32 registersInUse, const bool signExtend, const int flags)
 {
-  bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
+  const bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
   auto& js = m_jit.js;
   registersInUse[reg_value] = false;
@@ -328,7 +328,7 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
-    bool offsetAddedToAddress =
+    const bool offsetAddedToAddress =
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = js.compilerPC;
@@ -343,7 +343,7 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
     info.registersInUse = registersInUse;
     info.flags = flags;
     info.signExtend = signExtend;
-    ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
+    const ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
     if (padding > 0)
     {
       NOP(padding);
@@ -356,7 +356,7 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
 
   if (opAddress.IsImm())
   {
-    u32 address = opAddress.Imm32() + offset;
+    const u32 address = opAddress.Imm32() + offset;
     SafeLoadToRegImmediate(reg_value, address, accessSize, registersInUse, signExtend);
     return;
   }
@@ -377,7 +377,7 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
       !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
   {
-    FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
+    const FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
     UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
     if (m_far_code.Enabled())
       SwitchToFarCode();
@@ -396,7 +396,7 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
-  size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
+  const size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
   switch (accessSize)
   {
@@ -448,10 +448,10 @@ void EmuCodeBlock::SafeLoadToRegImmediate(const X64Reg reg_value, const u32 addr
   }
 
   // If the address maps to an MMIO register, inline MMIO read code.
-  u32 mmioAddress = m_jit.m_mmu.IsOptimizableMMIOAccess(address, accessSize);
+  const u32 mmioAddress = m_jit.m_mmu.IsOptimizableMMIOAccess(address, accessSize);
   if (accessSize != 64 && mmioAddress)
   {
-    auto& memory = m_jit.m_system.GetMemory();
+    const auto& memory = m_jit.m_system.GetMemory();
     MMIOLoadToReg(memory.GetMMIOMapping(), reg_value, registersInUse, mmioAddress, accessSize,
                   signExtend);
     return;
@@ -494,8 +494,8 @@ void EmuCodeBlock::SafeLoadToRegImmediate(const X64Reg reg_value, const u32 addr
 void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, const int accessSize, const s32 offset,
                                      const BitSet32 registersInUse, const int flags)
 {
-  bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-  bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
+  const bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
+  const bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
@@ -519,7 +519,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, const int
     info.offset = offset;
     info.registersInUse = registersInUse;
     info.flags = flags;
-    ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
+    const ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
     if (padding > 0)
     {
       NOP(padding);
@@ -551,7 +551,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, const int
       !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
   {
-    FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
+    const FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
     if (m_far_code.Enabled())
       SwitchToFarCode();
@@ -570,7 +570,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, const int
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
-  size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
+  const size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
   // If the input is an immediate, we need to put it in a register.
@@ -871,7 +871,7 @@ alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffff
 // Converting single->double is a bit easier because all single denormals are double normals.
 void EmuCodeBlock::ConvertSingleToDouble(const X64Reg dst, const X64Reg src, const bool src_is_gpr)
 {
-  X64Reg gprsrc = src_is_gpr ? src : RSCRATCH;
+  const X64Reg gprsrc = src_is_gpr ? src : RSCRATCH;
   if (src_is_gpr)
   {
     MOVD_xmm(dst, R(src));
@@ -885,14 +885,14 @@ void EmuCodeBlock::ConvertSingleToDouble(const X64Reg dst, const X64Reg src, con
 
   UCOMISS(dst, R(dst));
   CVTSS2SD(dst, R(dst));
-  FixupBranch nanConversion = J_CC(CC_P, Jump::Near);
+  const FixupBranch nanConversion = J_CC(CC_P, Jump::Near);
 
   SwitchToFarCode();
   SetJumpTarget(nanConversion);
   TEST(32, R(gprsrc), Imm32(0x00400000));
-  FixupBranch continue1 = J_CC(CC_NZ, Jump::Near);
+  const FixupBranch continue1 = J_CC(CC_NZ, Jump::Near);
   ANDPD(dst, MConst(double_qnan_bit));
-  FixupBranch continue2 = J(Jump::Near);
+  const FixupBranch continue2 = J(Jump::Near);
   SwitchToNearCode();
 
   SetJumpTarget(continue1);
@@ -929,8 +929,8 @@ void EmuCodeBlock::SetFPRF(const X64Reg xmm, const bool single)
       PTEST(xmm, MConst(psFloatExp));
     else
       PTEST(xmm, MConst(psDoubleExp));
-    FixupBranch maxExponent = J_CC(CC_C);
-    FixupBranch zeroExponent = J_CC(CC_Z);
+    const FixupBranch maxExponent = J_CC(CC_C);
+    const FixupBranch zeroExponent = J_CC(CC_Z);
 
     // Nice normalized number: sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
     LEA(32, RSCRATCH,
@@ -942,7 +942,7 @@ void EmuCodeBlock::SetFPRF(const X64Reg xmm, const bool single)
       PTEST(xmm, MConst(psFloatFrac));
     else
       PTEST(xmm, MConst(psDoubleFrac));
-    FixupBranch notNAN = J_CC(CC_Z);
+    const FixupBranch notNAN = J_CC(CC_Z);
 
     // Max exponent + mantissa: PPC_FPCLASS_QNAN
     MOV(32, R(RSCRATCH), Imm32(Common::PPC_FPCLASS_QNAN));
@@ -960,7 +960,7 @@ void EmuCodeBlock::SetFPRF(const X64Reg xmm, const bool single)
       PTEST(xmm, MConst(psFloatNoSign));
     else
       PTEST(xmm, MConst(psDoubleNoSign));
-    FixupBranch zero = J_CC(CC_Z);
+    const FixupBranch zero = J_CC(CC_Z);
 
     // No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
     LEA(32, RSCRATCH,
@@ -979,7 +979,7 @@ void EmuCodeBlock::SetFPRF(const X64Reg xmm, const bool single)
       TEST(32, R(RSCRATCH), Imm32(Common::FLOAT_EXP));
     else
       TEST(64, R(RSCRATCH), MConst(psDoubleExp));
-    FixupBranch zeroExponent = J_CC(CC_Z);
+    const FixupBranch zeroExponent = J_CC(CC_Z);
 
     if (single)
     {
@@ -991,9 +991,9 @@ void EmuCodeBlock::SetFPRF(const X64Reg xmm, const bool single)
       AND(64, R(RSCRATCH), MConst(psDoubleNoSign));
       CMP(64, R(RSCRATCH), MConst(psDoubleExp));
     }
-    FixupBranch nan =
+    const FixupBranch nan =
         J_CC(CC_G);  // This works because if the sign bit is set, RSCRATCH is negative
-    FixupBranch infinity = J_CC(CC_E);
+    const FixupBranch infinity = J_CC(CC_E);
 
     MOVQ_xmm(R(RSCRATCH), xmm);
     SHR(input_size, R(RSCRATCH), Imm8(input_size - 1));
@@ -1018,7 +1018,7 @@ void EmuCodeBlock::SetFPRF(const X64Reg xmm, const bool single)
       TEST(input_size, R(RSCRATCH), Imm32(~Common::FLOAT_SIGN));
     else
       TEST(input_size, R(RSCRATCH), MConst(psDoubleNoSign));
-    FixupBranch zero = J_CC(CC_Z);
+    const FixupBranch zero = J_CC(CC_Z);
 
     SHR(input_size, R(RSCRATCH), Imm8(input_size - 1));
     LEA(32, RSCRATCH,

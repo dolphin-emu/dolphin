@@ -221,7 +221,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   desc.CachedPSO.CachedBlobSizeInBytes = cache_data_size;
 
   ID3D12PipelineState* pso;
-  HRESULT hr = g_dx_context->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
+  const HRESULT hr = g_dx_context->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "CreateGraphicsPipelineState() {}failed: {}",
@@ -238,7 +238,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
 AbstractPipeline::CacheData DXPipeline::GetCacheData() const
 {
   ComPtr<ID3DBlob> blob;
-  HRESULT hr = m_pipeline->GetCachedBlob(&blob);
+  const HRESULT hr = m_pipeline->GetCachedBlob(&blob);
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "ID3D12Pipeline::GetCachedBlob() failed: {}", DX12HRWrap(hr));

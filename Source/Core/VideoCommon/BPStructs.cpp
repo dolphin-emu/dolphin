@@ -187,7 +187,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       g_texture_cache->FlushStaleBinds();
       g_framebuffer_manager->InvalidatePeekCache(false);
       g_framebuffer_manager->RefreshPeekCache();
-      auto& system = Core::System::GetInstance();
+      const auto& system = Core::System::GetInstance();
       if (!system.GetFifo().UseDeterministicGPUThread())
         system.GetPixelEngine().SetFinish(cycles_into_future);  // may generate interrupt
       DEBUG_LOG_FMT(VIDEO, "GXSetDrawDone SetPEFinish (value: {:#04X})", bp.newvalue & 0xFFFF);
@@ -206,7 +206,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     if (!system.GetFifo().UseDeterministicGPUThread())
     {
       system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false,
@@ -222,7 +222,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     if (!system.GetFifo().UseDeterministicGPUThread())
     {
       system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true,
@@ -243,8 +243,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     // The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in
     // this function
 
-    u32 destAddr = bpmem.copyTexDest << 5;
-    u32 destStride = bpmem.copyDestStride << 5;
+    const u32 destAddr = bpmem.copyTexDest << 5;
+    const u32 destStride = bpmem.copyDestStride << 5;
 
     MathUtil::Rectangle<s32> srcRect;
     srcRect.left = bpmem.copyTexSrcXY.x;
@@ -303,7 +303,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     {
       // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
-      bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
+      const bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
           srcRect, PE_copy.intensity_fmt && PE_copy.auto_conv, PE_copy.half_scale, 1.0f,
@@ -323,9 +323,9 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       else
         yScale = static_cast<float>(bpmem.dispcopyyscale) / 256.0f;
 
-      float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
+      const float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
-      u32 height = static_cast<u32>(num_xfb_lines);
+      const u32 height = static_cast<u32>(num_xfb_lines);
 
       DEBUG_LOG_FMT(VIDEO,
                     "RenderToXFB: destAddr: {:08x} | srcRect [{} {} {} {}] | fbWidth: {} | "
@@ -333,7 +333,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
                     destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                     bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
-      bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
+      const bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
           false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
@@ -354,11 +354,11 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       //       Might also clean up some issues with games doing XFB copies they don't intend to
       //       display.
 
-      auto& system = Core::System::GetInstance();
+      const auto& system = Core::System::GetInstance();
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        u64 ticks = system.GetCoreTiming().GetTicks();
+        const u64 ticks = system.GetCoreTiming().GetTicks();
         g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height, ticks);
       }
       else
@@ -383,12 +383,12 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     return;
   case BPMEM_LOADTLUT1:  // Load a Texture Look Up Table
   {
-    u32 tmem_addr = bpmem.tmem_config.tlut_dest.tmem_addr << 9;
-    u32 tmem_transfer_count = bpmem.tmem_config.tlut_dest.tmem_line_count * TMEM_LINE_SIZE;
+    const u32 tmem_addr = bpmem.tmem_config.tlut_dest.tmem_addr << 9;
+    const u32 tmem_transfer_count = bpmem.tmem_config.tlut_dest.tmem_line_count * TMEM_LINE_SIZE;
     u32 addr = bpmem.tmem_config.tlut_src << 5;
 
     // The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     if (!system.IsWii())
       addr = addr & 0x01FFFFFF;
 
@@ -400,7 +400,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
         (1 << bpmem.tmem_config.tlut_dest.tmem_line_count.NumBits()) * TMEM_LINE_SIZE;
     static_assert(MAX_LOADABLE_TMEM_ADDR + MAX_TMEM_LINE_COUNT < TMEM_SIZE);
 
-    auto& memory = system.GetMemory();
+    const auto& memory = system.GetMemory();
     memory.CopyFromEmu(s_tex_mem.data() + tmem_addr, addr, tmem_transfer_count);
 
     if (OpcodeDecoder::g_record_fifo_data)
@@ -583,8 +583,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       // NOTE: libogc's implementation of GX_PreloadEntireTexture seems flawed, so it's not
       // necessarily a good reference for RE'ing this feature.
 
-      BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
-      u32 src_addr = tmem_cfg.preload_addr << 5;  // TODO: Should we add mask here on GC?
+      const BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
+      const u32 src_addr = tmem_cfg.preload_addr << 5;  // TODO: Should we add mask here on GC?
       u32 bytes_read = 0;
       u32 tmem_addr_even = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
 
@@ -596,15 +596,15 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
           if (tmem_addr_even + bytes_read > TMEM_SIZE)
             bytes_read = TMEM_SIZE - tmem_addr_even;
 
-          auto& system = Core::System::GetInstance();
-          auto& memory = system.GetMemory();
+          const auto& system = Core::System::GetInstance();
+          const auto& memory = system.GetMemory();
           memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr, bytes_read);
         }
       }
       else  // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
       {
-        auto& system = Core::System::GetInstance();
-        auto& memory = system.GetMemory();
+        const auto& system = Core::System::GetInstance();
+        const auto& memory = system.GetMemory();
 
         // AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for
         // everything
@@ -653,7 +653,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   case BPMEM_TEV_COLOR_RA + 4:
   case BPMEM_TEV_COLOR_RA + 6:
   {
-    int num = (bp.address >> 1) & 0x3;
+    const int num = (bp.address >> 1) & 0x3;
     if (bpmem.tevregs[num].ra.type == TevRegType::Constant)
     {
       pixel_shader_manager.SetTevKonstColor(num, 0, bpmem.tevregs[num].ra.red);
@@ -672,7 +672,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   case BPMEM_TEV_COLOR_BG + 4:
   case BPMEM_TEV_COLOR_BG + 6:
   {
-    int num = (bp.address >> 1) & 0x3;
+    const int num = (bp.address >> 1) & 0x3;
     if (bpmem.tevregs[num].bg.type == TevRegType::Constant)
     {
       pixel_shader_manager.SetTevKonstColor(num, 1, bpmem.tevregs[num].bg.green);
@@ -716,7 +716,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 
   if ((bp.address & 0xc0) == 0x80)
   {
-    auto tex_address = TexUnitAddress::FromBPAddress(bp.address);
+    const auto tex_address = TexUnitAddress::FromBPAddress(bp.address);
 
     switch (tex_address.Reg)
     {
@@ -786,13 +786,13 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 // Call browser: OpcodeDecoding.cpp RunCallback::OnBP()
 void LoadBPReg(const u8 reg, const u32 value, const int cycles_into_future)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
 
-  int oldval = ((u32*)&bpmem)[reg];
-  int newval = (oldval & ~bpmem.bpMask) | (value & bpmem.bpMask);
-  int changes = (oldval ^ newval) & 0xFFFFFF;
+  const int oldval = ((u32*)&bpmem)[reg];
+  const int newval = (oldval & ~bpmem.bpMask) | (value & bpmem.bpMask);
+  const int changes = (oldval ^ newval) & 0xFFFFFF;
 
-  BPCmd bp = {reg, changes, newval};
+  const BPCmd bp = {reg, changes, newval};
 
   // Reset the mask register if we're not trying to set it ourselves.
   if (reg != BPMEM_BP_MASK)
@@ -804,10 +804,10 @@ void LoadBPReg(const u8 reg, const u32 value, const int cycles_into_future)
 
 void LoadBPRegPreprocess(const u8 reg, const u32 value, const int cycles_into_future)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
 
   // masking via BPMEM_BP_MASK could hypothetically be a problem
-  u32 newval = value & 0xffffff;
+  const u32 newval = value & 0xffffff;
   switch (reg)
   {
   case BPMEM_SETDRAWDONE:

@@ -324,8 +324,8 @@ bool FSCore::HasCacheForFile(const u64 fd, const u32 offset) const
 std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
 {
   return MakeIPCReply([&](const Ticks t) {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     return m_core.Read(request.fd, memory.GetPointerForRange(request.buffer, request.size),
                        request.size, request.buffer, t);
   });
@@ -356,8 +356,8 @@ s32 FSCore::Read(const u64 fd, u8* data, u32 size, const std::optional<u32> ipc_
 std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
 {
   return MakeIPCReply([&](const Ticks t) {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     return m_core.Write(request.fd, memory.GetPointerForRange(request.buffer, request.size),
                         request.size, request.buffer, t);
   });
@@ -517,8 +517,8 @@ IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request) c
   if (!stats)
     return IPCReply(ConvertResult(stats.Error()));
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   ISFSNandStats out;
   out.cluster_size = stats->cluster_size;
@@ -552,8 +552,8 @@ IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& requ
     return GetFSReply(ConvertResult(ResultCode::Invalid));
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   u32 file_list_address, file_count_address, max_count;
   if (request.in_vectors.size() == 2)
@@ -618,8 +618,8 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   if (request.buffer_in_size < 64 || request.buffer_out_size < sizeof(ISFSParams))
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::string path = memory.GetString(request.buffer_in, 64);
   const auto ticks = EstimateFileLookupTicks(path, FileLookupMode::Split);
@@ -655,8 +655,8 @@ IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
   if (request.buffer_in_size < 64)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::string path = memory.GetString(request.buffer_in, 64);
   return MakeIPCReply([&](const Ticks ticks) {
@@ -680,8 +680,8 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
   if (request.buffer_in_size < 64 * 2)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::string old_path = memory.GetString(request.buffer_in, 64);
   const std::string new_path = memory.GetString(request.buffer_in + 64, 64);
@@ -734,8 +734,8 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
     if (!status)
       return ConvertResult(status.Error());
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
 
     ISFSFileStats out;
     out.size = status->size;
@@ -752,7 +752,7 @@ Result<FileStatus> FSCore::GetFileStatus(const u64 fd, const Ticks ticks)
   if (handle.fs_fd == INVALID_FD)
     return ResultCode::Invalid;
 
-  auto status = m_ios.GetFS()->GetFileStatus(handle.fs_fd);
+  const auto status = m_ios.GetFS()->GetFileStatus(handle.fs_fd);
   LogResult(status, "GetFileStatus({})", handle.name.data());
   return status;
 }
@@ -765,8 +765,8 @@ IPCReply FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request) 
     return GetFSReply(ConvertResult(ResultCode::Invalid));
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::string directory = memory.GetString(request.in_vectors[0].address, 64);
   const Result<DirectoryStats> stats = m_ios.GetFS()->GetDirectoryStats(directory);

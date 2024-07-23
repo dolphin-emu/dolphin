@@ -399,8 +399,8 @@ void Tev::Draw()
 
   INCSTAT(g_stats.this_frame.tev_pixels_in);
 
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   // initial color values
   for (int i = 0; i < 4; i++)
@@ -687,8 +687,8 @@ void Tev::Draw()
 
 void Tev::SetKonstColors()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   for (int i = 0; i < 4; i++)
   {

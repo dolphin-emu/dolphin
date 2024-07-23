@@ -26,7 +26,7 @@ TEST(Flag, Simple)
   EXPECT_TRUE(f.TestAndSet());
   EXPECT_TRUE(f.TestAndClear());
 
-  Flag f2(true);
+  const Flag f2(true);
   EXPECT_TRUE(f2.IsSet());
 }
 

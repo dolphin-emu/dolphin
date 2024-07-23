@@ -103,9 +103,9 @@ constexpr u32 ADDR_DEVKIT_BOOT_PROGRAM_VERSION = 0x315e;
 constexpr u32 ADDR_SYSMENU_SYNC = 0x3160;
 constexpr u32 PLACEHOLDER = 0xDEADBEEF;
 
-static bool SetupMemory(Memory::MemoryManager& memory, const u64 ios_title_id, const MemorySetupType setup_type)
+static bool SetupMemory(const Memory::MemoryManager& memory, const u64 ios_title_id, const MemorySetupType setup_type)
 {
-  auto target_imv = std::find_if(
+  const auto target_imv = std::find_if(
       GetMemoryValues().begin(), GetMemoryValues().end(),
       [&](const MemoryValues& imv) { return imv.ios_number == (ios_title_id & 0xffff); });
 
@@ -192,7 +192,7 @@ static bool SetupMemory(Memory::MemoryManager& memory, const u64 ios_title_id, c
 static void ResetAndPausePPC(const Core::System& system)
 {
   // This should be cleared when the PPC is released so that the write is not observable.
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& power_pc = system.GetPowerPC();
 
   memory.Write_U32(0x48000000, 0x00000000);  // b 0x0
@@ -221,7 +221,7 @@ static void ReleasePPCAncast(const Core::System& system)
   system.GetPPCState().pc = ESPRESSO_ANCAST_LOCATION_VIRT + sizeof(EspressoAncastHeader);
 }
 
-void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, const MemorySetupType setup_type)
+void RAMOverrideForIOSMemoryValues(const Memory::MemoryManager& memory, const MemorySetupType setup_type)
 {
   // Don't touch anything if the feature isn't enabled.
   if (!Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
@@ -273,7 +273,7 @@ void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, const MemorySe
   memory.Write_U32(ios_reserved_end, ADDR_IOS_RESERVED_END);
 }
 
-void WriteReturnValue(Memory::MemoryManager& memory, const s32 value, const u32 address)
+void WriteReturnValue(const Memory::MemoryManager& memory, const s32 value, const u32 address)
 {
   memory.Write_U32(static_cast<u32>(value), address);
 }
@@ -506,11 +506,11 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, const HangPPC hang_ppc,
     // Load the ARM binary to memory (if possible).
     // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
 
-    ARMBinary binary{ReadBootContent(GetFSCore(), boot_content_path, 0xB00000)};
+    const ARMBinary binary{ReadBootContent(GetFSCore(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 
-    ElfReader elf{binary.GetElf()};
+    const ElfReader elf{binary.GetElf()};
     if (!elf.LoadIntoMemory(m_system, true))
       return false;
   }
@@ -762,14 +762,14 @@ std::optional<IPCReply> EmulationKernel::HandleIPCCommand(const Request& request
 
 void EmulationKernel::ExecuteIPCCommand(const u32 address)
 {
-  Request request{GetSystem(), address};
+  const Request request{GetSystem(), address};
   std::optional<IPCReply> result = HandleIPCCommand(request);
 
   if (!result)
     return;
 
   // Ensure replies happen in order
-  auto& core_timing = GetSystem().GetCoreTiming();
+  const auto& core_timing = GetSystem().GetCoreTiming();
   const s64 ticks_until_last_reply = m_last_reply_time - core_timing.GetTicks();
   if (ticks_until_last_reply > 0)
     result->reply_delay_ticks += ticks_until_last_reply;
@@ -792,8 +792,8 @@ void EmulationKernel::EnqueueIPCRequest(const u32 address) const
 void EmulationKernel::EnqueueIPCReply(const Request& request, const s32 return_value,
                                       const s64 cycles_in_future, const CoreTiming::FromThread from) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(static_cast<u32>(return_value), request.address + 4);
   // IOS writes back the command that was responded to in the FD field.
   memory.Write_U32(request.command, request.address + 8);
@@ -822,7 +822,7 @@ void EmulationKernel::UpdateIPC()
   {
     wii_ipc.ClearX1();
     wii_ipc.GenerateAck(m_request_queue.front());
-    u32 command = m_request_queue.front();
+    const u32 command = m_request_queue.front();
     m_request_queue.pop_front();
     ExecuteIPCCommand(command);
     return;
@@ -908,7 +908,7 @@ void EmulationKernel::DoState(PointerWrap& p)
   }
   else
   {
-    for (auto& descriptor : m_fdmap)
+    for (const auto& descriptor : m_fdmap)
     {
       u32 exists = descriptor ? 1 : 0;
       p.Do(exists);
@@ -945,7 +945,7 @@ static void FinishPPCBootstrap(Core::System& system, const u64 userdata, s64 cyc
     ReleasePPC(system);
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard(system);
+  const Core::CPUThreadGuard guard(system);
   SConfig::OnNewTitleLoad(guard);
 
   INFO_LOG_FMT(IOS, "Bootstrapping done.");
@@ -984,7 +984,7 @@ void Init(Core::System& system)
   SetupMemory(system.GetMemory(), Titles::SYSTEM_MENU_IOS, MemorySetupType::Full);
 }
 
-void Shutdown(Core::System& system)
+void Shutdown(const Core::System& system)
 {
   system.SetIOS(nullptr);
   ESDevice::FinalizeEmulationState();

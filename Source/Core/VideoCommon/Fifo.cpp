@@ -170,7 +170,7 @@ void FifoManager::SyncGPU(SyncGPUReason reason, const bool may_move_read_ptr)
       u8* write_ptr = m_video_buffer_write_ptr;
 
       // what's left over in the buffer
-      size_t size = write_ptr - m_video_buffer_pp_read_ptr;
+      const size_t size = write_ptr - m_video_buffer_pp_read_ptr;
 
       memmove(m_video_buffer, m_video_buffer_pp_read_ptr, size);
       // This change always decreases the pointers.  We write seen_ptr
@@ -231,7 +231,7 @@ void FifoManager::ReadDataFromFifo(const u32 read_ptr)
     m_video_buffer_read_ptr = m_video_buffer;
   }
   // Copy new video instructions to m_video_buffer for future use in rendering the new picture
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
   memory.CopyFromEmu(m_video_buffer_write_ptr, read_ptr, GPFifo::GATHER_PIPE_SIZE);
   m_video_buffer_write_ptr += GPFifo::GATHER_PIPE_SIZE;
 }
@@ -265,7 +265,7 @@ void FifoManager::ReadDataFromFifoOnCPU(const u32 read_ptr)
       return;
     }
   }
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
   memory.CopyFromEmu(m_video_buffer_write_ptr, read_ptr, GPFifo::GATHER_PIPE_SIZE);
   m_video_buffer_pp_read_ptr = OpcodeDecoder::RunFifo<true>(
       DataReader(m_video_buffer_pp_read_ptr, write_ptr + GPFifo::GATHER_PIPE_SIZE), nullptr);
@@ -302,7 +302,7 @@ void FifoManager::RunGpuLoop()
         if (m_use_deterministic_gpu_thread)
         {
           // All the fifo/CP stuff is on the CPU.  We just need to run the opcode decoder.
-          u8* seen_ptr = m_video_buffer_seen_ptr;
+          const u8* seen_ptr = m_video_buffer_seen_ptr;
           u8* write_ptr = m_video_buffer_write_ptr;
           // See comment in SyncGPU
           if (write_ptr > seen_ptr)
@@ -361,7 +361,7 @@ void FifoManager::RunGpuLoop()
             if (m_config_sync_gpu)
             {
               cyclesExecuted = static_cast<int>(cyclesExecuted / m_config_sync_gpu_overclock);
-              int old = m_sync_ticks.fetch_sub(cyclesExecuted);
+              const int old = m_sync_ticks.fetch_sub(cyclesExecuted);
               if (old >= m_config_sync_gpu_max_distance &&
                   old - static_cast<int>(cyclesExecuted) < m_config_sync_gpu_max_distance)
               {
@@ -379,7 +379,7 @@ void FifoManager::RunGpuLoop()
           // fast skip remaining GPU time if fifo is empty
           if (m_sync_ticks.load() > 0)
           {
-            int old = m_sync_ticks.exchange(0);
+            const int old = m_sync_ticks.exchange(0);
             if (old >= m_config_sync_gpu_max_distance)
               m_sync_wakeup_event.Set();
           }
@@ -542,8 +542,8 @@ void FifoManager::UpdateWantDeterminism(const bool want)
  */
 int FifoManager::WaitForGpuThread(const int ticks)
 {
-  int old = m_sync_ticks.fetch_add(ticks);
-  int now = old + ticks;
+  const int old = m_sync_ticks.fetch_add(ticks);
+  const int now = old + ticks;
 
   // GPU is idle, so stop polling.
   if (old >= 0 && m_gpu_mainloop.IsDone())

@@ -72,14 +72,14 @@ bool OnScreenUI::Initialize(const u32 width, const u32 height, const float scale
 
   // Font texture(s).
   {
-    ImGuiIO& io = ImGui::GetIO();
+    const ImGuiIO& io = ImGui::GetIO();
     u8* font_tex_pixels;
     int font_tex_width, font_tex_height;
     io.Fonts->GetTexDataAsRGBA32(&font_tex_pixels, &font_tex_width, &font_tex_height);
 
-    TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, 0,
-                                  AbstractTextureType::Texture_2DArray);
+    const TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
+                                        AbstractTextureFormat::RGBA8, 0,
+                                        AbstractTextureType::Texture_2DArray);
     std::unique_ptr<AbstractTexture> font_tex =
         g_gfx->CreateTexture(font_tex_config, "ImGui font texture");
     if (!font_tex)
@@ -207,7 +207,7 @@ void OnScreenUI::BeginImGuiFrameUnlocked(const u32 width, const u32 height)
 
 void OnScreenUI::DrawImGui() const
 {
-  ImDrawData* draw_data = ImGui::GetDrawData();
+  const ImDrawData* draw_data = ImGui::GetDrawData();
   if (!draw_data)
     return;
 
@@ -220,7 +220,7 @@ void OnScreenUI::DrawImGui() const
     float u_rcp_viewport_size_mul2[2];
     float padding[2];
   };
-  ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
+  const ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
 
   // Set up common state for drawing.
   g_gfx->SetPipeline(m_imgui_pipeline.get());
@@ -350,7 +350,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
       const u32 height = icon.height;
       TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
                                AbstractTextureType::Texture_2DArray);
-      auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
+      const auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
       res.first->second->Load(0, width, height, width, icon.data.data(),
                               sizeof(u32) * width * height);
     }
@@ -359,7 +359,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
   float leaderboard_y = ImGui::GetIO().DisplaySize.y;
   if (!m_challenge_texture_map.empty())
   {
-    float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
+    const float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), 0,
                             ImVec2(1, 1));
@@ -460,7 +460,7 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
 void OnScreenUI::SetKey(const u32 key, const bool is_down, const char* chars)
 {
   auto lock = GetImGuiLock();
-  if (auto iter = m_dolphin_to_imgui_map.find(key); iter != m_dolphin_to_imgui_map.end())
+  if (const auto iter = m_dolphin_to_imgui_map.find(key); iter != m_dolphin_to_imgui_map.end())
     ImGui::GetIO().AddKeyEvent(static_cast<ImGuiKey>(iter->second), is_down);
 
   if (chars)

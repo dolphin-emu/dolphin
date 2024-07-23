@@ -66,7 +66,7 @@ public:
   }
   reference dereference() const
   {
-    u32 offset = ReadU32(&m_data[m_table_offset + m_index * 8 + 4]);
+    const u32 offset = ReadU32(&m_data[m_table_offset + m_index * 8 + 4]);
     return &m_data[offset];
   }
 
@@ -84,7 +84,7 @@ public:
   pointer operator->() const { return dereference(); }
   MoIterator operator++(int)
   {
-    MoIterator tmp(*this);
+    const MoIterator tmp(*this);
     advance(1);
     return tmp;
   }
@@ -97,7 +97,7 @@ public:
   }
   MoIterator operator--(int)
   {
-    MoIterator tmp(*this);
+    const MoIterator tmp(*this);
     advance(-1);
     return tmp;
   }
@@ -184,13 +184,13 @@ public:
   {
     const MoIterator begin(m_data.data(), m_offset_original_table);
     const MoIterator end(m_data.data(), m_offset_original_table, m_number_of_strings);
-    auto iter = std::lower_bound(begin, end, original_string,
-                                 [](const char* a, const char* b) { return strcmp(a, b) < 0; });
+    const auto iter = std::lower_bound(begin, end, original_string,
+                                       [](const char* a, const char* b) { return strcmp(a, b) < 0; });
 
     if (iter == end || strcmp(*iter, original_string) != 0)
       return nullptr;
 
-    u32 offset = ReadU32(&m_data[m_offset_translation_table + std::distance(begin, iter) * 8 + 4]);
+    const u32 offset = ReadU32(&m_data[m_offset_translation_table + std::distance(begin, iter) * 8 + 4]);
     return &m_data[offset];
   }
 
@@ -312,7 +312,7 @@ void Translation::Initialize()
       [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
-  std::string configured_language = Get(Config::MAIN_INTERFACE_LANGUAGE);
+  const std::string configured_language = Get(Config::MAIN_INTERFACE_LANGUAGE);
   if (!configured_language.empty())
   {
     if (TryInstallTranslator(QString::fromStdString(configured_language)))

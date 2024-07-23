@@ -60,7 +60,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     m_timestamp_sent = m_system.GetCoreTiming().GetTicks();
     m_core->SendJoybusCommand(m_timestamp_sent, TransferInterval(), buffer, m_keys);
 
-    auto& si = m_system.GetSerialInterface();
+    const auto& si = m_system.GetSerialInterface();
     si.RemoveEvent(m_device_number);
     si.ScheduleEvent(m_device_number,
                      TransferInterval() + GetSyncInterval(m_system.GetSystemTimers()));
@@ -78,7 +78,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
+    const int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (TransferInterval() > elapsed_time)
       return 0;

@@ -38,7 +38,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
   str.diph.dwHow = DIPH_DEVICE;
 
   std::string result;
-  HRESULT hr = device->GetProperty(DIPROP_PRODUCTNAME, &str.diph);
+  const HRESULT hr = device->GetProperty(DIPROP_PRODUCTNAME, &str.diph);
   if (SUCCEEDED(hr))
   {
     result = StripWhitespace(WStringToUTF8(str.wsz));
@@ -57,8 +57,8 @@ void PopulateDevices(const HWND hwnd)
 {
   if (!s_idi8)
   {
-    HRESULT hr = DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION,
-                                    IID_IDirectInput8, (LPVOID*)&s_idi8, nullptr);
+    const HRESULT hr = DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION,
+                                          IID_IDirectInput8, (LPVOID*)&s_idi8, nullptr);
     if (FAILED(hr))
     {
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "DirectInput8Create failed: {}", Common::HRWrap(hr));

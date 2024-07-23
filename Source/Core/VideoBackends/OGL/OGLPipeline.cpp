@@ -70,7 +70,7 @@ AbstractPipeline::CacheData OGLPipeline::GetCacheData() const
   if (glGetError() != GL_NO_ERROR || data_size == 0)
     return {};
 
-  u32 program_format_u32 = static_cast<u32>(program_format);
+  const u32 program_format_u32 = static_cast<u32>(program_format);
   std::memcpy(&data[0], &program_format_u32, sizeof(u32));
   data.resize(data_size + sizeof(u32));
   m_program->binary_retrieved = true;

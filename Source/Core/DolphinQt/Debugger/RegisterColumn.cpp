@@ -70,13 +70,13 @@ void RegisterColumn::SetValue()
     break;
   case RegisterDisplay::Float:
   {
-    float f = text().toFloat(&valid);
+    const float f = text().toFloat(&valid);
     std::memcpy(&value, &f, sizeof(u32));
     break;
   }
   case RegisterDisplay::Double:
   {
-    double f = text().toDouble(&valid);
+    const double f = text().toDouble(&valid);
     std::memcpy(&value, &f, sizeof(u64));
     break;
   }

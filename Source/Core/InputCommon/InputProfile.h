@@ -33,9 +33,9 @@ public:
   void PreviousWiimoteProfileForGame(int controller_index);
 
 private:
-  void CycleProfile(CycleDirection cycle_direction, InputConfig* device_configuration,
+  void CycleProfile(CycleDirection cycle_direction, const InputConfig* device_configuration,
                     int& profile_index, int controller_index);
-  void CycleProfileForGame(CycleDirection cycle_direction, InputConfig* device_configuration,
+  void CycleProfileForGame(CycleDirection cycle_direction, const InputConfig* device_configuration,
                            int& profile_index, const std::string& setting, int controller_index);
   std::vector<std::string> GetProfilesForDevice(const InputConfig* device_configuration);
   std::string GetProfile(CycleDirection cycle_direction, int& profile_index,
@@ -45,7 +45,7 @@ private:
                                                           const InputConfig* device_configuration);
   void UpdateToProfile(const std::string& profile_filename,
                        ControllerEmu::EmulatedController* controller,
-                       InputConfig* device_configuration);
+                       const InputConfig* device_configuration);
   std::string GetWiimoteInputProfilesForGame(int controller_index);
 
   int m_wiimote_profile_index = 0;

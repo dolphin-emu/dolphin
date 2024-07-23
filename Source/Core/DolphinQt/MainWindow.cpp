@@ -165,7 +165,7 @@ static void InstallSignalHandler()
 static WindowSystemType GetWindowSystemType()
 {
   // Determine WSI type based on Qt platform.
-  QString platform_name = QGuiApplication::platformName();
+  const QString platform_name = QGuiApplication::platformName();
   if (platform_name == QStringLiteral("windows"))
     return WindowSystemType::Windows;
   else if (platform_name == QStringLiteral("cocoa"))
@@ -426,7 +426,7 @@ void MainWindow::InitCoreCallbacks()
   m_render_widget->installEventFilter(this);
 
   // Handle file open events
-  auto* filter = new FileOpenEventFilter(QGuiApplication::instance());
+  const auto* filter = new FileOpenEventFilter(QGuiApplication::instance());
   connect(filter, &FileOpenEventFilter::fileOpened, this, [this](const QString& file_name) {
     StartGame(BootParameters::GenerateFromFile(file_name.toStdString()));
   });
@@ -654,7 +654,7 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::OnConnectWiiRemote);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
     auto& movie = Core::System::GetInstance().GetMovie();
-    bool read_only = !movie.IsReadOnly();
+    const bool read_only = !movie.IsReadOnly();
     movie.SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
@@ -803,7 +803,7 @@ QStringList MainWindow::PromptFileNames()
 
 void MainWindow::ChangeDisc()
 {
-  std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
+  const std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
 
   if (paths.empty())
     return;
@@ -820,15 +820,15 @@ void MainWindow::EjectDisc()
 
 void MainWindow::OpenUserFolder()
 {
-  std::string path = File::GetUserPath(D_USER_IDX);
+  const std::string path = File::GetUserPath(D_USER_IDX);
 
-  QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
+  const QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
   QDesktopServices::openUrl(url);
 }
 
 void MainWindow::Open()
 {
-  QStringList files = PromptFileNames();
+  const QStringList files = PromptFileNames();
   if (!files.isEmpty())
     StartGame(StringListToStdVector(files));
 }
@@ -846,7 +846,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   }
   else
   {
-    std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
+    const std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
       StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
@@ -946,7 +946,7 @@ bool MainWindow::RequestStop()
     const Core::State state = GetState(Core::System::GetInstance());
 
     // Only pause the game, if NetPlay is not running
-    bool pause = !Settings::Instance().GetNetPlayClient();
+    const bool pause = !Settings::Instance().GetNetPlayClient();
 
     if (pause)
       SetState(Core::System::GetInstance(), Core::State::Paused);
@@ -961,7 +961,7 @@ bool MainWindow::RequestStop()
     // This is to avoid any "race conditions" between the "Window Activate" message and the
     // message box returning, which could break cursor locking depending on the order
     m_render_widget->SetWaitingForMessageBox(true);
-    auto confirm = ModalMessageBox::question(
+    const auto confirm = ModalMessageBox::question(
         confirm_parent, tr("Confirm"),
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
@@ -1025,7 +1025,7 @@ void MainWindow::ForceStop()
 
 void MainWindow::Reset()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
   if (movie.IsRecordingInput())
     movie.SetReset(true);
@@ -1042,7 +1042,7 @@ void MainWindow::FullScreen()
   // If the render widget is fullscreen we want to reset it to whatever is in
   // settings. If it's set to be fullscreen then it just remakes the window,
   // which probably isn't ideal.
-  bool was_fullscreen = m_render_widget->isFullScreen();
+  const bool was_fullscreen = m_render_widget->isFullScreen();
 
   if (!was_fullscreen)
     m_render_widget_geometry = m_render_widget->saveGeometry();
@@ -1074,7 +1074,7 @@ void MainWindow::ScreenShot()
 void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
                                                std::unique_ptr<BootSessionData> boot_session_data)
 {
-  auto second_game = m_game_list->FindSecondDisc(game);
+  const auto second_game = m_game_list->FindSecondDisc(game);
 
   std::vector paths = {game.GetFilePath()};
   if (second_game != nullptr)
@@ -1094,7 +1094,7 @@ void MainWindow::StartGame(const std::string& path, const ScanForSecondDisc scan
 {
   if (scan == ScanForSecondDisc::Yes)
   {
-    std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
+    const std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
     if (game != nullptr)
     {
       ScanForSecondDiscAndStartGame(*game, std::move(boot_session_data));
@@ -1418,10 +1418,10 @@ void MainWindow::ShowInfinityBase()
 
 void MainWindow::StateLoad()
 {
-  QString dialog_path = (Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
+  const QString dialog_path = (Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
                             QDir::currentPath() :
                             QString::fromStdString(Get(Config::MAIN_CURRENT_STATE_PATH));
-  QString path = DolphinFileDialog::getOpenFileName(
+  const QString path = DolphinFileDialog::getOpenFileName(
       this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
   SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
@@ -1430,10 +1430,10 @@ void MainWindow::StateLoad()
 
 void MainWindow::StateSave()
 {
-  QString dialog_path = (Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
+  const QString dialog_path = (Get(Config::MAIN_CURRENT_STATE_PATH).empty()) ?
                             QDir::currentPath() :
                             QString::fromStdString(Get(Config::MAIN_CURRENT_STATE_PATH));
-  QString path = DolphinFileDialog::getSaveFileName(
+  const QString path = DolphinFileDialog::getSaveFileName(
       this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
   SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
@@ -1563,7 +1563,7 @@ bool MainWindow::NetPlayJoin()
     return false;
   }
 
-  auto server = Settings::Instance().GetNetPlayServer();
+  const auto server = Settings::Instance().GetNetPlayServer();
 
   // Settings
   const std::string traversal_choice = Get(Config::NETPLAY_TRAVERSAL_CHOICE);
@@ -1775,7 +1775,7 @@ QSize MainWindow::sizeHint() const
 #ifdef _WIN32
 bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
 {
-  auto* msg = reinterpret_cast<MSG*>(message);
+  const auto* msg = reinterpret_cast<MSG*>(message);
   if (msg && msg->message == WM_SETTINGCHANGE && msg->lParam != NULL &&
       std::wstring_view(L"ImmersiveColorSet")
               .compare(reinterpret_cast<const wchar_t*>(msg->lParam)) == 0)
@@ -1809,7 +1809,7 @@ void MainWindow::OnBootGameCubeIPL(const DiscIO::Region region)
 
 void MainWindow::OnImportNANDBackup()
 {
-  auto response = ModalMessageBox::question(
+  const auto response = ModalMessageBox::question(
       this, tr("Question"),
       tr("Merging a new NAND over your currently selected NAND will overwrite any channels "
          "and savegames that already exist. This process is not reversible, so it is "
@@ -1819,10 +1819,10 @@ void MainWindow::OnImportNANDBackup()
   if (response == QMessageBox::No)
     return;
 
-  QString file =
-      DolphinFileDialog::getOpenFileName(this, tr("Select NAND Backup"), QDir::currentPath(),
-                                         tr("BootMii NAND backup file (*.bin);;"
-                                            "All Files (*)"));
+  const QString file = DolphinFileDialog::getOpenFileName(this, tr("Select NAND Backup"),
+                                                          QDir::currentPath(), tr(
+                                                              "BootMii NAND backup file (*.bin);;"
+                                                              "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1835,7 +1835,7 @@ void MainWindow::OnImportNANDBackup()
 
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-  std::future<void> result = std::async(std::launch::async, [&] {
+  const std::future<void> result = std::async(std::launch::async, [&] {
     DiscIO::NANDImporter().ImportNANDBin(
         file.toStdString(),
         [&dialog, beginning] {
@@ -1844,7 +1844,7 @@ void MainWindow::OnImportNANDBackup()
                   .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
         },
         [this] {
-          std::optional<std::string> keys_file = RunOnObject(this, [this] {
+          const std::optional<std::string> keys_file = RunOnObject(this, [this] {
             return DolphinFileDialog::getOpenFileName(
                        this, tr("Select Keys File (OTP/SEEPROM Dump)"), QDir::currentPath(),
                        tr("BootMii keys file (*.bin);;"
@@ -1868,7 +1868,7 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = DolphinFileDialog::getOpenFileName(
+  const QString dtm_file = DolphinFileDialog::getOpenFileName(
       this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
@@ -1947,7 +1947,7 @@ void MainWindow::OnExportRecording()
   auto& system = Core::System::GetInstance();
   const Core::CPUThreadGuard guard(system);
 
-  QString dtm_file = DolphinFileDialog::getSaveFileName(
+  const QString dtm_file = DolphinFileDialog::getSaveFileName(
       this, tr("Save Recording File As"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
   if (!dtm_file.isEmpty())
     system.GetMovie().SaveRecording(dtm_file.toStdString());
@@ -1961,7 +1961,7 @@ void MainWindow::OnActivateChat()
 
 void MainWindow::OnRequestGolfControl()
 {
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (client)
     client->RequestGolfControl();
 }
@@ -2058,7 +2058,7 @@ void MainWindow::ShowCheatsManager() const
 
 void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
 {
-  auto second_game = m_game_list->FindSecondDisc(game);
+  const auto second_game = m_game_list->FindSecondDisc(game);
   std::vector paths = {game.GetFilePath()};
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
@@ -2068,7 +2068,7 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
   if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
     return;
 
-  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
+  const auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
   RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
                           disc.volume->GetDiscNumber(), game.GetFilePath(), this);
   SetQWidgetWindowDecorations(&w);

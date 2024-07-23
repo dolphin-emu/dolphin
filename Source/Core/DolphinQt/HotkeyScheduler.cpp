@@ -265,7 +265,7 @@ void HotkeyScheduler::Run()
         emit ToggleReadOnlyMode();
 
       // Wiimote
-      if (auto bt = WiiUtils::GetBluetoothRealDevice())
+      if (const auto bt = WiiUtils::GetBluetoothRealDevice())
         bt->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
 
       if (Config::IsDebuggingEnabled())

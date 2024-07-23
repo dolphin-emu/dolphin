@@ -25,7 +25,7 @@ void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBl
     // If we're going to link with the next block, there is no need
     // to emit JMP. So just NOP out the gap to the next block.
     // Support up to 3 additional bytes because of alignment.
-    s64 offset = address - location;
+    const s64 offset = address - location;
     if (offset > 0 && offset <= 5 + 3)
     {
       Gen::XEmitter emit(location, location + offset);

@@ -162,7 +162,7 @@ static std::string GetPlatformID()
 
 static std::string GetUpdateServerUrl()
 {
-  auto server_url = std::getenv("DOLPHIN_UPDATE_SERVER_URL");
+  const auto server_url = std::getenv("DOLPHIN_UPDATE_SERVER_URL");
   if (server_url)
     return server_url;
   return "https://dolphin-emu.org";

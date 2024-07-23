@@ -114,7 +114,7 @@ DXGI_FORMAT VarToD3D(const ComponentFormat t, const int size, const bool integer
       }),
   };
 
-  DXGI_FORMAT retval =
+  const DXGI_FORMAT retval =
       integer ? d3d_integer_format_lookup[size - 1][t] : d3d_float_format_lookup[size - 1][t];
   if (retval == DXGI_FORMAT_UNKNOWN)
   {
@@ -156,8 +156,8 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, cons
   if (layout)
     return layout;
 
-  HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
-                                              vs_bytecode_size, &layout);
+  const HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
+                                                    vs_bytecode_size, &layout);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create input layout: {}", DX11HRWrap(hr));
 
   // This method can be called from multiple threads, so ensure that only one thread sets the

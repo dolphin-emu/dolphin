@@ -118,7 +118,7 @@ static bool InitUPnP()
 // --
 static bool UnmapPort(const u16 port)
 {
-  std::string port_str = std::to_string(port);
+  const std::string port_str = std::to_string(port);
   UPNP_DeletePortMapping(s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), "UDP",
                          nullptr);
 
@@ -132,8 +132,8 @@ static bool MapPort(const char* addr, const u16 port)
   if (s_mapped > 0)
     UnmapPort(s_mapped);
 
-  std::string port_str = std::to_string(port);
-  int result = UPNP_AddPortMapping(
+  const std::string port_str = std::to_string(port);
+  const int result = UPNP_AddPortMapping(
       s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), port_str.c_str(), addr,
       (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr, nullptr);
 

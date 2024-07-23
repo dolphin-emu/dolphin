@@ -186,7 +186,7 @@ void ARCodeWidget::OnSelectionChanged() const
 
   const auto* selected = items[0];
 
-  bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
+  const bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
 
   m_code_remove->setEnabled(user_defined);
   m_code_edit->setText(user_defined ? tr("&Edit Code...") : tr("Clone and &Edit Code..."));

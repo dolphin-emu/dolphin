@@ -466,7 +466,7 @@ std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
                   index);
     index = 0;
   }
-  auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
+  const auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
 
   std::array<u8, 16> key;
   iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),

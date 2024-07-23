@@ -351,8 +351,8 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
   // SetState must be called on the host thread, so we defer it for later.
-  QueueHostJob([force_paused](System& system) {
-    bool paused = SConfig::GetInstance().bBootToPause || force_paused;
+  QueueHostJob([force_paused](const System& system) {
+    const bool paused = SConfig::GetInstance().bBootToPause || force_paused;
     SetState(system, paused ? State::Paused : State::Running, true, true);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
@@ -409,7 +409,7 @@ static void CpuThread(System& system, const std::optional<std::string>& savestat
     else
 #endif
     {
-      int gdb_port = Get(Config::MAIN_GDB_PORT);
+      const int gdb_port = Get(Config::MAIN_GDB_PORT);
       if (gdb_port > 0 && !AchievementManager::GetInstance().IsHardcoreModeActive())
       {
         GDBStub::Init(gdb_port);
@@ -451,7 +451,7 @@ static void FifoPlayerThread(const System& system, const std::optional<std::stri
     Common::SetCurrentThreadName("FIFO-GPU thread");
 
   // Enter CPU run loop. When we leave it - we are done.
-  if (auto cpu_core = system.GetFifoPlayer().GetCPUCore())
+  if (const auto cpu_core = system.GetFifoPlayer().GetCPUCore())
   {
     system.GetPowerPC().InjectExternalCPUCore(cpu_core.get());
 
@@ -569,7 +569,7 @@ static void EmuThread(System& system, std::unique_ptr<BootParameters> boot,
     PatchEngine::Shutdown();
     HLE::Clear();
 
-    CPUThreadGuard guard(system);
+    const CPUThreadGuard guard(system);
     system.GetPowerPC().GetDebugInterface().Clear(guard);
   }};
 
@@ -693,7 +693,7 @@ static void EmuThread(System& system, std::unique_ptr<BootParameters> boot,
 
 // Set or get the running state
 
-void SetState(System& system, const State state, const bool report_state_change,
+void SetState(const System& system, const State state, const bool report_state_change,
               const bool initial_execution_state)
 {
   // State cannot be controlled until the CPU Thread is operational
@@ -880,7 +880,7 @@ void Callback_FramePresented(const double actual_emulation_speed)
 }
 
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
-void Callback_NewField(System& system)
+void Callback_NewField(const System& system)
 {
   if (s_frame_step)
   {
@@ -974,7 +974,7 @@ void UpdateWantDeterminism(System& system, const bool initial)
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
-  bool new_want_determinism = system.GetMovie().IsMovieActive() || NetPlay::IsNetPlayRunning();
+  const bool new_want_determinism = system.GetMovie().IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != s_wants_determinism || initial)
   {
     NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
@@ -1034,7 +1034,7 @@ void HostDispatchJobs(System& system)
 }
 
 // NOTE: Host Thread
-void DoFrameStep(System& system)
+void DoFrameStep(const System& system)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
   {

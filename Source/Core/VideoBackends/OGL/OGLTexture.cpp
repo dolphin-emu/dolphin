@@ -139,7 +139,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, const std::string_view n
 
   glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, m_config.levels - 1);
 
-  GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, true);
+  const GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, true);
   if (g_ogl_config.bSupportsTextureStorage && m_config.type == AbstractTextureType::Texture_CubeMap)
   {
     glTexStorage2D(target, m_config.levels, gl_internal_format, m_config.width, m_config.height);
@@ -300,7 +300,7 @@ void OGLTexture::Load(const u32 level, const u32 width, const u32 height, const 
   if (row_length != width)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 
-  GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, false);
+  const GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, false);
   if (IsCompressedFormat(m_config.format))
   {
     if (m_config.type == AbstractTextureType::Texture_CubeMap)
@@ -350,8 +350,8 @@ void OGLTexture::Load(const u32 level, const u32 width, const u32 height, const 
   }
   else
   {
-    GLenum gl_format = GetGLFormatForTextureFormat(m_config.format);
-    GLenum gl_type = GetGLTypeForTextureFormat(m_config.format);
+    const GLenum gl_format = GetGLFormatForTextureFormat(m_config.format);
+    const GLenum gl_type = GetGLTypeForTextureFormat(m_config.format);
     if (m_config.type == AbstractTextureType::Texture_CubeMap)
     {
       if (g_ogl_config.bSupportsTextureStorage)
@@ -431,9 +431,9 @@ OGLStagingTexture::~OGLStagingTexture()
 std::unique_ptr<OGLStagingTexture> OGLStagingTexture::Create(const StagingTextureType type,
                                                              const TextureConfig& config)
 {
-  size_t stride = config.GetStride();
-  size_t buffer_size = stride * config.height;
-  GLenum target =
+  const size_t stride = config.GetStride();
+  const size_t buffer_size = stride * config.height;
+  const GLenum target =
       type == StagingTextureType::Readback ? GL_PIXEL_PACK_BUFFER : GL_PIXEL_UNPACK_BUFFER;
   GLuint buffer;
   glGenBuffers(1, &buffer);
@@ -712,9 +712,9 @@ OGLFramebuffer::Create(OGLTexture* color_attachment, OGLTexture* depth_attachmen
 
   if (depth_attachment)
   {
-    GLenum attachment = AbstractTexture::IsStencilFormat(depth_format) ?
-                            GL_DEPTH_STENCIL_ATTACHMENT :
-                            GL_DEPTH_ATTACHMENT;
+    const GLenum attachment = AbstractTexture::IsStencilFormat(depth_format) ?
+                                GL_DEPTH_STENCIL_ATTACHMENT :
+                                GL_DEPTH_ATTACHMENT;
     if (depth_attachment->GetConfig().layers > 1)
     {
       glFramebufferTexture(GL_FRAMEBUFFER, attachment, depth_attachment->GetGLTextureId(), 0);
@@ -729,7 +729,7 @@ OGLFramebuffer::Create(OGLTexture* color_attachment, OGLTexture* depth_attachmen
   for (std::size_t i = 0; i < additional_color_attachments.size(); i++)
   {
     const auto attachment_enum = static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i + 1);
-    OGLTexture* attachment = static_cast<OGLTexture*>(additional_color_attachments[i]);
+    const OGLTexture* attachment = static_cast<OGLTexture*>(additional_color_attachments[i]);
     if (attachment->GetConfig().layers > 1)
     {
       glFramebufferTexture(GL_FRAMEBUFFER, attachment_enum, attachment->GetGLTextureId(), 0);

@@ -56,10 +56,10 @@ constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
 
 bool Load(Core::System& system)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard(system);
+  const Core::CPUThreadGuard guard(system);
 
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   memory.Write_U32(0x09142001, 0x3180);

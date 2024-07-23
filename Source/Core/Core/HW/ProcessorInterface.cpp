@@ -114,7 +114,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base
                  }));
 
   mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](const Core::System& system, u32) {
-                   auto& processor_interface = system.GetProcessorInterface();
+                   const auto& processor_interface = system.GetProcessorInterface();
                    DEBUG_LOG_FMT(PROCESSORINTERFACE, "Read PI_RESET_CODE: {:08x}",
                                  processor_interface.m_reset_code);
                    return processor_interface.m_reset_code;
@@ -236,7 +236,7 @@ void ProcessorInterfaceManager::IOSNotifyResetButtonCallback(const Core::System&
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->ResetButton();
 }
@@ -248,7 +248,7 @@ void ProcessorInterfaceManager::IOSNotifyPowerButtonCallback(const Core::System&
   if (!ios)
     return;
 
-  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->PowerButton();
 }

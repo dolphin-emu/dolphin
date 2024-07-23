@@ -33,7 +33,7 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   //    - The Beatles: Rock Band (saving doesn't work)
 
   // Check if the file has already been opened.
-  auto search = m_open_files.find(host_path);
+  const auto search = m_open_files.find(host_path);
   if (search != m_open_files.end())
   {
     // Lock a shared pointer to use.

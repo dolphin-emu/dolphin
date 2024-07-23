@@ -183,7 +183,7 @@ void PerfQuery::ReadbackQueries(const bool blocking)
   u32 readback_count = 0;
   for (u32 i = 0; i < outstanding_queries; i++)
   {
-    u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
+    const u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
     const ActiveQuery& entry = m_query_buffer[index];
     if (!entry.resolved)
       break;
@@ -223,7 +223,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(const u32 query_count)
   const D3D12_RANGE read_range = {m_query_readback_pos * sizeof(PerfQueryDataType),
                                   (m_query_readback_pos + query_count) * sizeof(PerfQueryDataType)};
   u8* mapped_ptr;
-  HRESULT hr = m_query_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_ptr));
+  const HRESULT hr = m_query_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_ptr));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map query readback buffer: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return;
@@ -231,7 +231,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(const u32 query_count)
   // Remove pending queries.
   for (u32 i = 0; i < query_count; i++)
   {
-    u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
+    const u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
     ActiveQuery& entry = m_query_buffer[index];
 
     // Should have a fence associated with it (waiting for a result).

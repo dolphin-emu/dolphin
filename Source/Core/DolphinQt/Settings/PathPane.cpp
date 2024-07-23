@@ -35,7 +35,7 @@ PathPane::PathPane(QWidget* parent) : QWidget(parent)
 
 void PathPane::Browse()
 {
-  QString dir = QDir::toNativeSeparators(
+  const QString dir = QDir::toNativeSeparators(
       DolphinFileDialog::getExistingDirectory(this, tr("Select a Directory"), QDir::currentPath()));
   if (!dir.isEmpty())
     Settings::Instance().AddPath(dir);
@@ -43,7 +43,7 @@ void PathPane::Browse()
 
 void PathPane::BrowseDefaultGame()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
+  const QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
       QStringLiteral("%1 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz "
                      "hif_000000.nfs *.wad *.m3u *.json);;%2 (*)")
@@ -56,7 +56,7 @@ void PathPane::BrowseDefaultGame()
 
 void PathPane::BrowseWiiNAND()
 {
-  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+  const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Wii NAND Root"), QString::fromStdString(Get(Config::MAIN_FS_PATH))));
   if (!dir.isEmpty())
   {
@@ -67,7 +67,7 @@ void PathPane::BrowseWiiNAND()
 
 void PathPane::BrowseDump()
 {
-  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+  const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Dump Path"), QString::fromStdString(Get(Config::MAIN_DUMP_PATH))));
   if (!dir.isEmpty())
   {
@@ -78,7 +78,7 @@ void PathPane::BrowseDump()
 
 void PathPane::BrowseLoad()
 {
-  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+  const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Load Path"), QString::fromStdString(Get(Config::MAIN_LOAD_PATH))));
   if (!dir.isEmpty())
   {
@@ -89,7 +89,7 @@ void PathPane::BrowseLoad()
 
 void PathPane::BrowseResourcePack()
 {
-  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+  const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Resource Pack Path"),
       QString::fromStdString(Get(Config::MAIN_RESOURCEPACK_PATH))));
   if (!dir.isEmpty())
@@ -127,7 +127,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
           [this](const QString& dir) { m_path_list->addItem(dir); });
   connect(&Settings::Instance(), &Settings::PathRemoved, this, [this](const QString& dir) {
     auto items = m_path_list->findItems(dir, Qt::MatchExactly);
-    for (auto& item : items)
+    for (const auto& item : items)
       delete item;
   });
   connect(m_path_list, &QListWidget::itemSelectionChanged, this,
@@ -237,7 +237,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
 void PathPane::RemovePath() const
 {
-  auto item = m_path_list->currentItem();
+  const auto item = m_path_list->currentItem();
   if (!item)
     return;
   Settings::Instance().RemovePath(item->text());

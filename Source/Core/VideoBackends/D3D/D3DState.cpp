@@ -308,7 +308,7 @@ StateCache::~StateCache() = default;
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
   std::lock_guard guard(m_lock);
-  auto it = m_sampler.find(state);
+  const auto it = m_sampler.find(state);
   if (it != m_sampler.end())
     return it->second.Get();
 
@@ -351,7 +351,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   }
 
   ComPtr<ID3D11SamplerState> res;
-  HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D sampler state failed: {}", DX11HRWrap(hr));
   return m_sampler.emplace(state, std::move(res)).first->second.Get();
 }
@@ -359,7 +359,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 ID3D11BlendState* StateCache::Get(BlendingState state)
 {
   std::lock_guard guard(m_lock);
-  auto it = m_blend.find(state.hex);
+  const auto it = m_blend.find(state.hex);
   if (it != m_blend.end())
     return it->second.Get();
 
@@ -385,7 +385,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     tdesc.LogicOp = logic_ops[static_cast<u32>(state.logicmode.Value())];
 
     ComPtr<ID3D11BlendState1> res;
-    HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
+    const HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
     if (SUCCEEDED(hr))
     {
       return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
@@ -428,7 +428,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
   ComPtr<ID3D11BlendState> res;
-  HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D blend state failed: {}", DX11HRWrap(hr));
   return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
 }
@@ -436,7 +436,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
 ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 {
   std::lock_guard guard(m_lock);
-  auto it = m_raster.find(state.hex);
+  const auto it = m_raster.find(state.hex);
   if (it != m_raster.end())
     return it->second.Get();
 
@@ -449,7 +449,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
   desc.ScissorEnable = TRUE;
 
   ComPtr<ID3D11RasterizerState> res;
-  HRESULT hr = D3D::device->CreateRasterizerState(&desc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateRasterizerState(&desc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D rasterizer state failed: {}", DX11HRWrap(hr));
   return m_raster.emplace(state.hex, std::move(res)).first->second.Get();
 }
@@ -457,7 +457,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 ID3D11DepthStencilState* StateCache::Get(DepthState state)
 {
   std::lock_guard guard(m_lock);
-  auto it = m_depth.find(state.hex);
+  const auto it = m_depth.find(state.hex);
   if (it != m_depth.end())
     return it->second.Get();
 
@@ -491,7 +491,7 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   }
 
   ComPtr<ID3D11DepthStencilState> res;
-  HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, res.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D depth stencil state failed: {}", DX11HRWrap(hr));
   return m_depth.emplace(state.hex, std::move(res)).first->second.Get();
 }

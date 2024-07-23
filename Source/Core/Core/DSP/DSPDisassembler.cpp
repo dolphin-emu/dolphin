@@ -34,7 +34,7 @@ bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& tex
 
   for (u16 pc = 0; pc < code.size();)
   {
-    bool failed = !DisassembleOpcode(code, &pc, text);
+    const bool failed = !DisassembleOpcode(code, &pc, text);
     text.append("\n");
     if (failed)
       return false;

@@ -94,7 +94,7 @@ private:
   static void AudioDMACallback(const Core::System& system, u64 userdata, s64 cycles_late);
   static void IPC_HLE_UpdateCallback(const Core::System& system, u64 userdata, s64 cycles_late);
   static void GPUSleepCallback(const Core::System& system, u64 userdata, s64 cycles_late);
-  static void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void PerfTrackerCallback(const Core::System& system, u64 userdata, s64 cycles_late);
   static void VICallback(const Core::System& system, u64 userdata, s64 cycles_late);
   static void DecrementerCallback(const Core::System& system, u64 userdata, s64 cycles_late);
   static void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late);

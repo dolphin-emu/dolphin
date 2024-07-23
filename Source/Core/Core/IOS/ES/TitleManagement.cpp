@@ -99,8 +99,8 @@ IPCReply ESDevice::ImportTicket(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(3, 0))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::vector<u8> bytes(request.in_vectors[0].size);
   memory.CopyFromEmu(bytes.data(), request.in_vectors[0].address, request.in_vectors[0].size);
@@ -129,7 +129,7 @@ static ReturnCode InitBackupKey(const u64 tid, const u32 title_flags, IOSC& iosc
   }
 
   // Otherwise, use a null key.
-  ReturnCode ret =
+  const ReturnCode ret =
       iosc.CreateObject(key, IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128, PID_ES);
   return ret == IPC_SUCCESS ? iosc.ImportSecretKey(*key, NULL_KEY.data(), PID_ES) : ret;
 }
@@ -195,8 +195,8 @@ IPCReply ESDevice::ImportTmd(Context& context, const IOCtlVRequest& request) con
   if (!ES::IsValidTMDSize(request.in_vectors[0].size))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   memory.CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
@@ -207,7 +207,7 @@ IPCReply ESDevice::ImportTmd(Context& context, const IOCtlVRequest& request) con
 static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& iosc,
                                      IOSC::Handle* handle)
 {
-  ReturnCode ret =
+  const ReturnCode ret =
       iosc.CreateObject(handle, IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
@@ -285,8 +285,8 @@ IPCReply ESDevice::ImportTitleInit(Context& context, const IOCtlVRequest& reques
   if (!ES::IsValidTMDSize(request.in_vectors[0].size))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   memory.CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
@@ -343,11 +343,11 @@ IPCReply ESDevice::ImportContentBegin(Context& context, const IOCtlVRequest& req
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u64 title_id = memory.Read_U64(request.in_vectors[0].address);
-  u32 content_id = memory.Read_U32(request.in_vectors[1].address);
+  const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
+  const u32 content_id = memory.Read_U32(request.in_vectors[1].address);
   return IPCReply(m_core.ImportContentBegin(context, title_id, content_id));
 }
 
@@ -365,12 +365,12 @@ IPCReply ESDevice::ImportContentData(Context& context, const IOCtlVRequest& requ
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 content_fd = memory.Read_U32(request.in_vectors[0].address);
-  u32 data_size = request.in_vectors[1].size;
-  u8* data_start = memory.GetPointerForRange(request.in_vectors[1].address, data_size);
+  const u32 content_fd = memory.Read_U32(request.in_vectors[0].address);
+  const u32 data_size = request.in_vectors[1].size;
+  const u8* data_start = memory.GetPointerForRange(request.in_vectors[1].address, data_size);
   return IPCReply(m_core.ImportContentData(context, content_fd, data_start, data_size));
 }
 
@@ -452,10 +452,10 @@ IPCReply ESDevice::ImportContentEnd(Context& context, const IOCtlVRequest& reque
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 content_fd = memory.Read_U32(request.in_vectors[0].address);
+  const u32 content_fd = memory.Read_U32(request.in_vectors[0].address);
   return IPCReply(m_core.ImportContentEnd(context, content_fd));
 }
 
@@ -567,8 +567,8 @@ IPCReply ESDevice::DeleteTitle(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   return IPCReply(m_core.DeleteTitle(title_id));
@@ -628,8 +628,8 @@ IPCReply ESDevice::DeleteTicket(const IOCtlVRequest& request) const
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   return IPCReply(m_core.DeleteTicket(
       memory.GetPointerForRange(request.in_vectors[0].address, sizeof(ES::TicketView))));
 }
@@ -658,8 +658,8 @@ IPCReply ESDevice::DeleteTitleContent(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u64))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   return IPCReply(m_core.DeleteTitleContent(memory.Read_U64(request.in_vectors[0].address)));
 }
 
@@ -689,8 +689,8 @@ IPCReply ESDevice::DeleteContent(const IOCtlVRequest& request) const
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   return IPCReply(m_core.DeleteContent(memory.Read_U64(request.in_vectors[0].address),
                                        memory.Read_U32(request.in_vectors[1].address)));
 }
@@ -729,8 +729,8 @@ IPCReply ESDevice::ExportTitleInit(Context& context, const IOCtlVRequest& reques
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != 8)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const u32 tmd_size = request.io_vectors[0].size;
@@ -778,8 +778,8 @@ IPCReply ESDevice::ExportContentBegin(Context& context, const IOCtlVRequest& req
       request.in_vectors[1].size != 4)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const u32 content_id = memory.Read_U32(request.in_vectors[1].address);
@@ -829,8 +829,8 @@ IPCReply ESDevice::ExportContentData(Context& context, const IOCtlVRequest& requ
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 content_fd = memory.Read_U32(request.in_vectors[0].address);
   const u32 bytes_to_read = request.io_vectors[0].size;
@@ -846,13 +846,13 @@ ReturnCode ESCore::ExportContentEnd(const Context& context, const u32 content_fd
   return static_cast<ReturnCode>(CloseContent(content_fd, 0));
 }
 
-IPCReply ESDevice::ExportContentEnd(Context& context, const IOCtlVRequest& request) const
+IPCReply ESDevice::ExportContentEnd(const Context& context, const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 4)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 content_fd = memory.Read_U32(request.in_vectors[0].address);
   return IPCReply(m_core.ExportContentEnd(context, content_fd));
@@ -912,8 +912,8 @@ IPCReply ESDevice::DeleteSharedContent(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sha1.size())
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   memory.CopyFromEmu(sha1.data(), request.in_vectors[0].address, request.in_vectors[0].size);
   return IPCReply(m_core.DeleteSharedContent(sha1));

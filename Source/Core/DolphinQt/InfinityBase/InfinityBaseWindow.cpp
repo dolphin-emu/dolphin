@@ -133,7 +133,7 @@ void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, const QString& n
 
 void InfinityBaseWindow::ClearFigure(FigureUIPosition slot) const
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   m_edit_figures[static_cast<u8>(slot)]->setText(tr("None"));
 
   system.GetInfinityBase().RemoveFigure(slot);
@@ -186,7 +186,7 @@ void InfinityBaseWindow::LoadFigurePath(FigureUIPosition slot, const QString& pa
     return;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
 
   system.GetInfinityBase().RemoveFigure(slot);
   m_edit_figures[static_cast<u8>(slot)]->setText(QString::fromStdString(
@@ -246,7 +246,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, const FigureUIPosition s
   auto* hbox_idvar = new QHBoxLayout();
   auto* label_id = new QLabel(tr("Figure Number:"));
   auto* edit_num = new QLineEdit(QString::number(first_entry));
-  auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
+  const auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
   edit_num->setValidator(rxv);
   hbox_idvar->addWidget(label_id);
   hbox_idvar->addWidget(edit_num);
@@ -278,7 +278,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, const FigureUIPosition s
 
     QString predef_name = s_last_figure_path;
 
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     const auto found_fig = system.GetInfinityBase().FindFigure(char_number);
     if (!found_fig.empty())
     {
@@ -287,7 +287,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, const FigureUIPosition s
     else
     {
       // i18n: This is used to create a file name. The string must end in ".bin".
-      QString str = tr("Unknown(%1).bin");
+      const QString str = tr("Unknown(%1).bin");
       predef_name += str.arg(char_number);
     }
 

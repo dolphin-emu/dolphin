@@ -22,8 +22,8 @@ namespace USB
 V5CtrlMessage::V5CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : CtrlMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   request_type = memory.Read_U8(ioctlv.in_vectors[0].address + 8);
   request = memory.Read_U8(ioctlv.in_vectors[0].address + 9);
   value = memory.Read_U16(ioctlv.in_vectors[0].address + 10);
@@ -34,8 +34,8 @@ V5CtrlMessage::V5CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V5BulkMessage::V5BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : BulkMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 18);
 }
@@ -43,8 +43,8 @@ V5BulkMessage::V5BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V5IntrMessage::V5IntrMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IntrMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 14);
 }
@@ -52,8 +52,8 @@ V5IntrMessage::V5IntrMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V5IsoMessage::V5IsoMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IsoMessage(ios, ioctlv, ioctlv.GetVector(2)->address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   num_packets = memory.Read_U8(ioctlv.in_vectors[0].address + 16);
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 17);
   packet_sizes_addr = ioctlv.GetVector(1)->address;
@@ -112,8 +112,8 @@ void USBV5ResourceManager::DoState(PointerWrap& p)
 
 USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(const u32 in_buffer)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u8 index = memory.Read_U8(in_buffer + offsetof(DeviceID, index));
   const u16 number = memory.Read_U16(in_buffer + offsetof(DeviceID, number));
 
@@ -150,8 +150,8 @@ IPCReply USBV5ResourceManager::SetAlternateSetting(const USBV5Device& device, co
   if (!host_device->AttachAndChangeInterface(device.interface_number))
     return IPCReply(-1);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u8 alt_setting = memory.Read_U8(request.buffer_in + 2 * sizeof(s32));
 
   const bool success = host_device->SetAltSetting(alt_setting) == 0;
@@ -177,8 +177,8 @@ IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
 
 IPCReply USBV5ResourceManager::SuspendResume(const USBV5Device& device, const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const auto host_device = GetDeviceById(device.host_id);
   const s32 resumed = memory.Read_U32(request.buffer_in + 8);
@@ -252,8 +252,8 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
     return;
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::lock_guard lock{m_usbv5_devices_mutex};
   u8 num_devices = 0;

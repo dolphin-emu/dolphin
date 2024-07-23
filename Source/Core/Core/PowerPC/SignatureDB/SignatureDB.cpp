@@ -91,13 +91,13 @@ bool SignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 start_addr, c
 bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 startAddr, const u32 size,
                           const std::string& name)
 {
-  u32 hash = ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
+  const u32 hash = ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
 
   DBFunc temp_dbfunc;
   temp_dbfunc.size = size;
   temp_dbfunc.name = name;
 
-  FuncDB::iterator iter = m_database.find(hash);
+  const FuncDB::iterator iter = m_database.find(hash);
   if (iter == m_database.end())
   {
     m_database[hash] = temp_dbfunc;
@@ -166,11 +166,11 @@ u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, cons
   u32 sum = 0;
   for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)
   {
-    u32 opcode = PowerPC::MMU::HostRead_Instruction(guard, offset);
-    u32 op = opcode & 0xFC000000;
+    const u32 opcode = PowerPC::MMU::HostRead_Instruction(guard, offset);
+    const u32 op = opcode & 0xFC000000;
     u32 op2 = 0;
     u32 op3 = 0;
-    u32 auxop = op >> 26;
+    const u32 auxop = op >> 26;
     switch (auxop)
     {
     case 4:  // PS instructions

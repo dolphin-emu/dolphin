@@ -62,7 +62,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
   // Check if the double is in the range of valid single subnormal
   SUB(16, R(RSCRATCH), Imm16(874));
   CMP(16, R(RSCRATCH), Imm16(896 - 874));
-  FixupBranch Denormalize = J_CC(CC_NA);
+  const FixupBranch Denormalize = J_CC(CC_NA);
 
   // Don't Denormalize
 
@@ -129,7 +129,7 @@ void CommonAsmRoutines::GenFrsqrte()
   // Negatives, zeros, denormals, infinities and NaNs take the complex path.
   LEA(32, RSCRATCH2, MDisp(RSCRATCH_EXTRA, -1));
   CMP(32, R(RSCRATCH2), Imm32(0x7FE));
-  FixupBranch complex = J_CC(CC_AE, Jump::Near);
+  const FixupBranch complex = J_CC(CC_AE, Jump::Near);
 
   SUB(32, R(RSCRATCH_EXTRA), Imm32(0x3FD));
   SAR(32, R(RSCRATCH_EXTRA), Imm8(1));
@@ -163,15 +163,15 @@ void CommonAsmRoutines::GenFrsqrte()
   SetJumpTarget(complex);
   AND(32, R(RSCRATCH_EXTRA), Imm32(0x7FF));
   CMP(32, R(RSCRATCH_EXTRA), Imm32(0x7FF));
-  FixupBranch nan_or_inf = J_CC(CC_E);
+  const FixupBranch nan_or_inf = J_CC(CC_E);
 
   MOV(64, R(RSCRATCH2), R(RSCRATCH));
   SHL(64, R(RSCRATCH2), Imm8(1));
-  FixupBranch nonzero = J_CC(CC_NZ);
+  const FixupBranch nonzero = J_CC(CC_NZ);
 
   // +0.0 or -0.0
   TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
-  FixupBranch skip_set_fx1 = J_CC(CC_NZ);
+  const FixupBranch skip_set_fx1 = J_CC(CC_NZ);
   OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
   SetJumpTarget(skip_set_fx1);
   MOV(64, R(RSCRATCH2), Imm64(0x7FF0'0000'0000'0000));
@@ -183,23 +183,23 @@ void CommonAsmRoutines::GenFrsqrte()
   SetJumpTarget(nan_or_inf);
   MOV(64, R(RSCRATCH2), R(RSCRATCH));
   SHL(64, R(RSCRATCH2), Imm8(12));
-  FixupBranch inf = J_CC(CC_Z);
+  const FixupBranch inf = J_CC(CC_Z);
   BTS(64, R(RSCRATCH), Imm8(51));
   MOVQ_xmm(XMM0, R(RSCRATCH));
   RET();
   SetJumpTarget(inf);
   TEST(64, R(RSCRATCH), R(RSCRATCH));
-  FixupBranch negative = J_CC(CC_S);
+  const FixupBranch negative = J_CC(CC_S);
   XORPD(XMM0, R(XMM0));
   RET();
 
   SetJumpTarget(nonzero);
-  FixupBranch denormal = J_CC(CC_NC);
+  const FixupBranch denormal = J_CC(CC_NC);
 
   // Negative sign
   SetJumpTarget(negative);
   TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_VXSQRT));
-  FixupBranch skip_set_fx2 = J_CC(CC_NZ);
+  const FixupBranch skip_set_fx2 = J_CC(CC_NZ);
   OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_VXSQRT));
   SetJumpTarget(skip_set_fx2);
   MOV(64, R(RSCRATCH2), Imm64(0x7FF8'0000'0000'0000));
@@ -225,7 +225,7 @@ void CommonAsmRoutines::GenFres()
 
   // Zero inputs set an exception and take the complex path.
   TEST(64, R(RSCRATCH), R(RSCRATCH));
-  FixupBranch zero = J_CC(CC_Z);
+  const FixupBranch zero = J_CC(CC_Z);
 
   MOV(64, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHR(64, R(RSCRATCH_EXTRA), Imm8(52));
@@ -235,7 +235,7 @@ void CommonAsmRoutines::GenFres()
   SUB(32, R(RSCRATCH_EXTRA), Imm32(895));
   CMP(32, R(RSCRATCH_EXTRA), Imm32(1149 - 895));
   // Take the complex path for very large/small exponents.
-  FixupBranch complex = J_CC(CC_AE);  // if (exp < 895 || exp >= 1149)
+  const FixupBranch complex = J_CC(CC_AE);  // if (exp < 895 || exp >= 1149)
 
   SUB(32, R(RSCRATCH_EXTRA), Imm32(0x7FD - 895));
   NEG(32, R(RSCRATCH_EXTRA));
@@ -273,7 +273,7 @@ void CommonAsmRoutines::GenFres()
   // Exception flags for zero input.
   SetJumpTarget(zero);
   TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
-  FixupBranch skip_set_fx1 = J_CC(CC_NZ);
+  const FixupBranch skip_set_fx1 = J_CC(CC_NZ);
   OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
   SetJumpTarget(skip_set_fx1);
 
@@ -293,9 +293,9 @@ void CommonAsmRoutines::GenMfcr()
   // Input: none
   // Output: RSCRATCH
   // This function clobbers all three RSCRATCH.
-  X64Reg dst = RSCRATCH;
-  X64Reg tmp = RSCRATCH2;
-  X64Reg cr_val = RSCRATCH_EXTRA;
+  const X64Reg dst = RSCRATCH;
+  const X64Reg tmp = RSCRATCH2;
+  const X64Reg cr_val = RSCRATCH_EXTRA;
   XOR(32, R(dst), R(dst));
   // Upper bits of tmp need to be zeroed.
   XOR(32, R(tmp), R(tmp));
@@ -410,8 +410,8 @@ void QuantizedMemoryRoutines::GenQuantizedStore(const bool single, const EQuanti
 {
   // In: one or two single floats in XMM0, if quantize is -1, a quantization factor in RSCRATCH2
 
-  int size = sizes[type] * (single ? 1 : 2);
-  bool isInline = quantize != -1;
+  const int size = sizes[type] * (single ? 1 : 2);
+  const bool isInline = quantize != -1;
 
   // illegal
   if (type == QUANTIZE_INVALID1 || type == QUANTIZE_INVALID2 || type == QUANTIZE_INVALID3)
@@ -478,7 +478,7 @@ void QuantizedMemoryRoutines::GenQuantizedStore(const bool single, const EQuanti
       MULPS(XMM0, R(XMM1));
     }
 
-    bool hasPACKUSDW = cpu_info.bSSE4_1;
+    const bool hasPACKUSDW = cpu_info.bSSE4_1;
 
     // Special case: if we don't have PACKUSDW we need to clamp to zero as well so the shuffle
     // below can work
@@ -572,8 +572,8 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(const bool single, const EQuantiz
   // time. The methods generated AOT assume that the quantize flag is placed in RSCRATCH in
   // the second lowest byte, ie: 0x0000xx00
 
-  int size = sizes[type] * (single ? 1 : 2);
-  bool isInline = quantize != -1;
+  const int size = sizes[type] * (single ? 1 : 2);
+  const bool isInline = quantize != -1;
 
   // illegal
   if (type == QUANTIZE_INVALID1 || type == QUANTIZE_INVALID2 || type == QUANTIZE_INVALID3)
@@ -589,12 +589,12 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(const bool single, const EQuantiz
     return;
   }
 
-  bool extend = single && (type == QUANTIZE_S8 || type == QUANTIZE_S16);
+  const bool extend = single && (type == QUANTIZE_S8 || type == QUANTIZE_S16);
 
-  BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
-  int flags = isInline ? 0 :
-                         SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
-                             SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
+  const BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
+  const int flags = isInline ? 0 :
+                      SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
+                      SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
   SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
   if (!single && (type == QUANTIZE_U8 || type == QUANTIZE_S8))
   {
@@ -696,13 +696,13 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(const bool single, const EQuantiz
 
 void QuantizedMemoryRoutines::GenQuantizedLoadFloat(const bool single, const bool isInline)
 {
-  int size = single ? 32 : 64;
-  bool extend = false;
+  const int size = single ? 32 : 64;
+  const bool extend = false;
 
-  BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
-  int flags = isInline ? 0 :
-                         SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
-                             SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
+  const BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
+  const int flags = isInline ? 0 :
+                      SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
+                      SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
   SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
 
   if (single)

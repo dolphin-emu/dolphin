@@ -104,7 +104,7 @@ void NewPatchDialog::AddEntry()
 static u32 OnTextEdited(QLineEdit* edit, const QString& text)
 {
   bool okay = false;
-  u32 value = text.toUInt(&okay, 16);
+  const u32 value = text.toUInt(&okay, 16);
 
   QFont font;
   QPalette palette;

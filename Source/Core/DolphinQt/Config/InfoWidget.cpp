@@ -48,7 +48,7 @@ QGroupBox* InfoWidget::CreateFileDetails()
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  QString path = QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath()));
+  const QString path = QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath()));
   layout->addRow(tr("Path:"), CreateValueDisplay(path));
 
   const std::string file_size = UICommon::FormatSize(m_game.GetFileSize());
@@ -91,8 +91,8 @@ QGroupBox* InfoWidget::CreateGameDetails()
 
   const QString game_name = QString::fromStdString(m_game.GetInternalName());
 
-  bool is_disc_based = m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc ||
-                       m_game.GetPlatform() == DiscIO::Platform::WiiDisc;
+  const bool is_disc_based = m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc ||
+                             m_game.GetPlatform() == DiscIO::Platform::WiiDisc;
 
   QLineEdit* internal_name =
       CreateValueDisplay(is_disc_based ? tr("%1 (Disc %2, Revision %3)")
@@ -165,7 +165,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 
   ChangeLanguage();
 
-  QPixmap banner = ToQPixmap(m_game.GetBannerImage());
+  const QPixmap banner = ToQPixmap(m_game.GetBannerImage());
   if (!banner.isNull())
     layout->addRow(tr("Banner:"), CreateBannerGraphic(banner));
 
@@ -191,8 +191,8 @@ QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
 
 void InfoWidget::SaveBanner()
 {
-  QString path = DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                                    tr("PNG image file (*.png);; All Files (*)"));
+  const QString path = DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+                                                          tr("PNG image file (*.png);; All Files (*)"));
   ToQPixmap(m_game.GetBannerImage()).save(path, "PNG");
 }
 
@@ -230,7 +230,7 @@ void InfoWidget::CreateLanguageSelector()
 
 void InfoWidget::ChangeLanguage() const
 {
-  DiscIO::Language language =
+  const DiscIO::Language language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());
 
   if (m_name)

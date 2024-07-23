@@ -146,7 +146,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   layout()->setContentsMargins(horizontal_margin, vertical_margin, horizontal_margin,
                                vertical_margin);
 
-  QSize size_hint = sizeHint();
+  const QSize size_hint = sizeHint();
 
   // These positions represent the middle of each edge of the BalloonTip's rounded rectangle
   const float rect_width = size_hint.width() - border_full_width;
@@ -179,7 +179,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
 
   // The BalloonTip should be contained entirely within the screen that contains the target
   // position.
-  QScreen* screen = QGuiApplication::screenAt(target_arrow_tip_position);
+  const QScreen* screen = QGuiApplication::screenAt(target_arrow_tip_position);
   if (screen == nullptr)
   {
     // If the target position isn't on any screen (which can happen if the window is partly off the

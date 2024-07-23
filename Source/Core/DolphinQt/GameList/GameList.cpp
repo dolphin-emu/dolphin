@@ -286,11 +286,11 @@ void GameList::MakeEmptyView()
   m_empty->setEnabled(false);
   m_empty->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
-  auto event_filter = new DoubleClickEventFilter{m_empty};
+  const auto event_filter = new DoubleClickEventFilter{m_empty};
   m_empty->installEventFilter(event_filter);
   connect(event_filter, &DoubleClickEventFilter::doubleClicked, [this] {
-    auto current_dir = QDir::currentPath();
-    auto dir = DolphinFileDialog::getExistingDirectory(this, tr("Select a Directory"), current_dir);
+    const auto current_dir = QDir::currentPath();
+    const auto dir = DolphinFileDialog::getExistingDirectory(this, tr("Select a Directory"), current_dir);
     if (!dir.isEmpty())
       Settings::Instance().AddPath(dir);
   });
@@ -397,7 +397,7 @@ void GameList::ShowContextMenu(const QPoint&)
   {
     const auto game = GetSelectedGame();
     const bool is_mod_descriptor = game->IsModDescriptor();
-    DiscIO::Platform platform = game->GetPlatform();
+    const DiscIO::Platform platform = game->GetPlatform();
     menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
     if (!is_mod_descriptor && platform != DiscIO::Platform::ELFOrDOL)
     {
@@ -502,7 +502,7 @@ void GameList::ShowContextMenu(const QPoint&)
     auto* tags_menu = menu->addMenu(tr("Tags"));
 
     auto path = game->GetFilePath();
-    auto game_tags = m_model.GetGameTags(path);
+    const auto game_tags = m_model.GetGameTags(path);
 
     for (const auto& tag : m_model.GetAllTags())
     {
@@ -600,8 +600,8 @@ void GameList::OpenWiki() const
   if (!game)
     return;
 
-  QString game_id = QString::fromStdString(game->GetGameID());
-  QString url =
+  const QString game_id = QString::fromStdString(game->GetGameID());
+  const QString url =
       QStringLiteral("https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=").append(game_id);
   QDesktopServices::openUrl(QUrl(url));
 }
@@ -732,7 +732,7 @@ void GameList::OpenGCSaveFolder()
 
   using ExpansionInterface::Slot;
 
-  for (Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+  for (const Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
     QUrl url;
     const ExpansionInterface::EXIDeviceType current_exi_device =
@@ -783,17 +783,17 @@ void GameList::OpenGCSaveFolder()
 bool GameList::AddShortcutToDesktop() const
 {
   auto init = wil::CoInitializeEx_failfast(COINIT_APARTMENTTHREADED);
-  auto shell_link = wil::CoCreateInstanceNoThrow<ShellLink, IShellLink>();
+  const auto shell_link = wil::CoCreateInstanceNoThrow<ShellLink, IShellLink>();
   if (!shell_link)
     return false;
 
-  std::wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
+  const std::wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
   if (FAILED(shell_link->SetPath(dolphin_path.c_str())))
     return false;
 
   const auto game = GetSelectedGame();
   const auto& file_path = game->GetFilePath();
-  std::wstring args = UTF8ToTStr("-e \"" + file_path + "\"");
+  const std::wstring args = UTF8ToTStr("-e \"" + file_path + "\"");
   if (FAILED(shell_link->SetArguments(args.c_str())))
     return false;
 
@@ -808,8 +808,8 @@ bool GameList::AddShortcutToDesktop() const
     return std::ranges::find(illegal_characters, ch) != std::end(illegal_characters);
   });
 
-  std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
-  auto persist_file = shell_link.try_query<IPersistFile>();
+  const std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
+  const auto persist_file = shell_link.try_query<IPersistFile>();
   if (!persist_file)
     return false;
 
@@ -898,11 +898,11 @@ QSortFilterProxyModel* GameList::GetActiveProxyModel() const
 
 std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
 {
-  QItemSelectionModel* const sel_model = GetActiveView()->selectionModel();
+  const QItemSelectionModel* const sel_model = GetActiveView()->selectionModel();
   if (sel_model->hasSelection())
   {
-    QSortFilterProxyModel* const proxy = GetActiveProxyModel();
-    QModelIndex model_index = proxy->mapToSource(sel_model->selectedIndexes()[0]);
+    const QSortFilterProxyModel* const proxy = GetActiveProxyModel();
+    const QModelIndex model_index = proxy->mapToSource(sel_model->selectedIndexes()[0]);
     return m_model.GetGameFile(model_index.row());
   }
   return {};
@@ -911,7 +911,7 @@ std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
 QList<std::shared_ptr<const UICommon::GameFile>> GameList::GetSelectedGames() const
 {
   QList<std::shared_ptr<const UICommon::GameFile>> selected_list;
-  QItemSelectionModel* const sel_model = GetActiveView()->selectionModel();
+  const QItemSelectionModel* const sel_model = GetActiveView()->selectionModel();
 
   if (sel_model->hasSelection())
   {
@@ -1051,7 +1051,7 @@ void GameList::OnSectionResized(const int index, int, int) const
 
     OnHeaderViewChanged();
 
-    for (int i : sections)
+    for (const int i : sections)
     {
       hor_header->setSectionResizeMode(hor_header->logicalIndex(i), QHeaderView::Interactive);
     }
@@ -1099,9 +1099,9 @@ void GameList::OnHeaderViewChanged() const
     }
   }
 
-  for (int column : candidate_columns)
+  for (const int column : candidate_columns)
   {
-    int column_width = static_cast<int>(
+    const int column_width = static_cast<int>(
         std::max(5.f, std::ceil(available_width * (static_cast<float>(m_list->columnWidth(column)) /
                                                    previous_width))));
 

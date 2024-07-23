@@ -52,7 +52,7 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
 
   CreateWidgets();
 
-  QSettings& settings = Settings::GetQSettings();
+  const QSettings& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("memorywidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -316,19 +316,19 @@ void MemoryWidget::ConnectWidgets()
   connect(m_find_next, &QPushButton::clicked, this, &MemoryWidget::OnFindNextValue);
   connect(m_find_previous, &QPushButton::clicked, this, &MemoryWidget::OnFindPreviousValue);
 
-  for (auto* radio :
+  for (const auto* radio :
        {m_address_space_effective, m_address_space_auxiliary, m_address_space_physical})
   {
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
   }
-  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo})
+  for (const auto* combo : {m_display_combo, m_align_combo, m_row_length_combo})
   {
     connect(combo, &QComboBox::currentIndexChanged, this, &MemoryWidget::OnDisplayChanged);
   }
 
   connect(m_dual_check, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
 
-  for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
+  for (const auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
 
   connect(m_base_check, &QCheckBox::toggled, this, &MemoryWidget::ValidateAndPreviewInputValue);
@@ -360,7 +360,7 @@ void MemoryWidget::Update()
 
 void MemoryWidget::LoadSettings() const
 {
-  QSettings& settings = Settings::GetQSettings();
+  const QSettings& settings = Settings::GetQSettings();
 
   const int combo_index = settings.value(QStringLiteral("memorywidget/inputcombo"), 1).toInt();
 
@@ -381,10 +381,10 @@ void MemoryWidget::LoadSettings() const
 
   m_display_combo->setCurrentIndex(display_index);
 
-  bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
-  bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
-  bool bp_w = settings.value(QStringLiteral("memorywidget/bpwrite"), false).toBool();
-  bool bp_log = settings.value(QStringLiteral("memorywidget/bplog"), true).toBool();
+  const bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
+  const bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
+  const bool bp_w = settings.value(QStringLiteral("memorywidget/bpwrite"), false).toBool();
+  const bool bp_log = settings.value(QStringLiteral("memorywidget/bplog"), true).toBool();
 
   if (bp_rw)
     m_memory_view->SetBPType(MemoryViewWidget::BPType::ReadWrite);
@@ -441,7 +441,7 @@ void MemoryWidget::OnDisplayChanged() const
   const auto type = static_cast<Type>(m_display_combo->currentData().toInt());
   int bytes_per_row = m_row_length_combo->currentData().toInt();
   int alignment;
-  bool dual_view = m_dual_check->isChecked();
+  const bool dual_view = m_dual_check->isChecked();
 
   if (type == Type::Double && bytes_per_row == 4)
     bytes_per_row = 8;
@@ -467,8 +467,8 @@ void MemoryWidget::OnBPLogChanged() const
 
 void MemoryWidget::OnBPTypeChanged() const
 {
-  bool read_write = m_bp_read_write->isChecked();
-  bool read_only = m_bp_read_only->isChecked();
+  const bool read_write = m_bp_read_write->isChecked();
+  const bool read_only = m_bp_read_only->isChecked();
 
   MemoryViewWidget::BPType type;
 
@@ -495,7 +495,7 @@ void MemoryWidget::SetAddress(const u32 address)
 
   if (good)
   {
-    AddressSpace::Accessors* accessors =
+    const AddressSpace::Accessors* accessors =
         GetAccessors(m_memory_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_system);
@@ -572,7 +572,7 @@ void MemoryWidget::ValidateAndPreviewInputValue() const
 
   QFont font;
   QPalette palette;
-  std::vector<u8> bytes = m_memory_view->ConvertTextToBytes(input_type, input_text);
+  const std::vector<u8> bytes = m_memory_view->ConvertTextToBytes(input_type, input_text);
 
   if (!bytes.empty())
   {
@@ -658,7 +658,7 @@ void MemoryWidget::OnSetValue()
   const Core::CPUThreadGuard guard(m_system);
 
   AddressSpace::Accessors* accessors = GetAccessors(m_memory_view->GetAddressSpace());
-  u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
+  const u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
 
   if (!accessors->IsValidAddress(guard, target_addr.address) ||
       !accessors->IsValidAddress(guard, end_address))
@@ -692,8 +692,8 @@ void MemoryWidget::OnSetValueFromFile()
     return;
   }
 
-  QString path = QFileDialog::getOpenFileName(this, tr("Select a file"), QDir::currentPath(),
-                                              tr("All files (*)"));
+  const QString path = QFileDialog::getOpenFileName(this, tr("Select a file"), QDir::currentPath(),
+                                                    tr("All files (*)"));
   if (path.isNull())
   {
     return;
@@ -719,7 +719,7 @@ void MemoryWidget::OnSetValueFromFile()
 
   const Core::CPUThreadGuard guard(m_system);
 
-  for (u8 b : file_contents)
+  for (const u8 b : file_contents)
     accessors->WriteU8(guard, target_addr.address++, b);
 
   Update();
@@ -750,28 +750,28 @@ static void DumpArray(const std::string& filename, const u8* data, const size_t 
 
 void MemoryWidget::OnDumpMRAM()
 {
-  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Mem1);
+  const AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Mem1);
   DumpArray(File::GetUserPath(F_MEM1DUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpExRAM()
 {
-  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Mem2);
+  const AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Mem2);
   DumpArray(File::GetUserPath(F_MEM2DUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpARAM()
 {
-  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Auxiliary);
+  const AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Auxiliary);
   DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpFakeVMEM()
 {
-  AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Fake);
+  const AddressSpace::Accessors* accessors = GetAccessors(AddressSpace::Type::Fake);
   DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), accessors->begin(),
             std::distance(accessors->begin(), accessors->end()));
 }
@@ -832,8 +832,7 @@ void MemoryWidget::FindValue(const bool next) const
   }
 
   const std::optional<u32> found_addr = [&] {
-    AddressSpace::Accessors* accessors =
-        GetAccessors(m_memory_view->GetAddressSpace());
+    const AddressSpace::Accessors* accessors = GetAccessors(m_memory_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_system);
     return accessors->Search(guard, target_addr.address,
@@ -845,7 +844,7 @@ void MemoryWidget::FindValue(const bool next) const
   {
     m_result_label->setText(tr("Match Found"));
 
-    u32 offset = *found_addr;
+    const u32 offset = *found_addr;
 
     m_search_address->setCurrentText(QStringLiteral("%1").arg(offset, 8, 16, QLatin1Char('0')));
     m_search_offset->clear();

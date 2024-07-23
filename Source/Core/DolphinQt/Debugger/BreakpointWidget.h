@@ -65,7 +65,7 @@ private:
   void OnSave() const;
   void OnContextMenu(const QPoint& pos);
   void OnItemChanged(const QTableWidgetItem* item);
-  void UpdateIcons();
+  void UpdateIcons() const;
 
   Core::System& m_system;
 

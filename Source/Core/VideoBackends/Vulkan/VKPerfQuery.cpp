@@ -63,7 +63,7 @@ void PerfQuery::EnableQuery(const PerfQueryGroup group)
     entry.query_group = group;
 
     // Use precise queries if supported, otherwise boolean (which will be incorrect).
-    VkQueryControlFlags flags =
+    const VkQueryControlFlags flags =
         g_vulkan_context->SupportsPreciseOcclusionQueries() ? VK_QUERY_CONTROL_PRECISE_BIT : 0;
 
     // Ensure the query starts within a render pass.
@@ -141,7 +141,7 @@ bool PerfQuery::IsFlushed() const
 
 bool PerfQuery::CreateQueryPool()
 {
-  VkQueryPoolCreateInfo info = {
+  const VkQueryPoolCreateInfo info = {
       VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,  // VkStructureType                  sType
       nullptr,                                   // const void*                      pNext
       0,                                         // VkQueryPoolCreateFlags           flags
@@ -150,7 +150,7 @@ bool PerfQuery::CreateQueryPool()
       0  // VkQueryPipelineStatisticFlags    pipelineStatistics;
   };
 
-  VkResult res = vkCreateQueryPool(g_vulkan_context->GetDevice(), &info, nullptr, &m_query_pool);
+  const VkResult res = vkCreateQueryPool(g_vulkan_context->GetDevice(), &info, nullptr, &m_query_pool);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateQueryPool failed: ");
@@ -169,7 +169,7 @@ void PerfQuery::ReadbackQueries()
   u32 readback_count = 0;
   for (u32 i = 0; i < outstanding_queries; i++)
   {
-    u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
+    const u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
     const ActiveQuery& entry = m_query_buffer[index];
     if (entry.fence_counter > completed_fence_counter)
       break;
@@ -196,7 +196,7 @@ void PerfQuery::ReadbackQueries(const u32 query_count)
          (m_query_readback_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
 
   // Read back from the GPU.
-  VkResult res = vkGetQueryPoolResults(
+  const VkResult res = vkGetQueryPoolResults(
       g_vulkan_context->GetDevice(), m_query_pool, m_query_readback_pos, query_count,
       query_count * sizeof(PerfQueryDataType), m_query_result_buffer.data(),
       sizeof(PerfQueryDataType), VK_QUERY_RESULT_WAIT_BIT);
@@ -210,7 +210,7 @@ void PerfQuery::ReadbackQueries(const u32 query_count)
   // Remove pending queries.
   for (u32 i = 0; i < query_count; i++)
   {
-    u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
+    const u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
     ActiveQuery& entry = m_query_buffer[index];
 
     // Should have a fence associated with it (waiting for a result).

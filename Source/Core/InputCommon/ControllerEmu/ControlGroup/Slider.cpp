@@ -46,7 +46,7 @@ Slider::StateData Slider::GetState(const InputOverrideFunction& override_func) c
 
   state = ApplyDeadzone(state, deadzone);
 
-  if (std::optional<ControlState> state_override = override_func(name, X_INPUT_OVERRIDE, state))
+  if (const std::optional<ControlState> state_override = override_func(name, X_INPUT_OVERRIDE, state))
     state = *state_override;
 
   return {std::clamp(state, -1.0, 1.0)};

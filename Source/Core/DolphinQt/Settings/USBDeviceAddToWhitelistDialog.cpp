@@ -110,7 +110,7 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
     return;
   const auto selection_string = usb_inserted_devices_list->currentItem();
   usb_inserted_devices_list->clear();
-  auto whitelist = Config::GetUSBDeviceWhitelist();
+  const auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : current_devices)
   {
     if (whitelist.count({device.first.first, device.first.second}) != 0)
@@ -146,7 +146,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
 
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  auto it = whitelist.emplace(vid, pid);
+  const auto it = whitelist.emplace(vid, pid);
   if (!it.second)
   {
     ModalMessageBox::critical(this, tr("USB Whitelist Error"),
@@ -161,10 +161,10 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 void USBDeviceAddToWhitelistDialog::OnDeviceSelection() const
 {
   // Not the nicest way of doing this but...
-  QString device = usb_inserted_devices_list->currentItem()->text().left(9);
+  const QString device = usb_inserted_devices_list->currentItem()->text().left(9);
   QStringList split = device.split(QString::fromStdString(":"));
-  QString* vid = new QString(split[0]);
-  QString* pid = new QString(split[1]);
+  const QString* vid = new QString(split[0]);
+  const QString* pid = new QString(split[1]);
   device_vid_textbox->setText(*vid);
   device_pid_textbox->setText(*pid);
 }

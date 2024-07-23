@@ -72,7 +72,7 @@ void GeckoCodeWidget::CreateWidgets()
 
   m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+  const QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   const auto line_height = QFontMetrics(font()).lineSpacing();
 
@@ -176,7 +176,7 @@ void GeckoCodeWidget::OnSelectionChanged() const
   if (items.empty())
     return;
 
-  auto selected = items[0];
+  const auto selected = items[0];
 
   const int index = selected->data(Qt::UserRole).toInt();
 
@@ -351,7 +351,7 @@ void GeckoCodeWidget::DownloadCodes()
 {
   bool success;
 
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
+  const std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
 
   if (!success)
   {

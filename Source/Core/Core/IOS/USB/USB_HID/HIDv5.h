@@ -22,7 +22,7 @@ public:
 private:
   IPCReply CancelEndpoint(const USBV5Device& device, const IOCtlRequest& request) const;
   IPCReply GetDeviceInfo(const USBV5Device& device, const IOCtlRequest& request);
-  s32 SubmitTransfer(const USBV5Device& device, USB::Device& host_device, const IOCtlVRequest& ioctlv);
+  s32 SubmitTransfer(const USBV5Device& device, USB::Device& host_device, const IOCtlVRequest& ioctlv) const;
 
   bool ShouldAddDevice(const USB::Device& device) const override;
   bool HasInterfaceNumberInIDs() const override { return true; }

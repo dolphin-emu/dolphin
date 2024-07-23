@@ -57,7 +57,7 @@ u16 DSPEmitter::RunCycles(const u16 cycles)
   }
 
   m_cycles_left = cycles;
-  auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
+  const auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
   exec_addr();
 
   if (m_dsp_core.DSPState().reset_dspjit_codespace)
@@ -109,7 +109,7 @@ void DSPEmitter::checkExceptions(const u32 retval)
 {
   // Check for interrupts and exceptions
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
-  FixupBranch skipCheck = J_CC(CC_Z, Jump::Near);
+  const FixupBranch skipCheck = J_CC(CC_Z, Jump::Near);
 
   MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
 
@@ -240,7 +240,7 @@ void DSPEmitter::Compile(const u16 start_addr)
   bool fixup_pc = false;
   m_block_size[start_addr] = 0;
 
-  auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
+  const auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
   while (m_compile_pc < start_addr + MAX_BLOCK_SIZE)
   {
     if (analyzer.IsCheckExceptions(m_compile_pc))
@@ -359,7 +359,7 @@ void DSPEmitter::Compile(const u16 start_addr)
       if (!m_unresolved_jumps[i].empty())
       {
         // Check if there were any blocks waiting for this block to be linkable
-        size_t size = m_unresolved_jumps[i].size();
+        const size_t size = m_unresolved_jumps[i].size();
         m_unresolved_jumps[i].remove(start_addr);
         if (m_unresolved_jumps[i].size() < size)
         {
@@ -428,7 +428,7 @@ void DSPEmitter::CompileDispatcher()
 {
   m_enter_dispatcher = AlignCode16();
   // We don't use floating point (high 16 bits).
-  BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
+  const BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
   ABI_PushRegistersAndAdjustStack(registers_used, 8);
 
   MOV(64, R(R15), ImmPtr(&m_dsp_core.DSPState()));
@@ -444,7 +444,7 @@ void DSPEmitter::CompileDispatcher()
 
   // Check for DSP halt
   TEST(8, M_SDSP_control_reg(), Imm8(CR_HALT));
-  FixupBranch _halt = J_CC(CC_NE);
+  const FixupBranch _halt = J_CC(CC_NE);
 
   // Execute block. Cycles executed returned in EAX.
   MOVZX(64, 16, ECX, M_SDSP_pc());

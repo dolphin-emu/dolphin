@@ -406,7 +406,7 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
     expanded = path;
   }
 
-  std::vector<std::string> components = SplitString(expanded, '/');
+  const std::vector<std::string> components = SplitString(expanded, '/');
   std::vector<std::string> normalized_components;
   for (const auto& component : components)
   {

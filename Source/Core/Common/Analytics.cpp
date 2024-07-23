@@ -131,7 +131,7 @@ void AnalyticsReportBuilder::AppendSerializedValueVector(std::string* report,
 {
   AppendType(report, TypeId::UINT | TypeId::ARRAY);
   AppendVarInt(report, v.size());
-  for (u32 x : v)
+  for (const u32 x : v)
     AppendVarInt(report, x);
 }
 

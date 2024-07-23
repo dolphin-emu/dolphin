@@ -191,7 +191,7 @@ static void AnalyzeFunction2(PPCSymbolDB* func_db, Common::Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [&](const auto& call) {
+  const bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [&](const auto& call) {
     const Common::Symbol* const called_func = func_db->GetSymbolFromAddr(call.function);
     return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
   });
@@ -223,13 +223,13 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
 {
   const GekkoOPInfo* a_info = a.opinfo;
   const GekkoOPInfo* b_info = b.opinfo;
-  u64 a_flags = a_info->flags;
-  u64 b_flags = b_info->flags;
+  const u64 a_flags = a_info->flags;
+  const u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
   if (m_is_debugging_enabled)
   {
-    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    const auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
     if (breakpoints.IsAddressBreakPoint(a.address) || breakpoints.IsAddressBreakPoint(b.address))
       return false;
   }
@@ -374,7 +374,7 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
       if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, location))
       {
         // check if this function is already mapped
-        Common::Symbol* f = func_db->AddFunction(guard, location);
+        const Common::Symbol* f = func_db->AddFunction(guard, location);
         if (!f)
           break;
         else
@@ -763,7 +763,7 @@ bool PPCAnalyzer::IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, con
     }
     else
     {
-      for (int reg : code[i].regsIn)
+      for (const int reg : code[i].regsIn)
       {
         if (reg == -1)
           continue;
@@ -771,7 +771,7 @@ bool PPCAnalyzer::IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, con
           continue;
         write_disallowed_regs[reg] = true;
       }
-      for (int reg : code[i].regsOut)
+      for (const int reg : code[i].regsOut)
       {
         if (reg == -1)
           continue;

@@ -269,7 +269,7 @@ void EnhancementsWidget::LoadPPShaders() const
   if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
     m_pp_effect->addItem(tr("(off)"));
 
-  auto selected_shader = Get(Config::GFX_ENHANCE_POST_SHADER);
+  const auto selected_shader = Get(Config::GFX_ENHANCE_POST_SHADER);
 
   bool found = false;
 

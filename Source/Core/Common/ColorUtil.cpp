@@ -50,7 +50,7 @@ void Decode5A3Image(u32* dst, const u16* src, const int width, const int height)
       {
         for (int ix = 0; ix < 4; ix++)
         {
-          u32 RGBA = Decode5A3(swap16(src[ix]));
+          const u32 RGBA = Decode5A3(swap16(src[ix]));
           dst[(y + iy) * width + (x + ix)] = RGBA;
         }
       }

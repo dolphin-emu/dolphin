@@ -177,7 +177,7 @@ void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
 void TextureCacheBase::Cleanup(const int _frameCount)
 {
   TexAddrCache::iterator iter = m_textures_by_address.begin();
-  TexAddrCache::iterator tcend = m_textures_by_address.end();
+  const TexAddrCache::iterator tcend = m_textures_by_address.end();
   while (iter != tcend)
   {
     if (iter->second->frameCount == FRAMECOUNT_INVALID)
@@ -215,7 +215,7 @@ void TextureCacheBase::Cleanup(const int _frameCount)
   }
 
   TexPool::iterator iter2 = m_texture_pool.begin();
-  TexPool::iterator tcend2 = m_texture_pool.end();
+  const TexPool::iterator tcend2 = m_texture_pool.end();
   while (iter2 != tcend2)
   {
     if (iter2->second.frameCount == FRAMECOUNT_INVALID)
@@ -445,8 +445,8 @@ bool TextureCacheBase::CheckReadbackTexture(const u32 width, const u32 height, c
     return true;
   }
 
-  TextureConfig staging_config(std::max(width, 128u), std::max(height, 128u), 1, 1, 1, format, 0,
-                               AbstractTextureType::Texture_2DArray);
+  const TextureConfig staging_config(std::max(width, 128u), std::max(height, 128u), 1, 1, 1, format, 0,
+                                     AbstractTextureType::Texture_2DArray);
   m_readback_texture.reset();
   m_readback_texture = g_gfx->CreateStagingTexture(StagingTextureType::Readback, staging_config);
   return m_readback_texture != nullptr;
@@ -467,11 +467,11 @@ void TextureCacheBase::SerializeTexture(const AbstractTexture* tex, const Textur
     {
       for (u32 level = 0; level < config.levels; level++)
       {
-        u32 level_width = std::max(config.width >> level, 1u);
-        u32 level_height = std::max(config.height >> level, 1u);
+        const u32 level_width = std::max(config.width >> level, 1u);
+        const u32 level_height = std::max(config.height >> level, 1u);
 
-        u32 stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
-        u32 size = stride * level_height;
+        const u32 stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
+        const u32 size = stride * level_height;
 
         total_size += size;
       }
@@ -496,13 +496,13 @@ void TextureCacheBase::SerializeTexture(const AbstractTexture* tex, const Textur
       {
         for (u32 level = 0; level < config.levels; level++)
         {
-          u32 level_width = std::max(config.width >> level, 1u);
-          u32 level_height = std::max(config.height >> level, 1u);
+          const u32 level_width = std::max(config.width >> level, 1u);
+          const u32 level_height = std::max(config.height >> level, 1u);
           auto rect = tex->GetConfig().GetMipRect(level);
           m_readback_texture->CopyFromTexture(tex, rect, layer, level, rect);
 
-          u32 stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
-          u32 size = stride * level_height;
+          const u32 stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
+          const u32 size = stride * level_height;
           m_readback_texture->ReadTexels(rect, texture_data, stride);
 
           texture_data += size;
@@ -524,7 +524,7 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
   // Read in the size from the save state, then texture data will point to
   // a region of size total_size where textures are stored.
   u32 total_size = 0;
-  u8* texture_data = p.DoExternal(total_size);
+  const u8* texture_data = p.DoExternal(total_size);
 
   if (!p.IsReadMode() || total_size == 0)
     return std::nullopt;
@@ -586,7 +586,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     return entry->IsCopy() || entry->invalidated;
   };
   auto AddCacheEntryToMap = [&entry_map, &entries_to_save](const RcTcacheEntry& entry) -> u32 {
-    auto iter = entry_map.find(entry.get());
+    const auto iter = entry_map.find(entry.get());
     if (iter != entry_map.end())
       return iter->second;
 
@@ -599,7 +599,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     return id;
   };
   auto GetCacheEntryId = [&entry_map](const TCacheEntry* entry) -> std::optional<u32> {
-    auto iter = entry_map.find(entry);
+    const auto iter = entry_map.find(entry);
     return iter != entry_map.end() ? std::make_optional(iter->second) : std::nullopt;
   };
 
@@ -696,7 +696,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
   std::map<u32, RcTcacheEntry> id_map;
   RcTcacheEntry null_entry;
   auto GetEntry = [&id_map, &null_entry](const u32 id) -> RcTcacheEntry& {
-    auto iter = id_map.find(id);
+    const auto iter = id_map.find(id);
     return iter == id_map.end() ? null_entry : iter->second;
   };
 
@@ -731,7 +731,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     u32 id1 = 0, id2 = 0;
     p.Do(id1);
     p.Do(id2);
-    auto e1 = GetEntry(id1);
+    const auto e1 = GetEntry(id1);
     auto e2 = GetEntry(id2);
     if (e1 && e2)
       e1->CreateReference(e2.get());
@@ -842,12 +842,12 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
     return {};
   }
 
-  u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format.texfmt);
-  u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format.texfmt);
-  u32 block_size = block_width * block_height *
-                   TexDecoder_GetTexelSizeInNibbles(entry_to_update->format.texfmt) / 2;
+  const u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format.texfmt);
+  const u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format.texfmt);
+  const u32 block_size = block_width * block_height *
+                         TexDecoder_GetTexelSizeInNibbles(entry_to_update->format.texfmt) / 2;
 
-  u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
+  const u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
   auto iter = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
   while (iter.first != iter.second)
@@ -899,9 +899,9 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
         // Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
         if (entry->addr >= entry_to_update->addr)
         {
-          u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
-          u32 block_x = block_offset % numBlocksX;
-          u32 block_y = block_offset / numBlocksX;
+          const u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
+          const u32 block_x = block_offset % numBlocksX;
+          const u32 block_y = block_offset / numBlocksX;
           src_x = 0;
           src_y = 0;
           dst_x = block_x * block_width;
@@ -909,9 +909,9 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
         }
         else
         {
-          u32 block_offset = (entry_to_update->addr - entry->addr) / block_size;
-          u32 block_x = (~block_offset + 1) % numBlocksX;
-          u32 block_y = (block_offset + block_x) / numBlocksX;
+          const u32 block_offset = (entry_to_update->addr - entry->addr) / block_size;
+          const u32 block_x = (~block_offset + 1) % numBlocksX;
+          const u32 block_y = (block_offset + block_x) / numBlocksX;
           src_x = 0;
           src_y = block_y * block_height;
           dst_x = block_x * block_width;
@@ -1079,7 +1079,7 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
 void TextureCacheBase::BindTextures(BitSet32 used_textures,
                                     const std::array<SamplerState, 8>& samplers)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   for (u32 i = 0; i < m_bound_textures.size(); i++)
   {
@@ -1149,13 +1149,13 @@ public:
 
       // Find the average difference between pixels in this level but downsampled
       // and the next level
-      auto diff = mip.AverageDiff(dst);
+      const auto diff = mip.AverageDiff(dst);
       total_diff += diff;
 
       std::swap(src, dst);
     }
 
-    auto all_levels = total_diff / (levels.size() - 1);
+    const auto all_levels = total_diff / (levels.size() - 1);
     return all_levels > threshold;
   }
 
@@ -1185,8 +1185,8 @@ private:
       {
         for (u32 j = 0; j < dst_shape.width; ++j)
         {
-          auto x = j * 2;
-          auto y = i * 2;
+          const auto x = j * 2;
+          const auto y = i * 2;
           const std::array<PixelRGBAu8, 4> samples{{
               SampleLinear(src, src_shape, x, y),
               SampleLinear(src, src_shape, x + 1, y),
@@ -1197,8 +1197,8 @@ private:
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;
           for (int channel = 0; channel < 4; channel++)
           {
-            uint32_t channel_value = samples[0][channel] + samples[1][channel] +
-                                     samples[2][channel] + samples[3][channel];
+            const uint32_t channel_value = samples[0][channel] + samples[1][channel] +
+                                           samples[2][channel] + samples[3][channel];
             dst_pixel[channel] = (channel_value + 2) / 4;
           }
         }
@@ -1245,7 +1245,7 @@ private:
 
 TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
-  if (auto entry = LoadImpl(texture_info, false))
+  if (const auto entry = LoadImpl(texture_info, false))
   {
     if (!DidLinkedAssetsChange(*entry))
     {
@@ -1288,7 +1288,7 @@ TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, const b
     }
   }
 
-  auto entry = GetTexture(g_ActiveConfig.iSafeTextureCache_ColorSamples, texture_info);
+  const auto entry = GetTexture(g_ActiveConfig.iSafeTextureCache_ColorSamples, texture_info);
 
   if (!entry)
     return nullptr;
@@ -1735,13 +1735,13 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
             creation_info.bytes_per_block * (expanded_width / texture_info.GetBlockWidth()),
             texture_info.GetTlutAddress(), texture_info.GetTlutFormat()))
     {
-      size_t decoded_texture_size = expanded_width * sizeof(u32) * expanded_height;
+      const size_t decoded_texture_size = expanded_width * sizeof(u32) * expanded_height;
 
       // Allocate memory for all levels at once
       size_t total_texture_size = decoded_texture_size;
 
       // For the downsample, we need 2 buffers; 1 is 1/4 of the original texture, the other 1/16
-      size_t mip_downsample_buffer_size = decoded_texture_size * 5 / 16;
+      const size_t mip_downsample_buffer_size = decoded_texture_size * 5 / 16;
 
       size_t prev_level_size = decoded_texture_size;
       for (u32 i = 1; i < texture_info.GetLevelCount(); ++i)
@@ -1777,7 +1777,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 
     for (u32 level = 1; level != texLevels; ++level)
     {
-      auto mip_level = texture_info.GetMipMapLevel(level - 1);
+      const auto mip_level = texture_info.GetMipMapLevel(level - 1);
       if (!mip_level)
         continue;
 
@@ -1871,8 +1871,8 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(const u32 address, u32 width, u32 
   // Compute total texture size. XFB textures aren't tiled, so this is simple.
   const u32 total_size = height * stride;
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   const u8* src_data = memory.GetPointerForRange(address, total_size);
   if (!src_data)
   {
@@ -1951,7 +1951,7 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(const u32 address, u32 width, u32 
 
 RcTcacheEntry TextureCacheBase::GetXFBFromCache(const u32 address, const u32 width, const u32 height, const u32 stride)
 {
-  auto iter_range = m_textures_by_address.equal_range(address);
+  const auto iter_range = m_textures_by_address.equal_range(address);
   TexAddrCache::iterator iter = iter_range.first;
 
   while (iter != iter_range.second)
@@ -1983,7 +1983,7 @@ RcTcacheEntry TextureCacheBase::GetXFBFromCache(const u32 address, const u32 wid
   return {};
 }
 
-void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
+void TextureCacheBase::StitchXFBCopy(const RcTcacheEntry& stitched_entry)
 {
   // It is possible that some of the overlapping textures overlap each other. This behavior has been
   // seen with XFB copies in Rogue Leader. To get the correct result, we apply the texture updates
@@ -2045,7 +2045,7 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
     int src_x, src_y, dst_x, dst_y;
     if (entry->addr >= stitched_entry->addr)
     {
-      int pixel_offset = (entry->addr - stitched_entry->addr) / 2;
+      const int pixel_offset = (entry->addr - stitched_entry->addr) / 2;
       src_x = 0;
       src_y = 0;
       dst_x = pixel_offset % stitched_entry->native_width;
@@ -2053,7 +2053,7 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
     }
     else
     {
-      int pixel_offset = (stitched_entry->addr - entry->addr) / 2;
+      const int pixel_offset = (stitched_entry->addr - entry->addr) / 2;
       src_x = pixel_offset % entry->native_width;
       src_y = pixel_offset / entry->native_width;
       dst_x = 0;
@@ -2566,7 +2566,7 @@ void TextureCacheBase::FlushStaleBinds()
 void TextureCacheBase::WriteEFBCopyToRAM(u8* dst_ptr, const u32 width, const u32 height, const u32 stride,
                                          std::unique_ptr<AbstractStagingTexture> staging_texture)
 {
-  MathUtil::Rectangle copy_rect(0, 0, static_cast<int>(width), static_cast<int>(height));
+  const MathUtil::Rectangle copy_rect(0, 0, static_cast<int>(width), static_cast<int>(height));
   staging_texture->ReadTexels(copy_rect, dst_ptr, stride);
   ReleaseEFBCopyStagingTexture(std::move(staging_texture));
 }
@@ -2576,8 +2576,8 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
   const u32 covered_range = entry->pending_efb_copy_height * entry->memory_stride;
 
   // Copy from texture -> guest memory.
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   u8* const dst = memory.GetPointerForRange(entry->addr, covered_range);
   WriteEFBCopyToRAM(dst, entry->pending_efb_copy_width, entry->pending_efb_copy_height,
                     entry->memory_stride, std::move(entry->pending_efb_copy));
@@ -2596,10 +2596,10 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
   // See the comment above regarding Rogue Squadron 2.
   if (entry->is_xfb_copy)
   {
-    auto range = FindOverlappingTextures(entry->addr, covered_range);
+    const auto range = FindOverlappingTextures(entry->addr, covered_range);
     for (auto iter = range.first; iter != range.second; ++iter)
     {
-      auto& overlapping_entry = iter->second;
+      const auto& overlapping_entry = iter->second;
       if (overlapping_entry->may_have_overlapping_textures && overlapping_entry->is_xfb_copy &&
           overlapping_entry->OverlapsMemoryRange(entry->addr, covered_range))
       {
@@ -2659,7 +2659,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, const u32 stride, const u3
   // like is done in the EFB path.
 
 #if defined(_M_X86_64)
-  __m128i sixteenBytes = _mm_set1_epi16(static_cast<s16>((u16)0xFE01));
+  const __m128i sixteenBytes = _mm_set1_epi16(static_cast<s16>((u16)0xFE01));
 #endif
 
   for (u32 i = 0; i < num_blocks_y; i++)
@@ -2705,7 +2705,7 @@ RcTcacheEntry TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
 std::optional<TextureCacheBase::TexPoolEntry>
 TextureCacheBase::AllocateTexture(const TextureConfig& config)
 {
-  TexPool::iterator iter = FindMatchingTextureFromPool(config);
+  const TexPool::iterator iter = FindMatchingTextureFromPool(config);
   if (iter != m_texture_pool.end())
   {
     auto entry = std::move(iter->second);
@@ -2745,7 +2745,7 @@ TextureCacheBase::FindMatchingTextureFromPool(const TextureConfig& config)
   // which potentially means that a driver has to maintain two copies of the texture anyway.
   // Render-target textures are fine through, as they have to be generated in a seperated pass.
   // As non-render-target textures are usually static, this should not matter much.
-  auto range = m_texture_pool.equal_range(config);
+  const auto range = m_texture_pool.equal_range(config);
   auto matching_iter = std::find_if(range.first, range.second, [](const auto& iter) {
     return iter.first.IsRenderTarget() || iter.second.frameCount != FRAMECOUNT_INVALID;
   });
@@ -2754,7 +2754,7 @@ TextureCacheBase::FindMatchingTextureFromPool(const TextureConfig& config)
 
 TextureCacheBase::TexAddrCache::iterator TextureCacheBase::GetTexCacheIter(const TCacheEntry* entry)
 {
-  auto iter_range = m_textures_by_address.equal_range(entry->addr);
+  const auto iter_range = m_textures_by_address.equal_range(entry->addr);
   TexAddrCache::iterator iter = iter_range.first;
   while (iter != iter_range.second)
   {
@@ -2777,7 +2777,7 @@ TextureCacheBase::FindOverlappingTextures(const u32 addr, const u32 size_in_byte
 
   // 1024 x 1024 texel times 8 nibbles per texel
   constexpr u32 max_texture_size = 1024 * 1024 * 4;
-  u32 lower_addr = addr > max_texture_size ? addr - max_texture_size : 0;
+  const u32 lower_addr = addr > max_texture_size ? addr - max_texture_size : 0;
   auto begin = m_textures_by_address.lower_bound(lower_addr);
   auto end = m_textures_by_address.upper_bound(addr + size_in_bytes);
 
@@ -2790,7 +2790,7 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, const bool disc
   if (iter == m_textures_by_address.end())
     return m_textures_by_address.end();
 
-  RcTcacheEntry& entry = iter->second;
+  const RcTcacheEntry& entry = iter->second;
 
   if (entry->textures_by_hash_iter != m_textures_by_hash.end())
   {
@@ -2814,7 +2814,7 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, const bool disc
       // Xenoblade's sunset scene, where 35 copies are done per frame, and 25 of them are
       // copied to the same address, and can be skipped.
       ReleaseEFBCopyStagingTexture(std::move(entry->pending_efb_copy));
-      auto pending_it = std::find(m_pending_efb_copies.begin(), m_pending_efb_copies.end(), entry);
+      const auto pending_it = std::find(m_pending_efb_copies.begin(), m_pending_efb_copies.end(), entry);
       if (pending_it != m_pending_efb_copies.end())
         m_pending_efb_copies.erase(pending_it);
     }
@@ -3060,7 +3060,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(const RcTcacheEntry& entry, const u32 
   }
 
   // Set up uniforms.
-  struct Uniforms
+  const struct Uniforms
   {
     u32 dst_width, dst_height;
     u32 src_width, src_height;
@@ -3072,7 +3072,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(const RcTcacheEntry& entry, const u32 
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
   g_gfx->SetComputeImageTexture(0, m_decoding_texture.get(), false, true);
 
-  auto dispatch_groups =
+  const auto dispatch_groups =
       GetDispatchCount(info, aligned_width, aligned_height);
   g_gfx->DispatchComputeShader(shader, info->group_size_x, info->group_size_y, 1,
                                dispatch_groups.first, dispatch_groups.second, 1);
@@ -3106,9 +3106,9 @@ u32 TCacheEntry::NumBlocksX() const
 
 u32 TCacheEntry::NumBlocksY() const
 {
-  u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
+  const u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
   // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(native_height, blockH);
+  const u32 actualHeight = Common::AlignUp(native_height, blockH);
 
   return actualHeight / blockH;
 }
@@ -3160,9 +3160,9 @@ u64 TCacheEntry::CalculateHash() const
   const u32 hash_sample_size = HashSampleSize();
 
   // FIXME: textures from tmem won't get the correct hash.
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  u8* ptr = memory.GetPointerForRange(addr, size_in_bytes);
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
+  const u8* ptr = memory.GetPointerForRange(addr, size_in_bytes);
   if (memory_stride == bytes_per_row)
   {
     return Common::GetHash64(ptr, size_in_bytes, hash_sample_size);

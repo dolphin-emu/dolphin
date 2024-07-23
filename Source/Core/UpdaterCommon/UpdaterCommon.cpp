@@ -120,7 +120,7 @@ std::optional<std::string> GzipInflate(const std::string& data)
 
   std::string out;
   const size_t buf_len = 20 * 1024 * 1024;
-  auto buffer = std::make_unique<char[]>(buf_len);
+  const auto buffer = std::make_unique<char[]>(buf_len);
   int ret;
 
   do
@@ -326,7 +326,7 @@ void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
 
 bool BackupFile(const std::string& path)
 {
-  std::string backup_path = path + ".bak";
+  const std::string backup_path = path + ".bak";
   LogToFile("Backing up existing %s to .bak.\n", path.c_str());
   if (!File::Rename(path, backup_path))
   {
@@ -519,13 +519,13 @@ std::optional<Manifest> ParseManifest(const std::string& manifest)
 
   while (pos < manifest.size())
   {
-    size_t filename_end_pos = manifest.find('\t', pos);
+    const size_t filename_end_pos = manifest.find('\t', pos);
     if (filename_end_pos == std::string::npos)
     {
       LogToFile("Manifest entry %zu: could not find filename end.\n", parsed.entries.size());
       return {};
     }
-    size_t hash_end_pos = manifest.find('\n', filename_end_pos);
+    const size_t hash_end_pos = manifest.find('\n', filename_end_pos);
     if (hash_end_pos == std::string::npos)
     {
       LogToFile("Manifest entry %zu: could not find hash end.\n", parsed.entries.size());
@@ -557,7 +557,7 @@ std::optional<Manifest> ParseManifest(const std::string& manifest)
 // Not showing a progress bar here because this part is just too quick
 std::optional<Manifest> FetchAndParseManifest(const std::string& url)
 {
-  Common::HttpRequest http;
+  const Common::HttpRequest http;
 
   Common::HttpRequest::Response resp = http.Get(url);
   if (!resp)
@@ -566,24 +566,24 @@ std::optional<Manifest> FetchAndParseManifest(const std::string& url)
     return {};
   }
 
-  std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
-  std::optional<std::string> maybe_decompressed = GzipInflate(contents);
+  const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
+  const std::optional<std::string> maybe_decompressed = GzipInflate(contents);
   if (!maybe_decompressed)
     return {};
   std::string decompressed = std::move(*maybe_decompressed);
 
   // Split into manifest and signature.
-  size_t boundary = decompressed.rfind("\n\n");
+  const size_t boundary = decompressed.rfind("\n\n");
   if (boundary == std::string::npos)
   {
     LogToFile("No signature was found in manifest.\n");
     return {};
   }
 
-  std::string signature_block = decompressed.substr(boundary + 2); // 2 for "\n\n".
+  const std::string signature_block = decompressed.substr(boundary + 2); // 2 for "\n\n".
   decompressed.resize(boundary + 1);                               // 1 to keep the final "\n".
 
-  std::vector<std::string> signatures = SplitString(signature_block, '\n');
+  const std::vector<std::string> signatures = SplitString(signature_block, '\n');
   bool found_valid_signature = false;
   for (const auto& signature : signatures)
   {
@@ -656,8 +656,8 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
   Options opts;
 
   // Required arguments.
-  std::vector<std::string> required{"this-manifest-url", "next-manifest-url", "content-store-url",
-                                    "install-base-path"};
+  const std::vector<std::string> required{"this-manifest-url", "next-manifest-url", "content-store-url",
+                                          "install-base-path"};
   for (const auto& req : required)
   {
     if (!options.is_set(req))
@@ -684,7 +684,7 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
 
 bool RunUpdater(std::vector<std::string> args)
 {
-  std::optional<Options> maybe_opts = ParseCommandLine(args);
+  const std::optional<Options> maybe_opts = ParseCommandLine(args);
 
   if (!maybe_opts)
   {
@@ -695,7 +695,7 @@ bool RunUpdater(std::vector<std::string> args)
   UI::SetVisible(false);
 
   Common::ScopeGuard ui_guard{[] { UI::Stop(); }};
-  Options opts = std::move(*maybe_opts);
+  const Options opts = std::move(*maybe_opts);
 
   if (opts.log_file)
   {
@@ -719,7 +719,7 @@ bool RunUpdater(std::vector<std::string> args)
   {
     LogToFile("Waiting for parent PID %d to complete...\n", *opts.parent_pid);
 
-    auto pid = opts.parent_pid.value();
+    const auto pid = opts.parent_pid.value();
 
     UI::WaitForPID(static_cast<u32>(pid));
 
@@ -751,10 +751,10 @@ bool RunUpdater(std::vector<std::string> args)
 
   UI::SetDescription("Computing what to do...");
 
-  TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
+  const TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
   todo.Log();
 
-  std::string temp_dir = File::CreateTempDir();
+  const std::string temp_dir = File::CreateTempDir();
   if (temp_dir.empty())
   {
     FatalError("Could not create temporary directory. Aborting.");
@@ -763,7 +763,7 @@ bool RunUpdater(std::vector<std::string> args)
 
   UI::SetDescription("Performing Update...");
 
-  bool ok = PerformUpdate(todo, opts.install_base_path, opts.content_store_url, temp_dir);
+  const bool ok = PerformUpdate(todo, opts.install_base_path, opts.content_store_url, temp_dir);
   CleanUpTempDir(temp_dir, todo);
   if (!ok)
   {

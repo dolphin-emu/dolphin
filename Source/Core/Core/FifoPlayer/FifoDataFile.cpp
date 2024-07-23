@@ -114,22 +114,22 @@ bool FifoDataFile::Save(const std::string& filename)
   PadFile(sizeof(FileHeader), file);
 
   // Add space for frame list
-  u64 frameListOffset = file.Tell();
+  const u64 frameListOffset = file.Tell();
   PadFile(m_Frames.size() * sizeof(FileFrameInfo), file);
 
-  u64 bpMemOffset = file.Tell();
+  const u64 bpMemOffset = file.Tell();
   file.WriteArray(m_BPMem);
 
-  u64 cpMemOffset = file.Tell();
+  const u64 cpMemOffset = file.Tell();
   file.WriteArray(m_CPMem);
 
-  u64 xfMemOffset = file.Tell();
+  const u64 xfMemOffset = file.Tell();
   file.WriteArray(m_XFMem);
 
-  u64 xfRegsOffset = file.Tell();
+  const u64 xfRegsOffset = file.Tell();
   file.WriteArray(m_XFRegs);
 
-  u64 texMemOffset = file.Tell();
+  const u64 texMemOffset = file.Tell();
   file.WriteArray(m_TexMem);
 
   // Write header
@@ -162,8 +162,8 @@ bool FifoDataFile::Save(const std::string& filename)
 
   header.flags = m_Flags;
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   header.mem1_size = memory.GetRamSizeReal();
   header.mem2_size = memory.GetExRamSizeReal();
 
@@ -177,10 +177,10 @@ bool FifoDataFile::Save(const std::string& filename)
 
     // Write FIFO data
     file.Seek(0, File::SeekOrigin::End);
-    u64 dataOffset = file.Tell();
+    const u64 dataOffset = file.Tell();
     file.WriteBytes(srcFrame.fifoData.data(), srcFrame.fifoData.size());
 
-    u64 memoryUpdatesOffset = WriteMemoryUpdates(srcFrame.memoryUpdates, file);
+    const u64 memoryUpdatesOffset = WriteMemoryUpdates(srcFrame.memoryUpdates, file);
 
     FileFrameInfo dstFrame;
     dstFrame.fifoDataSize = static_cast<u32>(srcFrame.fifoData.size());
@@ -191,7 +191,7 @@ bool FifoDataFile::Save(const std::string& filename)
     dstFrame.numMemoryUpdates = static_cast<u32>(srcFrame.memoryUpdates.size());
 
     // Write frame info
-    u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
+    const u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
     file.Seek(frameOffset, File::SeekOrigin::Begin);
     file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));
   }
@@ -270,8 +270,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, co
   // It should be noted, however, that Dolphin *will still crash* from the nullptr being returned
   // in a non-flagsOnly context, so if this code becomes necessary, it should be moved above the
   // prior conditional.
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   if (header.mem1_size != memory.GetRamSizeReal() || header.mem2_size != memory.GetExRamSizeReal())
   {
     CriticalAlertFmtT("Emulated memory size mismatch!\n"
@@ -319,7 +319,7 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, co
   // Read frames
   for (u32 i = 0; i < header.frameCount; ++i)
   {
-    u64 frameOffset = header.frameListOffset + (i * sizeof(FileFrameInfo));
+    const u64 frameOffset = header.frameListOffset + (i * sizeof(FileFrameInfo));
     file.Seek(frameOffset, File::SeekOrigin::Begin);
     FileFrameInfo srcFrame;
     if (!file.ReadBytes(&srcFrame, sizeof(FileFrameInfo)))
@@ -345,7 +345,7 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, co
   return dataFile;
 }
 
-void FifoDataFile::PadFile(const size_t numBytes, File::IOFile& file)
+void FifoDataFile::PadFile(const size_t numBytes, const File::IOFile& file)
 {
   for (size_t i = 0; i < numBytes; ++i)
     fputc(0, file.GetHandle());
@@ -368,7 +368,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
                                      File::IOFile& file)
 {
   // Add space for memory update list
-  u64 updateListOffset = file.Tell();
+  const u64 updateListOffset = file.Tell();
   PadFile(memUpdates.size() * sizeof(FileMemoryUpdate), file);
 
   for (unsigned int i = 0; i < memUpdates.size(); ++i)
@@ -377,7 +377,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
 
     // Write memory
     file.Seek(0, File::SeekOrigin::End);
-    u64 dataOffset = file.Tell();
+    const u64 dataOffset = file.Tell();
     file.WriteBytes(srcUpdate.data.data(), srcUpdate.data.size());
 
     FileMemoryUpdate dstUpdate;
@@ -387,7 +387,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
     dstUpdate.fifoPosition = srcUpdate.fifoPosition;
     dstUpdate.type = static_cast<u8>(srcUpdate.type);
 
-    u64 updateOffset = updateListOffset + (i * sizeof(FileMemoryUpdate));
+    const u64 updateOffset = updateListOffset + (i * sizeof(FileMemoryUpdate));
     file.Seek(updateOffset, File::SeekOrigin::Begin);
     file.WriteBytes(&dstUpdate, sizeof(FileMemoryUpdate));
   }
@@ -402,7 +402,7 @@ void FifoDataFile::ReadMemoryUpdates(const u64 fileOffset, const u32 numUpdates,
 
   for (u32 i = 0; i < numUpdates; ++i)
   {
-    u64 updateOffset = fileOffset + (i * sizeof(FileMemoryUpdate));
+    const u64 updateOffset = fileOffset + (i * sizeof(FileMemoryUpdate));
     file.Seek(updateOffset, File::SeekOrigin::Begin);
     FileMemoryUpdate srcUpdate;
     file.ReadBytes(&srcUpdate, sizeof(FileMemoryUpdate));

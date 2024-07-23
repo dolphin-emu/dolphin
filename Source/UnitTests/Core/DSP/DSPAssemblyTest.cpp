@@ -22,7 +22,7 @@ static bool RoundTrippableDisassemble(const std::vector<u16>& code, std::string&
   // These two prevent roundtripping.
   settings.show_hex = false;
   settings.show_pc = false;
-  DSP::DSPDisassembler disasm(settings);
+  const DSP::DSPDisassembler disasm(settings);
 
   return disasm.Disassemble(code, text);
 }

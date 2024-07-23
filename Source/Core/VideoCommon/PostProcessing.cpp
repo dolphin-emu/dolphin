@@ -258,7 +258,7 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
 {
   Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  std::string section = m_current_shader + "-options";
+  const std::string section = m_current_shader + "-options";
 
   // We already expect all the options to be marked as "dirty" when we reach here
   for (auto& it : m_options)
@@ -305,7 +305,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
 {
   Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  std::string section = m_current_shader + "-options";
+  const std::string section = m_current_shader + "-options";
 
   for (auto& it : m_options)
   {
@@ -348,7 +348,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
 
 void PostProcessingConfiguration::SetOptionf(const std::string& option, const int index, const float value)
 {
-  auto it = m_options.find(option);
+  const auto it = m_options.find(option);
 
   it->second.m_float_values[index] = value;
   it->second.m_dirty = true;
@@ -357,7 +357,7 @@ void PostProcessingConfiguration::SetOptionf(const std::string& option, const in
 
 void PostProcessingConfiguration::SetOptioni(const std::string& option, const int index, const s32 value)
 {
-  auto it = m_options.find(option);
+  const auto it = m_options.find(option);
 
   it->second.m_integer_values[index] = value;
   it->second.m_dirty = true;
@@ -366,7 +366,7 @@ void PostProcessingConfiguration::SetOptioni(const std::string& option, const in
 
 void PostProcessingConfiguration::SetOptionb(const std::string& option, const bool value)
 {
-  auto it = m_options.find(option);
+  const auto it = m_options.find(option);
 
   it->second.m_bool_value = value;
   it->second.m_dirty = true;
@@ -385,7 +385,7 @@ PostProcessing::~PostProcessing()
 
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
-  std::vector<std::string> paths =
+  const std::vector<std::string> paths =
       Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
                             File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
                            {".glsl"});

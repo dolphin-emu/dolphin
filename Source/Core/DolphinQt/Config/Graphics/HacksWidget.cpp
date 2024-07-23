@@ -161,7 +161,7 @@ void HacksWidget::ConnectWidgets()
 void HacksWidget::LoadSettings() const
 {
   const QSignalBlocker blocker(m_accuracy);
-  auto samples = Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  const auto samples = Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
 
   // Re-enable the slider in case it was disabled because of a custom value
   m_accuracy->setEnabled(true);
@@ -196,7 +196,7 @@ void HacksWidget::LoadSettings() const
 
 void HacksWidget::SaveSettings() const
 {
-  int slider_pos = m_accuracy->value();
+  const int slider_pos = m_accuracy->value();
 
   if (m_accuracy->isEnabled())
   {

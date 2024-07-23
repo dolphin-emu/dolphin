@@ -158,7 +158,7 @@ void StreamBuffer::UpdateCurrentFencePosition()
 
 void StreamBuffer::UpdateGPUPosition()
 {
-  auto start = m_tracked_fences.begin();
+  const auto start = m_tracked_fences.begin();
   auto end = start;
 
   const u64 completed_counter = g_dx_context->GetCompletedFenceValue();
@@ -184,7 +184,7 @@ bool StreamBuffer::WaitForClearSpace(const u32 num_bytes)
     // This is the "last resort" case, where a command buffer execution has been forced
     // after no additional data has been written to it, so we can assume that after the
     // fence has been signaled the entire buffer is now consumed.
-    u32 gpu_position = iter->second;
+    const u32 gpu_position = iter->second;
     if (m_current_offset == gpu_position)
     {
       new_offset = 0;
@@ -221,7 +221,7 @@ bool StreamBuffer::WaitForClearSpace(const u32 num_bytes)
       // We're currently allocating behind the GPU. This would give us between the current
       // offset and the GPU position worth of space to work with. Again, > because we can't
       // align the GPU position with the buffer offset.
-      u32 available_space_inbetween = gpu_position - m_current_offset;
+      const u32 available_space_inbetween = gpu_position - m_current_offset;
       if (available_space_inbetween > num_bytes)
       {
         // Leave the offset as-is, but update the GPU position.

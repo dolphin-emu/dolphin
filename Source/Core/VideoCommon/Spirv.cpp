@@ -50,17 +50,17 @@ CompileShaderToSPV(EShLanguage stage, const APIType api_type,
   if (!InitializeGlslang())
     return std::nullopt;
 
-  std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
+  const std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
   std::unique_ptr<glslang::TProgram> program;
   glslang::TShader::ForbidIncluder includer;
-  EProfile profile = ECoreProfile;
+  const EProfile profile = ECoreProfile;
   EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
   if (api_type == APIType::Vulkan || api_type == APIType::Metal)
     messages = static_cast<EShMessages>(messages | EShMsgVulkanRules);
-  int default_version = 450;
+  const int default_version = 450;
 
   const char* pass_source_code = source.data();
-  int pass_source_code_length = static_cast<int>(source.size());
+  const int pass_source_code_length = static_cast<int>(source.size());
 
   shader->setEnvTarget(glslang::EShTargetSpv, language_version);
 
@@ -68,7 +68,7 @@ CompileShaderToSPV(EShLanguage stage, const APIType api_type,
 
   auto DumpBadShader = [&](const char* msg) {
     static int counter = 0;
-    std::string filename = VideoBackendBase::BadShaderFilename(stage_filename, counter++);
+    const std::string filename = VideoBackendBase::BadShaderFilename(stage_filename, counter++);
     std::ofstream stream;
     File::OpenFStream(stream, filename, std::ios_base::out);
     if (stream.good())

@@ -463,8 +463,8 @@ void OGLGfx::CheckForSurfaceChange() const
 
   m_main_gl_context->UpdateSurface(g_presenter->GetNewSurfaceHandle());
 
-  u32 width = m_main_gl_context->GetBackBufferWidth();
-  u32 height = m_main_gl_context->GetBackBufferHeight();
+  const u32 width = m_main_gl_context->GetBackBufferWidth();
+  const u32 height = m_main_gl_context->GetBackBufferHeight();
 
   // With a surface change, the window likely has new dimensions.
   g_presenter->SetBackbuffer(width, height);
@@ -477,8 +477,8 @@ void OGLGfx::CheckForSurfaceResize() const
     return;
 
   m_main_gl_context->Update();
-  u32 width = m_main_gl_context->GetBackBufferWidth();
-  u32 height = m_main_gl_context->GetBackBufferHeight();
+  const u32 width = m_main_gl_context->GetBackBufferWidth();
+  const u32 height = m_main_gl_context->GetBackBufferHeight();
   g_presenter->SetBackbuffer(width, height);
   m_system_framebuffer->UpdateDimensions(width, height);
 }
@@ -554,7 +554,7 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   if (m_current_blend_state == state)
     return;
 
-  bool useDualSource = state.usedualsrc;
+  const bool useDualSource = state.usedualsrc;
 
   const GLenum src_factors[8] = {GL_ZERO,
                                  GL_ONE,
@@ -584,8 +584,8 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   // GL_BLEND is disabled, as a workaround for some bugs (possibly graphics
   // driver issues?). See https://bugs.dolphin-emu.org/issues/10120 : "Sonic
   // Adventure 2 Battle: graphics crash when loading first Dark level"
-  GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-  GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+  const GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+  const GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
   glBlendEquationSeparate(equation, equationAlpha);
   glBlendFuncSeparate(src_factors[static_cast<u32>(state.srcfactor.Value())],
                       dst_factors[static_cast<u32>(state.dstfactor.Value())],

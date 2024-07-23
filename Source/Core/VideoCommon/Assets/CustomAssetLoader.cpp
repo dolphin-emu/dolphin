@@ -32,7 +32,7 @@ void CustomAssetLoader::Init()
       std::lock_guard lk(m_asset_load_lock);
       for (auto& [asset_id, asset_to_monitor] : m_assets_to_monitor)
       {
-        if (auto ptr = asset_to_monitor.lock())
+        if (const auto ptr = asset_to_monitor.lock())
         {
           const auto write_time = ptr->GetLastWriteTime();
           if (write_time > ptr->GetLastLoadedTime())

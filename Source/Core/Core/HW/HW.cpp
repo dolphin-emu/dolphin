@@ -60,7 +60,7 @@ void Init(Core::System& system, const Sram* override_sram)
   }
 }
 
-void Shutdown(Core::System& system)
+void Shutdown(const Core::System& system)
 {
   // IOS should always be shut down regardless of IsWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown(system);  // Depends on Memory

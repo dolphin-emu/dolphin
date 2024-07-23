@@ -73,7 +73,7 @@ DiscIO::Language GameFile::GetConfigLanguage() const
 const std::string& GameFile::Lookup(const DiscIO::Language language,
                                     const std::map<DiscIO::Language, std::string>& strings)
 {
-  auto end = strings.end();
+  const auto end = strings.end();
   auto it = strings.find(language);
   if (it != end)
     return it->second;
@@ -106,7 +106,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
   m_file_name = PathToFileName(m_file_path);
 
   {
-    std::unique_ptr volume(DiscIO::CreateVolume(m_file_path));
+    const std::unique_ptr volume(DiscIO::CreateVolume(m_file_path));
     if (volume != nullptr)
     {
       m_platform = volume->GetVolumeType();
@@ -161,7 +161,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
     if (descriptor)
     {
-      GameFile proxy(descriptor->base_file);
+      const GameFile proxy(descriptor->base_file);
       if (proxy.IsValid())
       {
         m_valid = true;
@@ -240,7 +240,7 @@ void GameFile::DownloadDefaultCover()
   const std::string region_code =
       SConfig::GetInstance().GetGameTDBImageRegionCode(IsWii(GetPlatform()), m_region);
 
-  Common::HttpRequest request;
+  const Common::HttpRequest request;
   static constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
   const auto response = request.Get(fmt::format(cover_url, region_code, m_gametdb_id));
 
@@ -456,7 +456,7 @@ bool GameFile::TryLoadGameModDescriptorBanner()
   if (m_blob_type != DiscIO::BlobType::MOD_DESCRIPTOR)
     return false;
 
-  auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+  const auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
   if (!descriptor)
     return false;
 
@@ -615,7 +615,7 @@ bool GameFile::CheckIfTwoDiscGame(const std::string& game_id) const
   };
   static_assert(std::is_sorted(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end()));
 
-  std::string_view game_id_prefix(game_id.data(), GAME_ID_PREFIX_SIZE);
+  const std::string_view game_id_prefix(game_id.data(), GAME_ID_PREFIX_SIZE);
   return std::binary_search(two_disc_game_id_prefixes.begin(), two_disc_game_id_prefixes.end(),
                             game_id_prefix);
 }
@@ -638,7 +638,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
       lower_name.find(fmt::format("disc {}", disc_number)) == std::string::npos &&
       lower_name.find(fmt::format("disc{}", disc_number)) == std::string::npos)
   {
-    std::string disc_text = "Disc ";
+    const std::string disc_text = "Disc ";
     info.push_back(disc_text + std::to_string(disc_number));
   }
   if (info.empty())
@@ -651,7 +651,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
 
 static Common::SHA1::Digest GetHash(const u32 value)
 {
-  auto data = Common::BitCastToArray<u8>(value);
+  const auto data = Common::BitCastToArray<u8>(value);
   return Common::SHA1::CalculateDigest(data);
 }
 
@@ -691,10 +691,10 @@ Common::SHA1::Digest GameFile::GetSyncHash() const
   }
   else if (m_blob_type == DiscIO::BlobType::MOD_DESCRIPTOR)
   {
-    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+    const auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
     if (descriptor)
     {
-      GameFile proxy(descriptor->base_file);
+      const GameFile proxy(descriptor->base_file);
       if (proxy.IsValid())
         hash = proxy.GetSyncHash();
 
@@ -717,7 +717,7 @@ Common::SHA1::Digest GameFile::GetSyncHash() const
   }
   else
   {
-    if (std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(m_file_path))
+    if (const std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(m_file_path))
       hash = volume->GetSyncHash();
   }
 

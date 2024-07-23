@@ -229,7 +229,7 @@ void SConfig::LoadDefaults()
 // Static method to make a simple game ID for elf/dol files
 std::string SConfig::MakeGameID(const std::string_view file_name)
 {
-  size_t lastdot = file_name.find_last_of(".");
+  const size_t lastdot = file_name.find_last_of(".");
   if (lastdot == std::string::npos)
     return "ID-" + std::string(file_name);
   return "ID-" + std::string(file_name.substr(0, lastdot));
@@ -296,7 +296,7 @@ struct SetGameMetadata
 
   bool operator()(const BootParameters::NANDTitle& nand_title) const
   {
-    IOS::HLE::Kernel ios;
+    const IOS::HLE::Kernel ios;
     const IOS::ES::TMDReader tmd = ios.GetESCore().FindInstalledTMD(nand_title.id);
     if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
     {
@@ -322,7 +322,7 @@ struct SetGameMetadata
 
   bool operator()(const BootParameters::DFF& dff) const
   {
-    std::unique_ptr dff_file(FifoDataFile::Load(dff.dff_path, true));
+    const std::unique_ptr dff_file(FifoDataFile::Load(dff.dff_path, true));
     if (!dff_file)
       return false;
 

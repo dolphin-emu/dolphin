@@ -116,13 +116,13 @@ void ShaderCache::Shutdown()
 
 const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineUid& uid)
 {
-  auto it = m_gx_pipeline_cache.find(uid);
+  const auto it = m_gx_pipeline_cache.find(uid);
   if (it != m_gx_pipeline_cache.end() && !it->second.second)
     return it->second.first.get();
 
   const bool exists_in_cache = it != m_gx_pipeline_cache.end();
   std::unique_ptr<AbstractPipeline> pipeline;
-  std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
+  const std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
     pipeline = g_gfx->CreatePipeline(*pipeline_config);
   if (g_ActiveConfig.bShaderCache && !exists_in_cache)
@@ -132,7 +132,7 @@ const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineUid& uid)
 
 std::optional<const AbstractPipeline*> ShaderCache::GetPipelineForUidAsync(const GXPipelineUid& uid)
 {
-  auto it = m_gx_pipeline_cache.find(uid);
+  const auto it = m_gx_pipeline_cache.find(uid);
   if (it != m_gx_pipeline_cache.end())
   {
     // .second is the pending flag, i.e. compiling in the background.
@@ -149,12 +149,12 @@ std::optional<const AbstractPipeline*> ShaderCache::GetPipelineForUidAsync(const
 
 const AbstractPipeline* ShaderCache::GetUberPipelineForUid(const GXUberPipelineUid& uid)
 {
-  auto it = m_gx_uber_pipeline_cache.find(uid);
+  const auto it = m_gx_uber_pipeline_cache.find(uid);
   if (it != m_gx_uber_pipeline_cache.end() && !it->second.second)
     return it->second.first.get();
 
   std::unique_ptr<AbstractPipeline> pipeline;
-  std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
+  const std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
     pipeline = g_gfx->CreatePipeline(*pipeline_config);
   return InsertGXUberPipeline(uid, std::move(pipeline));
@@ -472,7 +472,7 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
-      auto binary = shader->GetBinary();
+      const auto binary = shader->GetBinary();
       if (!binary.empty())
         m_vs_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
@@ -494,7 +494,7 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
-      auto binary = shader->GetBinary();
+      const auto binary = shader->GetBinary();
       if (!binary.empty())
         m_uber_vs_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
@@ -516,7 +516,7 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
-      auto binary = shader->GetBinary();
+      const auto binary = shader->GetBinary();
       if (!binary.empty())
         m_ps_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
@@ -538,7 +538,7 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
-      auto binary = shader->GetBinary();
+      const auto binary = shader->GetBinary();
       if (!binary.empty())
         m_uber_ps_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
@@ -565,7 +565,7 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
-      auto binary = shader->GetBinary();
+      const auto binary = shader->GetBinary();
       if (!binary.empty())
         m_gs_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
@@ -740,9 +740,9 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 std::optional<AbstractPipelineConfig>
 ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
 {
-  GXPipelineUid config = ApplyDriverBugs(config_in);
+  const GXPipelineUid config = ApplyDriverBugs(config_in);
   const AbstractShader* vs;
-  auto vs_iter = m_vs_cache.shader_map.find(config.vs_uid);
+  const auto vs_iter = m_vs_cache.shader_map.find(config.vs_uid);
   if (vs_iter != m_vs_cache.shader_map.end() && !vs_iter->second.pending)
     vs = vs_iter->second.shader.get();
   else
@@ -752,7 +752,7 @@ ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
   ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &ps_uid);
 
   const AbstractShader* ps;
-  auto ps_iter = m_ps_cache.shader_map.find(ps_uid);
+  const auto ps_iter = m_ps_cache.shader_map.find(ps_uid);
   if (ps_iter != m_ps_cache.shader_map.end() && !ps_iter->second.pending)
     ps = ps_iter->second.shader.get();
   else
@@ -764,7 +764,7 @@ ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
   const AbstractShader* gs = nullptr;
   if (NeedsGeometryShader(config.gs_uid))
   {
-    auto gs_iter = m_gs_cache.shader_map.find(config.gs_uid);
+    const auto gs_iter = m_gs_cache.shader_map.find(config.gs_uid);
     if (gs_iter != m_gs_cache.shader_map.end() && !gs_iter->second.pending)
       gs = gs_iter->second.shader.get();
     else
@@ -831,9 +831,9 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
 std::optional<AbstractPipelineConfig>
 ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
 {
-  GXUberPipelineUid config = ApplyDriverBugs(config_in);
+  const GXUberPipelineUid config = ApplyDriverBugs(config_in);
   const AbstractShader* vs;
-  auto vs_iter = m_uber_vs_cache.shader_map.find(config.vs_uid);
+  const auto vs_iter = m_uber_vs_cache.shader_map.find(config.vs_uid);
   if (vs_iter != m_uber_vs_cache.shader_map.end() && !vs_iter->second.pending)
     vs = vs_iter->second.shader.get();
   else
@@ -843,7 +843,7 @@ ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
   UberShader::ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &ps_uid);
 
   const AbstractShader* ps;
-  auto ps_iter = m_uber_ps_cache.shader_map.find(ps_uid);
+  const auto ps_iter = m_uber_ps_cache.shader_map.find(ps_uid);
   if (ps_iter != m_uber_ps_cache.shader_map.end() && !ps_iter->second.pending)
     ps = ps_iter->second.shader.get();
   else
@@ -855,7 +855,7 @@ ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
   const AbstractShader* gs = nullptr;
   if (NeedsGeometryShader(config.gs_uid))
   {
-    auto gs_iter = m_gs_cache.shader_map.find(config.gs_uid);
+    const auto gs_iter = m_gs_cache.shader_map.find(config.gs_uid);
     if (gs_iter != m_gs_cache.shader_map.end() && !gs_iter->second.pending)
       gs = gs_iter->second.shader.get();
     else
@@ -880,7 +880,7 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
 
     if (g_ActiveConfig.bShaderCache)
     {
-      auto cache_data = entry.first->GetCacheData();
+      const auto cache_data = entry.first->GetCacheData();
       if (!cache_data.empty())
       {
         SerializedGXPipelineUid disk_uid;
@@ -906,7 +906,7 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
 
     if (g_ActiveConfig.bShaderCache)
     {
-      auto cache_data = entry.first->GetCacheData();
+      const auto cache_data = entry.first->GetCacheData();
       if (!cache_data.empty())
       {
         SerializedGXUberPipelineUid disk_uid;
@@ -924,7 +924,7 @@ void ShaderCache::LoadPipelineUIDCache()
 {
   constexpr u32 CACHE_FILE_MAGIC = 0x44495550;  // PUID
   constexpr size_t CACHE_HEADER_SIZE = sizeof(u32) + sizeof(u32);
-  std::string filename =
+  const std::string filename =
       File::GetUserPath(D_CACHE_IDX) + SConfig::GetInstance().GetGameID() + ".uidcache";
   if (m_gx_pipeline_uid_cache_file.Open(filename, "rb+"))
   {
@@ -1004,7 +1004,7 @@ void ShaderCache::AddSerializedGXPipelineUID(const SerializedGXPipelineUid& uid)
   GXPipelineUid real_uid;
   UnserializePipelineUid(uid, real_uid);
 
-  auto iter = m_gx_pipeline_cache.find(real_uid);
+  const auto iter = m_gx_pipeline_cache.find(real_uid);
   if (iter != m_gx_pipeline_cache.end())
     return;
 
@@ -1161,9 +1161,9 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     {
       stages_ready = true;
 
-      GXPipelineUid actual_uid = ApplyDriverBugs(uid);
+      const GXPipelineUid actual_uid = ApplyDriverBugs(uid);
 
-      auto vs_it = shader_cache->m_vs_cache.shader_map.find(actual_uid.vs_uid);
+      const auto vs_it = shader_cache->m_vs_cache.shader_map.find(actual_uid.vs_uid);
       stages_ready &= vs_it != shader_cache->m_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_vs_cache.shader_map.end())
         shader_cache->QueueVertexShaderCompile(actual_uid.vs_uid, priority);
@@ -1171,7 +1171,7 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
       PixelShaderUid ps_uid = actual_uid.ps_uid;
       ClearUnusedPixelShaderUidBits(shader_cache->m_api_type, shader_cache->m_host_config, &ps_uid);
 
-      auto ps_it = shader_cache->m_ps_cache.shader_map.find(ps_uid);
+      const auto ps_it = shader_cache->m_ps_cache.shader_map.find(ps_uid);
       stages_ready &= ps_it != shader_cache->m_ps_cache.shader_map.end() && !ps_it->second.pending;
       if (ps_it == shader_cache->m_ps_cache.shader_map.end())
         shader_cache->QueuePixelShaderCompile(ps_uid, priority);
@@ -1233,9 +1233,9 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
     {
       stages_ready = true;
 
-      GXUberPipelineUid actual_uid = ApplyDriverBugs(uid);
+      const GXUberPipelineUid actual_uid = ApplyDriverBugs(uid);
 
-      auto vs_it = shader_cache->m_uber_vs_cache.shader_map.find(actual_uid.vs_uid);
+      const auto vs_it = shader_cache->m_uber_vs_cache.shader_map.find(actual_uid.vs_uid);
       stages_ready &=
           vs_it != shader_cache->m_uber_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_uber_vs_cache.shader_map.end())
@@ -1245,7 +1245,7 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
       UberShader::ClearUnusedPixelShaderUidBits(shader_cache->m_api_type,
                                                 shader_cache->m_host_config, &ps_uid);
 
-      auto ps_it = shader_cache->m_uber_ps_cache.shader_map.find(ps_uid);
+      const auto ps_it = shader_cache->m_uber_ps_cache.shader_map.find(ps_uid);
       stages_ready &=
           ps_it != shader_cache->m_uber_ps_cache.shader_map.end() && !ps_it->second.pending;
       if (ps_it == shader_cache->m_uber_ps_cache.shader_map.end())
@@ -1299,7 +1299,7 @@ void ShaderCache::QueueUberShaderPipelines()
   dummy_vertex_decl.position.type = ComponentFormat::Float;
   dummy_vertex_decl.position.enable = true;
   dummy_vertex_decl.stride = sizeof(float) * 4;
-  NativeVertexFormat* dummy_vertex_format =
+  const NativeVertexFormat* dummy_vertex_format =
       VertexLoaderManager::GetUberVertexFormat(dummy_vertex_decl);
   auto QueueDummyPipeline =
       [&](const UberShader::VertexShaderUid& vs_uid, const GeometryShaderUid& gs_uid,
@@ -1320,7 +1320,7 @@ void ShaderCache::QueueUberShaderPipelines()
           config.blending_state.logicmode = LogicOp::And;
         }
 
-        auto iter = m_gx_uber_pipeline_cache.find(config);
+        const auto iter = m_gx_uber_pipeline_cache.find(config);
         if (iter != m_gx_uber_pipeline_cache.end())
           return;
 
@@ -1390,12 +1390,12 @@ void ShaderCache::QueueUberShaderPipelines()
 const AbstractPipeline*
 ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShaderUid& uid)
 {
-  auto iter = m_efb_copy_to_vram_pipelines.find(uid);
+  const auto iter = m_efb_copy_to_vram_pipelines.find(uid);
   if (iter != m_efb_copy_to_vram_pipelines.end())
     return iter->second.get();
 
-  auto shader_code = GeneratePixelShader(m_api_type, uid.GetUidData());
-  auto shader = g_gfx->CreateShaderFromSource(
+  const auto shader_code = GeneratePixelShader(m_api_type, uid.GetUidData());
+  const auto shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, shader_code.GetBuffer(),
       fmt::format("EFB copy to VRAM pixel shader: {}", *uid.GetUidData()));
   if (!shader)
@@ -1415,13 +1415,13 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  auto iiter = m_efb_copy_to_vram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
+  const auto iiter = m_efb_copy_to_vram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
   return iiter.first->second.get();
 }
 
 const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams& uid)
 {
-  auto iter = m_efb_copy_to_ram_pipelines.find(uid);
+  const auto iter = m_efb_copy_to_ram_pipelines.find(uid);
   if (iter != m_efb_copy_to_ram_pipelines.end())
     return iter->second.get();
 
@@ -1443,7 +1443,7 @@ const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetColorFramebufferState(AbstractTextureFormat::BGRA8);
   config.usage = AbstractPipelineUsage::Utility;
-  auto iiter = m_efb_copy_to_ram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
+  const auto iiter = m_efb_copy_to_ram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
   return iiter.first->second.get();
 }
 
@@ -1538,11 +1538,11 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
                                                                    TextureFormat to_format)
 {
   const auto key = std::make_pair(from_format, to_format);
-  auto iter = m_texture_reinterpret_pipelines.find(key);
+  const auto iter = m_texture_reinterpret_pipelines.find(key);
   if (iter != m_texture_reinterpret_pipelines.end())
     return iter->second.get();
 
-  std::string shader_source =
+  const std::string shader_source =
       FramebufferShaderGen::GenerateTextureReinterpretShader(from_format, to_format);
   if (shader_source.empty())
   {
@@ -1550,7 +1550,7 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
     return nullptr;
   }
 
-  std::unique_ptr<AbstractShader> shader = g_gfx->CreateShaderFromSource(
+  const std::unique_ptr<AbstractShader> shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, shader_source,
       fmt::format("Texture reinterpret pixel shader: {} to {}", from_format, to_format));
   if (!shader)
@@ -1569,7 +1569,7 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  auto iiter = m_texture_reinterpret_pipelines.emplace(key, g_gfx->CreatePipeline(config));
+  const auto iiter = m_texture_reinterpret_pipelines.emplace(key, g_gfx->CreatePipeline(config));
   return iiter.first->second.get();
 }
 

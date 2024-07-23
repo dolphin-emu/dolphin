@@ -44,10 +44,10 @@ void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
                                    const MathUtil::Rectangle<int>& target_rect, const u64 ticks,
                                    const int frame_number)
 {
-  int source_width = src_rect.GetWidth();
-  int source_height = src_rect.GetHeight();
-  int target_width = target_rect.GetWidth();
-  int target_height = target_rect.GetHeight();
+  const int source_width = src_rect.GetWidth();
+  const int source_height = src_rect.GetHeight();
+  const int target_width = target_rect.GetWidth();
+  const int target_height = target_rect.GetHeight();
 
   // We only need to render a copy if we need to stretch/scale the XFB copy.
   MathUtil::Rectangle<int> copy_rect = src_rect;
@@ -127,7 +127,7 @@ void FrameDumper::FlushFrameDump()
   std::swap(m_frame_dump_output_texture, m_frame_dump_readback_texture);
 
   // Queue encoding of the last frame dumped.
-  auto& output = m_frame_dump_output_texture;
+  const auto& output = m_frame_dump_output_texture;
   output->Flush();
   if (output->Map())
   {
@@ -322,7 +322,7 @@ bool FrameDumper::StartFrameDumpToImage(const FrameData&)
     // Only check for the presence of the first image to confirm overwriting.
     // A previous run will always have at least one image, and it's safe to assume that if the user
     // has allowed the first image to be overwritten, this will apply any remaining images as well.
-    std::string filename = GetFrameDumpNextImageFileName();
+    const std::string filename = GetFrameDumpNextImageFileName();
     if (File::Exists(filename))
     {
       if (!AskYesNoFmtT("Frame dump image(s) '{0}' already exists. Overwrite?", filename))

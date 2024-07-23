@@ -22,7 +22,7 @@ void IniFile::ParseLine(std::string_view line, std::string* keyOut, std::string*
   if (line.empty() || line.front() == '#')
     return;
 
-  size_t firstEquals = line.find('=');
+  const size_t firstEquals = line.find('=');
 
   if (firstEquals != std::string::npos)
   {
@@ -102,7 +102,7 @@ bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remo
 
     if (remove_comments)
     {
-      size_t commentPos = stripped_line.find('#');
+      const size_t commentPos = stripped_line.find('#');
       if (commentPos == 0)
       {
         continue;
@@ -161,7 +161,7 @@ IniFile::Section* IniFile::GetOrCreateSection(const std::string_view section_nam
 
 bool IniFile::DeleteSection(const std::string_view section_name)
 {
-  Section* s = GetSection(section_name);
+  const Section* s = GetSection(section_name);
   if (!s)
     return false;
 
@@ -278,12 +278,12 @@ bool IniFile::Load(const std::string& filename, const bool keep_current_data)
     {
       if (line[0] == '[')
       {
-        size_t endpos = line.find(']');
+        const size_t endpos = line.find(']');
 
         if (endpos != std::string::npos)
         {
           // New section!
-          std::string_view sub = line.substr(1, endpos - 1);
+          const std::string_view sub = line.substr(1, endpos - 1);
           current_section = GetOrCreateSection(sub);
         }
       }
@@ -318,7 +318,7 @@ bool IniFile::Load(const std::string& filename, const bool keep_current_data)
 bool IniFile::Save(const std::string& filename) const
 {
   std::ofstream out;
-  std::string temp = File::GetTempFilenameForAtomicWrite(filename);
+  const std::string temp = File::GetTempFilenameForAtomicWrite(filename);
   File::OpenFStream(out, temp, std::ios::out);
 
   if (out.fail())
@@ -340,7 +340,7 @@ bool IniFile::Save(const std::string& filename) const
     {
       for (const std::string& kvit : section.keys_order)
       {
-        auto pair = section.values.find(kvit);
+        const auto pair = section.values.find(kvit);
         out << pair->first << " = " << pair->second << std::endl;
       }
     }

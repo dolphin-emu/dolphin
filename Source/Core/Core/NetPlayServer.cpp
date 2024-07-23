@@ -218,7 +218,7 @@ void NetPlayServer::SetupIndex()
   }
   else
   {
-    Common::HttpRequest request;
+    const Common::HttpRequest request;
     // ENet does not support IPv6, so IPv4 has to be used
     request.UseIPv4();
     Common::HttpRequest::Response response =
@@ -232,7 +232,7 @@ void NetPlayServer::SetupIndex()
 
   session.EncryptID(Get(Config::NETPLAY_INDEX_PASSWORD));
 
-  bool success = m_index.Add(session);
+  const bool success = m_index.Add(session);
   if (m_dialog != nullptr)
     m_dialog->OnIndexAdded(success, success ? "" : m_index.GetLastError());
 
@@ -340,7 +340,7 @@ void NetPlayServer::ThreadFunc()
         }
         else
         {
-          auto it = m_players.find(*PeerPlayerId(netEvent.peer));
+          const auto it = m_players.find(*PeerPlayerId(netEvent.peer));
           Client& client = it->second;
           if (OnData(rpac, client) != 0)
           {
@@ -408,7 +408,7 @@ void NetPlayServer::ThreadFunc()
   INFO_LOG_FMT(NETPLAY, "NetPlayServer shutting down.");
 
   // close listening socket and client sockets
-  for (auto& player_entry : m_players)
+  for (const auto& player_entry : m_players)
   {
     ClearPeerPlayerId(player_entry.second.socket);
     enet_peer_disconnect(player_entry.second.socket, 0);
@@ -517,7 +517,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
 
   if (m_is_running)
   {
-    for (PlayerId& mapping : m_pad_map)
+    for (const PlayerId& mapping : m_pad_map)
     {
       if (mapping == pid && pid != 1)
       {
@@ -547,7 +547,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
   enet_peer_disconnect(player.socket, 0);
 
   std::lock_guard lkp(m_crit.players);
-  auto it = m_players.find(player.pid);
+  const auto it = m_players.find(player.pid);
   if (it != m_players.end())
     m_players.erase(it);
 
@@ -632,7 +632,7 @@ void NetPlayServer::UpdatePadMapping()
 {
   sf::Packet spac;
   spac << MessageID::PadMapping;
-  for (PlayerId mapping : m_pad_map)
+  for (const PlayerId mapping : m_pad_map)
   {
     spac << mapping;
   }
@@ -658,7 +658,7 @@ void NetPlayServer::UpdateWiimoteMapping()
 {
   sf::Packet spac;
   spac << MessageID::WiimoteMapping;
-  for (PlayerId mapping : m_wiimote_map)
+  for (const PlayerId mapping : m_wiimote_map)
   {
     spac << mapping;
   }
@@ -1369,7 +1369,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.oc_enable = Get(Config::MAIN_OVERCLOCK_ENABLE);
   settings.oc_factor = Get(Config::MAIN_OVERCLOCK);
 
-  for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+  for (const ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
   {
     ExpansionInterface::EXIDeviceType device;
     if (slot == ExpansionInterface::Slot::SP1)
@@ -1597,12 +1597,12 @@ bool NetPlayServer::StartGame()
   spac << m_settings.oc_enable;
   spac << m_settings.oc_factor;
 
-  for (auto slot : ExpansionInterface::SLOTS)
+  for (const auto slot : ExpansionInterface::SLOTS)
     spac << static_cast<int>(m_settings.exi_device[slot]);
 
   spac << m_settings.memcard_size_override;
 
-  for (u32 value : m_settings.sysconf_settings)
+  for (const u32 value : m_settings.sysconf_settings)
     spac << value;
 
   spac << m_settings.efb_access_enable;
@@ -2192,7 +2192,7 @@ u64 NetPlayServer::GetInitialNetPlayRTC() const
 void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid,
                                   const u8 channel_id)
 {
-  for (auto& p : m_players)
+  for (const auto& p : m_players)
   {
     if (p.second.pid && p.second.pid != skip_pid)
     {
@@ -2297,7 +2297,7 @@ std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
   char buf[16]{};
   fmt::format_to_n(buf, sizeof(buf) - 1, ":{}", GetPort());
 
-  auto lst = GetInterfaceListInternal();
+  const auto lst = GetInterfaceListInternal();
   for (const auto& list_entry : lst)
   {
     if (list_entry.first == inter)
@@ -2383,7 +2383,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         }
         else
         {
-          for (auto& pl : m_players)
+          for (const auto& pl : m_players)
           {
             if (pl.second.pid != e.target_pid)
               players.push_back(pl.second.pid);

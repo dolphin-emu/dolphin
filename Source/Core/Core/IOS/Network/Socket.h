@@ -287,7 +287,7 @@ public:
   template <typename T>
   void DoSock(s32 sock, const Request& request, T type)
   {
-    auto socket_entry = WiiSockets.find(sock);
+    const auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
       ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,

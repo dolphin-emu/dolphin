@@ -76,7 +76,7 @@ public:
   AnalyticsReportBuilder& AddBuilder(const AnalyticsReportBuilder& other)
   {
     // Get before locking the object to avoid deadlocks with this += this.
-    std::string other_report = other.Get();
+    const std::string other_report = other.Get();
     std::lock_guard lk{m_lock};
     m_report += other_report;
     return *this;

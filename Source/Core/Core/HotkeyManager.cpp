@@ -235,8 +235,8 @@ void Enable(const bool enable_toggle)
 
 bool IsPressed(const int id, const bool held)
 {
-  unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
-  unsigned int group_key =
+  const unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
+  const unsigned int group_key =
       static_cast<HotkeyManager*>(s_config.GetController(0))->GetIndexForGroup(group, id);
   if (s_hotkey.button[group] & (1 << group_key))
   {
@@ -262,7 +262,7 @@ static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
   {
     if (!inifile.Exists("Hotkeys") && inifile.Exists("Hotkeys1"))
     {
-      auto sec = inifile.GetOrCreateSection("Hotkeys1");
+      const auto sec = inifile.GetOrCreateSection("Hotkeys1");
 
       {
         std::string defdev;
@@ -270,9 +270,9 @@ static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
         controller->SetDefaultDevice(defdev);
       }
 
-      for (auto& group : controller->groups)
+      for (const auto& group : controller->groups)
       {
-        for (auto& control : group->controls)
+        for (const auto& control : group->controls)
         {
           std::string key("Keys/" + control->name);
 

@@ -231,7 +231,7 @@ void AsmEditor::paintEvent(QPaintEvent* event)
       continue;
     }
 
-    BlockInfo* info = static_cast<BlockInfo*>(blk.userData());
+    const BlockInfo* info = static_cast<BlockInfo*>(blk.userData());
     if (info->error_at_eol)
     {
       tc.setPosition(blk.position() + blk.length() - 1);
@@ -246,11 +246,11 @@ bool AsmEditor::event(QEvent* e)
 {
   if (e->type() == QEvent::ToolTip)
   {
-    QHelpEvent* he = static_cast<QHelpEvent*>(e);
+    const QHelpEvent* he = static_cast<QHelpEvent*>(e);
     QTextCursor hover_cursor = cursorForPosition(he->pos());
-    QTextBlock hover_block = hover_cursor.block();
+    const QTextBlock hover_block = hover_cursor.block();
 
-    BlockInfo* info = static_cast<BlockInfo*>(hover_block.userData());
+    const BlockInfo* info = static_cast<BlockInfo*>(hover_block.userData());
     if (info == nullptr || !info->error)
     {
       QToolTip::hideText();
@@ -307,7 +307,7 @@ void AsmEditor::wheelEvent(QWheelEvent* event)
 
   if (event->modifiers() & Qt::ControlModifier)
   {
-    auto delta = static_cast<int>(std::round((event->angleDelta().y() / 120.0)));
+    const auto delta = static_cast<int>(std::round((event->angleDelta().y() / 120.0)));
     if (delta != 0)
     {
       emit ZoomRequested(delta);

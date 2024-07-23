@@ -197,7 +197,7 @@ public:
   void ClearInputOverrideFunction();
 
   void UpdateReferences(const ControllerInterface& devi);
-  void UpdateSingleControlReference(const ControllerInterface& devi, ControlReference* ref);
+  void UpdateSingleControlReference(const ControllerInterface& devi, const ControlReference* ref);
 
   // This returns a lock that should be held before calling State() on any control
   // references and GetState(), by extension. This prevents a race condition

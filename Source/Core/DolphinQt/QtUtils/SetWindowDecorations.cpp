@@ -17,7 +17,7 @@ void SetQWidgetWindowDecorations(const QWidget* widget)
   if (!Settings::Instance().IsThemeDark())
     return;
 
-  BOOL use_dark_title_bar = TRUE;
+  const BOOL use_dark_title_bar = TRUE;
   DwmSetWindowAttribute(reinterpret_cast<HWND>(widget->winId()),
                         20 /* DWMWINDOWATTRIBUTE::DWMWA_USE_IMMERSIVE_DARK_MODE */,
                         &use_dark_title_bar, static_cast<DWORD>(sizeof(use_dark_title_bar)));

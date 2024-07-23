@@ -76,7 +76,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
 
   std::vector<u8> buffer(buffer_size);
   const u64 num_buffers = (infile->GetDataSize() + buffer_size - 1) / buffer_size;
-  int progress_monitor = std::max<int>(1, num_buffers / 100);
+  const int progress_monitor = std::max<int>(1, num_buffers / 100);
   bool success = true;
 
   for (u64 i = 0; i < num_buffers; i++)

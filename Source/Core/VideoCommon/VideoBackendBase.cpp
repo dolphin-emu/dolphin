@@ -92,7 +92,7 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
 
 void VideoBackendBase::Video_ExitLoop()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().ExitGpuLoop();
 }
 
@@ -102,7 +102,7 @@ void VideoBackendBase::Video_OutputXFB(const u32 xfb_addr, const u32 fb_width, c
 {
   if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
     AsyncRequests::Event e;
@@ -158,7 +158,7 @@ u32 VideoBackendBase::Video_GetQueryResult(const PerfQueryType type)
     return 0;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::PerfQuery);
 
   AsyncRequests::Event e;
@@ -199,7 +199,7 @@ u16 VideoBackendBase::Video_GetBoundingBox(const int index)
     warn_once = false;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::BBox);
 
   AsyncRequests::Event e;
@@ -223,7 +223,7 @@ static VideoBackendBase* GetDefaultVideoBackend()
 
 std::string VideoBackendBase::GetDefaultBackendName()
 {
-  auto* default_backend = GetDefaultVideoBackend();
+  const auto* default_backend = GetDefaultVideoBackend();
   return default_backend ? default_backend->GetName() : "";
 }
 
@@ -305,7 +305,7 @@ void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
 
 void VideoBackendBase::DoState(PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   if (!system.IsDualCoreMode())
   {
     VideoCommon_DoState(p);
@@ -376,7 +376,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
     return false;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init();
   system.GetFifo().Init();
@@ -421,7 +421,7 @@ void VideoBackendBase::ShutdownShared()
 
   m_initialized = false;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   VertexLoaderManager::Clear();
   system.GetFifo().Shutdown();
 }

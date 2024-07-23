@@ -436,7 +436,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       // Disable encryption
       {
         constexpr u8 INIT_OFFSET = offsetof(Register, init_trigger);
-        std::array<u8, 1> enc_data = {0x55};
+        const std::array<u8, 1> enc_data = {0x55};
         m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, static_cast<int>(enc_data.size()), enc_data.data());
       }
 

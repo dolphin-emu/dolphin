@@ -47,7 +47,7 @@ QIcon Resources::LoadNamedIcon(const std::string_view name, const QString& dir)
   // Since we are caching the files, we need to try and load all known sizes up-front.
   // Otherwise, a dynamic change of devicePixelRatio could result in use of non-ideal image from
   // cache while a better one exists on disk.
-  for (auto scale : {1, 2, 4})
+  for (const auto scale : {1, 2, 4})
     load_png(scale);
 
   ASSERT(icon.availableSizes().size() > 0);
@@ -79,13 +79,13 @@ void Resources::Init()
 {
   m_svg_supported = QImageReader::supportedImageFormats().contains("svg");
 
-  for (std::string_view platform :
+  for (const std::string_view platform :
        {"Platform_Gamecube", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {
     m_platforms.append(GetResourceIcon(platform));
   }
 
-  for (std::string_view country :
+  for (const std::string_view country :
        {"Flag_Europe", "Flag_Japan", "Flag_USA", "Flag_Australia", "Flag_France", "Flag_Germany",
         "Flag_Italy", "Flag_Korea", "Flag_Netherlands", "Flag_Russia", "Flag_Spain", "Flag_Taiwan",
         "Flag_International", "Flag_Unknown"})

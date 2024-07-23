@@ -556,7 +556,7 @@ bool PopulateConfig(const GLContext* m_main_gl_context)
   g_Config.backend_info.AAModes.clear();
   if (g_ogl_config.bSupportsMSAA)
   {
-    bool supportsGetInternalFormat =
+    const bool supportsGetInternalFormat =
         GLExtensions::Supports("VERSION_4_2") || GLExtensions::Supports("VERSION_GLES_3");
     if (supportsGetInternalFormat)
     {
@@ -565,7 +565,7 @@ bool PopulateConfig(const GLContext* m_main_gl_context)
 
       std::vector<int> color_aa_modes;
       {
-        GLenum colorInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
+        const GLenum colorInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
             FramebufferManager::GetEFBColorFormat(), true);
         GLint num_color_sample_counts = 0;
         glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat,
@@ -594,7 +594,7 @@ bool PopulateConfig(const GLContext* m_main_gl_context)
 
       std::vector<int> depth_aa_modes;
       {
-        GLenum depthInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
+        const GLenum depthInternalFormat = OGLTexture::GetGLInternalFormatForTextureFormat(
             FramebufferManager::GetEFBColorFormat(), true);
         GLint num_depth_sample_counts = 0;
         glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat,

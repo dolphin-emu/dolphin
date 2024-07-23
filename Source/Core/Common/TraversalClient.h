@@ -79,7 +79,7 @@ private:
   TraversalRequestId SendTraversalPacket(const TraversalPacket& packet);
   void OnFailure(FailureReason reason);
   void HandlePing();
-  static int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
+  static int ENET_CALLBACK InterceptCallback(const ENetHost* host, ENetEvent* event);
 
   void NewTraversalTest();
   void HandleTraversalTest();

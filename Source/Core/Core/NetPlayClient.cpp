@@ -162,7 +162,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
     ENetEvent netEvent;
-    int net = enet_host_service(m_client, &netEvent, 5000);
+    const int net = enet_host_service(m_client, &netEvent, 5000);
     if (net > 0 && netEvent.type == ENET_EVENT_TYPE_CONNECT)
     {
       if (Connect())
@@ -859,7 +859,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.oc_enable;
     packet >> m_net_settings.oc_factor;
 
-    for (auto slot : ExpansionInterface::SLOTS)
+    for (const auto slot : ExpansionInterface::SLOTS)
       packet >> m_net_settings.exi_device[slot];
 
     packet >> m_net_settings.memcard_size_override;
@@ -1885,7 +1885,7 @@ void NetPlayClient::UpdateDevices() const
   u8 pad = 0;
 
   auto& si = Core::System::GetInstance().GetSerialInterface();
-  for (auto player_id : m_pad_map)
+  for (const auto player_id : m_pad_map)
   {
     if (m_gba_config[pad].enabled && player_id > 0)
     {
@@ -2086,7 +2086,7 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
       if (!buffer_over_target)
         m_buffer_under_target_last = std::chrono::steady_clock::now();
 
-      std::chrono::duration<double> time_diff =
+      const std::chrono::duration<double> time_diff =
           std::chrono::steady_clock::now() - m_buffer_under_target_last;
       if (time_diff.count() >= 1.0 || !buffer_over_target)
       {
@@ -2551,21 +2551,21 @@ static std::string SHA1Sum(const std::string& file_path, std::function<bool(int)
   std::vector<u8> data(8 * 1024 * 1024);
   u64 read_offset = 0;
 
-  std::unique_ptr file(DiscIO::CreateBlobReader(file_path));
-  u64 game_size = file->GetDataSize();
+  const std::unique_ptr file(DiscIO::CreateBlobReader(file_path));
+  const u64 game_size = file->GetDataSize();
 
-  auto ctx = Common::SHA1::CreateContext();
+  const auto ctx = Common::SHA1::CreateContext();
 
   while (read_offset < game_size)
   {
-    size_t read_size = std::min(static_cast<u64>(data.size()), game_size - read_offset);
+    const size_t read_size = std::min(static_cast<u64>(data.size()), game_size - read_offset);
     if (!file->Read(read_offset, read_size, data.data()))
       return "";
 
     ctx->Update(data.data(), read_size);
     read_offset += read_size;
 
-    int progress =
+    const int progress =
         static_cast<int>(static_cast<float>(read_offset) / static_cast<float>(game_size) * 100);
     if (!report_progress(progress))
       return "";
@@ -2586,7 +2586,7 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
   std::string file;
   if (sync_identifier == GetSDCardIdentifier())
     file = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
-  else if (auto game = m_dialog->FindGameFile(sync_identifier))
+  else if (const auto game = m_dialog->FindGameFile(sync_identifier))
     file = game->GetFilePath();
 
   if (file.empty() || !File::Exists(file))
@@ -2601,7 +2601,7 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
   if (m_game_digest_thread.joinable())
     m_game_digest_thread.join();
   m_game_digest_thread = std::thread([this, file]() {
-    std::string sum = SHA1Sum(file, [&](const int progress) {
+    const std::string sum = SHA1Sum(file, [&](const int progress) {
       sf::Packet packet;
       packet << MessageID::GameDigestProgress;
       packet << progress;
@@ -2700,7 +2700,7 @@ std::string GetGBASavePath(const int pad_num)
   if (!netplay_client || netplay_client->GetNetSettings().is_hosting)
   {
 #ifdef HAS_LIBMGBA
-    std::string rom_path = Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
+    const std::string rom_path = Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
     return HW::GBA::Core::GetSavePath(rom_path, pad_num);
 #else
     return {};
@@ -2722,11 +2722,11 @@ PadDetails GetPadDetails(const int pad_num)
   if (!netplay_client)
     return res;
 
-  auto pad_map = netplay_client->GetPadMapping();
+  const auto pad_map = netplay_client->GetPadMapping();
   if (pad_map[pad_num] <= 0)
     return res;
 
-  for (auto player : netplay_client->GetPlayers())
+  for (const auto player : netplay_client->GetPlayers())
   {
     if (player->pid == pad_map[pad_num])
       res.player_name = player->name;

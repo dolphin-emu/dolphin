@@ -147,14 +147,14 @@ PostProcessingConfigWindow::CreateDependentTab(const std::unique_ptr<ConfigGroup
   return tab;
 }
 
-void PostProcessingConfigWindow::UpdateBool(ConfigGroup* const config_group, const bool state) const
+void PostProcessingConfigWindow::UpdateBool(const ConfigGroup* const config_group, const bool state) const
 {
   m_post_processor->SetOptionb(config_group->GetOptionName(), state);
 
   config_group->EnableSuboptions(state);
 }
 
-void PostProcessingConfigWindow::UpdateInteger(ConfigGroup* const config_group, const int value) const
+void PostProcessingConfigWindow::UpdateInteger(const ConfigGroup* const config_group, const int value) const
 {
   const ConfigurationOption& config_option =
       m_post_processor->GetOption(config_group->GetOptionName());
@@ -171,7 +171,7 @@ void PostProcessingConfigWindow::UpdateInteger(ConfigGroup* const config_group, 
   }
 }
 
-void PostProcessingConfigWindow::UpdateFloat(ConfigGroup* const config_group, const int value) const
+void PostProcessingConfigWindow::UpdateFloat(const ConfigGroup* const config_group, const int value) const
 {
   const ConfigurationOption& config_option =
       m_post_processor->GetOption(config_group->GetOptionName());
@@ -348,7 +348,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddFloat(PostProcessingConfigWindow
 
 void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state) const
 {
-  for (auto& it : m_subgroups)
+  for (const auto& it : m_subgroups)
   {
     if (it->m_config_option->m_type == OptionType::Bool)
     {
@@ -356,7 +356,7 @@ void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state)
     }
     else
     {
-      for (auto& slider : it->m_sliders)
+      for (const auto& slider : it->m_sliders)
       {
         slider->setEnabled(state);
       }

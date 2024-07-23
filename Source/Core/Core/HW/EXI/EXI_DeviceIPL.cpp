@@ -61,11 +61,11 @@ void CEXIIPL::Descrambler(u8* data, const u32 size)
 
   for (u32 it = 0; it < size;)
   {
-    int t0 = t & 1;
-    int t1 = (t >> 1) & 1;
-    int u0 = u & 1;
-    int u1 = (u >> 1) & 1;
-    int v0 = v & 1;
+    const int t0 = t & 1;
+    const int t1 = (t >> 1) & 1;
+    const int u0 = u & 1;
+    const int u1 = (u >> 1) & 1;
+    const int v0 = v & 1;
 
     x ^= t1 ^ v0;
     x ^= (u0 | u1);
@@ -403,7 +403,7 @@ u32 CEXIIPL::GetEmulatedTime(const Core::System& system, const u32 epoch)
 {
   u64 ltime = 0;
 
-  auto& movie = system.GetMovie();
+  const auto& movie = system.GetMovie();
   if (movie.IsMovieActive())
   {
     ltime = movie.GetRecordingStartTime();

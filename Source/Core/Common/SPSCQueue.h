@@ -92,7 +92,7 @@ private:
     ElementPtr() : next(nullptr) {}
     ~ElementPtr()
     {
-      ElementPtr* next_ptr = next.load();
+      const ElementPtr* next_ptr = next.load();
 
       if (next_ptr)
         delete next_ptr;

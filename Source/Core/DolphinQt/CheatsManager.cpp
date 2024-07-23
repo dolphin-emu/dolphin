@@ -38,7 +38,7 @@ CheatsManager::CheatsManager(Core::System& system, QWidget* parent)
 
   RefreshCodeTabs(GetState(m_system), true);
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
   restoreGeometry(settings.value(QStringLiteral("cheatsmanager/geometry")).toByteArray());
 }
 

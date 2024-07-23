@@ -380,7 +380,7 @@ void Interpreter::ori(const UDSPInstruction opc) const
 // flags out: x-xx xxxx
 void Interpreter::addr(const UDSPInstruction opc)
 {
-  auto& state = m_dsp_core.DSPState();
+  const auto& state = m_dsp_core.DSPState();
   const u8 dreg = (opc >> 8) & 0x1;
   const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
@@ -574,7 +574,7 @@ void Interpreter::inc(const UDSPInstruction opc)
 // flags out: x-xx xxxx
 void Interpreter::subr(const UDSPInstruction opc)
 {
-  auto& state = m_dsp_core.DSPState();
+  const auto& state = m_dsp_core.DSPState();
   const u8 dreg = (opc >> 8) & 0x1;
   const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
@@ -754,7 +754,7 @@ void Interpreter::abs(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::movr(const UDSPInstruction opc)
 {
-  auto& state = m_dsp_core.DSPState();
+  const auto& state = m_dsp_core.DSPState();
   const u8 areg = (opc >> 8) & 0x1;
   const u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
@@ -1029,7 +1029,7 @@ void Interpreter::asrn(const UDSPInstruction opc) const
 // flags out: --xx xx00
 void Interpreter::lsrnrx(const UDSPInstruction opc)
 {
-  auto& state = m_dsp_core.DSPState();
+  const auto& state = m_dsp_core.DSPState();
   const u8 dreg = (opc >> 8) & 0x1;
   const u8 sreg = (opc >> 9) & 0x1;
 
@@ -1068,7 +1068,7 @@ void Interpreter::lsrnrx(const UDSPInstruction opc)
 // flags out: --xx xx00
 void Interpreter::asrnrx(const UDSPInstruction opc)
 {
-  auto& state = m_dsp_core.DSPState();
+  const auto& state = m_dsp_core.DSPState();
   const u8 dreg = (opc >> 8) & 0x1;
   const u8 sreg = (opc >> 9) & 0x1;
 

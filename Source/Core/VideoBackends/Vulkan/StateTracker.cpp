@@ -289,13 +289,13 @@ void StateTracker::BeginRenderPass()
   m_current_render_pass = m_framebuffer->GetLoadRenderPass();
   m_framebuffer_render_area = m_framebuffer->GetRect();
 
-  VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                      nullptr,
-                                      m_current_render_pass,
-                                      m_framebuffer->GetFB(),
-                                      m_framebuffer_render_area,
-                                      0,
-                                      nullptr};
+  const VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                            nullptr,
+                                            m_current_render_pass,
+                                            m_framebuffer->GetFB(),
+                                            m_framebuffer_render_area,
+                                            0,
+                                            nullptr};
 
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
@@ -309,13 +309,13 @@ void StateTracker::BeginDiscardRenderPass()
   m_current_render_pass = m_framebuffer->GetDiscardRenderPass();
   m_framebuffer_render_area = m_framebuffer->GetRect();
 
-  VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                      nullptr,
-                                      m_current_render_pass,
-                                      m_framebuffer->GetFB(),
-                                      m_framebuffer_render_area,
-                                      0,
-                                      nullptr};
+  const VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                            nullptr,
+                                            m_current_render_pass,
+                                            m_framebuffer->GetFB(),
+                                            m_framebuffer_render_area,
+                                            0,
+                                            nullptr};
 
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
@@ -338,13 +338,13 @@ void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue
   m_current_render_pass = m_framebuffer->GetClearRenderPass();
   m_framebuffer_render_area = area;
 
-  VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                      nullptr,
-                                      m_current_render_pass,
-                                      m_framebuffer->GetFB(),
-                                      m_framebuffer_render_area,
-                                      num_clear_values,
-                                      clear_values};
+  const VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                            nullptr,
+                                            m_current_render_pass,
+                                            m_framebuffer->GetFB(),
+                                            m_framebuffer_render_area,
+                                            num_clear_values,
+                                            clear_values};
 
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
@@ -437,14 +437,14 @@ bool StateTracker::IsWithinRenderArea(const s32 x, const s32 y, const u32 width,
 {
   // Check that the viewport does not lie outside the render area.
   // If it does, we need to switch to a normal load/store render pass.
-  s32 left = m_framebuffer_render_area.offset.x;
-  s32 top = m_framebuffer_render_area.offset.y;
-  s32 right = left + static_cast<s32>(m_framebuffer_render_area.extent.width);
-  s32 bottom = top + static_cast<s32>(m_framebuffer_render_area.extent.height);
-  s32 test_left = x;
-  s32 test_top = y;
-  s32 test_right = test_left + static_cast<s32>(width);
-  s32 test_bottom = test_top + static_cast<s32>(height);
+  const s32 left = m_framebuffer_render_area.offset.x;
+  const s32 top = m_framebuffer_render_area.offset.y;
+  const s32 right = left + static_cast<s32>(m_framebuffer_render_area.extent.width);
+  const s32 bottom = top + static_cast<s32>(m_framebuffer_render_area.extent.height);
+  const s32 test_left = x;
+  const s32 test_top = y;
+  const s32 test_right = test_left + static_cast<s32>(width);
+  const s32 test_bottom = test_top + static_cast<s32>(height);
   return test_left >= left && test_right <= right && test_top >= top && test_bottom <= bottom;
 }
 

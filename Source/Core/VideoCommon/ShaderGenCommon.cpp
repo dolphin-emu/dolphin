@@ -294,7 +294,7 @@ void GenerateLineOffset(ShaderCode& object, const std::string_view indent0, cons
 
 void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, const u32 texgens)
 {
-  std::string indent1 = std::string(indent) + "  ";
+  const std::string indent1 = std::string(indent) + "  ";
   object.Write("{0}other_pos = float4(dot(" I_PROJECTION "[0], other_pos), dot(" I_PROJECTION
                "[1], other_pos), dot(" I_PROJECTION "[2], other_pos), dot(" I_PROJECTION
                "[3], other_pos));\n"

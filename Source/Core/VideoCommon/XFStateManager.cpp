@@ -108,9 +108,9 @@ void XFStateManager::InvalidateXFRange(const int start, const int end)
 
   if (start < XFMEM_NORMALMATRICES_END && end > XFMEM_NORMALMATRICES)
   {
-    int _start = start < XFMEM_NORMALMATRICES ? 0 : start - XFMEM_NORMALMATRICES;
-    int _end = end < XFMEM_NORMALMATRICES_END ? end - XFMEM_NORMALMATRICES :
-                                                XFMEM_NORMALMATRICES_END - XFMEM_NORMALMATRICES;
+    const int _start = start < XFMEM_NORMALMATRICES ? 0 : start - XFMEM_NORMALMATRICES;
+    const int _end = end < XFMEM_NORMALMATRICES_END ? end - XFMEM_NORMALMATRICES :
+                       XFMEM_NORMALMATRICES_END - XFMEM_NORMALMATRICES;
 
     if (m_minmax_normal_matrices_changed[0] == -1)
     {
@@ -129,9 +129,9 @@ void XFStateManager::InvalidateXFRange(const int start, const int end)
 
   if (start < XFMEM_POSTMATRICES_END && end > XFMEM_POSTMATRICES)
   {
-    int _start = start < XFMEM_POSTMATRICES ? XFMEM_POSTMATRICES : start - XFMEM_POSTMATRICES;
-    int _end = end < XFMEM_POSTMATRICES_END ? end - XFMEM_POSTMATRICES :
-                                              XFMEM_POSTMATRICES_END - XFMEM_POSTMATRICES;
+    const int _start = start < XFMEM_POSTMATRICES ? XFMEM_POSTMATRICES : start - XFMEM_POSTMATRICES;
+    const int _end = end < XFMEM_POSTMATRICES_END ? end - XFMEM_POSTMATRICES :
+                       XFMEM_POSTMATRICES_END - XFMEM_POSTMATRICES;
 
     if (m_minmax_post_transform_matrices_changed[0] == -1)
     {
@@ -150,8 +150,8 @@ void XFStateManager::InvalidateXFRange(const int start, const int end)
 
   if (start < XFMEM_LIGHTS_END && end > XFMEM_LIGHTS)
   {
-    int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start - XFMEM_LIGHTS;
-    int _end = end < XFMEM_LIGHTS_END ? end - XFMEM_LIGHTS : XFMEM_LIGHTS_END - XFMEM_LIGHTS;
+    const int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start - XFMEM_LIGHTS;
+    const int _end = end < XFMEM_LIGHTS_END ? end - XFMEM_LIGHTS : XFMEM_LIGHTS_END - XFMEM_LIGHTS;
 
     if (m_minmax_lights_changed[0] == -1)
     {

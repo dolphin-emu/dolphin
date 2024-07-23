@@ -589,7 +589,7 @@ void IOWindow::UpdateOptionList()
 
   const auto add_rows = [this](auto& container) {
     int row = 0;
-    for (ciface::Core::Device::Control* control : container)
+    for (const ciface::Core::Device::Control* control : container)
     {
       m_option_list->insertRow(row);
 
@@ -729,7 +729,7 @@ static void PaintStateIndicator(QPainter& painter, const QRect& region, const Co
   meter_region.setWidth(region.width() * std::clamp(state, 0.0, 1.0));
 
   // Create a temporary indicator object to retreive color constants.
-  MappingIndicator indicator;
+  const MappingIndicator indicator;
 
   // Normal text.
   painter.setPen(indicator.GetTextColor());

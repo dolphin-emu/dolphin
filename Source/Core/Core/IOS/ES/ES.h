@@ -109,8 +109,8 @@ public:
   // Title contents
   s32 OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid, Ticks ticks = {});
   s32 CloseContent(u32 cfd, u32 uid, Ticks ticks = {});
-  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid, Ticks ticks = {});
-  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid, Ticks ticks = {});
+  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid, Ticks ticks = {}) const;
+  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid, Ticks ticks = {}) const;
 
   // Title management
   enum class TicketImportType
@@ -340,7 +340,7 @@ private:
   IPCReply ExportTitleInit(Context& context, const IOCtlVRequest& request) const;
   IPCReply ExportContentBegin(Context& context, const IOCtlVRequest& request) const;
   IPCReply ExportContentData(Context& context, const IOCtlVRequest& request) const;
-  IPCReply ExportContentEnd(Context& context, const IOCtlVRequest& request) const;
+  IPCReply ExportContentEnd(const Context& context, const IOCtlVRequest& request) const;
   IPCReply ExportTitleDone(Context& context, const IOCtlVRequest& request) const;
   IPCReply DeleteTitle(const IOCtlVRequest& request) const;
   IPCReply DeleteTitleContent(const IOCtlVRequest& request) const;

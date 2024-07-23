@@ -214,8 +214,8 @@ void FIFOPlayerWindow::AddDescriptions() const
 
 void FIFOPlayerWindow::LoadRecording()
 {
-  QString path = DolphinFileDialog::getOpenFileName(this, tr("Open FIFO Log"), QString(),
-                                                    tr("Dolphin FIFO Log (*.dff)"));
+  const QString path = DolphinFileDialog::getOpenFileName(this, tr("Open FIFO Log"), QString(),
+                                                          tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
     return;
@@ -225,15 +225,15 @@ void FIFOPlayerWindow::LoadRecording()
 
 void FIFOPlayerWindow::SaveRecording()
 {
-  QString path = DolphinFileDialog::getSaveFileName(this, tr("Save FIFO Log"), QString(),
-                                                    tr("Dolphin FIFO Log (*.dff)"));
+  const QString path = DolphinFileDialog::getSaveFileName(this, tr("Save FIFO Log"), QString(),
+                                                          tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
     return;
 
   FifoDataFile* file = m_fifo_recorder.GetRecordedFile();
 
-  bool result = file->Save(path.toStdString());
+  const bool result = file->Save(path.toStdString());
 
   if (!result)
   {
@@ -290,7 +290,7 @@ void FIFOPlayerWindow::UpdateInfo() const
 {
   if (m_fifo_player.IsPlaying())
   {
-    FifoDataFile* file = m_fifo_player.GetFile();
+    const FifoDataFile* file = m_fifo_player.GetFile();
     m_info_label->setText(tr("%1 frame(s)\n%2 object(s)\nCurrent Frame: %3")
                               .arg(QString::number(file->GetFrameCount()),
                                    QString::number(m_fifo_player.GetCurrentFrameObjectCount()),
@@ -300,7 +300,7 @@ void FIFOPlayerWindow::UpdateInfo() const
 
   if (m_fifo_recorder.IsRecordingDone())
   {
-    FifoDataFile* file = m_fifo_recorder.GetRecordedFile();
+    const FifoDataFile* file = m_fifo_recorder.GetRecordedFile();
     size_t fifo_bytes = 0;
     size_t mem_bytes = 0;
 
@@ -328,10 +328,10 @@ void FIFOPlayerWindow::UpdateInfo() const
 
 void FIFOPlayerWindow::OnFIFOLoaded() const
 {
-  FifoDataFile* file = m_fifo_player.GetFile();
+  const FifoDataFile* file = m_fifo_player.GetFile();
 
-  auto object_count = m_fifo_player.GetMaxObjectCount();
-  auto frame_count = file->GetFrameCount();
+  const auto object_count = m_fifo_player.GetMaxObjectCount();
+  const auto frame_count = file->GetFrameCount();
 
   m_frame_range_to->setMaximum(frame_count - 1);
   m_object_range_to->setMaximum(object_count - 1);
@@ -376,9 +376,9 @@ void FIFOPlayerWindow::UpdateLimits() const
 
 void FIFOPlayerWindow::UpdateControls() const
 {
-  bool running = IsRunning(Core::System::GetInstance());
-  bool is_recording = m_fifo_recorder.IsRecording();
-  bool is_playing = m_fifo_player.IsPlaying();
+  const bool running = IsRunning(Core::System::GetInstance());
+  const bool is_recording = m_fifo_recorder.IsRecording();
+  const bool is_playing = m_fifo_player.IsPlaying();
 
   m_frame_range_from->setEnabled(is_playing);
   m_frame_range_from_label->setEnabled(is_playing);
@@ -389,7 +389,7 @@ void FIFOPlayerWindow::UpdateControls() const
   m_object_range_to->setEnabled(is_playing);
   m_object_range_to_label->setEnabled(is_playing);
 
-  bool enable_frame_record_count = !is_playing && !is_recording;
+  const bool enable_frame_record_count = !is_playing && !is_recording;
 
   m_frame_record_count_label->setEnabled(enable_frame_record_count);
   m_frame_record_count->setEnabled(enable_frame_record_count);

@@ -76,9 +76,9 @@ TEST_F(MappingTest, ReadConstant)
   m_mapping->Register(0x0C001234, MMIO::Constant<u16>(0x1234), MMIO::Nop<u16>());
   m_mapping->Register(0x0C001234, MMIO::Constant<u32>(0xdeadbeef), MMIO::Nop<u32>());
 
-  u8 val8 = m_mapping->Read<u8>(*m_system, 0x0C001234);
-  u16 val16 = m_mapping->Read<u16>(*m_system, 0x0C001234);
-  u32 val32 = m_mapping->Read<u32>(*m_system, 0x0C001234);
+  const u8 val8 = m_mapping->Read<u8>(*m_system, 0x0C001234);
+  const u16 val16 = m_mapping->Read<u16>(*m_system, 0x0C001234);
+  const u32 val32 = m_mapping->Read<u32>(*m_system, 0x0C001234);
 
   EXPECT_EQ(0x42, val8);
   EXPECT_EQ(0x1234, val16);
@@ -131,7 +131,7 @@ TEST_F(MappingTest, ReadWriteComplex)
                         write_called = true;
                       }));
 
-  u8 val = m_mapping->Read<u8>(*m_system, 0x0C001234);
+  const u8 val = m_mapping->Read<u8>(*m_system, 0x0C001234);
   EXPECT_EQ(0x12, val);
   m_mapping->Write(*m_system, 0x0C001234, static_cast<u8>(0x34));
 

@@ -130,7 +130,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
   mmio->Register(base | IPC_PPCMSG, MMIO::InvalidRead<u32>(), MMIO::DirectWrite<u32>(&m_ppc_msg));
 
   mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](const Core::System& system, u32) {
-                   auto& wii_ipc = system.GetWiiIPC();
+                   const auto& wii_ipc = system.GetWiiIPC();
                    return wii_ipc.m_ctrl.ppc();
                  }),
                  MMIO::ComplexWrite<u32>([](const Core::System& system, u32, const u32 val) {

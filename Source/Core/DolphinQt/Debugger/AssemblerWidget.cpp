@@ -226,7 +226,7 @@ AssemblerWidget::AssemblerWidget(QWidget* parent)
       m_net_zoom_delta(0)
 {
   {
-    QPalette base_palette;
+    const QPalette base_palette;
     m_dark_scheme = base_palette.color(QPalette::WindowText).value() >
                     base_palette.color(QPalette::Window).value();
   }
@@ -256,7 +256,7 @@ AssemblerWidget::AssemblerWidget(QWidget* parent)
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &AssemblerWidget::UpdateIcons);
   connect(m_asm_tabs, &QTabWidget::tabCloseRequested, this, &AssemblerWidget::OnTabClose);
 
-  auto* save_shortcut = new QShortcut(QKeySequence::Save, this);
+  const auto* save_shortcut = new QShortcut(QKeySequence::Save, this);
   // Save should only activate if the active tab is in focus
   save_shortcut->connect(save_shortcut, &QShortcut::activated, this, [this] {
     if (m_asm_tabs->currentIndex() != -1 && m_asm_tabs->currentWidget()->hasFocus())
@@ -391,8 +391,8 @@ void AssemblerWidget::CreateWidgets()
   QFont error_font(QFontDatabase::systemFont(QFontDatabase::GeneralFont).family());
   mono_font.setPointSize(12);
   error_font.setPointSize(12);
-  QFontMetrics mono_metrics(mono_font);
-  QFontMetrics err_metrics(mono_font);
+  const QFontMetrics mono_metrics(mono_font);
+  const QFontMetrics err_metrics(mono_font);
 
   m_output_box->setFont(mono_font);
   m_error_box->setFont(error_font);
@@ -495,7 +495,7 @@ void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out) const
   {
     return;
   }
-  AsmEditor* active_editor = GetEditor(m_asm_tabs->currentIndex());
+  const AsmEditor* active_editor = GetEditor(m_asm_tabs->currentIndex());
 
   AsmKind kind = AsmKind::Raw;
   m_error_box->clear();
@@ -543,7 +543,7 @@ void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out) const
     return;
   }
 
-  auto& blocks = GetT(result);
+  const auto& blocks = GetT(result);
   std::ostringstream str_contents;
   switch (kind)
   {
@@ -595,7 +595,7 @@ void AssemblerWidget::OnOpen()
     show_index = std::nullopt;
     for (int i = 0; i < m_asm_tabs->count(); i++)
     {
-      AsmEditor* editor = GetEditor(i);
+      const AsmEditor* editor = GetEditor(i);
       if (editor->PathsMatch(path))
       {
         show_index = i;
@@ -622,7 +622,7 @@ void AssemblerWidget::OnNew()
 
 void AssemblerWidget::OnInject() const
 {
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   std::vector<CodeBlock> asm_result;
   OnAssemble(&asm_result);
@@ -690,7 +690,7 @@ void AssemblerWidget::OnTabChange(const int index) const
     m_address_line->clear();
     return;
   }
-  AsmEditor* active_editor = GetEditor(index);
+  const AsmEditor* active_editor = GetEditor(index);
 
   m_address_line->setText(active_editor->BaseAddress());
 }
@@ -846,7 +846,7 @@ void AssemblerWidget::CloseTab(const int index, AsmEditor* editor)
 
 int AssemblerWidget::AllocateTabNum()
 {
-  auto min_it = std::min_element(m_free_editor_nums.begin(), m_free_editor_nums.end());
+  const auto min_it = std::min_element(m_free_editor_nums.begin(), m_free_editor_nums.end());
   if (min_it == m_free_editor_nums.end())
   {
     return m_unnamed_editor_count++;
@@ -865,7 +865,7 @@ void AssemblerWidget::FreeTabNum(const int num)
   }
 }
 
-void AssemblerWidget::UpdateTabText(AsmEditor* editor)
+void AssemblerWidget::UpdateTabText(const AsmEditor* editor)
 {
   int tab_idx = 0;
   for (; tab_idx < m_asm_tabs->count(); tab_idx++)

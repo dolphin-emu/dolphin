@@ -78,7 +78,7 @@ EventType* CoreTimingManager::RegisterEvent(const std::string& name, const Timed
              "during Init to avoid breaking save states.",
              name);
 
-  auto info = m_event_types.emplace(name, EventType{callback, nullptr});
+  const auto info = m_event_types.emplace(name, EventType{callback, nullptr});
   EventType* event_type = &info.first->second;
   event_type->name = &info.first->first;
   return event_type;
@@ -184,7 +184,7 @@ void CoreTimingManager::DoState(PointerWrap& p)
     pw.Do(name);
     if (pw.IsReadMode())
     {
-      auto itr = m_event_types.find(name);
+      const auto itr = m_event_types.find(name);
       if (itr != m_event_types.end())
       {
         ev.type = &itr->second;
@@ -220,7 +220,7 @@ u64 CoreTimingManager::GetTicks() const
   u64 ticks = static_cast<u64>(m_globals.global_timer);
   if (!m_is_global_timer_sane)
   {
-    int downcount = DowncountToCycles(m_system.GetPPCState().downcount);
+    const int downcount = DowncountToCycles(m_system.GetPPCState().downcount);
     ticks += m_globals.slice_length - downcount;
   }
   return ticks;
@@ -256,7 +256,7 @@ void CoreTimingManager::ScheduleEvent(const s64 cycles_into_future, EventType* e
 
   if (from_cpu_thread)
   {
-    s64 timeout = GetTicks() + cycles_into_future;
+    const s64 timeout = GetTicks() + cycles_into_future;
 
     // If this event needs to be scheduled before the next advance(), force one early
     if (!m_is_global_timer_sane)
@@ -292,7 +292,7 @@ void CoreTimingManager::RemoveEvent(const EventType* event_type)
   }
 }
 
-void CoreTimingManager::RemoveAllEvents(EventType* event_type)
+void CoreTimingManager::RemoveAllEvents(const EventType* event_type)
 {
   MoveEvents();
   RemoveEvent(event_type);
@@ -330,7 +330,7 @@ void CoreTimingManager::Advance()
   auto& power_pc = m_system.GetPowerPC();
   auto& ppc_state = power_pc.GetPPCState();
 
-  int cyclesExecuted = m_globals.slice_length - DowncountToCycles(ppc_state.downcount);
+  const int cyclesExecuted = m_globals.slice_length - DowncountToCycles(ppc_state.downcount);
   m_globals.global_timer += cyclesExecuted;
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
@@ -340,7 +340,7 @@ void CoreTimingManager::Advance()
 
   while (!m_event_queue.empty() && m_event_queue.front().time <= m_globals.global_timer)
   {
-    Event evt = std::move(m_event_queue.front());
+    const Event evt = std::move(m_event_queue.front());
     std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
     m_event_queue.pop_back();
 

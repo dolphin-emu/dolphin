@@ -18,14 +18,14 @@ namespace IOS::HLE
 {
 Request::Request(const Core::System& system, const u32 address_) : address(address_)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   command = static_cast<IPCCommandType>(memory.Read_U32(address));
   fd = memory.Read_U32(address + 8);
 }
 
-OpenRequest::OpenRequest(Core::System& system, const u32 address_) : Request(system, address_)
+OpenRequest::OpenRequest(const Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   path = memory.GetString(memory.Read_U32(address + 0xc));
   flags = static_cast<OpenMode>(memory.Read_U32(address + 0x10));
   const EmulationKernel* ios = system.GetIOS();
@@ -36,24 +36,24 @@ OpenRequest::OpenRequest(Core::System& system, const u32 address_) : Request(sys
   }
 }
 
-ReadWriteRequest::ReadWriteRequest(Core::System& system, const u32 address_)
+ReadWriteRequest::ReadWriteRequest(const Core::System& system, const u32 address_)
     : Request(system, address_)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   buffer = memory.Read_U32(address + 0xc);
   size = memory.Read_U32(address + 0x10);
 }
 
-SeekRequest::SeekRequest(Core::System& system, const u32 address_) : Request(system, address_)
+SeekRequest::SeekRequest(const Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   offset = memory.Read_U32(address + 0xc);
   mode = static_cast<SeekMode>(memory.Read_U32(address + 0x10));
 }
 
-IOCtlRequest::IOCtlRequest(Core::System& system, const u32 address_) : Request(system, address_)
+IOCtlRequest::IOCtlRequest(const Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   request = memory.Read_U32(address + 0x0c);
   buffer_in = memory.Read_U32(address + 0x10);
   buffer_in_size = memory.Read_U32(address + 0x14);
@@ -61,9 +61,9 @@ IOCtlRequest::IOCtlRequest(Core::System& system, const u32 address_) : Request(s
   buffer_out_size = memory.Read_U32(address + 0x1c);
 }
 
-IOCtlVRequest::IOCtlVRequest(Core::System& system, const u32 address_) : Request(system, address_)
+IOCtlVRequest::IOCtlVRequest(const Core::System& system, const u32 address_) : Request(system, address_)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   request = memory.Read_U32(address + 0x0c);
   const u32 in_number = memory.Read_U32(address + 0x10);
   const u32 out_number = memory.Read_U32(address + 0x14);
@@ -112,7 +112,7 @@ void IOCtlRequest::Log(const std::string_view device_name, const Common::Log::Lo
 void IOCtlRequest::Dump(const Core::System& system, const std::string& description,
                         const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   Log("===== " + description, type, level);
   GENERIC_LOG_FMT(type, level, "In buffer\n{}",
@@ -121,7 +121,7 @@ void IOCtlRequest::Dump(const Core::System& system, const std::string& descripti
                   HexDump(memory.GetPointerForRange(buffer_out, buffer_out_size), buffer_out_size));
 }
 
-void IOCtlRequest::DumpUnknown(Core::System& system, const std::string& description,
+void IOCtlRequest::DumpUnknown(const Core::System& system, const std::string& description,
                                const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
   Dump(system, "Unknown IOCtl - " + description, type, level);
@@ -130,7 +130,7 @@ void IOCtlRequest::DumpUnknown(Core::System& system, const std::string& descript
 void IOCtlVRequest::Dump(const Core::System& system, const std::string_view description,
                          const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   GENERIC_LOG_FMT(type, level, "===== {} (fd {}) - IOCtlV {:#x} ({} in, {} io)", description, fd,
                   request, in_vectors.size(), io_vectors.size());
@@ -147,7 +147,7 @@ void IOCtlVRequest::Dump(const Core::System& system, const std::string_view desc
     GENERIC_LOG_FMT(type, level, "io[{}] (size={:#x})", i++, vector.size);
 }
 
-void IOCtlVRequest::DumpUnknown(Core::System& system, const std::string& description,
+void IOCtlVRequest::DumpUnknown(const Core::System& system, const std::string& description,
                                 const Common::Log::LogType type, const Common::Log::LogLevel level) const
 {
   Dump(system, "Unknown IOCtlV - " + description, type, level);

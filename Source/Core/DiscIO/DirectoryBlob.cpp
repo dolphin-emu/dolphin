@@ -528,7 +528,7 @@ bool DirectoryBlobReader::EncryptPartitionData(const u64 offset, const u64 size,
                                                const u64 partition_data_offset,
                                                const u64 partition_data_decrypted_size)
 {
-  auto it = m_partitions.find(partition_data_offset);
+  const auto it = m_partitions.find(partition_data_offset);
   if (it == m_partitions.end())
     return false;
 
@@ -794,7 +794,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   std::vector<u8> ticket_buffer(ticket_size);
   m_nonpartition_contents.Read(partition_address + WII_PARTITION_TICKET_ADDRESS, ticket_size,
                                ticket_buffer.data(), this);
-  IOS::ES::TicketReader ticket(std::move(ticket_buffer));
+  const IOS::ES::TicketReader ticket(std::move(ticket_buffer));
   if (ticket.IsValid())
     partition->SetKey(ticket.GetTitleKey());
 }
@@ -1029,7 +1029,7 @@ u64 DirectoryBlobPartition::SetApploader(std::vector<u8> apploader, const std::s
     Write32(static_cast<u32>(-1), 0x10, &apploader);
   }
 
-  size_t apploader_size = apploader.size();
+  const size_t apploader_size = apploader.size();
   m_contents.Add(APPLOADER_ADDRESS, std::move(apploader));
 
   // Return DOL address, 32 byte aligned (plus 32 byte padding)
@@ -1130,10 +1130,10 @@ void DirectoryBlobPartition::BuildFST(std::vector<FSTBuilderNode> root_nodes, co
 {
   ConvertUTF8NamesToSHIFTJIS(&root_nodes);
 
-  u32 name_table_size = Common::AlignUp(ComputeNameSize(root_nodes), 1ull << m_address_shift);
+  const u32 name_table_size = Common::AlignUp(ComputeNameSize(root_nodes), 1ull << m_address_shift);
 
   // 1 extra for the root entry
-  u64 total_entries = RecalculateFolderSizes(&root_nodes) + 1;
+  const u64 total_entries = RecalculateFolderSizes(&root_nodes) + 1;
 
   const u64 name_table_offset = total_entries * ENTRY_SIZE;
   std::vector<u8> fst_data(name_table_offset + name_table_size);
@@ -1141,9 +1141,9 @@ void DirectoryBlobPartition::BuildFST(std::vector<FSTBuilderNode> root_nodes, co
   // 32 KiB aligned start of data on disc
   u64 current_data_address = Common::AlignUp(fst_address + fst_data.size(), 0x8000ull);
 
-  u32 fst_offset = 0;   // Offset within FST data
-  u32 name_offset = 0;  // Offset within name table
-  u32 root_offset = 0;  // Offset of root of FST
+  u32 fst_offset = 0;        // Offset within FST data
+  u32 name_offset = 0;       // Offset within name table
+  const u32 root_offset = 0; // Offset of root of FST
 
   // write root entry
   WriteEntryData(&fst_data, &fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries, m_address_shift);
@@ -1211,7 +1211,7 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
   {
     if (entry.IsFolder())
     {
-      u32 entry_index = *fst_offset / ENTRY_SIZE;
+      const u32 entry_index = *fst_offset / ENTRY_SIZE;
       WriteEntryData(fst_data, fst_offset, DIRECTORY_ENTRY, *name_offset, parent_entry_index,
                      entry_index + entry.m_size + 1, 0);
       WriteEntryName(fst_data, name_offset, entry.m_filename, name_table_offset);
@@ -1253,7 +1253,7 @@ static void PadToAddress(const u64 start_address, u64* address, u64* length, u8*
 {
   if (start_address > *address && *length > 0)
   {
-    u64 padBytes = std::min(start_address - *address, *length);
+    const u64 padBytes = std::min(start_address - *address, *length);
     memset(*buffer, 0, (size_t)padBytes);
     *length -= padBytes;
     *buffer += padBytes;

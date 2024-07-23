@@ -16,7 +16,7 @@ namespace DSP::JIT::x64
 void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
                                   void (DSPEmitter::*conditional_fn)(UDSPInstruction))
 {
-  u8 cond = opc & 0xf;
+  const u8 cond = opc & 0xf;
   if (cond == 0xf)  // Always true.
   {
     (this->*conditional_fn)(opc);
@@ -91,7 +91,7 @@ void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
     flag = CC_NZ;
   else  // Odd conditions run if the bit IS NOT zero, so jump if it IS zero
     flag = CC_Z;
-  FixupBranch skip_code = J_CC(flag, Jump::Near);
+  const FixupBranch skip_code = J_CC(flag, Jump::Near);
   (this->*conditional_fn)(opc);
   m_gpr.FlushRegs(c1);
   SetJumpTarget(skip_code);
@@ -126,7 +126,7 @@ void DSPEmitter::WriteBlockLink(const u16 dest)
       MOV(64, R(RAX), ImmPtr(&m_cycles_left));
       MOV(16, R(ECX), MatR(RAX));
       CMP(16, R(ECX), Imm16(m_block_size[m_start_address] + m_block_size[dest]));
-      FixupBranch notEnoughCycles = J_CC(CC_BE);
+      const FixupBranch notEnoughCycles = J_CC(CC_BE);
 
       SUB(16, R(ECX), Imm16(m_block_size[m_start_address]));
       MOV(16, MatR(RAX), R(ECX));
@@ -168,7 +168,7 @@ void DSPEmitter::jcc(const UDSPInstruction opc)
 
 void DSPEmitter::r_jmprcc(const UDSPInstruction opc)
 {
-  u8 reg = (opc >> 5) & 0x7;
+  const u8 reg = (opc >> 5) & 0x7;
   // reg can only be DSP_REG_ARx and DSP_REG_IXx now,
   // no need to handle DSP_REG_STx.
   dsp_op_read_reg(reg, RAX);
@@ -216,7 +216,7 @@ void DSPEmitter::call(const UDSPInstruction opc)
 
 void DSPEmitter::r_callr(const UDSPInstruction opc)
 {
-  u8 reg = (opc >> 5) & 0x7;
+  const u8 reg = (opc >> 5) & 0x7;
   MOV(16, R(DX), Imm16(m_compile_pc + 1));
   dsp_reg_store_stack(StackRegister::Call);
   dsp_op_read_reg(reg, RAX);
@@ -322,17 +322,17 @@ void DSPEmitter::HandleLoop()
   MOVZX(32, 16, ECX, M_SDSP_r_st(3));
 
   TEST(32, R(RCX), R(RCX));
-  FixupBranch rLoopCntG = J_CC(CC_E, Jump::Near);
+  const FixupBranch rLoopCntG = J_CC(CC_E, Jump::Near);
   CMP(16, R(RAX), Imm16(m_compile_pc - 1));
-  FixupBranch rLoopAddrG = J_CC(CC_NE, Jump::Near);
+  const FixupBranch rLoopAddrG = J_CC(CC_NE, Jump::Near);
 
   SUB(16, M_SDSP_r_st(3), Imm16(1));
   CMP(16, M_SDSP_r_st(3), Imm16(0));
 
-  FixupBranch loadStack = J_CC(CC_E, Jump::Near);
+  const FixupBranch loadStack = J_CC(CC_E, Jump::Near);
   MOVZX(32, 16, ECX, M_SDSP_r_st(0));
   MOV(16, M_SDSP_pc(), R(RCX));
-  FixupBranch loopUpdated = J(Jump::Near);
+  const FixupBranch loopUpdated = J(Jump::Near);
 
   SetJumpTarget(loadStack);
   DSPJitRegCache c(m_gpr);
@@ -356,14 +356,14 @@ void DSPEmitter::HandleLoop()
 // The looping hardware takes care of the rest.
 void DSPEmitter::loop(const UDSPInstruction opc)
 {
-  u16 reg = opc & 0x1f;
+  const u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
   dsp_op_read_reg(reg, RDX, RegisterExtension::Zero);
-  u16 loop_pc = m_compile_pc + 1;
+  const u16 loop_pc = m_compile_pc + 1;
 
   TEST(16, R(EDX), R(EDX));
   DSPJitRegCache c(m_gpr);
-  FixupBranch cnt = J_CC(CC_Z, Jump::Near);
+  const FixupBranch cnt = J_CC(CC_Z, Jump::Near);
   dsp_reg_store_stack(StackRegister::LoopCounter);
   MOV(16, R(RDX), Imm16(m_compile_pc + 1));
   dsp_reg_store_stack(StackRegister::Call);
@@ -371,7 +371,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
   dsp_reg_store_stack(StackRegister::LoopAddress);
   m_gpr.FlushRegs(c);
   MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
-  FixupBranch exit = J(Jump::Near);
+  const FixupBranch exit = J(Jump::Near);
 
   SetJumpTarget(cnt);
   // dsp_skip_inst();
@@ -392,8 +392,8 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 // The looping hardware takes care of the rest.
 void DSPEmitter::loopi(const UDSPInstruction opc)
 {
-  u16 cnt = opc & 0xff;
-  u16 loop_pc = m_compile_pc + 1;
+  const u16 cnt = opc & 0xff;
+  const u16 loop_pc = m_compile_pc + 1;
 
   if (cnt)
   {
@@ -433,7 +433,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 
   TEST(16, R(EDX), R(EDX));
   DSPJitRegCache c(m_gpr);
-  FixupBranch cnt = J_CC(CC_Z, Jump::Near);
+  const FixupBranch cnt = J_CC(CC_Z, Jump::Near);
   dsp_reg_store_stack(StackRegister::LoopCounter);
   MOV(16, R(RDX), Imm16(m_compile_pc + 2));
   dsp_reg_store_stack(StackRegister::Call);
@@ -441,7 +441,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
   dsp_reg_store_stack(StackRegister::LoopAddress);
   MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 2));
   m_gpr.FlushRegs(c, true);
-  FixupBranch exit = J(Jump::Near);
+  const FixupBranch exit = J(Jump::Near);
 
   SetJumpTarget(cnt);
   // g_dsp.pc = loop_pc;

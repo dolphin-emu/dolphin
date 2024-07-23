@@ -32,10 +32,10 @@ std::optional<IPCReply> AesDevice::Open(const OpenRequest& request)
 
 std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   ReturnCode return_code = IPC_EINVAL;
-  AesIoctlv command = static_cast<AesIoctlv>(request.request);
+  const AesIoctlv command = static_cast<AesIoctlv>(request.request);
 
   switch (command)
   {
@@ -70,8 +70,8 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
     memory.CopyFromEmu(key.data(), request.in_vectors[1].address, key.size());
     memory.CopyFromEmu(iv.data(), request.io_vectors[1].address, iv.size());
 
-    auto context = command == AesIoctlv::Encrypt ? Common::AES::CreateContextEncrypt(key.data()) :
-                                                   Common::AES::CreateContextDecrypt(key.data());
+    const auto context = command == AesIoctlv::Encrypt ? Common::AES::CreateContextEncrypt(key.data()) :
+                           Common::AES::CreateContextDecrypt(key.data());
 
     context->Crypt(iv.data(), iv.data(), input.data(), output.data(),
                    std::min(output.size(), input.size()));

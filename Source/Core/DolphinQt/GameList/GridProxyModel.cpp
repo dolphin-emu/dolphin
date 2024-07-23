@@ -24,7 +24,7 @@ GridProxyModel::GridProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
 
 QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
 {
-  QModelIndex source_index = mapToSource(i);
+  const QModelIndex source_index = mapToSource(i);
   if (role == Qt::DisplayRole)
   {
     return sourceModel()->data(
@@ -33,11 +33,11 @@ QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
   }
   else if (role == Qt::DecorationRole)
   {
-    auto* model = static_cast<GameListModel*>(sourceModel());
+    const auto* model = static_cast<GameListModel*>(sourceModel());
 
     const auto& buffer = model->GetGameFile(source_index.row())->GetCoverImage().buffer;
 
-    QSize size = Get(Config::MAIN_USE_GAME_COVERS) ? QSize(160, 224) : LARGE_BANNER_SIZE;
+    const QSize size = Get(Config::MAIN_USE_GAME_COVERS) ? QSize(160, 224) : LARGE_BANNER_SIZE;
     QPixmap pixmap(size * model->GetScale() * QPixmap().devicePixelRatio());
 
     if (buffer.empty() || !Get(Config::MAIN_USE_GAME_COVERS))
@@ -73,6 +73,6 @@ QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
 
 bool GridProxyModel::filterAcceptsRow(const int source_row, const QModelIndex& source_parent) const
 {
-  GameListModel* glm = qobject_cast<GameListModel*>(sourceModel());
+  const GameListModel* glm = qobject_cast<GameListModel*>(sourceModel());
   return glm->ShouldDisplayGameListItem(source_row);
 }

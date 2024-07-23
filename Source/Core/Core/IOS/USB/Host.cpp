@@ -127,7 +127,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
 #ifdef __LIBUSB__
   if (!Core::WantsDeterminism())
   {
-    auto whitelist = Config::GetUSBDeviceWhitelist();
+    const auto whitelist = Config::GetUSBDeviceWhitelist();
     if (whitelist.empty())
       return true;
 

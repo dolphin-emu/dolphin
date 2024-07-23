@@ -20,7 +20,7 @@ TASCheckBox::TASCheckBox(const QString& text, TASInputWindow* parent)
 
 bool TASCheckBox::GetValue() const
 {
-  Qt::CheckState check_state = static_cast<Qt::CheckState>(m_state.GetValue());
+  const Qt::CheckState check_state = static_cast<Qt::CheckState>(m_state.GetValue());
 
   if (check_state == Qt::PartiallyChecked)
   {

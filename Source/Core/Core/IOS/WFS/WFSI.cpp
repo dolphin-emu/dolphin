@@ -62,7 +62,7 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
   u8* nodes_directory = m_whole_file.data() + 0x20;
   u32 nodes_count = Common::swap32(nodes_directory + 8);
   constexpr u32 NODE_SIZE = 0xC;
-  char* string_table = reinterpret_cast<char*>(nodes_directory + nodes_count * NODE_SIZE);
+  const char* string_table = reinterpret_cast<char*>(nodes_directory + nodes_count * NODE_SIZE);
 
   std::stack<std::pair<u32, std::string>> directory_stack;
   directory_stack.emplace(std::make_pair(nodes_count, ""));
@@ -73,15 +73,15 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
       directory_stack.pop();
     }
     const std::string& current_directory = directory_stack.top().second;
-    u8* node = nodes_directory + i * NODE_SIZE;
-    u32 name_offset = (node[1] << 16) | Common::swap16(node + 2);
-    u32 data_offset = Common::swap32(node + 4);
+    const u8* node = nodes_directory + i * NODE_SIZE;
+    const u32 name_offset = (node[1] << 16) | Common::swap16(node + 2);
+    const u32 data_offset = Common::swap32(node + 4);
     u32 size = Common::swap32(node + 8);
     std::string basename = string_table + name_offset;
     std::string fullname =
         current_directory.empty() ? basename : current_directory + "/" + basename;
 
-    u8 flags = *node;
+    const u8 flags = *node;
     if (flags == 1)
     {
       directory_stack.emplace(std::make_pair(size, fullname));
@@ -568,8 +568,8 @@ u32 WFSIDevice::GetTmd(const u16 group_id, const u32 title_id, u64 subtitle_id, 
   *size = static_cast<u32>(fp.GetSize());
   if (address)
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     fp.ReadBytes(memory.GetPointerForRange(address, *size), *size);
   }
   return IPC_SUCCESS;

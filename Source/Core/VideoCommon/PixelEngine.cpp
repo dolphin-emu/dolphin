@@ -89,7 +89,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
       {PE_ALPHAMODE, &m_alpha_mode_conf.hex},
       {PE_ALPHAREAD, &m_alpha_read.hex},
   };
-  for (auto& mapped_var : directly_mapped_vars)
+  for (const auto& mapped_var : directly_mapped_vars)
   {
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
                    MMIO::DirectWrite<u16>(mapped_var.ptr));
@@ -126,7 +126,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
                  MMIO::ComplexWrite<u16>([](const Core::System& system, u32, const u16 val) {
                    auto& pe = system.GetPixelEngine();
 
-                   UPECtrlReg tmpCtrl{.hex = val};
+                   const UPECtrlReg tmpCtrl{.hex = val};
 
                    if (tmpCtrl.pe_token)
                      pe.m_signal_token_interrupt = false;

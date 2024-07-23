@@ -210,7 +210,7 @@ void GameConfigWidget::ConnectWidgets()
   // Buttons
   connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
 
-  for (QCheckBox* box :
+  for (const QCheckBox* box :
        {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
         m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
@@ -334,7 +334,7 @@ void GameConfigWidget::SaveSettings()
   SaveCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
   SaveCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
 
-  int determinism_num = m_deterministic_dual_core->currentIndex();
+  const int determinism_num = m_deterministic_dual_core->currentIndex();
 
   std::string determinism_mode = DETERMINISM_NOT_SET_STRING;
 
@@ -394,7 +394,7 @@ void GameConfigWidget::SaveSettings()
 
   SaveCheckBox(m_use_monoscopic_shadows, "Video_Stereoscopy", "StereoEFBMonoDepth");
 
-  bool success = m_gameini_local.Save(m_gameini_local_path.toStdString());
+  const bool success = m_gameini_local.Save(m_gameini_local_path.toStdString());
 
   // If the resulting file is empty, delete it. Kind of a hack, but meh.
   if (success && File::GetSize(m_gameini_local_path.toStdString()) == 0)

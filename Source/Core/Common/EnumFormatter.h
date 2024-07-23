@@ -51,7 +51,8 @@ class EnumFormatter
 public:
   constexpr auto parse(const fmt::format_parse_context& ctx)
   {
-    auto it = ctx.begin(), end = ctx.end();
+    auto it = ctx.begin();
+    const auto end = ctx.end();
     // 'u' for user display, 's' for shader generation, 'n' for name only
     if (it != end && (*it == 'u' || *it == 's' || *it == 'n'))
       format_type = *it++;

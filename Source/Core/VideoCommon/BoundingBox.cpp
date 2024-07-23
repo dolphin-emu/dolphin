@@ -60,7 +60,7 @@ void BoundingBox::Readback()
   if (!g_ActiveConfig.backend_info.bSupportsBBox)
     return;
 
-  auto read_values = Read(0, NUM_BBOX_VALUES);
+  const auto read_values = Read(0, NUM_BBOX_VALUES);
 
   // Preserve dirty values, that way we don't need to sync.
   for (u32 i = 0; i < NUM_BBOX_VALUES; i++)

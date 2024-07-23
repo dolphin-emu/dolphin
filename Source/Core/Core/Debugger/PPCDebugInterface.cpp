@@ -83,7 +83,7 @@ void PPCPatches::Patch(const Core::CPUThreadGuard& guard, const std::size_t inde
 
 void PPCPatches::UnPatch(const std::size_t index)
 {
-  auto& patch = m_patches[index];
+  const auto& patch = m_patches[index];
   if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
     return;
 
@@ -487,7 +487,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
 
   const u32 base_address = m_system.GetPPCState().gpr[i];
 
-  if (std::string_view sign{&*match[1].first, static_cast<size_t>(match[1].length())}; !sign.empty())
+  if (const std::string_view sign{&*match[1].first, static_cast<size_t>(match[1].length())}; !sign.empty())
     return base_address - offset;
 
   return base_address + offset;

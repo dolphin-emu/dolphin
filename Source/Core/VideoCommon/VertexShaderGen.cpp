@@ -195,7 +195,7 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
     {
       if (uid_data->components & (VB_HAS_UV0 << i))
       {
-        u32 ncomponents = (uid_data->texcoord_elem_count >> (2 * i)) & 3;
+        const u32 ncomponents = (uid_data->texcoord_elem_count >> (2 * i)) & 3;
         if (ncomponents < 2)
         {
           out.Write("  float tex{};\n", i);

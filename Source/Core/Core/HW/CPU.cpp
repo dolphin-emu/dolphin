@@ -94,7 +94,7 @@ void CPUManager::Run()
           power_pc.GetMemChecks().HasAny())
       {
         m_state = State::Stepping;
-        PowerPC::CoreMode old_mode = power_pc.GetMode();
+        const PowerPC::CoreMode old_mode = power_pc.GetMode();
         power_pc.SetMode(PowerPC::CoreMode::Interpreter);
         power_pc.SingleStep();
         power_pc.SetMode(old_mode);

@@ -40,7 +40,7 @@ void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
   idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks,
                     DIEDFL_ATTACHEDONLY);
 
-  std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
+  const std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
   for (DIDEVICEINSTANCE& joystick : joysticks)
   {
     // Skip XInput Devices
@@ -64,8 +64,8 @@ void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
     {
       if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
       {
-        HRESULT hr = js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
-                                                    DISCL_BACKGROUND | DISCL_EXCLUSIVE);
+        const HRESULT hr = js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
+                                                          DISCL_BACKGROUND | DISCL_EXCLUSIVE);
         if (FAILED(hr))
         {
           WARN_LOG_FMT(CONTROLLERINTERFACE,

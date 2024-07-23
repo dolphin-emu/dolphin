@@ -875,7 +875,7 @@ const std::string& GetCompanyFromID(const std::string& company_id)
       {"ZX", "TopWare Interactive"}};
 
   static const std::string EMPTY_STRING;
-  auto iterator = companies.find(company_id);
+  const auto iterator = companies.find(company_id);
   if (iterator != companies.end())
     return iterator->second;
   else

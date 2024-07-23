@@ -79,7 +79,7 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   res = vkEnumerateInstanceLayerProperties(&layer_count, layer_list.data());
   ASSERT(res == VK_SUCCESS);
 
-  bool supports_validation_layers =
+  const bool supports_validation_layers =
       std::find_if(layer_list.begin(), layer_list.end(), [](const auto& it) {
         return strcmp(it.layerName, VALIDATION_LAYER_NAME) == 0;
       }) != layer_list.end();
@@ -137,7 +137,7 @@ VkInstance VulkanContext::CreateVulkanInstance(const WindowSystemType wstype, co
   if (vkEnumerateInstanceVersion)
   {
     u32 supported_api_version = 0;
-    VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
+    const VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
     if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
                               VK_VERSION_MINOR(supported_api_version) >= 1))
     {
@@ -177,7 +177,7 @@ VkInstance VulkanContext::CreateVulkanInstance(const WindowSystemType wstype, co
   }
 
   VkInstance instance;
-  VkResult res = vkCreateInstance(&instance_create_info, nullptr, &instance);
+  const VkResult res = vkCreateInstance(&instance_create_info, nullptr, &instance);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateInstance failed: ");
@@ -388,7 +388,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
 {
   config->backend_info.Adapters.clear();
-  for (VkPhysicalDevice physical_device : gpu_list)
+  for (const VkPhysicalDevice physical_device : gpu_list)
   {
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(physical_device, &properties);
@@ -441,8 +441,8 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
                                               properties.limits.pointSizeRange[0] <= 1.0f &&
                                               properties.limits.pointSizeRange[1] >= 16;
 
-  std::string device_name = properties.deviceName;
-  u32 vendor_id = properties.vendorID;
+  const std::string device_name = properties.deviceName;
+  const u32 vendor_id = properties.vendorID;
 
   // Only Apple family GPUs support framebuffer fetch.
   if (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos)
@@ -479,10 +479,10 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 0, &efb_depth_properties);
 
   // We can only support MSAA if it's supported on our render target formats.
-  VkSampleCountFlags supported_sample_counts = properties.limits.framebufferColorSampleCounts &
-                                               properties.limits.framebufferDepthSampleCounts &
-                                               efb_color_properties.sampleCounts &
-                                               efb_depth_properties.sampleCounts;
+  const VkSampleCountFlags supported_sample_counts = properties.limits.framebufferColorSampleCounts &
+                                                     properties.limits.framebufferDepthSampleCounts &
+                                                     efb_color_properties.sampleCounts &
+                                                     efb_depth_properties.sampleCounts;
 
   // No AA
   config->backend_info.AAModes.clear();
@@ -656,7 +656,7 @@ bool VulkanContext::CreateDevice(const VkSurfaceKHR surface, const bool enable_v
   m_present_queue_family_index = queue_family_count;
   for (uint32_t i = 0; i < queue_family_count; i++)
   {
-    VkBool32 graphics_supported = queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
+    const VkBool32 graphics_supported = queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
     if (graphics_supported)
     {
       m_graphics_queue_family_index = i;
@@ -670,7 +670,7 @@ bool VulkanContext::CreateDevice(const VkSurfaceKHR surface, const bool enable_v
     if (surface)
     {
       VkBool32 present_supported;
-      VkResult res =
+      const VkResult res =
           vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, surface, &present_supported);
       if (res != VK_SUCCESS)
       {
@@ -723,7 +723,7 @@ bool VulkanContext::CreateDevice(const VkSurfaceKHR surface, const bool enable_v
   present_queue_info.queueCount = 1;
   present_queue_info.pQueuePriorities = queue_priorities;
 
-  std::array<VkDeviceQueueCreateInfo, 2> queue_infos = {{
+  const std::array<VkDeviceQueueCreateInfo, 2> queue_infos = {{
       graphics_queue_info,
       present_queue_info,
   }};
@@ -762,7 +762,7 @@ bool VulkanContext::CreateDevice(const VkSurfaceKHR surface, const bool enable_v
     device_info.ppEnabledLayerNames = &VALIDATION_LAYER_NAME;
   }
 
-  VkResult res = vkCreateDevice(m_physical_device, &device_info, nullptr, &m_device);
+  const VkResult res = vkCreateDevice(m_physical_device, &device_info, nullptr, &m_device);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateDevice failed: ");
@@ -800,7 +800,7 @@ bool VulkanContext::CreateAllocator(const u32 vk_api_version)
   if (SupportsDeviceExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME))
     allocator_info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
 
-  VkResult res = vmaCreateAllocator(&allocator_info, &m_allocator);
+  const VkResult res = vmaCreateAllocator(&allocator_info, &m_allocator);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vmaCreateAllocator failed: ");
@@ -841,7 +841,7 @@ bool VulkanContext::EnableDebugUtils()
     return false;
   }
 
-  VkDebugUtilsMessengerCreateInfoEXT messenger_info = {
+  const VkDebugUtilsMessengerCreateInfoEXT messenger_info = {
       VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
       nullptr,
       0,
@@ -854,8 +854,8 @@ bool VulkanContext::EnableDebugUtils()
       DebugUtilsCallback,
       nullptr};
 
-  VkResult res = vkCreateDebugUtilsMessengerEXT(m_instance, &messenger_info, nullptr,
-                                                &m_debug_utils_messenger);
+  const VkResult res = vkCreateDebugUtilsMessengerEXT(m_instance, &messenger_info, nullptr,
+                                                      &m_debug_utils_messenger);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateDebugUtilsMessengerEXT failed: ");
@@ -889,7 +889,7 @@ void VulkanContext::InitDriverDetails() const
   // which vendor a driver is for. These names are based on the reports submitted to
   // vulkan.gpuinfo.org, as of 19/09/2017.
   std::string device_name = m_device_properties.deviceName;
-  u32 vendor_id = m_device_properties.vendorID;
+  const u32 vendor_id = m_device_properties.vendorID;
   if (vendor_id == 0x10DE)
   {
     // Currently, there is only the official NV binary driver.
@@ -1016,7 +1016,7 @@ bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, con
   si.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
   si.surface = surface;
 
-  auto platform_info = GetPlatformExclusiveFullscreenInfo(wsi);
+  const auto platform_info = GetPlatformExclusiveFullscreenInfo(wsi);
   si.pNext = &platform_info;
 
   VkSurfaceCapabilities2KHR caps = {};
@@ -1027,7 +1027,7 @@ bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, con
   fullscreen_caps.fullScreenExclusiveSupported = VK_TRUE;
   caps.pNext = &fullscreen_caps;
 
-  VkResult res = vkGetPhysicalDeviceSurfaceCapabilities2KHR(m_physical_device, &si, &caps);
+  const VkResult res = vkGetPhysicalDeviceSurfaceCapabilities2KHR(m_physical_device, &si, &caps);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceCapabilities2KHR failed:");

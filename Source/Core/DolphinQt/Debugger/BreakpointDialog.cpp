@@ -241,7 +241,7 @@ void BreakpointDialog::OnBPTypeChanged() const
 
 void BreakpointDialog::OnAddressTypeChanged() const
 {
-  bool ranged = m_memory_use_range->isChecked();
+  const bool ranged = m_memory_use_range->isChecked();
 
   m_memory_address_to->setHidden(!ranged);
   m_memory_address_to_label->setHidden(!ranged);
@@ -256,16 +256,16 @@ void BreakpointDialog::accept()
                               tr("Invalid input for the field \"%1\"").arg(field));
   };
 
-  bool instruction = m_instruction_bp->isChecked();
-  bool ranged = m_memory_use_range->isChecked();
+  const bool instruction = m_instruction_bp->isChecked();
+  const bool ranged = m_memory_use_range->isChecked();
 
   // Triggers
-  bool on_read = m_memory_on_read->isChecked() || m_memory_on_read_and_write->isChecked();
-  bool on_write = m_memory_on_write->isChecked() || m_memory_on_read_and_write->isChecked();
+  const bool on_read = m_memory_on_read->isChecked() || m_memory_on_read_and_write->isChecked();
+  const bool on_write = m_memory_on_write->isChecked() || m_memory_on_read_and_write->isChecked();
 
   // Actions
-  bool do_log = m_do_log->isChecked() || m_do_log_and_break->isChecked();
-  bool do_break = m_do_break->isChecked() || m_do_log_and_break->isChecked();
+  const bool do_log = m_do_log->isChecked() || m_do_log_and_break->isChecked();
+  const bool do_break = m_do_break->isChecked() || m_do_log_and_break->isChecked();
 
   bool good;
 
@@ -281,7 +281,7 @@ void BreakpointDialog::accept()
 
   if (instruction)
   {
-    u32 address = m_instruction_address->text().toUInt(&good, 16);
+    const u32 address = m_instruction_address->text().toUInt(&good, 16);
 
     if (!good)
     {
@@ -293,7 +293,7 @@ void BreakpointDialog::accept()
   }
   else
   {
-    u32 from = m_memory_address_from->text().toUInt(&good, 16);
+    const u32 from = m_memory_address_from->text().toUInt(&good, 16);
 
     if (!good)
     {
@@ -303,7 +303,7 @@ void BreakpointDialog::accept()
 
     if (ranged)
     {
-      u32 to = m_memory_address_to->text().toUInt(&good, 16);
+      const u32 to = m_memory_address_to->text().toUInt(&good, 16);
       if (!good)
       {
         invalid_input(tr("To"));

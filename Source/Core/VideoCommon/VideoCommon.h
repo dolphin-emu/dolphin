@@ -118,7 +118,7 @@ inline u32 CompressZ16(const u32 z24depth, const DepthFormat format)
     return z24depth >> 8;
   }
 
-  u32 mantissa_bits = 16 - exp_bits;
+  const u32 mantissa_bits = 16 - exp_bits;
 
   // Calculate which bits we need to extract from z24depth for our mantissa
   u32 top = std::max<u32>(24 - leading_ones, mantissa_bits);
@@ -126,10 +126,10 @@ inline u32 CompressZ16(const u32 z24depth, const DepthFormat format)
   {
     top -= 1;  // We know the next bit is zero, so we don't need to include it.
   }
-  u32 bottom = top - mantissa_bits;
+  const u32 bottom = top - mantissa_bits;
 
-  u32 exponent = leading_ones << mantissa_bits;  // Upper bits contain exponent
-  u32 mantissa = Common::ExtractBits(z24depth, bottom, top - 1);
+  const u32 exponent = leading_ones << mantissa_bits;  // Upper bits contain exponent
+  const u32 mantissa = Common::ExtractBits(z24depth, bottom, top - 1);
 
   return exponent | mantissa;
 }

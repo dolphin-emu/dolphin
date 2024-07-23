@@ -60,7 +60,7 @@ void WiimoteControllersWidget::UpdateBluetoothAvailableStatus() const
 static int GetRadioButtonIndicatorWidth()
 {
   const QStyle* style = QApplication::style();
-  QStyleOptionButton opt;
+  const QStyleOptionButton opt;
 
   // TODO: why does the macOS style act different? Is it because of the magic with
   // Cocoa widgets it does behind the scenes?
@@ -123,11 +123,11 @@ void WiimoteControllersWidget::CreateLayout()
   // Passthrough BT
   m_wiimote_layout->addWidget(m_wiimote_passthrough, m_wiimote_layout->rowCount(), 0, 1, -1);
 
-  int sync_row = m_wiimote_layout->rowCount();
+  const int sync_row = m_wiimote_layout->rowCount();
   m_wiimote_layout->addWidget(m_wiimote_pt_labels[0], sync_row, 1, 1, 2);
   m_wiimote_layout->addWidget(m_wiimote_sync, sync_row, 3);
 
-  int reset_row = m_wiimote_layout->rowCount();
+  const int reset_row = m_wiimote_layout->rowCount();
   m_wiimote_layout->addWidget(m_wiimote_pt_labels[1], reset_row, 1, 1, 2);
   m_wiimote_layout->addWidget(m_wiimote_reset, reset_row, 3);
 
@@ -143,7 +143,7 @@ void WiimoteControllersWidget::CreateLayout()
     for (const auto& item : {tr("None"), tr("Emulated Wii Remote"), tr("Real Wii Remote")})
       wm_box->addItem(item);
 
-    int wm_row = m_wiimote_layout->rowCount();
+    const int wm_row = m_wiimote_layout->rowCount();
     m_wiimote_layout->addWidget(wm_label, wm_row, 1);
     m_wiimote_layout->addWidget(wm_box, wm_row, 2);
     m_wiimote_layout->addWidget(wm_button, wm_row, 3);
@@ -154,7 +154,7 @@ void WiimoteControllersWidget::CreateLayout()
 
   m_wiimote_layout->addWidget(m_wiimote_ciface, m_wiimote_layout->rowCount(), 0, 1, -1);
 
-  int continuous_scanning_row = m_wiimote_layout->rowCount();
+  const int continuous_scanning_row = m_wiimote_layout->rowCount();
   m_wiimote_layout->addWidget(m_wiimote_continuous_scanning, continuous_scanning_row, 0, 1, 3);
   m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 3);
 
@@ -219,7 +219,7 @@ void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
     return;
   }
 
-  auto device = WiiUtils::GetBluetoothRealDevice();
+  const auto device = WiiUtils::GetBluetoothRealDevice();
   if (device != nullptr)
     device->TriggerSyncButtonHeldEvent();
 }
@@ -235,7 +235,7 @@ void WiimoteControllersWidget::OnBluetoothPassthroughSyncPressed()
     return;
   }
 
-  auto device = WiiUtils::GetBluetoothRealDevice();
+  const auto device = WiiUtils::GetBluetoothRealDevice();
   if (device != nullptr)
     device->TriggerSyncButtonPressedEvent();
 }

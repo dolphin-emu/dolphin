@@ -40,7 +40,7 @@ void AchievementLeaderboardWidget::UpdateData(const bool clean_all)
   {
     ClearLayoutRecursively(m_common_layout);
 
-    auto& instance = AchievementManager::GetInstance();
+    const auto& instance = AchievementManager::GetInstance();
     if (!instance.IsGameLoaded())
       return;
     auto* client = instance.GetClient();
@@ -85,7 +85,7 @@ void AchievementLeaderboardWidget::UpdateData(const bool clean_all)
     }
     rc_client_destroy_leaderboard_list(leaderboard_list);
   }
-  for (auto row : m_leaderboard_order)
+  for (const auto row : m_leaderboard_order)
   {
     UpdateRow(row.first);
   }
@@ -132,7 +132,7 @@ void AchievementLeaderboardWidget::UpdateRow(const AchievementManager::Achieveme
   if (board->player_index > to_display.size() - 1)
   {
     // If the rank one below than the player is found, offset = 1.
-    u32 offset = static_cast<u32>(board->entries.count(board->player_index + 1));
+    const u32 offset = static_cast<u32>(board->entries.count(board->player_index + 1));
     // Example: player is 10th place but not last
     // to_display = {1, 10-3+1+1, 10-3+1+2, 10-3+1+3} = {1, 9, 10, 11}
     // Example: player is 15th place and is last
@@ -149,7 +149,7 @@ void AchievementLeaderboardWidget::UpdateRow(const AchievementManager::Achieveme
       a_col->addWidget(new QLabel(tr("Rank %1").arg(it->second.rank)));
       a_col->addWidget(new QLabel(QString::fromStdString(it->second.username)));
       a_col->addWidget(new QLabel(QString::fromUtf8(it->second.score.data())));
-      auto old_item = m_common_layout->itemAtPosition(row, static_cast<int>(ix) + 1);
+      const auto old_item = m_common_layout->itemAtPosition(row, static_cast<int>(ix) + 1);
       m_common_layout->removeItem(old_item);
       ClearLayoutRecursively(static_cast<QLayout*>(old_item));
       m_common_layout->addLayout(a_col, row, static_cast<int>(ix) + 1);

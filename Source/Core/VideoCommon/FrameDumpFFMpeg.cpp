@@ -66,7 +66,7 @@ namespace
 {
 AVRational GetTimeBaseForCurrentRefreshRate()
 {
-  auto& vi = Core::System::GetInstance().GetVideoInterface();
+  const auto& vi = Core::System::GetInstance().GetVideoInterface();
   int num;
   int den;
   av_reduce(&num, &den, static_cast<int>(vi.GetTargetRefreshRateDenominator()),
@@ -101,7 +101,7 @@ void InitAVCodec()
         log_level = Common::Log::LogLevel::LINFO;
 
       // Don't perform this formatting if the log level is disabled
-      auto* log_manager = Common::Log::LogManager::GetInstance();
+      const auto* log_manager = Common::Log::LogManager::GetInstance();
       if (log_manager != nullptr &&
           log_manager->IsEnabled(Common::Log::LogType::FRAMEDUMP, log_level))
       {
@@ -408,7 +408,7 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
 
 void FFMpegFrameDump::ProcessPackets() const
 {
-  auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
+  const auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
       av_packet_alloc(), [](AVPacket* packet) { av_packet_free(&packet); });
 
   if (!pkt)

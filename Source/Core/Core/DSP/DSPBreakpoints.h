@@ -19,7 +19,7 @@ public:
   // AddBreakPoint
   bool Add(const u32 addr, const bool temp = false)
   {
-    bool was_one = b[addr] != 0;
+    const bool was_one = b[addr] != 0;
 
     if (!was_one)
     {
@@ -35,7 +35,7 @@ public:
   // Remove Breakpoint
   bool Remove(const u32 addr)
   {
-    bool was_one = b[addr] != 0;
+    const bool was_one = b[addr] != 0;
     b[addr] = 0;
     return was_one;
   }

@@ -386,14 +386,14 @@ inline u64 ConvertToDouble(const u32 value)
   // precision floating point numbers.
   // See page 566 of http://www.freescale.com/files/product/doc/MPCFPE32B.pdf
 
-  u64 x = value;
+  const u64 x = value;
   u64 exp = (x >> 23) & 0xff;
   u64 frac = x & 0x007fffff;
 
   if (exp > 0 && exp < 255)  // Normal number
   {
-    u64 y = !(exp >> 7);
-    u64 z = y << 61 | y << 60 | y << 59;
+    const u64 y = !(exp >> 7);
+    const u64 z = y << 61 | y << 60 | y << 59;
     return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
   }
   else if (exp == 0 && frac != 0)  // Subnormal number
@@ -409,8 +409,8 @@ inline u64 ConvertToDouble(const u32 value)
   }
   else  // QNaN, SNaN or Zero
   {
-    u64 y = exp >> 7;
-    u64 z = y << 61 | y << 60 | y << 59;
+    const u64 y = exp >> 7;
+    const u64 z = y << 61 | y << 60 | y << 59;
     return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
   }
 }

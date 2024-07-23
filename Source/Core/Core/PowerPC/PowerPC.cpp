@@ -175,7 +175,7 @@ void PowerPCManager::ResetRegisters()
   mmu.DBATUpdated();
   mmu.IBATUpdated();
 
-  auto& system_timers = m_system.GetSystemTimers();
+  const auto& system_timers = m_system.GetSystemTimers();
   TL(m_ppc_state) = 0;
   TU(m_ppc_state) = 0;
   system_timers.TimeBaseSet();
@@ -285,7 +285,7 @@ void PowerPCManager::Reset()
 
 void PowerPCManager::ScheduleInvalidateCacheThreadSafe(const u32 address)
 {
-  auto& cpu = m_system.GetCPU();
+  const auto& cpu = m_system.GetCPU();
 
   if (cpu.GetState() == CPU::State::Running && !Core::IsCPUThread())
   {
@@ -460,7 +460,7 @@ void UpdatePerformanceMonitor(const u32 cycles, const u32 num_load_stores, const
 
 void PowerPCManager::CheckExceptions()
 {
-  u32 exceptions = m_ppc_state.Exceptions;
+  const u32 exceptions = m_ppc_state.Exceptions;
 
   // Example procedure:
   // Set SRR0 to either PC or NPC
@@ -572,7 +572,7 @@ void PowerPCManager::CheckExceptions()
 
 void PowerPCManager::CheckExternalExceptions()
 {
-  u32 exceptions = m_ppc_state.Exceptions;
+  const u32 exceptions = m_ppc_state.Exceptions;
 
   // EXTERNAL INTERRUPT
   // Handling is delayed until MSR.EE=1.

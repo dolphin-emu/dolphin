@@ -270,7 +270,7 @@ u16 Interpreter::ReadControlRegister() const
   auto& state = m_dsp_core.DSPState();
   if ((state.control_reg & CR_INIT_CODE) != 0)
   {
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     if (system.GetSystemTimers().GetFakeTimeBase() >= state.control_reg_init_code_clear_time)
       state.control_reg &= ~CR_INIT_CODE;
     else
@@ -342,7 +342,7 @@ bool Interpreter::CheckCondition(const u8 condition) const
 
 u16 Interpreter::IncrementAddressRegister(const u16 reg) const
 {
-  auto& state = m_dsp_core.DSPState();
+  const auto& state = m_dsp_core.DSPState();
   const u32 ar = state.r.ar[reg];
   const u32 wr = state.r.wr[reg];
   u32 nar = ar + 1;

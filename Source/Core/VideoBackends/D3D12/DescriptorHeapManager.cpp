@@ -16,10 +16,10 @@ DescriptorHeapManager::~DescriptorHeapManager() = default;
 bool DescriptorHeapManager::Create(ID3D12Device* device, const D3D12_DESCRIPTOR_HEAP_TYPE type,
                                    const u32 num_descriptors)
 {
-  D3D12_DESCRIPTOR_HEAP_DESC desc = {type, static_cast<UINT>(num_descriptors),
-                                     D3D12_DESCRIPTOR_HEAP_FLAG_NONE};
+  const D3D12_DESCRIPTOR_HEAP_DESC desc = {type, static_cast<UINT>(num_descriptors),
+                                           D3D12_DESCRIPTOR_HEAP_FLAG_NONE};
 
-  HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
+  const HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create descriptor heap: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
@@ -54,7 +54,7 @@ bool DescriptorHeapManager::Allocate(DescriptorHandle* handle)
         break;
     }
 
-    u32 index = group * BITSET_SIZE + bit;
+    const u32 index = group * BITSET_SIZE + bit;
     bs[bit] = false;
 
     handle->index = index;
@@ -71,8 +71,8 @@ void DescriptorHeapManager::Free(const u32 index)
 {
   ASSERT(index < m_num_descriptors);
 
-  u32 group = index / BITSET_SIZE;
-  u32 bit = index % BITSET_SIZE;
+  const u32 group = index / BITSET_SIZE;
+  const u32 bit = index % BITSET_SIZE;
   m_free_slots[group][bit] = true;
 }
 
@@ -174,7 +174,7 @@ void SamplerHeapManager::Clear()
 bool SamplerHeapManager::Create(ID3D12Device* device, const u32 num_descriptors)
 {
   const D3D12_DESCRIPTOR_HEAP_DESC desc = {D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, num_descriptors};
-  HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
+  const HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create sampler descriptor heap: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;

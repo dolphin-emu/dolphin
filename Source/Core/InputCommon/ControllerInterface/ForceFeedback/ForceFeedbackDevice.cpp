@@ -52,14 +52,14 @@ void ForceFeedbackDevice::ThreadFunc()
   {
     m_update_event.Wait();
 
-    for (auto output : Outputs())
+    for (const auto output : Outputs())
     {
       auto& force = *static_cast<Force*>(output);
       force.UpdateOutput();
     }
   }
 
-  for (auto output : Outputs())
+  for (const auto output : Outputs())
   {
     auto& force = *static_cast<Force*>(output);
     force.Release();

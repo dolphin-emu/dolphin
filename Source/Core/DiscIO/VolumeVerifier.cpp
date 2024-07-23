@@ -122,7 +122,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
   if (old_status == DownloadStatus::Success || old_status == DownloadStatus::SystemNotAvailable)
     return old_status;
 
-  Common::HttpRequest request;
+  const Common::HttpRequest request;
 
   const std::optional<std::vector<u8>> result =
       request.Get("http://redump.org/datfile/" + system + "/serial,version",
@@ -159,7 +159,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
 std::vector<u8> RedumpVerifier::ReadDatfile(const std::string& system)
 {
-  unzFile file = unzOpen(GetPathForSystem(system).c_str());
+  const unzFile file = unzOpen(GetPathForSystem(system).c_str());
   if (!file)
     return {};
 
@@ -434,7 +434,7 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
     return {m_volume.GetGamePartition()};
   }
 
-  std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
+  const std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
   if (partitions_in_first_table && *partitions_in_first_table > 8)
   {
     // Not sure if 8 actually is the limit, but there certainly aren't any discs
@@ -981,8 +981,8 @@ void VolumeVerifier::CheckMisc()
 
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
-    IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
-    auto& es = ios.GetESCore();
+    const IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
+    const auto& es = ios.GetESCore();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
 
     if (IOS::HLE::IPC_SUCCESS !=
@@ -1032,7 +1032,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   if (!fs)
     return;
 
-  std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
+  const std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
   if (!file_info)
     return;
 

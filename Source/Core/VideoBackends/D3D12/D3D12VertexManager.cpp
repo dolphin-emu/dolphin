@@ -145,7 +145,7 @@ void VertexManager::UploadUniforms()
 
 void VertexManager::UpdateVertexShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
 
   if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
@@ -161,7 +161,7 @@ void VertexManager::UpdateVertexShaderConstants()
 
 void VertexManager::UpdateGeometryShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
 
   if (!geometry_shader_manager.dirty || !ReserveConstantStorage())
@@ -177,7 +177,7 @@ void VertexManager::UpdateGeometryShaderConstants()
 
 void VertexManager::UpdatePixelShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   if (!ReserveConstantStorage())
@@ -207,8 +207,8 @@ void VertexManager::UpdatePixelShaderConstants()
 
 bool VertexManager::ReserveConstantStorage()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   static constexpr u32 reserve_size =
       static_cast<u32>(std::max({sizeof(PixelShaderConstants), sizeof(VertexShaderConstants),
@@ -232,7 +232,7 @@ bool VertexManager::ReserveConstantStorage()
 
 void VertexManager::UploadAllConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   // We are free to re-use parts of the buffer now since we're uploading all constants.

@@ -276,7 +276,7 @@ bool BlendingState::LogicOpApproximationWantsShaderHelp() const
 
 void SamplerState::Generate(const BPMemory& bp, const u32 index)
 {
-  auto tex = bp.tex.GetUnit(index);
+  const auto tex = bp.tex.GetUnit(index);
   const TexMode0& bp_tm0 = tex.texMode0;
   const TexMode1& bp_tm1 = tex.texMode1;
 

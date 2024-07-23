@@ -159,8 +159,8 @@ ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 bool WASAPIStream::Init()
 {
   ASSERT(m_enumerator == nullptr);
-  HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                                    IID_PPV_ARGS(m_enumerator.GetAddressOf()));
+  const HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                                          IID_PPV_ARGS(m_enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return false;

@@ -25,7 +25,7 @@ bool IsInstructionLoadStore(const std::string_view ins)
 u32 GetMemoryTargetSize(const std::string_view instr)
 {
   // Word-size operations are taken as the default, check the others.
-  auto op = instr.substr(0, 4);
+  const auto op = instr.substr(0, 4);
 
   constexpr char BYTE_TAG = 'b';
   constexpr char HALF_TAG = 'h';
@@ -122,10 +122,10 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
 
 TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& power_pc = system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
-  auto& debug_interface = power_pc.GetDebugInterface();
+  const auto& ppc_state = power_pc.GetPPCState();
+  const auto& debug_interface = power_pc.GetDebugInterface();
 
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
@@ -252,7 +252,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first
     return HitType::SKIP;
 
   // The reg_itr will be used later for erasing.
-  auto reg_itr = std::find(m_reg_autotrack.begin(), m_reg_autotrack.end(), instr.reg0);
+  const auto reg_itr = std::find(m_reg_autotrack.begin(), m_reg_autotrack.end(), instr.reg0);
   const bool match_reg123 =
       (!instr.reg1.empty() && std::find(m_reg_autotrack.begin(), m_reg_autotrack.end(),
                                         instr.reg1) != m_reg_autotrack.end()) ||

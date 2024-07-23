@@ -49,7 +49,7 @@ CodeWidget::CodeWidget(QWidget* parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -226,7 +226,7 @@ void CodeWidget::OnPPCSymbolsChanged() const
 void CodeWidget::OnSearchAddress() const
 {
   bool good = true;
-  u32 address = m_search_address->text().toUInt(&good, 16);
+  const u32 address = m_search_address->text().toUInt(&good, 16);
 
   QPalette palette;
   QFont font;
@@ -453,7 +453,7 @@ void CodeWidget::Step() const
   Common::Event sync_event;
 
   auto& power_pc = m_system.GetPowerPC();
-  PowerPC::CoreMode old_mode = power_pc.GetMode();
+  const PowerPC::CoreMode old_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
   cpu.StepOpcode(&sync_event);
   sync_event.WaitFor(std::chrono::milliseconds(20));
@@ -474,7 +474,7 @@ void CodeWidget::StepOver() const
     return;
 
   const UGeckoInstruction inst = [&] {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     return PowerPC::MMU::HostRead_Instruction(guard, m_system.GetPPCState().pc);
   }();
 

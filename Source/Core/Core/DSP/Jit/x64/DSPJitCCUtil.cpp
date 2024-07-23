@@ -21,14 +21,14 @@ void DSPEmitter::Update_SR_Register(const X64Reg val, const X64Reg scratch)
   //	// 0x04
   //	if (_Value == 0) g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
   TEST(64, R(val), R(val));
-  FixupBranch notZero = J_CC(CC_NZ);
+  const FixupBranch notZero = J_CC(CC_NZ);
   OR(16, sr_reg, Imm16(SR_ARITH_ZERO | SR_TOP2BITS));
-  FixupBranch end = J();
+  const FixupBranch end = J();
   SetJumpTarget(notZero);
 
   //	// 0x08
   //	if (_Value < 0) g_dsp.r[DSP_REG_SR] |= SR_SIGN;
-  FixupBranch greaterThanEqual = J_CC(CC_GE);
+  const FixupBranch greaterThanEqual = J_CC(CC_GE);
   OR(16, sr_reg, Imm16(SR_SIGN));
   SetJumpTarget(greaterThanEqual);
 
@@ -36,7 +36,7 @@ void DSPEmitter::Update_SR_Register(const X64Reg val, const X64Reg scratch)
   //	if (_Value != (s32)_Value) g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;
   MOVSX(64, 32, scratch, R(val));
   CMP(64, R(scratch), R(val));
-  FixupBranch noOverS32 = J_CC(CC_E);
+  const FixupBranch noOverS32 = J_CC(CC_E);
   OR(16, sr_reg, Imm16(SR_OVER_S32));
   SetJumpTarget(noOverS32);
 
@@ -44,9 +44,9 @@ void DSPEmitter::Update_SR_Register(const X64Reg val, const X64Reg scratch)
   //	if (((_Value & 0xc0000000) == 0) || ((_Value & 0xc0000000) == 0xc0000000))
   MOV(32, R(scratch), Imm32(0xc0000000));
   AND(32, R(val), R(scratch));
-  FixupBranch zeroC = J_CC(CC_Z);
+  const FixupBranch zeroC = J_CC(CC_Z);
   CMP(32, R(val), R(scratch));
-  FixupBranch cC = J_CC(CC_NE);
+  const FixupBranch cC = J_CC(CC_NE);
   SetJumpTarget(zeroC);
   //		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
   OR(16, sr_reg, Imm16(SR_TOP2BITS));
@@ -84,7 +84,7 @@ void DSPEmitter::UpdateSR64AddSub(const X64Reg val1, const X64Reg val2, const X6
   // g_dsp.r[DSP_REG_SR] |= SR_CARRY;
   // isCarryAdd = (val1 > result) => skip setting if (val <= result) => jump if ZF or CF => use JBE
   // isCarrySubtract = (val1 >= result) => skip setting if (val < result) => jump if CF => use JB
-  FixupBranch noCarry = J_CC(subtract ? CC_B : CC_BE);
+  const FixupBranch noCarry = J_CC(subtract ? CC_B : CC_BE);
   OR(16, sr_reg, Imm16(SR_CARRY));
   SetJumpTarget(noCarry);
 
@@ -101,7 +101,7 @@ void DSPEmitter::UpdateSR64AddSub(const X64Reg val1, const X64Reg val2, const X6
   XOR(64, R(result), R(val2));
 
   TEST(64, R(scratch), R(result));  // Test scratch & value
-  FixupBranch noOverflow = J_CC(CC_GE);
+  const FixupBranch noOverflow = J_CC(CC_GE);
   OR(16, sr_reg, Imm16(SR_OVERFLOW | SR_OVERFLOW_STICKY));
   SetJumpTarget(noOverflow);
 
@@ -123,14 +123,14 @@ void DSPEmitter::Update_SR_Register16(const X64Reg val)
   //	// 0x04
   //	if (_Value == 0) g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
   TEST(16, R(val), R(val));
-  FixupBranch notZero = J_CC(CC_NZ);
+  const FixupBranch notZero = J_CC(CC_NZ);
   OR(16, sr_reg, Imm16(SR_ARITH_ZERO | SR_TOP2BITS));
-  FixupBranch end = J();
+  const FixupBranch end = J();
   SetJumpTarget(notZero);
 
   //	// 0x08
   //	if (_Value < 0) g_dsp.r[DSP_REG_SR] |= SR_SIGN;
-  FixupBranch greaterThanEqual = J_CC(CC_GE);
+  const FixupBranch greaterThanEqual = J_CC(CC_GE);
   OR(16, sr_reg, Imm16(SR_SIGN));
   SetJumpTarget(greaterThanEqual);
 
@@ -138,9 +138,9 @@ void DSPEmitter::Update_SR_Register16(const X64Reg val)
   //	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
   SHR(16, R(val), Imm8(14));
   TEST(16, R(val), R(val));
-  FixupBranch isZero = J_CC(CC_Z);
+  const FixupBranch isZero = J_CC(CC_Z);
   CMP(16, R(val), Imm16(3));
-  FixupBranch notThree = J_CC(CC_NE);
+  const FixupBranch notThree = J_CC(CC_NE);
   SetJumpTarget(isZero);
   //		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
   OR(16, sr_reg, Imm16(SR_TOP2BITS));
@@ -163,7 +163,7 @@ void DSPEmitter::Update_SR_Register16_OverS32(const X64Reg val, const X64Reg ful
   //	if (_FullValue != (s32)_FullValue) g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;
   MOVSX(64, 32, scratch, R(full_val));
   CMP(64, R(scratch), R(full_val));
-  FixupBranch noOverS32 = J_CC(CC_E);
+  const FixupBranch noOverS32 = J_CC(CC_E);
   OR(16, sr_reg, Imm16(SR_OVER_S32));
   SetJumpTarget(noOverS32);
 

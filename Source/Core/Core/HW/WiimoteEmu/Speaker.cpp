@@ -142,8 +142,8 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   const u32 l_volume = std::min(static_cast<u32>(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
   const u32 r_volume = std::min(static_cast<u32>(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
 
-  auto& system = Core::System::GetInstance();
-  SoundStream* sound_stream = system.GetSoundStream();
+  const auto& system = Core::System::GetInstance();
+  const SoundStream* sound_stream = system.GetSoundStream();
 
   sound_stream->GetMixer()->SetWiimoteSpeakerVolume(l_volume, r_volume);
 

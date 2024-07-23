@@ -68,7 +68,7 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
 void AchievementHeaderWidget::UpdateData() const
 {
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-  auto& instance = AchievementManager::GetInstance();
+  const auto& instance = AchievementManager::GetInstance();
   if (!Get(Config::RA_ENABLED) || !instance.HasAPIToken())
   {
     m_header_box->setVisible(false);
@@ -76,8 +76,8 @@ void AchievementHeaderWidget::UpdateData() const
   }
   m_header_box->setVisible(true);
 
-  QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
-  QString game_name = QtUtils::FromStdString(instance.GetGameDisplayName());
+  const QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
+  const QString game_name = QtUtils::FromStdString(instance.GetGameDisplayName());
   const AchievementManager::Badge& player_badge = instance.GetPlayerBadge();
   const AchievementManager::Badge& game_badge = instance.GetGameBadge();
 
@@ -86,8 +86,8 @@ void AchievementHeaderWidget::UpdateData() const
   m_user_icon->setText({});
   if (!player_badge.data.empty())
   {
-    QImage i_user_icon(player_badge.data.data(), player_badge.width, player_badge.height,
-                       QImage::Format_RGBA8888);
+    const QImage i_user_icon(player_badge.data.data(), player_badge.width, player_badge.height,
+                             QImage::Format_RGBA8888);
     m_user_icon->setPixmap(QPixmap::fromImage(i_user_icon)
                                .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   }
@@ -105,8 +105,8 @@ void AchievementHeaderWidget::UpdateData() const
     rc_client_get_user_game_summary(instance.GetClient(), &game_summary);
     if (game_badge.data.empty())
     {
-      QImage i_game_icon(game_badge.data.data(), game_badge.width, game_badge.height,
-                         QImage::Format_RGBA8888);
+      const QImage i_game_icon(game_badge.data.data(), game_badge.width, game_badge.height,
+                               QImage::Format_RGBA8888);
       m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
                                  .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }

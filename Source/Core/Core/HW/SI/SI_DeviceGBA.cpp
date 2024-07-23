@@ -146,7 +146,7 @@ void GBASockServer::ClockSync(const Core::System& system)
     if (!(m_clock_sync = GetNextClock()))
       return;
 
-  auto& core_timing = system.GetCoreTiming();
+  const auto& core_timing = system.GetCoreTiming();
 
   u32 time_slice = 0;
 
@@ -169,7 +169,7 @@ void GBASockServer::ClockSync(const Core::System& system)
   bytes[2] = (time_slice >> 8) & 0xff;
   bytes[3] = time_slice & 0xff;
 
-  sf::Socket::Status status = m_clock_sync->send(bytes, 4);
+  const sf::Socket::Status status = m_clock_sync->send(bytes, 4);
   if (status == sf::Socket::Disconnected)
   {
     m_clock_sync->disconnect();
@@ -228,7 +228,7 @@ int GBASockServer::Receive(u8* si_buffer, const u8 bytes)
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;
-  sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
+  const sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
   if (recv_stat == sf::Socket::Disconnected)
   {
     Disconnect();
@@ -256,7 +256,7 @@ void GBASockServer::Flush() const
   u8 byte;
   while (num_received)
   {
-    sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
+    const sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
     if (recv_stat != sf::Socket::Done)
       break;
   }
@@ -296,7 +296,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
+    const int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd) > elapsed_time)
       return 0;
@@ -319,7 +319,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     default:
       break;
     }
-    int num_data_received = m_sock_server.Receive(buffer, bytes);
+    const int num_data_received = m_sock_server.Receive(buffer, bytes);
 
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)

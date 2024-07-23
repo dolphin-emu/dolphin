@@ -240,7 +240,7 @@ void GameConfigEdit::AddMenubarOptions()
 void GameConfigEdit::OnAutoComplete(const QString& completion) const
 {
   QTextCursor cursor = m_edit->textCursor();
-  int extra = completion.length() - m_completer->completionPrefix().length();
+  const int extra = completion.length() - m_completer->completionPrefix().length();
   cursor.movePosition(QTextCursor::Left);
   cursor.movePosition(QTextCursor::EndOfWord);
   cursor.insertText(completion.right(extra));
@@ -291,7 +291,7 @@ void GameConfigEdit::keyPressEvent(QKeyEvent* e)
 
   const static QString end_of_word = QStringLiteral("~!@#$%^&*()_+{}|:\"<>?,./;'\\-=");
 
-  QString completion_prefix = GetTextUnderCursor();
+  const QString completion_prefix = GetTextUnderCursor();
 
   if (e->text().isEmpty() || completion_prefix.length() < 2 ||
       end_of_word.contains(e->text().right(1)))

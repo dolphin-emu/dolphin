@@ -30,7 +30,7 @@ void SetIsThrottlerTempDisabled(bool disable);
 double GetActualEmulationSpeed();
 
 void Callback_FramePresented(double actual_emulation_speed = 1.0);
-void Callback_NewField(System& system);
+void Callback_NewField(const System& system);
 
 enum class State
 {
@@ -143,7 +143,7 @@ bool IsHostThread();
 bool WantsDeterminism();
 
 // [NOT THREADSAFE] For use by Host only
-void SetState(System& system, State state, bool report_state_change = true,
+void SetState(const System& system, State state, bool report_state_change = true,
               bool initial_execution_state = false);
 State GetState(const System& system);
 
@@ -186,7 +186,7 @@ void QueueHostJob(std::function<void(System&)> job, bool run_during_stop = false
 // WMUserJobDispatch will be sent when something is added to the queue.
 void HostDispatchJobs(System& system);
 
-void DoFrameStep(System& system);
+void DoFrameStep(const System& system);
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 

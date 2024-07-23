@@ -39,7 +39,7 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(VkBufferUsageFlags usage, u32
 bool StreamBuffer::AllocateBuffer()
 {
   // Create the buffer descriptor
-  VkBufferCreateInfo buffer_create_info = {
+  const VkBufferCreateInfo buffer_create_info = {
       VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
       nullptr,                               // const void*            pNext
       0,                                     // VkBufferCreateFlags    flags
@@ -65,8 +65,8 @@ bool StreamBuffer::AllocateBuffer()
   VkBuffer buffer = VK_NULL_HANDLE;
   VmaAllocation alloc = VK_NULL_HANDLE;
   VmaAllocationInfo alloc_info;
-  VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &buffer_create_info,
-                                 &alloc_create_info, &buffer, &alloc, &alloc_info);
+  const VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &buffer_create_info,
+                                       &alloc_create_info, &buffer, &alloc, &alloc_info);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vmaCreateBuffer failed: ");
@@ -190,7 +190,7 @@ void StreamBuffer::UpdateCurrentFencePosition()
 
 void StreamBuffer::UpdateGPUPosition()
 {
-  auto start = m_tracked_fences.begin();
+  const auto start = m_tracked_fences.begin();
   auto end = start;
 
   const u64 completed_counter = g_command_buffer_mgr->GetCompletedFenceCounter();
@@ -216,7 +216,7 @@ bool StreamBuffer::WaitForClearSpace(const u32 num_bytes)
     // This is the "last resort" case, where a command buffer execution has been forced
     // after no additional data has been written to it, so we can assume that after the
     // fence has been signaled the entire buffer is now consumed.
-    u32 gpu_position = iter->second;
+    const u32 gpu_position = iter->second;
     if (m_current_offset == gpu_position)
     {
       new_offset = 0;
@@ -253,7 +253,7 @@ bool StreamBuffer::WaitForClearSpace(const u32 num_bytes)
       // We're currently allocating behind the GPU. This would give us between the current
       // offset and the GPU position worth of space to work with. Again, > because we can't
       // align the GPU position with the buffer offset.
-      u32 available_space_inbetween = gpu_position - m_current_offset;
+      const u32 available_space_inbetween = gpu_position - m_current_offset;
       if (available_space_inbetween > num_bytes)
       {
         // Leave the offset as-is, but update the GPU position.

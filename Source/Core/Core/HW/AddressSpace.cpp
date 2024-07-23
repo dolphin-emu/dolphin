@@ -125,8 +125,8 @@ struct EffectiveAddressSpaceAccessors : Accessors
   bool Matches(const Core::CPUThreadGuard& guard, const u32 haystack_start, const u8* needle_start,
                std::size_t needle_size) const
   {
-    auto& system = guard.GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = guard.GetSystem();
+    const auto& memory = system.GetMemory();
     auto& mmu = system.GetMMU();
 
     u32 page_base = haystack_start & 0xfffff000;
@@ -150,8 +150,8 @@ struct EffectiveAddressSpaceAccessors : Accessors
         return false;
       }
 
-      std::size_t chunk_size = std::min<std::size_t>(0x1000 - offset, needle_size);
-      u8* page_ptr = memory.GetPointerForRange(*page_physical_address + offset, chunk_size);
+      const std::size_t chunk_size = std::min<std::size_t>(0x1000 - offset, needle_size);
+      const u8* page_ptr = memory.GetPointerForRange(*page_physical_address + offset, chunk_size);
       if (page_ptr == nullptr)
       {
         return false;
@@ -248,10 +248,10 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
     else
     {
       // using reverse iterator will also search the element in reverse
-      auto reverse_end = std::make_reverse_iterator(begin() + needle_size - 1);
-      auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
-                            reverse_end, std::make_reverse_iterator(needle_start + needle_size),
-                            std::make_reverse_iterator(needle_start));
+      const auto reverse_end = std::make_reverse_iterator(begin() + needle_size - 1);
+      const auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
+                                  reverse_end, std::make_reverse_iterator(needle_start + needle_size),
+                                  std::make_reverse_iterator(needle_start));
       result = (it == reverse_end) ? end() : (&(*it) - needle_size + 1);
     }
     if (result == end())
@@ -287,7 +287,7 @@ struct CompositeAddressSpaceAccessors : Accessors
 
   u8 ReadU8(const Core::CPUThreadGuard& guard, const u32 address) const override
   {
-    auto mapping = FindAppropriateAccessor(guard, address);
+    const auto mapping = FindAppropriateAccessor(guard, address);
     if (mapping == m_accessor_mappings.end())
     {
       return 0;
@@ -297,7 +297,7 @@ struct CompositeAddressSpaceAccessors : Accessors
 
   void WriteU8(const Core::CPUThreadGuard& guard, const u32 address, const u8 value) override
   {
-    auto mapping = FindAppropriateAccessor(guard, address);
+    const auto mapping = FindAppropriateAccessor(guard, address);
     if (mapping == m_accessor_mappings.end())
     {
       return;
@@ -311,7 +311,7 @@ struct CompositeAddressSpaceAccessors : Accessors
   {
     for (const AccessorMapping& mapping : m_accessor_mappings)
     {
-      u32 mapping_offset = haystack_offset - mapping.base;
+      const u32 mapping_offset = haystack_offset - mapping.base;
       if (!mapping.accessors->IsValidAddress(guard, mapping_offset))
       {
         continue;
@@ -391,10 +391,10 @@ struct SmallBlockAccessors : Accessors
     else
     {
       // using reverse iterator will also search the element in reverse
-      auto reverse_end = std::make_reverse_iterator(begin() + needle_size - 1);
-      auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
-                            reverse_end, std::make_reverse_iterator(needle_start + needle_size),
-                            std::make_reverse_iterator(needle_start));
+      const auto reverse_end = std::make_reverse_iterator(begin() + needle_size - 1);
+      const auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
+                                  reverse_end, std::make_reverse_iterator(needle_start + needle_size),
+                                  std::make_reverse_iterator(needle_start));
       result = (it == reverse_end) ? end() : (&(*it) - needle_size + 1);
     }
     if (result == end())
@@ -472,7 +472,7 @@ Accessors* GetAccessors(const Type address_space)
 
 void Init()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   s_mem1_address_space_accessors = {&memory.GetRAM(), memory.GetRamSizeReal()};

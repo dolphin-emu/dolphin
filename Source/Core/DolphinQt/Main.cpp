@@ -49,7 +49,7 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, const bool 
   const bool called_from_cpu_thread = Core::IsCPUThread();
   const bool called_from_gpu_thread = Core::IsGPUThread();
 
-  std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
+  const std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
     // If we were called from the CPU/GPU thread, set us as the CPU/GPU thread.
     // This information is used in order to avoid deadlocks when calling e.g.
     // Host::SetRenderFocus or Core::CPUThreadGuard. (Host::SetRenderFocus

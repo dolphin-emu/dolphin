@@ -52,7 +52,7 @@ struct WindowsMemoryRegion
 
 static bool InitWindowsMemoryFunctions(WindowsMemoryFunctions* functions)
 {
-  DynamicLibrary kernelBase{"KernelBase.dll"};
+  const DynamicLibrary kernelBase{"KernelBase.dll"};
   if (!kernelBase.IsOpen())
     return false;
 
@@ -363,7 +363,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)
   }
 
   // there should be a mapping that matches the request exactly, find it
-  auto it = std::lower_bound(
+  const auto it = std::lower_bound(
       regions.begin(), regions.end(), address,
       [](const WindowsMemoryRegion& region, const u8* addr) { return region.m_start < addr; });
   if (it == regions.end() || it->m_start != address || it->m_size != size)
@@ -379,8 +379,8 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)
   if (can_join_with_preceding && can_join_with_succeeding)
   {
     // join three mappings to one
-    auto it_preceding = it - 1;
-    auto it_succeeding = it + 1;
+    const auto it_preceding = it - 1;
+    const auto it_succeeding = it + 1;
     const size_t total_size = it_preceding->m_size + size + it_succeeding->m_size;
     if (!VirtualFree(it_preceding->m_start, total_size, MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS))
     {
@@ -394,7 +394,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)
   else if (can_join_with_preceding && !can_join_with_succeeding)
   {
     // join two mappings to one
-    auto it_preceding = it - 1;
+    const auto it_preceding = it - 1;
     const size_t total_size = it_preceding->m_size + size;
     if (!VirtualFree(it_preceding->m_start, total_size, MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS))
     {
@@ -408,7 +408,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)
   else if (!can_join_with_preceding && can_join_with_succeeding)
   {
     // join two mappings to one
-    auto it_succeeding = it + 1;
+    const auto it_succeeding = it + 1;
     const size_t total_size = size + it_succeeding->m_size;
     if (!VirtualFree(it->m_start, total_size, MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS))
     {
@@ -494,8 +494,8 @@ void* LazyMemoryRegion::Create(const size_t size)
   m_size = memory_size;
 
   // allocate a single block of real memory in the page file
-  HANDLE zero_block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READONLY,
-                                        GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+  const HANDLE zero_block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READONLY,
+                                              GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
   if (zero_block == nullptr)
   {
     NOTICE_LOG_FMT(MEMMAP, "CreateFileMapping() failed for zero block: {}", GetLastErrorString());
@@ -508,7 +508,7 @@ void* LazyMemoryRegion::Create(const size_t size)
   // map the zero page into every block
   for (size_t i = 0; i < block_count; ++i)
   {
-    void* result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
+    const void* result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
         zero_block, nullptr, memory + i * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
         PAGE_READONLY, nullptr, 0);
     if (!result)
@@ -550,7 +550,7 @@ void LazyMemoryRegion::Clear()
     m_writable_block_handles[i] = nullptr;
 
     // map the zero block
-    void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
+    const void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
         m_zero_block, nullptr, memory + i * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
         PAGE_READONLY, nullptr, 0);
     if (!map_result)
@@ -606,8 +606,8 @@ void LazyMemoryRegion::MakeMemoryBlockWritable(const size_t block_index)
   }
 
   // allocate a fresh block to map
-  HANDLE block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                                   GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+  const HANDLE block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+                                         GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
   if (block == nullptr)
   {
     PanicAlertFmt("CreateFileMapping() failed for writable block: {}", GetLastErrorString());
@@ -615,7 +615,7 @@ void LazyMemoryRegion::MakeMemoryBlockWritable(const size_t block_index)
   }
 
   // map the new block
-  void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
+  const void* map_result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
       block, nullptr, memory + block_index * BLOCK_SIZE, 0, BLOCK_SIZE, MEM_REPLACE_PLACEHOLDER,
       PAGE_READWRITE, nullptr, 0);
   if (!map_result)

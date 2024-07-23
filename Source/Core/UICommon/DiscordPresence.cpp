@@ -64,7 +64,7 @@ void HandleDiscordJoin(const char* join_secret)
 
   std::string secret(join_secret);
 
-  std::string type = secret.substr(0, secret.find('\n'));
+  const std::string type = secret.substr(0, secret.find('\n'));
   size_t offset = type.length() + 1;
 
   switch (static_cast<SecretType>(std::stol(type)))
@@ -78,7 +78,7 @@ void HandleDiscordJoin(const char* join_secret)
     // SetBaseOrCurrent will save the ip address, which isn't what's wanted in this situation
     SetCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "direct");
 
-    std::string host = secret.substr(offset, secret.find_last_of(':') - offset);
+    const std::string host = secret.substr(offset, secret.find_last_of(':') - offset);
     SetCurrent(Config::NETPLAY_ADDRESS, host);
 
     offset += host.length();

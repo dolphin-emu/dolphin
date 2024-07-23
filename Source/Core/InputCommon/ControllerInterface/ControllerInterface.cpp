@@ -134,7 +134,7 @@ void ControllerInterface::RefreshDevices(const RefreshReason reason)
   {
     m_populating_devices_counter.fetch_add(1);
 
-    for (auto& backend : m_input_backends)
+    for (const auto& backend : m_input_backends)
       backend->HandleWindowChange();
 
     if (m_populating_devices_counter.fetch_sub(1) == 1)
@@ -157,7 +157,7 @@ void ControllerInterface::RefreshDevices(const RefreshReason reason)
   // do it async, to not risk the emulated controllers default config loading not finding a default
   // device.
 
-  for (auto& backend : m_input_backends)
+  for (const auto& backend : m_input_backends)
     backend->PopulateDevices();
 
   WiimoteReal::PopulateDevices();
@@ -351,7 +351,7 @@ void ControllerInterface::UpdateInput()
 
     tls_is_updating_devices = true;
 
-    for (auto& backend : m_input_backends)
+    for (const auto& backend : m_input_backends)
       backend->UpdateInput(devices_to_remove);
 
     for (const auto& d : m_devices)

@@ -84,8 +84,8 @@ SectorReader::~SectorReader()
 
 const SectorReader::Cache* SectorReader::FindCacheLine(const u64 block_num)
 {
-  auto itr = std::find_if(m_cache.begin(), m_cache.end(),
-                          [&](const Cache& entry) { return entry.Contains(block_num); });
+  const auto itr = std::find_if(m_cache.begin(), m_cache.end(),
+                                [&](const Cache& entry) { return entry.Contains(block_num); });
   if (itr == m_cache.end())
     return nullptr;
 
@@ -112,14 +112,14 @@ SectorReader::Cache* SectorReader::GetEmptyCacheLine()
 
 const SectorReader::Cache* SectorReader::GetCacheLine(const u64 block_num)
 {
-  if (auto entry = FindCacheLine(block_num))
+  if (const auto entry = FindCacheLine(block_num))
     return entry;
 
   // Cache miss. Fault in the missing entry.
   Cache* cache = GetEmptyCacheLine();
   // We only read aligned chunks, this avoids duplicate overlapping entries.
-  u64 chunk_idx = block_num / m_chunk_blocks;
-  u32 blocks_read = ReadChunk(cache->data.data(), chunk_idx);
+  const u64 chunk_idx = block_num / m_chunk_blocks;
+  const u32 blocks_read = ReadChunk(cache->data.data(), chunk_idx);
   if (!blocks_read)
     return nullptr;
   cache->Fill(chunk_idx * m_chunk_blocks, blocks_read);
@@ -149,9 +149,9 @@ bool SectorReader::Read(u64 offset, const u64 size, u8* out_ptr)
       return false;
 
     // Cache entries are aligned chunks, we may not want to read from the start
-    u32 read_offset = static_cast<u32>(block - cache->block_idx) * m_block_size + position_in_block;
-    u32 can_read = m_block_size * cache->num_blocks - read_offset;
-    u32 was_read = static_cast<u32>(std::min<u64>(can_read, remain));
+    const u32 read_offset = static_cast<u32>(block - cache->block_idx) * m_block_size + position_in_block;
+    const u32 can_read = m_block_size * cache->num_blocks - read_offset;
+    const u32 was_read = static_cast<u32>(std::min<u64>(can_read, remain));
 
     std::copy(cache->data.begin() + read_offset, cache->data.begin() + read_offset + was_read,
               out_ptr);
@@ -178,12 +178,12 @@ bool SectorReader::ReadMultipleAlignedBlocks(const u64 block_num, const u64 cnt_
 
 u32 SectorReader::ReadChunk(u8* buffer, const u64 chunk_num)
 {
-  u64 block_num = chunk_num * m_chunk_blocks;
+  const u64 block_num = chunk_num * m_chunk_blocks;
   u32 cnt_blocks = m_chunk_blocks;
 
   // If we are reading the end of a disk, there may not be enough blocks to
   // read a whole chunk. We need to clamp down in that case.
-  u64 end_block = (GetDataSize() + m_block_size - 1) / m_block_size;
+  const u64 end_block = (GetDataSize() + m_block_size - 1) / m_block_size;
   if (end_block)
     cnt_blocks = static_cast<u32>(std::min<u64>(m_chunk_blocks, end_block - block_num));
 

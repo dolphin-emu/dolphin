@@ -37,7 +37,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::Activate()
   // Send connect command with unique local name
   // connect;locally_unique_name;emulator_name;optional_padding
   u8 buffer[255] = {};
-  std::string cmd =
+  const std::string cmd =
       "connect;" + m_client_identifier + ";dolphin;000000000000000000000000000000000000000000";
 
   const auto size = static_cast<u32>(cmd.length());
@@ -63,7 +63,7 @@ void CEXIETHERNET::XLinkNetworkInterface::Deactivate()
 
   // Send d; to tell XLink we want to disconnect cleanly
   // disconnect;optional_locally_unique_name;optional_padding
-  std::string cmd =
+  const std::string cmd =
       "disconnect;" + m_client_identifier + ";0000000000000000000000000000000000000000000";
   const auto size = static_cast<u32>(cmd.length());
   u8 buffer[255] = {};

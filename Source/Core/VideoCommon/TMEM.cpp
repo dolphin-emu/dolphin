@@ -115,14 +115,14 @@ void ConfigurationChanged(const TexUnitAddress bp_addr, const u32 config)
   case TexUnitAddress::Register::SETIMAGE1:
   {
     // Image Type and Even bank's Cache Height, Cache Width, TMEM Offset
-    TexImage1 even = {.hex = config};
+    const TexImage1 even = {.hex = config};
     unit_state.even = {even.cache_width, even.cache_height, even.tmem_even << 5, 0};
     break;
   }
   case TexUnitAddress::Register::SETIMAGE2:
   {
     // Odd bank's Cache Height, Cache Width, TMEM Offset
-    TexImage2 odd = {.hex = config};
+    const TexImage2 odd = {.hex = config};
     unit_state.odd = {odd.cache_width, odd.cache_height, odd.tmem_odd << 5, 0};
     break;
   }
@@ -203,8 +203,8 @@ void Bind(const u32 unit, const int width, const int height, const bool is_mipma
 
 static u32 CalculateUnitSize(const TextureUnitState::BankConfig bank_config)
 {
-  u32 width = bank_config.width;
-  u32 height = bank_config.height;
+  const u32 width = bank_config.width;
+  const u32 height = bank_config.height;
 
   // These are the only cache sizes supported by the sdk
   if (width == height)
@@ -248,7 +248,7 @@ bool TextureUnitState::Overlaps(const TextureUnitState& other) const
 // Scans though active texture units checks for overlaps.
 void FinalizeBinds(const BitSet32 used_textures)
 {
-  for (u32 i : used_textures)
+  for (const u32 i : used_textures)
   {
     if (s_unit[i].even.Overlaps(s_unit[i].odd))
     {  // Self-overlap

@@ -222,7 +222,7 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
   DIMOUSESTATE2 tmp_mouse;
 
   // if mouse position hasn't been updated in a short while, skip a dev state
-  DWORD cur_time = GetTickCount();
+  const DWORD cur_time = GetTickCount();
   if (cur_time - m_last_update > DROP_INPUT_TIME)
   {
     // set axes to zero
@@ -235,7 +235,7 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
 
   m_last_update = cur_time;
 
-  HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
+  const HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to get state");
@@ -255,7 +255,7 @@ Core::DeviceRemoval KeyboardMouse::UpdateInput()
     std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), m_state_in.mouse.rgbButtons);
   }
 
-  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+  const HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
   if (kb_hr == DIERR_INPUTLOST || kb_hr == DIERR_NOTACQUIRED)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");

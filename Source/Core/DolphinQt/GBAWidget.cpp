@@ -39,13 +39,13 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, const std::str
   RunOnCPUThread(
       Core::System::GetInstance(),
       [core, rom_path = std::string(rom_path)]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
         {
           auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
           core_ptr->Stop();
           SetCurrent(info, rom_path);
-          auto& system = Core::System::GetInstance();
-          auto& core_timing = system.GetCoreTiming();
+          const auto& system = Core::System::GetInstance();
+          const auto& core_timing = system.GetCoreTiming();
           if (core_ptr->Start(core_timing.GetTicks()))
             return;
           SetCurrent(info, GetBase(info));
@@ -60,7 +60,7 @@ static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, const std
   RunOnCPUThread(
       Core::System::GetInstance(),
       [core, card_path = std::string(card_path)]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
           core_ptr->EReaderQueueCard(card_path);
       },
       false);
@@ -163,7 +163,7 @@ void GBAWidget::ToggleDisconnect()
   RunOnCPUThread(
       Core::System::GetInstance(),
       [core = m_core, force_disconnect = m_force_disconnect]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
           core_ptr->SetForceDisconnect(force_disconnect);
       },
       false);
@@ -174,7 +174,7 @@ void GBAWidget::LoadROM()
   if (!CanControlCore())
     return;
 
-  std::string rom_path = GameCubePane::GetOpenGBARom("");
+  const std::string rom_path = GameCubePane::GetOpenGBARom("");
   if (rom_path.empty())
     return;
 
@@ -212,7 +212,7 @@ void GBAWidget::DoState(bool export_state)
   if (!CanControlCore() && !export_state)
     return;
 
-  QString state_path = QDir::toNativeSeparators(
+  const QString state_path = QDir::toNativeSeparators(
       (export_state ? DolphinFileDialog::getSaveFileName : DolphinFileDialog::getOpenFileName)(
           this, tr("Select a File"), QString(),
           tr("mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 "
@@ -226,7 +226,7 @@ void GBAWidget::DoState(bool export_state)
   RunOnCPUThread(
       Core::System::GetInstance(),
       [export_state, core = m_core, state_path = state_path.toStdString()]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
         {
           if (export_state)
             core_ptr->ExportState(state_path);
@@ -244,7 +244,7 @@ void GBAWidget::ImportExportSave(bool export_save)
   if (!m_core_info.has_rom)
     return;
 
-  QString save_path = QDir::toNativeSeparators(
+  const QString save_path = QDir::toNativeSeparators(
       (export_save ? DolphinFileDialog::getSaveFileName :
                      DolphinFileDialog::getOpenFileName)(this, tr("Select a File"), QString(),
                                                          tr("Save Game Files (*.sav);;"
@@ -257,7 +257,7 @@ void GBAWidget::ImportExportSave(bool export_save)
   RunOnCPUThread(
       Core::System::GetInstance(),
       [export_save, core = m_core, save_path = save_path.toStdString()]() {
-        if (auto core_ptr = core.lock())
+        if (const auto core_ptr = core.lock())
         {
           if (export_save)
             core_ptr->ExportSave(save_path);
@@ -294,7 +294,7 @@ void GBAWidget::SetBorderless(const bool enable)
   }
   else if (windowFlags().testFlag(Qt::FramelessWindowHint) != enable)
   {
-    QRect saved_geometry = geometry();
+    const QRect saved_geometry = geometry();
     setWindowFlag(Qt::FramelessWindowHint, enable);
     setGeometry(saved_geometry);
     show();
@@ -333,8 +333,8 @@ void GBAWidget::UpdateTitle()
 
 void GBAWidget::UpdateVolume()
 {
-  int volume = m_muted ? 0 : m_volume * 256 / 100;
-  auto& system = Core::System::GetInstance();
+  const int volume = m_muted ? 0 : m_volume * 256 / 100;
+  const auto& system = Core::System::GetInstance();
   system.GetSoundStream()->GetMixer()->SetGBAVolume(m_core_info.device_number, volume, volume);
   UpdateTitle();
 }
@@ -521,7 +521,7 @@ void GBAWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (!m_moving)
     return;
-  auto event_pos = event->globalPosition().toPoint();
+  const auto event_pos = event->globalPosition().toPoint();
   move(event_pos - m_move_pos - (geometry().topLeft() - pos()));
 }
 
@@ -539,12 +539,12 @@ void GBAWidget::paintEvent(QPaintEvent* event)
   else if (static_cast<float>(m_core_info.width) / m_core_info.height >
            static_cast<float>(width()) / height())
   {
-    int new_height = width() * m_core_info.height / m_core_info.width;
+    const int new_height = width() * m_core_info.height / m_core_info.width;
     target_rect = QRect(0, (height() - new_height) / 2, width(), new_height);
   }
   else
   {
-    int new_width = height() * m_core_info.width / m_core_info.height;
+    const int new_width = height() * m_core_info.width / m_core_info.height;
     target_rect = QRect((width() - new_width) / 2, 0, new_width, height());
   }
 

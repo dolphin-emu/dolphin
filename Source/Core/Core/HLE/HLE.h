@@ -54,7 +54,7 @@ struct TryReplaceFunctionResult
   explicit operator bool() const { return type != HookType::None; }
 };
 
-void PatchFixedFunctions(Core::System& system);
+void PatchFixedFunctions(const Core::System& system);
 void PatchFunctions(const Core::System& system);
 void Clear();
 void Reload(Core::System& system);

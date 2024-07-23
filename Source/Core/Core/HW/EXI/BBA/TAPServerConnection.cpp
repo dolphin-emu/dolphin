@@ -262,7 +262,7 @@ void TAPServerConnection::ReadThreadHandler() const
     timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 50000;
-    int select_res = select(m_fd + 1, &rfds, nullptr, nullptr, &timeout);
+    const int select_res = select(m_fd + 1, &rfds, nullptr, nullptr, &timeout);
     if (select_res < 0)
     {
       ERROR_LOG_FMT(SP1, "Can\'t poll tapserver fd: {}", Common::StrNetworkError());

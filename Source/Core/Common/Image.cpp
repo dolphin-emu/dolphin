@@ -31,7 +31,7 @@ static auto make_spng_ctx(const int flags)
 bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width_out,
              u32* height_out)
 {
-  auto ctx = make_spng_ctx(0);
+  const auto ctx = make_spng_ctx(0);
   if (!ctx)
     return false;
 
@@ -76,11 +76,11 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, c
     return false;
   }
 
-  auto ctx = make_spng_ctx(SPNG_CTX_ENCODER);
+  const auto ctx = make_spng_ctx(SPNG_CTX_ENCODER);
   if (!ctx)
     return false;
 
-  auto outfile = File::IOFile(path, "wb");
+  const auto outfile = File::IOFile(path, "wb");
   if (spng_set_png_file(ctx.get(), outfile.GetHandle()))
     return false;
 

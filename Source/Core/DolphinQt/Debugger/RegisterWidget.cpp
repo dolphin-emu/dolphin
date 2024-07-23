@@ -34,7 +34,7 @@ RegisterWidget::RegisterWidget(QWidget* parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("registerwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -125,8 +125,8 @@ void RegisterWidget::ShowContextMenu()
   if (raw_item != nullptr && !raw_item->data(DATA_TYPE).isNull())
   {
     auto* item = static_cast<RegisterColumn*>(raw_item);
-    auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
-    auto display = item->GetDisplay();
+    const auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
+    const auto display = item->GetDisplay();
 
     // i18n: This kind of "watch" is used for watching emulated memory.
     // It's not related to timekeeping devices.
@@ -268,7 +268,7 @@ void RegisterWidget::ShowContextMenu()
                          view_double_column})
     {
       connect(action, &QAction::triggered, [this, action] {
-        auto col = m_table->currentItem()->column();
+        const auto col = m_table->currentItem()->column();
         for (int i = 0; i < 32; i++)
         {
           auto* update_item = static_cast<RegisterColumn*>(m_table->item(i, col));
@@ -299,7 +299,7 @@ void RegisterWidget::AutoStep(const std::string& reg) const
   while (true)
   {
     const AutoStepResults results = [this, &trace] {
-      Core::CPUThreadGuard guard(m_system);
+      const Core::CPUThreadGuard guard(m_system);
       return trace.AutoStepping(guard, true);
     }();
 
@@ -508,7 +508,7 @@ void RegisterWidget::AddRegister(const int row, const int column, const Register
   if (m_table->rowCount() <= row)
     m_table->setRowCount(row + 1);
 
-  bool has_label = !register_name.empty();
+  const bool has_label = !register_name.empty();
 
   if (has_label)
   {

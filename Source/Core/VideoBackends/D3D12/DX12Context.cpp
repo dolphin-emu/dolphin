@@ -44,7 +44,7 @@ std::vector<u32> DXContext::GetAAModes(const u32 adapter_index)
   ComPtr<ID3D12Device> temp_device = g_dx_context ? g_dx_context->m_device : nullptr;
   if (!temp_device)
   {
-    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    const ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
       return {};
 
@@ -213,14 +213,14 @@ bool DXContext::CreateCommandQueue()
   const D3D12_COMMAND_QUEUE_DESC queue_desc = {D3D12_COMMAND_LIST_TYPE_DIRECT,
                                                D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
                                                D3D12_COMMAND_QUEUE_FLAG_NONE};
-  HRESULT hr = m_device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&m_command_queue));
+  const HRESULT hr = m_device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&m_command_queue));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command queue: {}", DX12HRWrap(hr));
   return SUCCEEDED(hr);
 }
 
 bool DXContext::CreateFence()
 {
-  HRESULT hr =
+  const HRESULT hr =
       m_device->CreateFence(m_completed_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create fence: {}", DX12HRWrap(hr));
   if (FAILED(hr))
@@ -499,7 +499,7 @@ void DXContext::MoveToNextCommandList()
 
 void DXContext::ExecuteCommandList(const bool wait_for_completion)
 {
-  CommandListResources& res = m_command_lists[m_current_command_list];
+  const CommandListResources& res = m_command_lists[m_current_command_list];
 
   // Close and queue command list.
   HRESULT hr = res.command_list->Close();
@@ -563,7 +563,7 @@ void DXContext::WaitForFence(const u64 fence)
   if (m_completed_fence_value < fence)
   {
     // Fall back to event.
-    HRESULT hr = m_fence->SetEventOnCompletion(fence, m_fence_event);
+    const HRESULT hr = m_fence->SetEventOnCompletion(fence, m_fence_event);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to set fence event on completion: {}", DX12HRWrap(hr));
     WaitForSingleObject(m_fence_event, INFINITE);
     m_completed_fence_value = m_fence->GetCompletedValue();

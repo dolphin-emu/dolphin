@@ -87,7 +87,7 @@ void JitInterface::UpdateMembase() const
     return;
 
   auto& ppc_state = m_system.GetPPCState();
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
 #ifdef _M_ARM_64
   // JitArm64 is currently using the no fastmem arena code path even when only fastmem is off.
   const bool fastmem_arena = m_jit->jo.fastmem;
@@ -190,8 +190,8 @@ JitInterface::GetHostCode(const u32 address) const
     return GetHostCodeError::NoJitActive;
   }
 
-  auto& ppc_state = m_system.GetPPCState();
-  JitBlock* block =
+  const auto& ppc_state = m_system.GetPPCState();
+  const JitBlock* block =
       m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.feature_flags);
   if (!block)
   {
@@ -285,12 +285,12 @@ void JitInterface::InvalidateICacheLines(const u32 address, const u32 count) con
     InvalidateICache(address & ~0x1f, 32 * count, false);
 }
 
-void JitInterface::InvalidateICacheLineFromJIT(JitInterface& jit_interface, const u32 address)
+void JitInterface::InvalidateICacheLineFromJIT(const JitInterface& jit_interface, const u32 address)
 {
   jit_interface.InvalidateICacheLine(address);
 }
 
-void JitInterface::InvalidateICacheLinesFromJIT(JitInterface& jit_interface, const u32 address, const u32 count)
+void JitInterface::InvalidateICacheLinesFromJIT(const JitInterface& jit_interface, const u32 address, const u32 count)
 {
   jit_interface.InvalidateICacheLines(address, count);
 }
@@ -315,14 +315,14 @@ void JitInterface::CompileExceptionCheck(const ExceptionType type) const
     break;
   }
 
-  auto& ppc_state = m_system.GetPPCState();
+  const auto& ppc_state = m_system.GetPPCState();
   if (ppc_state.pc != 0 &&
       (exception_addresses->find(ppc_state.pc)) == (exception_addresses->end()))
   {
     if (type == ExceptionType::FIFOWrite)
     {
       ASSERT(Core::IsCPUThread());
-      Core::CPUThreadGuard guard(m_system);
+      const Core::CPUThreadGuard guard(m_system);
 
       // Check in case the code has been replaced since: do we need to do this?
       const OpType optype =
@@ -338,7 +338,7 @@ void JitInterface::CompileExceptionCheck(const ExceptionType type) const
   }
 }
 
-void JitInterface::CompileExceptionCheckFromJIT(JitInterface& jit_interface, const ExceptionType type)
+void JitInterface::CompileExceptionCheckFromJIT(const JitInterface& jit_interface, const ExceptionType type)
 {
   jit_interface.CompileExceptionCheck(type);
 }

@@ -207,7 +207,7 @@ void ASndUCode::DMAInVoiceData()
   auto& memory = m_dsphle->GetSystem().GetMemory();
   m_current_voice.out_buf = HLEMemory_Read_U32(memory, m_voice_addr);
   m_current_voice.delay_samples = HLEMemory_Read_U32(memory, m_voice_addr + 4);
-  u32 new_flags = HLEMemory_Read_U32(memory, m_voice_addr + 8);
+  const u32 new_flags = HLEMemory_Read_U32(memory, m_voice_addr + 8);
   if (m_current_voice.flags != new_flags)
     DEBUG_LOG_FMT(DSPHLE, "ASndUCode - flags: {:08x}", new_flags);
   m_current_voice.flags = new_flags;
@@ -545,7 +545,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo8BitsUnsigned() const
 {
   // stereo_8bits_unsigned
   const u32 index = (m_current_voice.start_addr >> 1) & INPUT_SAMPLE_BUFFER_WORD_MASK;
-  u16 sample = m_input_sample_buffer[index] ^ 0x8080;
+  const u16 sample = m_input_sample_buffer[index] ^ 0x8080;
   const s16 right = sample & 0xff00;
   const s16 left = sample << 8;
   return {right, left};

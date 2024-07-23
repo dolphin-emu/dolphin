@@ -25,7 +25,7 @@ std::unordered_set<DWORD> GetXInputGUIDS()
   // Enumerate everything under the "Human Interface Devices" tree in the Device Manager
   // NOTE: Some devices show up multiple times due to sub-devices, we rely on the set to
   //   prevent duplicates.
-  HDEVINFO setup_enum = SetupDiGetClassDevsW(&s_GUID_devclass_HID, nullptr, nullptr, DIGCF_PRESENT);
+  const HDEVINFO setup_enum = SetupDiGetClassDevsW(&s_GUID_devclass_HID, nullptr, nullptr, DIGCF_PRESENT);
   if (setup_enum == INVALID_HANDLE_VALUE)
     return guids;
 
@@ -60,7 +60,7 @@ std::unordered_set<DWORD> GetXInputGUIDS()
       unsigned int pid = 0;
 
       // Extract Vendor and Product IDs for matching against DirectInput's device list.
-      wchar_t* pos = std::wcsstr(&buffer[j], L"VID_");
+      const wchar_t* pos = std::wcsstr(&buffer[j], L"VID_");
       if (!pos || !std::swscanf(pos, L"VID_%4X", &vid))
         continue;
       pos = std::wcsstr(&buffer[j], L"PID_");

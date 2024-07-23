@@ -108,8 +108,8 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 
 void MenuBar::OnEmulationStateChanged(const Core::State state)
 {
-  bool running = state != Core::State::Uninitialized;
-  bool playing = running && state != Core::State::Paused;
+  const bool running = state != Core::State::Uninitialized;
+  const bool playing = running && state != Core::State::Paused;
 
   // File
   m_eject_disc->setEnabled(running);
@@ -198,7 +198,7 @@ void MenuBar::OnWriteJitBlockLogDump()
 {
   const std::string filename = fmt::format("{}{}.txt", File::GetUserPath(D_DUMPDEBUG_JITBLOCKS_IDX),
                                            SConfig::GetInstance().GetGameID());
-  File::IOFile f(filename, "w");
+  const File::IOFile f(filename, "w");
   if (!f)
   {
     ModalMessageBox::warning(
@@ -357,7 +357,7 @@ void MenuBar::AddEmulationMenu()
   AddStateSlotMenu(emu_menu);
   UpdateStateSlotMenu();
 
-  for (QMenu* menu : {m_state_load_menu, m_state_save_menu, m_state_slot_menu})
+  for (const QMenu* menu : {m_state_load_menu, m_state_save_menu, m_state_slot_menu})
     connect(menu, &QMenu::aboutToShow, this, &MenuBar::UpdateStateSlotMenu);
 }
 
@@ -371,7 +371,7 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 
   for (int i = 1; i <= 10; i++)
   {
-    QAction* action = m_state_load_slots_menu->addAction(QString{});
+    const QAction* action = m_state_load_slots_menu->addAction(QString{});
 
     connect(action, &QAction::triggered, this, [=, this]() { emit StateLoadSlotAt(i); });
   }
@@ -388,7 +388,7 @@ void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
 
   for (int i = 1; i <= 10; i++)
   {
-    QAction* action = m_state_save_slots_menu->addAction(QString{});
+    const QAction* action = m_state_save_slots_menu->addAction(QString{});
 
     connect(action, &QAction::triggered, this, [=, this]() { emit StateSaveSlotAt(i); });
   }
@@ -413,12 +413,12 @@ void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
 
 void MenuBar::UpdateStateSlotMenu() const
 {
-  QList<QAction*> actions_slot = m_state_slots->actions();
-  QList<QAction*> actions_load = m_state_load_slots_menu->actions();
-  QList<QAction*> actions_save = m_state_save_slots_menu->actions();
+  const QList<QAction*> actions_slot = m_state_slots->actions();
+  const QList<QAction*> actions_load = m_state_load_slots_menu->actions();
+  const QList<QAction*> actions_save = m_state_save_slots_menu->actions();
   for (int i = 0; i < actions_slot.length(); i++)
   {
-    int slot = i + 1;
+    const int slot = i + 1;
     QString info = QString::fromStdString(State::GetInfoStringOfSlot(slot));
     actions_load.at(i)->setText(tr("Load from Slot %1 - %2").arg(slot).arg(info));
     actions_save.at(i)->setText(tr("Save to Slot %1 - %2").arg(slot).arg(info));
@@ -612,18 +612,18 @@ void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("&Help"));
 
-  QAction* website = help_menu->addAction(tr("&Website"));
+  const QAction* website = help_menu->addAction(tr("&Website"));
   connect(website, &QAction::triggered, this,
           []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
-  QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
+  const QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
   connect(documentation, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
   });
-  QAction* github = help_menu->addAction(tr("&GitHub Repository"));
+  const QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
   });
-  QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
+  const QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
   connect(bugtracker, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(
         QUrl(QStringLiteral("https://bugs.dolphin-emu.org/projects/emulator")));
@@ -655,7 +655,7 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
   list_group->addAction(list_view);
   list_group->addAction(grid_view);
 
-  bool prefer_list = Settings::Instance().GetPreferredView();
+  const bool prefer_list = Settings::Instance().GetPreferredView();
   list_view->setChecked(prefer_list);
   grid_view->setChecked(!prefer_list);
 
@@ -1063,7 +1063,7 @@ void MenuBar::UpdateToolsMenu(const bool emulation_started) const
 
   if (!emulation_started)
   {
-    IOS::HLE::Kernel ios;
+    const IOS::HLE::Kernel ios;
     const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
 
     const QString sysmenu_version =
@@ -1098,8 +1098,8 @@ void MenuBar::UpdateToolsMenu(const bool emulation_started) const
 
 void MenuBar::InstallWAD()
 {
-  QString wad_file = DolphinFileDialog::getOpenFileName(this, tr("Select Title to Install to NAND"),
-                                                        QString(), tr("WAD files (*.wad)"));
+  const QString wad_file = DolphinFileDialog::getOpenFileName(
+      this, tr("Select Title to Install to NAND"), QString(), tr("WAD files (*.wad)"));
 
   if (wad_file.isEmpty())
     return;
@@ -1118,10 +1118,10 @@ void MenuBar::InstallWAD()
 
 void MenuBar::ImportWiiSave()
 {
-  QString file =
-      DolphinFileDialog::getOpenFileName(this, tr("Select Save File"), QDir::currentPath(),
-                                         tr("Wii save files (*.bin);;"
-                                            "All Files (*)"));
+  const QString file = DolphinFileDialog::getOpenFileName(this, tr("Select Save File"),
+                                                          QDir::currentPath(),
+                                                          tr("Wii save files (*.bin);;"
+                                                              "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1177,7 +1177,7 @@ void MenuBar::ExportWiiSaves()
 void MenuBar::CheckNAND()
 {
   IOS::HLE::Kernel ios;
-  WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
+  const WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
   if (!result.bad)
   {
     const bool overfull = result.used_clusters_user > IOS::HLE::FS::USER_CLUSTERS ||
@@ -1277,8 +1277,8 @@ void MenuBar::OnReadOnlyModeChanged(const bool read_only) const
 void MenuBar::ChangeDebugFont()
 {
   bool okay;
-  QFont font = QFontDialog::getFont(&okay, Settings::Instance().GetDebugFont(), this,
-                                    tr("Pick a debug font"));
+  const QFont font = QFontDialog::getFont(&okay, Settings::Instance().GetDebugFont(), this,
+                                          tr("Pick a debug font"));
 
   if (okay)
     Settings::Instance().SetDebugFont(font);
@@ -1286,9 +1286,9 @@ void MenuBar::ChangeDebugFont()
 
 void MenuBar::ClearSymbols()
 {
-  auto result = ModalMessageBox::warning(this, tr("Confirmation"),
-                                         tr("Do you want to clear the list of symbol names?"),
-                                         QMessageBox::Yes | QMessageBox::Cancel);
+  const auto result = ModalMessageBox::warning(this, tr("Confirmation"),
+                                               tr("Do you want to clear the list of symbol names?"),
+                                               QMessageBox::Yes | QMessageBox::Cancel);
 
   if (result == QMessageBox::Cancel)
     return;
@@ -1300,7 +1300,7 @@ void MenuBar::ClearSymbols()
 void MenuBar::GenerateSymbolsFromAddress()
 {
   auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
   const Core::CPUThreadGuard guard(system);
@@ -1313,14 +1313,14 @@ void MenuBar::GenerateSymbolsFromAddress()
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
   auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
   const Core::CPUThreadGuard guard(system);
 
   PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
                             Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
-  SignatureDB db(SignatureDB::HandlerType::DSY);
+  const SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
     db.Apply(guard, &ppc_symbol_db);
@@ -1537,11 +1537,11 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 void MenuBar::LoadSymbolMap()
 {
   auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
   std::string existing_map_file, writable_map_file;
-  bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+  const bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
   if (!map_exists)
   {
@@ -1552,7 +1552,7 @@ void MenuBar::LoadSymbolMap()
 
       PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR + 0x1300000,
                                 Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &ppc_symbol_db);
-      SignatureDB db(SignatureDB::HandlerType::DSY);
+      const SignatureDB db(SignatureDB::HandlerType::DSY);
       if (db.Load(File::GetSysDirectory() + TOTALDB))
         db.Apply(guard, &ppc_symbol_db);
     }
@@ -1596,7 +1596,7 @@ void MenuBar::LoadOtherSymbolMap()
   if (!TryLoadMapFile(file))
     return;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
   emit Host::GetInstance()->PPCSymbolsChanged();
 }
@@ -1613,7 +1613,7 @@ void MenuBar::LoadBadSymbolMap()
   if (!TryLoadMapFile(file, true))
     return;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
   emit Host::GetInstance()->PPCSymbolsChanged();
 }
@@ -1685,7 +1685,7 @@ void MenuBar::CreateSignatureFile()
 
   const std::string prefix = text.toStdString();
   const std::string save_path = file.toStdString();
-  SignatureDB db(save_path);
+  const SignatureDB db(save_path);
   db.Populate(&Core::System::GetInstance().GetPPCSymbolDB(), prefix);
 
   if (!db.Save(save_path))
@@ -1710,7 +1710,7 @@ void MenuBar::AppendSignatureFile()
 
   const std::string prefix = text.toStdString();
   const std::string signature_path = file.toStdString();
-  SignatureDB db(signature_path);
+  const SignatureDB db(signature_path);
   db.Populate(&Core::System::GetInstance().GetPPCSymbolDB(), prefix);
   db.List();
   db.Load(signature_path);
@@ -1735,7 +1735,7 @@ void MenuBar::ApplySignatureFile()
   auto& system = Core::System::GetInstance();
 
   const std::string load_path = file.toStdString();
-  SignatureDB db(load_path);
+  const SignatureDB db(load_path);
   db.Load(load_path);
   db.Apply(Core::CPUThreadGuard{system}, &system.GetPPCSymbolDB());
   db.List();
@@ -1763,7 +1763,7 @@ void MenuBar::CombineSignatureFiles()
   const std::string load_pathPriorityFile = priorityFile.toStdString();
   const std::string load_pathSecondaryFile = secondaryFile.toStdString();
   const std::string save_path = saveFile.toStdString();
-  SignatureDB db(load_pathPriorityFile);
+  const SignatureDB db(load_pathPriorityFile);
   db.Load(load_pathPriorityFile);
   db.Load(load_pathSecondaryFile);
   if (!db.Save(save_path))
@@ -1778,7 +1778,7 @@ void MenuBar::CombineSignatureFiles()
 
 void MenuBar::PatchHLEFunctions()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
 }
 
@@ -1804,7 +1804,7 @@ void MenuBar::SearchInstruction()
     return;
 
   auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   const std::string op_std = op.toStdString();
   const Core::CPUThreadGuard guard(system);

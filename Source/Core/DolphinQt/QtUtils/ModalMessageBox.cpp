@@ -18,7 +18,7 @@ ModalMessageBox::ModalMessageBox(const QWidget* parent, const Qt::WindowModality
     setParent(nullptr);
 }
 
-static inline int ExecMessageBox(const ModalMessageBox::Icon icon, QWidget* parent, const QString& title,
+static inline int ExecMessageBox(const ModalMessageBox::Icon icon, const QWidget* parent, const QString& title,
                                  const QString& text, const ModalMessageBox::StandardButtons buttons,
                                  const ModalMessageBox::StandardButton default_button,
                                  const Qt::WindowModality modality)
@@ -34,7 +34,7 @@ static inline int ExecMessageBox(const ModalMessageBox::Icon icon, QWidget* pare
   return msg.exec();
 }
 
-int ModalMessageBox::critical(QWidget* parent, const QString& title, const QString& text,
+int ModalMessageBox::critical(const QWidget* parent, const QString& title, const QString& text,
                               const StandardButtons buttons, const StandardButton default_button,
                               const Qt::WindowModality modality)
 {
@@ -42,7 +42,7 @@ int ModalMessageBox::critical(QWidget* parent, const QString& title, const QStri
                         modality);
 }
 
-int ModalMessageBox::information(QWidget* parent, const QString& title, const QString& text,
+int ModalMessageBox::information(const QWidget* parent, const QString& title, const QString& text,
                                  const StandardButtons buttons, const StandardButton default_button,
                                  const Qt::WindowModality modality)
 {
@@ -50,7 +50,7 @@ int ModalMessageBox::information(QWidget* parent, const QString& title, const QS
                         modality);
 }
 
-int ModalMessageBox::question(QWidget* parent, const QString& title, const QString& text,
+int ModalMessageBox::question(const QWidget* parent, const QString& title, const QString& text,
                               const StandardButtons buttons, const StandardButton default_button,
                               const Qt::WindowModality modality)
 {
@@ -58,7 +58,7 @@ int ModalMessageBox::question(QWidget* parent, const QString& title, const QStri
                         modality);
 }
 
-int ModalMessageBox::warning(QWidget* parent, const QString& title, const QString& text,
+int ModalMessageBox::warning(const QWidget* parent, const QString& title, const QString& text,
                              const StandardButtons buttons, const StandardButton default_button,
                              const Qt::WindowModality modality)
 {

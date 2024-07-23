@@ -64,7 +64,7 @@ std::string Profiler::ToString()
   if (s_all_profilers.empty())
     return "";
 
-  u64 end = Timer::NowUs();
+  const u64 end = Timer::NowUs();
   s_usecs_frame = end - s_frame_time;
   s_frame_time = end;
 
@@ -89,7 +89,7 @@ std::string Profiler::ToString()
 
   s_all_profilers.sort([](const Profiler* a, const Profiler* b) { return *b < *a; });
 
-  for (auto profiler : s_all_profilers)
+  for (const auto profiler : s_all_profilers)
   {
     buffer << profiler->Read() << std::endl;
   }
@@ -109,9 +109,9 @@ void Profiler::Stop()
 {
   if (!--m_depth)
   {
-    u64 end = Timer::NowUs();
+    const u64 end = Timer::NowUs();
 
-    u64 diff = end - m_time;
+    const u64 diff = end - m_time;
 
     m_usecs += diff;
     m_usecs_min = std::min(m_usecs_min, diff);

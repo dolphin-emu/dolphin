@@ -176,7 +176,7 @@ std::vector<u32> GetAAModes(const u32 adapter_index)
   D3D_FEATURE_LEVEL temp_feature_level = feature_level;
   if (!temp_device)
   {
-    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    const ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
       return {};
 
@@ -190,7 +190,7 @@ std::vector<u32> GetAAModes(const u32 adapter_index)
       return {};
     }
 
-    HRESULT hr = d3d11_create_device(
+    const HRESULT hr = d3d11_create_device(
         adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, s_supported_feature_levels.data(),
         static_cast<UINT>(s_supported_feature_levels.size()), D3D11_SDK_VERSION,
         temp_device.GetAddressOf(), &temp_feature_level, nullptr);
@@ -238,7 +238,7 @@ bool SupportsLogicOp(const u32 adapter_index)
   {
     ComPtr<ID3D11Device> temp_device;
 
-    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    const ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
       return false;
 
@@ -252,7 +252,7 @@ bool SupportsLogicOp(const u32 adapter_index)
       return false;
     }
 
-    HRESULT hr = d3d11_create_device(
+    const HRESULT hr = d3d11_create_device(
         adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, s_supported_feature_levels.data(),
         static_cast<UINT>(s_supported_feature_levels.size()), D3D11_SDK_VERSION,
         temp_device.GetAddressOf(), nullptr, nullptr);

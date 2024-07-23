@@ -115,7 +115,7 @@ public:
 
   void wheelEvent(QWheelEvent* event) override
   {
-    auto delta =
+    const auto delta =
         -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
 
     if (delta == 0)
@@ -130,7 +130,7 @@ public:
     if (event->button() != Qt::LeftButton)
       return;
 
-    auto* item = this->itemAt(event->pos());
+    const auto* item = this->itemAt(event->pos());
     if (!item)
       return;
 
@@ -148,13 +148,13 @@ public:
 
   void OnItemChanged(const QTableWidgetItem* item) const
   {
-    QString text = item->text();
-    MemoryViewWidget::Type type =
+    const QString text = item->text();
+    const MemoryViewWidget::Type type =
         static_cast<MemoryViewWidget::Type>(item->data(USER_ROLE_VALUE_TYPE).toInt());
-    std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
+    const std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
 
     u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
-    u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
+    const u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
     AddressSpace::Accessors* accessors = GetAccessors(m_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_view->m_system);
@@ -561,7 +561,7 @@ void MemoryViewWidget::UpdateBreakpointTags() const
     for (int c = 0; c < m_data_columns; c++)
     {
       // Pull address from cell itself, helpful for dual column view.
-      auto cell = m_table->item(i, c + MISC_COLUMNS);
+      const auto cell = m_table->item(i, c + MISC_COLUMNS);
       const u32 address = cell->data(USER_ROLE_CELL_ADDRESS).toUInt();
 
       if (address == 0)
@@ -817,8 +817,8 @@ void MemoryViewWidget::ToggleBreakpoint(const u32 addr, const bool row)
 
   for (int i = 0; i < breaks; i++)
   {
-    u32 address = addr + length * i;
-    TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
+    const u32 address = addr + length * i;
+    const TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
 
     if (check_ptr == nullptr && !overlap)
     {

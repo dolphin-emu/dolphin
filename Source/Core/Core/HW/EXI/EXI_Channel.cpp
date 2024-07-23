@@ -64,7 +64,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
                    return m_status.Hex;
                  }),
                  MMIO::ComplexWrite<u32>([this](const Core::System& system, u32, const u32 val) {
-                   UEXI_STATUS new_status(val);
+                   const UEXI_STATUS new_status(val);
 
                    m_status.EXIINTMASK = new_status.EXIINTMASK;
                    if (new_status.EXIINT)
@@ -242,12 +242,12 @@ void CEXIChannel::DoState(PointerWrap& p)
   p.Do(m_control);
   p.Do(m_imm_data);
 
-  Memcard::HeaderData old_header_data = m_memcard_header_data;
+  const Memcard::HeaderData old_header_data = m_memcard_header_data;
   p.Do(m_memcard_header_data);
 
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
-    std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
+    const std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
     EXIDeviceType type = device->m_device_type;
     p.Do(type);
 

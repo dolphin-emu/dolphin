@@ -211,16 +211,16 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, const in
   }
   if (!vdec.normals[1].enable)
   {
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    const auto& system = Core::System::GetInstance();
+    const auto& vertex_shader_manager = system.GetVertexShaderManager();
     m_vertex.normal[1][0] = vertex_shader_manager.constants.cached_tangent[0];
     m_vertex.normal[1][1] = vertex_shader_manager.constants.cached_tangent[1];
     m_vertex.normal[1][2] = vertex_shader_manager.constants.cached_tangent[2];
   }
   if (!vdec.normals[2].enable)
   {
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    const auto& system = Core::System::GetInstance();
+    const auto& vertex_shader_manager = system.GetVertexShaderManager();
     m_vertex.normal[2][0] = vertex_shader_manager.constants.cached_binormal[0];
     m_vertex.normal[2][1] = vertex_shader_manager.constants.cached_binormal[1];
     m_vertex.normal[2][2] = vertex_shader_manager.constants.cached_binormal[2];

@@ -85,7 +85,7 @@ void AchievementBox::UpdateData() const
       color = AchievementManager::GOLD;
     else if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_SOFTCORE)
       color = AchievementManager::BLUE;
-    QImage i_badge(&badge.data.front(), badge.width, badge.height, QImage::Format_RGBA8888);
+    const QImage i_badge(&badge.data.front(), badge.width, badge.height, QImage::Format_RGBA8888);
     m_badge->setPixmap(
         QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     m_badge->adjustSize();

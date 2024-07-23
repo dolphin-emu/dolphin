@@ -71,8 +71,8 @@ std::optional<IPCReply> DIDevice::IOCtl(const IOCtlRequest& request)
   // asynchronously. The rest are also treated as async to match this.  Only one command can be
   // executed at a time, so commands are queued until DVDInterface is ready to handle them.
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u8 command = memory.Read_U8(request.buffer_in);
   if (request.request != command)
   {
@@ -107,7 +107,7 @@ void DIDevice::ProcessQueuedIOCtl()
   m_commands_to_execute.pop_front();
 
   auto& system = GetSystem();
-  IOCtlRequest request{system, m_executing_command->m_request_address};
+  const IOCtlRequest request{system, m_executing_command->m_request_address};
   auto finished = StartIOCtl(request);
   if (finished)
   {
@@ -126,8 +126,8 @@ std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& requ
   }
   else
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     memory.Write_U32(value, request.buffer_out);
     return DIResult::Success;
   }
@@ -594,7 +594,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRe
 
   m_executing_command->m_copy_diimmbuf = write_to_buf;
 
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   system.GetDVDInterface().ExecuteCommand(DVD::ReplyType::IOS);
   // Reply will be posted when done by FinishIOCtl.
   return {};
@@ -602,10 +602,10 @@ std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRe
 
 static std::shared_ptr<DIDevice> GetDevice()
 {
-  auto ios = Core::System::GetInstance().GetIOS();
+  const auto ios = Core::System::GetInstance().GetIOS();
   if (!ios)
     return nullptr;
-  auto di = ios->GetDeviceByName("/dev/di");
+  const auto di = ios->GetDeviceByName("/dev/di");
   // di may be empty, but static_pointer_cast returns empty in that case
   return std::static_pointer_cast<DIDevice>(di);
 }
@@ -628,7 +628,7 @@ void DIDevice::InterruptFromDVDInterface(DVD::DIInterruptType interrupt_type)
     break;
   }
 
-  auto di = GetDevice();
+  const auto di = GetDevice();
   if (di)
   {
     di->FinishDICommand(result);
@@ -644,7 +644,7 @@ void DIDevice::FinishDICommandCallback(Core::System& system, u64 userdata, s64 t
 {
   const DIResult result = static_cast<DIResult>(userdata);
 
-  auto di = GetDevice();
+  const auto di = GetDevice();
   if (di)
     di->FinishDICommand(result);
   else
@@ -660,10 +660,10 @@ void DIDevice::FinishDICommand(DIResult result)
   }
 
   auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   auto* mmio = memory.GetMMIOMapping();
 
-  IOCtlRequest request{system, m_executing_command->m_request_address};
+  const IOCtlRequest request{system, m_executing_command->m_request_address};
   if (m_executing_command->m_copy_diimmbuf)
     memory.Write_U32(mmio->Read<u32>(system, ADDRESS_DIIMMBUF), request.buffer_out);
 
@@ -694,7 +694,7 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
   }
 
   auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   const u8 command = memory.Read_U8(request.in_vectors[0].address);
   if (request.request != command)
@@ -743,7 +743,7 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     memory.CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
-    ReturnCode es_result = GetEmulationKernel().GetESDevice()->DIVerify(
+    const ReturnCode es_result = GetEmulationKernel().GetESDevice()->DIVerify(
         tmd, dvd_thread.GetTicket(m_current_partition));
     memory.Write_U32(es_result, request.io_vectors[1].address);
 
@@ -787,7 +787,7 @@ void DIDevice::ChangePartition(const DiscIO::Partition partition)
 
 DiscIO::Partition DIDevice::GetCurrentPartition()
 {
-  auto di = GetDevice();
+  const auto di = GetDevice();
   // Note that this function is called in Gamecube mode for UpdateRunningGameMetadata,
   // so both cases are hit in normal circumstances.
   if (!di)

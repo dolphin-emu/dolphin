@@ -45,7 +45,7 @@
 
 namespace
 {
-void PresetTimeBaseTicks(Core::System& system, const Core::CPUThreadGuard& guard)
+void PresetTimeBaseTicks(const Core::System& system, const Core::CPUThreadGuard& guard)
 {
   const u64 emulated_time =
       ExpansionInterface::CEXIIPL::GetEmulatedTime(system, ExpansionInterface::CEXIIPL::GC_EPOCH);
@@ -136,7 +136,7 @@ void CBoot::SetupBAT(const Core::System& system, const bool is_wii)
   mmu.IBATUpdated();
 }
 
-bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, const bool is_wii,
+bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard& guard, const bool is_wii,
                          const DiscIO::VolumeDisc& volume,
                          const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
@@ -231,9 +231,9 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   return true;
 }
 
-void CBoot::SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guard)
+void CBoot::SetupGCMemory(const Core::System& system, const Core::CPUThreadGuard& guard)
 {
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   // Booted from bootrom. 0xE5207C22 = booted from jtag
   PowerPC::MMU::HostWrite_U32(guard, 0x0D15EA5E, 0x80000020);
@@ -299,8 +299,8 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& gua
 
   DVDReadDiscID(system, volume, 0x00000000);
 
-  auto& memory = system.GetMemory();
-  bool streaming = memory.Read_U8(0x80000008);
+  const auto& memory = system.GetMemory();
+  const bool streaming = memory.Read_U8(0x80000008);
   if (streaming)
   {
     u8 streaming_size = memory.Read_U8(0x80000009);
@@ -515,7 +515,7 @@ static void WriteEmptyPlayRecord()
                                                   {rw_mode, rw_mode, rw_mode});
   if (!playrec_file)
     return;
-  std::vector<u8> empty_record(0x80);
+  const std::vector<u8> empty_record(0x80);
   playrec_file->Write(empty_record.data(), empty_record.size());
 }
 
@@ -569,7 +569,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
   if (!SetupWiiMemory(system, console_type) || !system.GetIOS()->BootIOS(ios))
     return false;
 
-  auto di =
+  const auto di =
       std::static_pointer_cast<IOS::HLE::DIDevice>(system.GetIOS()->GetDeviceByName("/dev/di"));
 
   di->InitializeIfFirstTime();

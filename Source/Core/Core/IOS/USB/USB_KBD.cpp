@@ -215,8 +215,8 @@ std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
   if (Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
       ControlReference::GetInputGate() && !m_message_queue.empty())
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     memory.CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
     m_message_queue.pop();
   }

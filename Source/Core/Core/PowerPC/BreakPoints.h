@@ -44,7 +44,7 @@ struct TMemCheck
   std::optional<Expression> condition;
 
   // returns whether to break
-  bool Action(Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc) const;
+  bool Action(const Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc) const;
 };
 
 // Code breakpoints.

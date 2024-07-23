@@ -57,8 +57,8 @@ IPCReply ESDevice::OpenContent(const u32 uid, const IOCtlVRequest& request) cons
       return ES_EINVAL;
     }
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
     const u32 content_index = memory.Read_U32(request.in_vectors[2].address);
     // TODO: check the ticket view, check permissions.
@@ -77,8 +77,8 @@ IPCReply ESDevice::OpenActiveTitleContent(const u32 caller_uid, const IOCtlVRequ
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     const u32 content_index = memory.Read_U32(request.in_vectors[0].address);
 
     if (!m_core.m_title_context.active)
@@ -94,11 +94,11 @@ IPCReply ESDevice::OpenActiveTitleContent(const u32 caller_uid, const IOCtlVRequ
   });
 }
 
-s32 ESCore::ReadContent(const u32 cfd, u8* buffer, const u32 size, const u32 uid, const Ticks ticks)
+s32 ESCore::ReadContent(const u32 cfd, u8* buffer, const u32 size, const u32 uid, const Ticks ticks) const
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
-  OpenedContent& entry = m_content_table[cfd];
+  const OpenedContent& entry = m_content_table[cfd];
 
   if (entry.m_uid != uid)
     return ES_EACCES;
@@ -114,8 +114,8 @@ IPCReply ESDevice::ReadContent(const u32 uid, const IOCtlVRequest& request) cons
     if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     const u32 cfd = memory.Read_U32(request.in_vectors[0].address);
     const u32 size = request.io_vectors[0].size;
     const u32 addr = request.io_vectors[0].address;
@@ -149,19 +149,19 @@ IPCReply ESDevice::CloseContent(const u32 uid, const IOCtlVRequest& request) con
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     const u32 cfd = memory.Read_U32(request.in_vectors[0].address);
     return m_core.CloseContent(cfd, uid, ticks);
   });
 }
 
-s32 ESCore::SeekContent(const u32 cfd, const u32 offset, SeekMode mode, const u32 uid, const Ticks ticks)
+s32 ESCore::SeekContent(const u32 cfd, const u32 offset, SeekMode mode, const u32 uid, const Ticks ticks) const
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
 
-  OpenedContent& entry = m_content_table[cfd];
+  const OpenedContent& entry = m_content_table[cfd];
   if (entry.m_uid != uid)
     return ES_EACCES;
   if (!entry.m_opened)
@@ -176,8 +176,8 @@ IPCReply ESDevice::SeekContent(const u32 uid, const IOCtlVRequest& request) cons
     if (!request.HasNumberOfValidVectors(3, 0))
       return ES_EINVAL;
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     const u32 cfd = memory.Read_U32(request.in_vectors[0].address);
     const u32 offset = memory.Read_U32(request.in_vectors[1].address);
     const auto mode = static_cast<SeekMode>(memory.Read_U32(request.in_vectors[2].address));

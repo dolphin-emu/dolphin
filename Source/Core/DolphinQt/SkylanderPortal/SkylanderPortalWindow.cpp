@@ -63,7 +63,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 
   QDir skylanders_folder;
   // skylanders folder in user directory
-  QString user_path =
+  const QString user_path =
       QString::fromStdString(File::GetUserPath(D_USER_IDX)) + QStringLiteral("Skylanders");
   // first time initialize path in config
   if (Get(Config::MAIN_SKYLANDERS_PATH).empty())
@@ -577,7 +577,7 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
   auto* label_var = new QLabel(tr("Variant:"));
   auto* edit_id = new QLineEdit(tr("0"));
   auto* edit_var = new QLineEdit(tr("0"));
-  auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
+  const auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
   edit_id->setValidator(rxv);
   edit_var->setValidator(rxv);
   hbox_idvar->addWidget(label_id);
@@ -618,11 +618,11 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
     else
     {
       // i18n: This is used to create a file name. The string must end in ".sky".
-      QString str = tr("Unknown(%1 %2).sky");
+      const QString str = tr("Unknown(%1 %2).sky");
       predef_name += str.arg(m_sky_id, m_sky_var);
     }
 
-    QString file_path = DolphinFileDialog::getSaveFileName(
+    const QString file_path = DolphinFileDialog::getSaveFileName(
         this, tr("Create Skylander File"), predef_name, tr("Skylander (*.sky);;All Files (*)"));
     if (file_path.isEmpty())
     {
@@ -642,7 +642,7 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
 
 void SkylanderPortalWindow::ModifySkylander()
 {
-  if (auto sky_slot = m_sky_slots[GetCurrentSlot()])
+  if (const auto sky_slot = m_sky_slots[GetCurrentSlot()])
   {
     new SkylanderModifyDialog(this, sky_slot.value().portal_slot);
   }
@@ -656,8 +656,8 @@ void SkylanderPortalWindow::ModifySkylander()
 
 void SkylanderPortalWindow::ClearSlot(const u8 slot)
 {
-  auto& system = Core::System::GetInstance();
-  if (auto slot_infos = m_sky_slots[slot])
+  const auto& system = Core::System::GetInstance();
+  if (const auto slot_infos = m_sky_slots[slot])
   {
     if (!system.GetSkylanderPortal().RemoveSkylander(slot_infos->portal_slot))
     {
@@ -707,7 +707,7 @@ void SkylanderPortalWindow::RefreshList() const
   if (m_only_show_collection->isChecked())
   {
     const QDir collection = QDir(m_collection_path);
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     for (const auto& file : collection.entryInfoList(
              QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")
                            << QStringLiteral("*.dmp") << QStringLiteral("*.dump")))
@@ -746,8 +746,8 @@ void SkylanderPortalWindow::RefreshList() const
   {
     for (const auto& entry : IOS::HLE::USB::list_skylanders)
     {
-      int id = entry.first.first;
-      int var = entry.first.second;
+      const int id = entry.first.first;
+      const int var = entry.first.second;
       if (PassesFilter(tr(entry.second.name), id, var))
       {
         const uint qvar = (entry.first.first << 16) | entry.first.second;
@@ -823,7 +823,7 @@ void SkylanderPortalWindow::LoadSkyfilePath(const u8 slot, const QString& path)
 
   ClearSlot(slot);
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   const std::pair<u16, u16> id_var = system.GetSkylanderPortal().CalculateIDs(file_data);
   const u8 portal_slot = system.GetSkylanderPortal().LoadSkylander(
       std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file)));
@@ -911,7 +911,7 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
 QString SkylanderPortalWindow::GetFilePath(const u16 id, const u16 var) const
 {
   const QDir collection = QDir(m_collection_path);
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   for (const auto& file : collection.entryInfoList(
            QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")
                          << QStringLiteral("*.dmp") << QStringLiteral("*.dump")))
@@ -926,7 +926,7 @@ QString SkylanderPortalWindow::GetFilePath(const u16 id, const u16 var) const
     {
       continue;
     }
-    auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
+    const auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
     if (ids.first == id && ids.second == var)
     {
       return file.filePath();
@@ -973,7 +973,7 @@ int SkylanderPortalWindow::GetTypeRadio() const
 
 QBrush SkylanderPortalWindow::GetBaseColor(const std::pair<const u16, const u16> ids, const bool dark_theme)
 {
-  auto skylander = IOS::HLE::USB::list_skylanders.find(ids);
+  const auto skylander = IOS::HLE::USB::list_skylanders.find(ids);
 
   if (skylander == IOS::HLE::USB::list_skylanders.end())
     return QBrush(dark_theme ? QColor(32, 32, 32) : QColor(255, 255, 255));

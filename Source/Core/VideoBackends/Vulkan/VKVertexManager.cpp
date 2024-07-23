@@ -32,7 +32,7 @@ namespace Vulkan
 static VkBufferView CreateTexelBufferView(const VkBuffer buffer, const VkFormat vk_format)
 {
   // Create a view of the whole buffer, we'll offset our texel load into it
-  VkBufferViewCreateInfo view_info = {
+  const VkBufferViewCreateInfo view_info = {
       VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                    // const void*                pNext
       0,                                          // VkBufferViewCreateFlags    flags
@@ -43,7 +43,7 @@ static VkBufferView CreateTexelBufferView(const VkBuffer buffer, const VkFormat 
   };
 
   VkBufferView view;
-  VkResult res = vkCreateBufferView(g_vulkan_context->GetDevice(), &view_info, nullptr, &view);
+  const VkResult res = vkCreateBufferView(g_vulkan_context->GetDevice(), &view_info, nullptr, &view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateBufferView failed: ");
@@ -134,7 +134,7 @@ bool VertexManager::Initialize()
 
 void VertexManager::DestroyTexelBufferViews() const
 {
-  for (VkBufferView view : m_texel_buffer_views)
+  for (const VkBufferView view : m_texel_buffer_views)
   {
     if (view != VK_NULL_HANDLE)
       vkDestroyBufferView(g_vulkan_context->GetDevice(), view, nullptr);
@@ -204,7 +204,7 @@ void VertexManager::UploadUniforms()
 
 void VertexManager::UpdateVertexShaderConstants() const
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
 
   if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
@@ -222,7 +222,7 @@ void VertexManager::UpdateVertexShaderConstants() const
 
 void VertexManager::UpdateGeometryShaderConstants() const
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
 
   if (!geometry_shader_manager.dirty || !ReserveConstantStorage())
@@ -240,7 +240,7 @@ void VertexManager::UpdateGeometryShaderConstants() const
 
 void VertexManager::UpdatePixelShaderConstants() const
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   if (!ReserveConstantStorage())
@@ -275,8 +275,8 @@ void VertexManager::UpdatePixelShaderConstants() const
 
 bool VertexManager::ReserveConstantStorage() const
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& pixel_shader_manager = system.GetPixelShaderManager();
   const u32 custom_constants_size = static_cast<u32>(pixel_shader_manager.custom_constants.size());
 
   if (m_uniform_stream_buffer->ReserveMemory(m_uniform_buffer_reserve_size + custom_constants_size,
@@ -297,7 +297,7 @@ bool VertexManager::ReserveConstantStorage() const
 
 void VertexManager::UploadAllConstants() const
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   const u32 custom_constants_size = static_cast<u32>(pixel_shader_manager.custom_constants.size());

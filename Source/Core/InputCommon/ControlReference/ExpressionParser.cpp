@@ -63,7 +63,7 @@ private:
 
   void RemoveSuppression(Device::Input* modifier, Device::Input* final_input)
   {
-    auto it = m_suppressions.find({final_input, modifier});
+    const auto it = m_suppressions.find({final_input, modifier});
     if (it != m_suppressions.end() && (--it->second) == 0)
       m_suppressions.erase(it);
   }
@@ -154,7 +154,7 @@ Token Lexer::NextToken()
   if (it == expr.end())
     return Token(TOK_EOF);
 
-  char c = *it++;
+  const char c = *it++;
   switch (c)
   {
   case ' ':
@@ -297,8 +297,8 @@ bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
                                                        const Modifiers& ignore_modifiers) const
 {
   // Input is suppressed if it exists in the map with a modifier that we aren't ignoring.
-  auto it = m_suppressions.lower_bound({input, nullptr});
-  auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
+  const auto it = m_suppressions.lower_bound({input, nullptr});
+  const auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
 
   // We need to ignore L_Ctrl R_Ctrl when supplied Ctrl and vice-versa.
   const auto is_same_modifier = [](const Device::Input* i1, const Device::Input* i2) {
@@ -544,7 +544,7 @@ public:
 
   void UpdateReferences(ControlEnvironment& env) override
   {
-    for (auto& input : m_modifiers)
+    for (const auto& input : m_modifiers)
       input->UpdateReferences(env);
 
     m_final_input->UpdateReferences(env);
@@ -709,7 +709,7 @@ private:
 
   bool Expects(const TokenType type)
   {
-    Token tok = Chew();
+    const Token tok = Chew();
     return tok.type == type;
   }
 

@@ -37,7 +37,7 @@ private:
   {
     size_t h = SIZE_MAX;
 
-    for (auto word : vid)
+    for (const auto word : vid)
     {
       h = h * 137 + word;
     }

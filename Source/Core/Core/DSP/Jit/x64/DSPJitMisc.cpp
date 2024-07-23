@@ -16,8 +16,8 @@ namespace DSP::JIT::x64
 // Move value from register $S to register $D.
 void DSPEmitter::mrr(const UDSPInstruction opc)
 {
-  u8 sreg = opc & 0x1f;
-  u8 dreg = (opc >> 5) & 0x1f;
+  const u8 sreg = opc & 0x1f;
+  const u8 dreg = (opc >> 5) & 0x1f;
 
   dsp_op_read_reg(sreg, EDX);
   dsp_op_write_reg(dreg, EDX);
@@ -46,8 +46,8 @@ void DSPEmitter::lri(const UDSPInstruction opc)
 // Load immediate value I (8-bit sign extended) to accumulator register.
 void DSPEmitter::lris(const UDSPInstruction opc)
 {
-  u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
-  u16 imm = static_cast<s8>(opc);
+  const u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
+  const u16 imm = static_cast<s8>(opc);
   dsp_op_write_reg_imm(reg, imm);
   dsp_conditional_extend_accum_imm(reg, imm);
 }
@@ -135,7 +135,7 @@ void DSPEmitter::clrCompileSR(const u16 bit)
 // thus, bits 6 through 13 (LZ through AM) can be cleared with this instruction.
 void DSPEmitter::sbclr(const UDSPInstruction opc)
 {
-  u8 bit = (opc & 0x7) + 6;
+  const u8 bit = (opc & 0x7) + 6;
 
   clrCompileSR(1 << bit);
 }
@@ -146,7 +146,7 @@ void DSPEmitter::sbclr(const UDSPInstruction opc)
 // thus, bits 6 through 13 (LZ through AM) can be set with this instruction.
 void DSPEmitter::sbset(const UDSPInstruction opc)
 {
-  u8 bit = (opc & 0x7) + 6;
+  const u8 bit = (opc & 0x7) + 6;
 
   setCompileSR(1 << bit);
 }

@@ -40,7 +40,7 @@ void AsyncRequests::PullEventsInternal()
     if ((e.type == Event::EFB_POKE_COLOR || e.type == Event::EFB_POKE_Z))
     {
       m_merged_efb_pokes.clear();
-      Event first_event = m_queue.front();
+      const Event first_event = m_queue.front();
       const auto t = first_event.type == Event::EFB_POKE_COLOR ? EFBAccessType::PokeColor :
                                                                  EFBAccessType::PokeZ;
 
@@ -95,7 +95,7 @@ void AsyncRequests::PushEvent(const Event& event, const bool blocking)
 
   m_queue.push(event);
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetFifo().RunGpu();
   if (blocking)
   {
@@ -131,7 +131,7 @@ void AsyncRequests::HandleEvent(const Event& e)
   case Event::EFB_POKE_COLOR:
   {
     INCSTAT(g_stats.this_frame.num_efb_pokes);
-    EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
+    const EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(EFBAccessType::PokeColor, &poke, 1);
   }
   break;
@@ -139,7 +139,7 @@ void AsyncRequests::HandleEvent(const Event& e)
   case Event::EFB_POKE_Z:
   {
     INCSTAT(g_stats.this_frame.num_efb_pokes);
-    EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
+    const EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(EFBAccessType::PokeZ, &poke, 1);
   }
   break;

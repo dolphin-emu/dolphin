@@ -114,7 +114,7 @@ void WiimoteEmuGeneral::ConfigChanged() const
 
 void WiimoteEmuGeneral::Update() const
 {
-  auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
+  const auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
 
   m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());

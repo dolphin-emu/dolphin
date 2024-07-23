@@ -22,7 +22,7 @@ static int line_counter = 0;
 
 int Addr2Line(const u16 address)  // -1 for not found
 {
-  std::map<u16, int>::iterator iter = addr_to_line.find(address);
+  const std::map<u16, int>::iterator iter = addr_to_line.find(address);
   if (iter != addr_to_line.end())
     return iter->second;
   else
@@ -31,7 +31,7 @@ int Addr2Line(const u16 address)  // -1 for not found
 
 int Line2Addr(const int line)  // -1 for not found
 {
-  std::map<int, u16>::iterator iter = line_to_addr.find(line);
+  const std::map<int, u16>::iterator iter = line_to_addr.find(line);
   if (iter != line_to_addr.end())
     return iter->second;
   else
@@ -55,7 +55,7 @@ void AutoDisassembly(const SDSP& dsp, const u16 start_addr, const u16 end_addr)
   AssemblerSettings settings;
   settings.show_pc = true;
   settings.show_hex = true;
-  DSPDisassembler disasm(settings);
+  const DSPDisassembler disasm(settings);
 
   u16 addr = start_addr;
   const u16* ptr = (start_addr >> 15) != 0 ? dsp.irom : dsp.iram;

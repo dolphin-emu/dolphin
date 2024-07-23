@@ -139,7 +139,7 @@ void CheatSearchFactoryWidget::ConnectWidgets()
 
 void CheatSearchFactoryWidget::RefreshGui() const
 {
-  bool enable_custom = m_custom_address_space->isChecked();
+  const bool enable_custom = m_custom_address_space->isChecked();
   m_custom_virtual_address_space->setEnabled(enable_custom);
   m_custom_physical_address_space->setEnabled(enable_custom);
   m_custom_effective_address_space->setEnabled(enable_custom);
@@ -158,7 +158,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
   PowerPC::RequestedAddressSpace address_space;
   if (m_standard_address_space->isChecked())
   {
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     const Core::State core_state = GetState(system);
     if (core_state != Core::State::Running && core_state != Core::State::Paused)
     {
@@ -168,7 +168,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
       return;
     }
 
-    auto& memory = system.GetMemory();
+    const auto& memory = system.GetMemory();
     memory_ranges.emplace_back(0x80000000, memory.GetRamSizeReal());
     if (system.IsWii())
       memory_ranges.emplace_back(0x90000000, memory.GetExRamSizeReal());
@@ -196,9 +196,9 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
       address_space = PowerPC::RequestedAddressSpace::Effective;
   }
 
-  bool aligned = m_data_type_aligned->isChecked();
-  auto data_type = m_data_type_dropdown->currentData().value<Cheats::DataType>();
-  auto session = MakeSession(std::move(memory_ranges), address_space, aligned, data_type);
+  const bool aligned = m_data_type_aligned->isChecked();
+  const auto data_type = m_data_type_dropdown->currentData().value<Cheats::DataType>();
+  const auto session = MakeSession(std::move(memory_ranges), address_space, aligned, data_type);
   if (session)
     emit NewSessionCreated(*session);
 }

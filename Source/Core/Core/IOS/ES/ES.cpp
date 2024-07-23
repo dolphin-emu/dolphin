@@ -214,8 +214,8 @@ IPCReply ESDevice::GetTitleDirectory(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const auto path = fmt::format("/title/{:08x}/{:08x}/data", static_cast<u32>(title_id >> 32),
@@ -246,8 +246,8 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request) const
   if (ret != IPC_SUCCESS)
     return IPCReply(ret);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   memory.Write_U64(title_id, request.io_vectors[0].address);
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETTITLEID: {:08x}/{:08x}", static_cast<u32>(title_id >> 32),
@@ -270,7 +270,7 @@ static bool UpdateUIDAndGID(EmulationKernel& kernel, const ES::TMDReader& tmd)
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, const u32 caller_uid,
+static ReturnCode CheckIsAllowedToSetUID(const EmulationKernel& kernel, const u32 caller_uid,
                                          const ES::TMDReader& active_tmd)
 {
   ES::UIDSys uid_map{kernel.GetFSCore()};
@@ -297,8 +297,8 @@ IPCReply ESDevice::SetUID(const u32 uid, const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
 
@@ -539,7 +539,7 @@ ESDevice::ContextArray::iterator ESDevice::FindInactiveContext()
 
 std::optional<IPCReply> ESDevice::Open(const OpenRequest& request)
 {
-  auto context = FindInactiveContext();
+  const auto context = FindInactiveContext();
   if (context == m_contexts.end())
     return IPCReply{ES_FD_EXHAUSTED};
 
@@ -552,7 +552,7 @@ std::optional<IPCReply> ESDevice::Open(const OpenRequest& request)
 
 std::optional<IPCReply> ESDevice::Close(const u32 fd)
 {
-  auto context = FindActiveContext(fd);
+  const auto context = FindActiveContext(fd);
   if (context == m_contexts.end())
     return IPCReply(ES_EINVAL);
 
@@ -567,7 +567,7 @@ std::optional<IPCReply> ESDevice::Close(const u32 fd)
 std::optional<IPCReply> ESDevice::IOCtlV(const IOCtlVRequest& request)
 {
   DEBUG_LOG_FMT(IOS_ES, "{} ({:#x})", GetDeviceName(), request.request);
-  auto context = FindActiveContext(request.fd);
+  const auto context = FindActiveContext(request.fd);
   if (context == m_contexts.end())
     return IPCReply(ES_EINVAL);
 
@@ -734,8 +734,8 @@ IPCReply ESDevice::GetConsumption(const IOCtlVRequest& request) const
     return IPCReply(ES_EINVAL);
 
   // This is at least what crediar's ES module does
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(0, request.io_vectors[1].address);
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETCONSUMPTION");
   return IPCReply(IPC_SUCCESS);
@@ -746,8 +746,8 @@ std::optional<IPCReply> ESDevice::Launch(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const u32 view = memory.Read_U32(request.in_vectors[1].address);
@@ -968,8 +968,8 @@ IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& r
     return IPCReply(ES_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::vector<u8> tmd_bytes(request.in_vectors[1].size);
   memory.CopyFromEmu(tmd_bytes.data(), request.in_vectors[1].address, tmd_bytes.size());
@@ -991,8 +991,8 @@ IPCReply ESDevice::DeleteStreamKey(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u32 handle = memory.Read_U32(request.in_vectors[0].address);
   return IPCReply(GetEmulationKernel().GetIOSC().DeleteObject(handle, PID_ES));
 }

@@ -84,8 +84,8 @@ bool GCMemcardCreateNewDialog::CreateCard()
       Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
 
   const std::string p = path.toStdString();
-  auto memcard = Memcard::GCMemcard::Create(p, flash_id, size, is_shift_jis, rtc_bias,
-                                            sram_language, format_time);
+  const auto memcard = Memcard::GCMemcard::Create(p, flash_id, size, is_shift_jis, rtc_bias,
+                                                  sram_language, format_time);
   if (memcard && memcard->Save())
   {
     m_card_path = p;

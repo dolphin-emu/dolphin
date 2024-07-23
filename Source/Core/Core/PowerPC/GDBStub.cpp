@@ -150,7 +150,7 @@ static u8 ReadByte()
 static u8 CalculateChecksum()
 {
   u32 len = s_cmd_len;
-  u8* ptr = s_cmd_bfr;
+  const u8* ptr = s_cmd_bfr;
   u8 c = 0;
 
   while (len-- > 0)
@@ -211,7 +211,7 @@ static void ReadCommand()
   }
   else if (c == 0x03)
   {
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     system.GetCPU().Break();
     SendSignal(Signal::Sigtrap);
     s_has_control = true;
@@ -400,8 +400,8 @@ static u64 re64hex(const u8* p)
 
 static void ReadRegister()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& system = Core::System::GetInstance();
+  const auto& ppc_state = system.GetPPCState();
 
   static u8 reply[64];
   u32 id;
@@ -583,8 +583,8 @@ static void ReadRegister()
 
 static void ReadRegisters()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& system = Core::System::GetInstance();
+  const auto& ppc_state = system.GetPPCState();
 
   static u8 bfr[GDB_BFR_MAX - 4];
   u8* bufptr = bfr;
@@ -603,11 +603,11 @@ static void ReadRegisters()
 
 static void WriteRegisters()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
 
   u32 i;
-  u8* bufptr = s_cmd_bfr;
+  const u8* bufptr = s_cmd_bfr;
 
   for (i = 0; i < 32; i++)
   {
@@ -620,12 +620,12 @@ static void WriteRegisters()
 
 static void WriteRegister()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
 
   u32 id;
 
-  u8* bufptr = s_cmd_bfr + 3;
+  const u8* bufptr = s_cmd_bfr + 3;
 
   id = Hex2char(s_cmd_bfr[1]);
   if (s_cmd_bfr[2] != '=')
@@ -828,9 +828,9 @@ static void ReadMemory(const Core::CPUThreadGuard& guard)
   if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  u8* data = memory.GetPointerForRange(addr, len);
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
+  const u8* data = memory.GetPointerForRange(addr, len);
   Mem2hex(reply, data, len);
   reply[len * 2] = '\0';
   SendReply((char*)reply);
@@ -855,8 +855,8 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
   if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   u8* dst = memory.GetPointerForRange(addr, len);
   Hex2mem(dst, s_cmd_bfr + i + 1, len);
   SendReply("OK");
@@ -864,7 +864,7 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
 
 static void Step()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   system.GetCPU().SetStepping(true);
   CallOnStateChangedCallbacks(Core::State::Paused);
 }
@@ -1085,7 +1085,7 @@ static void InitGeneric(const int domain, const sockaddr* server_addr, const soc
   if (s_tmpsock == -1)
     ERROR_LOG_FMT(GDB_STUB, "Failed to create gdb socket");
 
-  int on = 1;
+  const int on = 1;
   if (setsockopt(s_tmpsock, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof on) < 0)
     ERROR_LOG_FMT(GDB_STUB, "Failed to setsockopt");
 
@@ -1110,7 +1110,7 @@ static void InitGeneric(const int domain, const sockaddr* server_addr, const soc
 #endif
   s_tmpsock = -1;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   s_update_event = core_timing.RegisterEvent("GDBStubUpdate", UpdateCallback);
   core_timing.ScheduleEvent(GDB_UPDATE_CYCLES, s_update_event);
@@ -1156,7 +1156,7 @@ bool JustConnected()
 
 void SendSignal(Signal signal)
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
 
   char bfr[128] = {};

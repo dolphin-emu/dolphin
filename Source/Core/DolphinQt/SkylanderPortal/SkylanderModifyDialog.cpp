@@ -265,7 +265,7 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
                           .month = static_cast<u8>(edit_last_placed->date().month()),
                           .year = static_cast<u16>(edit_last_placed->date().year())}};
 
-      std::u16string nickname = edit_nick->text().toStdU16String();
+      const std::u16string nickname = edit_nick->text().toStdU16String();
       nickname.copy(reinterpret_cast<char16_t*>(m_figure_data.skylander_data.nickname.data()),
                     nickname.length());
 

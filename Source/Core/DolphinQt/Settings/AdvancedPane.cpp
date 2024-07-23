@@ -230,7 +230,7 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
+  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](const QDateTime& date_time) {
     SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
                              static_cast<u32>(date_time.toSecsSinceEpoch()));
     Update();
@@ -275,10 +275,10 @@ void AdvancedPane::Update() const
   }
 
   m_cpu_clock_override_slider_label->setText([] {
-    int core_clock =
+    const int core_clock =
         Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond() / std::pow(10, 6);
-    int percent = static_cast<int>(std::round(Get(Config::MAIN_OVERCLOCK) * 100.f));
-    int clock = static_cast<int>(std::round(Get(Config::MAIN_OVERCLOCK) * core_clock));
+    const int percent = static_cast<int>(std::round(Get(Config::MAIN_OVERCLOCK) * 100.f));
+    const int clock = static_cast<int>(std::round(Get(Config::MAIN_OVERCLOCK) * core_clock));
     return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
 

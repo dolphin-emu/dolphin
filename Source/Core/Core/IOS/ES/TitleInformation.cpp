@@ -22,8 +22,8 @@ IPCReply ESDevice::GetStoredContentsCount(const ES::TMDReader& tmd, const IOCtlV
     return IPCReply(ES_EINVAL);
 
   const u16 num_contents = static_cast<u16>(m_core.GetStoredContentsFromTMD(tmd).size());
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(num_contents, request.io_vectors[0].address);
 
   INFO_LOG_FMT(IOS_ES, "GetStoredContentsCount ({:#x}):  {} content(s) for {:016x}",
@@ -38,8 +38,8 @@ IPCReply ESDevice::GetStoredContents(const ES::TMDReader& tmd, const IOCtlVReque
   if (!tmd.IsValid())
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   if (request.in_vectors[1].size != sizeof(u32) ||
       request.io_vectors[0].size != memory.Read_U32(request.in_vectors[1].address) * sizeof(u32))
   {
@@ -59,8 +59,8 @@ IPCReply ESDevice::GetStoredContentsCount(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u64))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const ES::TMDReader tmd = m_core.FindInstalledTMD(title_id);
   if (!tmd.IsValid())
@@ -73,8 +73,8 @@ IPCReply ESDevice::GetStoredContents(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(2, 1) || request.in_vectors[0].size != sizeof(u64))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const ES::TMDReader tmd = m_core.FindInstalledTMD(title_id);
   if (!tmd.IsValid())
@@ -88,8 +88,8 @@ IPCReply ESDevice ::GetTMDStoredContentsCount(const IOCtlVRequest& request) cons
     return IPCReply(ES_EINVAL);
 
   std::vector<u8> tmd_bytes(request.in_vectors[0].size);
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
   return GetStoredContentsCount(ES::TMDReader{std::move(tmd_bytes)}, request);
 }
@@ -100,8 +100,8 @@ IPCReply ESDevice::GetTMDStoredContents(const IOCtlVRequest& request) const
     return IPCReply(ES_EINVAL);
 
   std::vector<u8> tmd_bytes(request.in_vectors[0].size);
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
 
   const ES::TMDReader tmd{std::move(tmd_bytes)};
@@ -126,8 +126,8 @@ IPCReply ESDevice::GetTitleCount(const std::vector<u64>& titles, const IOCtlVReq
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(static_cast<u32>(titles.size()), request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
@@ -138,8 +138,8 @@ IPCReply ESDevice::GetTitles(const std::vector<u64>& titles, const IOCtlVRequest
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const size_t max_count = memory.Read_U32(request.in_vectors[0].address);
   for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
   {
@@ -166,8 +166,8 @@ IPCReply ESDevice::GetStoredTMDSize(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const ES::TMDReader tmd = m_core.FindInstalledTMD(title_id);
   if (!tmd.IsValid())
@@ -186,8 +186,8 @@ IPCReply ESDevice::GetStoredTMD(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(2, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
   const ES::TMDReader tmd = m_core.FindInstalledTMD(title_id);
   if (!tmd.IsValid())
@@ -226,8 +226,8 @@ IPCReply ESDevice::GetBoot2Version(const IOCtlVRequest& request) const
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETBOOT2VERSION");
 
   // as of 26/02/2012, this was latest bootmii version
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(4, request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
@@ -238,8 +238,8 @@ IPCReply ESDevice::GetSharedContentsCount(const IOCtlVRequest& request) const
     return IPCReply(ES_EINVAL);
 
   const u32 count = m_core.GetSharedContentsCount();
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(count, request.io_vectors[0].address);
 
   INFO_LOG_FMT(IOS_ES, "GetSharedContentsCount: {} contents", count);
@@ -251,8 +251,8 @@ IPCReply ESDevice::GetSharedContents(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u32 max_count = memory.Read_U32(request.in_vectors[0].address);
   if (request.io_vectors[0].size != 20 * max_count)
     return IPCReply(ES_EINVAL);

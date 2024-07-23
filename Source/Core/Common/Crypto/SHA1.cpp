@@ -77,7 +77,7 @@ protected:
     {
       if (block_used + len >= block.size())
       {
-        size_t rem = block.size() - block_used;
+        const size_t rem = block.size() - block_used;
         std::memcpy(&block[block_used], msg, rem);
         ProcessBlock(&block[0]);
         block_used = 0;
@@ -125,7 +125,7 @@ protected:
       std::memset(&block[block_used], 0, MSG_LEN_POS - block_used);
     }
 
-    BigEndianValue msg_bitlen(msg_len * 8);
+    const BigEndianValue msg_bitlen(msg_len * 8);
     std::memcpy(&block[MSG_LEN_POS], &msg_bitlen, sizeof(msg_bitlen));
 
     ProcessBlock(&block[0]);
@@ -208,7 +208,7 @@ private:
     // active state in just 0x40 bytes.
     // see FIPS 180-4 6.1.3 Alternate Method for Computing a SHA-1 Message Digest
     WorkBlock w;
-    auto msg_block = (const __m128i*)msg;
+    const auto msg_block = (const __m128i*)msg;
     for (size_t i = 0; i < w.size(); i++)
       w[i] = byterev_16B(_mm_loadu_si128(&msg_block[i]));
 
@@ -250,7 +250,7 @@ private:
   {
     Digest digest;
     _mm_storeu_si128((__m128i*)&digest[0], byterev_16B(state[0]));
-    u32 hi = _mm_cvtsi128_si32(byterev_16B(state[1]));
+    const u32 hi = _mm_cvtsi128_si32(byterev_16B(state[1]));
     std::memcpy(&digest[sizeof(__m128i)], &hi, sizeof(hi));
     return digest;
   }
@@ -381,7 +381,7 @@ std::unique_ptr<Context> CreateContext()
 
 Digest CalculateDigest(const u8* msg, const size_t len)
 {
-  auto ctx = CreateContext();
+  const auto ctx = CreateContext();
   ctx->Update(msg, len);
   return ctx->Finish();
 }

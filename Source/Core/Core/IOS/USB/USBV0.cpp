@@ -16,8 +16,8 @@ namespace IOS::HLE::USB
 V0CtrlMessage::V0CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : CtrlMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   request_type = memory.Read_U8(ioctlv.in_vectors[0].address);
   request = memory.Read_U8(ioctlv.in_vectors[1].address);
   value = Common::swap16(memory.Read_U16(ioctlv.in_vectors[2].address));
@@ -28,8 +28,8 @@ V0CtrlMessage::V0CtrlMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V0BulkMessage::V0BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv, const bool long_length)
     : BulkMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address);
   if (long_length)
     length = memory.Read_U32(ioctlv.in_vectors[1].address);
@@ -40,8 +40,8 @@ V0BulkMessage::V0BulkMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv, 
 V0IntrMessage::V0IntrMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IntrMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address);
   length = memory.Read_U16(ioctlv.in_vectors[1].address);
 }
@@ -49,8 +49,8 @@ V0IntrMessage::V0IntrMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
 V0IsoMessage::V0IsoMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
     : IsoMessage(ios, ioctlv, ioctlv.io_vectors[1].address)
 {
-  auto& system = ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = ios.GetSystem();
+  const auto& memory = system.GetMemory();
   endpoint = memory.Read_U8(ioctlv.in_vectors[0].address);
   length = memory.Read_U16(ioctlv.in_vectors[1].address);
   num_packets = memory.Read_U8(ioctlv.in_vectors[2].address);

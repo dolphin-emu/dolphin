@@ -206,7 +206,7 @@ void Gfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 {
   SetFramebuffer(framebuffer);
 
-  DXFramebuffer* d3d_frame_buffer = static_cast<DXFramebuffer*>(framebuffer);
+  const DXFramebuffer* d3d_frame_buffer = static_cast<DXFramebuffer*>(framebuffer);
   d3d_frame_buffer->TransitionRenderTargets();
   if (d3d_frame_buffer->HasDepthBuffer())
   {

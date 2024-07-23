@@ -258,7 +258,7 @@ void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 
 std::optional<GeckoCode::Code> DeserializeLine(const std::string& line)
 {
-  std::vector<std::string> items = SplitString(line, ' ');
+  const std::vector<std::string> items = SplitString(line, ' ');
 
   GeckoCode::Code code;
   code.original_line = line;

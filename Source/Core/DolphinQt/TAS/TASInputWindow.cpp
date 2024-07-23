@@ -223,7 +223,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, const int 
   connect(slider, &QSlider::valueChanged, value, &QSpinBox::setValue);
   connect(value, &QSpinBox::valueChanged, slider, &QSlider::setValue);
 
-  auto* shortcut = new QShortcut(shortcut_key_sequence, shortcut_widget);
+  const auto* shortcut = new QShortcut(shortcut_key_sequence, shortcut_widget);
   connect(shortcut, &QShortcut::activated, [value] {
     value->setFocus();
     value->selectAll();

@@ -197,12 +197,12 @@ CodeViewWidget::~CodeViewWidget() = default;
 static u32 GetBranchFromAddress(const Core::CPUThreadGuard& guard, const u32 addr)
 {
   std::string disasm = guard.GetSystem().GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
-  size_t pos = disasm.find("->0x");
+  const size_t pos = disasm.find("->0x");
 
   if (pos == std::string::npos)
     return 0;
 
-  std::string hex = disasm.substr(pos + 2);
+  const std::string hex = disasm.substr(pos + 2);
   return std::stoul(hex, nullptr, 16);
 }
 
@@ -271,7 +271,7 @@ void CodeViewWidget::Update()
 
   if (GetState(m_system) == Core::State::Paused)
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     Update(&guard);
   }
   else
@@ -549,7 +549,7 @@ void CodeViewWidget::SetAddress(const u32 address, const SetAddressUpdate update
 
 void CodeViewWidget::ReplaceAddress(const u32 address, const ReplaceWith replace)
 {
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   m_system.GetPowerPC().GetDebugInterface().SetPatch(
       guard, address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
@@ -614,7 +614,7 @@ void CodeViewWidget::OnContextMenu()
   bool follow_branch_enabled = false;
   if (paused)
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     const u32 pc = m_system.GetPPCState().pc;
     const std::string disasm = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, pc);
 
@@ -673,7 +673,7 @@ void CodeViewWidget::AutoStep(const CodeTrace::AutoStop option)
   // Autosteps and follows value in the target (left-most) register. The Used and Changed options
   // silently follows target through reshuffles in memory and registers and stops on use or update.
 
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   CodeTrace code_trace;
   bool repeat = false;
@@ -771,7 +771,7 @@ void CodeViewWidget::OnCopyTargetAddress() const
   const u32 addr = GetContextAddress();
 
   const std::string code_line = [this, addr] {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
   }();
 
@@ -801,7 +801,7 @@ void CodeViewWidget::OnShowTargetInMemory()
   const u32 addr = GetContextAddress();
 
   const std::string code_line = [this, addr] {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
   }();
 
@@ -820,7 +820,7 @@ void CodeViewWidget::OnCopyCode() const
   const u32 addr = GetContextAddress();
 
   const std::string text = [this, addr] {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
   }();
 
@@ -838,7 +838,7 @@ void CodeViewWidget::OnCopyFunction() const
   std::string text = symbol->name + "\r\n";
 
   {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
 
     // we got a function
     const u32 start = symbol->address;
@@ -859,7 +859,7 @@ void CodeViewWidget::OnCopyHex() const
   const u32 addr = GetContextAddress();
 
   const u32 instruction = [this, addr] {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     return m_system.GetPowerPC().GetDebugInterface().ReadInstruction(guard, addr);
   }();
 
@@ -885,7 +885,7 @@ void CodeViewWidget::OnAddFunction() const
 {
   const u32 addr = GetContextAddress();
 
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   m_ppc_symbol_db.AddFunction(guard, addr);
   emit Host::GetInstance()->PPCSymbolsChanged();
@@ -910,7 +910,7 @@ void CodeViewWidget::OnFollowBranch()
   const u32 addr = GetContextAddress();
 
   const u32 branch_addr = [this, addr] {
-    Core::CPUThreadGuard guard(m_system);
+    const Core::CPUThreadGuard guard(m_system);
     return GetBranchFromAddress(guard, addr);
   }();
 
@@ -971,7 +971,7 @@ void CodeViewWidget::OnSetSymbolSize()
   if (!good)
     return;
 
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, size);
   emit Host::GetInstance()->PPCSymbolsChanged();
@@ -998,7 +998,7 @@ void CodeViewWidget::OnSetSymbolEndAddress()
   if (!good)
     return;
 
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, address - symbol->address);
   emit Host::GetInstance()->PPCSymbolsChanged();
@@ -1016,7 +1016,7 @@ void CodeViewWidget::OnAssembleInstruction()
 
 void CodeViewWidget::DoPatchInstruction(const bool assemble)
 {
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
   const u32 addr = GetContextAddress();
 
   if (!PowerPC::MMU::HostIsInstructionRAMAddress(guard, addr))
@@ -1053,7 +1053,7 @@ void CodeViewWidget::DoPatchInstruction(const bool assemble)
 
 void CodeViewWidget::OnRestoreInstruction()
 {
-  Core::CPUThreadGuard guard(m_system);
+  const Core::CPUThreadGuard guard(m_system);
 
   const u32 addr = GetContextAddress();
 
@@ -1094,7 +1094,7 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
 
 void CodeViewWidget::wheelEvent(QWheelEvent* event)
 {
-  auto delta =
+  const auto delta =
       -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
 
   if (delta == 0)
@@ -1106,7 +1106,7 @@ void CodeViewWidget::wheelEvent(QWheelEvent* event)
 
 void CodeViewWidget::mousePressEvent(QMouseEvent* event)
 {
-  auto* item = itemAt(event->pos());
+  const auto* item = itemAt(event->pos());
   if (item == nullptr)
     return;
 

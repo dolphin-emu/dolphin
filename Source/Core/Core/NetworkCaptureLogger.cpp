@@ -182,7 +182,7 @@ void PCAPSSLCaptureLogger::LogIPv4(const LogType log_type, const u8* data, const
   };
 
   Common::EthernetHeader ethernet_header(0x800);
-  auto mac = Common::StringToMacAddress(Get(Config::MAIN_WIRELESS_MAC));
+  const auto mac = Common::StringToMacAddress(Get(Config::MAIN_WIRELESS_MAC));
   if (mac)
   {
     auto& mac_address =
@@ -195,16 +195,16 @@ void PCAPSSLCaptureLogger::LogIPv4(const LogType log_type, const u8* data, const
   {
     u32& sequence_number = (log_type == LogType::Read) ? m_read_sequence_number[socket] :
                                                          m_write_sequence_number[socket];
-    Common::TCPHeader tcp_header(from, to, sequence_number, data, length);
+    const Common::TCPHeader tcp_header(from, to, sequence_number, data, length);
     sequence_number += static_cast<u32>(length);
-    Common::IPv4Header ip_header(tcp_header.Size() + length, tcp_header.IPProto(), from, to);
+    const Common::IPv4Header ip_header(tcp_header.Size() + length, tcp_header.IPProto(), from, to);
     insert(&ip_header, ip_header.Size());
     insert(&tcp_header, tcp_header.Size());
   }
   else if (socket_type == SOCK_DGRAM)
   {
-    Common::UDPHeader udp_header(from, to, length);
-    Common::IPv4Header ip_header(udp_header.Size() + length, udp_header.IPProto(), from, to);
+    const Common::UDPHeader udp_header(from, to, length);
+    const Common::IPv4Header ip_header(udp_header.Size() + length, udp_header.IPProto(), from, to);
     insert(&ip_header, ip_header.Size());
     insert(&udp_header, udp_header.Size());
   }

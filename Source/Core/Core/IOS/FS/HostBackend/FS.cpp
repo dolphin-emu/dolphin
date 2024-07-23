@@ -38,7 +38,7 @@ HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wi
         (wii_path.size() == redirect.source_path.size() ||
          wii_path[redirect.source_path.size()] == '/'))
     {
-      std::string relative_to_redirect = wii_path.substr(redirect.source_path.size());
+      const std::string relative_to_redirect = wii_path.substr(redirect.source_path.size());
       return HostFilename{redirect.target_path + Common::EscapePath(relative_to_redirect), true};
     }
   }
@@ -244,7 +244,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   if (!IsValidNonRootPath(path))
     return nullptr;
 
-  auto host_file = BuildFilename(path);
+  const auto host_file = BuildFilename(path);
   const File::FileInfo host_file_info{host_file.host_path};
   if (!host_file_info.Exists())
     return nullptr;
@@ -285,7 +285,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
 
 void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_path) const
 {
-  std::string path = BuildFilename(start_directory_path).host_path;
+  const std::string path = BuildFilename(start_directory_path).host_path;
   File::DeleteDirRecursively(path);
   File::CreateDir(path);
 
@@ -330,7 +330,7 @@ void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_pat
 
 void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path) const
 {
-  std::string path = BuildFilename(start_directory_path).host_path;
+  const std::string path = BuildFilename(start_directory_path).host_path;
   File::FSTEntry parent_entry = File::ScanDirectoryTree(path, true);
   std::deque<File::FSTEntry> todo;
   todo.insert(todo.end(), parent_entry.children.begin(), parent_entry.children.end());
@@ -392,7 +392,7 @@ void HostFileSystem::DoState(PointerWrap& p)
   // then a call to p.DoExternal() will be used to skip over reading the contents of the "/"
   // directory (it skips over the number of bytes specified by size_of_nand_folder_saved)
 
-  auto& movie = Core::System::GetInstance().GetMovie();
+  const auto& movie = Core::System::GetInstance().GetMovie();
   bool original_save_state_made_during_movie_recording =
       movie.IsMovieActive() && Core::WiiRootIsTemporary();
   p.Do(original_save_state_made_during_movie_recording);
@@ -408,7 +408,7 @@ void HostFileSystem::DoState(PointerWrap& p)
       DoStateWriteOrMeasure(p, "/");
       if (p.IsWriteMode())
       {
-        u32 size_of_nand = p.GetOffsetFromPreviousPosition(previous_position) - sizeof(u32);
+        const u32 size_of_nand = p.GetOffsetFromPreviousPosition(previous_position) - sizeof(u32);
         memcpy(previous_position, &size_of_nand, sizeof(u32));
       }
     }
@@ -473,7 +473,7 @@ ResultCode HostFileSystem::CreateFileOrDirectory(const Uid uid, const Gid gid, c
   const auto split_path = SplitPathAndBasename(path);
   const std::string host_path = BuildFilename(path).host_path;
 
-  FstEntry* parent = GetFstEntryForPath(split_path.parent);
+  const FstEntry* parent = GetFstEntryForPath(split_path.parent);
   if (!parent)
     return ResultCode::NotFound;
 
@@ -572,7 +572,7 @@ ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::strin
   const auto split_new_path = SplitPathAndBasename(new_path);
 
   FstEntry* old_parent = GetFstEntryForPath(split_old_path.parent);
-  FstEntry* new_parent = GetFstEntryForPath(split_new_path.parent);
+  const FstEntry* new_parent = GetFstEntryForPath(split_new_path.parent);
   if (!old_parent || !new_parent)
     return ResultCode::NotFound;
 
@@ -582,7 +582,7 @@ ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::strin
     return ResultCode::AccessDenied;
   }
 
-  FstEntry* entry = GetFstEntryForPath(old_path);
+  const FstEntry* entry = GetFstEntryForPath(old_path);
   if (!entry)
     return ResultCode::NotFound;
 
@@ -823,8 +823,8 @@ HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
     return ResultCode::Invalid;
 
   ExtendedDirectoryStats stats{};
-  std::string path(BuildFilename(wii_path).host_path);
-  File::FileInfo info(path);
+  const std::string path(BuildFilename(wii_path).host_path);
+  const File::FileInfo info(path);
   if (!info.Exists())
   {
     return ResultCode::NotFound;

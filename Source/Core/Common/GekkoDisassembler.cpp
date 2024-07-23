@@ -157,9 +157,9 @@ std::string GekkoDisassembler::m_operands;
 static u32 HelperRotateMask(const int r, const int mb, const int me)
 {
   // first make 001111111111111 part
-  unsigned int begin = 0xFFFFFFFF >> mb;
+  const unsigned int begin = 0xFFFFFFFF >> mb;
   // then make 000000000001111 part, which is used to flip the bits of the first one
-  unsigned int end = me < 31 ? (0xFFFFFFFF >> (me + 1)) : 0;
+  const unsigned int end = me < 31 ? (0xFFFFFFFF >> (me + 1)) : 0;
   // do the bitflip
   unsigned int mask = begin ^ end;
   // and invert if backwards
@@ -428,7 +428,7 @@ std::string GekkoDisassembler::rd_ra_rb(const u32 in, const int mask)
     if (mask & 1)
       result += fmt::format("{}, ", regnames[PPCGETB(in)]);
 
-    size_t pos = result.rfind(", ");
+    const size_t pos = result.rfind(", ");
     if (pos != std::string::npos)
     {
       result.erase(pos, result.length() - pos);
@@ -633,8 +633,8 @@ void GekkoDisassembler::nooper(const u32 in, const std::string_view name)
 
 void GekkoDisassembler::rlw(const u32 in, std::string_view name, const int i)
 {
-  int s = static_cast<int>(PPCGETD(in));
-  int a = static_cast<int>(PPCGETA(in));
+  const int s = static_cast<int>(PPCGETD(in));
+  const int a = static_cast<int>(PPCGETA(in));
   int bsh = static_cast<int>(PPCGETB(in));
   int mb = static_cast<int>(PPCGETC(in));
   int me = static_cast<int>(PPCGETM(in));
@@ -652,8 +652,8 @@ void GekkoDisassembler::ori(const u32 in, const std::string_view name)
 
 void GekkoDisassembler::rld(const u32 in, std::string_view name, const int i)
 {
-  int s = static_cast<int>(PPCGETD(in));
-  int a = static_cast<int>(PPCGETA(in));
+  const int s = static_cast<int>(PPCGETD(in));
+  const int a = static_cast<int>(PPCGETA(in));
   int bsh = i ? static_cast<int>(PPCGETB(in)) : static_cast<int>(((in & 2) << 4) + PPCGETB(in));
   int m = static_cast<int>(in & 0x7e0) >> 5;
 
@@ -683,7 +683,7 @@ void GekkoDisassembler::cmp(const u32 in)
 
 void GekkoDisassembler::trap(const u32 in, const unsigned char dmode)
 {
-  int to = static_cast<int>(PPCGETD(in));
+  const int to = static_cast<int>(PPCGETD(in));
   const char* cnd = trap_condition[to];
 
   if (cnd != nullptr)
@@ -754,7 +754,7 @@ void GekkoDisassembler::rrn(u32 in, std::string_view name, const int smode, cons
 
 void GekkoDisassembler::mtcr(const u32 in)
 {
-  int s = static_cast<int>(PPCGETD(in));
+  const int s = static_cast<int>(PPCGETD(in));
   int crm = static_cast<int>(in & 0x000ff000) >> 12;
 
   if (in & 0x00100801)
@@ -774,7 +774,7 @@ void GekkoDisassembler::mtcr(const u32 in)
 
 void GekkoDisassembler::msr(const u32 in, const int smode)
 {
-  int s = static_cast<int>(PPCGETD(in));
+  const int s = static_cast<int>(PPCGETD(in));
   int sr = static_cast<int>(in & 0x000f0000) >> 16;
 
   if (in & 0x0010f801)
@@ -794,8 +794,8 @@ void GekkoDisassembler::msr(const u32 in, const int smode)
 
 void GekkoDisassembler::mspr(const u32 in, const int smode)
 {
-  int d = static_cast<int>(PPCGETD(in));
-  int spr = static_cast<int>((PPCGETB(in) << 5) + PPCGETA(in));
+  const int d = static_cast<int>(PPCGETD(in));
+  const int spr = static_cast<int>((PPCGETB(in) << 5) + PPCGETA(in));
   int fmt = 0;
 
   if (in & 1)
@@ -843,7 +843,7 @@ void GekkoDisassembler::mspr(const u32 in, const int smode)
 
 void GekkoDisassembler::mtb(const u32 in)
 {
-  int d = static_cast<int>(PPCGETD(in));
+  const int d = static_cast<int>(PPCGETD(in));
   int tbr = static_cast<int>((PPCGETB(in) << 5) + PPCGETA(in));
 
   if (in & 1)
@@ -876,8 +876,8 @@ void GekkoDisassembler::mtb(const u32 in)
 
 void GekkoDisassembler::sradi(const u32 in)
 {
-  int s = static_cast<int>(PPCGETD(in));
-  int a = static_cast<int>(PPCGETA(in));
+  const int s = static_cast<int>(PPCGETD(in));
+  const int a = static_cast<int>(PPCGETA(in));
   int bsh = static_cast<int>(((in & 2) << 4) + PPCGETB(in));
 
   m_opcode = fmt::format("sradi{}", (in & 1) ? "." : "");
@@ -887,8 +887,8 @@ void GekkoDisassembler::sradi(const u32 in)
 void GekkoDisassembler::ldst(const u32 in, const std::string_view name, char reg)
 {
   int s = static_cast<int>(PPCGETD(in));
-  int a = static_cast<int>(PPCGETA(in));
-  int d = (u32)(in & 0xffff);
+  const int a = static_cast<int>(PPCGETA(in));
+  const int d = (u32)(in & 0xffff);
 
   m_opcode = name;
 

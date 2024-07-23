@@ -961,7 +961,7 @@ void BranchWatchDialog::UpdateIcons()
 
 void BranchWatchDialog::Save(const Core::CPUThreadGuard& guard, const std::string& filepath)
 {
-  File::IOFile file(filepath, "w");
+  const File::IOFile file(filepath, "w");
   if (!file.IsOpen())
   {
     ModalMessageBox::warning(
@@ -975,7 +975,7 @@ void BranchWatchDialog::Save(const Core::CPUThreadGuard& guard, const std::strin
 
 void BranchWatchDialog::Load(const Core::CPUThreadGuard& guard, const std::string& filepath)
 {
-  File::IOFile file(filepath, "r");
+  const File::IOFile file(filepath, "r");
   if (!file.IsOpen())
   {
     ModalMessageBox::warning(
@@ -1108,7 +1108,7 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
   if (core_initialized && supported_column)
   {
     qsizetype bp_break_count = 0, bp_log_count = 0, bp_both_count = 0;
-    for (auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+    for (const auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
          const QModelIndex& idx : m_index_list_temp)
     {
       if (const TBreakPoint* bp = breakpoints.GetRegularBreakpoint(

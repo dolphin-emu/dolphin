@@ -46,7 +46,7 @@ void AchievementProgressWidget::UpdateData(const bool clean_all)
   }
   else
   {
-    while (auto* item = m_common_layout->takeAt(0))
+    while (const auto* item = m_common_layout->takeAt(0))
     {
       auto* widget = item->widget();
       m_common_layout->removeWidget(widget);
@@ -58,7 +58,7 @@ void AchievementProgressWidget::UpdateData(const bool clean_all)
     }
   }
 
-  auto& instance = AchievementManager::GetInstance();
+  const auto& instance = AchievementManager::GetInstance();
   if (!instance.IsGameLoaded())
     return;
   auto* client = instance.GetClient();

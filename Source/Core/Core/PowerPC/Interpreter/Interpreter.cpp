@@ -229,7 +229,7 @@ constexpr u32 s_show_steps = 300;
 void Interpreter::Run()
 {
   auto& core_timing = m_system.GetCoreTiming();
-  auto& cpu = m_system.GetCPU();
+  const auto& cpu = m_system.GetCPU();
   auto& power_pc = m_system.GetPowerPC();
   while (cpu.GetState() == CPU::State::Running)
   {

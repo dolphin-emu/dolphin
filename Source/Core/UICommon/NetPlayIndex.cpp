@@ -42,7 +42,7 @@ static std::optional<picojson::value> ParseResponse(const std::vector<u8>& respo
 std::optional<std::vector<NetPlaySession>>
 NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 {
-  Common::HttpRequest request;
+  const Common::HttpRequest request;
 
   std::string list_url = Get(Config::NETPLAY_INDEX_URL) + "/v0/list";
 
@@ -56,7 +56,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     list_url.pop_back();
   }
 
-  auto response =
+  const auto response =
       request.Get(list_url, {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
   if (!response)
   {
@@ -161,8 +161,8 @@ void NetPlayIndex::NotificationLoop()
 
 bool NetPlayIndex::Add(const NetPlaySession& session)
 {
-  Common::HttpRequest request;
-  auto response = request.Get(
+  const Common::HttpRequest request;
+  const auto response = request.Get(
       Get(Config::NETPLAY_INDEX_URL) +
           "/v0/session/add?name=" + request.EscapeComponent(session.name) +
           "&region=" + request.EscapeComponent(session.region) +
@@ -236,7 +236,7 @@ void NetPlayIndex::Remove()
     m_session_thread.join();
 
   // We don't really care whether this fails or not
-  Common::HttpRequest request;
+  const Common::HttpRequest request;
   request.Get(Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
               {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
@@ -297,7 +297,7 @@ std::optional<std::string> NetPlaySession::DecryptID(const std::string_view pass
 
   for (size_t i = 0; i < server_id.size(); i += 2)
   {
-    char c = (server_id[i] - 'A') << 4 | (server_id[i + 1] - 'A');
+    const char c = (server_id[i] - 'A') << 4 | (server_id[i + 1] - 'A');
     decoded.push_back(c);
   }
 

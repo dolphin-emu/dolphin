@@ -56,7 +56,7 @@ bool DSYSignatureDB::Save(const std::string& file_path) const
     ERROR_LOG_FMT(SYMBOLS, "Database save failed");
     return false;
   }
-  u32 fcount = static_cast<u32>(m_database.size());
+  const u32 fcount = static_cast<u32>(m_database.size());
   f.WriteArray(&fcount, 1);
   for (const auto& entry : m_database)
   {

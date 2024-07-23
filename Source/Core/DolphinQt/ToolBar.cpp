@@ -58,12 +58,12 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
 
 void ToolBar::OnEmulationStateChanged(const Core::State state)
 {
-  bool running = state != Core::State::Uninitialized;
+  const bool running = state != Core::State::Uninitialized;
   m_stop_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
 
-  bool playing = running && state != Core::State::Paused;
+  const bool playing = running && state != Core::State::Paused;
   UpdatePausePlayButtonState(playing);
 
   const bool paused = GetState(Core::System::GetInstance()) == Core::State::Paused;

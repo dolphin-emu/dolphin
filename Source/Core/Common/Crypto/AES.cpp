@@ -157,7 +157,7 @@ public:
     }
     else
     {
-      __m128i iv_next = block;
+      const __m128i iv_next = block;
 
       block = _mm_xor_si128(block, round_keys[0]);
 

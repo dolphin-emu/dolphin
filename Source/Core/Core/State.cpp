@@ -153,7 +153,7 @@ static void DoState(const Core::System& system, PointerWrap& p)
   }
 
   // Check to make sure the emulated memory sizes are the same as the savestate
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   u32 state_mem1_size = memory.GetRamSizeReal();
   u32 state_mem2_size = memory.GetExRamSizeReal();
   p.Do(state_mem1_size);
@@ -326,9 +326,9 @@ static void CompressBufferToFile(const u8* raw_buffer, const u64 size, File::IOF
   {
     u64 bytes_left_to_compress = size - total_bytes_compressed;
 
-    int bytes_to_compress =
+    const int bytes_to_compress =
         static_cast<int>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), bytes_left_to_compress));
-    int compressed_buffer_size = LZ4_compressBound(bytes_to_compress);
+    const int compressed_buffer_size = LZ4_compressBound(bytes_to_compress);
     auto compressed_buffer = std::make_unique<char[]>(compressed_buffer_size);
     s32 compressed_len =
         LZ4_compress_default(reinterpret_cast<const char*>(raw_buffer) + total_bytes_compressed,
@@ -444,7 +444,7 @@ static void CompressAndDumpState(const Core::System& system, const CompressAndDu
       }
     }
 
-    auto& movie = system.GetMovie();
+    const auto& movie = system.GetMovie();
     if ((movie.IsMovieActive()) && !movie.IsJustStartingRecordingInputFromSaveState())
       movie.SaveRecording(dtmname);
     else if (!movie.IsMovieActive())
@@ -472,7 +472,7 @@ static void CompressAndDumpState(const Core::System& system, const CompressAndDu
 
 void SaveAs(Core::System& system, const std::string& filename, const bool wait)
 {
-  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  const std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
   if (!lk)
     return;
 
@@ -569,7 +569,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   // Read in the string
   if (buffer.size() >= sizeof(StateHeaderVersion) + header.version_header.version_string_length)
   {
-    auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
+    const auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
     memcpy(version_buffer.get(), buffer.data() + sizeof(StateHeaderVersion),
            header.version_header.version_string_length);
     header.version_string =
@@ -619,7 +619,7 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
       return false;
     }
 
-    auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
+    const auto version_buffer = std::make_unique<char[]>(header.version_header.version_string_length);
     if (!f.ReadBytes(version_buffer.get(), header.version_header.version_string_length))
     {
       Core::DisplayMessage("Failed to read state version string", 2000);
@@ -639,13 +639,13 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   std::lock_guard lk(s_save_thread_mutex);
 
   File::IOFile f(filename, "rb");
-  bool get_version_header = false;
+  const bool get_version_header = false;
   return ReadStateHeaderFromFile(header, f, get_version_header);
 }
 
 std::string GetInfoStringOfSlot(const int slot, const bool translate)
 {
-  std::string filename = MakeStateFilename(slot);
+  const std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
     return translate ? Common::GetStringT("Empty") : "Empty";
 
@@ -694,10 +694,10 @@ static bool DecompressLZ4(std::vector<u8>& raw_buffer, const u64 size, File::IOF
       return false;
     }
 
-    u32 max_decompress_size =
+    const u32 max_decompress_size =
         static_cast<u32>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), size - total_bytes_read));
 
-    int bytes_read = LZ4_decompress_safe(
+    const int bytes_read = LZ4_decompress_safe(
         compressed_data.get(), reinterpret_cast<char*>(raw_buffer.data()) + total_bytes_read,
         compressed_data_len, max_decompress_size);
 
@@ -747,9 +747,9 @@ static bool ValidateHeaders(const StateHeader& header)
     // This is a REALLY old version, before we started writing the version string to file
     success = false;
 
-    std::pair<std::string, std::string> version_range = s_old_versions.find(loaded_version)->second;
-    std::string oldest_version = version_range.first;
-    std::string newest_version = version_range.second;
+    const std::pair<std::string, std::string> version_range = s_old_versions.find(loaded_version)->second;
+    const std::string oldest_version = version_range.first;
+    const std::string newest_version = version_range.second;
 
     loaded_str = "Dolphin " + oldest_version + " - " + newest_version;
   }
@@ -822,11 +822,11 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   }
   case Uncompressed:
   {
-    u64 header_len = sizeof(StateHeaderLegacy) + sizeof(StateHeaderVersion) +
-                     header.version_header.version_string_length + sizeof(StateExtendedBaseHeader) +
-                     extended_header.base_header.payload_offset;
+    const u64 header_len = sizeof(StateHeaderLegacy) + sizeof(StateHeaderVersion) +
+                           header.version_header.version_string_length + sizeof(StateExtendedBaseHeader) +
+                           extended_header.base_header.payload_offset;
 
-    u64 file_size = f.GetSize();
+    const u64 file_size = f.GetSize();
     if (file_size < header_len)
     {
       PanicAlertFmt("State header length corrupted");
@@ -869,7 +869,7 @@ void LoadAs(Core::System& system, const std::string& filename)
     return;
   }
 
-  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  const std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
   if (!lk)
     return;
 
@@ -911,7 +911,7 @@ void LoadAs(Core::System& system, const std::string& filename)
         {
           if (loadedSuccessfully)
           {
-            std::filesystem::path tempfilename(filename);
+            const std::filesystem::path tempfilename(filename);
             Core::DisplayMessage(
                 fmt::format("Loaded State from {}", tempfilename.filename().string()), 2000);
             if (File::Exists(filename + ".dtm"))

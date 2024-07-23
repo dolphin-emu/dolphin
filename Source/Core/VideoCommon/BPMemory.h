@@ -2381,7 +2381,7 @@ union AllTexUnits
 
   const TexUnit& GetUnit(const u32 UnitId) const
   {
-    auto address = TexUnitAddress(UnitId);
+    const auto address = TexUnitAddress(UnitId);
     const u32* ptr = &AllRegisters[address.GetOffset()];
     return *reinterpret_cast<const TexUnit*>(ptr);
   }

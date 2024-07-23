@@ -87,7 +87,7 @@ void NetWDCommandDevice::Update()
 
 void NetWDCommandDevice::ProcessRecvRequests()
 {
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
 
   // Because we currently do not actually emulate the wireless driver, we have no frames
   // and no notification data that could be used to reply to requests.
@@ -236,8 +236,8 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
   if (!vector || vector->address == 0)
     return IPCReply(static_cast<u32>(ResultCode::IllegalParameter));
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const u32 state = memory.Read_U32(vector->address);
   INFO_LOG_FMT(IOS_NET, "WD_SetLinkState called (state={}, mode={})", state, m_mode);
 
@@ -284,8 +284,8 @@ IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request) const
   if (!vector || vector->address == 0)
     return IPCReply(static_cast<u32>(ResultCode::IllegalParameter));
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   Common::MACAddress mac;
   memory.CopyFromEmu(mac.data(), vector->address, mac.size());
@@ -317,8 +317,8 @@ IPCReply NetWDCommandDevice::GetInfo(const IOCtlVRequest& request) const
   if (!vector || vector->address == 0)
     return IPCReply(static_cast<u32>(ResultCode::IllegalParameter));
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.CopyToEmu(vector->address, &m_info, sizeof(m_info));
   return IPCReply(IPC_SUCCESS);
 }
@@ -344,8 +344,8 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
     // XXX - unused
     // ScanInfo *scan = (ScanInfo *)memory.GetPointer(request.in_vectors.at(0).m_Address);
 
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     u16* results = (u16*)memory.GetPointerForRange(request.io_vectors.at(0).address,
                                                    sizeof(u16) + sizeof(BSSInfo));
     // first u16 indicates number of BSSInfo following

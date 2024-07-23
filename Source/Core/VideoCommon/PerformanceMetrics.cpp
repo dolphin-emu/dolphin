@@ -190,7 +190,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   if (g_ActiveConfig.bShowSpeed)
   {
     // Position in the top-right corner of the screen.
-    float window_height = 47.f * backbuffer_scale;
+    const float window_height = 47.f * backbuffer_scale;
 
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(window_width, window_height));
@@ -211,8 +211,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
   if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowFTimes)
   {
-    int count = g_ActiveConfig.bShowFPS + 2 * g_ActiveConfig.bShowFTimes;
-    float window_height = (12.f + 17.f * count) * backbuffer_scale;
+    const int count = g_ActiveConfig.bShowFPS + 2 * g_ActiveConfig.bShowFTimes;
+    const float window_height = (12.f + 17.f * count) * backbuffer_scale;
 
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
@@ -241,8 +241,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 
   if (g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowVTimes)
   {
-    int count = g_ActiveConfig.bShowVPS + 2 * g_ActiveConfig.bShowVTimes;
-    float window_height = (12.f + 17.f * count) * backbuffer_scale;
+    const int count = g_ActiveConfig.bShowVPS + 2 * g_ActiveConfig.bShowVTimes;
+    const float window_height = (12.f + 17.f * count) * backbuffer_scale;
 
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));

@@ -68,23 +68,23 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
   if (tex_config.IsComputeImage())
     usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
-  VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                                  nullptr,
-                                  tex_config.type == AbstractTextureType::Texture_CubeMap ?
-                                      VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT :
-                                      static_cast<VkImageCreateFlags>(0),
-                                  VK_IMAGE_TYPE_2D,
-                                  GetVkFormatForHostTextureFormat(tex_config.format),
-                                  {tex_config.width, tex_config.height, 1},
-                                  tex_config.levels,
-                                  tex_config.layers,
-                                  static_cast<VkSampleCountFlagBits>(tex_config.samples),
-                                  VK_IMAGE_TILING_OPTIMAL,
-                                  usage,
-                                  VK_SHARING_MODE_EXCLUSIVE,
-                                  0,
-                                  nullptr,
-                                  VK_IMAGE_LAYOUT_UNDEFINED};
+  const VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                        nullptr,
+                                        tex_config.type == AbstractTextureType::Texture_CubeMap ?
+                                          VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT :
+                                          static_cast<VkImageCreateFlags>(0),
+                                        VK_IMAGE_TYPE_2D,
+                                        GetVkFormatForHostTextureFormat(tex_config.format),
+                                        {tex_config.width, tex_config.height, 1},
+                                        tex_config.levels,
+                                        tex_config.layers,
+                                        static_cast<VkSampleCountFlagBits>(tex_config.samples),
+                                        VK_IMAGE_TILING_OPTIMAL,
+                                        usage,
+                                        VK_SHARING_MODE_EXCLUSIVE,
+                                        0,
+                                        nullptr,
+                                        VK_IMAGE_LAYOUT_UNDEFINED};
 
   VmaAllocationCreateInfo alloc_create_info = {};
   alloc_create_info.flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
@@ -98,8 +98,8 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 
   VkImage image = VK_NULL_HANDLE;
   VmaAllocation alloc = VK_NULL_HANDLE;
-  VkResult res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info,
-                                &alloc_create_info, &image, &alloc, nullptr);
+  const VkResult res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info,
+                                      &alloc_create_info, &image, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vmaCreateImage failed: ");
@@ -146,7 +146,7 @@ std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_con
 
 bool VKTexture::CreateView(const VkImageViewType type)
 {
-  VkImageViewCreateInfo view_info = {
+  const VkImageViewCreateInfo view_info = {
       VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       nullptr,
       0,
@@ -157,7 +157,7 @@ bool VKTexture::CreateView(const VkImageViewType type)
        VK_COMPONENT_SWIZZLE_IDENTITY},
       {GetImageViewAspectForFormat(GetFormat()), 0, GetLevels(), 0, GetLayers()}};
 
-  VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &m_view);
+  const VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &m_view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
@@ -294,7 +294,7 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 
   const u32 copy_layer_count = 1;
 
-  VkImageCopy image_copy = {
+  const VkImageCopy image_copy = {
       {VK_IMAGE_ASPECT_COLOR_BIT, src_level, src_layer, copy_layer_count},
       {src_rect.left, src_rect.top, 0},
       {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, copy_layer_count},
@@ -329,13 +329,13 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 
   // Resolving is considered to be a transfer operation.
   StateTracker::GetInstance()->EndRenderPass();
-  VkImageLayout old_src_layout = srcentry->m_layout;
+  const VkImageLayout old_src_layout = srcentry->m_layout;
   srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  VkImageResolve resolve = {
+  const VkImageResolve resolve = {
       {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // srcSubresource
       {rect.left, rect.top, 0},                                                   // srcOffset
       {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // dstSubresource
@@ -424,7 +424,7 @@ void VKTexture::Load(const u32 level, u32 width, u32 height, const u32 row_lengt
   }
 
   // Copy from the streaming buffer to the actual image.
-  VkBufferImageCopy image_copy = {
+  const VkBufferImageCopy image_copy = {
       upload_buffer_offset,                          // VkDeviceSize             bufferOffset
       row_length,                                    // uint32_t                 bufferRowLength
       0,                                             // uint32_t                 bufferImageHeight
@@ -728,7 +728,7 @@ VKStagingTexture::~VKStagingTexture()
 std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType type,
                                                            const TextureConfig& config)
 {
-  size_t stride = config.GetStride();
+  const size_t stride = config.GetStride();
   size_t buffer_size = stride * static_cast<size_t>(config.height);
 
   STAGING_BUFFER_TYPE buffer_type;
@@ -784,21 +784,21 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
                                                                       const TextureConfig& config)
 {
   // Create a intermediate texture with linear tiling
-  VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                                  nullptr,
-                                  0,
-                                  VK_IMAGE_TYPE_2D,
-                                  VKTexture::GetVkFormatForHostTextureFormat(config.format),
-                                  {config.width, config.height, 1},
-                                  1,
-                                  1,
-                                  VK_SAMPLE_COUNT_1_BIT,
-                                  VK_IMAGE_TILING_LINEAR,
-                                  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                                  VK_SHARING_MODE_EXCLUSIVE,
-                                  0,
-                                  nullptr,
-                                  VK_IMAGE_LAYOUT_UNDEFINED};
+  const VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                        nullptr,
+                                        0,
+                                        VK_IMAGE_TYPE_2D,
+                                        VKTexture::GetVkFormatForHostTextureFormat(config.format),
+                                        {config.width, config.height, 1},
+                                        1,
+                                        1,
+                                        VK_SAMPLE_COUNT_1_BIT,
+                                        VK_IMAGE_TILING_LINEAR,
+                                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                        VK_SHARING_MODE_EXCLUSIVE,
+                                        0,
+                                        nullptr,
+                                        VK_IMAGE_LAYOUT_UNDEFINED};
 
   VkImageFormatProperties format_properties;
   VkResult res = vkGetPhysicalDeviceImageFormatProperties(
@@ -846,7 +846,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
   StateTracker::GetInstance()->EndRenderPass();
 
-  VkImageLayout old_layout = src_tex->GetLayout();
+  const VkImageLayout old_layout = src_tex->GetLayout();
   src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
@@ -948,7 +948,7 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   m_staging_buffer->FlushCPUCache();
   StateTracker::GetInstance()->EndRenderPass();
 
-  VkImageLayout old_layout = dst_tex->GetLayout();
+  const VkImageLayout old_layout = dst_tex->GetLayout();
   dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -1073,18 +1073,18 @@ VKFramebuffer::Create(VKTexture* color_attachment, VKTexture* depth_attachment,
     return nullptr;
   }
 
-  VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                              nullptr,
-                                              0,
-                                              load_render_pass,
-                                              static_cast<uint32_t>(attachment_views.size()),
-                                              attachment_views.data(),
-                                              width,
-                                              height,
-                                              layers};
+  const VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                                                    nullptr,
+                                                    0,
+                                                    load_render_pass,
+                                                    static_cast<uint32_t>(attachment_views.size()),
+                                                    attachment_views.data(),
+                                                    width,
+                                                    height,
+                                                    layers};
 
   VkFramebuffer fb;
-  VkResult res =
+  const VkResult res =
       vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr, &fb);
   if (res != VK_SUCCESS)
   {

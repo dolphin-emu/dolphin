@@ -500,7 +500,7 @@ private:
     // This cludge is needed to workaround GetCurrentReading wanting array_view<bool>, while
     // using std::vector<bool> would create a bit-packed array, which isn't wanted. So, we keep
     // vector<u8> and view it as array<bool>.
-    auto buttons =
+    const auto buttons =
         winrt::array_view(reinterpret_cast<winrt::array_view<bool>::pointer>(&m_buttons[0]),
                                 static_cast<winrt::array_view<bool>::size_type>(m_buttons.size()));
     try
@@ -551,7 +551,7 @@ private:
     try
     {
       // Workaround for Steam. If Steam's GameOverlayRenderer64.dll is loaded, battery_info is null.
-      auto battery_info = m_raw_controller.try_as<WGI::IGameControllerBatteryInfo>();
+      const auto battery_info = m_raw_controller.try_as<WGI::IGameControllerBatteryInfo>();
       if (!battery_info)
         return false;
       const winrt::Windows::Devices::Power::BatteryReport report =

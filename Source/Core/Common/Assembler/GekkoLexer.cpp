@@ -433,7 +433,7 @@ AssemblerToken Lexer::LookaheadFloat() const
   CursorPosition pos_pre = m_pos;
   ScanStart();
 
-  std::optional<std::string_view> failure_reason = RunDfa(float_dfa);
+  const std::optional<std::string_view> failure_reason = RunDfa(float_dfa);
 
   // Special case: lex at least a single char for no matches for errors to make sense
   if (m_scan_pos.index == pos_pre.index)
@@ -441,7 +441,7 @@ AssemblerToken Lexer::LookaheadFloat() const
     Step();
   }
 
-  std::string_view tok_str = ScanFinishOut();
+  const std::string_view tok_str = ScanFinishOut();
   AssemblerToken tok;
   if (!failure_reason)
   {
@@ -620,7 +620,7 @@ TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invali
   const size_t string_start = m_scan_pos.index - 1;
   TokenType token_type = TokenType::StringLit;
 
-  std::optional<std::string_view> failure_reason = RunDfa(string_dfa);
+  const std::optional<std::string_view> failure_reason = RunDfa(string_dfa);
 
   if (failure_reason)
   {
@@ -786,7 +786,7 @@ AssemblerToken Lexer::LexSingle() const
     }
   }
 
-  AssemblerToken new_tok = {token_type, ScanFinishOut(), invalid_reason, invalid_region};
+  const AssemblerToken new_tok = {token_type, ScanFinishOut(), invalid_reason, invalid_region};
   SkipWs();
   return new_tok;
 }

@@ -15,7 +15,7 @@ std::unique_ptr<WidescreenManager> g_widescreen;
 
 WidescreenManager::WidescreenManager()
 {
-  std::optional<bool> is_game_widescreen = GetWidescreenOverride();
+  const std::optional<bool> is_game_widescreen = GetWidescreenOverride();
   if (is_game_widescreen.has_value())
     m_is_game_widescreen = is_game_widescreen.value();
 
@@ -47,7 +47,7 @@ WidescreenManager::WidescreenManager()
       "Widescreen");
 
   // VertexManager doesn't maintain statistics in Wii mode.
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   if (!system.IsWii())
   {
     m_update_widescreen = AfterFrameEvent::Register(
@@ -59,7 +59,7 @@ std::optional<bool> WidescreenManager::GetWidescreenOverride() const
 {
   std::optional<bool> is_game_widescreen;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   if (system.IsWii())
     is_game_widescreen = Get(Config::SYSCONF_WIDESCREEN);
 

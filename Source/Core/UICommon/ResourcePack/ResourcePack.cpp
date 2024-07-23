@@ -236,7 +236,7 @@ bool ResourcePack::Uninstall(const std::string& path)
     return false;
   }
 
-  auto lower = GetLowerPriorityPacks(*this);
+  const auto lower = GetLowerPriorityPacks(*this);
 
   SetInstalled(*this, false);
 
@@ -260,7 +260,7 @@ bool ResourcePack::Uninstall(const std::string& path)
       continue;
 
     // Check if a lower priority pack provides a given texture - if so, install it.
-    for (auto& pack : lower)
+    for (const auto& pack : lower)
     {
       if (IsInstalled(*pack) &&
           std::find(pack->GetTextures().rbegin(), pack->GetTextures().rend(), texture) !=
@@ -290,7 +290,7 @@ bool ResourcePack::Uninstall(const std::string& path)
 
     while (dir.length() > (path + TEXTURE_PATH).length())
     {
-      auto is_empty = Common::DoFileSearch({dir}).empty();
+      const auto is_empty = Common::DoFileSearch({dir}).empty();
 
       if (is_empty)
         File::DeleteDir(dir);

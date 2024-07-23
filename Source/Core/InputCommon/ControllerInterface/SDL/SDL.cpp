@@ -154,7 +154,7 @@ private:
     }
     void SetState(const ControlState state) override
     {
-      Uint16 rumble = state * std::numeric_limits<Uint16>::max();
+      const Uint16 rumble = state * std::numeric_limits<Uint16>::max();
       SDL_GameControllerRumble(m_gc, rumble * LowEnable, rumble * HighEnable, RUMBLE_LENGTH_MS);
     }
 

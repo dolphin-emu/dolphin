@@ -341,7 +341,7 @@ bool Wiimote::Write()
     static sf::UdpSocket Socket;
     Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, m_balance_board_dump_port);
   }
-  int ret = IOWrite(rpt.data(), rpt.size());
+  const int ret = IOWrite(rpt.data(), rpt.size());
 
   m_write_reports.Pop();
 
@@ -507,7 +507,7 @@ ButtonData Wiimote::GetCurrentlyPressedButtons()
     // TODO: Button data could also be pulled out of non-data reports if really wanted.
     if (DataReportBuilder::IsValidMode(mode))
     {
-      auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
+      const auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
       ButtonData buttons = {};
       builder->GetCoreData(&buttons);
 
@@ -661,7 +661,7 @@ void WiimoteScanner::PoolThreadFunc() const
     }
 
     // Make wiimote pool LEDs dance.
-    for (auto& wiimote : s_wiimote_pool)
+    for (const auto& wiimote : s_wiimote_pool)
     {
       OutputReportLeds leds = {};
       leds.leds = led_value;
@@ -895,7 +895,7 @@ void Initialize(const ::Wiimote::InitializeMode init_mode)
 // called on emulation shutdown
 void Stop()
 {
-  for (auto& wiimote : g_wiimotes)
+  for (const auto& wiimote : g_wiimotes)
     if (wiimote && wiimote->IsConnected())
       wiimote->EmuStop();
 }
@@ -919,14 +919,14 @@ void Shutdown()
 
 void Resume()
 {
-  for (auto& wiimote : g_wiimotes)
+  for (const auto& wiimote : g_wiimotes)
     if (wiimote && wiimote->IsConnected())
       wiimote->EmuResume();
 }
 
 void Pause()
 {
-  for (auto& wiimote : g_wiimotes)
+  for (const auto& wiimote : g_wiimotes)
     if (wiimote && wiimote->IsConnected())
       wiimote->EmuPause();
 }

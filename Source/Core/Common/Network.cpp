@@ -64,7 +64,7 @@ std::optional<MACAddress> StringToMacAddress(const std::string_view mac_string)
 
   for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
   {
-    char c = ToLower(mac_string.at(i));
+    const char c = ToLower(mac_string.at(i));
     if (c >= '0' && c <= '9')
     {
       mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);
@@ -294,7 +294,7 @@ u16 ComputeNetworkChecksum(const void* data, const u16 length, const u32 initial
   u32 checksum = initial_value;
   std::size_t index = 0;
   const std::string_view data_view{reinterpret_cast<const char*>(data), length};
-  for (u8 b : data_view)
+  for (const u8 b : data_view)
   {
     const bool is_hi = index++ % 2 == 0;
     checksum += is_hi ? b << 8 : b;

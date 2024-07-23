@@ -90,7 +90,7 @@ void GamecubeControllersWidget::CreateLayout()
       gc_box->addItem(tr(item.second));
     }
 
-    int controller_row = m_gc_layout->rowCount();
+    const int controller_row = m_gc_layout->rowCount();
     m_gc_layout->addWidget(gc_label, controller_row, 0);
     m_gc_layout->addWidget(gc_box, controller_row, 1);
     m_gc_layout->addWidget(gc_button, controller_row, 2);

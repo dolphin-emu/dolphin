@@ -100,7 +100,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
   m_address_input = new QLineEdit(current_address);
   m_address_input->setPlaceholderText(address_placeholder);
 
-  auto buttonbox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  const auto buttonbox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   connect(buttonbox, &QDialogButtonBox::accepted, this,
           &BroadbandAdapterSettingsDialog::SaveAddress);
   connect(buttonbox, &QDialogButtonBox::rejected, this, &BroadbandAdapterSettingsDialog::reject);

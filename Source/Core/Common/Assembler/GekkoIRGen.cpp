@@ -285,11 +285,11 @@ void GekkoIRPlugin::OnHiaddr(std::string_view id)
   else
   {
     u32 base;
-    if (auto lbl = LookupLabel(id); lbl)
+    if (const auto lbl = LookupLabel(id); lbl)
     {
       base = *lbl;
     }
-    else if (auto var = LookupVar(id); var)
+    else if (const auto var = LookupVar(id); var)
     {
       base = *var;
     }
@@ -313,11 +313,11 @@ void GekkoIRPlugin::OnLoaddr(std::string_view id)
   else
   {
     u32 base;
-    if (auto lbl = LookupLabel(id); lbl)
+    if (const auto lbl = LookupLabel(id); lbl)
     {
       base = *lbl;
     }
-    else if (auto var = LookupVar(id); var)
+    else if (const auto var = LookupVar(id); var)
     {
       base = *var;
     }
@@ -391,13 +391,13 @@ u32 GekkoIRPlugin::CurrentAddress() const
 
 std::optional<u64> GekkoIRPlugin::LookupVar(const std::string_view var)
 {
-  auto var_it = m_constants.find(var);
+  const auto var_it = m_constants.find(var);
   return var_it == m_constants.end() ? std::nullopt : std::optional(var_it->second);
 }
 
 std::optional<u32> GekkoIRPlugin::LookupLabel(const std::string_view lab)
 {
-  auto label_it = m_labels.find(lab);
+  const auto label_it = m_labels.find(lab);
   return label_it == m_labels.end() ? std::nullopt : std::optional(label_it->second);
 }
 
@@ -534,7 +534,7 @@ void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
 
   m_fixup_stack.emplace(
       [this, sym, absolute, source_address, err_on_fail = std::move(err_on_fail)] {
-        auto label_it = m_labels.find(sym);
+        const auto label_it = m_labels.find(sym);
         if (label_it != m_labels.end())
         {
           if (absolute)
@@ -544,7 +544,7 @@ void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
           return label_it->second - source_address;
         }
 
-        auto var_it = m_constants.find(sym);
+        const auto var_it = m_constants.find(sym);
         if (var_it != m_constants.end())
         {
           return static_cast<u32>(var_it->second);
@@ -688,7 +688,7 @@ void GekkoIRPlugin::EvalTerminalRel(const Terminal type, const AssemblerToken& t
   case Terminal::Eq:
   case Terminal::So:
   {
-    std::optional<u32> val = tok.EvalToken<u32>();
+    const std::optional<u32> val = tok.EvalToken<u32>();
     ASSERT(val.has_value());
     AddLiteral(*val);
     break;
@@ -700,11 +700,11 @@ void GekkoIRPlugin::EvalTerminalRel(const Terminal type, const AssemblerToken& t
 
   case Terminal::Id:
   {
-    if (auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
+    if (const auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
     {
       AddLiteral(label_it->second - CurrentAddress());
     }
-    else if (auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
+    else if (const auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
     {
       AddLiteral(var_it->second);
     }
@@ -739,7 +739,7 @@ void GekkoIRPlugin::EvalTerminalAbs(const Terminal type, const AssemblerToken& t
   case Terminal::Eq:
   case Terminal::So:
   {
-    std::optional<u64> val = tok.EvalToken<u64>();
+    const std::optional<u64> val = tok.EvalToken<u64>();
     ASSERT(val.has_value());
     m_eval_stack.push_back(*val);
     break;
@@ -763,11 +763,11 @@ void GekkoIRPlugin::EvalTerminalAbs(const Terminal type, const AssemblerToken& t
 
   case Terminal::Id:
   {
-    if (auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
+    if (const auto label_it = m_labels.find(tok.token_val); label_it != m_labels.end())
     {
       m_eval_stack.push_back(label_it->second);
     }
-    else if (auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
+    else if (const auto var_it = m_constants.find(tok.token_val); var_it != m_constants.end())
     {
       m_eval_stack.push_back(var_it->second);
     }

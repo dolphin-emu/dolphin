@@ -59,13 +59,13 @@ public:
       if (sub_command == MATINDEX_A)
       {
         VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
-        auto& system = Core::System::GetInstance();
+        const auto& system = Core::System::GetInstance();
         system.GetXFStateManager().SetTexMatrixChangedA(value);
       }
       else if (sub_command == MATINDEX_B)
       {
         VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
-        auto& system = Core::System::GetInstance();
+        const auto& system = Core::System::GetInstance();
         system.GetXFStateManager().SetTexMatrixChangedB(value);
       }
       else if (sub_command == VCD_LO || sub_command == VCD_HI)
@@ -153,11 +153,11 @@ public:
     {
       m_in_display_list = true;
 
-      auto& system = Core::System::GetInstance();
+      const auto& system = Core::System::GetInstance();
 
       if constexpr (is_preprocess)
       {
-        auto& memory = system.GetMemory();
+        const auto& memory = system.GetMemory();
         const u8* const start_address = memory.GetPointerForRange(address, size);
 
         system.GetFifo().PushFifoAuxBuffer(start_address, size);
@@ -178,7 +178,7 @@ public:
         }
         else
         {
-          auto& memory = system.GetMemory();
+          const auto& memory = system.GetMemory();
           start_address = memory.GetPointerForRange(address, size);
         }
 
@@ -219,7 +219,7 @@ public:
     }
     else
     {
-      auto& system = Core::System::GetInstance();
+      const auto& system = Core::System::GetInstance();
       system.GetCommandProcessor().HandleUnknownOpcode(opcode, data, is_preprocess);
       m_cycles += 1;
     }
@@ -249,7 +249,7 @@ public:
 
   OPCODE_CALLBACK(u32 GetVertexSize(const u8 vat))
   {
-    VertexLoaderBase* loader = VertexLoaderManager::RefreshLoader<is_preprocess>(vat);
+    const VertexLoaderBase* loader = VertexLoaderManager::RefreshLoader<is_preprocess>(vat);
     return loader->m_vertex_size;
   }
 
@@ -262,7 +262,7 @@ u8* RunFifo(DataReader src, u32* cycles)
 {
   using CallbackT = RunCallback<is_preprocess>;
   auto callback = CallbackT{};
-  u32 size = Run(src.GetPointer(), static_cast<u32>(src.size()), callback);
+  const u32 size = Run(src.GetPointer(), static_cast<u32>(src.size()), callback);
 
   if (cycles != nullptr)
     *cycles = callback.m_cycles;

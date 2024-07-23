@@ -71,7 +71,7 @@ private:
   void CloseTab(int index, AsmEditor* editor);
   int AllocateTabNum();
   void FreeTabNum(int num);
-  void UpdateTabText(AsmEditor* editor);
+  void UpdateTabText(const AsmEditor* editor);
   void DisambiguateTabTitles(AsmEditor* editor);
   void UpdateIcons() const;
   void ZoomAllEditors(int amount);

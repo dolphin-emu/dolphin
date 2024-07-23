@@ -94,7 +94,7 @@ static double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
     return 0;
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 0)));
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(Core::System::GetInstance());
   return std::bit_cast<T>(HostRead<U>(guard, address));
 }
 
@@ -106,7 +106,7 @@ static double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
   const T var = static_cast<T>(expr_eval(&vec_nth(args, 0)));
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
 
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(Core::System::GetInstance());
   HostWrite<U>(guard, std::bit_cast<U>(var), address);
   return var;
 }
@@ -126,13 +126,13 @@ static double CallstackFunc(expr_func* f, const vec_expr_t* args, void* c)
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
   {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const Core::CPUThreadGuard guard(Core::System::GetInstance());
     const bool success = GetCallstack(guard, stack);
     if (!success)
       return 0;
   }
 
-  double num = expr_eval(&vec_nth(args, 0));
+  const double num = expr_eval(&vec_nth(args, 0));
   if (!std::isnan(num))
   {
     u32 address = static_cast<u32>(num);
@@ -152,10 +152,10 @@ static double CallstackFunc(expr_func* f, const vec_expr_t* args, void* c)
 
 static std::optional<std::string> ReadStringArg(const Core::CPUThreadGuard& guard, expr* e)
 {
-  double num = expr_eval(e);
+  const double num = expr_eval(e);
   if (!std::isnan(num))
   {
-    u32 address = static_cast<u32>(num);
+    const u32 address = static_cast<u32>(num);
     return PowerPC::MMU::HostGetString(guard, address);
   }
 
@@ -174,7 +174,7 @@ static double StreqFunc(expr_func* f, const vec_expr_t* args, void* c)
     return 0;
 
   std::array<std::string, 2> strs;
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(Core::System::GetInstance());
   for (int i = 0; i < 2; i++)
   {
     std::optional<std::string> arg = ReadStringArg(guard, &vec_nth(args, i));
@@ -391,7 +391,7 @@ Expression::Expression(const std::string_view text, ExprPointer ex, ExprVarListP
   static_assert(std::ranges::adjacent_find(sorted_lookup, {}, &LookupKV::first) ==
                     sorted_lookup.end(),
                 "Expression: Sorted lookup should not contain duplicate keys.");
-  for (auto* v = m_vars->head; v != nullptr; v = v->next)
+  for (const auto* v = m_vars->head; v != nullptr; v = v->next)
   {
     const auto iter = std::ranges::lower_bound(sorted_lookup, v->name, {}, &LookupKV::first);
     if (iter != sorted_lookup.end() && iter->first == v->name)
@@ -411,11 +411,11 @@ std::optional<Expression> Expression::TryParse(const std::string_view text)
   return Expression{text, std::move(ex), std::move(vars)};
 }
 
-double Expression::Evaluate(Core::System& system) const
+double Expression::Evaluate(const Core::System& system) const
 {
   SynchronizeBindings(system, SynchronizeDirection::From);
 
-  double result = expr_eval(m_expr.get());
+  const double result = expr_eval(m_expr.get());
 
   SynchronizeBindings(system, SynchronizeDirection::To);
 

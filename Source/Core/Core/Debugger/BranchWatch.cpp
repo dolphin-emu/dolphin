@@ -288,12 +288,12 @@ void BranchWatch::IsolateNotOverwritten(const CPUThreadGuard& guard)
   }
 }
 
-void BranchWatch::UpdateHitsSnapshot()
+void BranchWatch::UpdateHitsSnapshot() const
 {
   switch (m_recording_phase)
   {
   case Phase::Reduction:
-    for (Selection::value_type& value : m_selection)
+    for (const Selection::value_type& value : m_selection)
       value.collection_ptr->second.hits_snapshot = value.collection_ptr->second.total_hits;
     return;
   case Phase::Blacklist:

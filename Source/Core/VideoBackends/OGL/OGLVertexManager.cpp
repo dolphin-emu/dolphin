@@ -175,8 +175,8 @@ void VertexManager::ResetBuffer(const u32 vertex_stride)
 void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride, const u32 num_indices,
                                  u32* out_base_vertex, u32* out_base_index)
 {
-  u32 vertex_data_size = num_vertices * vertex_stride;
-  u32 index_data_size = num_indices * sizeof(u16);
+  const u32 vertex_data_size = num_vertices * vertex_stride;
+  const u32 index_data_size = num_indices * sizeof(u16);
 
   *out_base_vertex = vertex_stride > 0 ? (m_vertex_buffer->GetCurrentOffset() / vertex_stride) : 0;
   *out_base_index = m_index_buffer->GetCurrentOffset() / sizeof(u16);

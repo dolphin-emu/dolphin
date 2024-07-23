@@ -127,8 +127,8 @@ std::optional<IPCReply> SDIOSlot0Device::Close(const u32 fd)
 
 std::optional<IPCReply> SDIOSlot0Device::IOCtl(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Memset(request.buffer_out, 0, request.buffer_out_size);
 
   switch (request.request)
@@ -188,7 +188,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, const u32 buffer_in,
     u32 pad0;
   } req;
 
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   req.command = memory.Read_U32(buffer_in + 0);
@@ -358,8 +358,8 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, const u32 buffer_in,
 
 IPCReply SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 reg = memory.Read_U32(request.buffer_in);
   const u32 val = memory.Read_U32(request.buffer_in + 16);
@@ -393,8 +393,8 @@ IPCReply SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
 
 IPCReply SDIOSlot0Device::ReadHCRegister(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 reg = memory.Read_U32(request.buffer_in);
 
@@ -416,8 +416,8 @@ IPCReply SDIOSlot0Device::ResetCard(const IOCtlRequest& request) const
 {
   INFO_LOG_FMT(IOS_SD, "IOCTL_RESETCARD");
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // Returns 16bit RCA and 16bit 0s (meaning success)
   memory.Write_U32(m_status, request.buffer_out);
@@ -429,8 +429,8 @@ IPCReply SDIOSlot0Device::SetClk(const IOCtlRequest& request) const
 {
   INFO_LOG_FMT(IOS_SD, "IOCTL_SETCLK");
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // libogc only sets it to 1 and makes sure the return isn't negative...
   // one half of the sdclk divisor: a power of two or zero.
@@ -443,8 +443,8 @@ IPCReply SDIOSlot0Device::SetClk(const IOCtlRequest& request) const
 
 std::optional<IPCReply> SDIOSlot0Device::SendCommand(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   INFO_LOG_FMT(IOS_SD, "IOCTL_SENDCMD {:x} IPC:{:08x}", memory.Read_U32(request.buffer_in),
                request.address);
@@ -495,16 +495,16 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
                (status & CARD_INSERTED) ? "inserted" : "not present",
                (status & CARD_INITIALIZED) ? " and initialized" : "");
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(status, request.buffer_out);
   return IPCReply(IPC_SUCCESS);
 }
 
 IPCReply SDIOSlot0Device::GetOCRegister(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 ocr = GetOCRegister();
   INFO_LOG_FMT(IOS_SD, "IOCTL_GETOCR. Replying with ocr {:x}", ocr);
@@ -515,8 +515,8 @@ IPCReply SDIOSlot0Device::GetOCRegister(const IOCtlRequest& request) const
 
 IPCReply SDIOSlot0Device::SendCommand(const IOCtlVRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   DEBUG_LOG_FMT(IOS_SD, "IOCTLV_SENDCMD {:#010x}", memory.Read_U32(request.in_vectors[0].address));
   memory.Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);

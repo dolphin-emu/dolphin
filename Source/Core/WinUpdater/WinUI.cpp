@@ -181,11 +181,11 @@ void ResetCurrentProgress()
 
 void Error(const std::string& text)
 {
-  auto message = L"A fatal error occurred and the updater cannot continue:\n " +
-                 UTF8ToWString(text) + L"\n" +
-                 L"If the issue persists, please manually download the latest version from "
-                 L"dolphin-emu.org/download and extract it overtop your existing installation.\n" +
-                 L"Also consider filing a bug at bugs.dolphin-emu.org/projects/emulator";
+  const auto message = L"A fatal error occurred and the updater cannot continue:\n " +
+                       UTF8ToWString(text) + L"\n" +
+                       L"If the issue persists, please manually download the latest version from "
+                       L"dolphin-emu.org/download and extract it overtop your existing installation.\n" +
+                       L"Also consider filing a bug at bugs.dolphin-emu.org/projects/emulator";
 
   MessageBox(nullptr, message.c_str(), L"Error", MB_ICONERROR);
 
@@ -292,7 +292,7 @@ void Sleep(const int sleep)
 
 void WaitForPID(const u32 pid)
 {
-  HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
+  const HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
   if (parent_handle)
   {
     WaitForSingleObject(parent_handle, INFINITE);

@@ -29,9 +29,9 @@ bool IsTAPDevice(const TCHAR* guid)
     TCHAR enum_name[256];
     TCHAR unit_string[256];
     HKEY unit_key;
-    TCHAR component_id_string[] = _T("ComponentId");
+    const TCHAR component_id_string[] = _T("ComponentId");
     TCHAR component_id[256];
-    TCHAR net_cfg_instance_id_string[] = _T("NetCfgInstanceId");
+    const TCHAR net_cfg_instance_id_string[] = _T("NetCfgInstanceId");
     TCHAR net_cfg_instance_id[256];
     DWORD data_type;
 
@@ -66,7 +66,7 @@ bool IsTAPDevice(const TCHAR* guid)
 
         if (status == ERROR_SUCCESS && data_type == REG_SZ)
         {
-          TCHAR* const component_id_sub = _tcsstr(component_id, TAP_COMPONENT_ID);
+          const TCHAR* const component_id_sub = _tcsstr(component_id, TAP_COMPONENT_ID);
 
           if (component_id_sub)
           {

@@ -16,7 +16,7 @@ namespace Common
 static std::string GetStrippedFunctionName(const std::string& symbol_name)
 {
   std::string name = symbol_name.substr(0, symbol_name.find('('));
-  size_t position = name.find(' ');
+  const size_t position = name.find(' ');
   if (position != std::string::npos)
     name.erase(position);
   return name;
@@ -89,7 +89,7 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromName(const std::string_view name)
 
 Symbol* SymbolDB::GetSymbolFromHash(const u32 hash)
 {
-  auto iter = m_checksum_to_function.find(hash);
+  const auto iter = m_checksum_to_function.find(hash);
   if (iter == m_checksum_to_function.end())
     return nullptr;
 

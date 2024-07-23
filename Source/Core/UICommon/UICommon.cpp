@@ -351,7 +351,7 @@ void SetUserDirectory(std::string custom_path)
 
   // Attempt to check if the old User directory exists in Documents.
   wil::unique_cotaskmem_string documents;
-  bool documents_found = SUCCEEDED(
+  const bool documents_found = SUCCEEDED(
       SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, documents.put()));
 
   std::optional<std::string> old_user_folder;
@@ -380,7 +380,7 @@ void SetUserDirectory(std::string custom_path)
     // builds, which will look for the default User directory in Documents. If we set this key,
     // they will use this as the User directory instead.
     // (If we're in this case, then this key doesn't exist, so it's OK to set it.)
-    std::wstring wstr_path = UTF8ToWString(user_path);
+    const std::wstring wstr_path = UTF8ToWString(user_path);
     RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), TEXT("UserConfigPath"),
                     REG_SZ, wstr_path.c_str(),
                     static_cast<DWORD>((wstr_path.size() + 1) * sizeof(wchar_t)));

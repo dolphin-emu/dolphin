@@ -161,10 +161,10 @@ void AchievementSettingsWidget::OnControllerInterfaceConfigure()
 
 void AchievementSettingsWidget::LoadSettings() const
 {
-  bool enabled = Get(Config::RA_ENABLED);
-  bool hardcore_enabled = Get(Config::RA_HARDCORE_ENABLED);
-  bool logged_out = Get(Config::RA_API_TOKEN).empty();
-  std::string username = Get(Config::RA_USERNAME);
+  const bool enabled = Get(Config::RA_ENABLED);
+  const bool hardcore_enabled = Get(Config::RA_HARDCORE_ENABLED);
+  const bool logged_out = Get(Config::RA_API_TOKEN).empty();
+  const std::string username = Get(Config::RA_USERNAME);
 
   SignalBlocking(m_common_integration_enabled_input)->setChecked(enabled);
   SignalBlocking(m_common_username_label)->setEnabled(enabled);
@@ -183,7 +183,7 @@ void AchievementSettingsWidget::LoadSettings() const
 
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Get(Config::RA_HARDCORE_ENABLED));
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setEnabled(enabled &&
                    (hardcore_enabled || (GetState(system) == Core::State::Uninitialized &&

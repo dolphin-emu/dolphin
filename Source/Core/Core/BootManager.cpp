@@ -67,10 +67,10 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     return false;
 
   // Movie settings
-  auto& movie = system.GetMovie();
+  const auto& movie = system.GetMovie();
   if (movie.IsPlayingInput() && movie.IsConfigSaved())
   {
-    for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+    for (const ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
     {
       if (movie.IsUsingMemcard(slot) && movie.IsStartingFromClearSave() && !system.IsWii())
       {

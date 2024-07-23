@@ -103,7 +103,7 @@ static void RunWithGPUThreadInactive(const std::function<void()>& f)
     // (Note that this case cannot be reached in single core mode, because in single core mode,
     // the CPU and GPU threads are the same thread, and we already checked for the GPU thread.)
 
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     const bool was_running = GetState(system) == Core::State::Running;
     auto& fifo = system.GetFifo();
     fifo.PauseAndLock(true, was_running);

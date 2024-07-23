@@ -223,7 +223,7 @@ const Info MAIN_OVERRIDE_BOOT_IOS{{System::Main, "Core", "OverrideBootIOS"}, -1}
 
 GPUDeterminismMode GetGPUDeterminismMode()
 {
-  auto mode = Get(MAIN_GPU_DETERMINISM_MODE);
+  const auto mode = Get(MAIN_GPU_DETERMINISM_MODE);
   if (mode == "auto")
     return GPUDeterminismMode::Auto;
   if (mode == "none")
@@ -316,7 +316,7 @@ static Info<std::string> MakeISOPathConfigInfo(size_t idx)
 
 std::vector<std::string> GetIsoPaths()
 {
-  size_t count = MathUtil::SaturatingCast<size_t>(Get(MAIN_ISO_PATH_COUNT));
+  const size_t count = MathUtil::SaturatingCast<size_t>(Get(MAIN_ISO_PATH_COUNT));
   std::vector<std::string> paths;
   paths.reserve(count);
   for (size_t i = 0; i < count; ++i)
@@ -330,7 +330,7 @@ std::vector<std::string> GetIsoPaths()
 
 void SetIsoPaths(const std::vector<std::string>& paths)
 {
-  size_t old_size = MathUtil::SaturatingCast<size_t>(Get(MAIN_ISO_PATH_COUNT));
+  const size_t old_size = MathUtil::SaturatingCast<size_t>(Get(MAIN_ISO_PATH_COUNT));
   size_t new_size = paths.size();
 
   size_t current_path_idx = 0;

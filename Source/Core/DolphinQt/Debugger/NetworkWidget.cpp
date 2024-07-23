@@ -153,7 +153,7 @@ NetworkWidget::NetworkWidget(QWidget* parent) : QDockWidget(parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("networkwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -257,7 +257,7 @@ void NetworkWidget::Update() const
   if (!ios)
     return;
 
-  auto socket_manager = ios->GetSocketManager();
+  const auto socket_manager = ios->GetSocketManager();
   if (!socket_manager)
     return;
 
@@ -328,7 +328,7 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
 
   m_socket_table = new QTableWidget();
   // i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
-  QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Blocking"), tr("Name")};
+  const QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Blocking"), tr("Name")};
   m_socket_table->setColumnCount(static_cast<int>(header.size()));
 
   m_socket_table->setHorizontalHeaderLabels(header);
@@ -350,7 +350,7 @@ QGroupBox* NetworkWidget::CreateSSLContextGroup()
   ssl_context_group->setLayout(ssl_context_layout);
 
   m_ssl_table = new QTableWidget();
-  QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name"), tr("Hostname")};
+  const QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name"), tr("Hostname")};
   m_ssl_table->setColumnCount(static_cast<int>(header.size()));
 
   m_ssl_table->setHorizontalHeaderLabels(header);

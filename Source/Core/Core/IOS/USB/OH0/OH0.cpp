@@ -93,8 +93,8 @@ IPCReply OH0::CancelInsertionHook(const IOCtlRequest& request)
   if (!request.buffer_in || request.buffer_in_size != 4)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // IOS assigns random IDs, but ours are simply the VID + PID (see RegisterInsertionHookWithID)
   TriggerHook(m_insertion_hooks,
@@ -108,8 +108,8 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(2, 2))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u8 max_entries_count = memory.Read_U8(request.in_vectors[0].address);
   if (request.io_vectors[1].size != max_entries_count * sizeof(DeviceEntry))
@@ -140,8 +140,8 @@ IPCReply OH0::GetRhDesca(const IOCtlRequest& request) const
   if (!request.buffer_out || request.buffer_out_size != 4)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // Based on a hardware test, this ioctl seems to return a constant value
   memory.Write_U32(0x02000302, request.buffer_out);
@@ -187,8 +187,8 @@ std::optional<IPCReply> OH0::RegisterInsertionHook(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u16 vid = memory.Read_U16(request.in_vectors[0].address);
   const u16 pid = memory.Read_U16(request.in_vectors[1].address);
@@ -206,8 +206,8 @@ std::optional<IPCReply> OH0::RegisterInsertionHookWithID(const IOCtlVRequest& re
   if (!request.HasNumberOfValidVectors(3, 1))
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::lock_guard lock{m_hooks_mutex};
   const u16 vid = memory.Read_U16(request.in_vectors[0].address);
@@ -337,8 +337,8 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
 
 s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   switch (ioctlv.request)
   {

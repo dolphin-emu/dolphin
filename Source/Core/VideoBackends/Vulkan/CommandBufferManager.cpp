@@ -48,7 +48,7 @@ bool CommandBufferManager::CreateCommandBuffers()
   static constexpr VkSemaphoreCreateInfo semaphore_create_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, nullptr, 0};
 
-  VkDevice device = g_vulkan_context->GetDevice();
+  const VkDevice device = g_vulkan_context->GetDevice();
   VkResult res;
 
   for (CmdBufferResources& resources : m_command_buffers)
@@ -110,7 +110,7 @@ bool CommandBufferManager::CreateCommandBuffers()
 
 void CommandBufferManager::DestroyCommandBuffers()
 {
-  VkDevice device = g_vulkan_context->GetDevice();
+  const VkDevice device = g_vulkan_context->GetDevice();
 
   for (CmdBufferResources& resources : m_command_buffers)
   {
@@ -134,7 +134,7 @@ void CommandBufferManager::DestroyCommandBuffers()
 
   for (FrameResources& resources : m_frame_resources)
   {
-    for (VkDescriptorPool descriptor_pool : resources.descriptor_pools)
+    for (const VkDescriptorPool descriptor_pool : resources.descriptor_pools)
     {
       vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
     }
@@ -170,9 +170,9 @@ VkDescriptorPool CommandBufferManager::CreateDescriptorPool(const u32 max_descri
       static_cast<u32>(pool_sizes.size()),           pool_sizes.data(),
   };
 
-  VkDevice device = g_vulkan_context->GetDevice();
+  const VkDevice device = g_vulkan_context->GetDevice();
   VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
-  VkResult res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &descriptor_pool);
+  const VkResult res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &descriptor_pool);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateDescriptorPool failed: ");
@@ -188,11 +188,11 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 
   if (!resources.descriptor_pools.empty()) [[likely]]
   {
-    VkDescriptorSetAllocateInfo allocate_info = {
+    const VkDescriptorSetAllocateInfo allocate_info = {
         VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, nullptr,
         resources.descriptor_pools[resources.current_descriptor_pool_index], 1, &set_layout};
 
-    VkResult res =
+    const VkResult res =
         vkAllocateDescriptorSets(g_vulkan_context->GetDevice(), &allocate_info, &descriptor_set);
     if (res != VK_SUCCESS &&
         resources.descriptor_pools.size() > resources.current_descriptor_pool_index + 1)
@@ -205,7 +205,7 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 
   if (descriptor_set == VK_NULL_HANDLE) [[unlikely]]
   {
-    VkDescriptorPool descriptor_pool = CreateDescriptorPool(DESCRIPTOR_SETS_PER_POOL);
+    const VkDescriptorPool descriptor_pool = CreateDescriptorPool(DESCRIPTOR_SETS_PER_POOL);
     m_descriptor_set_count += DESCRIPTOR_SETS_PER_POOL;
     if (descriptor_pool == VK_NULL_HANDLE) [[unlikely]]
       return VK_NULL_HANDLE;
@@ -260,7 +260,7 @@ void CommandBufferManager::WaitForFenceCounter(const u64 fence_counter)
 
 void CommandBufferManager::WaitForCommandBufferCompletion(const u32 index)
 {
-  CmdBufferResources& resources = m_command_buffers[index];
+  const CmdBufferResources& resources = m_command_buffers[index];
 
   // Ensure this command buffer has been submitted.
   if (resources.waiting_for_submit.load(std::memory_order_acquire))
@@ -271,7 +271,7 @@ void CommandBufferManager::WaitForCommandBufferCompletion(const u32 index)
   }
 
   // Wait for this command buffer to be completed.
-  VkResult res =
+  const VkResult res =
       vkWaitForFences(g_vulkan_context->GetDevice(), 1, &resources.fence, VK_TRUE, UINT64_MAX);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
@@ -306,9 +306,9 @@ void CommandBufferManager::SubmitCommandBuffer(const bool submit_on_worker_threa
 {
   // End the current command buffer.
   CmdBufferResources& resources = GetCurrentCmdBufferResources();
-  for (VkCommandBuffer command_buffer : resources.command_buffers)
+  for (const VkCommandBuffer command_buffer : resources.command_buffers)
   {
-    VkResult res = vkEndCommandBuffer(command_buffer);
+    const VkResult res = vkEndCommandBuffer(command_buffer);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
@@ -342,7 +342,7 @@ void CommandBufferManager::SubmitCommandBuffer(const bool submit_on_worker_threa
     u32 cmd_buffer_index = (m_current_cmd_buffer + 1) % NUM_COMMAND_BUFFERS;
     while (cmd_buffer_index != m_current_cmd_buffer)
     {
-      CmdBufferResources& cmd_buffer = m_command_buffers[cmd_buffer_index];
+      const CmdBufferResources& cmd_buffer = m_command_buffers[cmd_buffer_index];
       if (cmd_buffer.frame_index == m_current_frame && cmd_buffer.fence_counter != 0 &&
           cmd_buffer.fence_counter > m_completed_fence_counter)
       {
@@ -356,19 +356,19 @@ void CommandBufferManager::SubmitCommandBuffer(const bool submit_on_worker_threa
 
     if (frame_resources.descriptor_pools.size() == 1) [[likely]]
     {
-      VkResult res = vkResetDescriptorPool(g_vulkan_context->GetDevice(),
-                                           frame_resources.descriptor_pools[0], 0);
+      const VkResult res = vkResetDescriptorPool(g_vulkan_context->GetDevice(),
+                                                 frame_resources.descriptor_pools[0], 0);
       if (res != VK_SUCCESS)
         LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
     }
     else [[unlikely]]
     {
-      for (VkDescriptorPool descriptor_pool : frame_resources.descriptor_pools)
+      for (const VkDescriptorPool descriptor_pool : frame_resources.descriptor_pools)
       {
         vkDestroyDescriptorPool(g_vulkan_context->GetDevice(), descriptor_pool, nullptr);
       }
       frame_resources.descriptor_pools.clear();
-      VkDescriptorPool descriptor_pool = CreateDescriptorPool(m_descriptor_set_count);
+      const VkDescriptorPool descriptor_pool = CreateDescriptorPool(m_descriptor_set_count);
       if (descriptor_pool != VK_NULL_HANDLE) [[likely]]
         frame_resources.descriptor_pools.push_back(descriptor_pool);
     }
@@ -417,7 +417,7 @@ void CommandBufferManager::SubmitCommandBuffer(const u32 command_buffer_index,
     submit_info.pSignalSemaphores = &m_present_semaphore;
   }
 
-  VkResult res =
+  const VkResult res =
       vkQueueSubmit(g_vulkan_context->GetGraphicsQueue(), 1, &submit_info, resources.fence);
   if (res != VK_SUCCESS)
   {
@@ -430,14 +430,14 @@ void CommandBufferManager::SubmitCommandBuffer(const u32 command_buffer_index,
   if (present_swap_chain != VK_NULL_HANDLE)
   {
     // Should have a signal semaphore.
-    VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                                     nullptr,
-                                     1,
-                                     &m_present_semaphore,
-                                     1,
-                                     &present_swap_chain,
-                                     &present_image_index,
-                                     nullptr};
+    const VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                           nullptr,
+                                           1,
+                                           &m_present_semaphore,
+                                           1,
+                                           &present_swap_chain,
+                                           &present_image_index,
+                                           nullptr};
 
     m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
     m_last_present_done.Set();
@@ -484,9 +484,9 @@ void CommandBufferManager::BeginCommandBuffer()
     LOG_VULKAN_ERROR(res, "vkResetCommandPool failed: ");
 
   // Enable commands to be recorded to the two buffers again.
-  VkCommandBufferBeginInfo begin_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
-                                         VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
-  for (VkCommandBuffer command_buffer : resources.command_buffers)
+  const VkCommandBufferBeginInfo begin_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
+                                               VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
+  for (const VkCommandBuffer command_buffer : resources.command_buffers)
   {
     res = vkBeginCommandBuffer(command_buffer, &begin_info);
     if (res != VK_SUCCESS)

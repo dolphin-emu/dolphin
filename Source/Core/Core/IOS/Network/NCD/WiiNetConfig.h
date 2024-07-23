@@ -116,7 +116,7 @@ public:
   void WriteConfig(FS::FileSystem* fs) const;
   void ResetConfig(FS::FileSystem* fs);
 
-  void WriteToMem(Memory::MemoryManager& memory, u32 address) const;
+  void WriteToMem(const Memory::MemoryManager& memory, u32 address) const;
   void ReadFromMem(const Memory::MemoryManager& memory, u32 address);
 
 private:

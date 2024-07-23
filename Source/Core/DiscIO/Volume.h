@@ -151,7 +151,7 @@ protected:
   std::string DecodeString(const char (&data)[N]) const
   {
     // strnlen to trim NULLs
-    std::string string(data, strnlen(data, sizeof(data)));
+    const std::string string(data, strnlen(data, sizeof(data)));
 
     if (GetRegion() == Region::NTSC_J)
       return SHIFTJISToUTF8(string);

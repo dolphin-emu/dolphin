@@ -194,7 +194,7 @@ void Initialize(const InitializeMode init_mode)
   WiimoteReal::Initialize(init_mode);
 
   // Reload Wiimotes with our settings
-  auto& movie = Core::System::GetInstance().GetMovie();
+  const auto& movie = Core::System::GetInstance().GetMovie();
   if (movie.IsMovieActive())
     movie.ChangeWiiPads();
 }

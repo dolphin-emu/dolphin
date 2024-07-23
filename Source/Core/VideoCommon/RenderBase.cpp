@@ -92,7 +92,7 @@ u32 Renderer::AccessEFB(const EFBAccessType type, const u32 x, const u32 y, u32 
       depth = 1.0f - depth;
 
     // Convert to 24bit depth
-    u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+    const u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
 
     if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
     {
@@ -121,8 +121,8 @@ void Renderer::PokeEFB(const EFBAccessType type, const EfbPokeData* points, cons
       // Convert to expected format (BGRA->RGBA)
       // TODO: Check alpha, depending on mode?
       const EfbPokeData& point = points[i];
-      u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
-                   ((point.data << 16) & 0xFF0000));
+      const u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
+                         ((point.data << 16) & 0xFF0000));
       g_framebuffer_manager->PokeEFBColor(point.x, point.y, color);
     }
   }

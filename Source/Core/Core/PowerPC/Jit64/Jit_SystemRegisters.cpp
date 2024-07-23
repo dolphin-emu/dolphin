@@ -157,7 +157,7 @@ void Jit64::FixGTBeforeSettingCRFieldBit(const X64Reg reg)
   // If all bits are zero and we set some bit that's unrelated to GT, we need to set bit 63 so GT
   // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
   TEST(64, R(reg), R(reg));
-  FixupBranch dont_clear_gt = J_CC(CC_NZ);
+  const FixupBranch dont_clear_gt = J_CC(CC_NZ);
   BTS(64, R(reg), Imm8(63));
   SetJumpTarget(dont_clear_gt);
 }
@@ -217,7 +217,7 @@ void Jit64::UpdateFPExceptionSummary(const X64Reg fpscr, const X64Reg tmp1, cons
   OR(32, R(fpscr), R(tmp1));
 }
 
-static void DoICacheReset(PowerPC::PowerPCState& ppc_state, JitInterface& jit_interface)
+static void DoICacheReset(PowerPC::PowerPCState& ppc_state, const JitInterface& jit_interface)
 {
   ppc_state.iCache.Reset(jit_interface);
 }

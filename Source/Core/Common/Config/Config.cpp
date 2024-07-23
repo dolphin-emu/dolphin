@@ -110,7 +110,7 @@ void Load()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (auto& layer : s_layers)
+    for (const auto& layer : s_layers)
       layer.second->Load();
   }
   OnConfigChanged();
@@ -121,7 +121,7 @@ void Save()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (auto& layer : s_layers)
+    for (const auto& layer : s_layers)
       layer.second->Save();
   }
   OnConfigChanged();

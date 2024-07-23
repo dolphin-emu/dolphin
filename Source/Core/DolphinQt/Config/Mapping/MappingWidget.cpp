@@ -250,7 +250,7 @@ void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* 
   form_layout->addRow(reset_button);
 
   connect(reset_button, &QPushButton::clicked, [this, group] {
-    for (auto& setting : group->numeric_settings)
+    for (const auto& setting : group->numeric_settings)
     {
       if (setting->GetVisibility() != ControllerEmu::SettingVisibility::Advanced)
         continue;

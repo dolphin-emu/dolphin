@@ -56,7 +56,7 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
   if (vertex_stride & 3)
     PanicAlertFmt("Uneven vertex stride: {}", vertex_stride);
 
-  VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
+  const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
 
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);

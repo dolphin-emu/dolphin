@@ -29,7 +29,7 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   CreateWidgets();
 
@@ -154,7 +154,7 @@ void JITWidget::Update()
       QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(host_instructions_disasm.text)));
 
   // == Fill in ppc box
-  u32 ppc_addr = m_address;
+  const u32 ppc_addr = m_address;
   PPCAnalyst::CodeBuffer code_buffer(32000);
   PPCAnalyst::BlockStats st;
   PPCAnalyst::BlockRegStats gpa;
@@ -175,7 +175,7 @@ void JITWidget::Update()
   if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, code_buffer.size()) != 0xFFFFFFFF)
   {
     std::string ppc_disasm_str;
-    auto ppc_disasm = std::back_inserter(ppc_disasm_str);
+    const auto ppc_disasm = std::back_inserter(ppc_disasm_str);
     for (u32 i = 0; i < code_block.m_num_instructions; i++)
     {
       const PPCAnalyst::CodeOp& op = code_buffer[i];

@@ -178,7 +178,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
 
 NetKDRequestDevice::~NetKDRequestDevice()
 {
-  auto socket_manager = GetEmulationKernel().GetSocketManager();
+  const auto socket_manager = GetEmulationKernel().GetSocketManager();
   if (socket_manager)
     socket_manager->Clean();
 
@@ -467,7 +467,7 @@ NWC24::ErrorCode NetKDRequestDevice::DetermineDownloadTask(u16* entry_index,
     {
       if (m_dl_list.HasSubtask(i))
       {
-        NWC24::ErrorCode code = DetermineSubtask(i, subtask_id);
+        const NWC24::ErrorCode code = DetermineSubtask(i, subtask_id);
         if (code != NWC24::WC24_OK)
         {
           // No valid subtask found or downloading is disabled.
@@ -610,7 +610,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
   {
     const u32 entry_id = m_send_list.GetEntryId(*it);
     Common::ScopeGuard delete_guard([&] {
-      NWC24::ErrorCode res = m_send_list.DeleteMessage(*it);
+      const NWC24::ErrorCode res = m_send_list.DeleteMessage(*it);
       if (res != NWC24::WC24_OK)
       {
         LogError(ErrorType::SendMail, res);
@@ -776,7 +776,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
 IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   if (!m_handle_mail)
@@ -807,7 +807,7 @@ IPCReply NetKDRequestDevice::HandleNWC24SendMailNow(const IOCtlRequest& request)
 
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   if (m_dl_list.IsDisabled() || !m_dl_list.ReadDlList())
@@ -1022,7 +1022,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     IOCTL_NWC24_REQUEST_SHUTDOWN = 0x28,
   };
 
-  auto& system = GetSystem();
+  const auto& system = GetSystem();
   auto& memory = system.GetMemory();
   s32 return_value = 0;
   switch (request.request)

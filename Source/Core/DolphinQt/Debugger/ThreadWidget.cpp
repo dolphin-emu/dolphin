@@ -32,7 +32,7 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
 
   CreateWidgets();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("threadwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
@@ -182,14 +182,14 @@ QGroupBox* ThreadWidget::CreateThreadGroup()
   thread_group->setLayout(thread_layout);
 
   m_thread_table = new QTableWidget();
-  QStringList header{tr("Address"),
-                     tr("State"),
-                     tr("Detached"),
-                     tr("Suspended"),
-                     QStringLiteral("%1\n(%2)").arg(tr("Base priority"), tr("Effective priority")),
-                     QStringLiteral("%1\n%2").arg(tr("Stack end"), tr("Stack start")),
-                     tr("errno"),
-                     tr("Specific")};
+  const QStringList header{tr("Address"),
+                           tr("State"),
+                           tr("Detached"),
+                           tr("Suspended"),
+                           QStringLiteral("%1\n(%2)").arg(tr("Base priority"), tr("Effective priority")),
+                           QStringLiteral("%1\n%2").arg(tr("Stack end"), tr("Stack start")),
+                           tr("errno"),
+                           tr("Specific")};
   m_thread_table->setColumnCount(header.size());
 
   m_thread_table->setHorizontalHeaderLabels(header);
@@ -234,7 +234,7 @@ QGroupBox* ThreadWidget::CreateThreadCallstackGroup()
   thread_callstack_group->setLayout(thread_callstack_layout);
 
   m_callstack_table = new QTableWidget();
-  QStringList header{tr("Address"), tr("Back Chain"), tr("LR Save"), tr("Description")};
+  const QStringList header{tr("Address"), tr("Back Chain"), tr("LR Save"), tr("Description")};
   m_callstack_table->setColumnCount(header.size());
 
   m_callstack_table->setHorizontalHeaderLabels(header);
@@ -478,7 +478,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
 
 void ThreadWidget::OnSelectionChanged(const int row) const
 {
-  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  const Core::CPUThreadGuard guard(Core::System::GetInstance());
   Common::Debug::PartialContext context;
 
   if (row >= 0 && static_cast<size_t>(row) < m_threads.size())

@@ -84,7 +84,7 @@ static unsigned int get_serial_id()
 
 static unsigned int get_sectors_per_cluster(const u64 disk_size)
 {
-  u64 disk_MB = disk_size / (1024 * 1024);
+  const u64 disk_MB = disk_size / (1024 * 1024);
 
   if (disk_MB < 260)
     return 1;

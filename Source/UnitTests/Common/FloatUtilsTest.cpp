@@ -29,8 +29,8 @@ TEST(FloatUtils, FlushToZero)
   // To test the software implementation we need to make sure FTZ and DAZ are disabled.
   // Using volatile here to ensure the compiler doesn't constant-fold it,
   // we want the multiplication to occur at test runtime.
-  volatile float s = std::numeric_limits<float>::denorm_min();
-  volatile double d = std::numeric_limits<double>::denorm_min();
+  const volatile float s = std::numeric_limits<float>::denorm_min();
+  const volatile double d = std::numeric_limits<double>::denorm_min();
   EXPECT_LT(0.f, s * 2);
   EXPECT_LT(0.0, d * 2);
 
@@ -88,7 +88,7 @@ TEST(FloatUtils, ApproximateReciprocalSquareRoot)
   for (size_t i = 0; i < double_test_values.size(); ++i)
   {
     u64 ivalue = double_test_values[i];
-    double dvalue = std::bit_cast<double>(ivalue);
+    const double dvalue = std::bit_cast<double>(ivalue);
 
     u64 expected = expected_values[i];
 

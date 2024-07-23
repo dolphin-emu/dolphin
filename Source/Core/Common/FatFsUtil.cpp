@@ -401,7 +401,7 @@ static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& e
       if (cancelled())
         return false;
 
-      u32 chunk_size = static_cast<u32>(std::min(size, static_cast<u64>(tmp_buffer.size())));
+      const u32 chunk_size = static_cast<u32>(std::min(size, static_cast<u64>(tmp_buffer.size())));
       if (!src.ReadBytes(tmp_buffer.data(), chunk_size))
       {
         ERROR_LOG_FMT(COMMON, "Failed to read data from file at {}", entry.physicalName);
@@ -636,7 +636,7 @@ static bool Unpack(const std::function<bool()>& cancelled, const std::string pat
       if (cancelled())
         return false;
 
-      u32 chunk_size = std::min(size, static_cast<u32>(tmp_buffer.size()));
+      const u32 chunk_size = std::min(size, static_cast<u32>(tmp_buffer.size()));
       u32 read_size;
       const auto read_error_code = f_read(&src, tmp_buffer.data(), chunk_size, &read_size);
       if (read_error_code != FR_OK)

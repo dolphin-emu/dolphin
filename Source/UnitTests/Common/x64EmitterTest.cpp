@@ -184,8 +184,8 @@ protected:
       }
       return out;
     };
-    std::string expected_norm = NormalizeAssembly(expected);
-    std::string disasmed_norm = NormalizeAssembly(disasmed);
+    const std::string expected_norm = NormalizeAssembly(expected);
+    const std::string disasmed_norm = NormalizeAssembly(disasmed);
 
     EXPECT_EQ(expected_norm, disasmed_norm);
 
@@ -330,7 +330,7 @@ TEST_F(x64EmitterTest, J)
 
 TEST_F(x64EmitterTest, CALL)
 {
-  FixupBranch call = emitter->CALL();
+  const FixupBranch call = emitter->CALL();
   emitter->NOP(6);
   emitter->SetJumpTarget(call);
   ExpectDisassembly("call .+6 "

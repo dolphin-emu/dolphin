@@ -49,7 +49,7 @@ IPCReply GetVersion(const Core::System& system, const IOCtlVRequest& request)
 
   const auto length = std::min(static_cast<size_t>(request.io_vectors[0].size), Common::GetScmDescStr().size());
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   memory.Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
   memory.CopyToEmu(request.io_vectors[0].address, Common::GetScmDescStr().data(), length);
 
@@ -74,7 +74,7 @@ IPCReply GetCPUSpeed(const Core::System& system, const IOCtlVRequest& request)
   const u32 core_clock = static_cast<u32>(
     static_cast<float>(system.GetSystemTimers().GetTicksPerSecond()) * oc);
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(core_clock, request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
@@ -95,7 +95,7 @@ IPCReply GetSpeedLimit(const Core::System& system, const IOCtlVRequest& request)
 
   const u32 speed_percent = Get(Config::MAIN_EMULATION_SPEED) * 100;
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(speed_percent, request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
@@ -114,7 +114,7 @@ IPCReply SetSpeedLimit(const Core::System& system, const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   const float speed = static_cast<float>(memory.Read_U32(request.in_vectors[0].address)) / 100.0f;
   SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
 
@@ -139,14 +139,14 @@ IPCReply GetRealProductCode(const Core::System& system, const IOCtlVRequest& req
   if (!file.ReadBytes(data.data(), data.size()))
     return IPCReply(IPC_ENOENT);
 
-  Common::SettingsHandler gen(data);
+  const Common::SettingsHandler gen(data);
   const std::string code = gen.GetValue("CODE");
 
   const size_t length = std::min<size_t>(request.io_vectors[0].size, code.length());
   if (length == 0)
     return IPCReply(IPC_ENOENT);
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   memory.Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
   memory.CopyToEmu(request.io_vectors[0].address, code.c_str(), length);
   return IPCReply(IPC_SUCCESS);
@@ -160,8 +160,8 @@ IPCReply SetDiscordClient(const Core::System& system, const IOCtlVRequest& reque
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(IPC_EINVAL);
 
-  auto& memory = system.GetMemory();
-  std::string new_client_id =
+  const auto& memory = system.GetMemory();
+  const std::string new_client_id =
       memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
 
   Host_UpdateDiscordClientID(new_client_id);
@@ -177,27 +177,27 @@ IPCReply SetDiscordPresence(const Core::System& system, const IOCtlVRequest& req
   if (!request.HasNumberOfValidVectors(10, 0))
     return IPCReply(IPC_EINVAL);
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
-  std::string details = memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
-  std::string state = memory.GetString(request.in_vectors[1].address, request.in_vectors[1].size);
-  std::string large_image_key =
+  const std::string details = memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
+  const std::string state = memory.GetString(request.in_vectors[1].address, request.in_vectors[1].size);
+  const std::string large_image_key =
       memory.GetString(request.in_vectors[2].address, request.in_vectors[2].size);
-  std::string large_image_text =
+  const std::string large_image_text =
       memory.GetString(request.in_vectors[3].address, request.in_vectors[3].size);
-  std::string small_image_key =
+  const std::string small_image_key =
       memory.GetString(request.in_vectors[4].address, request.in_vectors[4].size);
-  std::string small_image_text =
+  const std::string small_image_text =
       memory.GetString(request.in_vectors[5].address, request.in_vectors[5].size);
 
-  int64_t start_timestamp = memory.Read_U64(request.in_vectors[6].address);
-  int64_t end_timestamp = memory.Read_U64(request.in_vectors[7].address);
-  int party_size = memory.Read_U32(request.in_vectors[8].address);
-  int party_max = memory.Read_U32(request.in_vectors[9].address);
+  const int64_t start_timestamp = memory.Read_U64(request.in_vectors[6].address);
+  const int64_t end_timestamp = memory.Read_U64(request.in_vectors[7].address);
+  const int party_size = memory.Read_U32(request.in_vectors[8].address);
+  const int party_max = memory.Read_U32(request.in_vectors[9].address);
 
-  bool ret = Host_UpdateDiscordPresenceRaw(details, state, large_image_key, large_image_text,
-                                           small_image_key, small_image_text, start_timestamp,
-                                           end_timestamp, party_size, party_max);
+  const bool ret = Host_UpdateDiscordPresenceRaw(details, state, large_image_key, large_image_text,
+                                                 small_image_key, small_image_text, start_timestamp,
+                                                 end_timestamp, party_size, party_max);
 
   if (!ret)
     return IPCReply(IPC_EACCES);
@@ -235,8 +235,8 @@ IPCReply DolphinDevice::GetElapsedTime(const IOCtlVRequest& request) const
   // have issues.
   const u32 milliseconds = static_cast<u32>(m_timer.ElapsedMs());
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(milliseconds, request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
@@ -254,8 +254,8 @@ IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
     return IPCReply(IPC_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // Write Unix timestamp in milliseconds to memory address
   const u64 milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(

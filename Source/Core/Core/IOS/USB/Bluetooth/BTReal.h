@@ -110,8 +110,8 @@ private:
   void FakeVendorCommandReply(const USB::V0IntrMessage& ctrl) const;
   void FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl) const;
   void FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload, u8 size) const;
-  void FakeSyncButtonPressedEvent(USB::V0IntrMessage& ctrl);
-  void FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl);
+  void FakeSyncButtonPressedEvent(const USB::V0IntrMessage& ctrl);
+  void FakeSyncButtonHeldEvent(const USB::V0IntrMessage& ctrl);
 
   void LoadLinkKeys();
   void SaveLinkKeys() const;

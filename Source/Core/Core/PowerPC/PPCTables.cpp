@@ -524,7 +524,7 @@ constexpr Tables s_tables = []() consteval
     return counter++;
   };
 
-  u32 unknown_op_info = make_info(s_unknown_op_info);
+  const u32 unknown_op_info = make_info(s_unknown_op_info);
   tables.unknown_op_info = unknown_op_info;
 
   Common::Fill(tables.primary_table, unknown_op_info);
@@ -538,7 +538,7 @@ constexpr Tables s_tables = []() consteval
 
   for (const auto& tpl : s_table4_2)
   {
-    u32 info = make_info(tpl);
+    const u32 info = make_info(tpl);
     for (u32 i = 0; i < 32; i++)
     {
       const u32 fill = i << 5;
@@ -550,7 +550,7 @@ constexpr Tables s_tables = []() consteval
 
   for (const auto& tpl : s_table4_3)
   {
-    u32 info = make_info(tpl);
+    const u32 info = make_info(tpl);
     for (u32 i = 0; i < 16; i++)
     {
       const u32 fill = i << 6;
@@ -597,7 +597,7 @@ constexpr Tables s_tables = []() consteval
 
   for (const auto& tpl : s_table63_2)
   {
-    u32 info = make_info(tpl);
+    const u32 info = make_info(tpl);
     for (u32 i = 0; i < 32; i++)
     {
       const u32 fill = i << 5;

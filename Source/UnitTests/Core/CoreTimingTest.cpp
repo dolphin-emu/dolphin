@@ -93,11 +93,11 @@ TEST(CoreTiming, BasicOrder)
 {
   auto& system = Core::System::GetInstance();
 
-  ScopeInit guard(system);
+  const ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
 
   CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -149,7 +149,7 @@ TEST(CoreTiming, SharedSlot)
 
   auto& system = Core::System::GetInstance();
 
-  ScopeInit guard(system);
+  const ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
@@ -184,7 +184,7 @@ TEST(CoreTiming, PredictableLateness)
 {
   auto& system = Core::System::GetInstance();
 
-  ScopeInit guard(system);
+  const ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
@@ -226,7 +226,7 @@ TEST(CoreTiming, ChainScheduling)
 
   auto& system = Core::System::GetInstance();
 
-  ScopeInit guard(system);
+  const ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
@@ -287,11 +287,11 @@ TEST(CoreTiming, ScheduleIntoPast)
 
   auto& system = Core::System::GetInstance();
 
-  ScopeInit guard(system);
+  const ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
 
   s_cb_next = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -331,11 +331,11 @@ TEST(CoreTiming, Overclocking)
 {
   auto& system = Core::System::GetInstance();
 
-  ScopeInit guard(system);
+  const ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
 
   CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);

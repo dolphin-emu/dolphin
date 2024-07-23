@@ -121,7 +121,7 @@ DT PerformanceTracker::GetDtStd() const
   double total = 0.0;
   for (std::size_t i = m_dt_queue_begin; i != m_dt_queue_end; i = IncrementIndex(i))
   {
-    double diff = DT_s(m_dt_queue[i] - m_dt_avg).count();
+    const double diff = DT_s(m_dt_queue[i] - m_dt_avg).count();
     total += diff * diff;
   }
 

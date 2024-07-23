@@ -91,7 +91,7 @@ void PixelShaderManager::SetConstants()
     {
       // bpmem.fogRange.Base.Center : center of the viewport in x axis. observation:
       // bpmem.fogRange.Base.Center = realcenter + 342;
-      int center = static_cast<u32>(bpmem.fogRange.Base.Center) - 342;
+      const int center = static_cast<u32>(bpmem.fogRange.Base.Center) - 342;
       // normalize center to make calculations easy
       float ScreenSpaceCenter = center / (2.0f * xfmem.viewport.wd);
       ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
@@ -145,7 +145,7 @@ void PixelShaderManager::SetConstants()
       // indirect stage.
       constants.pack1[i][2] = bpmem.tevind[i].hex;
 
-      u32 stage = bpmem.tevind[i].bt;
+      const u32 stage = bpmem.tevind[i].bt;
 
       // We use an extra bit (1 << 16) to provide a fast way of testing if this feature is in use.
       // Note also that this is indexed by indirect stage, not by TEV stage.
@@ -162,10 +162,10 @@ void PixelShaderManager::SetConstants()
   {
     // Destination alpha is only enabled if alpha writes are enabled. Force entire uniform to zero
     // when disabled.
-    u32 dstalpha = bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable &&
-                           bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ?
-                       bpmem.dstalpha.hex :
-                       0;
+    const u32 dstalpha = bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable &&
+                         bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ?
+                           bpmem.dstalpha.hex :
+                           0;
 
     if (constants.dstalpha != dstalpha)
     {
@@ -250,7 +250,7 @@ void PixelShaderManager::SetAlphaTestChanged()
   // (set an extra bit to distinguish from "never && never")
   // TODO: we could optimize this further and check the actual constants,
   // i.e. "a <= 0" and "a >= 255" will always pass.
-  u32 alpha_test =
+  const u32 alpha_test =
       bpmem.alpha_test.TestResult() != AlphaTestResult::Pass ? bpmem.alpha_test.hex | 1 << 31 : 0;
   if (constants.alphaTest != alpha_test)
   {
@@ -380,7 +380,7 @@ void PixelShaderManager::SetZTextureOpChanged()
 
 void PixelShaderManager::SetTexCoordChanged(const u8 texmapid)
 {
-  TCoordInfo& tc = bpmem.texcoords[texmapid];
+  const TCoordInfo& tc = bpmem.texcoords[texmapid];
   constants.texdims[texmapid][2] = tc.s.scale_minus_1 + 1;
   constants.texdims[texmapid][3] = tc.t.scale_minus_1 + 1;
   dirty = true;
@@ -441,12 +441,12 @@ void PixelShaderManager::SetGenModeChanged()
 
 void PixelShaderManager::SetZModeControl()
 {
-  u32 late_ztest = bpmem.GetEmulatedZ() == EmulatedZ::Late;
-  u32 rgba6_format =
+  const u32 late_ztest = bpmem.GetEmulatedZ() == EmulatedZ::Late;
+  const u32 rgba6_format =
       (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ?
           1 :
           0;
-  u32 dither = rgba6_format && bpmem.blendmode.dither;
+  const u32 dither = rgba6_format && bpmem.blendmode.dither;
   if (constants.late_ztest != late_ztest || constants.rgba6_format != rgba6_format ||
       constants.dither != dither)
   {
@@ -460,7 +460,7 @@ void PixelShaderManager::SetZModeControl()
 
 void PixelShaderManager::SetBlendModeChanged()
 {
-  u32 dither = constants.rgba6_format && bpmem.blendmode.dither;
+  const u32 dither = constants.rgba6_format && bpmem.blendmode.dither;
   if (constants.dither != dither)
   {
     constants.dither = dither;

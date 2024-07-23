@@ -54,7 +54,7 @@ public:
     std::lock_guard lock{m_device_list_mutex};
 
     libusb_device** list;
-    ssize_t count = libusb_get_device_list(m_context, &list);
+    const ssize_t count = libusb_get_device_list(m_context, &list);
     if (count < 0)
       return static_cast<int>(count);
 

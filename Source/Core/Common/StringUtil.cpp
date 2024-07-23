@@ -73,7 +73,7 @@ std::string HexDump(const u8* data, const size_t size)
     {
       if (row_start + i < size)
       {
-        char c = static_cast<char>(data[row_start + i]);
+        const char c = static_cast<char>(data[row_start + i]);
         out += Common::IsPrintableCharacter(c) ? c : '.';
       }
     }
@@ -149,7 +149,7 @@ std::string StringFromFormatV(const char* format, va_list args)
 {
   char* buf = nullptr;
 #ifdef _WIN32
-  int required = _vscprintf(format, args);
+  const int required = _vscprintf(format, args);
   buf = new char[required + 1];
   CharArrayFromFormatV(buf, required + 1, format, args);
 
@@ -378,7 +378,7 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
             std::ostream_iterator<std::string>(res, delimiter.c_str()));
 
   // Drop the trailing delimiter.
-  std::string joined = res.str();
+  const std::string joined = res.str();
   return joined.substr(0, joined.length() - delimiter.length());
 }
 

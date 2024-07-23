@@ -132,7 +132,7 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
   if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty())
   {
     xf_state_manager.ResetProjection();
-    auto corrected_matrix = LoadProjectionMatrix();
+    const auto corrected_matrix = LoadProjectionMatrix();
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
   }
 }
@@ -177,8 +177,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       xf_state_manager.GetPerVertexTransformMatrixChanges();
   if (per_vertex_transform_matrix_changes[0] >= 0)
   {
-    int startn = per_vertex_transform_matrix_changes[0] / 4;
-    int endn = (per_vertex_transform_matrix_changes[1] + 3) / 4;
+    const int startn = per_vertex_transform_matrix_changes[0] / 4;
+    const int endn = (per_vertex_transform_matrix_changes[1] + 3) / 4;
     memcpy(constants.transformmatrices[startn].data(), &xfmem.posMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
@@ -189,8 +189,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       xf_state_manager.GetPerVertexNormalMatrixChanges();
   if (per_vertex_normal_matrices_changed[0] >= 0)
   {
-    int startn = per_vertex_normal_matrices_changed[0] / 3;
-    int endn = (per_vertex_normal_matrices_changed[1] + 2) / 3;
+    const int startn = per_vertex_normal_matrices_changed[0] / 3;
+    const int endn = (per_vertex_normal_matrices_changed[1] + 2) / 3;
     for (int i = startn; i < endn; i++)
     {
       memcpy(constants.normalmatrices[i].data(), &xfmem.normalMatrices[3 * i], 12);
@@ -202,8 +202,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   const auto post_transform_matrices_changed = xf_state_manager.GetPostTransformMatrixChanges();
   if (post_transform_matrices_changed[0] >= 0)
   {
-    int startn = post_transform_matrices_changed[0] / 4;
-    int endn = (post_transform_matrices_changed[1] + 3) / 4;
+    const int startn = post_transform_matrices_changed[0] / 4;
+    const int endn = (post_transform_matrices_changed[1] + 3) / 4;
     memcpy(constants.posttransformmatrices[startn].data(), &xfmem.postMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
@@ -272,9 +272,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     xf_state_manager.ResetLightsChanged();
   }
 
-  for (int i : xf_state_manager.GetMaterialChanges())
+  for (const int i : xf_state_manager.GetMaterialChanges())
   {
-    u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
+    const u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
     constants.materials[i][0] = (data >> 24) & 0xFF;
     constants.materials[i][1] = (data >> 16) & 0xFF;
     constants.materials[i][2] = (data >> 8) & 0xFF;

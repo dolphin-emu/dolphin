@@ -45,7 +45,7 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(const std::strin
   return {};
 }
 
-void InitSoundStream(Core::System& system)
+void InitSoundStream(const Core::System& system)
 {
   std::string backend = Get(Config::MAIN_AUDIO_BACKEND);
   std::unique_ptr<SoundStream> sound_stream = CreateSoundStreamForBackend(backend);
@@ -68,7 +68,7 @@ void InitSoundStream(Core::System& system)
   system.SetSoundStream(std::move(sound_stream));
 }
 
-void PostInitSoundStream(Core::System& system)
+void PostInitSoundStream(const Core::System& system)
 {
   // This needs to be called after AudioInterface::Init and SerialInterface::Init (for GBA devices)
   // where input sample rates are set
@@ -79,7 +79,7 @@ void PostInitSoundStream(Core::System& system)
     StartAudioDump(system);
 }
 
-void ShutdownSoundStream(Core::System& system)
+void ShutdownSoundStream(const Core::System& system)
 {
   INFO_LOG_FMT(AUDIO, "Shutting down sound stream");
 
@@ -165,12 +165,12 @@ void UpdateSoundStream(const Core::System& system)
 
   if (sound_stream)
   {
-    int volume = Get(Config::MAIN_AUDIO_MUTED) ? 0 : Get(Config::MAIN_AUDIO_VOLUME);
+    const int volume = Get(Config::MAIN_AUDIO_MUTED) ? 0 : Get(Config::MAIN_AUDIO_VOLUME);
     sound_stream->SetVolume(volume);
   }
 }
 
-void SetSoundStreamRunning(Core::System& system, const bool running)
+void SetSoundStreamRunning(const Core::System& system, const bool running)
 {
   SoundStream* sound_stream = system.GetSoundStream();
 
@@ -189,9 +189,9 @@ void SetSoundStreamRunning(Core::System& system, const bool running)
     ERROR_LOG_FMT(AUDIO, "Error stopping stream.");
 }
 
-void SendAIBuffer(Core::System& system, const short* samples, const unsigned int num_samples)
+void SendAIBuffer(const Core::System& system, const short* samples, const unsigned int num_samples)
 {
-  SoundStream* sound_stream = system.GetSoundStream();
+  const SoundStream* sound_stream = system.GetSoundStream();
 
   if (!sound_stream)
     return;
@@ -209,11 +209,11 @@ void SendAIBuffer(Core::System& system, const short* samples, const unsigned int
   }
 }
 
-void StartAudioDump(Core::System& system)
+void StartAudioDump(const Core::System& system)
 {
-  SoundStream* sound_stream = system.GetSoundStream();
+  const SoundStream* sound_stream = system.GetSoundStream();
 
-  std::time_t start_time = std::time(nullptr);
+  const std::time_t start_time = std::time(nullptr);
 
   std::string path_prefix = File::GetUserPath(D_DUMPAUDIO_IDX) + SConfig::GetInstance().GetGameID();
 
@@ -229,9 +229,9 @@ void StartAudioDump(Core::System& system)
   system.SetAudioDumpStarted(true);
 }
 
-void StopAudioDump(Core::System& system)
+void StopAudioDump(const Core::System& system)
 {
-  SoundStream* sound_stream = system.GetSoundStream();
+  const SoundStream* sound_stream = system.GetSoundStream();
 
   if (!sound_stream)
     return;
@@ -240,7 +240,7 @@ void StopAudioDump(Core::System& system)
   system.SetAudioDumpStarted(false);
 }
 
-void IncreaseVolume(Core::System& system, const unsigned short offset)
+void IncreaseVolume(const Core::System& system, const unsigned short offset)
 {
   SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
   int currentVolume = Get(Config::MAIN_AUDIO_VOLUME);
@@ -251,7 +251,7 @@ void IncreaseVolume(Core::System& system, const unsigned short offset)
   UpdateSoundStream(system);
 }
 
-void DecreaseVolume(Core::System& system, const unsigned short offset)
+void DecreaseVolume(const Core::System& system, const unsigned short offset)
 {
   SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
   int currentVolume = Get(Config::MAIN_AUDIO_VOLUME);
@@ -262,9 +262,9 @@ void DecreaseVolume(Core::System& system, const unsigned short offset)
   UpdateSoundStream(system);
 }
 
-void ToggleMuteVolume(Core::System& system)
+void ToggleMuteVolume(const Core::System& system)
 {
-  bool isMuted = Get(Config::MAIN_AUDIO_MUTED);
+  const bool isMuted = Get(Config::MAIN_AUDIO_MUTED);
   SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, !isMuted);
   UpdateSoundStream(system);
 }

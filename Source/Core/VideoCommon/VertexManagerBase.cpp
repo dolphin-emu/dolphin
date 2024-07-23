@@ -155,9 +155,9 @@ DataReader VertexManagerBase::PrepareForAdditionalData(const Primitive primitive
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
-                                         primitive_from_gx_pr[primitive] :
-                                         primitive_from_gx[primitive];
+  const PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                                             primitive_from_gx_pr[primitive] :
+                                             primitive_from_gx[primitive];
   if (m_current_primitive_type != new_primitive_type) [[unlikely]]
   {
     Flush();
@@ -362,7 +362,7 @@ void VertexManagerBase::UploadUniforms()
 
 void VertexManagerBase::InvalidateConstants()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
@@ -706,8 +706,8 @@ void VertexManagerBase::DoState(PointerWrap& p)
 void VertexManagerBase::CalculateZSlope(const NativeVertexFormat* format)
 {
   float out[12];
-  float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
-                         xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
+  const float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
+                               xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
   if (m_current_primitive_type != PrimitiveType::Triangles &&
       m_current_primitive_type != PrimitiveType::TriangleStrip)
@@ -726,8 +726,8 @@ void VertexManagerBase::CalculateZSlope(const NativeVertexFormat* format)
   // Lookup vertices of the last rendered triangle and software-transform them
   // This allows us to determine the depth slope, which will be used if z-freeze
   // is enabled in the following flush.
-  auto& system = Core::System::GetInstance();
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  const auto& system = Core::System::GetInstance();
+  const auto& vertex_shader_manager = system.GetVertexShaderManager();
   for (unsigned int i = 0; i < 3; ++i)
   {
     // If this vertex format has per-vertex position matrix IDs, look it up.
@@ -741,23 +741,23 @@ void VertexManagerBase::CalculateZSlope(const NativeVertexFormat* format)
                                                &out[i * 4], mtxIdx);
 
     // Transform to Screenspace
-    float inv_w = 1.0f / out[3 + i * 4];
+    const float inv_w = 1.0f / out[3 + i * 4];
 
     out[0 + i * 4] = out[0 + i * 4] * inv_w * xfmem.viewport.wd + viewOffset[0];
     out[1 + i * 4] = out[1 + i * 4] * inv_w * xfmem.viewport.ht + viewOffset[1];
     out[2 + i * 4] = out[2 + i * 4] * inv_w * xfmem.viewport.zRange + xfmem.viewport.farZ;
   }
 
-  float dx31 = out[8] - out[0];
-  float dx12 = out[0] - out[4];
-  float dy12 = out[1] - out[5];
-  float dy31 = out[9] - out[1];
+  const float dx31 = out[8] - out[0];
+  const float dx12 = out[0] - out[4];
+  const float dy12 = out[1] - out[5];
+  const float dy31 = out[9] - out[1];
 
-  float DF31 = out[10] - out[2];
-  float DF21 = out[6] - out[2];
-  float a = DF31 * -dy12 - DF21 * dy31;
-  float b = dx31 * DF21 + dx12 * DF31;
-  float c = -dx12 * dy31 - dx31 * -dy12;
+  const float DF31 = out[10] - out[2];
+  const float DF21 = out[6] - out[2];
+  const float a = DF31 * -dy12 - DF21 * dy31;
+  const float b = dx31 * DF21 + dx12 * DF31;
+  const float c = -dx12 * dy31 - dx31 * -dy12;
 
   // Sometimes we process de-generate triangles. Stop any divide by zeros
   if (c == 0)
@@ -782,7 +782,7 @@ void VertexManagerBase::CalculateBinormals(const NativeVertexFormat* format)
   VertexLoaderManager::tangent_cache[3] = 0;
   VertexLoaderManager::binormal_cache[3] = 0;
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   if (vertex_shader_manager.constants.cached_tangent != VertexLoaderManager::tangent_cache)
   {
@@ -903,7 +903,7 @@ void VertexManagerBase::UpdatePipelineObject()
   case ShaderCompilationMode::AsynchronousSkipRendering:
   {
     // Can we background compile shaders? If so, get the pipeline asynchronously.
-    auto res = g_shader_cache->GetPipelineForUidAsync(m_current_pipeline_config);
+    const auto res = g_shader_cache->GetPipelineForUidAsync(m_current_pipeline_config);
     if (res)
     {
       // Specialized shaders are ready, prefer these.
@@ -940,7 +940,7 @@ void VertexManagerBase::OnDraw()
 
   // If the last efb copy was too close to the one before it, don't forget about it until the next
   // efb copy happens (which might not be for a long time)
-  u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
+  const u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
   if (m_unflushed_efb_copy && diff > MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
   {
     g_gfx->Flush();
@@ -1013,18 +1013,18 @@ void VertexManagerBase::OnEndFrame()
   if (g_ActiveConfig.iCommandBufferExecuteInterval > 0)
   {
     u32 last_draw_counter = 0;
-    u32 interval = static_cast<u32>(g_ActiveConfig.iCommandBufferExecuteInterval);
-    for (u32 draw_counter : m_cpu_accesses_this_frame)
+    const u32 interval = static_cast<u32>(g_ActiveConfig.iCommandBufferExecuteInterval);
+    for (const u32 draw_counter : m_cpu_accesses_this_frame)
     {
       // We don't want to waste executing command buffers for only a few draws, so set a minimum.
       // Leave last_draw_counter as-is, so we get the correct number of draws between submissions.
-      u32 draw_count = draw_counter - last_draw_counter;
+      const u32 draw_count = draw_counter - last_draw_counter;
       if (draw_count < MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
         continue;
 
       if (draw_count <= interval)
       {
-        u32 mid_point = draw_count / 2;
+        const u32 mid_point = draw_count / 2;
         m_scheduled_command_buffer_kicks.emplace_back(last_draw_counter + mid_point);
       }
       else
@@ -1123,7 +1123,7 @@ const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
       case ShaderCompilationMode::Synchronous:
       case ShaderCompilationMode::AsynchronousSkipRendering:
       {
-        if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
+        if (const auto pipeline = m_custom_shader_cache->GetPipelineAsync(
                 current_pipeline_config, custom_shaders, current_pipeline->m_config))
         {
           return *pipeline;
@@ -1136,7 +1136,7 @@ const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
         // use specialized shaders instead
         if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
         {
-          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
+          if (const auto pipeline = m_custom_shader_cache->GetPipelineAsync(
                   current_pipeline_config, custom_shaders, current_pipeline->m_config))
           {
             return *pipeline;
@@ -1144,7 +1144,7 @@ const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
         }
         else
         {
-          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
+          if (const auto pipeline = m_custom_shader_cache->GetPipelineAsync(
                   current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
           {
             return *pipeline;
@@ -1154,12 +1154,12 @@ const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
       break;
       case ShaderCompilationMode::AsynchronousUberShaders:
       {
-        if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
+        if (const auto pipeline = m_custom_shader_cache->GetPipelineAsync(
                 current_pipeline_config, custom_shaders, current_pipeline->m_config))
         {
           return *pipeline;
         }
-        else if (auto uber_pipeline = m_custom_shader_cache->GetPipelineAsync(
+        else if (const auto uber_pipeline = m_custom_shader_cache->GetPipelineAsync(
                      current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
         {
           return *uber_pipeline;

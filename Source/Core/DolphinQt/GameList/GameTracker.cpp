@@ -252,7 +252,7 @@ static std::unique_ptr<QDirIterator> GetIterator(const QString& dir)
 void GameTracker::RemoveDirectoryInternal(const QString& dir)
 {
   RemovePath(dir);
-  auto it = GetIterator(dir);
+  const auto it = GetIterator(dir);
   while (it->hasNext())
   {
     QString path = QFileInfo(it->next()).canonicalFilePath();
@@ -272,7 +272,7 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
 
 void GameTracker::UpdateDirectoryInternal(const QString& dir)
 {
-  auto it = GetIterator(dir);
+  const auto it = GetIterator(dir);
   while (it->hasNext() && !m_processing_halted)
   {
     QString path = QFileInfo(it->next()).canonicalFilePath();
@@ -327,7 +327,7 @@ void GameTracker::UpdateFileInternal(const QString& file)
 
 QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
 {
-  auto it = GetIterator(dir);
+  const auto it = GetIterator(dir);
 
   QSet<QString> missing_files;
 

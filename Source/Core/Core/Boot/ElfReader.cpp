@@ -114,8 +114,8 @@ const char* ElfReader::GetSectionName(const int section) const
   if (sections[section].sh_type == SHT_NULL)
     return nullptr;
 
-  int nameOffset = sections[section].sh_name;
-  char* ptr = (char*)GetSectionDataPtr(header->e_shstrndx);
+  const int nameOffset = sections[section].sh_name;
+  const char* ptr = (char*)GetSectionDataPtr(header->e_shstrndx);
 
   if (ptr)
     return ptr + nameOffset;
@@ -136,12 +136,12 @@ bool ElfReader::LoadIntoMemory(Core::System& system, const bool only_in_mem1) co
 
   INFO_LOG_FMT(BOOT, "{} segments:", header->e_phnum);
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   // Copy segments into ram.
   for (int i = 0; i < header->e_phnum; i++)
   {
-    Elf32_Phdr* p = segments + i;
+    const Elf32_Phdr* p = segments + i;
 
     INFO_LOG_FMT(BOOT, "Type: {} Vaddr: {:08x} Filesz: {} Memsz: {}", p->p_type, p->p_vaddr,
                  p->p_filesz, p->p_memsz);
@@ -150,8 +150,8 @@ bool ElfReader::LoadIntoMemory(Core::System& system, const bool only_in_mem1) co
     {
       u32 writeAddr = p->p_vaddr;
       const u8* src = GetSegmentPtr(i);
-      u32 srcSize = p->p_filesz;
-      u32 dstSize = p->p_memsz;
+      const u32 srcSize = p->p_filesz;
+      const u32 dstSize = p->p_memsz;
 
       if (only_in_mem1 && p->p_vaddr >= memory.GetRamSizeReal())
         continue;
@@ -183,24 +183,24 @@ SectionID ElfReader::GetSectionByName(const char* name, const int firstSection) 
 bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db) const
 {
   bool hasSymbols = false;
-  SectionID sec = GetSectionByName(".symtab");
+  const SectionID sec = GetSectionByName(".symtab");
   if (sec != -1)
   {
-    int stringSection = sections[sec].sh_link;
+    const int stringSection = sections[sec].sh_link;
     const char* stringBase = (const char*)GetSectionDataPtr(stringSection);
 
     // We have a symbol table!
-    Elf32_Sym* symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
-    int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
+    const Elf32_Sym* symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
+    const int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
     for (int sym = 0; sym < numSymbols; sym++)
     {
-      int size = Common::swap32(symtab[sym].st_size);
+      const int size = Common::swap32(symtab[sym].st_size);
       if (size == 0)
         continue;
 
       // int bind = symtab[sym].st_info >> 4;
-      int type = symtab[sym].st_info & 0xF;
-      int sectionIndex = Common::swap16(symtab[sym].st_shndx);
+      const int type = symtab[sym].st_info & 0xF;
+      const int sectionIndex = Common::swap16(symtab[sym].st_shndx);
       int value = Common::swap32(symtab[sym].st_value);
       const char* name = stringBase + Common::swap32(symtab[sym].st_name);
       if (bRelocate)
@@ -235,14 +235,14 @@ bool ElfReader::IsWii() const
   // better heuristic are welcome.
 
   // Swap these once, instead of swapping every word in the file.
-  u32 HID4_pattern = Common::swap32(0x7c13fba6);
-  u32 HID4_mask = Common::swap32(0xfc1fffff);
+  const u32 HID4_pattern = Common::swap32(0x7c13fba6);
+  const u32 HID4_mask = Common::swap32(0xfc1fffff);
 
   for (int i = 0; i < GetNumSegments(); ++i)
   {
     if (IsCodeSegment(i))
     {
-      u32* code = (u32*)GetSegmentPtr(i);
+      const u32* code = (u32*)GetSegmentPtr(i);
       for (u32 j = 0; j < GetSegmentSize(i) / sizeof(u32); ++j)
       {
         if ((code[j] & HID4_mask) == HID4_pattern)

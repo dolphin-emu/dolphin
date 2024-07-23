@@ -27,8 +27,8 @@
 
 static inline u32 DecodePixel_IA8(const u16 val)
 {
-  int a = val & 0xFF;
-  int i = val >> 8;
+  const int a = val & 0xFF;
+  const int i = val >> 8;
   return i | (i << 8) | (i << 16) | (a << 24);
 }
 
@@ -67,7 +67,7 @@ static inline void DecodeBytes_C4_IA8(u32* dst, const u8* src, const u8* tlut_)
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_IA8(tlut[val >> 4]);
     *dst++ = DecodePixel_IA8(tlut[val & 0xF]);
   }
@@ -78,7 +78,7 @@ static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val >> 4]));
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val & 0xF]));
   }
@@ -89,7 +89,7 @@ static inline void DecodeBytes_C4_RGB5A3(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val >> 4]));
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val & 0xF]));
   }
@@ -109,7 +109,7 @@ static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 8; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val]));
   }
 }
@@ -119,7 +119,7 @@ static inline void DecodeBytes_C8_RGB5A3(u32* dst, const u8* src, const u8* tlut
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 8; x++)
   {
-    u8 val = src[x];
+    const u8 val = src[x];
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val]));
   }
 }
@@ -129,7 +129,7 @@ static inline void DecodeBytes_C14X2_IA8(u32* dst, const u16* src, const u8* tlu
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u16 val = Common::swap16(src[x]);
+    const u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_IA8(tlut[(val & 0x3FFF)]);
   }
 }
@@ -139,7 +139,7 @@ static inline void DecodeBytes_C14X2_RGB565(u32* dst, const u16* src, const u8* 
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u16 val = Common::swap16(src[x]);
+    const u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[(val & 0x3FFF)]));
   }
 }
@@ -149,7 +149,7 @@ static inline void DecodeBytes_C14X2_RGB5A3(u32* dst, const u16* src, const u8* 
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
   {
-    u16 val = Common::swap16(src[x]);
+    const u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[(val & 0x3FFF)]));
   }
 }
@@ -159,8 +159,8 @@ static inline void DecodeBytes_IA4(u32* dst, const u8* src)
   for (int x = 0; x < 8; x++)
   {
     const u8 val = src[x];
-    u8 a = Convert4To8(val >> 4);
-    u8 l = Convert4To8(val & 0xF);
+    const u8 a = Convert4To8(val >> 4);
+    const u8 l = Convert4To8(val & 0xF);
     dst[x] = (a << 24) | l << 16 | l << 8 | l;
   }
 }
@@ -1416,8 +1416,8 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
 void _TexDecoder_DecodeImpl(u32* dst, const u8* src, const int width, const int height, const TextureFormat texformat,
                             const u8* tlut, const TLUTFormat tlutfmt)
 {
-  int Wsteps4 = (width + 3) / 4;
-  int Wsteps8 = (width + 7) / 8;
+  const int Wsteps4 = (width + 3) / 4;
+  const int Wsteps8 = (width + 7) / 8;
 
   switch (texformat)
   {

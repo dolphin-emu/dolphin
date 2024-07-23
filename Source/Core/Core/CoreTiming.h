@@ -106,7 +106,7 @@ public:
 
   // We only permit one event of each type in the queue at a time.
   void RemoveEvent(const EventType* event_type);
-  void RemoveAllEvents(EventType* event_type);
+  void RemoveAllEvents(const EventType* event_type);
 
   // Advance must be called at the beginning of dispatcher loops, not the end. Advance() ends
   // the previous timing slice and begins the next one, you must Advance from the previous

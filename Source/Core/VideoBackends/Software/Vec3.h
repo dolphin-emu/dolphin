@@ -54,7 +54,7 @@ public:
   Vec3 operator*(const float f) const { return Vec3(x * f, y * f, z * f); }
   Vec3 operator/(const float f) const
   {
-    float invf = (1.0f / f);
+    const float invf = (1.0f / f);
     return Vec3(x * invf, y * invf, z * invf);
   }
 

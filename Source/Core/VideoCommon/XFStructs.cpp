@@ -46,7 +46,7 @@ static void XFRegWritten(const Core::System& system, XFStateManager& xf_state_ma
 
     case XFMEM_CLIPDISABLE:
     {
-      ClipDisable setting{.hex = value};
+      const ClipDisable setting{.hex = value};
       if (setting.disable_clipping_detection)
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_0);
       if (setting.disable_trivial_rejection)
@@ -69,7 +69,7 @@ static void XFRegWritten(const Core::System& system, XFStateManager& xf_state_ma
     case XFMEM_SETCHAN0_AMBCOLOR:  // Channel Ambient Color
     case XFMEM_SETCHAN1_AMBCOLOR:
     {
-      u8 chan = address - XFMEM_SETCHAN0_AMBCOLOR;
+      const u8 chan = address - XFMEM_SETCHAN0_AMBCOLOR;
       if (xfmem.ambColor[chan] != value)
       {
         g_vertex_manager->Flush();
@@ -81,7 +81,7 @@ static void XFRegWritten(const Core::System& system, XFStateManager& xf_state_ma
     case XFMEM_SETCHAN0_MATCOLOR:  // Channel Material Color
     case XFMEM_SETCHAN1_MATCOLOR:
     {
-      u8 chan = address - XFMEM_SETCHAN0_MATCOLOR;
+      const u8 chan = address - XFMEM_SETCHAN0_MATCOLOR;
       if (xfmem.matColor[chan] != value)
       {
         g_vertex_manager->Flush();
@@ -217,7 +217,7 @@ void LoadXFReg(u16 base_address, const u8 transfer_size, const u8* data)
     end_address = XFMEM_REGISTERS_END;
   }
 
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& xf_state_manager = system.GetXFStateManager();
 
   // write to XF mem
@@ -263,15 +263,15 @@ void LoadIndexedXF(const CPArray array, const u32 index, const u16 address, cons
   const u32 buf_size = size * sizeof(u32);
   u32* currData = reinterpret_cast<u32*>(&xfmem) + address;
   u32* newData;
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
   auto& fifo = system.GetFifo();
   if (fifo.UseDeterministicGPUThread())
   {
-    newData = reinterpret_cast<u32*>(fifo.PopFifoAuxBuffer(buf_size));
+    newData = static_cast<u32*>(fifo.PopFifoAuxBuffer(buf_size));
   }
   else
   {
-    auto& memory = system.GetMemory();
+    const auto& memory = system.GetMemory();
     newData = reinterpret_cast<u32*>(memory.GetPointerForRange(
         g_main_cp_state.array_bases[array] + g_main_cp_state.array_strides[array] * index,
         buf_size));
@@ -299,8 +299,8 @@ void PreprocessIndexedXF(const CPArray array, const u32 index, u16 address, cons
 {
   const size_t buf_size = size * sizeof(u32);
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
   const u8* new_data = memory.GetPointerForRange(
       g_preprocess_cp_state.array_bases[array] + g_preprocess_cp_state.array_strides[array] * index,
       buf_size);

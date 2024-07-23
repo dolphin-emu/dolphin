@@ -175,7 +175,7 @@ bool SwapChain::SelectSurfaceFormat()
     // This results in gamma correction when presenting to the screen, which we don't want,
     // because we already apply gamma ourselves, and we might not use sRGB gamma.
     // Force using a linear format instead, if this is the case.
-    VkFormat format = VKTexture::GetLinearFormat(surface_format.format);
+    const VkFormat format = VKTexture::GetLinearFormat(surface_format.format);
     if (format == VK_FORMAT_R8G8B8A8_UNORM)
       surface_format_RGBA8 = &surface_format;
     else if (format == VK_FORMAT_B8G8R8A8_UNORM)
@@ -243,8 +243,8 @@ bool SwapChain::SelectPresentMode()
 
   // Checks if a particular mode is supported, if it is, returns that mode.
   auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
-    auto it = std::find_if(present_modes.begin(), present_modes.end(),
-                           [check_mode](const VkPresentModeKHR mode) { return check_mode == mode; });
+    const auto it = std::find_if(present_modes.begin(), present_modes.end(),
+                                 [check_mode](const VkPresentModeKHR mode) { return check_mode == mode; });
     return it != present_modes.end();
   };
 
@@ -318,7 +318,7 @@ bool SwapChain::CreateSwapChain()
     transform = surface_capabilities.currentTransform;
 
   // Select swap chain flags, we only need a colour attachment
-  VkImageUsageFlags image_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  const VkImageUsageFlags image_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
   if (!(surface_capabilities.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
   {
     ERROR_LOG_FMT(VIDEO, "Vulkan: Swap chain does not support usage as color attachment");
@@ -326,10 +326,10 @@ bool SwapChain::CreateSwapChain()
   }
 
   // Select the number of image layers for Quad-Buffered stereoscopy
-  uint32_t image_layers = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer ? 2 : 1;
+  const uint32_t image_layers = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer ? 2 : 1;
 
   // Store the old/current swap chain when recreating for resize
-  VkSwapchainKHR old_swap_chain = m_swap_chain;
+  const VkSwapchainKHR old_swap_chain = m_swap_chain;
   m_swap_chain = VK_NULL_HANDLE;
 
   // Now we can actually create the swap chain
@@ -351,7 +351,7 @@ bool SwapChain::CreateSwapChain()
                                               m_present_mode,
                                               VK_TRUE,
                                               old_swap_chain};
-  std::array<uint32_t, 2> indices = {{
+  const std::array<uint32_t, 2> indices = {{
       g_vulkan_context->GetGraphicsQueueFamilyIndex(),
       g_vulkan_context->GetPresentQueueFamilyIndex(),
   }};
@@ -494,9 +494,9 @@ void SwapChain::DestroySwapChain()
 
 VkResult SwapChain::AcquireNextImage()
 {
-  VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
-                                       g_command_buffer_mgr->GetCurrentCommandBufferSemaphore(),
-                                       VK_NULL_HANDLE, &m_current_swap_chain_image_index);
+  const VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
+                                             g_command_buffer_mgr->GetCurrentCommandBufferSemaphore(),
+                                             VK_NULL_HANDLE, &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 
@@ -546,7 +546,7 @@ bool SwapChain::SetFullscreenState(const bool state)
 
   if (state)
   {
-    VkResult res = vkAcquireFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
+    const VkResult res = vkAcquireFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkAcquireFullScreenExclusiveModeEXT failed:");
@@ -557,7 +557,7 @@ bool SwapChain::SetFullscreenState(const bool state)
   }
   else
   {
-    VkResult res = vkReleaseFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
+    const VkResult res = vkReleaseFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
     if (res != VK_SUCCESS)
       LOG_VULKAN_ERROR(res, "vkReleaseFullScreenExclusiveModeEXT failed:");
 
@@ -586,7 +586,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
 
   // The validation layers get angry at us if we don't call this before creating the swapchain.
   VkBool32 present_supported = VK_TRUE;
-  VkResult res = vkGetPhysicalDeviceSurfaceSupportKHR(
+  const VkResult res = vkGetPhysicalDeviceSurfaceSupportKHR(
       g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetPresentQueueFamilyIndex(),
       m_surface, &present_supported);
   if (res != VK_SUCCESS)

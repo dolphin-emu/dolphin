@@ -59,7 +59,7 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id);
 // Checks if there's a title.tmd imported for the given title ID. If there is not, we attempt to
 // re-import it from the TMDs stored in /title/00000001/00000002/data/tmds.sys.
 // Returns true if, after this function call, we have an imported title.tmd, or false if not.
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESCore& es, u64 title_id);
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, const IOS::HLE::ESCore& es, u64 title_id);
 
 enum class UpdateResult
 {

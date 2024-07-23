@@ -76,7 +76,7 @@ enum
 static inline int CalcClipMask(const OutputVertexData* v)
 {
   int cmask = 0;
-  Vec4 pos = v->projectedPosition;
+  const Vec4 pos = v->projectedPosition;
 
   if (pos.w - pos.x < 0)
     cmask |= CLIP_POS_X_BIT;
@@ -297,7 +297,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
     return;
   }
 
-  bool backface = IsBackface(v0, v1, v2);
+  const bool backface = IsBackface(v0, v1, v2);
 
   if (!backface)
   {
@@ -522,17 +522,17 @@ bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
 
 bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
 {
-  float x0 = v0->projectedPosition.x;
-  float x1 = v1->projectedPosition.x;
-  float x2 = v2->projectedPosition.x;
-  float y1 = v1->projectedPosition.y;
-  float y0 = v0->projectedPosition.y;
-  float y2 = v2->projectedPosition.y;
-  float w0 = v0->projectedPosition.w;
-  float w1 = v1->projectedPosition.w;
-  float w2 = v2->projectedPosition.w;
+  const float x0 = v0->projectedPosition.x;
+  const float x1 = v1->projectedPosition.x;
+  const float x2 = v2->projectedPosition.x;
+  const float y1 = v1->projectedPosition.y;
+  const float y0 = v0->projectedPosition.y;
+  const float y2 = v2->projectedPosition.y;
+  const float w0 = v0->projectedPosition.w;
+  const float w1 = v1->projectedPosition.w;
+  const float w2 = v2->projectedPosition.w;
 
-  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
+  const float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
 
   bool backface = normalZDir <= 0.0f;
   // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
@@ -546,10 +546,10 @@ bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const Ou
 
 void PerspectiveDivide(OutputVertexData* vertex)
 {
-  Vec4& projected = vertex->projectedPosition;
+  const Vec4& projected = vertex->projectedPosition;
   Vec3& screen = vertex->screenPosition;
 
-  float wInverse = 1.0f / projected.w;
+  const float wInverse = 1.0f / projected.w;
   screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
   screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;

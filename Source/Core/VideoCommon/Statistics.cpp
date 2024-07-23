@@ -237,7 +237,7 @@ void Statistics::DisplayScissor()
     ImGui::Text("Displaying rectangle %zu / %zu (OoB)", current_scissor, scissors.size());
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 p = ImGui::GetCursorScreenPos();
+  const ImVec2 p = ImGui::GetCursorScreenPos();
   ImGui::Dummy(ImVec2(1024 * 3 / scissor_scale, 1024 * 3 / scissor_scale));
 
   constexpr int DRAW_START = -1024;
@@ -288,8 +288,8 @@ void Statistics::DisplayScissor()
   const auto draw_scissor = [&](const size_t index) {
     const auto& info = scissors[index];
     const ImU32 col = ImGui::GetColorU32(COLORS[index % COLORS.size()]);
-    int x_off = info.scissor_off.x << 1;
-    int y_off = info.scissor_off.y << 1;
+    const int x_off = info.scissor_off.x << 1;
+    const int y_off = info.scissor_off.y << 1;
     // Subtract 2048 instead of 1024, because when x_off is large enough we need to show two
     // rectangles in the upper sections
     for (int y = y_off - 2048; y < DRAW_END; y += 1024)
@@ -337,12 +337,12 @@ void Statistics::DisplayScissor()
   };
   const auto draw_scissor_table_row = [&](const size_t index) {
     const auto& info = scissors[index];
-    int x_off = (info.scissor_off.x << 1) - info.viewport_top;
-    int y_off = (info.scissor_off.y << 1) - info.viewport_left;
-    int x0 = info.scissor_tl.x - info.viewport_top;
-    int x1 = info.scissor_br.x - info.viewport_left;
-    int y0 = info.scissor_tl.y - info.viewport_top;
-    int y1 = info.scissor_br.y - info.viewport_left;
+    const int x_off = (info.scissor_off.x << 1) - info.viewport_top;
+    const int y_off = (info.scissor_off.y << 1) - info.viewport_left;
+    const int x0 = info.scissor_tl.x - info.viewport_top;
+    const int x1 = info.scissor_br.x - info.viewport_left;
+    const int y0 = info.scissor_tl.y - info.viewport_top;
+    const int y1 = info.scissor_br.y - info.viewport_left;
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);
     ImGui::TableNextColumn();
@@ -363,7 +363,7 @@ void Statistics::DisplayScissor()
     float scale_height = ImGui::GetTextLineHeight() / EFB_HEIGHT;
     if (show_raw_scissors)
       scale_height += ImGui::GetTextLineHeightWithSpacing() / EFB_HEIGHT;
-    ImVec2 p2 = ImGui::GetCursorScreenPos();
+    const ImVec2 p2 = ImGui::GetCursorScreenPos();
     // Use a height of 1 since we want this to span two table rows (if possible)
     ImGui::Dummy(ImVec2(EFB_WIDTH * scale_height, 1));
     for (size_t i = 0; i < info.m_result.size(); i++)

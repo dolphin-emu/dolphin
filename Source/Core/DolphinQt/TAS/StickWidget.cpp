@@ -57,13 +57,13 @@ void StickWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(PADDING + diameter / 2, PADDING, PADDING + diameter / 2, PADDING + diameter);
 
   // convert from value space to widget space
-  u16 x = PADDING + ((m_x * diameter) / m_max_x);
-  u16 y = PADDING + (diameter - (m_y * diameter) / m_max_y);
+  const u16 x = PADDING + ((m_x * diameter) / m_max_x);
+  const u16 y = PADDING + (diameter - (m_y * diameter) / m_max_y);
 
   painter.drawLine(PADDING + diameter / 2, PADDING + diameter / 2, x, y);
 
   painter.setBrush(Qt::blue);
-  int neutral_radius = diameter / 30;
+  const int neutral_radius = diameter / 30;
   painter.drawEllipse(x - neutral_radius, y - neutral_radius, neutral_radius * 2,
                       neutral_radius * 2);
 }
@@ -82,8 +82,8 @@ void StickWidget::mouseMoveEvent(QMouseEvent* event)
 
 void StickWidget::handleMouseEvent(const QMouseEvent* event)
 {
-  u16 prev_x = m_x;
-  u16 prev_y = m_y;
+  const u16 prev_x = m_x;
+  const u16 prev_y = m_y;
 
   if (event->button() == Qt::RightButton)
   {
@@ -93,8 +93,8 @@ void StickWidget::handleMouseEvent(const QMouseEvent* event)
   else
   {
     // convert from widget space to value space
-    int new_x = (event->pos().x() * m_max_x) / width();
-    int new_y = m_max_y - (event->pos().y() * m_max_y) / height();
+    const int new_x = (event->pos().x() * m_max_x) / width();
+    const int new_y = m_max_y - (event->pos().y() * m_max_y) / height();
 
     m_x = std::max(0, std::min(static_cast<int>(m_max_x), new_x));
     m_y = std::max(0, std::min(static_cast<int>(m_max_y), new_y));

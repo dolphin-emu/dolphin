@@ -106,7 +106,7 @@ void VKGfx::SetPipeline(const AbstractPipeline* pipeline)
 void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enable,
                         bool alpha_enable, bool z_enable, const u32 color, const u32 z)
 {
-  VkRect2D target_vk_rc = {
+  const VkRect2D target_vk_rc = {
       {target_rc.left, target_rc.top},
       {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
 
@@ -141,7 +141,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
   if (HasBug(DriverDetails::BUG_BROKEN_CLEAR_LOADOP_RENDERPASS))
     use_clear_render_pass = false;
 
-  auto* vk_frame_buffer = static_cast<VKFramebuffer*>(m_current_framebuffer);
+  const auto* vk_frame_buffer = static_cast<VKFramebuffer*>(m_current_framebuffer);
 
   // Fastest path: Use a render pass to clear the buffers.
   if (use_clear_render_pass)
@@ -189,7 +189,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
     }
     if (!clear_attachments.empty())
     {
-      VkClearRect vk_rect = {target_vk_rc, 0, g_framebuffer_manager->GetEFBLayers()};
+      const VkClearRect vk_rect = {target_vk_rc, 0, g_framebuffer_manager->GetEFBLayers()};
       if (!StateTracker::GetInstance()->IsWithinRenderArea(
               target_vk_rc.offset.x, target_vk_rc.offset.y, target_vk_rc.extent.width,
               target_vk_rc.extent.height))
@@ -514,7 +514,7 @@ void VKGfx::SetSamplerState(const u32 index, const SamplerState& state)
 
 void VKGfx::SetComputeImageTexture(const u32 index, AbstractTexture* texture, const bool read, const bool write)
 {
-  VKTexture* vk_texture = static_cast<VKTexture*>(texture);
+  const VKTexture* vk_texture = static_cast<VKTexture*>(texture);
   if (vk_texture)
   {
     StateTracker::GetInstance()->EndRenderPass();
@@ -571,7 +571,7 @@ void VKGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 void VKGfx::SetViewport(const float x, const float y, const float width, const float height, const float near_depth,
                         const float far_depth)
 {
-  VkViewport viewport = {x, y, width, height, near_depth, far_depth};
+  const VkViewport viewport = {x, y, width, height, near_depth, far_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
 }
 

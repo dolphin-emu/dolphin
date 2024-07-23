@@ -196,7 +196,7 @@ void AudioPane::ConnectWidgets()
 
 void AudioPane::LoadSettings() const
 {
-  auto& settings = Settings::Instance();
+  const auto& settings = Settings::Instance();
 
   // DSP
   if (Get(Config::MAIN_DSP_HLE))
@@ -357,7 +357,7 @@ void AudioPane::OnBackendChanged() const
   }
 
 #ifdef _WIN32
-  bool is_wasapi = backend == BACKEND_WASAPI;
+  const bool is_wasapi = backend == BACKEND_WASAPI;
   m_wasapi_device_label->setHidden(!is_wasapi);
   m_wasapi_device_combo->setHidden(!is_wasapi);
 
@@ -408,7 +408,7 @@ void AudioPane::OnVolumeChanged(const int volume) const
 
 void AudioPane::CheckNeedForLatencyControl()
 {
-  std::vector<std::string> backends = AudioCommon::GetSoundBackends();
+  const std::vector<std::string> backends = AudioCommon::GetSoundBackends();
   m_latency_control_supported =
       std::any_of(backends.cbegin(), backends.cend(), AudioCommon::SupportsLatencyControl);
 }

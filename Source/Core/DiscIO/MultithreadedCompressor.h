@@ -137,7 +137,7 @@ private:
   {
     CompressThreadState compress_thread_state;
 
-    ConversionResultCode setup_result = m_set_up_compress_thread_state(&compress_thread_state);
+    const ConversionResultCode setup_result = m_set_up_compress_thread_state(&compress_thread_state);
     if (setup_result != ConversionResultCode::Success)
       SetError(setup_result);
 

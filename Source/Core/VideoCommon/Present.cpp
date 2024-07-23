@@ -131,7 +131,7 @@ bool Presenter::Initialize()
 bool Presenter::FetchXFB(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height, const u64 ticks)
 {
   ReleaseXFBContentLock();
-  u64 old_xfb_id = m_last_xfb_id;
+  const u64 old_xfb_id = m_last_xfb_id;
 
   if (fb_width == 0 || fb_height == 0)
   {
@@ -159,7 +159,7 @@ bool Presenter::FetchXFB(const u32 xfb_addr, const u32 fb_width, const u32 fb_st
 
 void Presenter::ViSwap(const u32 xfb_addr, const u32 fb_width, const u32 fb_stride, const u32 fb_height, const u64 ticks)
 {
-  bool is_duplicate = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
+  const bool is_duplicate = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
   PresentInfo present_info;
   present_info.emulated_timestamp = ticks;
@@ -363,13 +363,13 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
   if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     // The height may be negative due to flipped rectangles
-    int height = rc.bottom - rc.top;
+    const int height = rc.bottom - rc.top;
     draw_rc.top += height / 4;
     draw_rc.bottom -= height / 4;
   }
   else
   {
-    int width = rc.right - rc.left;
+    const int width = rc.right - rc.left;
     draw_rc.left += width / 4;
     draw_rc.right -= width / 4;
   }

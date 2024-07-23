@@ -129,7 +129,7 @@ void GCMemcardManager::CreateWidgets()
 
   auto* layout = new QGridLayout;
 
-  for (Slot slot : MEMCARD_SLOTS)
+  for (const Slot slot : MEMCARD_SLOTS)
   {
     m_slot_group[slot] = new QGroupBox(slot == Slot::A ? tr("Slot A") : tr("Slot B"));
     m_slot_file_edit[slot] = new QLineEdit;
@@ -221,7 +221,7 @@ void GCMemcardManager::ConnectWidgets()
 
 void GCMemcardManager::LoadDefaultMemcards()
 {
-  for (Slot slot : MEMCARD_SLOTS)
+  for (const Slot slot : MEMCARD_SLOTS)
   {
     if (Get(Config::GetInfoForEXIDevice(slot)) !=
         EXIDeviceType::MemoryCard)
@@ -237,7 +237,7 @@ void GCMemcardManager::LoadDefaultMemcards()
 
 void GCMemcardManager::SetActiveSlot(const Slot slot)
 {
-  for (Slot slot2 : MEMCARD_SLOTS)
+  for (const Slot slot2 : MEMCARD_SLOTS)
     m_slot_table[slot2]->setEnabled(slot2 == slot);
 
   m_select_button->setText(slot == Slot::A ? tr("Switch to B") : tr("Switch to A"));
@@ -319,10 +319,10 @@ void GCMemcardManager::UpdateSlotTable(Slot slot)
 
 void GCMemcardManager::UpdateActions()
 {
-  auto selection = m_slot_table[m_active_slot]->selectedItems();
-  bool have_selection = selection.count();
-  bool have_memcard = m_slot_memcard[m_active_slot] != nullptr;
-  bool have_memcard_other = m_slot_memcard[OtherSlot(m_active_slot)] != nullptr;
+  const auto selection = m_slot_table[m_active_slot]->selectedItems();
+  const bool have_selection = selection.count();
+  const bool have_memcard = m_slot_memcard[m_active_slot] != nullptr;
+  const bool have_memcard_other = m_slot_memcard[OtherSlot(m_active_slot)] != nullptr;
 
   m_copy_button->setEnabled(have_selection && have_memcard_other);
   m_export_button->setEnabled(have_selection);
@@ -354,7 +354,7 @@ void GCMemcardManager::SetSlotFile(const Slot slot, const QString& path)
 
 void GCMemcardManager::SetSlotFileInteractive(const Slot slot)
 {
-  QString path = QDir::toNativeSeparators(
+  const QString path = QDir::toNativeSeparators(
       DolphinFileDialog::getOpenFileName(this,
                                          slot == Slot::A ? tr("Set Memory Card File for Slot A") :
                                                            tr("Set Memory Card File for Slot B"),
@@ -506,7 +506,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
 void GCMemcardManager::ImportFiles(const Slot slot,
                                    const std::span<const Memcard::Savefile> savefiles)
 {
-  auto& card = m_slot_memcard[slot];
+  const auto& card = m_slot_memcard[slot];
   if (!card)
     return;
 
@@ -580,7 +580,7 @@ void GCMemcardManager::ImportFiles(const Slot slot,
 
 void GCMemcardManager::ImportFile()
 {
-  auto& card = m_slot_memcard[m_active_slot];
+  const auto& card = m_slot_memcard[m_active_slot];
   if (!card)
     return;
 
@@ -628,7 +628,7 @@ void GCMemcardManager::CopyFiles()
   if (!source_card)
     return;
 
-  auto& target_card = m_slot_memcard[OtherSlot(m_active_slot)];
+  const auto& target_card = m_slot_memcard[OtherSlot(m_active_slot)];
   if (!target_card)
     return;
 
@@ -649,7 +649,7 @@ void GCMemcardManager::CopyFiles()
 
 void GCMemcardManager::DeleteFiles()
 {
-  auto& card = m_slot_memcard[m_active_slot];
+  const auto& card = m_slot_memcard[m_active_slot];
   if (!card)
     return;
 
@@ -684,7 +684,7 @@ void GCMemcardManager::DeleteFiles()
 
 void GCMemcardManager::FixChecksums()
 {
-  auto& memcard = m_slot_memcard[m_active_slot];
+  const auto& memcard = m_slot_memcard[m_active_slot];
   memcard->FixChecksums();
 
   if (!memcard->Save())
@@ -705,9 +705,9 @@ void GCMemcardManager::CreateNewCard(const Slot slot)
 void GCMemcardManager::DrawIcons()
 {
   const int column = COLUMN_INDEX_ICON;
-  for (Slot slot : MEMCARD_SLOTS)
+  for (const Slot slot : MEMCARD_SLOTS)
   {
-    QTableWidget* table = m_slot_table[slot];
+    const QTableWidget* table = m_slot_table[slot];
     const int row_count = table->rowCount();
 
     if (row_count <= 0)
@@ -757,7 +757,7 @@ void GCMemcardManager::DrawIcons()
 
 QPixmap GCMemcardManager::GetBannerFromSaveFile(const int file_index, const Slot slot)
 {
-  auto& memcard = m_slot_memcard[slot];
+  const auto& memcard = m_slot_memcard[slot];
 
   auto pxdata = memcard->ReadBannerRGBA8(file_index);
 
@@ -773,7 +773,7 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(const int file_index, const Slot
 
 GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(const int file_index, const Slot slot)
 {
-  auto& memcard = m_slot_memcard[slot];
+  const auto& memcard = m_slot_memcard[slot];
 
   IconAnimationData frame_data;
 

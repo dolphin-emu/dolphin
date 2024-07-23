@@ -192,7 +192,7 @@ void GeneralWidget::SaveSettings()
 
   if (GetActiveLayerForConfig(Config::MAIN_GFX_BACKEND) == Config::LayerType::Base)
   {
-    auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
+    const auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
                               ->GetWarningMessage();
     if (warningMessage)
     {
@@ -226,7 +226,7 @@ void GeneralWidget::OnEmulationStateChanged(const bool running)
   const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);
 
-  std::string current_backend = m_backend_combo->currentData().toString().toStdString();
+  const std::string current_backend = m_backend_combo->currentData().toString().toStdString();
   if (Get(Config::MAIN_GFX_BACKEND) != current_backend)
     emit BackendChanged(QString::fromStdString(Get(Config::MAIN_GFX_BACKEND)));
 }

@@ -19,8 +19,8 @@ std::unique_ptr<u8[]> TransferCommand::MakeBuffer(const size_t size) const
 {
   ASSERT_MSG(IOS_USB, data_address != 0, "Invalid data_address");
   auto buffer = std::make_unique<u8[]>(size);
-  auto& system = m_ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = m_ios.GetSystem();
+  const auto& memory = system.GetMemory();
   memory.CopyFromEmu(buffer.get(), data_address, size);
   return buffer;
 }
@@ -28,8 +28,8 @@ std::unique_ptr<u8[]> TransferCommand::MakeBuffer(const size_t size) const
 void TransferCommand::FillBuffer(const u8* src, const size_t size) const
 {
   ASSERT_MSG(IOS_USB, size == 0 || data_address != 0, "Invalid data_address");
-  auto& system = m_ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = m_ios.GetSystem();
+  const auto& memory = system.GetMemory();
   memory.CopyToEmu(data_address, src, size);
 }
 
@@ -40,15 +40,15 @@ void TransferCommand::OnTransferComplete(const s32 return_value) const
 
 void TransferCommand::ScheduleTransferCompletion(const s32 return_value, const u32 expected_time_us) const
 {
-  auto ticks = m_ios.GetSystem().GetSystemTimers().GetTicksPerSecond();
-  s64 cycles_in_future = static_cast<s64>((static_cast<u64>(ticks) * expected_time_us) / 1'000'000);
+  const auto ticks = m_ios.GetSystem().GetSystemTimers().GetTicksPerSecond();
+  const s64 cycles_in_future = static_cast<s64>((static_cast<u64>(ticks) * expected_time_us) / 1'000'000);
   m_ios.EnqueueIPCReply(ios_request, return_value, cycles_in_future, CoreTiming::FromThread::ANY);
 }
 
 void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_value) const
 {
-  auto& system = m_ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = m_ios.GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U16(return_value, static_cast<u32>(packet_sizes_addr + packet_num * sizeof(u16)));
 }
 

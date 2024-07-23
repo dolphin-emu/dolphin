@@ -65,7 +65,7 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
 
   QHBoxLayout* top_layout = new QHBoxLayout;
 
-  QIcon icon = QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning);
+  const QIcon icon = QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning);
   QLabel* icon_label = new QLabel;
   icon_label->setPixmap(icon.pixmap(100));
   icon_label->setAlignment(Qt::AlignTop);

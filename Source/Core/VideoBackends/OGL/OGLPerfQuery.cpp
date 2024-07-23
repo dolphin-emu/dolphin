@@ -138,7 +138,7 @@ void PerfQueryGL::WeakFlush()
 {
   while (!IsFlushed())
   {
-    auto& entry = m_query_buffer[m_query_read_pos];
+    const auto& entry = m_query_buffer[m_query_read_pos];
 
     GLuint result = GL_FALSE;
     glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT_AVAILABLE, &result);
@@ -156,7 +156,7 @@ void PerfQueryGL::WeakFlush()
 
 void PerfQueryGL::FlushOne()
 {
-  auto& entry = m_query_buffer[m_query_read_pos];
+  const auto& entry = m_query_buffer[m_query_read_pos];
 
   GLuint result = 0;
   glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT, &result);
@@ -238,7 +238,7 @@ void PerfQueryGLESNV::WeakFlush()
 {
   while (!IsFlushed())
   {
-    auto& entry = m_query_buffer[m_query_read_pos];
+    const auto& entry = m_query_buffer[m_query_read_pos];
 
     GLuint result = GL_FALSE;
     glGetOcclusionQueryuivNV(entry.query_id, GL_PIXEL_COUNT_AVAILABLE_NV, &result);
@@ -256,7 +256,7 @@ void PerfQueryGLESNV::WeakFlush()
 
 void PerfQueryGLESNV::FlushOne()
 {
-  auto& entry = m_query_buffer[m_query_read_pos];
+  const auto& entry = m_query_buffer[m_query_read_pos];
 
   GLuint result = 0;
   glGetOcclusionQueryuivNV(entry.query_id, GL_OCCLUSION_TEST_RESULT_HP, &result);

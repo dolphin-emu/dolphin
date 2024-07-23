@@ -266,7 +266,7 @@ void GeneralPane::LoadConfig()
   SignalBlocking(m_checkbox_discord_presence)
       ->setChecked(Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
-  int selection = qRound(Get(Config::MAIN_EMULATION_SPEED) * 10);
+  const int selection = qRound(Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
     SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
 

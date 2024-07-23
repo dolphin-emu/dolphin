@@ -735,7 +735,7 @@ int FunctionExpression::CountNumControls() const
 
 void FunctionExpression::UpdateReferences(ControlEnvironment& env)
 {
-  for (auto& arg : m_args)
+  for (const auto& arg : m_args)
     arg->UpdateReferences(env);
 }
 

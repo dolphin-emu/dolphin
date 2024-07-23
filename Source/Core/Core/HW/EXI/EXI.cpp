@@ -37,7 +37,7 @@ void ExpansionInterfaceManager::AddMemoryCard(const Slot slot) const
 {
   EXIDeviceType memorycard_device;
 
-  auto& movie = m_system.GetMovie();
+  const auto& movie = m_system.GetMovie();
   if (movie.IsPlayingInput() && movie.IsConfigSaved())
   {
     if (movie.IsUsingMemcard(slot))
@@ -117,7 +117,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
 
   {
     u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
-    int size_override = Get(Config::MAIN_MEMORY_CARD_SIZE);
+    const int size_override = Get(Config::MAIN_MEMORY_CARD_SIZE);
     if (size_override >= 0 && size_override <= 4)
       size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override;
     const bool shift_jis =
@@ -137,7 +137,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     }
   }
 
-  for (Slot slot : MEMCARD_SLOTS)
+  for (const Slot slot : MEMCARD_SLOTS)
     AddMemoryCard(slot);
 
   m_channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
@@ -160,14 +160,14 @@ void ExpansionInterfaceManager::Shutdown()
   if (!m_using_overridden_sram)
   {
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    auto& sram = m_system.GetSRAM();
+    const auto& sram = m_system.GetSRAM();
     file.WriteArray(&sram, 1);
   }
 }
 
 void ExpansionInterfaceManager::DoState(PointerWrap& p) const
 {
-  for (auto& channel : m_channels)
+  for (const auto& channel : m_channels)
     channel->DoState(p);
 }
 
@@ -188,9 +188,9 @@ void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base
 void ExpansionInterfaceManager::ChangeDeviceCallback(const Core::System& system, const u64 userdata,
                                                      s64 cycles_late)
 {
-  u8 channel = static_cast<u8>(userdata >> 32);
+  const u8 channel = static_cast<u8>(userdata >> 32);
   u8 type = static_cast<u8>(userdata >> 16);
-  u8 num = static_cast<u8>(userdata);
+  const u8 num = static_cast<u8>(userdata);
 
   system.GetExpansionInterface().m_channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type),
                                                                    num);
@@ -234,7 +234,7 @@ void ExpansionInterfaceManager::UpdateInterrupts() const
   m_channels[2]->SetEXIINT(m_channels[0]->GetDevice(4)->IsInterruptSet());
 
   bool causeInt = false;
-  for (auto& channel : m_channels)
+  for (const auto& channel : m_channels)
     causeInt |= channel->IsCausingInterrupt();
 
   m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);

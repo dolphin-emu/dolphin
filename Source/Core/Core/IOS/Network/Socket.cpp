@@ -215,7 +215,7 @@ s32 WiiSocket::CloseFd()
   s32 ReturnValue = 0;
   if (fd >= 0)
   {
-    s32 ret = closesocket(fd);
+    const s32 ret = closesocket(fd);
     ReturnValue = m_socket_manager.GetNetErrorCode(ret, "CloseFd", false);
   }
   else
@@ -770,7 +770,7 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     fd_set read_fds;
     fd_set write_fds;
     fd_set except_fds;
-    struct timeval t = {0, 0};
+    const struct timeval t = {0, 0};
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
@@ -958,7 +958,7 @@ s32 WiiSockMan::NewSocket(s32 af, const s32 type, const s32 protocol)
   if (type != 1 && type != 2)  // SOCK_STREAM && SOCK_DGRAM
     return -SO_EPROTOTYPE;
 
-  s32 fd = static_cast<s32>(socket(af, type, protocol));
+  const s32 fd = static_cast<s32>(socket(af, type, protocol));
   return AddSocket(fd, false);
 }
 
@@ -971,7 +971,7 @@ s32 WiiSockMan::GetHostSocket(const s32 wii_fd) const
 
 s32 WiiSockMan::ShutdownSocket(const s32 wii_fd, const u32 how)
 {
-  auto socket_entry = WiiSockets.find(wii_fd);
+  const auto socket_entry = WiiSockets.find(wii_fd);
   if (socket_entry != WiiSockets.end())
     return socket_entry->second.Shutdown(how);
   return -SO_EBADF;
@@ -980,7 +980,7 @@ s32 WiiSockMan::ShutdownSocket(const s32 wii_fd, const u32 how)
 s32 WiiSockMan::DeleteSocket(const s32 wii_fd)
 {
   s32 ReturnValue = -SO_EBADF;
-  auto socket_entry = WiiSockets.find(wii_fd);
+  const auto socket_entry = WiiSockets.find(wii_fd);
   if (socket_entry != WiiSockets.end())
   {
     ReturnValue = socket_entry->second.CloseFd();
@@ -998,13 +998,13 @@ void WiiSockMan::Update()
 {
   s32 nfds = 0;
   fd_set read_fds, write_fds, except_fds;
-  struct timeval t = {0, 0};
+  const struct timeval t = {0, 0};
   FD_ZERO(&read_fds);
   FD_ZERO(&write_fds);
   FD_ZERO(&except_fds);
 
   auto socket_iter = WiiSockets.begin();
-  auto end_socks = WiiSockets.end();
+  const auto end_socks = WiiSockets.end();
 
   while (socket_iter != end_socks)
   {
@@ -1085,7 +1085,7 @@ void WiiSockMan::UpdatePollCommands()
       std::vector<int> original_order(pfds.size());
       std::iota(original_order.begin(), original_order.end(), 0);
       // Select indices with valid fds
-      auto mid = std::partition(original_order.begin(), original_order.end(), [&](auto i) {
+      const auto mid = std::partition(original_order.begin(), original_order.end(), [&](auto i) {
         return GetHostSocket(memory.Read_U32(pcmd.buffer_out + 0xc * i)) >= 0;
       });
       const auto n_valid = std::distance(original_order.begin(), mid);
@@ -1186,7 +1186,7 @@ WiiSockAddrIn WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, const socklen_t a
 
 void WiiSockMan::DoState(PointerWrap& p)
 {
-  bool saving = p.IsWriteMode() || p.IsMeasureMode();
+  const bool saving = p.IsWriteMode() || p.IsMeasureMode();
   auto size = pending_polls.size();
   p.Do(size);
   if (!saving)

@@ -88,7 +88,7 @@ void SettingsHandler::WriteLine(const std::string_view str)
   const u32 old_key = m_key;
 
   // Encode and write the line
-  for (char c : str)
+  for (const char c : str)
     WriteByte(c);
 
   // If the encoded data contains a null byte, Nintendo's decoder will stop at that null byte

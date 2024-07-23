@@ -91,7 +91,7 @@ protected:
     if (expected_count == -1)
       expected_count = count;
     ResetPointers();
-    int actual_count = m_loader->RunVertices(m_src.GetPointer(), m_dst.GetPointer(), count);
+    const int actual_count = m_loader->RunVertices(m_src.GetPointer(), m_dst.GetPointer(), count);
     EXPECT_EQ(actual_count, expected_count);
   }
 
@@ -166,7 +166,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   ASSERT_EQ(0u, values.size() % 2);
   ASSERT_EQ(0u, values.size() % 3);
 
-  int count = static_cast<int>(values.size()) / elem_count;
+  const int count = static_cast<int>(values.size()) / elem_count;
   size_t input_size = elem_count * elem_size;
   if (IsIndexed(addr))
   {
@@ -182,7 +182,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
     g_main_cp_state.array_strides[CPArray::Position] = elem_count * elem_size;
   }
   CreateAndCheckSizes(input_size, elem_count * sizeof(float));
-  for (float value : values)
+  for (const float value : values)
   {
     switch (format)
     {
@@ -209,7 +209,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 
   RunVertices(count);
 
-  float scale = 1.f / (1u << (format >= ComponentFormat::Float ? 0 : frac));
+  const float scale = 1.f / (1u << (format >= ComponentFormat::Float ? 0 : frac));
   for (auto iter = values.begin(); iter != values.end();)
   {
     float f, g;

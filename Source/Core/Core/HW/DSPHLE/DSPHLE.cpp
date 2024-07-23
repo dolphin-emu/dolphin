@@ -113,9 +113,9 @@ void DSPHLE::DoState(PointerWrap& p)
   p.Do(m_dsp_state);
 
   int ucode_crc = UCodeInterface::GetCRC(m_ucode.get());
-  int ucode_crc_before_load = ucode_crc;
+  const int ucode_crc_before_load = ucode_crc;
   int last_ucode_crc = UCodeInterface::GetCRC(m_last_ucode.get());
-  int last_ucode_crc_before_load = last_ucode_crc;
+  const int last_ucode_crc_before_load = last_ucode_crc;
 
   p.Do(ucode_crc);
   p.Do(last_ucode_crc);

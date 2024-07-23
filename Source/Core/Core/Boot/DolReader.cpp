@@ -61,7 +61,7 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
 
       for (unsigned int j = 0; !m_is_wii && j < (m_dolheader.textSize[i] / sizeof(u32)); ++j)
       {
-        u32 word = ((u32*)text_start)[j];
+        const u32 word = ((u32*)text_start)[j];
         if ((word & HID4_mask) == HID4_pattern)
           m_is_wii = true;
       }
@@ -78,8 +78,8 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
   {
     if (m_dolheader.dataSize[i] != 0)
     {
-      u32 section_size = m_dolheader.dataSize[i];
-      u32 section_offset = m_dolheader.dataOffset[i];
+      const u32 section_size = m_dolheader.dataSize[i];
+      const u32 section_offset = m_dolheader.dataOffset[i];
       if (buffer.size() < section_offset)
         return false;
 
@@ -118,7 +118,7 @@ bool DolReader::LoadIntoMemory(Core::System& system, const bool only_in_mem1) co
   if (m_is_ancast)
     return LoadAncastIntoMemory(system);
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   // load all text (code) sections
   for (size_t i = 0; i < m_text_sections.size(); ++i)
@@ -216,7 +216,7 @@ bool DolReader::LoadAncastIntoMemory(const Core::System& system) const
                                                       0xfa, 0x29, 0xf8, 0x66};
   static constexpr u8 vwii_ancast_dev_key[0x10] = {0x26, 0xaf, 0xf4, 0xbb, 0xac, 0x88, 0xbb, 0x76,
                                                    0x9d, 0xfc, 0x54, 0xdd, 0x56, 0xd8, 0xef, 0xbd};
-  std::unique_ptr<Common::AES::Context> ctx =
+  const std::unique_ptr<Common::AES::Context> ctx =
       Common::AES::CreateContextDecrypt(is_dev ? vwii_ancast_dev_key : vwii_ancast_retail_key);
 
   static constexpr u8 vwii_ancast_iv[0x10] = {0x59, 0x6d, 0x5a, 0x9a, 0xd7, 0x05, 0xf9, 0x4f,
@@ -226,7 +226,7 @@ bool DolReader::LoadAncastIntoMemory(const Core::System& system) const
                   body_size))
     return false;
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
 
   // Copy the Ancast header to the emu
   memory.CopyToEmu(section_address, header, sizeof(EspressoAncastHeader));

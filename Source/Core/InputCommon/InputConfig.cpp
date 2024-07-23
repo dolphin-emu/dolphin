@@ -127,7 +127,7 @@ bool InputConfig::LoadConfig()
 
 void InputConfig::SaveConfig() const
 {
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
+  const std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
 
   Common::IniFile inifile;
   inifile.Load(ini_filename);
@@ -179,7 +179,7 @@ void InputConfig::RegisterHotplugCallback()
   // Update control references on all controllers
   // as configured devices may have been added or removed.
   m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
-    for (auto& controller : m_controllers)
+    for (const auto& controller : m_controllers)
       controller->UpdateReferences(g_controller_interface);
   });
 }
@@ -211,7 +211,7 @@ bool InputConfig::IsControllerControlledByGamepadDevice(const int index) const
 void InputConfig::GenerateControllerTextures(const Common::IniFile& file) const
 {
   std::vector<std::string> controller_names;
-  for (auto& controller : m_controllers)
+  for (const auto& controller : m_controllers)
   {
     controller_names.push_back(controller->GetName());
   }

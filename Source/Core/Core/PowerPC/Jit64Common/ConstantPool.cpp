@@ -56,6 +56,6 @@ const void* ConstantPool::GetConstant(const void* value, const size_t element_si
 
   const ConstantInfo& info = iter->second;
   ASSERT_MSG(DYNA_REC, info.m_size == value_size, "Constant has incorrect size in constant pool.");
-  u8* location = static_cast<u8*>(info.m_location);
+  const u8* location = static_cast<u8*>(info.m_location);
   return location + element_size * index;
 }

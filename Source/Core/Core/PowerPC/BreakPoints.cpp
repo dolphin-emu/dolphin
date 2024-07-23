@@ -49,8 +49,8 @@ const TBreakPoint* BreakPoints::GetBreakpoint(const u32 address) const
 
 const TBreakPoint* BreakPoints::GetRegularBreakpoint(u32 address) const
 {
-  auto bp = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                         [address](const auto& bp_) { return bp_.address == address; });
+  const auto bp = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                               [address](const auto& bp_) { return bp_.address == address; });
 
   if (bp == m_breakpoints.end())
     return nullptr;
@@ -127,8 +127,8 @@ void BreakPoints::Add(u32 address, const bool break_on_hit, const bool log_on_hi
 {
   // Check for existing breakpoint, and overwrite with new info.
   // This is assuming we usually want the new breakpoint over an old one.
-  auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                           [address](const auto& bp) { return bp.address == address; });
+  const auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                                 [address](const auto& bp) { return bp.address == address; });
 
   TBreakPoint bp;  // breakpoint settings
   bp.is_enabled = true;
@@ -176,8 +176,8 @@ bool BreakPoints::ToggleBreakPoint(const u32 address)
 
 bool BreakPoints::ToggleEnable(u32 address)
 {
-  auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                           [address](const auto& bp) { return bp.address == address; });
+  const auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                                 [address](const auto& bp) { return bp.address == address; });
 
   if (iter == m_breakpoints.end())
     return false;
@@ -287,13 +287,13 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 
 void MemChecks::Add(TMemCheck memory_check)
 {
-  bool had_any = HasAny();
+  const bool had_any = HasAny();
 
   const Core::CPUThreadGuard guard(m_system);
   // Check for existing breakpoint, and overwrite with new info.
   // This is assuming we usually want the new breakpoint over an old one.
   const u32 address = memory_check.start_address;
-  auto old_mem_check =
+  const auto old_mem_check =
       std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
                    [address](const auto& check) { return check.start_address == address; });
   if (old_mem_check != m_mem_checks.end())
@@ -315,8 +315,8 @@ void MemChecks::Add(TMemCheck memory_check)
 
 bool MemChecks::ToggleEnable(u32 address)
 {
-  auto iter = std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
-                           [address](const auto& bp) { return bp.start_address == address; });
+  const auto iter = std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
+                                 [address](const auto& bp) { return bp.start_address == address; });
 
   if (iter == m_mem_checks.end())
     return false;
@@ -380,7 +380,7 @@ bool MemChecks::OverlapsMemcheck(const u32 address, const u32 length) const
   });
 }
 
-bool TMemCheck::Action(Core::System& system, const u64 value, const u32 addr, const bool write, const size_t size, const u32 pc) const
+bool TMemCheck::Action(const Core::System& system, const u64 value, const u32 addr, const bool write, const size_t size, const u32 pc) const
 {
   if (!is_enabled)
     return false;

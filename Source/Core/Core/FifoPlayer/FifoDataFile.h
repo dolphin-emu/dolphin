@@ -85,7 +85,7 @@ private:
     FLAG_IS_WII = 1
   };
 
-  void PadFile(size_t numBytes, File::IOFile& file);
+  void PadFile(size_t numBytes, const File::IOFile& file);
 
   void SetFlag(u32 flag, bool set);
   bool GetFlag(u32 flag) const;

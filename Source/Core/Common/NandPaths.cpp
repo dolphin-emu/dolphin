@@ -17,7 +17,7 @@ namespace Common
 {
 std::string RootUserPath(const FromWhichRoot from)
 {
-  int idx = from == FromWhichRoot::Configured ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
+  const int idx = from == FromWhichRoot::Configured ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
   std::string dir = File::GetUserPath(idx);
   dir.pop_back();  // remove trailing path separator
   return dir;
@@ -74,15 +74,15 @@ std::string GetMiiDatabasePath(const std::optional<FromWhichRoot> from)
 
 bool IsTitlePath(const std::string& path, const std::optional<FromWhichRoot> from, u64* title_id)
 {
-  std::string expected_prefix = RootUserPath(from) + "/title/";
+  const std::string expected_prefix = RootUserPath(from) + "/title/";
   if (!path.starts_with(expected_prefix))
   {
     return false;
   }
 
   // Try to find a title ID in the remaining path.
-  std::string subdirectory = path.substr(expected_prefix.size());
-  std::vector<std::string> components = SplitString(subdirectory, '/');
+  const std::string subdirectory = path.substr(expected_prefix.size());
+  const std::vector<std::string> components = SplitString(subdirectory, '/');
   if (components.size() < 2)
   {
     return false;
@@ -116,7 +116,7 @@ std::string EscapeFileName(const std::string& filename)
     return ReplaceAll(filename, ".", "__2e__");
 
   // Escape all double underscores since we will use double underscores for our escape sequences
-  std::string filename_with_escaped_double_underscores = ReplaceAll(filename, "__", "__5f____5f__");
+  const std::string filename_with_escaped_double_underscores = ReplaceAll(filename, "__", "__5f____5f__");
 
   // Escape all other characters that need to be escaped
   std::string result;

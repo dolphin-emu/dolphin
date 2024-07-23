@@ -64,7 +64,7 @@ private:
 void GenericLogFmtImpl(const LogLevel level, const LogType type, const char* file, const int line,
                        const fmt::string_view format, const fmt::format_args& args)
 {
-  auto* instance = LogManager::GetInstance();
+  const auto* instance = LogManager::GetInstance();
   if (instance == nullptr)
     return;
 
@@ -155,7 +155,7 @@ LogManager::LogManager()
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
   // Set up log listeners
-  LogLevel verbosity = Get(LOGGER_VERBOSITY);
+  const LogLevel verbosity = Get(LOGGER_VERBOSITY);
 
   SetLogLevel(verbosity);
   EnableListener(LogListener::FILE_LISTENER, Get(LOGGER_WRITE_TO_FILE));

@@ -188,7 +188,7 @@ u32 DVDInterface::AdvanceDTK(const u32 maximum_blocks, u32* blocks_to_process)
 void DVDInterface::DTKStreamingCallback(const DIInterruptType interrupt_type,
                                         const std::vector<u8>& audio_data, const s64 cycles_late)
 {
-  auto& ai = m_system.GetAudioInterface();
+  const auto& ai = m_system.GetAudioInterface();
 
   // Actual games always set this to 48 KHz
   // but let's make sure to use GetAISSampleRateDivisor()
@@ -213,7 +213,7 @@ void DVDInterface::DTKStreamingCallback(const DIInterruptType interrupt_type,
     const u32 pending_blocks = std::min(m_pending_blocks, MAX_POSSIBLE_BLOCKS);
     ProcessDTKSamples(temp_pcm.data(), pending_blocks, audio_data);
 
-    SoundStream* sound_stream = m_system.GetSoundStream();
+    const SoundStream* sound_stream = m_system.GetSoundStream();
     sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(),
                                                    pending_blocks * StreamADPCM::SAMPLES_PER_BLOCK);
 
@@ -247,7 +247,7 @@ void DVDInterface::DTKStreamingCallback(const DIInterruptType interrupt_type,
   else
   {
     // There's nothing to read, so using DVDThread is unnecessary.
-    u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
+    const u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
     m_system.GetCoreTiming().ScheduleEvent(ticks_to_dtk, m_finish_executing_command, userdata);
   }
 }
@@ -280,7 +280,7 @@ void DVDInterface::Init()
   m_finish_executing_command =
       core_timing.RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
 
-  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
+  const u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
   core_timing.ScheduleEvent(0, m_finish_executing_command, userdata);
 }
 
@@ -363,8 +363,8 @@ static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
 void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
                            std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
-  bool had_disc = IsDiscInside();
-  bool has_disc = static_cast<bool>(disc);
+  const bool had_disc = IsDiscInside();
+  const bool has_disc = static_cast<bool>(disc);
 
   if (has_disc)
   {
@@ -763,7 +763,7 @@ void DVDInterface::ExecuteCommand(const ReplyType reply_type)
   case DICommand::Inquiry:
   {
     // (shuffle2) Taken from my Wii
-    auto& memory = m_system.GetMemory();
+    const auto& memory = m_system.GetMemory();
     memory.Write_U32(0x00000002, m_DIMAR);      // Revision level, device code
     memory.Write_U32(0x20060526, m_DIMAR + 4);  // Release date
     memory.Write_U32(0x41000000, m_DIMAR + 8);  // Version
@@ -896,7 +896,7 @@ void DVDInterface::ExecuteCommand(const ReplyType reply_type)
     // Most (all?) other games have 0x34 0's at the start of the BCA, but don't actually
     // read it.  NSMBW doesn't care about the other 12 bytes (which contain manufacturing data?)
 
-    auto& memory = m_system.GetMemory();
+    const auto& memory = m_system.GetMemory();
     // TODO: Read the .bca file that cleanrip generates, if it exists
     // memory.CopyToEmu(output_address, bca_data, 0x40);
     memory.Memset(m_DIMAR, 0, 0x40);
@@ -1241,8 +1241,8 @@ static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptT
 void DVDInterface::FinishExecutingCommandCallback(const Core::System& system, const u64 userdata,
                                                   const s64 cycles_late)
 {
-  ReplyType reply_type = static_cast<ReplyType>(userdata >> 32);
-  DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
+  const ReplyType reply_type = static_cast<ReplyType>(userdata >> 32);
+  const DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
   system.GetDVDInterface().FinishExecutingCommand(reply_type, interrupt_type, cycles_late);
 }
 
@@ -1319,7 +1319,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
   // faster than on real hardware, and if there's too much latency in the wrong
   // places, the video before the save-file select screen lags.
 
-  auto& core_timing = m_system.GetCoreTiming();
+  const auto& core_timing = m_system.GetCoreTiming();
   const u64 current_time = core_timing.GetTicks();
   const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
   auto& dvd_thread = m_system.GetDVDThread();

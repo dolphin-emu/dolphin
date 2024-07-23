@@ -80,10 +80,10 @@ static DRESULT read_vff_header(const IOS::HLE::FS::FileHandle* vff, FATFS* fs)
   // Root directory entry is 4096 bytes long, with each entry being 32 bytes. 4096 / 32 = 128
   fs->n_rootdir = 128;
 
-  u32 sysect = 1 + (fs->fsize * 2) + fs->n_rootdir / (512 / 32);
+  const u32 sysect = 1 + (fs->fsize * 2) + fs->n_rootdir / (512 / 32);
 
   // cluster_count is the total count whereas this is the actual amount of clusters we can use
-  u32 actual_cluster_count = cluster_count - sysect;
+  const u32 actual_cluster_count = cluster_count - sysect;
 
   fs->n_fatent = actual_cluster_count + 2;
   fs->volbase = 0;
@@ -106,12 +106,12 @@ static DRESULT read_vff_header(const IOS::HLE::FS::FileHandle* vff, FATFS* fs)
   return RES_OK;
 }
 
-static FRESULT vff_mount(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
+static FRESULT vff_mount(const IOS::HLE::FS::FileHandle* vff, FATFS* fs)
 {
   fs->fs_type = 0;  // Clear the filesystem object
   fs->pdrv = 0;     // Volume hosting physical drive
 
-  DRESULT ret = read_vff_header(vff, fs);
+  const DRESULT ret = read_vff_header(vff, fs);
   if (ret != RES_OK)
     return FR_DISK_ERR;
 
@@ -204,7 +204,7 @@ static ErrorCode WriteFile(const std::string& filename, const std::span<const u8
   while (size > 0)
   {
     constexpr size_t MAX_CHUNK_SIZE = 32768;
-    u32 chunk_size = static_cast<u32>(std::min(size, MAX_CHUNK_SIZE));
+    const u32 chunk_size = static_cast<u32>(std::min(size, MAX_CHUNK_SIZE));
 
     u32 written_size;
     const auto write_error_code =
@@ -249,7 +249,7 @@ static ErrorCode ReadFile(const std::string& filename, std::vector<u8>& out)
 
   Common::ScopeGuard vff_close_guard{[&] { f_close(&src); }};
 
-  u32 size = static_cast<u32>(out.size());
+  const u32 size = static_cast<u32>(out.size());
   u32 read_size{};
   const auto read_error_code = f_read(&src, out.data(), size, &read_size);
   if (read_error_code != FR_OK)

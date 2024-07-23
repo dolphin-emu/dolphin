@@ -162,7 +162,7 @@ class DiscContentContainer
 public:
   void Add(const u64 offset, std::vector<u8> vector)
   {
-    size_t vector_size = vector.size();
+    const size_t vector_size = vector.size();
     return Add(offset, vector_size, std::make_shared<std::vector<u8>>(std::move(vector)));
   }
   void Add(u64 offset, u64 size, ContentSource source);

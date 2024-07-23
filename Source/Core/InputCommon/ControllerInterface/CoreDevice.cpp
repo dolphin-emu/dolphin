@@ -56,11 +56,11 @@ private:
 Device::~Device()
 {
   // delete inputs
-  for (Input* input : m_inputs)
+  for (const Input* input : m_inputs)
     delete input;
 
   // delete outputs
-  for (Output* output : m_outputs)
+  for (const Output* output : m_outputs)
     delete output;
 }
 

@@ -91,7 +91,7 @@ void GraphicsModGroupConfig::Load()
     if (known_paths.contains(file))
       return;
 
-    if (auto mod = GraphicsModConfig::Create(file, source))
+    if (const auto mod = GraphicsModConfig::Create(file, source))
       m_graphics_mods.push_back(std::move(*mod));
   };
 

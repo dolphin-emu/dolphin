@@ -35,7 +35,7 @@ void StagingBuffer::BufferMemoryBarrier(const VkCommandBuffer command_buffer, co
                                         const VkDeviceSize size, const VkPipelineStageFlags src_stage_mask,
                                         const VkPipelineStageFlags dst_stage_mask)
 {
-  VkBufferMemoryBarrier buffer_info = {
+  const VkBufferMemoryBarrier buffer_info = {
       VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,  // VkStructureType    sType
       nullptr,                                  // const void*        pNext
       src_access_mask,                          // VkAccessFlags      srcAccessMask
@@ -126,7 +126,7 @@ bool StagingBuffer::AllocateBuffer(const STAGING_BUFFER_TYPE type, const VkDevic
                                    const VkBufferUsageFlags usage, VkBuffer* out_buffer,
                                    VmaAllocation* out_alloc, char** out_map_ptr)
 {
-  VkBufferCreateInfo buffer_create_info = {
+  const VkBufferCreateInfo buffer_create_info = {
       VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
       nullptr,                               // const void*            pNext
       0,                                     // VkBufferCreateFlags    flags
@@ -165,8 +165,8 @@ bool StagingBuffer::AllocateBuffer(const STAGING_BUFFER_TYPE type, const VkDevic
   }
 
   VmaAllocationInfo alloc_info;
-  VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &buffer_create_info,
-                                 &alloc_create_info, out_buffer, out_alloc, &alloc_info);
+  const VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &buffer_create_info,
+                                       &alloc_create_info, out_buffer, out_alloc, &alloc_info);
 
   if (type == STAGING_BUFFER_TYPE_UPLOAD)
   {

@@ -21,9 +21,9 @@ QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, const int
   if (to_resize != nullptr)
   {
     // For some reason width() is bigger than it needs to be.
-    auto min_size = wrapped_widget->minimumSizeHint();
-    int recommended_width = min_size.width() + margin_width;
-    int recommended_height = min_size.height() + margin_height;
+    const auto min_size = wrapped_widget->minimumSizeHint();
+    const int recommended_width = min_size.width() + margin_width;
+    const int recommended_height = min_size.height() + margin_height;
 
     to_resize->resize(std::max(recommended_width, to_resize->width()),
                       std::max(recommended_height, to_resize->height()));

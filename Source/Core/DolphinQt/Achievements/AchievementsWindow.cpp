@@ -106,7 +106,7 @@ void AchievementsWindow::UpdateData(const AchievementManager::UpdatedItems& upda
   }
 
   {
-    auto& instance = AchievementManager::GetInstance();
+    const auto& instance = AchievementManager::GetInstance();
     std::lock_guard lg{instance.GetLock()};
     const bool is_game_loaded = instance.IsGameLoaded();
     m_header_widget->setVisible(instance.HasAPIToken());

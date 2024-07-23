@@ -100,7 +100,7 @@ Quaternion Quaternion::Inverted() const
 
 Quaternion& Quaternion::operator*=(const Quaternion& rhs)
 {
-  auto& a = data;
+  const auto& a = data;
   auto& b = rhs.data;
 
   data = Vec4{a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,

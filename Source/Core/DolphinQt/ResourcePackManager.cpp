@@ -99,7 +99,7 @@ void ResourcePackManager::RepopulateTable()
   header->setStretchLastSection(true);
   header->setHighlightSections(false);
 
-  int size = static_cast<int>(ResourcePack::GetPacks().size());
+  const int size = static_cast<int>(ResourcePack::GetPacks().size());
 
   m_table_widget->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table_widget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -196,7 +196,7 @@ void ResourcePackManager::Install()
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
-  bool success = item.Install(File::GetUserPath(D_LOAD_IDX));
+  const bool success = item.Install(File::GetUserPath(D_LOAD_IDX));
 
   if (!success)
   {
@@ -217,7 +217,7 @@ void ResourcePackManager::Uninstall()
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
-  bool success = item.Uninstall(File::GetUserPath(D_LOAD_IDX));
+  const bool success = item.Uninstall(File::GetUserPath(D_LOAD_IDX));
 
   if (!success)
   {
@@ -264,7 +264,7 @@ void ResourcePackManager::PriorityDown()
     return;
 
   auto& pack = ResourcePack::GetPacks()[row];
-  std::string path = pack.GetPath();
+  const std::string path = pack.GetPath();
 
   row--;
 
@@ -289,7 +289,7 @@ void ResourcePackManager::PriorityUp()
     return;
 
   auto& pack = ResourcePack::GetPacks()[row];
-  std::string path = pack.GetPath();
+  const std::string path = pack.GetPath();
 
   row++;
 
@@ -331,7 +331,7 @@ void ResourcePackManager::SelectionChanged()
 
 void ResourcePackManager::ItemDoubleClicked(const QTableWidgetItem* item)
 {
-  auto item_data = item->data(Qt::UserRole);
+  const auto item_data = item->data(Qt::UserRole);
 
   if (item_data.isNull())
     return;

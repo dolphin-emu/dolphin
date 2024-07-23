@@ -44,7 +44,7 @@ bool AbstractFramebuffer::ValidateConfig(
     return false;
   }
 
-  for (auto* attachment : additional_color_attachments)
+  for (const auto* attachment : additional_color_attachments)
   {
     if (!CheckAttachment(attachment))
     {
@@ -64,7 +64,7 @@ bool AbstractFramebuffer::ValidateConfig(
     }
   }
 
-  for (auto* attachment : additional_color_attachments)
+  for (const auto* attachment : additional_color_attachments)
   {
     if (color_attachment->GetConfig().width != attachment->GetConfig().width ||
         color_attachment->GetConfig().height != attachment->GetConfig().height ||

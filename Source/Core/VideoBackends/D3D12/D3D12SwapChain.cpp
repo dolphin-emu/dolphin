@@ -33,7 +33,7 @@ bool SwapChain::CreateSwapChainBuffers()
   for (u32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
   {
     ComPtr<ID3D12Resource> resource;
-    HRESULT hr = m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&resource));
+    const HRESULT hr = m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&resource));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer {}: {}", i, DX12HRWrap(hr));
 
     BufferResources buffer;

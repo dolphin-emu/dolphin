@@ -36,7 +36,7 @@ static ComPtr<ID3D12Resource> CreateTextureUploadBuffer(const u32 buffer_size)
                                     D3D12_RESOURCE_FLAG_NONE};
 
   ComPtr<ID3D12Resource> resource;
-  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
+  const HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
       &heap_properties, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
       IID_PPV_ARGS(&resource));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create texture upload buffer: {}", DX12HRWrap(hr));
@@ -113,7 +113,7 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, const 
   }
 
   ComPtr<ID3D12Resource> resource;
-  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
+  const HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
       &heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc, resource_state,
       config.IsRenderTarget() ? &optimized_clear_value : nullptr, IID_PPV_ARGS(&resource));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create D3D12 texture resource: {}", DX12HRWrap(hr));
@@ -267,7 +267,7 @@ void DXTexture::Load(const u32 level, const u32 width, const u32 height, const u
       PanicAlertFmt("Failed to allocate temporary texture upload buffer");
       return;
     }
-    HRESULT hr = staging_buffer->Map(0, &read_range, &upload_buffer_ptr);
+    const HRESULT hr = staging_buffer->Map(0, &read_range, &upload_buffer_ptr);
     if (FAILED(hr))
     {
       PanicAlertFmt("Failed to map temporary texture upload buffer: {}", DX12HRWrap(hr));
@@ -385,7 +385,7 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 {
   const DXTexture* src_dxtex = static_cast<const DXTexture*>(src);
 
-  D3D12_RESOURCE_STATES old_src_state = src_dxtex->m_state;
+  const D3D12_RESOURCE_STATES old_src_state = src_dxtex->m_state;
   src_dxtex->TransitionToState(D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
   TransitionToState(D3D12_RESOURCE_STATE_RESOLVE_DEST);
 
@@ -447,7 +447,7 @@ DXFramebuffer::~DXFramebuffer()
                                                m_int_rtv_descriptor.index);
     }
   }
-  for (auto render_target : m_render_targets)
+  for (const auto render_target : m_render_targets)
   {
     g_dx_context->DeferDescriptorDestruction(g_dx_context->GetRTVHeapManager(),
                                              render_target.index);
@@ -479,7 +479,7 @@ void DXFramebuffer::Unbind() const
     g_dx_context->GetCommandList()->DiscardResource(
         static_cast<DXTexture*>(GetColorAttachment())->GetResource(), &dr);
   }
-  for (auto additional_color_attachment : m_additional_color_attachments)
+  for (const auto additional_color_attachment : m_additional_color_attachments)
   {
     g_dx_context->GetCommandList()->DiscardResource(
         static_cast<DXTexture*>(additional_color_attachment)->GetResource(), &dr);
@@ -494,7 +494,7 @@ void DXFramebuffer::Unbind() const
 void DXFramebuffer::ClearRenderTargets(const ClearColor& color_value,
                                        const D3D12_RECT* rectangle) const
 {
-  for (auto render_target : m_render_targets_raw)
+  for (const auto render_target : m_render_targets_raw)
   {
     g_dx_context->GetCommandList()->ClearRenderTargetView(render_target, color_value.data(),
                                                           rectangle ? 1 : 0, rectangle);
@@ -518,7 +518,7 @@ void DXFramebuffer::TransitionRenderTargets() const
     static_cast<DXTexture*>(GetColorAttachment())
         ->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
   }
-  for (auto additional_color_attachment : m_additional_color_attachments)
+  for (const auto additional_color_attachment : m_additional_color_attachments)
   {
     static_cast<DXTexture*>(additional_color_attachment)
         ->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -603,8 +603,8 @@ bool DXFramebuffer::CreateRTVDescriptor(const u32 layers, AbstractTexture* attac
 bool DXFramebuffer::CreateIRTVDescriptor()
 {
   const bool multisampled = m_samples > 1;
-  DXGI_FORMAT non_int_format = D3DCommon::GetRTVFormatForAbstractFormat(m_color_format, false);
-  DXGI_FORMAT int_format = D3DCommon::GetRTVFormatForAbstractFormat(m_color_format, true);
+  const DXGI_FORMAT non_int_format = D3DCommon::GetRTVFormatForAbstractFormat(m_color_format, false);
+  const DXGI_FORMAT int_format = D3DCommon::GetRTVFormatForAbstractFormat(m_color_format, true);
 
   // If the integer and non-integer RTV formats are the same for a given abstract format we can save
   // space in the descriptor heap by only allocating the non-integer descriptor and using it for
@@ -751,7 +751,7 @@ bool DXStagingTexture::Map()
     return true;
 
   const D3D12_RANGE read_range = {0u, m_type == StagingTextureType::Upload ? 0u : m_buffer_size};
-  HRESULT hr = m_resource->Map(0, &read_range, reinterpret_cast<void**>(&m_map_pointer));
+  const HRESULT hr = m_resource->Map(0, &read_range, reinterpret_cast<void**>(&m_map_pointer));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Map resource failed: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
@@ -813,7 +813,7 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(const StagingTextureT
   // Readback textures are stuck in COPY_DEST and are never GPU readable.
   // Upload textures are stuck in GENERIC_READ, and are never CPU readable.
   ComPtr<ID3D12Resource> resource;
-  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
+  const HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
       &heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
       is_upload ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
       IID_PPV_ARGS(&resource));

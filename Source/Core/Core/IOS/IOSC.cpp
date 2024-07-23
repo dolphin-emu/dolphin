@@ -215,7 +215,7 @@ IOSC::~IOSC() = default;
 
 ReturnCode IOSC::CreateObject(Handle* handle, const ObjectType type, const ObjectSubType subtype, const u32 pid)
 {
-  auto iterator = FindFreeEntry();
+  const auto iterator = FindFreeEntry();
   if (iterator == m_key_entries.end())
     return IOSC_FAIL_ALLOC;
 
@@ -346,7 +346,7 @@ ReturnCode IOSC::DecryptEncrypt(const Common::AES::Mode mode, const Handle key_h
   if (entry->data.size() != AES128_KEY_SIZE)
     return IOSC_FAIL_INTERNAL;
 
-  auto key = entry->data.data();
+  const auto key = entry->data.data();
   // TODO? store enc + dec ctxs in the KeyEntry so they only need to be created once.
   // This doesn't seem like a hot path, though.
   std::unique_ptr<Common::AES::Context> ctx;

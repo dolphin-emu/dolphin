@@ -94,7 +94,7 @@ static std::optional<u32> inet_pton(const char* src)
   {
     if (ch >= '0' && ch <= '9')
     {
-      unsigned int newt = (*tp * 10) + (ch - '0');
+      const unsigned int newt = (*tp * 10) + (ch - '0');
 
       if (newt > 255)
         return std::nullopt;
@@ -383,8 +383,8 @@ IPCReply NetIPTopDevice::HandleInitInterfaceRequest(const IOCtlRequest& request)
 
 IPCReply NetIPTopDevice::HandleSocketRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 af = memory.Read_U32(request.buffer_in);
   const u32 type = memory.Read_U32(request.buffer_in + 4);
@@ -402,8 +402,8 @@ IPCReply NetIPTopDevice::HandleSocketRequest(const IOCtlRequest& request) const
 
 IPCReply NetIPTopDevice::HandleICMPSocketRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 pf = memory.Read_U32(request.buffer_in);
 
@@ -415,8 +415,8 @@ IPCReply NetIPTopDevice::HandleICMPSocketRequest(const IOCtlRequest& request) co
 
 IPCReply NetIPTopDevice::HandleCloseRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 fd = memory.Read_U32(request.buffer_in);
   const s32 return_value = GetEmulationKernel().GetSocketManager()->DeleteSocket(fd);
@@ -430,8 +430,8 @@ IPCReply NetIPTopDevice::HandleCloseRequest(const IOCtlRequest& request) const
 
 std::optional<IPCReply> NetIPTopDevice::HandleDoSockRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 fd = memory.Read_U32(request.buffer_in);
   GetEmulationKernel().GetSocketManager()->DoSock(fd, request,
@@ -448,8 +448,8 @@ IPCReply NetIPTopDevice::HandleShutdownRequest(const IOCtlRequest& request) cons
     return IPCReply(-SO_EINVAL);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 fd = memory.Read_U32(request.buffer_in);
   const u32 how = memory.Read_U32(request.buffer_in + 4);
@@ -461,13 +461,13 @@ IPCReply NetIPTopDevice::HandleShutdownRequest(const IOCtlRequest& request) cons
 
 IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 fd = memory.Read_U32(request.buffer_in);
-  u32 BACKLOG = memory.Read_U32(request.buffer_in + 0x04);
-  auto socket_manager = GetEmulationKernel().GetSocketManager();
-  u32 ret = listen(socket_manager->GetHostSocket(fd), BACKLOG);
+  const u32 fd = memory.Read_U32(request.buffer_in);
+  const u32 BACKLOG = memory.Read_U32(request.buffer_in + 0x04);
+  const auto socket_manager = GetEmulationKernel().GetSocketManager();
+  const u32 ret = listen(socket_manager->GetHostSocket(fd), BACKLOG);
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
   return IPCReply(socket_manager->GetNetErrorCode(ret, "SO_LISTEN", false));
@@ -475,25 +475,25 @@ IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request) const
 
 IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 fd = memory.Read_U32(request.buffer_out);
-  u32 level = memory.Read_U32(request.buffer_out + 4);
-  u32 optname = memory.Read_U32(request.buffer_out + 8);
+  const u32 fd = memory.Read_U32(request.buffer_out);
+  const u32 level = memory.Read_U32(request.buffer_out + 4);
+  const u32 optname = memory.Read_U32(request.buffer_out + 8);
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
 
   // Do the level/optname translation
-  int nat_level = MapWiiSockOptLevelToNative(level);
-  int nat_optname = MapWiiSockOptNameToNative(optname);
+  const int nat_level = MapWiiSockOptLevelToNative(level);
+  const int nat_optname = MapWiiSockOptNameToNative(optname);
 
   u8 optval[20];
   u32 optlen = 4;
 
-  auto socket_manager = GetEmulationKernel().GetSocketManager();
-  int ret = getsockopt(socket_manager->GetHostSocket(fd), nat_level, nat_optname, (char*)&optval,
-                       (socklen_t*)&optlen);
+  const auto socket_manager = GetEmulationKernel().GetSocketManager();
+  const int ret = getsockopt(socket_manager->GetHostSocket(fd), nat_level, nat_optname, (char*)&optval,
+                             (socklen_t*)&optlen);
   const s32 return_value = socket_manager->GetNetErrorCode(ret, "SO_GETSOCKOPT", false);
 
   memory.Write_U32(optlen, request.buffer_out + 0xC);
@@ -501,7 +501,7 @@ IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request) co
 
   if (optname == SO_ERROR)
   {
-    s32 last_error = socket_manager->GetLastNetError();
+    const s32 last_error = socket_manager->GetLastNetError();
 
     memory.Write_U32(sizeof(s32), request.buffer_out + 0xC);
     memory.Write_U32(last_error, request.buffer_out + 0x10);
@@ -512,8 +512,8 @@ IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request) co
 
 IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 fd = memory.Read_U32(request.buffer_in);
   const u32 level = memory.Read_U32(request.buffer_in + 4);
@@ -543,7 +543,7 @@ IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request) co
   const int nat_level = MapWiiSockOptLevelToNative(level);
   const int nat_optname = MapWiiSockOptNameToNative(optname);
 
-  auto socket_manager = GetEmulationKernel().GetSocketManager();
+  const auto socket_manager = GetEmulationKernel().GetSocketManager();
   const int ret = setsockopt(socket_manager->GetHostSocket(fd), nat_level, nat_optname,
                              reinterpret_cast<char*>(optval), optlen);
   return IPCReply(socket_manager->GetNetErrorCode(ret, "SO_SETSOCKOPT", false));
@@ -551,10 +551,10 @@ IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request) co
 
 IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 fd = memory.Read_U32(request.buffer_in);
+  const u32 fd = memory.Read_U32(request.buffer_in);
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
 
@@ -581,10 +581,10 @@ IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request) c
 
 IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 fd = memory.Read_U32(request.buffer_in);
+  const u32 fd = memory.Read_U32(request.buffer_in);
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
@@ -619,11 +619,11 @@ IPCReply NetIPTopDevice::HandleGetHostIDRequest(const IOCtlRequest& request)
 
 IPCReply NetIPTopDevice::HandleInetAToNRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::string hostname = memory.GetString(request.buffer_in);
-  struct hostent* remoteHost = gethostbyname(hostname.c_str());
+  const struct hostent* remoteHost = gethostbyname(hostname.c_str());
 
   if (remoteHost == nullptr || remoteHost->h_addr_list == nullptr ||
       remoteHost->h_addr_list[0] == nullptr)
@@ -651,8 +651,8 @@ IPCReply NetIPTopDevice::HandleInetAToNRequest(const IOCtlRequest& request) cons
 
 IPCReply NetIPTopDevice::HandleInetPToNRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::string address = memory.GetString(request.buffer_in);
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_INETPTON (Translating: {})", address);
@@ -667,8 +667,8 @@ IPCReply NetIPTopDevice::HandleInetPToNRequest(const IOCtlRequest& request) cons
 
 IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // u32 af = memory.Read_U32(BufferIn);
   // u32 validAddress = memory.Read_U32(request.buffer_in + 4);
@@ -687,13 +687,13 @@ IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request) cons
 
 std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& request) const
 {
-  auto sm = GetEmulationKernel().GetSocketManager();
+  const auto sm = GetEmulationKernel().GetSocketManager();
 
   if (!request.buffer_in || !request.buffer_out)
     return IPCReply(-SO_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   // Negative timeout indicates wait forever
   const s64 timeout = static_cast<s64>(memory.Read_U64(request.buffer_in));
@@ -739,11 +739,11 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
     return IPCReply(-1);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const std::string hostname = memory.GetString(request.buffer_in);
-  hostent* remoteHost = gethostbyname(hostname.c_str());
+  const hostent* remoteHost = gethostbyname(hostname.c_str());
 
   INFO_LOG_FMT(IOS_NET,
                "IOCTL_SO_GETHOSTBYNAME "
@@ -790,7 +790,7 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
   num_ip_addr = std::min(num_ip_addr, GETHOSTBYNAME_MAX_ADDRESSES);
   for (u32 i = 0; i < num_ip_addr; ++i)
   {
-    u32 addr = request.buffer_out + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4;
+    const u32 addr = request.buffer_out + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4;
     memory.Write_U32_Swap(*(u32*)(remoteHost->h_addr_list[i]), addr);
   }
 
@@ -801,7 +801,7 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
   memory.Write_U32(request.buffer_out + GETHOSTBYNAME_IP_PTR_LIST_OFFSET, request.buffer_out + 12);
   for (u32 i = 0; i < num_ip_addr; ++i)
   {
-    u32 addr = request.buffer_out + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + i * 4;
+    const u32 addr = request.buffer_out + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + i * 4;
     memory.Write_U32(request.buffer_out + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4, addr);
   }
   memory.Write_U32(0, request.buffer_out + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + num_ip_addr * 4);
@@ -827,8 +827,8 @@ IPCReply NetIPTopDevice::HandleICMPCancelRequest(const IOCtlRequest& request)
 
 IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 param = memory.Read_U32(request.in_vectors[0].address);
   const u32 param2 = memory.Read_U32(request.in_vectors[0].address + 4);
@@ -892,7 +892,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
       if (RetVal == NO_ERROR)
       {
         unsigned long dwBestIfIndex = 0;
-        IPAddr dwDestAddr = static_cast<IPAddr>(default_main_dns_resolver);
+        const IPAddr dwDestAddr = static_cast<IPAddr>(default_main_dns_resolver);
         // If successful, output some information from the data we received
         PIP_ADAPTER_ADDRESSES AdapterList = AdapterAddresses;
         if (GetBestInterface(dwDestAddr, &dwBestIfIndex) == NO_ERROR)
@@ -1020,28 +1020,28 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
 
 std::optional<IPCReply> NetIPTopDevice::HandleSendToRequest(const IOCtlVRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 fd = memory.Read_U32(request.in_vectors[1].address);
+  const u32 fd = memory.Read_U32(request.in_vectors[1].address);
   GetEmulationKernel().GetSocketManager()->DoSock(fd, request, IOCTLV_SO_SENDTO);
   return std::nullopt;
 }
 
 std::optional<IPCReply> NetIPTopDevice::HandleRecvFromRequest(const IOCtlVRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  u32 fd = memory.Read_U32(request.in_vectors[0].address);
+  const u32 fd = memory.Read_U32(request.in_vectors[0].address);
   GetEmulationKernel().GetSocketManager()->DoSock(fd, request, IOCTLV_SO_RECVFROM);
   return std::nullopt;
 }
 
 IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   addrinfo hints;
   const bool hints_valid = request.in_vectors.size() > 2 && request.in_vectors[2].size;
@@ -1065,7 +1065,7 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
   if (!request.in_vectors.empty() && request.in_vectors[0].size > 0)
   {
     nodeNameStr = memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
-    if (std::optional<std::string> patch =
+    if (const std::optional<std::string> patch =
             GetNetworkPatch(nodeNameStr, WC24PatchEngine::IsKD{false}))
     {
       nodeNameStr = patch.value();
@@ -1088,7 +1088,7 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
   if (ret == 0)
   {
     constexpr size_t WII_ADDR_INFO_SIZE = 0x20;
-    for (addrinfo* result_iter = result; result_iter != nullptr; result_iter = result_iter->ai_next)
+    for (const addrinfo* result_iter = result; result_iter != nullptr; result_iter = result_iter->ai_next)
     {
       memory.Write_U32(result_iter->ai_flags, addr);
       memory.Write_U32(result_iter->ai_family, addr + 0x04);
@@ -1146,8 +1146,8 @@ IPCReply NetIPTopDevice::HandleICMPPingRequest(const IOCtlVRequest& request) con
     u32 ip;
   } ip_info;
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   const u32 fd = memory.Read_U32(request.in_vectors[0].address);
   const u32 num_ip = memory.Read_U32(request.in_vectors[0].address + 4);
@@ -1195,7 +1195,7 @@ IPCReply NetIPTopDevice::HandleICMPPingRequest(const IOCtlVRequest& request) con
     icmp_length = 22;
   }
 
-  auto socket_manager = GetEmulationKernel().GetSocketManager();
+  const auto socket_manager = GetEmulationKernel().GetSocketManager();
   int ret = icmp_echo_req(socket_manager->GetHostSocket(fd), &addr, data, icmp_length);
   if (ret == icmp_length)
   {

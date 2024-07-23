@@ -399,7 +399,7 @@ void WiimoteDevice::UpdateInput(const NextUpdateInputCall next_call,
 // This function receives L2CAP commands from the CPU
 void WiimoteDevice::ExecuteL2capCmd(u8* ptr, const u32 size)
 {
-  l2cap_hdr_t* header = (l2cap_hdr_t*)ptr;
+  const l2cap_hdr_t* header = (l2cap_hdr_t*)ptr;
   u8* data = ptr + sizeof(l2cap_hdr_t);
   const u32 data_size = size - sizeof(l2cap_hdr_t);
   DEBUG_LOG_FMT(IOS_WIIMOTE, "  CID {:#06x}, Len {:#x}, DataSize {:#x}", header->dcid,
@@ -482,7 +482,7 @@ void WiimoteDevice::SignalChannel(u8* data, u32 size)
 {
   while (size >= sizeof(l2cap_cmd_hdr_t))
   {
-    l2cap_cmd_hdr_t* cmd_hdr = (l2cap_cmd_hdr_t*)data;
+    const l2cap_cmd_hdr_t* cmd_hdr = (l2cap_cmd_hdr_t*)data;
     data += sizeof(l2cap_cmd_hdr_t);
     size = size - sizeof(l2cap_cmd_hdr_t) - cmd_hdr->length;
 
@@ -524,7 +524,7 @@ void WiimoteDevice::SignalChannel(u8* data, u32 size)
 
 void WiimoteDevice::ReceiveConnectionReq(const u8 ident, u8* data, u32 size)
 {
-  l2cap_con_req_cp* command_connection_req = (l2cap_con_req_cp*)data;
+  const l2cap_con_req_cp* command_connection_req = (l2cap_con_req_cp*)data;
 
   DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveConnectionRequest");
   DEBUG_LOG_FMT(IOS_WIIMOTE, "    Ident: {:#04x}", ident);
@@ -569,7 +569,7 @@ void WiimoteDevice::ReceiveConnectionReq(const u8 ident, u8* data, u32 size)
 
 void WiimoteDevice::ReceiveConnectionResponse(u8 ident, u8* data, const u32 size)
 {
-  l2cap_con_rsp_cp* rsp = (l2cap_con_rsp_cp*)data;
+  const l2cap_con_rsp_cp* rsp = (l2cap_con_rsp_cp*)data;
 
   DEBUG_ASSERT(size == sizeof(l2cap_con_rsp_cp));
 
@@ -590,7 +590,7 @@ void WiimoteDevice::ReceiveConnectionResponse(u8 ident, u8* data, const u32 size
 void WiimoteDevice::ReceiveConfigurationReq(const u8 ident, u8* data, const u32 size)
 {
   u32 offset = 0;
-  l2cap_cfg_req_cp* command_config_req = (l2cap_cfg_req_cp*)data;
+  const l2cap_cfg_req_cp* command_config_req = (l2cap_cfg_req_cp*)data;
 
   // Flags being 1 means that the options are sent in multi-packets
   DEBUG_ASSERT(command_config_req->flags == 0x00);
@@ -621,7 +621,7 @@ void WiimoteDevice::ReceiveConfigurationReq(const u8 ident, u8* data, const u32 
   // Read configuration options.
   while (offset < size)
   {
-    l2cap_cfg_opt_t* options = (l2cap_cfg_opt_t*)&data[offset];
+    const l2cap_cfg_opt_t* options = (l2cap_cfg_opt_t*)&data[offset];
     offset += sizeof(l2cap_cfg_opt_t);
 
     switch (options->type)
@@ -629,7 +629,7 @@ void WiimoteDevice::ReceiveConfigurationReq(const u8 ident, u8* data, const u32 
     case L2CAP_OPT_MTU:
     {
       DEBUG_ASSERT(options->length == L2CAP_OPT_MTU_SIZE);
-      l2cap_cfg_opt_val_t* mtu = (l2cap_cfg_opt_val_t*)&data[offset];
+      const l2cap_cfg_opt_val_t* mtu = (l2cap_cfg_opt_val_t*)&data[offset];
       remote_mtu = mtu->mtu;
       DEBUG_LOG_FMT(IOS_WIIMOTE, "    MTU: {:#06x}", mtu->mtu);
     }
@@ -639,7 +639,7 @@ void WiimoteDevice::ReceiveConfigurationReq(const u8 ident, u8* data, const u32 
     case L2CAP_OPT_FLUSH_TIMO:
     {
       DEBUG_ASSERT(options->length == L2CAP_OPT_FLUSH_TIMO_SIZE);
-      l2cap_cfg_opt_val_t* flush_time_out = (l2cap_cfg_opt_val_t*)&data[offset];
+      const l2cap_cfg_opt_val_t* flush_time_out = (l2cap_cfg_opt_val_t*)&data[offset];
       DEBUG_LOG_FMT(IOS_WIIMOTE, "    FlushTimeOut: {:#06x}", flush_time_out->flush_timo);
     }
     break;
@@ -664,7 +664,7 @@ void WiimoteDevice::ReceiveConfigurationReq(const u8 ident, u8* data, const u32 
 
 void WiimoteDevice::ReceiveConfigurationResponse(u8 ident, u8* data, u32 size)
 {
-  l2cap_cfg_rsp_cp* rsp = (l2cap_cfg_rsp_cp*)data;
+  const l2cap_cfg_rsp_cp* rsp = (l2cap_cfg_rsp_cp*)data;
 
   DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveConfigurationResponse");
   DEBUG_LOG_FMT(IOS_WIIMOTE, "    SCID: {:#06x}", rsp->scid);
@@ -678,7 +678,7 @@ void WiimoteDevice::ReceiveConfigurationResponse(u8 ident, u8* data, u32 size)
 
 void WiimoteDevice::ReceiveDisconnectionReq(const u8 ident, u8* data, u32 size)
 {
-  l2cap_discon_req_cp* command_disconnection_req = (l2cap_discon_req_cp*)data;
+  const l2cap_discon_req_cp* command_disconnection_req = (l2cap_discon_req_cp*)data;
 
   DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveDisconnectionReq");
   DEBUG_LOG_FMT(IOS_WIIMOTE, "    Ident: {:#04x}", ident);
@@ -771,7 +771,7 @@ void WiimoteDevice::SDPSendServiceSearchResponse(const u16 cid, const u16 transa
 {
   // verify block... we handle search pattern for HID service only
   {
-    CBigEndianBuffer buffer(service_search_pattern);
+    const CBigEndianBuffer buffer(service_search_pattern);
     DEBUG_ASSERT(buffer.Read8(0) == SDP_SEQ8);  // data sequence
     DEBUG_ASSERT(buffer.Read8(1) == 0x03);      // sequence size
 
@@ -781,7 +781,7 @@ void WiimoteDevice::SDPSendServiceSearchResponse(const u16 cid, const u16 transa
   }
 
   u8 data_frame[1000];
-  CBigEndianBuffer buffer(data_frame);
+  const CBigEndianBuffer buffer(data_frame);
 
   int offset = 0;
   l2cap_hdr_t* header = (l2cap_hdr_t*)&data_frame[offset];
@@ -810,7 +810,7 @@ void WiimoteDevice::SDPSendServiceSearchResponse(const u16 cid, const u16 transa
 static u32 ParseCont(u8* cont)
 {
   u32 attrib_offset = 0;
-  CBigEndianBuffer attrib_list(cont);
+  const CBigEndianBuffer attrib_list(cont);
   const u8 type_id = attrib_list.Read8(attrib_offset);
   attrib_offset++;
 
@@ -830,7 +830,7 @@ static u32 ParseCont(u8* cont)
 static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
 {
   u32 attrib_offset = 0;
-  CBigEndianBuffer attrib_list(attrib_id_list);
+  const CBigEndianBuffer attrib_list(attrib_id_list);
 
   const u8 sequence = attrib_list.Read8(attrib_offset);
   attrib_offset++;
@@ -878,7 +878,7 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(const u16 cid, const u16 tra
 
   // generate package
   u8 data_frame[1000];
-  CBigEndianBuffer buffer(data_frame);
+  const CBigEndianBuffer buffer(data_frame);
 
   int offset = 0;
   l2cap_hdr_t* header = (l2cap_hdr_t*)&data_frame[offset];
@@ -899,7 +899,7 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(const u16 cid, const u16 tra
 
 void WiimoteDevice::HandleSDP(const u16 cid, u8* data, const u32 size) const
 {
-  CBigEndianBuffer buffer(data);
+  const CBigEndianBuffer buffer(data);
 
   switch (buffer.Read8(0))
   {

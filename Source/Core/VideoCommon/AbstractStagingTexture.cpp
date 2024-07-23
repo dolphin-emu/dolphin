@@ -20,15 +20,15 @@ AbstractStagingTexture::~AbstractStagingTexture() = default;
 void AbstractStagingTexture::CopyFromTexture(const AbstractTexture* src, const u32 src_layer,
                                              const u32 src_level)
 {
-  MathUtil::Rectangle<int> src_rect = src->GetConfig().GetMipRect(src_level);
-  MathUtil::Rectangle<int> dst_rect = m_config.GetRect();
+  const MathUtil::Rectangle<int> src_rect = src->GetConfig().GetMipRect(src_level);
+  const MathUtil::Rectangle<int> dst_rect = m_config.GetRect();
   CopyFromTexture(src, src_rect, src_layer, src_level, dst_rect);
 }
 
 void AbstractStagingTexture::CopyToTexture(AbstractTexture* dst, const u32 dst_layer, const u32 dst_level)
 {
-  MathUtil::Rectangle<int> src_rect = m_config.GetRect();
-  MathUtil::Rectangle<int> dst_rect = dst->GetConfig().GetMipRect(dst_level);
+  const MathUtil::Rectangle<int> src_rect = m_config.GetRect();
+  const MathUtil::Rectangle<int> dst_rect = dst->GetConfig().GetMipRect(dst_level);
   CopyToTexture(src_rect, dst, dst_rect, dst_layer, dst_level);
 }
 
@@ -55,8 +55,8 @@ void AbstractStagingTexture::ReadTexels(const MathUtil::Rectangle<int>& rect, vo
     return;
   }
 
-  size_t copy_size = std::min(static_cast<size_t>(rect.GetWidth() * m_texel_size), m_map_stride);
-  int copy_height = rect.GetHeight();
+  const size_t copy_size = std::min(static_cast<size_t>(rect.GetWidth() * m_texel_size), m_map_stride);
+  const int copy_height = rect.GetHeight();
   char* dst_ptr = reinterpret_cast<char*>(out_ptr);
   for (int row = 0; row < copy_height; row++)
   {
@@ -99,8 +99,8 @@ void AbstractStagingTexture::WriteTexels(const MathUtil::Rectangle<int>& rect, c
     return;
   }
 
-  size_t copy_size = std::min(static_cast<size_t>(rect.GetWidth() * m_texel_size), m_map_stride);
-  int copy_height = rect.GetHeight();
+  const size_t copy_size = std::min(static_cast<size_t>(rect.GetWidth() * m_texel_size), m_map_stride);
+  const int copy_height = rect.GetHeight();
   const char* src_ptr = reinterpret_cast<const char*>(in_ptr);
   for (int row = 0; row < copy_height; row++)
   {

@@ -73,7 +73,7 @@ Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth
 std::unique_ptr<AbstractShader>
 Gfx::CreateShaderFromSource(const ShaderStage stage, const std::string_view source, const std::string_view name)
 {
-  auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source);
+  const auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source);
   if (!bytecode)
     return nullptr;
 
@@ -224,7 +224,7 @@ void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearCo
   SetFramebuffer(framebuffer);
   D3D::stateman->Apply();
 
-  DXFramebuffer* fb = static_cast<DXFramebuffer*>(framebuffer);
+  const DXFramebuffer* fb = static_cast<DXFramebuffer*>(framebuffer);
   fb->Clear(color_value, depth_value);
 }
 

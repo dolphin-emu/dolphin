@@ -331,7 +331,7 @@ bool CBoot::DVDRead(const Core::System& system, const DiscIO::VolumeDisc& disc, 
   if (!disc.Read(dvd_offset, length, buffer.data(), partition))
     return false;
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   memory.CopyToEmu(output_address, buffer.data(), length);
   return true;
 }
@@ -342,7 +342,7 @@ bool CBoot::DVDReadDiscID(const Core::System& system, const DiscIO::VolumeDisc& 
   if (!disc.Read(0, buffer.size(), buffer.data(), DiscIO::PARTITION_NONE))
     return false;
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   memory.CopyToEmu(output_address, buffer.data(), buffer.size());
 
   // Transition out of the DiscIdNotRead state (which the drive should be in at this point,
@@ -374,7 +374,7 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
 bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db)
 {
   std::string strMapFilename;
-  bool found = FindMapFile(&strMapFilename, nullptr);
+  const bool found = FindMapFile(&strMapFilename, nullptr);
   if (found && ppc_symbol_db.LoadMap(guard, strMapFilename))
   {
     Host_PPCSymbolsChanged();
@@ -449,7 +449,7 @@ bool CBoot::Load_BS2(const Core::System& system, const std::string& boot_rom_fil
   // copying the initial boot code to 0x81200000 is a hack.
   // For now, HLE the first few instructions and start at 0x81200150
   // to work around this.
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   if (data.size() > 0x100)
   {
     memory.CopyToEmu(0x01200000, data.data() + 0x100, std::min<size_t>(data.size() - 0x100, 0x700));
@@ -497,7 +497,7 @@ static void CopyDefaultExceptionHandlers(const Core::System& system)
                                                  0x00000900, 0x00000C00, 0x00000D00, 0x00000F00,
                                                  0x00001300, 0x00001400, 0x00001700};
 
-  auto& memory = system.GetMemory();
+  const auto& memory = system.GetMemory();
   constexpr u32 RFI_INSTRUCTION = 0x4C000064;
   for (const u32 address : EXCEPTION_HANDLER_ADDRESSES)
     memory.Write_U32(RFI_INSTRUCTION, address);
@@ -507,7 +507,7 @@ static void CopyDefaultExceptionHandlers(const Core::System& system)
 bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                    std::unique_ptr<BootParameters> boot)
 {
-  SConfig& config = SConfig::GetInstance();
+  const SConfig& config = SConfig::GetInstance();
 
   if (auto& ppc_symbol_db = system.GetPPCSymbolDB(); !ppc_symbol_db.IsEmpty())
   {

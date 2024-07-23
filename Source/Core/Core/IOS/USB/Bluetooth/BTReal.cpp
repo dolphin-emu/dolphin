@@ -215,8 +215,8 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
   // HCI commands to the Bluetooth adapter
   case USB::IOCTLV_USBV0_CTRLMSG:
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
 
     std::lock_guard lk(m_transfers_mutex);
     auto cmd = std::make_unique<USB::V0CtrlMessage>(GetEmulationKernel(), request);
@@ -348,7 +348,7 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
     // On load, discard any pending transfer to make sure the emulated software is not stuck
     // waiting for the previous request to complete. This is usually not an issue as long as
     // the Bluetooth state is the same (same Wii Remote connections).
-    auto& system = GetSystem();
+    const auto& system = GetSystem();
     for (const auto& address_to_discard : addresses_to_discard)
       GetEmulationKernel().EnqueueIPCReply(Request{system, address_to_discard}, 0);
 
@@ -496,8 +496,8 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand() const
 
 void BluetoothRealDevice::FakeVendorCommandReply(const USB::V0IntrMessage& ctrl) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   SHCIEventCommand hci_event;
   memory.CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
@@ -516,8 +516,8 @@ void BluetoothRealDevice::FakeVendorCommandReply(const USB::V0IntrMessage& ctrl)
 // (including Wiimote disconnects and "event mismatch" warning messages).
 void BluetoothRealDevice::FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   SHCIEventCommand hci_event;
   memory.CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
@@ -541,8 +541,8 @@ void BluetoothRealDevice::FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl
 void BluetoothRealDevice::FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload,
                                               const u8 size) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   hci_event_hdr_t hci_event;
   memory.CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
@@ -558,7 +558,7 @@ void BluetoothRealDevice::FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, co
 //   > HCI Event: Vendor (0xff) plen 1
 //   08
 // This causes the emulated software to perform a BT inquiry and connect to found Wiimotes.
-void BluetoothRealDevice::FakeSyncButtonPressedEvent(USB::V0IntrMessage& ctrl)
+void BluetoothRealDevice::FakeSyncButtonPressedEvent(const USB::V0IntrMessage& ctrl)
 {
   NOTICE_LOG_FMT(IOS_WIIMOTE, "Faking 'sync button pressed' (0x08) event packet");
   constexpr u8 payload[1] = {0x08};
@@ -567,7 +567,7 @@ void BluetoothRealDevice::FakeSyncButtonPressedEvent(USB::V0IntrMessage& ctrl)
 }
 
 // When the red sync button is held for 10 seconds, a HCI event with payload 09 is sent.
-void BluetoothRealDevice::FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl)
+void BluetoothRealDevice::FakeSyncButtonHeldEvent(const USB::V0IntrMessage& ctrl)
 {
   NOTICE_LOG_FMT(IOS_WIIMOTE, "Faking 'sync button held' (0x09) event packet");
   constexpr u8 payload[1] = {0x09};
@@ -577,7 +577,7 @@ void BluetoothRealDevice::FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl)
 
 void BluetoothRealDevice::LoadLinkKeys()
 {
-  std::string entries = Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS);
+  const std::string entries = Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS);
   if (entries.empty())
     return;
   for (const auto& pair : SplitString(entries, ','))
@@ -624,7 +624,7 @@ void BluetoothRealDevice::SaveLinkKeys() const
     oss << Common::MacAddressToString(address);
     oss << '=';
     oss << std::hex;
-    for (u8 data : entry.second)
+    for (const u8 data : entry.second)
     {
       // We cast to u16 here in order to have it displayed as two nibbles.
       oss << std::setfill('0') << std::setw(2) << static_cast<u16>(data);

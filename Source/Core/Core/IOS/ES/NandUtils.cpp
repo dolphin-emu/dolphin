@@ -397,7 +397,7 @@ std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& conten
 {
   if (content.IsShared())
   {
-    ES::SharedContentMap content_map{m_ios.GetFSCore()};
+    const ES::SharedContentMap content_map{m_ios.GetFSCore()};
     ticks.Add(content_map.GetTicks());
     return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
   }

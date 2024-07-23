@@ -58,10 +58,10 @@ void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvir
 
   for (auto& ctrlGroup : groups)
   {
-    for (auto& control : ctrlGroup->controls)
+    for (const auto& control : ctrlGroup->controls)
       control->control_ref->UpdateReference(env);
 
-    for (auto& setting : ctrlGroup->numeric_settings)
+    for (const auto& setting : ctrlGroup->numeric_settings)
       setting->GetInputReference().UpdateReference(env);
 
     // Attachments:
@@ -78,7 +78,7 @@ void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvir
 }
 
 void EmulatedController::UpdateSingleControlReference(const ControllerInterface& devi,
-                                                      ControlReference* ref)
+                                                      const ControlReference* ref)
 {
   ciface::ExpressionParser::ControlEnvironment env(devi, GetDefaultDevice(), m_expression_vars);
 
@@ -149,7 +149,7 @@ void EmulatedController::LoadConfig(Common::IniFile::Section* sec, const std::st
     SetDefaultDevice(defdev);
   }
 
-  for (auto& cg : groups)
+  for (const auto& cg : groups)
     cg->LoadConfig(sec, defdev, base);
 }
 
@@ -160,7 +160,7 @@ void EmulatedController::SaveConfig(Common::IniFile::Section* sec, const std::st
   if (base.empty())
     sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
 
-  for (auto& ctrlGroup : groups)
+  for (const auto& ctrlGroup : groups)
     ctrlGroup->SaveConfig(sec, defdev, base);
 }
 

@@ -34,8 +34,8 @@ USB_HIDv4::~USB_HIDv4()
 
 std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
@@ -77,10 +77,10 @@ IPCReply USB_HIDv4::CancelInterrupt(const IOCtlRequest& request) const
   if (request.buffer_in == 0 || request.buffer_in_size != 8)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
-  auto device = GetDeviceByIOSID(memory.Read_U32(request.buffer_in));
+  const auto device = GetDeviceByIOSID(memory.Read_U32(request.buffer_in));
   if (!device)
     return IPCReply(IPC_ENOENT);
   device->CancelTransfer(memory.Read_U8(request.buffer_in + 4));
@@ -109,8 +109,8 @@ IPCReply USB_HIDv4::Shutdown(const IOCtlRequest& request)
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (m_devicechange_hook_request != nullptr)
   {
-    auto& system = GetSystem();
-    auto& memory = system.GetMemory();
+    const auto& system = GetSystem();
+    const auto& memory = system.GetMemory();
     memory.Write_U32(0xffffffff, m_devicechange_hook_request->buffer_out);
     GetEmulationKernel().EnqueueIPCReply(*m_devicechange_hook_request, -1);
     m_devicechange_hook_request.reset();
@@ -205,8 +205,8 @@ void USB_HIDv4::TriggerDeviceChangeReply()
     return;
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   {
     std::lock_guard lk(m_devices_mutex);

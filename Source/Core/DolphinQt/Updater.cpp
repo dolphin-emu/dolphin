@@ -54,7 +54,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
   bool later = false;
 
-  std::optional<int> choice = RunOnObject(m_parent, [&] {
+  const std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);
     dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     dialog->setWindowTitle(tr("Update available"));
@@ -80,7 +80,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
     auto* buttons = new QDialogButtonBox;
 
-    auto* never_btn =
+    const auto* never_btn =
         buttons->addButton(tr("Never Auto-Update"), QDialogButtonBox::DestructiveRole);
     buttons->addButton(tr("Remind Me Later"), QDialogButtonBox::RejectRole);
     buttons->addButton(tr("Install Update"), QDialogButtonBox::AcceptRole);

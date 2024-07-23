@@ -555,7 +555,7 @@ void Device::RunTasks()
                if (m_mplus_state.passthrough_port != true)
                  return;
 
-               auto& identifier = *response;
+               const auto& identifier = *response;
 
                ProcessExtensionID(identifier[2], identifier[0], identifier[3]);
              });
@@ -1163,7 +1163,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     m_reporting_mode = static_cast<InputReportID>(report_id);
   }
 
-  auto manipulator = MakeDataReportManipulator(
+  const auto manipulator = MakeDataReportManipulator(
       report_id, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + sizeof(InputReportID));
 
   if (manipulator->GetDataSize() + WiimoteReal::REPORT_HID_HEADER_SIZE > report.size())

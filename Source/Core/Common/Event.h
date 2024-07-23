@@ -62,7 +62,7 @@ public:
       return true;
 
     std::unique_lock lk(m_mutex);
-    bool signaled = m_condvar.wait_for(lk, rel_time, [&] { return m_flag.TestAndClear(); });
+    const bool signaled = m_condvar.wait_for(lk, rel_time, [&] { return m_flag.TestAndClear(); });
 
     return signaled;
   }

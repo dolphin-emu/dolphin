@@ -30,8 +30,8 @@ DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::s
     const std::string avatar_endpoint =
         fmt::format("https://cdn.discordapp.com/avatars/{}/{}.png", id, avatar);
 
-    Common::HttpRequest request;
-    Common::HttpRequest::Response response = request.Get(avatar_endpoint);
+    const Common::HttpRequest request;
+    const Common::HttpRequest::Response response = request.Get(avatar_endpoint);
 
     if (response.has_value())
       avatar_pixmap.loadFromData(response->data(), static_cast<uint>(response->size()), "png");

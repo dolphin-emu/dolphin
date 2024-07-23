@@ -67,7 +67,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   IOS::HLE::ReturnCode ret;
 
   // Ensure the common key index is correct, as it's checked by IOS.
-  IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
+  const IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
 
   while ((ret = es.ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
                                 IOS::HLE::ESCore::TicketImportType::Unpersonalised,
@@ -198,7 +198,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, const Insta
 
 bool InstallWAD(const std::string& wad_path)
 {
-  std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
+  const std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
   if (!wad)
     return false;
 
@@ -208,7 +208,7 @@ bool InstallWAD(const std::string& wad_path)
 
 bool UninstallTitle(const u64 title_id)
 {
-  IOS::HLE::Kernel ios;
+  const IOS::HLE::Kernel ios;
   return ios.GetESCore().DeleteTitleContent(title_id) == IOS::HLE::IPC_SUCCESS;
 }
 
@@ -268,12 +268,12 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, const u64 title_i
   }
 }
 
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESCore& es, const u64 title_id)
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, const IOS::HLE::ESCore& es, const u64 title_id)
 {
   if (IsTMDImported(fs, title_id))
     return true;
 
-  auto tmd = FindBackupTMD(fs, title_id);
+  const auto tmd = FindBackupTMD(fs, title_id);
   if (!tmd.IsValid())
     return false;
 
@@ -374,7 +374,7 @@ OnlineSystemUpdater::Response
 OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
 {
   pugi::xml_document doc;
-  pugi::xml_parse_result result = doc.load_buffer(response.data(), response.size());
+  const pugi::xml_parse_result result = doc.load_buffer(response.data(), response.size());
   if (!result)
   {
     ERROR_LOG_FMT(CORE, "ParseTitlesResponse: Could not parse response");

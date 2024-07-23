@@ -245,12 +245,12 @@ std::optional<Shader::BinaryData> Shader::CompileShader(const D3D_FEATURE_LEVEL 
 
   Microsoft::WRL::ComPtr<ID3DBlob> code;
   Microsoft::WRL::ComPtr<ID3DBlob> errors;
-  HRESULT hr = d3d_compile(hlsl->data(), hlsl->size(), nullptr, macros, nullptr, "main", target,
-                           flags, 0, &code, &errors);
+  const HRESULT hr = d3d_compile(hlsl->data(), hlsl->size(), nullptr, macros, nullptr, "main", target,
+                                 flags, 0, &code, &errors);
   if (FAILED(hr))
   {
     static int num_failures = 0;
-    std::string filename = VideoBackendBase::BadShaderFilename(target, num_failures++);
+    const std::string filename = VideoBackendBase::BadShaderFilename(target, num_failures++);
     std::ofstream file;
     File::OpenFStream(file, filename, std::ios_base::out);
     file.write(hlsl->data(), hlsl->size());

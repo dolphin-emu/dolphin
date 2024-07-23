@@ -19,7 +19,7 @@ namespace HLE_Misc
 // According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
   ppc_state.npc = LR(ppc_state);
 }
@@ -27,14 +27,14 @@ void UnimplementedFunction(const Core::CPUThreadGuard& guard)
 void HBReload(const Core::CPUThreadGuard& guard)
 {
   // There isn't much we can do. Just stop cleanly.
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   system.GetCPU().Break();
   Host_Message(HostMessageID::WMUserStop);
 }
 
 void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
   auto& jit_interface = system.GetJitInterface();
 
@@ -64,7 +64,7 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
 // and PC before the magic, invisible BL instruction happened.
 void GeckoReturnTrampoline(const Core::CPUThreadGuard& guard)
 {
-  auto& system = guard.GetSystem();
+  const auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   // Stack frame is built in GeckoCode.cpp, Gecko::RunCodeHandler.

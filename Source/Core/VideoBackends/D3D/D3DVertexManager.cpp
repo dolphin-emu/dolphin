@@ -59,10 +59,10 @@ static ComPtr<ID3D11ShaderResourceView>
 CreateTexelBufferView(ID3D11Buffer* buffer, const TexelBufferFormat format, const DXGI_FORMAT srv_format)
 {
   ComPtr<ID3D11ShaderResourceView> srv;
-  CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(buffer, srv_format, 0,
-                                            VertexManager::TEXEL_STREAM_BUFFER_SIZE /
-                                                VertexManager::GetTexelBufferElementSize(format));
-  HRESULT hr = D3D::device->CreateShaderResourceView(buffer, &srv_desc, &srv);
+  const CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(buffer, srv_format, 0,
+                                                  VertexManager::TEXEL_STREAM_BUFFER_SIZE /
+                                                  VertexManager::GetTexelBufferElementSize(format));
+  const HRESULT hr = D3D::device->CreateShaderResourceView(buffer, &srv_desc, &srv);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create SRV for texel buffer: {}", DX11HRWrap(hr));
   return srv;
 }
@@ -76,13 +76,13 @@ bool VertexManager::Initialize()
   if (!VertexManagerBase::Initialize())
     return false;
 
-  CD3D11_BUFFER_DESC bufdesc((VERTEX_STREAM_BUFFER_SIZE + INDEX_STREAM_BUFFER_SIZE) / BUFFER_COUNT,
-                             D3D11_BIND_INDEX_BUFFER | D3D11_BIND_VERTEX_BUFFER,
-                             D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+  const CD3D11_BUFFER_DESC bufdesc((VERTEX_STREAM_BUFFER_SIZE + INDEX_STREAM_BUFFER_SIZE) / BUFFER_COUNT,
+                                   D3D11_BIND_INDEX_BUFFER | D3D11_BIND_VERTEX_BUFFER,
+                                   D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
   for (int i = 0; i < BUFFER_COUNT; i++)
   {
-    HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i]);
+    const HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i]);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create buffer: {}", DX11HRWrap(hr));
     if (m_buffers[i])
       D3DCommon::SetDebugObjectName(m_buffers[i].Get(), "Buffer of VertexManager");
@@ -94,9 +94,9 @@ bool VertexManager::Initialize()
   if (!m_vertex_constant_buffer || !m_geometry_constant_buffer || !m_pixel_constant_buffer)
     return false;
 
-  CD3D11_BUFFER_DESC texel_buf_desc(TEXEL_STREAM_BUFFER_SIZE, D3D11_BIND_SHADER_RESOURCE,
-                                    D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-  HRESULT hr = D3D::device->CreateBuffer(&texel_buf_desc, nullptr, &m_texel_buffer);
+  const CD3D11_BUFFER_DESC texel_buf_desc(TEXEL_STREAM_BUFFER_SIZE, D3D11_BIND_SHADER_RESOURCE,
+                                          D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+  const HRESULT hr = D3D::device->CreateBuffer(&texel_buf_desc, nullptr, &m_texel_buffer);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating texel buffer failed: {}", DX11HRWrap(hr));
   if (!m_texel_buffer)
     return false;
@@ -134,7 +134,7 @@ bool VertexManager::MapTexelBuffer(const u32 required_size, D3D11_MAPPED_SUBRESO
   if ((m_texel_buffer_offset + required_size) > TEXEL_STREAM_BUFFER_SIZE)
   {
     // Restart buffer.
-    HRESULT hr = D3D::context->Map(m_texel_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &sr);
+    const HRESULT hr = D3D::context->Map(m_texel_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &sr);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map texel buffer: {}", DX11HRWrap(hr));
     if (FAILED(hr))
       return false;
@@ -144,7 +144,7 @@ bool VertexManager::MapTexelBuffer(const u32 required_size, D3D11_MAPPED_SUBRESO
   else
   {
     // Don't overwrite the earlier-used space.
-    HRESULT hr = D3D::context->Map(m_texel_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &sr);
+    const HRESULT hr = D3D::context->Map(m_texel_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &sr);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map texel buffer: {}", DX11HRWrap(hr));
     if (FAILED(hr))
       return false;
@@ -220,12 +220,12 @@ void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride
 {
   D3D11_MAPPED_SUBRESOURCE map;
 
-  u32 vertexBufferSize = Common::AlignUp(num_vertices * vertex_stride, sizeof(u16));
-  u32 indexBufferSize = num_indices * sizeof(u16);
-  u32 totalBufferSize = vertexBufferSize + indexBufferSize;
+  const u32 vertexBufferSize = Common::AlignUp(num_vertices * vertex_stride, sizeof(u16));
+  const u32 indexBufferSize = num_indices * sizeof(u16);
+  const u32 totalBufferSize = vertexBufferSize + indexBufferSize;
 
   u32 cursor = m_buffer_cursor;
-  u32 padding = vertex_stride > 0 ? (m_buffer_cursor % vertex_stride) : 0;
+  const u32 padding = vertex_stride > 0 ? (m_buffer_cursor % vertex_stride) : 0;
   if (padding)
   {
     cursor += vertex_stride - padding;
@@ -262,7 +262,7 @@ void VertexManager::CommitBuffer(const u32 num_vertices, const u32 vertex_stride
 
 void VertexManager::UploadUniforms()
 {
-  auto& system = Core::System::GetInstance();
+  const auto& system = Core::System::GetInstance();
 
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   if (vertex_shader_manager.dirty)

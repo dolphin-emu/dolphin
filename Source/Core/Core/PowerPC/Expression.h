@@ -37,7 +37,7 @@ class Expression
 public:
   static std::optional<Expression> TryParse(std::string_view text);
 
-  double Evaluate(Core::System& system) const;
+  double Evaluate(const Core::System& system) const;
 
   std::string GetText() const;
 
@@ -75,7 +75,7 @@ private:
   std::vector<VarBinding> m_binds;
 };
 
-inline bool EvaluateCondition(Core::System& system, const std::optional<Expression>& condition)
+inline bool EvaluateCondition(const Core::System& system, const std::optional<Expression>& condition)
 {
   return !condition || condition->Evaluate(system) != 0.0;
 }

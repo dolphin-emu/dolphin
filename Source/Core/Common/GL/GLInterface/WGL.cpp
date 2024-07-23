@@ -219,7 +219,7 @@ void* GLContextWGL::GetFuncAddress(const std::string& name)
   {
     // Using GetModuleHandle here is okay, since we import functions from opengl32.dll, it's
     // guaranteed to be loaded.
-    HMODULE opengl_module = GetModuleHandle(TEXT("opengl32.dll"));
+    const HMODULE opengl_module = GetModuleHandle(TEXT("opengl32.dll"));
     func = GetProcAddress(opengl_module, name.c_str());
   }
 
@@ -242,8 +242,8 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, const bool stereo, co
   ClearWGLExtensionPointers();
 
   // Control window size and picture scaling
-  int twidth = window_rect.right - window_rect.left;
-  int theight = window_rect.bottom - window_rect.top;
+  const int twidth = window_rect.right - window_rect.left;
+  const int theight = window_rect.bottom - window_rect.top;
   m_backbuffer_width = twidth;
   m_backbuffer_height = theight;
 
@@ -318,7 +318,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, const bool stereo, co
     LoadWGLExtensions();
 
     // Attempt creating a core context.
-    HGLRC core_context = CreateCoreContext(m_dc, nullptr);
+    const HGLRC core_context = CreateCoreContext(m_dc, nullptr);
 
     // Switch out the temporary context before continuing, regardless of whether we got a core
     // context. If we didn't get a core context, the caller expects that the context is not current.
@@ -351,7 +351,7 @@ std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
   if (!CreatePBuffer(m_dc, 1, 1, &pbuffer, &dc))
     return nullptr;
 
-  HGLRC rc = CreateCoreContext(dc, m_rc);
+  const HGLRC rc = CreateCoreContext(dc, m_rc);
   if (!rc)
   {
     wglReleasePbufferDCARB(static_cast<HPBUFFERARB>(pbuffer), dc);
@@ -397,7 +397,7 @@ HGLRC GLContextWGL::CreateCoreContext(const HDC dc, const HGLRC share_context)
                                       0};
 
     // Attempt creating this context.
-    HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
+    const HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
     if (core_context)
     {
       INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", version.first, version.second);
@@ -448,7 +448,7 @@ bool GLContextWGL::CreatePBuffer(const HDC onscreen_dc, const int width, const i
 
   static constexpr std::array<int, 1 * 2> pb_attribs = {};
 
-  HPBUFFERARB pbuffer =
+  const HPBUFFERARB pbuffer =
       wglCreatePbufferARB(onscreen_dc, pixel_format, width, height, pb_attribs.data());
   if (!pbuffer)
   {
@@ -456,7 +456,7 @@ bool GLContextWGL::CreatePBuffer(const HDC onscreen_dc, const int width, const i
     return false;
   }
 
-  HDC dc = wglGetPbufferDCARB(pbuffer);
+  const HDC dc = wglGetPbufferDCARB(pbuffer);
   if (!dc)
   {
     ERROR_LOG_FMT(VIDEO, "Failed to get drawing context from pbuffer");

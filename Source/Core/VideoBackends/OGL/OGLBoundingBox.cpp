@@ -51,8 +51,8 @@ std::vector<BBoxType> OGLBoundingBox::Read(const u32 index, const u32 length)
   else
   {
     // Using glMapBufferRange is faster on AMD cards by a measurable margin.
-    void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(BBoxType) * NUM_BBOX_VALUES,
-                                 GL_MAP_READ_BIT);
+    const void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(BBoxType) * NUM_BBOX_VALUES,
+                                       GL_MAP_READ_BIT);
     if (ptr)
     {
       std::memcpy(values.data(), reinterpret_cast<const u8*>(ptr) + sizeof(BBoxType) * index,

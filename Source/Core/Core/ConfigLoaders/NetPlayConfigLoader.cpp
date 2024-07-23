@@ -38,7 +38,7 @@ public:
     layer->Set(Config::MAIN_DSP_HLE, m_settings.dsp_hle);
     layer->Set(Config::MAIN_OVERCLOCK_ENABLE, m_settings.oc_enable);
     layer->Set(Config::MAIN_OVERCLOCK, m_settings.oc_factor);
-    for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+    for (const ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
       layer->Set(Config::GetInfoForEXIDevice(slot), m_settings.exi_device[slot]);
     layer->Set(Config::MAIN_MEMORY_CARD_SIZE, m_settings.memcard_size_override);
     layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.savedata_write);

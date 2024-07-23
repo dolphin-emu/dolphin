@@ -92,8 +92,8 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, const 
       {
         const u32 width = msg.icon->width;
         const u32 height = msg.icon->height;
-        TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
-                                 AbstractTextureType::Texture_2DArray);
+        const TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
+                                       AbstractTextureType::Texture_2DArray);
         msg.texture = g_gfx->CreateTexture(tex_config);
         if (msg.texture)
         {
@@ -138,7 +138,7 @@ void AddTypedMessage(MessageType type, std::string message, const u32 ms, const 
   // A message may hold a reference to a texture that can only be destroyed on the video thread, so
   // only mark the old typed message (if any) for removal. It will be discarded on the next call to
   // DrawMessages().
-  auto range = s_messages.equal_range(type);
+  const auto range = s_messages.equal_range(type);
   for (auto it = range.first; it != range.second; ++it)
     it->second.should_discard = true;
 

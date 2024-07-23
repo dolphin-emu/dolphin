@@ -236,7 +236,7 @@ void FifoRecorder::StartRecording(const s32 numFrames, CallbackFunc finishedCb)
   //   - Global variables suck
   //   - Multithreading with the above two sucks
   //
-  auto& memory = m_system.GetMemory();
+  const auto& memory = m_system.GetMemory();
   m_Ram.resize(memory.GetRamSize());
   m_ExRam.resize(memory.GetExRamSize());
 
@@ -287,7 +287,7 @@ void FifoRecorder::RecordInitialVideoMemory()
   // that split here.
   const u32* xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
   const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
-  u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
+  const u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
   g_main_cp_state.FillCPMemoryArray(cpmem);
 
@@ -326,7 +326,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, const u32 size)
     }
 
     // Copy data to buffer
-    size_t currentSize = m_FifoData.size();
+    const size_t currentSize = m_FifoData.size();
     m_FifoData.resize(currentSize + size);
     memcpy(&m_FifoData[currentSize], data, size);
   }
@@ -447,7 +447,7 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
     memcpy(m_File->GetCPMem(), cpMem, FifoDataFile::CP_MEM_SIZE * 4);
     memcpy(m_File->GetXFMem(), xfMem, FifoDataFile::XF_MEM_SIZE * 4);
 
-    u32 xfRegsCopySize = std::min(static_cast<u32>(FifoDataFile::XF_REGS_SIZE), xfRegsSize);
+    const u32 xfRegsCopySize = std::min(static_cast<u32>(FifoDataFile::XF_REGS_SIZE), xfRegsSize);
     memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
 
     memcpy(m_File->GetTexMem(), texMem_ptr, FifoDataFile::TEX_MEM_SIZE);

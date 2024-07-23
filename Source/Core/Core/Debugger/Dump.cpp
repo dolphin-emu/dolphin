@@ -38,7 +38,7 @@ int CDump::GetNumberOfSteps() const
 
 u32 CDump::GetGPR(const int _step, const int _gpr) const
 {
-  u32 offset = _step * STRUCTUR_SIZE;
+  const u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
     return UINT32_MAX;
@@ -48,7 +48,7 @@ u32 CDump::GetGPR(const int _step, const int _gpr) const
 
 u32 CDump::GetPC(const int _step) const
 {
-  u32 offset = _step * STRUCTUR_SIZE;
+  const u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
     return UINT32_MAX;
@@ -58,8 +58,8 @@ u32 CDump::GetPC(const int _step) const
 
 u32 CDump::Read32(const u32 _pos) const
 {
-  u32 result = (m_pData[_pos + 0] << 24) | (m_pData[_pos + 1] << 16) | (m_pData[_pos + 2] << 8) |
-               (m_pData[_pos + 3] << 0);
+  const u32 result = (m_pData[_pos + 0] << 24) | (m_pData[_pos + 1] << 16) | (m_pData[_pos + 2] << 8) |
+                     (m_pData[_pos + 3] << 0);
 
   return result;
 }

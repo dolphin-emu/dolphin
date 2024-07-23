@@ -51,14 +51,14 @@ static LONG NTAPI Handler(const PEXCEPTION_POINTERS pPtrs)
   {
   case EXCEPTION_ACCESS_VIOLATION:
   {
-    ULONG_PTR access_type = pPtrs->ExceptionRecord->ExceptionInformation[0];
+    const ULONG_PTR access_type = pPtrs->ExceptionRecord->ExceptionInformation[0];
     if (access_type == 8)  // Rule out DEP
     {
       return EXCEPTION_CONTINUE_SEARCH;
     }
 
     // virtual address of the inaccessible data
-    uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
+    const uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
     SContext* ctx = pPtrs->ContextRecord;
 
     if (Core::System::GetInstance().GetJitInterface().HandleFault(fault_address, ctx))
@@ -108,7 +108,7 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler()
 {
-  ULONG status = RemoveVectoredExceptionHandler(s_veh_handle);
+  const ULONG status = RemoveVectoredExceptionHandler(s_veh_handle);
   ASSERT(status);
   if (status)
     s_veh_handle = nullptr;

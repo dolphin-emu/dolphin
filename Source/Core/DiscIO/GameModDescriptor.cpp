@@ -208,7 +208,7 @@ std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, co
 bool WriteGameModDescriptorFile(const std::string& filename, const GameModDescriptor& descriptor,
                                 const bool pretty)
 {
-  auto json = WriteGameModDescriptorString(descriptor, pretty);
+  const auto json = WriteGameModDescriptorString(descriptor, pretty);
   if (json.empty())
     return false;
 

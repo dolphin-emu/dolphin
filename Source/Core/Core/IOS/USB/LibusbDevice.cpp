@@ -249,8 +249,8 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   libusb_fill_control_setup(buffer.get(), cmd->request_type, cmd->request, cmd->value, cmd->index,
                             cmd->length);
 
-  auto& system = m_ios.GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = m_ios.GetSystem();
+  const auto& memory = system.GetMemory();
   memory.CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
 
   libusb_transfer* transfer = libusb_alloc_transfer(0);

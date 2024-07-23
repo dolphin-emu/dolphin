@@ -41,16 +41,16 @@ typedef PVOID (*RtlCreateHeap_t)(_In_ ULONG Flags, _In_opt_ PVOID HeapBase,
 static HANDLE WINAPI HeapCreateLow4GB(_In_ DWORD flOptions, _In_ SIZE_T dwInitialSize,
                                       _In_ SIZE_T dwMaximumSize)
 {
-  auto ntdll = GetModuleHandleW(L"ntdll");
+  const auto ntdll = GetModuleHandleW(L"ntdll");
   if (!ntdll)
     return nullptr;
-  auto RtlCreateHeap = reinterpret_cast<RtlCreateHeap_t>(GetProcAddress(ntdll, "RtlCreateHeap"));
+  const auto RtlCreateHeap = reinterpret_cast<RtlCreateHeap_t>(GetProcAddress(ntdll, "RtlCreateHeap"));
   if (!RtlCreateHeap)
     return nullptr;
   // These values are arbitrary; just change them if problems are encountered later.
   uintptr_t target_addr = 0x00200000;
-  size_t max_heap_size = 0x01000000;
-  uintptr_t highest_addr = (1ull << 32) - max_heap_size;
+  const size_t max_heap_size = 0x01000000;
+  const uintptr_t highest_addr = (1ull << 32) - max_heap_size;
   void* low_heap = nullptr;
   for (; !low_heap && target_addr <= highest_addr; target_addr += 0x1000)
     low_heap = VirtualAlloc((void*)target_addr, max_heap_size, MEM_RESERVE, PAGE_READWRITE);
@@ -76,8 +76,8 @@ class ImportPatcher
 public:
   ImportPatcher(const uintptr_t module_base) : base(module_base)
   {
-    auto mz = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
-    auto pe = reinterpret_cast<PIMAGE_NT_HEADERS>(base + mz->e_lfanew);
+    const auto mz = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
+    const auto pe = reinterpret_cast<PIMAGE_NT_HEADERS>(base + mz->e_lfanew);
     directories = pe->OptionalHeader.DataDirectory;
   }
   template <typename T>
@@ -87,23 +87,23 @@ public:
   }
   bool PatchIAT(const char* module_name, const char* function_name, void* value)
   {
-    auto import_dir = &directories[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    const auto import_dir = &directories[IMAGE_DIRECTORY_ENTRY_IMPORT];
     for (auto import_desc = GetRva<PIMAGE_IMPORT_DESCRIPTOR>(import_dir->VirtualAddress);
          import_desc->OriginalFirstThunk; import_desc++)
     {
-      auto module = GetRva<const char*>(import_desc->Name);
-      auto names = GetRva<PIMAGE_THUNK_DATA>(import_desc->OriginalFirstThunk);
-      auto thunks = GetRva<PIMAGE_THUNK_DATA>(import_desc->FirstThunk);
+      const auto module = GetRva<const char*>(import_desc->Name);
+      const auto names = GetRva<PIMAGE_THUNK_DATA>(import_desc->OriginalFirstThunk);
+      const auto thunks = GetRva<PIMAGE_THUNK_DATA>(import_desc->FirstThunk);
       if (!stricmp(module, module_name))
       {
         for (auto name = names; name->u1.Function; name++)
         {
           if (!IMAGE_SNAP_BY_ORDINAL(name->u1.Ordinal))
           {
-            auto import = GetRva<PIMAGE_IMPORT_BY_NAME>(name->u1.AddressOfData);
+            const auto import = GetRva<PIMAGE_IMPORT_BY_NAME>(name->u1.AddressOfData);
             if (!strcmp(import->Name, function_name))
             {
-              auto index = name - names;
+              const auto index = name - names;
               return ModifyProtectedRegion(&thunks[index], sizeof(thunks[index]), [=] {
                 thunks[index].u1.Function =
                     reinterpret_cast<decltype(thunks[index].u1.Function)>(value);
@@ -136,11 +136,11 @@ bool ApplyUcrtPatch(const wchar_t* name, const UcrtPatchInfo& patch)
   auto module = GetModuleHandleW(name);
   if (!module)
     return false;
-  auto pe = (PIMAGE_NT_HEADERS)((uintptr_t)module + ((PIMAGE_DOS_HEADER)module)->e_lfanew);
+  const auto pe = (PIMAGE_NT_HEADERS)((uintptr_t)module + ((PIMAGE_DOS_HEADER)module)->e_lfanew);
   if (pe->OptionalHeader.CheckSum != patch.checksum)
     return false;
   void* patch_addr = (void*)((uintptr_t)module + patch.rva);
-  size_t patch_size = patch.length;
+  const size_t patch_size = patch.length;
   ModifyProtectedRegion(patch_addr, patch_size, [=] { memset(patch_addr, 0x90, patch_size); });
   FlushInstructionCache(GetCurrentProcess(), patch_addr, patch_size);
   return true;
@@ -166,7 +166,7 @@ struct Version
 
 static std::optional<std::wstring> GetModulePath(const wchar_t* name)
 {
-  auto module = GetModuleHandleW(name);
+  const auto module = GetModuleHandleW(name);
   if (module == nullptr)
     return std::nullopt;
 
@@ -175,11 +175,11 @@ static std::optional<std::wstring> GetModulePath(const wchar_t* name)
 
 static bool GetModuleVersion(const wchar_t* name, Version* version)
 {
-  auto path = GetModulePath(name);
+  const auto path = GetModulePath(name);
   if (!path)
     return false;
   DWORD handle;
-  DWORD data_len = GetFileVersionInfoSizeW(path->c_str(), &handle);
+  const DWORD data_len = GetFileVersionInfoSizeW(path->c_str(), &handle);
   if (!data_len)
     return false;
   std::vector<u8> block(data_len);
@@ -189,7 +189,7 @@ static bool GetModuleVersion(const wchar_t* name, Version* version)
   UINT buf_len;
   if (!VerQueryValueW(block.data(), LR"(\)", &buf, &buf_len))
     return false;
-  auto info = static_cast<VS_FIXEDFILEINFO*>(buf);
+  const auto info = static_cast<VS_FIXEDFILEINFO*>(buf);
   *version = (static_cast<u64>(info->dwFileVersionMS) << 32) | info->dwFileVersionLS;
   return true;
 }

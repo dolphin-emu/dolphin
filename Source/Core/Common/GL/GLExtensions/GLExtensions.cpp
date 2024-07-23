@@ -2211,7 +2211,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_texture_barrier",
           "VERSION_4_5",
       };
-      for (auto it : gl450exts)
+      for (const auto it : gl450exts)
         s_extension_list[it] = true;
     }
     case 440:
@@ -2227,7 +2227,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_vertex_type_10f_11f_11f_rev",
           "VERSION_4_4",
       };
-      for (auto it : gl440exts)
+      for (const auto it : gl440exts)
         s_extension_list[it] = true;
     }
     case 430:
@@ -2255,7 +2255,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_vertex_attrib_binding",
           "VERSION_4_3",
       };
-      for (auto it : gl430exts)
+      for (const auto it : gl430exts)
         s_extension_list[it] = true;
     }
     case 420:
@@ -2275,7 +2275,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_transform_feedback_instanced",
           "VERSION_4_2",
       };
-      for (auto it : gl420exts)
+      for (const auto it : gl420exts)
         s_extension_list[it] = true;
     }
     case 410:
@@ -2289,7 +2289,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_viewport_array",
           "VERSION_4_1",
       };
-      for (auto it : gl410exts)
+      for (const auto it : gl410exts)
         s_extension_list[it] = true;
     }
     case 400:
@@ -2309,7 +2309,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_transform_feedback3",
           "VERSION_4_0",
       };
-      for (auto it : gl400exts)
+      for (const auto it : gl400exts)
         s_extension_list[it] = true;
     }
     case 330:
@@ -2327,7 +2327,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_vertex_type_2_10_10_10_rev",
           "VERSION_3_3",
       };
-      for (auto it : gl330exts)
+      for (const auto it : gl330exts)
         s_extension_list[it] = true;
     }
     case 320:
@@ -2344,7 +2344,7 @@ static void InitExtensionList(const GLContext* context)
           "GL_ARB_depth_clamp",
           "VERSION_3_2",
       };
-      for (auto it : gl320exts)
+      for (const auto it : gl320exts)
         s_extension_list[it] = true;
     }
     case 310:
@@ -2359,7 +2359,7 @@ static void InitExtensionList(const GLContext* context)
           //"GL_NV_primitive_restart",
           "VERSION_3_1",
       };
-      for (auto it : gl310exts)
+      for (const auto it : gl310exts)
         s_extension_list[it] = true;
     }
     case 300:
@@ -2390,7 +2390,7 @@ static void InitExtensionList(const GLContext* context)
           //"GL_NV_conditional_render",
           "VERSION_3_0",
       };
-      for (auto it : gl300exts)
+      for (const auto it : gl300exts)
         s_extension_list[it] = true;
     }
     case 210:

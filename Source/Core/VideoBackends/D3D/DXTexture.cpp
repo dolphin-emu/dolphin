@@ -45,12 +45,12 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, const 
   if (config.IsComputeImage())
     bindflags |= D3D11_BIND_UNORDERED_ACCESS;
 
-  CD3D11_TEXTURE2D_DESC desc(
+  const CD3D11_TEXTURE2D_DESC desc(
       tex_format, config.width, config.height, config.layers, config.levels, bindflags,
       D3D11_USAGE_DEFAULT, 0, config.samples, 0,
       config.type == AbstractTextureType::Texture_CubeMap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0);
   ComPtr<ID3D11Texture2D> d3d_texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D backing texture: {}", config.width, config.height,
@@ -119,7 +119,7 @@ bool DXTexture::CreateSRV()
       m_texture.Get(), dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0,
       m_config.levels, 0, m_config.layers);
   DEBUG_ASSERT(!m_srv);
-  HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D SRV: {}", m_config.width, m_config.height,
@@ -136,7 +136,7 @@ bool DXTexture::CreateUAV()
       m_texture.Get(), D3D11_UAV_DIMENSION_TEXTURE2DARRAY,
       D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, 0, m_config.layers);
   DEBUG_ASSERT(!m_uav);
-  HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, m_uav.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, m_uav.GetAddressOf());
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D UAV: {}", m_config.width, m_config.height,
@@ -188,7 +188,7 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 void DXTexture::Load(const u32 level, u32 width, u32 height, const u32 row_length, const u8* buffer,
                      size_t buffer_size, const u32 layer)
 {
-  size_t src_pitch = CalculateStrideForFormat(m_config.format, row_length);
+  const size_t src_pitch = CalculateStrideForFormat(m_config.format, row_length);
   D3D::context->UpdateSubresource(m_texture.Get(),
                                   D3D11CalcSubresource(level, layer, m_config.levels), nullptr,
                                   buffer, static_cast<UINT>(src_pitch), 0);
@@ -227,11 +227,11 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(const StagingTextureT
     cpu_flags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
   }
 
-  CD3D11_TEXTURE2D_DESC desc(D3DCommon::GetDXGIFormatForAbstractFormat(config.format, false),
-                             config.width, config.height, 1, 1, 0, usage, cpu_flags);
+  const CD3D11_TEXTURE2D_DESC desc(D3DCommon::GetDXGIFormatForAbstractFormat(config.format, false),
+                                   config.width, config.height, 1, 1, 0, usage, cpu_flags);
 
   ComPtr<ID3D11Texture2D> texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, texture.GetAddressOf());
+  const HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, texture.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create staging texture: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return nullptr;
@@ -264,7 +264,7 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
   }
   else
   {
-    CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
+    const CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
     D3D::context->CopySubresourceRegion(
         m_tex.Get(), 0, static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0,
         static_cast<const DXTexture*>(src)->GetD3DTexture(),
@@ -299,7 +299,7 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   }
   else
   {
-    CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
+    const CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
     D3D::context->CopySubresourceRegion(
         static_cast<const DXTexture*>(dst)->GetD3DTexture(),
         D3D11CalcSubresource(dst_level, dst_layer, dst->GetLevels()),
@@ -322,7 +322,7 @@ bool DXStagingTexture::Map()
     map_type = D3D11_MAP_READ_WRITE;
 
   D3D11_MAPPED_SUBRESOURCE sr;
-  HRESULT hr = D3D::context->Map(m_tex.Get(), 0, map_type, 0, &sr);
+  const HRESULT hr = D3D::context->Map(m_tex.Get(), 0, map_type, 0, &sr);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map readback texture: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return false;
@@ -388,7 +388,7 @@ void DXFramebuffer::Unbind() const
     should_apply = true;
   }
 
-  for (auto additional_color_attachment : m_additional_color_attachments)
+  for (const auto additional_color_attachment : m_additional_color_attachments)
   {
     if (D3D::stateman->UnsetTexture(
             static_cast<DXTexture*>(additional_color_attachment)->GetD3DSRV()) != 0)
@@ -410,7 +410,7 @@ void DXFramebuffer::Clear(const ClearColor& color_value, const float depth_value
     D3D::context->ClearDepthStencilView(GetDSV(), D3D11_CLEAR_DEPTH, depth_value, 0);
   }
 
-  for (auto render_target : m_render_targets_raw)
+  for (const auto render_target : m_render_targets_raw)
   {
     D3D::context->ClearRenderTargetView(render_target, color_value.data());
   }

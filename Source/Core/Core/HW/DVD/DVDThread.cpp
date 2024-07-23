@@ -240,7 +240,7 @@ void DVDThread::StartReadInternal(const bool copy_to_ram, const u32 output_addre
   request.partition = partition;
   request.reply_type = reply_type;
 
-  u64 id = m_next_id++;
+  const u64 id = m_next_id++;
   request.id = id;
 
   request.time_started_ticks = core_timing.GetTicks();
@@ -270,7 +270,7 @@ void DVDThread::FinishRead(const u64 id, const s64 cycles_late)
   // When this function is called again later, it will check the map for
   // the wanted ReadResult before it starts searching through the queue.
   ReadResult result;
-  auto it = m_result_map.find(id);
+  const auto it = m_result_map.find(id);
   if (it != m_result_map.end())
   {
     result = std::move(it->second);
@@ -317,7 +317,7 @@ void DVDThread::FinishRead(const u64 id, const s64 cycles_late)
   {
     if (request.copy_to_ram)
     {
-      auto& memory = m_system.GetMemory();
+      const auto& memory = m_system.GetMemory();
       memory.CopyToEmu(request.output_address, buffer.data(), request.length);
     }
 

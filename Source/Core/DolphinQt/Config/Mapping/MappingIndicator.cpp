@@ -530,7 +530,7 @@ void MixedTriggersIndicator::Draw()
 
 void SwingIndicator::DrawUnderGate(QPainter& p)
 {
-  auto& force = m_swing_group;
+  const auto& force = m_swing_group;
 
   // Deadzone for Z (forward/backward):
   const double deadzone = force.GetDeadzonePercentage();

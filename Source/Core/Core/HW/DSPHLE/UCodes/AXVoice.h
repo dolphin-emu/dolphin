@@ -263,15 +263,15 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, const u32
         curr_pos -= 0x10000;
       }
 
-      u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
+      const u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
       const s16* c = &coeffs[curr_pos_frac];
 
-      s64 t0 = temp[idx++ & 3];
-      s64 t1 = temp[idx++ & 3];
-      s64 t2 = temp[idx++ & 3];
-      s64 t3 = temp[idx++ & 3];
+      const s64 t0 = temp[idx++ & 3];
+      const s64 t1 = temp[idx++ & 3];
+      const s64 t2 = temp[idx++ & 3];
+      const s64 t3 = temp[idx++ & 3];
 
-      s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
+      const s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
 
       output[i] = MathUtil::SaturatingCast<s16>(samp);
     }
@@ -308,16 +308,16 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, const u32
 
       // Get our current fractional position, used to know how much of
       // curr0 and how much of curr1 the output sample should be.
-      u16 curr_frac = curr_pos & 0xFFFF;
-      u16 inv_curr_frac = -curr_frac;
+      const u16 curr_frac = curr_pos & 0xFFFF;
+      const u16 inv_curr_frac = -curr_frac;
 
       // Interpolate! If curr_frac is 0, we can simply take the last
       // sample without any multiplying.
       s16 sample;
       if (curr_frac)
       {
-        s32 s0 = temp[idx++ & 3];
-        s32 s1 = temp[idx++ & 3];
+        const s32 s0 = temp[idx++ & 3];
+        const s32 s1 = temp[idx++ & 3];
 
         sample = ((s0 * inv_curr_frac) + (s1 * curr_frac)) >> 16;
         idx += 2;
@@ -359,9 +359,9 @@ void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, con
 
   if (coeffs)
     coeffs += pb.coef_select * 0x200;
-  u32 curr_pos = ResampleAudio([accelerator](u32) { return AcceleratorGetSample(accelerator); },
-                               samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
-                               HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
+  const u32 curr_pos = ResampleAudio([accelerator](u32) { return AcceleratorGetSample(accelerator); },
+                                     samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
+                                     HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
   // Update current position, YN1, YN2 and pred scale in the PB.
@@ -528,7 +528,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   if (pb.remote)
   {
     // Old AXWii versions process ms per ms.
-    u16 wm_count = count == 96 ? 18 : 6;
+    const u16 wm_count = count == 96 ? 18 : 6;
 
     // Interpolate at most 18 samples from the 96 samples we read before.
     s16 wm_samples[18];

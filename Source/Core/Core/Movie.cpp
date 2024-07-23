@@ -98,7 +98,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
     // The revision string normally contains a git commit hash,
     // which is 40 hexadecimal digits long. In DTM files, each pair of
     // hexadecimal digits is stored as one byte, for a total of 20 bytes.
-    size_t bytes_to_write = std::min(revision.size() / 2, revision_bytes.size());
+    const size_t bytes_to_write = std::min(revision.size() / 2, revision_bytes.size());
     unsigned int temp;
     for (size_t i = 0; i < bytes_to_write; ++i)
     {
@@ -111,7 +111,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
     // If the revision string for some reason doesn't only contain hexadecimal digit
     // pairs, we instead copy the string with no conversion. This probably doesn't match
     // the intended design of the DTM format, but it's the most sensible fallback.
-    size_t bytes_to_write = std::min(revision.size(), revision_bytes.size());
+    const size_t bytes_to_write = std::min(revision.size(), revision_bytes.size());
     std::copy_n(std::begin(revision), bytes_to_write, std::begin(revision_bytes));
   }
 
@@ -355,8 +355,8 @@ void MovieManager::SignalDiscChange(const std::string& new_path)
 {
   if (IsRecordingInput())
   {
-    size_t size_of_path_without_filename = new_path.find_last_of("/\\") + 1;
-    std::string filename = new_path.substr(size_of_path_without_filename);
+    const size_t size_of_path_without_filename = new_path.find_last_of("/\\") + 1;
+    const std::string filename = new_path.substr(size_of_path_without_filename);
     constexpr size_t maximum_length = sizeof(DTMHeader::discChange);
     if (filename.length() > maximum_length)
     {
@@ -1037,7 +1037,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
   if (m_system.IsWii())
     ChangeWiiPads(true);
 
-  u64 totalSavedBytes = t_record.GetSize() - 256;
+  const u64 totalSavedBytes = t_record.GetSize() - 256;
 
   bool afterEnd = false;
   // This can only happen if the user manually deletes data from the dtm.
@@ -1415,7 +1415,7 @@ void MovieManager::SaveRecording(const std::string& filename) const
 
   if (success && m_recording_from_save_state)
   {
-    std::string stateFilename = filename + ".sav";
+    const std::string stateFilename = filename + ".sav";
     success = File::CopyRegularFile(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
   }
 
@@ -1450,7 +1450,7 @@ void MovieManager::GetSettings()
   m_net_play = NetPlay::IsNetPlayRunning();
   if (m_system.IsWii())
   {
-    u64 title_id = SConfig::GetInstance().GetTitleID();
+    const u64 title_id = SConfig::GetInstance().GetTitleID();
     m_clear_save = !File::Exists(
         GetTitleDataPath(title_id, Common::FromWhichRoot::Session) + "/banner.bin");
   }

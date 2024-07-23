@@ -22,7 +22,7 @@ AspectRatioWidget::AspectRatioWidget(QWidget* widget, const float width, const f
 
 void AspectRatioWidget::resizeEvent(QResizeEvent* event)
 {
-  float aspect_ratio = static_cast<float>(event->size().width()) / event->size().height();
+  const float aspect_ratio = static_cast<float>(event->size().width()) / event->size().height();
   int widget_stretch, outer_stretch;
 
   if (aspect_ratio > (m_ar_width / m_ar_height))  // too wide

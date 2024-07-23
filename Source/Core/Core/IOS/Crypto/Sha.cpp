@@ -45,8 +45,8 @@ static void ConvertContext(const mbedtls_sha1_context& src, ShaDevice::ShaContex
 
 ReturnCode ShaDevice::ProcessShaCommand(const ShaIoctlv command, const IOCtlVRequest& request) const
 {
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   auto ret = 0;
   std::array<u8, 20> output_hash{};
   mbedtls_sha1_context context;
@@ -82,7 +82,7 @@ ReturnCode ShaDevice::ProcessShaCommand(const ShaIoctlv command, const IOCtlVReq
 std::optional<IPCReply> ShaDevice::IOCtlV(const IOCtlVRequest& request)
 {
   ReturnCode return_code = IPC_EINVAL;
-  ShaIoctlv command = static_cast<ShaIoctlv>(request.request);
+  const ShaIoctlv command = static_cast<ShaIoctlv>(request.request);
 
   switch (command)
   {

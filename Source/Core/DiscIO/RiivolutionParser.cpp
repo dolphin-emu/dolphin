@@ -278,7 +278,7 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
           {
             if (sv.starts_with(r.first))
             {
-              for (char c : r.second)
+              for (const char c : r.second)
                 result.push_back(c);
               sv = sv.substr(r.first.size());
               replaced = true;
@@ -480,7 +480,7 @@ std::string WriteConfigString(const Config& config)
 
 bool WriteConfigFile(const std::string& filename, const Config& config)
 {
-  auto xml = WriteConfigString(config);
+  const auto xml = WriteConfigString(config);
   if (xml.empty())
     return false;
 

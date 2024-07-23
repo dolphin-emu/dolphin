@@ -47,7 +47,7 @@ static void SetPixelAlphaOnly(const u32 offset, const u8 a)
     break;
   case PixelFormat::RGBA6_Z24:
   {
-    u32 a32 = a;
+    const u32 a32 = a;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xffffffc0;
     val |= (a32 >> 2) & 0x0000003f;
@@ -67,7 +67,7 @@ static void SetPixelColorOnly(const u32 offset, u8* rgb)
   case PixelFormat::RGB8_Z24:
   case PixelFormat::Z24:
   {
-    u32 src = *(u32*)rgb;
+    const u32 src = *(u32*)rgb;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
@@ -76,7 +76,7 @@ static void SetPixelColorOnly(const u32 offset, u8* rgb)
   break;
   case PixelFormat::RGBA6_Z24:
   {
-    u32 src = *(u32*)rgb;
+    const u32 src = *(u32*)rgb;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff00003f;
     val |= (src >> 4) & 0x00000fc0;  // blue
@@ -88,7 +88,7 @@ static void SetPixelColorOnly(const u32 offset, u8* rgb)
   case PixelFormat::RGB565_Z16:
   {
     // TODO: RGB565_Z16 is not supported correctly yet
-    u32 src = *(u32*)rgb;
+    const u32 src = *(u32*)rgb;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
@@ -108,7 +108,7 @@ static void SetPixelAlphaColor(const u32 offset, u8* color)
   case PixelFormat::RGB8_Z24:
   case PixelFormat::Z24:
   {
-    u32 src = *(u32*)color;
+    const u32 src = *(u32*)color;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
@@ -117,7 +117,7 @@ static void SetPixelAlphaColor(const u32 offset, u8* color)
   break;
   case PixelFormat::RGBA6_Z24:
   {
-    u32 src = *(u32*)color;
+    const u32 src = *(u32*)color;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= (src >> 2) & 0x0000003f;  // alpha
@@ -130,7 +130,7 @@ static void SetPixelAlphaColor(const u32 offset, u8* color)
   case PixelFormat::RGB565_Z16:
   {
     // TODO: RGB565_Z16 is not supported correctly yet
-    u32 src = *(u32*)color;
+    const u32 src = *(u32*)color;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
@@ -240,26 +240,26 @@ static u32 GetSourceFactor(const u8* srcClr, u8* dstClr, const SrcBlendFactor mo
     return 0xffffffff - *(u32*)dstClr;
   case SrcBlendFactor::SrcAlpha:
   {
-    u8 alpha = srcClr[ALP_C];
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = srcClr[ALP_C];
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   case SrcBlendFactor::InvSrcAlpha:
   {
-    u8 alpha = 0xff - srcClr[ALP_C];
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = 0xff - srcClr[ALP_C];
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   case SrcBlendFactor::DstAlpha:
   {
-    u8 alpha = dstClr[ALP_C];
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = dstClr[ALP_C];
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   case SrcBlendFactor::InvDstAlpha:
   {
-    u8 alpha = 0xff - dstClr[ALP_C];
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = 0xff - dstClr[ALP_C];
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   }
@@ -281,26 +281,26 @@ static u32 GetDestinationFactor(u8* srcClr, const u8* dstClr, const DstBlendFact
     return 0xffffffff - *(u32*)srcClr;
   case DstBlendFactor::SrcAlpha:
   {
-    u8 alpha = srcClr[ALP_C];
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = srcClr[ALP_C];
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   case DstBlendFactor::InvSrcAlpha:
   {
-    u8 alpha = 0xff - srcClr[ALP_C];
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = 0xff - srcClr[ALP_C];
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   case DstBlendFactor::DstAlpha:
   {
-    u8 alpha = dstClr[ALP_C] & 0xff;
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = dstClr[ALP_C] & 0xff;
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   case DstBlendFactor::InvDstAlpha:
   {
-    u8 alpha = 0xff - dstClr[ALP_C];
-    u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
+    const u8 alpha = 0xff - dstClr[ALP_C];
+    const u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
   }
@@ -322,7 +322,7 @@ static void BlendColor(u8* srcClr, u8* dstClr)
     u32 df = (dstFactor & 0xff);
     df += df >> 7;
 
-    u32 color = (srcClr[i] * sf + dstClr[i] * df) >> 8;
+    const u32 color = (srcClr[i] * sf + dstClr[i] * df) >> 8;
     dstClr[i] = (color > 255) ? 255 : color;
 
     dstFactor >>= 8;
@@ -389,7 +389,7 @@ static void SubtractBlend(const u8* srcClr, u8* dstClr)
 {
   for (int i = 0; i < 4; i++)
   {
-    int c = static_cast<int>(dstClr[i]) - static_cast<int>(srcClr[i]);
+    const int c = static_cast<int>(dstClr[i]) - static_cast<int>(srcClr[i]);
     dstClr[i] = (c < 0) ? 0 : c;
   }
 }
@@ -450,7 +450,7 @@ void BlendTev(const u16 x, const u16 y, u8* color)
 
 void SetColor(const u16 x, const u16 y, u8* color)
 {
-  u32 offset = GetColorOffset(x, y);
+  const u32 offset = GetColorOffset(x, y);
   if (bpmem.blendmode.colorupdate)
   {
     if (bpmem.blendmode.alphaupdate)
@@ -472,7 +472,7 @@ void SetDepth(const u16 x, const u16 y, const u32 depth)
 
 u32 GetColor(const u16 x, const u16 y)
 {
-  u32 offset = GetColorOffset(x, y);
+  const u32 offset = GetColorOffset(x, y);
   return GetPixelColor(offset);
 }
 
@@ -495,7 +495,7 @@ static u32 VerticalFilter(const std::array<u32, 3>& colors,
     //   * Coefficients 2, 3 and 4 sample from the current pixel.
     //   * Coefficients 0 and 1 sample from the pixel above this one
     //   * Coefficients 5 and 6 sample from the pixel below this one
-    int sum =
+    const int sum =
         in_colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
         in_colors[1][i] * (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
         in_colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
@@ -547,7 +547,7 @@ static yuv444 ConvertColorToYUV(const u32 color)
 
 u32 GetDepth(const u16 x, const u16 y)
 {
-  u32 offset = GetDepthOffset(x, y);
+  const u32 offset = GetDepthOffset(x, y);
   return GetPixelDepth(offset);
 }
 
@@ -649,8 +649,8 @@ void EncodeXFB(u8* xfb_in_ram, const u32 memory_stride, const MathUtil::Rectangl
 
 bool ZCompare(const u16 x, const u16 y, const u32 z)
 {
-  u32 offset = GetDepthOffset(x, y);
-  u32 depth = GetPixelDepth(offset);
+  const u32 offset = GetDepthOffset(x, y);
+  const u32 depth = GetPixelDepth(offset);
 
   bool pass;
 

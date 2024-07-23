@@ -231,7 +231,7 @@ static u16 gencrc16(const u32* codes, const u16 size)
     {
       for (int i = 0; i < 4; ++i)
       {
-        u8 tmp2 = ((codes[tmp] >> (i << 3)) ^ ret);
+        const u8 tmp2 = ((codes[tmp] >> (i << 3)) ^ ret);
         ret = ((crctable0[(tmp2 >> 4) & 0x0F] ^ crctable1[tmp2 & 0x0F]) ^ (ret >> 8));
       }
     }
@@ -241,7 +241,7 @@ static u16 gencrc16(const u32* codes, const u16 size)
 
 static u8 verifycode(const u32* codes, const u16 size)
 {
-  u16 tmp = gencrc16(codes, size);
+  const u16 tmp = gencrc16(codes, size);
   return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
 }
 
@@ -415,7 +415,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
 {
   int j = 0;
   int ret = 0;
-  int org = size + 1;
+  const int org = size + 1;
   u32 bin[2];
   u8 parity;
 

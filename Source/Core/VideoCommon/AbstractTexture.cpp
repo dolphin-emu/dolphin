@@ -31,15 +31,15 @@ bool AbstractTexture::Save(const std::string& filename, const unsigned int level
   ASSERT(m_config.format != AbstractTextureFormat::RGBA16F);
 
   // Determine dimensions of image we want to save.
-  u32 level_width = std::max(1u, m_config.width >> level);
-  u32 level_height = std::max(1u, m_config.height >> level);
+  const u32 level_width = std::max(1u, m_config.width >> level);
+  const u32 level_height = std::max(1u, m_config.height >> level);
 
   // Use a temporary staging texture for the download. Certainly not optimal,
   // but this is not a frequently-executed code path..
-  TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
-                                        AbstractTextureFormat::RGBA8, 0,
-                                        AbstractTextureType::Texture_2DArray);
-  auto readback_texture =
+  const TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
+                                              AbstractTextureFormat::RGBA8, 0,
+                                              AbstractTextureType::Texture_2DArray);
+  const auto readback_texture =
       g_gfx->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
   if (!readback_texture)
     return false;

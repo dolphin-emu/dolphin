@@ -405,7 +405,7 @@ void FifoPlayer::SetFrameRangeEnd(u32 end)
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   // Core timing information
-  auto& vi = m_system.GetVideoInterface();
+  const auto& vi = m_system.GetVideoInterface();
   m_CyclesPerFrame = static_cast<u64>(m_system.GetSystemTimers().GetTicksPerSecond()) *
                      vi.GetTargetRefreshRateDenominator() / vi.GetTargetRefreshRateNumerator();
   m_ElapsedCycles = 0;
@@ -509,9 +509,9 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate) const
 void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
 {
   u32 written = start;
-  u32 lastBurstEnd = end - 1;
+  const u32 lastBurstEnd = end - 1;
 
-  auto& cpu = m_system.GetCPU();
+  const auto& cpu = m_system.GetCPU();
   auto& core_timing = m_system.GetCoreTiming();
   auto& gpfifo = m_system.GetGPFifo();
   auto& ppc_state = m_system.GetPPCState();
@@ -527,7 +527,7 @@ void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
       core_timing.Advance();
     }
 
-    u32 burstEnd = std::min(written + 255, lastBurstEnd);
+    const u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
     std::copy(data + written, data + burstEnd, ppc_state.gather_pipe_ptr);
     ppc_state.gather_pipe_ptr += burstEnd - written;
@@ -536,8 +536,8 @@ void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
     gpfifo.Write8(data[written++]);
 
     // Advance core timing
-    u32 elapsedCycles = static_cast<u32>(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
-    u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
+    const u32 elapsedCycles = static_cast<u32>(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
+    const u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
     m_ElapsedCycles = elapsedCycles;
 
     ppc_state.downcount -= cyclesUsed;
@@ -559,7 +559,7 @@ void FifoPlayer::SetupFifo() const
   WriteCP(CommandProcessor::FIFO_END_HI, frame.fifoEnd >> 16);
 
   // Set watermarks, high at 75%, low at 0%
-  u32 hi_watermark = (frame.fifoEnd - frame.fifoStart) * 3 / 4;
+  const u32 hi_watermark = (frame.fifoEnd - frame.fifoStart) * 3 / 4;
   WriteCP(CommandProcessor::FIFO_HI_WATERMARK_LO, hi_watermark);
   WriteCP(CommandProcessor::FIFO_HI_WATERMARK_HI, hi_watermark >> 16);
   WriteCP(CommandProcessor::FIFO_LO_WATERMARK_LO, 0);
@@ -729,7 +729,7 @@ void FifoPlayer::FlushWGP() const
 void FifoPlayer::WaitForGPUInactive() const
 {
   auto& core_timing = m_system.GetCoreTiming();
-  auto& cpu = m_system.GetCPU();
+  const auto& cpu = m_system.GetCPU();
 
   // Sleep while the GPU is active
   while (!IsIdleSet() && cpu.GetState() != CPU::State::PowerDown)
@@ -799,7 +799,7 @@ bool FifoPlayer::ShouldLoadBP(const u8 address)
 bool FifoPlayer::ShouldLoadXF(const u8 reg)
 {
   // Ignore unknown addresses
-  u16 address = reg + 0x1000;
+  const u16 address = reg + 0x1000;
   return !(address == XFMEM_UNKNOWN_1007 ||
            (address >= XFMEM_UNKNOWN_GROUP_1_START && address <= XFMEM_UNKNOWN_GROUP_1_END) ||
            (address >= XFMEM_UNKNOWN_GROUP_2_START && address <= XFMEM_UNKNOWN_GROUP_2_END) ||
@@ -808,14 +808,14 @@ bool FifoPlayer::ShouldLoadXF(const u8 reg)
 
 bool FifoPlayer::IsIdleSet() const
 {
-  CommandProcessor::UCPStatusReg status =
+  const CommandProcessor::UCPStatusReg status =
       m_system.GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.CommandIdle;
 }
 
 bool FifoPlayer::IsHighWatermarkSet() const
 {
-  CommandProcessor::UCPStatusReg status =
+  const CommandProcessor::UCPStatusReg status =
       m_system.GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.OverflowHiWatermark;
 }

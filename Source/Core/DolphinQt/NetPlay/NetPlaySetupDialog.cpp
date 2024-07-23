@@ -36,19 +36,19 @@ NetPlaySetupDialog::NetPlaySetupDialog(const GameListModel& game_list_model, QWi
 
   CreateMainLayout();
 
-  bool use_index = Get(Config::NETPLAY_USE_INDEX);
-  std::string index_region = Get(Config::NETPLAY_INDEX_REGION);
-  std::string index_name = Get(Config::NETPLAY_INDEX_NAME);
-  std::string index_password = Get(Config::NETPLAY_INDEX_PASSWORD);
-  std::string nickname = Get(Config::NETPLAY_NICKNAME);
-  std::string traversal_choice = Get(Config::NETPLAY_TRAVERSAL_CHOICE);
-  int connect_port = Get(Config::NETPLAY_CONNECT_PORT);
-  int host_port = Get(Config::NETPLAY_HOST_PORT);
-  int host_listen_port = Get(Config::NETPLAY_LISTEN_PORT);
-  bool enable_chunked_upload_limit = Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
-  u32 chunked_upload_limit = Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT);
+  const bool use_index = Get(Config::NETPLAY_USE_INDEX);
+  const std::string index_region = Get(Config::NETPLAY_INDEX_REGION);
+  const std::string index_name = Get(Config::NETPLAY_INDEX_NAME);
+  const std::string index_password = Get(Config::NETPLAY_INDEX_PASSWORD);
+  const std::string nickname = Get(Config::NETPLAY_NICKNAME);
+  const std::string traversal_choice = Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const int connect_port = Get(Config::NETPLAY_CONNECT_PORT);
+  const int host_port = Get(Config::NETPLAY_HOST_PORT);
+  const int host_listen_port = Get(Config::NETPLAY_LISTEN_PORT);
+  const bool enable_chunked_upload_limit = Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
+  const u32 chunked_upload_limit = Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT);
 #ifdef USE_UPNP
-  bool use_upnp = Get(Config::NETPLAY_USE_UPNP);
+  const bool use_upnp = Get(Config::NETPLAY_USE_UPNP);
 
   m_host_upnp->setChecked(use_upnp);
 #endif
@@ -305,7 +305,7 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(const int index) const
 
   m_reset_traversal_button->setHidden(index == 0);
 
-  std::string address =
+  const std::string address =
       index == 0 ? Get(Config::NETPLAY_ADDRESS) : Get(Config::NETPLAY_HOST_CODE);
 
   m_ip_label->setText(index == 0 ? tr("IP Address:") : tr("Host Code:"));

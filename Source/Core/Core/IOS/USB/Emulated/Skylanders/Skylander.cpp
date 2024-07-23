@@ -657,7 +657,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   // Data to be sent back via the control transfer immediately
   std::array<u8, 64> control_response = {};
   s32 expected_count = 0;
-  u64 expected_time_us = 100;
+  const u64 expected_time_us = 100;
 
   // Non 0x09 Requests are handled here - no portal data is requested
   if (cmd->request != 0x09)
@@ -680,9 +680,9 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   else
   {
     // Skylander Portal Requests
-    auto& system = m_ios.GetSystem();
-    auto& memory = system.GetMemory();
-    u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
+    const auto& system = m_ios.GetSystem();
+    const auto& memory = system.GetMemory();
+    const u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
     if (cmd->length == 0 || buf == nullptr)
     {
       ERROR_LOG_FMT(IOS_USB, "Skylander command invalid");
@@ -967,9 +967,9 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={} endpoint={}", m_vid, m_pid,
                 m_active_interface, cmd->length, cmd->endpoint);
 
-  auto& system = m_ios.GetSystem();
-  auto& memory = system.GetMemory();
-  u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
+  const auto& system = m_ios.GetSystem();
+  const auto& memory = system.GetMemory();
+  const u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
   if (cmd->length == 0 || buf == nullptr)
   {
     ERROR_LOG_FMT(IOS_USB, "Skylander command invalid");
@@ -984,7 +984,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   {
     // Play audio through Portal Mixer
     // Audio is unsigned 16 bit, supplied as 64 bytes which is 32 samples
-    SoundStream* sound_stream = system.GetSoundStream();
+    const SoundStream* sound_stream = system.GetSoundStream();
     sound_stream->GetMixer()->PushSkylanderPortalSamples(buf, cmd->length / 2);
 
     std::array<u8, 64> audio_interrupt_response = {};
@@ -1200,7 +1200,7 @@ void SkylanderPortal::WriteBlock(const u8 sky_num, const u8 block, const u8* to_
 
   std::lock_guard lock(sky_mutex);
 
-  auto& skylander = skylanders[sky_num];
+  const auto& skylander = skylanders[sky_num];
 
   reply_buf[0] = 'W';
   reply_buf[2] = block;

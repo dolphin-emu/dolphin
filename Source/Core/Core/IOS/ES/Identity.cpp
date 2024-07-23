@@ -37,8 +37,8 @@ IPCReply ESDevice::GetDeviceId(const IOCtlVRequest& request) const
   if (ret != IPC_SUCCESS)
     return IPCReply(ret);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   memory.Write_U32(device_id, request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
@@ -48,11 +48,11 @@ IPCReply ESDevice::Encrypt(u32 uid, const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(3, 2))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
-  u32 keyIndex = memory.Read_U32(request.in_vectors[0].address);
-  u32 size = request.in_vectors[2].size;
-  u8* source = memory.GetPointerForRange(request.in_vectors[2].address, size);
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
+  const u32 keyIndex = memory.Read_U32(request.in_vectors[0].address);
+  const u32 size = request.in_vectors[2].size;
+  const u8* source = memory.GetPointerForRange(request.in_vectors[2].address, size);
   u8* iv = memory.GetPointerForRange(request.io_vectors[0].address, 16);
   u8* destination = memory.GetPointerForRange(request.io_vectors[1].address, size);
 
@@ -68,11 +68,11 @@ IPCReply ESDevice::Decrypt(u32 uid, const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(3, 2))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
-  u32 keyIndex = memory.Read_U32(request.in_vectors[0].address);
-  u32 size = request.in_vectors[2].size;
-  u8* source = memory.GetPointerForRange(request.in_vectors[2].address, size);
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
+  const u32 keyIndex = memory.Read_U32(request.in_vectors[0].address);
+  const u32 size = request.in_vectors[2].size;
+  const u8* source = memory.GetPointerForRange(request.in_vectors[2].address, size);
   u8* iv = memory.GetPointerForRange(request.io_vectors[0].address, 16);
   u8* destination = memory.GetPointerForRange(request.io_vectors[1].address, size);
 
@@ -103,8 +103,8 @@ IPCReply ESDevice::GetDeviceCertificate(const IOCtlVRequest& request) const
 
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETDEVICECERT");
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   const CertECC cert = GetEmulationKernel().GetIOSC().GetDeviceCertificate();
   memory.CopyToEmu(request.io_vectors[0].address, &cert, sizeof(cert));
   return IPCReply(IPC_SUCCESS);
@@ -116,11 +116,11 @@ IPCReply ESDevice::Sign(const IOCtlVRequest& request) const
     return IPCReply(ES_EINVAL);
 
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_SIGN");
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
   u8* ap_cert_out = memory.GetPointerForRange(request.io_vectors[1].address, sizeof(CertECC));
-  u32 data_size = request.in_vectors[0].size;
-  u8* data = memory.GetPointerForRange(request.in_vectors[0].address, data_size);
+  const u32 data_size = request.in_vectors[0].size;
+  const u8* data = memory.GetPointerForRange(request.in_vectors[0].address, data_size);
   u8* sig_out =
       memory.GetPointerForRange(request.io_vectors[0].address, sizeof(Common::ec::Signature));
 
@@ -211,8 +211,8 @@ IPCReply ESDevice::VerifySign(const IOCtlVRequest& request) const
   if (request.in_vectors[1].size != sizeof(Common::ec::Signature))
     return IPCReply(ES_EINVAL);
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
 
   std::vector<u8> hash(request.in_vectors[0].size);
   memory.CopyFromEmu(hash.data(), request.in_vectors[0].address, hash.size());

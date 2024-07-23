@@ -20,7 +20,7 @@ static ptrdiff_t s_path_cutoff_point = 0;
 
 static void LogCallback(const char* format, ...)
 {
-  auto* instance = Common::Log::LogManager::GetInstance();
+  const auto* instance = Common::Log::LogManager::GetInstance();
   if (instance == nullptr)
     return;
 

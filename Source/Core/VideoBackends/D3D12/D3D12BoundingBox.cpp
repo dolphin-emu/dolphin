@@ -41,7 +41,7 @@ std::vector<BBoxType> D3D12BoundingBox::Read(const u32 index, const u32 length)
   std::vector<BBoxType> values(length);
   static constexpr D3D12_RANGE read_range = {0, BUFFER_SIZE};
   void* mapped_pointer;
-  HRESULT hr = m_readback_buffer->Map(0, &read_range, &mapped_pointer);
+  const HRESULT hr = m_readback_buffer->Map(0, &read_range, &mapped_pointer);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Map bounding box CPU buffer failed: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return values;

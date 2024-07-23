@@ -204,7 +204,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
-  u32 numStages = uid_data->genMode_numtevstages + 1;
+  const u32 numStages = uid_data->genMode_numtevstages + 1;
 
   uid_data->Pretest = bpmem.alpha_test.TestResult();
   uid_data->ztest = bpmem.GetEmulatedZ();
