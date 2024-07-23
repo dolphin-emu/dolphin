@@ -20,7 +20,7 @@ const Info WIIMOTE_BB_SOURCE{{System::WiiPad, "BalanceBoard", "Source"},
 
 const Info<WiimoteSource>& GetInfoForWiimoteSource(const int index)
 {
-  static const std::array infos{
+  static constexpr std::array infos{
       &WIIMOTE_1_SOURCE, &WIIMOTE_2_SOURCE,  &WIIMOTE_3_SOURCE,
       &WIIMOTE_4_SOURCE, &WIIMOTE_BB_SOURCE,
   };

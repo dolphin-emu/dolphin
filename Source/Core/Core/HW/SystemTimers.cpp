@@ -260,7 +260,7 @@ void SystemTimersManager::Init()
     // AyuanX: TO BE TWEAKED
     // Now the 1500 is a pure assumption
     // We need to figure out the real frequency though
-    const int freq = 1500;
+    constexpr int freq = 1500;
     m_ipc_hle_period = GetTicksPerSecond() / freq;
   }
 

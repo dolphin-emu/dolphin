@@ -67,12 +67,12 @@ public:
   static constexpr u16 FRET_RED = 0x4000;
   static constexpr u16 FRET_ORANGE = 0x8000;
 
-  static const u8 STICK_CENTER = 0x20;
-  static const u8 STICK_RADIUS = 0x1f;
-  static const u8 STICK_RANGE = 0x3f;
+  static constexpr u8 STICK_CENTER = 0x20;
+  static constexpr u8 STICK_RADIUS = 0x1f;
+  static constexpr u8 STICK_RANGE = 0x3f;
 
   // TODO: Test real hardware. Is this accurate?
-  static const u8 STICK_GATE_RADIUS = 0x16;
+  static constexpr u8 STICK_GATE_RADIUS = 0x16;
 
 private:
   ControllerEmu::Buttons* m_buttons;

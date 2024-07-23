@@ -45,7 +45,7 @@ const char UPDATER_CONTENT_PATH[] = "/Contents/MacOS/Dolphin Updater";
 
 #ifdef OS_SUPPORTS_UPDATER
 
-const char UPDATER_LOG_FILE[] = "Updater.log";
+constexpr char UPDATER_LOG_FILE[] = "Updater.log";
 
 std::string UpdaterPath(bool relocated = false)
 {

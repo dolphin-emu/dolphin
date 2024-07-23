@@ -125,15 +125,15 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   const float border_half_width = border_full_width / 2.0;
 
   // This should be odd so that the arrow tip is a single pixel wide.
-  const int arrow_full_width = 35;
-  const float arrow_half_width = arrow_full_width / 2.0;
+  constexpr int arrow_full_width = 35;
+  constexpr float arrow_half_width = arrow_full_width / 2.0;
   // The y distance between the inner edge of the rectangle border and the inner tip of the arrow
   // border, and also the distance between the outer edge of the rectangle border and the outer tip
   // of the arrow border
-  const int arrow_height = (1 + arrow_full_width) / 2;
+  constexpr int arrow_height = (1 + arrow_full_width) / 2;
 
   // Distance between the label layout and the inner rectangle border edge
-  const int balloon_interior_padding = 12;
+  constexpr int balloon_interior_padding = 12;
   // Prevent the corners of the label layout from portruding into the rounded rectangle corners at
   // larger border sizes.
   const int rounded_corner_margin = border_half_width / 4;
@@ -159,11 +159,11 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   // Qt defines the radius of a rounded rectangle as "the radius of the ellipses defining the
   // corner". Unlike the rectangle's edges this corresponds to the outside of the rounded curve
   // instead of its middle, so we add the full width to the inner radius instead of the half width
-  const float corner_base_inner_radius = 7.0;
+  constexpr float corner_base_inner_radius = 7.0;
   const float corner_outer_radius = corner_base_inner_radius + border_full_width;
 
   // This value is arbitrary but works well.
-  const int base_arrow_x_offset = 34;
+  constexpr int base_arrow_x_offset = 34;
   // Adjust the offset inward to compensate for the border and rounded corner widths. This ensures
   // the arrow is on the flat part of the top/bottom border.
   const int adjusted_arrow_x_offset =

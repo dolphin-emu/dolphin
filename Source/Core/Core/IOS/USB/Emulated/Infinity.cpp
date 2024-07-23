@@ -681,8 +681,8 @@ bool InfinityBase::CreateFigure(const std::string& file_path, const u32 figure_n
 
   // Create a 320 byte file with standard NFC read/write permissions
   std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE> file_data{};
-  const u32 first_block = 0x17878E;
-  const u32 other_blocks = 0x778788;
+  constexpr u32 first_block = 0x17878E;
+  constexpr u32 other_blocks = 0x778788;
   for (s8 i = 2; i >= 0; i--)
   {
     file_data[0x38 - i] = static_cast<u8>((first_block >> i * 8) & 0xFF);

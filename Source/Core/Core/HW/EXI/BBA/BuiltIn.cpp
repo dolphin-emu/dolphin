@@ -834,7 +834,7 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
     fd_set read_fds;
     fd_set write_fds;
     fd_set except_fds;
-    const struct timeval t = {0, 0};
+    constexpr struct timeval t = {0, 0};
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
@@ -913,7 +913,7 @@ sf::Socket::Status BbaUdpSocket::Bind(const u16 port, const u32 net_ip)
 
   // Handle SSDP multicast
   create();
-  const int on = 1;
+  constexpr int on = 1;
   if (setsockopt(getHandle(), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&on),
                  sizeof(on)) != 0)
   {
@@ -926,7 +926,7 @@ sf::Socket::Status BbaUdpSocket::Bind(const u16 port, const u32 net_ip)
     ERROR_LOG_FMT(SP1, "setsockopt failed to reuse SSDP port: {}", Common::StrNetworkError());
   }
 #endif
-  if (const char loop = 1;
+  if (constexpr char loop = 1;
       setsockopt(getHandle(), IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to set SSDP loopback: {}", Common::StrNetworkError());

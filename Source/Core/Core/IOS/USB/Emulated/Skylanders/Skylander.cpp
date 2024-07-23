@@ -657,7 +657,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   // Data to be sent back via the control transfer immediately
   std::array<u8, 64> control_response = {};
   s32 expected_count = 0;
-  const u64 expected_time_us = 100;
+  constexpr u64 expected_time_us = 100;
 
   // Non 0x09 Requests are handled here - no portal data is requested
   if (cmd->request != 0x09)

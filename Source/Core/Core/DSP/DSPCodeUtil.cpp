@@ -66,7 +66,7 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   u32 count_equal = 0;
   const u16 min_size = static_cast<u16>(std::min(code1.size(), code2.size()));
 
-  const AssemblerSettings settings;
+  constexpr AssemblerSettings settings;
   const DSPDisassembler disassembler(settings);
   for (u16 i = 0; i < min_size; i++)
   {

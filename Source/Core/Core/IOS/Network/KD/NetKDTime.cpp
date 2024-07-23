@@ -33,7 +33,7 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
   };
 
   s32 result = 0;
-  const u32 common_result = 0;
+  constexpr u32 common_result = 0;
   // TODO Writes stuff to /shared2/nwc24/misc.bin
   u32 update_misc = 0;
 

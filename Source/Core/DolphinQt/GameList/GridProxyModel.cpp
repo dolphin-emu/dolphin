@@ -14,7 +14,7 @@
 
 #include "UICommon/GameFile.h"
 
-const QSize LARGE_BANNER_SIZE(144, 48);
+constexpr QSize LARGE_BANNER_SIZE(144, 48);
 
 GridProxyModel::GridProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
 {

@@ -15,7 +15,7 @@ public:
   // For convenience.
   u16 TestRead()
   {
-    const std::array<s16, 16> coefs{};
+    constexpr std::array<s16, 16> coefs{};
     m_accov_raised = false;
     return Read(coefs.data());
   }

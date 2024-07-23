@@ -25,9 +25,9 @@ public:
 
 private:
   static u8 const exi_id[];
-  static int const sample_size = sizeof(s16);
-  static int const rate_base = 11025;
-  static int const ring_base = 32;
+  static constexpr int sample_size = sizeof(s16);
+  static constexpr int rate_base = 11025;
+  static constexpr int ring_base = 32;
 
   enum
   {

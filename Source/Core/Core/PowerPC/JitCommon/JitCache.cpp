@@ -146,7 +146,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, const bool block_link,
 
   block.physical_addresses = physical_addresses;
 
-  const u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+  constexpr u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
   for (const u32 addr : physical_addresses)
   {
     valid_block.Set(addr / 32);
@@ -324,7 +324,7 @@ void JitBaseBlockCache::InvalidateICacheInternal(const u32 physical_address, con
 void JitBaseBlockCache::ErasePhysicalRange(const u32 address, const u32 length)
 {
   // Iterate over all macro blocks which overlap the given range.
-  const u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+  constexpr u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
   auto start = block_range_map.lower_bound(address & range_mask);
   const auto end = block_range_map.lower_bound(address + length);
   while (start != end)

@@ -287,7 +287,7 @@ void FifoRecorder::RecordInitialVideoMemory()
   // that split here.
   const u32* xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
   const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
-  const u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
+  constexpr u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
   g_main_cp_state.FillCPMemoryArray(cpmem);
 

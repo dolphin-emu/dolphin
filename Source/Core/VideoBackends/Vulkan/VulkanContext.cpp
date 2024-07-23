@@ -841,7 +841,7 @@ bool VulkanContext::EnableDebugUtils()
     return false;
   }
 
-  const VkDebugUtilsMessengerCreateInfoEXT messenger_info = {
+  constexpr VkDebugUtilsMessengerCreateInfoEXT messenger_info = {
       VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
       nullptr,
       0,

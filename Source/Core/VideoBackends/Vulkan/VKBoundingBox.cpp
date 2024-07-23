@@ -52,7 +52,7 @@ std::vector<BBoxType> VKBoundingBox::Read(const u32 index, const u32 length)
                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Copy from GPU -> readback buffer.
-  const VkBufferCopy region = {0, 0, BUFFER_SIZE};
+  constexpr VkBufferCopy region = {0, 0, BUFFER_SIZE};
   vkCmdCopyBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
                   m_readback_buffer->GetBuffer(), 1, &region);
 
@@ -102,10 +102,10 @@ void VKBoundingBox::Write(const u32 index, const std::span<const BBoxType> value
 
 bool VKBoundingBox::CreateGPUBuffer()
 {
-  const VkBufferUsageFlags buffer_usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                                          VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                                          VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-  const VkBufferCreateInfo info = {
+  constexpr VkBufferUsageFlags buffer_usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+                                              VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  constexpr VkBufferCreateInfo info = {
       VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
       nullptr,                               // const void*            pNext
       0,                                     // VkBufferCreateFlags    flags

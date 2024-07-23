@@ -236,7 +236,7 @@ void VertexManager::UploadAllConstants()
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   // We are free to re-use parts of the buffer now since we're uploading all constants.
-  const u32 pixel_constants_offset = 0;
+  constexpr u32 pixel_constants_offset = 0;
   constexpr u32 vertex_constants_offset =
       Common::AlignUp(pixel_constants_offset + sizeof(PixelShaderConstants),
                       D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);

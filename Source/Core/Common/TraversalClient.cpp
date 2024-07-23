@@ -299,7 +299,7 @@ void TraversalClient::NewTraversalTest()
   if (m_TestSocket != ENET_SOCKET_NULL)
     enet_socket_destroy(m_TestSocket);
   m_TestSocket = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
-  const ENetAddress addr = {ENET_HOST_ANY, 0};
+  constexpr ENetAddress addr = {ENET_HOST_ANY, 0};
   if (m_TestSocket == ENET_SOCKET_NULL || enet_socket_bind(m_TestSocket, &addr) < 0)
   {
     // error, abort

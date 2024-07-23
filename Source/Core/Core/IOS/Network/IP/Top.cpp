@@ -786,7 +786,7 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
     num_ip_addr++;
   // Limit number of IP addresses to avoid buffer overflow.
   // (0x460 - 0x340) / sizeof(pointer) == 72
-  static const u32 GETHOSTBYNAME_MAX_ADDRESSES = 71;
+  static constexpr u32 GETHOSTBYNAME_MAX_ADDRESSES = 71;
   num_ip_addr = std::min(num_ip_addr, GETHOSTBYNAME_MAX_ADDRESSES);
   for (u32 i = 0; i < num_ip_addr; ++i)
   {
@@ -797,7 +797,7 @@ IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
   // List of pointers to IP addresses; located at offset 0x340.
   // This must be exact: PPC code to convert the struct hardcodes
   // this offset.
-  static const u32 GETHOSTBYNAME_IP_PTR_LIST_OFFSET = 0x340;
+  static constexpr u32 GETHOSTBYNAME_IP_PTR_LIST_OFFSET = 0x340;
   memory.Write_U32(request.buffer_out + GETHOSTBYNAME_IP_PTR_LIST_OFFSET, request.buffer_out + 12);
   for (u32 i = 0; i < num_ip_addr; ++i)
   {

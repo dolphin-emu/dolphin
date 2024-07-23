@@ -26,7 +26,7 @@ bool ReadValue(T* value, const std::string& subkey, const std::string& name)
 template <>
 bool ReadValue(std::string* value, const std::string& subkey, const std::string& name)
 {
-  const DWORD flags = RRF_RT_REG_SZ | RRF_NOEXPAND;
+  constexpr DWORD flags = RRF_RT_REG_SZ | RRF_NOEXPAND;
   DWORD value_len = 0;
   auto status = RegGetValueA(HKEY_LOCAL_MACHINE, subkey.c_str(), name.c_str(), flags, nullptr,
                              nullptr, &value_len);

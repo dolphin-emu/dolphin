@@ -53,11 +53,11 @@ CompileShaderToSPV(EShLanguage stage, const APIType api_type,
   const std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
   std::unique_ptr<glslang::TProgram> program;
   glslang::TShader::ForbidIncluder includer;
-  const EProfile profile = ECoreProfile;
+  constexpr EProfile profile = ECoreProfile;
   EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
   if (api_type == APIType::Vulkan || api_type == APIType::Metal)
     messages = static_cast<EShMessages>(messages | EShMsgVulkanRules);
-  const int default_version = 450;
+  constexpr int default_version = 450;
 
   const char* pass_source_code = source.data();
   const int pass_source_code_length = static_cast<int>(source.size());

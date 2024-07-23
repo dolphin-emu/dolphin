@@ -18,7 +18,7 @@ namespace Vulkan::ShaderCompiler
 // backend. None of the Vulkan-specific shaders use UBOs, instead they use push
 // constants, so when/if the GL backend moves to uniform blocks completely this
 // subtraction can be removed.
-static const char SHADER_HEADER[] = R"(
+static constexpr char SHADER_HEADER[] = R"(
   // Target GLSL 4.5.
   #version 450 core
   #define ATTRIBUTE_LOCATION(x) layout(location = x)
@@ -53,7 +53,7 @@ static const char SHADER_HEADER[] = R"(
   #define gl_VertexID gl_VertexIndex
   #define gl_InstanceID gl_InstanceIndex
 )";
-static const char COMPUTE_SHADER_HEADER[] = R"(
+static constexpr char COMPUTE_SHADER_HEADER[] = R"(
   // Target GLSL 4.5.
   #version 450 core
   // All resources are packed into one descriptor set for compute.
@@ -76,7 +76,7 @@ static const char COMPUTE_SHADER_HEADER[] = R"(
   #define frac fract
   #define lerp mix
 )";
-static const char SUBGROUP_HELPER_HEADER[] = R"(
+static constexpr char SUBGROUP_HELPER_HEADER[] = R"(
   #extension GL_KHR_shader_subgroup_basic : enable
   #extension GL_KHR_shader_subgroup_arithmetic : enable
   #extension GL_KHR_shader_subgroup_ballot : enable

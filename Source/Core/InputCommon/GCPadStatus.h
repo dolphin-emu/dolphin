@@ -41,10 +41,10 @@ struct GCPadStatus
   u8 analogB = 0;       // 0 <= analogB      <= 255
   bool isConnected = true;
 
-  static const u8 MAIN_STICK_CENTER_X = 0x80;
-  static const u8 MAIN_STICK_CENTER_Y = 0x80;
-  static const u8 MAIN_STICK_RADIUS = 0x7f;
-  static const u8 C_STICK_CENTER_X = 0x80;
-  static const u8 C_STICK_CENTER_Y = 0x80;
-  static const u8 C_STICK_RADIUS = 0x7f;
+  static constexpr u8 MAIN_STICK_CENTER_X = 0x80;
+  static constexpr u8 MAIN_STICK_CENTER_Y = 0x80;
+  static constexpr u8 MAIN_STICK_RADIUS = 0x7f;
+  static constexpr u8 C_STICK_CENTER_X = 0x80;
+  static constexpr u8 C_STICK_CENTER_Y = 0x80;
+  static constexpr u8 C_STICK_RADIUS = 0x7f;
 };

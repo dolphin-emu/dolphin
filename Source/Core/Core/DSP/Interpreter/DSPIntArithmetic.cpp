@@ -537,7 +537,7 @@ void Interpreter::incm(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 8) & 0x1;
 
-  const s64 sub = 0x10000;
+  constexpr s64 sub = 0x10000;
   const s64 acc = GetLongAcc(dreg);
   const s64 res = acc + sub;
 
@@ -672,7 +672,7 @@ void Interpreter::decm(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 8) & 0x01;
 
-  const s64 sub = 0x10000;
+  constexpr s64 sub = 0x10000;
   const s64 acc = GetLongAcc(dreg);
   const s64 res = acc - sub;
 

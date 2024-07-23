@@ -549,8 +549,8 @@ void InhibitScreenSaver(bool inhibit)
 std::string FormatSize(const u64 bytes, int decimals)
 {
   // i18n: The symbol for the unit "bytes"
-  const char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),
-                                      _trans("TiB"), _trans("PiB"), _trans("EiB")};
+  constexpr char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),
+                                          _trans("TiB"), _trans("PiB"), _trans("EiB")};
 
   // Find largest power of 2 less than size.
   // div 10 to get largest named unit less than size

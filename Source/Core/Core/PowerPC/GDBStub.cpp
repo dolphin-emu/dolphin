@@ -66,7 +66,7 @@ constexpr u32 NUM_BREAKPOINT_TYPES = 4;
 constexpr int MACH_O_POWERPC = 18;
 constexpr int MACH_O_POWERPC_750 = 9;
 
-const s64 GDB_UPDATE_CYCLES = 100000;
+constexpr s64 GDB_UPDATE_CYCLES = 100000;
 
 static bool s_has_control = false;
 static bool s_just_connected = false;
@@ -182,7 +182,7 @@ static void RemoveBreakpoint(const BreakpointType type, const u32 addr, const u3
 
 static void Nack()
 {
-  const char nak = GDB_STUB_NAK;
+  constexpr char nak = GDB_STUB_NAK;
   const ssize_t res = send(s_sock, &nak, 1, 0);
 
   if (res != 1)
@@ -191,7 +191,7 @@ static void Nack()
 
 static void Ack()
 {
-  const char ack = GDB_STUB_ACK;
+  constexpr char ack = GDB_STUB_ACK;
   const ssize_t res = send(s_sock, &ack, 1, 0);
 
   if (res != 1)
@@ -1085,7 +1085,7 @@ static void InitGeneric(const int domain, const sockaddr* server_addr, const soc
   if (s_tmpsock == -1)
     ERROR_LOG_FMT(GDB_STUB, "Failed to create gdb socket");
 
-  const int on = 1;
+  constexpr int on = 1;
   if (setsockopt(s_tmpsock, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof on) < 0)
     ERROR_LOG_FMT(GDB_STUB, "Failed to setsockopt");
 

@@ -293,9 +293,9 @@ void CommonAsmRoutines::GenMfcr()
   // Input: none
   // Output: RSCRATCH
   // This function clobbers all three RSCRATCH.
-  const X64Reg dst = RSCRATCH;
-  const X64Reg tmp = RSCRATCH2;
-  const X64Reg cr_val = RSCRATCH_EXTRA;
+  constexpr X64Reg dst = RSCRATCH;
+  constexpr X64Reg tmp = RSCRATCH2;
+  constexpr X64Reg cr_val = RSCRATCH_EXTRA;
   XOR(32, R(dst), R(dst));
   // Upper bits of tmp need to be zeroed.
   XOR(32, R(tmp), R(tmp));
@@ -328,12 +328,12 @@ void CommonAsmRoutines::GenMfcr()
 }
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
-alignas(16) static const float m_65535[4] = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
-alignas(16) static const float m_32767 = 32767.0f;
-alignas(16) static const float m_m32768 = -32768.0f;
-alignas(16) static const float m_255 = 255.0f;
-alignas(16) static const float m_127 = 127.0f;
-alignas(16) static const float m_m128 = -128.0f;
+alignas(16) static constexpr float m_65535[4] = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
+alignas(16) static constexpr float m_32767 = 32767.0f;
+alignas(16) static constexpr float m_m32768 = -32768.0f;
+alignas(16) static constexpr float m_255 = 255.0f;
+alignas(16) static constexpr float m_127 = 127.0f;
+alignas(16) static constexpr float m_m128 = -128.0f;
 
 // Sizes of the various quantized store types
 constexpr std::array<u8, 8> sizes{{32, 0, 0, 0, 8, 16, 8, 16}};
@@ -591,7 +591,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(const bool single, const EQuantiz
 
   const bool extend = single && (type == QUANTIZE_S8 || type == QUANTIZE_S16);
 
-  const BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
+  constexpr BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
   const int flags = isInline ? 0 :
                       SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
                       SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
@@ -697,9 +697,9 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(const bool single, const EQuantiz
 void QuantizedMemoryRoutines::GenQuantizedLoadFloat(const bool single, const bool isInline)
 {
   const int size = single ? 32 : 64;
-  const bool extend = false;
+  constexpr bool extend = false;
 
-  const BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
+  constexpr BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
   const int flags = isInline ? 0 :
                       SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
                       SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;

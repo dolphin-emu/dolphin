@@ -264,10 +264,10 @@ void Jit64::Init()
   gpr.SetEmitter(this);
   fpr.SetEmitter(this);
 
-  const size_t routines_size = asm_routines.CODE_SIZE;
+  constexpr size_t routines_size = asm_routines.CODE_SIZE;
   const size_t trampolines_size = jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE;
   const size_t farcode_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
-  const size_t constpool_size = m_const_pool.CONST_POOL_SIZE;
+  constexpr size_t constpool_size = m_const_pool.CONST_POOL_SIZE;
   AllocCodeSpace(CODE_SIZE + routines_size + trampolines_size + farcode_size + constpool_size);
   AddChildCodeSpace(&asm_routines, routines_size);
   AddChildCodeSpace(&trampolines, trampolines_size);

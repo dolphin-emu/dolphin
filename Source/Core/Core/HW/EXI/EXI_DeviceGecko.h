@@ -65,6 +65,6 @@ private:
     CMD_CHK_RX = 0xd,
   };
 
-  static const u32 ident = 0x04700000;
+  static constexpr u32 ident = 0x04700000;
 };
 }  // namespace ExpansionInterface

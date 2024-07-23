@@ -1141,9 +1141,9 @@ void DirectoryBlobPartition::BuildFST(std::vector<FSTBuilderNode> root_nodes, co
   // 32 KiB aligned start of data on disc
   u64 current_data_address = Common::AlignUp(fst_address + fst_data.size(), 0x8000ull);
 
-  u32 fst_offset = 0;        // Offset within FST data
-  u32 name_offset = 0;       // Offset within name table
-  const u32 root_offset = 0; // Offset of root of FST
+  u32 fst_offset = 0;            // Offset within FST data
+  u32 name_offset = 0;           // Offset within name table
+  constexpr u32 root_offset = 0; // Offset of root of FST
 
   // write root entry
   WriteEntryData(&fst_data, &fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries, m_address_shift);

@@ -276,7 +276,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   }
 
   // Declare descriptors for empty vertex buffers/attributes
-  static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
+  static constexpr VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,  // const void*                                pNext
       0,        // VkPipelineVertexInputStateCreateFlags       flags
@@ -369,9 +369,9 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
                                static_cast<uint32_t>(blend_attachment_states.size()));
 
   // This viewport isn't used, but needs to be specified anyway.
-  static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
-  static const VkRect2D scissor = {{0, 0}, {1, 1}};
-  static const VkPipelineViewportStateCreateInfo viewport_state = {
+  static constexpr VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
+  static constexpr VkRect2D scissor = {{0, 0}, {1, 1}};
+  static constexpr VkPipelineViewportStateCreateInfo viewport_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
       nullptr,
       0,          // VkPipelineViewportStateCreateFlags    flags;
@@ -382,11 +382,11 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   };
 
   // Set viewport and scissor dynamic state so we can change it elsewhere.
-  static const std::array dynamic_states{
+  static constexpr std::array dynamic_states{
       VK_DYNAMIC_STATE_VIEWPORT,
       VK_DYNAMIC_STATE_SCISSOR,
   };
-  static const VkPipelineDynamicStateCreateInfo dynamic_state = {
+  static constexpr VkPipelineDynamicStateCreateInfo dynamic_state = {
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, nullptr,
       0,                                        // VkPipelineDynamicStateCreateFlags    flags
       static_cast<u32>(dynamic_states.size()),  // uint32_t dynamicStateCount

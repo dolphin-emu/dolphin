@@ -110,7 +110,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 {
   // The geometry shader buffer must be last in this binding set, as we don't include it
   // if geometry shaders are not supported by the device. See the decrement below.
-  static const std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
@@ -126,7 +126,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       1 + (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS - MAX_PIXEL_SAMPLER_ARRAY_SIZE);
   static_assert(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS == 16, "Update descriptor sampler bindings");
 
-  static const std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
+  static constexpr std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
       standard_sampler_bindings{{
           {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_PIXEL_SAMPLER_ARRAY_SIZE,
            VK_SHADER_STAGE_FRAGMENT_BIT},
@@ -141,18 +141,18 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       }};
 
   // The dynamic veretex loader's vertex buffer must be last here, for similar reasons
-  static const std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
       {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
       {1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 1> utility_ubo_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 1> utility_ubo_bindings{{
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
   // Utility samplers aren't dynamically indexed.
-  static const std::array<VkDescriptorSetLayoutBinding, 9> utility_sampler_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 9> utility_sampler_bindings{{
       {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
       {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
       {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
@@ -164,7 +164,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {8, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 19> compute_set_bindings{{
+  static constexpr std::array<VkDescriptorSetLayoutBinding, 19> compute_set_bindings{{
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_COMPUTE_BIT},
       {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
       {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
@@ -535,7 +535,7 @@ bool ObjectCache::CreatePipelineCache()
   // when a lookup occurs that matches a pipeline (or pipeline data) in the cache.
   m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
 
-  const VkPipelineCacheCreateInfo info = {
+  constexpr VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                       // const void*                pNext
       0,                                             // VkPipelineCacheCreateFlags flags

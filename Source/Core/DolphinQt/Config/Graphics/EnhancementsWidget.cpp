@@ -493,27 +493,27 @@ void EnhancementsWidget::SaveSettings()
 
 void EnhancementsWidget::AddDescriptions() const
 {
-  static const char TR_INTERNAL_RESOLUTION_DESCRIPTION[] =
+  static constexpr char TR_INTERNAL_RESOLUTION_DESCRIPTION[] =
       QT_TR_NOOP("Controls the rendering resolution.<br><br>A high resolution greatly improves "
                  "visual quality, but also greatly increases GPU load and can cause issues in "
                  "certain games. Generally speaking, the lower the internal resolution, the "
                  "better performance will be.<br><br><dolphin_emphasis>If unsure, "
                  "select Native.</dolphin_emphasis>");
-  static const char TR_ANTIALIAS_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_ANTIALIAS_DESCRIPTION[] = QT_TR_NOOP(
       "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
       "in smoother edges on objects. Increases GPU load and sometimes causes graphical "
       "issues.<br><br>SSAA is significantly more demanding than MSAA, but provides top quality "
       "geometry anti-aliasing and also applies anti-aliasing to lighting, shader "
       "effects, and textures.<br><br><dolphin_emphasis>If unsure, select "
       "None.</dolphin_emphasis>");
-  static const char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] = QT_TR_NOOP(
       "Adjust the texture filtering. Anisotropic filtering enhances the visual quality of textures "
       "that are at oblique viewing angles. Force Nearest and Force Linear override the texture "
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br>This option is incompatible with Manual Texture Sampling.<br><br>"
       "<dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
-  static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
+  static constexpr char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
       QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
                  "<br>The performance mostly depends on the number of samples each method uses."
                  "<br>Compared to SSAA, resampling is useful in case the output window"
@@ -544,63 +544,63 @@ void EnhancementsWidget::AddDescriptions() const
                  "<br>Best for downscaling by more than 2x."
 
                  "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
-  static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
+  static constexpr char TR_COLOR_CORRECTION_DESCRIPTION[] =
       QT_TR_NOOP("A group of features to make the colors more accurate, matching the color space "
                  "Wii and GC games were meant for.");
-  static const char TR_POSTPROCESSING_DESCRIPTION[] =
+  static constexpr char TR_POSTPROCESSING_DESCRIPTION[] =
       QT_TR_NOOP("Applies a post-processing effect after rendering a frame.<br><br "
                  "/><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
-  static const char TR_SCALED_EFB_COPY_DESCRIPTION[] =
+  static constexpr char TR_SCALED_EFB_COPY_DESCRIPTION[] =
       QT_TR_NOOP("Greatly increases the quality of textures generated using render-to-texture "
                  "effects.<br><br>Slightly increases GPU load and causes relatively few graphical "
                  "issues. Raising the internal resolution will improve the effect of this setting. "
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
-  static const char TR_PER_PIXEL_LIGHTING_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_PER_PIXEL_LIGHTING_DESCRIPTION[] = QT_TR_NOOP(
       "Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the "
       "appearance of lit polygons and making individual triangles less noticeable.<br><br "
       "/>Rarely "
       "causes slowdowns or graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
       "this unchecked.</dolphin_emphasis>");
-  static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
       "Forces the game to output graphics at any aspect ratio by expanding the view frustum "
       "without stretching the image.<br>This is a hack, and its results will vary widely game "
       "to game (it often causes the UI to stretch).<br>"
       "Game-specific AR/Gecko-code aspect ratio patches are preferable over this if available."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_REMOVE_FOG_DESCRIPTION[] =
+  static constexpr char TR_REMOVE_FOG_DESCRIPTION[] =
       QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
                  "detail.<br><br>Disabling fog will break some games which rely on proper fog "
                  "emulation.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_3D_MODE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_MODE_DESCRIPTION[] = QT_TR_NOOP(
       "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling "
       "of depth if the necessary hardware is present. Heavily decreases "
       "emulation speed and sometimes causes issues.<br><br>Side-by-Side and Top-and-Bottom are "
       "used by most 3D TVs.<br>Anaglyph is used for Red-Cyan colored glasses.<br>HDMI 3D is "
       "used when the monitor supports 3D display resolutions.<br>Passive is another type of 3D "
       "used by some TVs.<br><br><dolphin_emphasis>If unsure, select Off.</dolphin_emphasis>");
-  static const char TR_3D_DEPTH_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_DEPTH_DESCRIPTION[] = QT_TR_NOOP(
       "Controls the separation distance between the virtual cameras.<br><br>A higher "
       "value creates a stronger feeling of depth while a lower value is more comfortable.");
-  static const char TR_3D_CONVERGENCE_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_CONVERGENCE_DESCRIPTION[] = QT_TR_NOOP(
       "Controls the distance of the convergence plane. This is the distance at which "
       "virtual objects will appear to be in front of the screen.<br><br>A higher value creates "
       "stronger out-of-screen effects while a lower value is more comfortable.");
-  static const char TR_3D_SWAP_EYES_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_3D_SWAP_EYES_DESCRIPTION[] = QT_TR_NOOP(
       "Swaps the left and right eye. Most useful in side-by-side stereoscopy "
       "mode.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_FORCE_24BIT_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_FORCE_24BIT_DESCRIPTION[] = QT_TR_NOOP(
       "Forces the game to render the RGB color channels in 24-bit, thereby increasing "
       "quality by reducing color banding.<br><br>Has no impact on performance and causes "
       "few graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
       "checked.</dolphin_emphasis>");
-  static const char TR_DISABLE_COPY_FILTER_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_DISABLE_COPY_FILTER_DESCRIPTION[] = QT_TR_NOOP(
       "Disables the blending of adjacent rows when copying the EFB. This is known in "
       "some games as \"deflickering\" or \"smoothing\".<br><br>Disabling the filter has no "
       "effect on performance, but may result in a sharper image. Causes few "
       "graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
       "checked.</dolphin_emphasis>");
-  static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
       "Enables detection of arbitrary mipmaps, which some games use for special distance-based "
       "effects.<br><br>May have false positives that result in blurry textures at increased "
       "internal "
@@ -608,7 +608,7 @@ void EnhancementsWidget::AddDescriptions() const
       "reduce stutter in games that frequently load new textures. This feature is not compatible "
       "with GPU Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
+  static constexpr char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
       " Fullscreen might be required."
       "<br><br>This gives post process shaders more room for accuracy, allows \"AutoHDR\" "

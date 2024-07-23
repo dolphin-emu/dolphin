@@ -1436,7 +1436,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
   case VPB::SRC_CONST_PATTERN_2:
   case VPB::SRC_CONST_PATTERN_3:
   {
-    const u16 PATTERN_SIZE = 0x40;
+    constexpr u16 PATTERN_SIZE = 0x40;
 
     struct PatternInfo
     {

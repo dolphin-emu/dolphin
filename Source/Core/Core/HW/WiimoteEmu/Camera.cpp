@@ -59,7 +59,7 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, const Common::Ve
   using Common::Vec3;
   using Common::Vec4;
 
-  const std::array leds{
+  constexpr std::array leds{
       Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
       Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
   };

@@ -12,10 +12,10 @@ namespace Common
 {
 namespace
 {
-const u32 PCAP_MAGIC = 0xa1b2c3d4;
-const u16 PCAP_VERSION_MAJOR = 2;
-const u16 PCAP_VERSION_MINOR = 4;
-const u32 PCAP_CAPTURE_LENGTH = 65535;
+constexpr u32 PCAP_MAGIC = 0xa1b2c3d4;
+constexpr u16 PCAP_VERSION_MAJOR = 2;
+constexpr u16 PCAP_VERSION_MINOR = 4;
+constexpr u32 PCAP_CAPTURE_LENGTH = 65535;
 
 // Designed to be directly written into the PCAP file. The PCAP format is
 // endian independent, so this works just fine.

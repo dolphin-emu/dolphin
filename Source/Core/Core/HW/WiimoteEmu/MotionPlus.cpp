@@ -61,7 +61,7 @@ Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationB
   const auto calibration = blocks.GetRelevantCalibration(is_slow);
 
   // It seems M+ calibration data does not follow the "right-hand rule".
-  const auto sign_fix = Common::Vec3(-1, +1, -1);
+  constexpr auto sign_fix = Common::Vec3(-1, +1, -1);
 
   // Adjust deg/s to rad/s.
   constexpr auto scalar = static_cast<float>(MathUtil::TAU / 360);
@@ -436,7 +436,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       // Disable encryption
       {
         constexpr u8 INIT_OFFSET = offsetof(Register, init_trigger);
-        const std::array<u8, 1> enc_data = {0x55};
+        constexpr std::array<u8, 1> enc_data = {0x55};
         m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, static_cast<int>(enc_data.size()), enc_data.data());
       }
 

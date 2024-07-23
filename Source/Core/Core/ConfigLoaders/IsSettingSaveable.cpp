@@ -26,7 +26,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     return true;
   }
 
-  static const auto s_setting_saveable = {
+  static constexpr auto s_setting_saveable = {
       &Config::WIIMOTE_1_SOURCE.GetLocation(),  &Config::WIIMOTE_2_SOURCE.GetLocation(),
       &Config::WIIMOTE_3_SOURCE.GetLocation(),  &Config::WIIMOTE_4_SOURCE.GetLocation(),
       &Config::WIIMOTE_BB_SOURCE.GetLocation(),

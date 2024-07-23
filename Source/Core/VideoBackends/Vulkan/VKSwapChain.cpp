@@ -318,7 +318,7 @@ bool SwapChain::CreateSwapChain()
     transform = surface_capabilities.currentTransform;
 
   // Select swap chain flags, we only need a colour attachment
-  const VkImageUsageFlags image_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  constexpr VkImageUsageFlags image_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
   if (!(surface_capabilities.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
   {
     ERROR_LOG_FMT(VIDEO, "Vulkan: Swap chain does not support usage as color attachment");

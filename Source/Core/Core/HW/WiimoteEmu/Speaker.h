@@ -22,7 +22,7 @@ class SpeakerLogic : public I2CSlave
   friend class Wiimote;
 
 public:
-  static const u8 I2C_ADDR = 0x51;
+  static constexpr u8 I2C_ADDR = 0x51;
 
   static constexpr u8 SPEAKER_DATA_OFFSET = 0x00;
 
@@ -36,8 +36,8 @@ private:
   void SpeakerData(const u8* data, int length, float speaker_pan);
 
   // TODO: enum class
-  static const u8 DATA_FORMAT_ADPCM = 0x00;
-  static const u8 DATA_FORMAT_PCM = 0x40;
+  static constexpr u8 DATA_FORMAT_ADPCM = 0x00;
+  static constexpr u8 DATA_FORMAT_PCM = 0x40;
 
   // TODO: It seems reading address 0x00 should always return 0xff.
 #pragma pack(push, 1)

@@ -42,7 +42,7 @@ bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width
   if (spng_get_ihdr(ctx.get(), &ihdr))
     return false;
 
-  const int format = SPNG_FMT_RGBA8;
+  constexpr int format = SPNG_FMT_RGBA8;
   size_t decoded_len = 0;
   if (spng_decoded_image_size(ctx.get(), format, &decoded_len))
     return false;

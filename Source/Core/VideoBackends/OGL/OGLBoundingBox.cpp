@@ -16,7 +16,7 @@ OGLBoundingBox::~OGLBoundingBox()
 
 bool OGLBoundingBox::Initialize()
 {
-  const BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
+  constexpr BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
 
   glGenBuffers(1, &m_buffer_id);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);

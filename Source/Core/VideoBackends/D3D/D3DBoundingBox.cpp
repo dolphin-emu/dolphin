@@ -29,7 +29,7 @@ bool D3DBoundingBox::Initialize()
   auto desc = CD3D11_BUFFER_DESC(NUM_BBOX_VALUES * sizeof(BBoxType), D3D11_BIND_UNORDERED_ACCESS,
                                  D3D11_USAGE_DEFAULT, 0, D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS,
                                  sizeof(BBoxType));
-  const BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
+  constexpr BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
   D3D11_SUBRESOURCE_DATA data;
   data.pSysMem = initial_values;
   data.SysMemPitch = NUM_BBOX_VALUES * sizeof(BBoxType);

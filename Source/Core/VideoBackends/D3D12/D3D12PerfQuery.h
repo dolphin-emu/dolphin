@@ -45,7 +45,7 @@ private:
   // when testing in SMS: 64 was too small, 128 was ok
   // TODO: This should be size_t, but the base class uses u32s
   using PerfQueryDataType = u64;
-  static const u32 PERF_QUERY_BUFFER_SIZE = 512;
+  static constexpr u32 PERF_QUERY_BUFFER_SIZE = 512;
   std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer = {};
   u32 m_unresolved_queries = 0;
   u32 m_query_resolve_pos = 0;

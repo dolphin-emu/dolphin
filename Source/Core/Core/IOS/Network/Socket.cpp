@@ -770,7 +770,7 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     fd_set read_fds;
     fd_set write_fds;
     fd_set except_fds;
-    const struct timeval t = {0, 0};
+    constexpr struct timeval t = {0, 0};
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
@@ -911,7 +911,7 @@ s32 WiiSockMan::AddSocket(s32 fd, const bool is_rw)
       const bool is_udp = getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
                                      &option_length) == 0 &&
                           socket_type == SOCK_DGRAM;
-      const int opt_broadcast = 1;
+      constexpr int opt_broadcast = 1;
       if (is_udp &&
           setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&opt_broadcast),
                      sizeof(opt_broadcast)) != 0)
@@ -998,7 +998,7 @@ void WiiSockMan::Update()
 {
   s32 nfds = 0;
   fd_set read_fds, write_fds, except_fds;
-  const struct timeval t = {0, 0};
+  constexpr struct timeval t = {0, 0};
   FD_ZERO(&read_fds);
   FD_ZERO(&write_fds);
   FD_ZERO(&except_fds);

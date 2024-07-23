@@ -16,7 +16,7 @@ namespace DX12
 class DXVertexFormat : public NativeVertexFormat
 {
 public:
-  static const u32 MAX_VERTEX_ATTRIBUTES = 16;
+  static constexpr u32 MAX_VERTEX_ATTRIBUTES = 16;
 
   DXVertexFormat(const PortableVertexDeclaration& vtx_decl);
 

@@ -11,11 +11,11 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/GCPadStatus.h"
 
-static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
-                                    PAD_BUTTON_RIGHT};
+static constexpr u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
+                                        PAD_BUTTON_RIGHT};
 
-static const u16 button_bitmasks[] = {PAD_BUTTON_B,  PAD_BUTTON_A,  PAD_TRIGGER_L,
-                                      PAD_TRIGGER_R, PAD_TRIGGER_Z, PAD_BUTTON_START};
+static constexpr u16 button_bitmasks[] = {PAD_BUTTON_B,  PAD_BUTTON_A,  PAD_TRIGGER_L,
+                                          PAD_TRIGGER_R, PAD_TRIGGER_Z, PAD_BUTTON_START};
 
 GBAPad::GBAPad(const unsigned int index) : m_reset_pending(false), m_index(index)
 {

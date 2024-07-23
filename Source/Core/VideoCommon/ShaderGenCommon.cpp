@@ -178,7 +178,7 @@ void GenerateVSOutputMembers(ShaderCode& object, const APIType api_type, const u
     DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, stage, "TEXCOORD", 1);
     DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, stage, "TEXCOORD", 2);
 
-    const unsigned int index_base = 3;
+    constexpr unsigned int index_base = 3;
     unsigned int index_offset = 0;
     if (host_config.backend_geometry_shaders)
     {

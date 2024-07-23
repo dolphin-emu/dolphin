@@ -34,7 +34,7 @@ private:
 };
 
 // Should be part of class but fails to compile on mac os
-static const u16 ir_min_x = 0;
-static const u16 ir_min_y = 0;
-static const u16 ir_max_x = 1023;
-static const u16 ir_max_y = 767;
+static constexpr u16 ir_min_x = 0;
+static constexpr u16 ir_min_y = 0;
+static constexpr u16 ir_max_x = 1023;
+static constexpr u16 ir_max_y = 767;

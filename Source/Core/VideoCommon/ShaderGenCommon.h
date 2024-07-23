@@ -292,7 +292,7 @@ void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
 #define I_LINEPTPARAMS "clinept"
 #define I_TEXOFFSET "ctexoffset"
 
-static const char s_shader_uniforms[] = "\tuint    components;\n"
+static constexpr char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint    xfmem_dualTexInfo;\n"
                                         "\tuint    xfmem_numColorChans;\n"
                                         "\tuint    missing_color_hex;\n"
@@ -324,7 +324,7 @@ static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\t#define xfmem_color(i) (xfmem_pack1[(i)].z)\n"
                                         "\t#define xfmem_alpha(i) (xfmem_pack1[(i)].w)\n";
 
-static const char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n"
+static constexpr char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n"
                                                  "\tfloat4 " I_LINEPTPARAMS ";\n"
                                                  "\tint4 " I_TEXOFFSET ";\n"
                                                  "\tuint vs_expand;\n";

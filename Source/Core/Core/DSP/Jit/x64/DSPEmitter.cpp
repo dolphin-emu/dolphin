@@ -428,7 +428,7 @@ void DSPEmitter::CompileDispatcher()
 {
   m_enter_dispatcher = AlignCode16();
   // We don't use floating point (high 16 bits).
-  const BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
+  constexpr BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
   ABI_PushRegistersAndAdjustStack(registers_used, 8);
 
   MOV(64, R(R15), ImmPtr(&m_dsp_core.DSPState()));

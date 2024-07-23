@@ -484,8 +484,8 @@ void CommandBufferManager::BeginCommandBuffer()
     LOG_VULKAN_ERROR(res, "vkResetCommandPool failed: ");
 
   // Enable commands to be recorded to the two buffers again.
-  const VkCommandBufferBeginInfo begin_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
-                                               VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
+  constexpr VkCommandBufferBeginInfo begin_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
+                                                   VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
   for (const VkCommandBuffer command_buffer : resources.command_buffers)
   {
     res = vkBeginCommandBuffer(command_buffer, &begin_info);

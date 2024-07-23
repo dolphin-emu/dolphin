@@ -23,7 +23,7 @@ static D3D12_BOX RectangleToBox(const MathUtil::Rectangle<int>& rc)
 
 static ComPtr<ID3D12Resource> CreateTextureUploadBuffer(const u32 buffer_size)
 {
-  const D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_UPLOAD};
+  constexpr D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_UPLOAD};
   const D3D12_RESOURCE_DESC desc = {D3D12_RESOURCE_DIMENSION_BUFFER,
                                     0,
                                     buffer_size,
@@ -260,7 +260,7 @@ void DXTexture::Load(const u32 level, const u32 width, const u32 height, const u
   u32 upload_buffer_offset;
   if (upload_size >= STAGING_BUFFER_UPLOAD_THRESHOLD)
   {
-    const D3D12_RANGE read_range = {0, 0};
+    constexpr D3D12_RANGE read_range = {0, 0};
     staging_buffer = CreateTextureUploadBuffer(upload_size);
     if (!staging_buffer)
     {
@@ -473,7 +473,7 @@ const D3D12_CPU_DESCRIPTOR_HANDLE* DXFramebuffer::GetIntRTVDescriptorArray() con
 
 void DXFramebuffer::Unbind() const
 {
-  static const D3D12_DISCARD_REGION dr = {0, nullptr, 0, 1};
+  static constexpr D3D12_DISCARD_REGION dr = {0, nullptr, 0, 1};
   if (HasColorBuffer())
   {
     g_dx_context->GetCommandList()->DiscardResource(

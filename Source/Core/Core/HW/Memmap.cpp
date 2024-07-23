@@ -249,7 +249,7 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
     {
       const u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
       // TODO: Merge adjacent mappings to make this faster.
-      const u32 logical_size = PowerPC::BAT_PAGE_SIZE;
+      constexpr u32 logical_size = PowerPC::BAT_PAGE_SIZE;
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
       for (const auto& physical_region : m_physical_regions)
       {

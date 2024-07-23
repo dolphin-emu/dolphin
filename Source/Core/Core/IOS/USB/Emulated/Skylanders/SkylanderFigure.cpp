@@ -28,8 +28,8 @@ namespace IOS::HLE::USB
 void SkylanderFigure::PopulateSectorTrailers()
 {
   // Set the sector permissions
-  const u32 first_block = 0x690F0F0F;
-  const u32 other_blocks = 0x69080F7F;
+  constexpr u32 first_block = 0x690F0F0F;
+  constexpr u32 other_blocks = 0x69080F7F;
   memcpy(&m_data[0x36], &first_block, sizeof(first_block));
   for (size_t index = 1; index < 0x10; index++)
   {

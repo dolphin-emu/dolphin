@@ -141,7 +141,7 @@ bool PerfQuery::IsFlushed() const
 
 bool PerfQuery::CreateQueryPool()
 {
-  const VkQueryPoolCreateInfo info = {
+  constexpr VkQueryPoolCreateInfo info = {
       VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,  // VkStructureType                  sType
       nullptr,                                   // const void*                      pNext
       0,                                         // VkQueryPoolCreateFlags           flags

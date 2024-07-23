@@ -53,7 +53,7 @@ namespace Core
 inline bool operator==(const BranchWatchCollectionKey& lhs,
                        const BranchWatchCollectionKey& rhs) noexcept
 {
-  const std::hash<BranchWatchCollectionKey> hash;
+  constexpr std::hash<BranchWatchCollectionKey> hash;
   return hash(lhs) == hash(rhs) && lhs.original_inst.hex == rhs.original_inst.hex;
 }
 

@@ -115,7 +115,7 @@ void Jit64AsmRoutineManager::Generate()
   dispatcher_no_check = GetCodePtr();
 
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
-  const bool assembly_dispatcher = true;
+  constexpr bool assembly_dispatcher = true;
   if (assembly_dispatcher)
   {
     if (m_jit.GetBlockCache()->GetEntryPoints())

@@ -29,9 +29,9 @@ bool IsTAPDevice(const TCHAR* guid)
     TCHAR enum_name[256];
     TCHAR unit_string[256];
     HKEY unit_key;
-    const TCHAR component_id_string[] = _T("ComponentId");
+    constexpr TCHAR component_id_string[] = _T("ComponentId");
     TCHAR component_id[256];
-    const TCHAR net_cfg_instance_id_string[] = _T("NetCfgInstanceId");
+    constexpr TCHAR net_cfg_instance_id_string[] = _T("NetCfgInstanceId");
     TCHAR net_cfg_instance_id[256];
     DWORD data_type;
 
@@ -114,7 +114,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
     HKEY connection_key;
     TCHAR name_data[256];
     DWORD name_type;
-    const TCHAR name_string[] = _T("Name");
+    constexpr TCHAR name_string[] = _T("Name");
 
     len = _countof(enum_name);
     status = RegEnumKeyEx(control_net_key, i, enum_name, &len, nullptr, nullptr, nullptr, nullptr);

@@ -49,8 +49,8 @@ static HANDLE WINAPI HeapCreateLow4GB(_In_ DWORD flOptions, _In_ SIZE_T dwInitia
     return nullptr;
   // These values are arbitrary; just change them if problems are encountered later.
   uintptr_t target_addr = 0x00200000;
-  const size_t max_heap_size = 0x01000000;
-  const uintptr_t highest_addr = (1ull << 32) - max_heap_size;
+  constexpr size_t max_heap_size = 0x01000000;
+  constexpr uintptr_t highest_addr = (1ull << 32) - max_heap_size;
   void* low_heap = nullptr;
   for (; !low_heap && target_addr <= highest_addr; target_addr += 0x1000)
     low_heap = VirtualAlloc((void*)target_addr, max_heap_size, MEM_RESERVE, PAGE_READWRITE);
@@ -214,10 +214,10 @@ void CompatPatchesInstall(LdrWatcher* watcher)
          Version version;
          if (!GetModuleVersion(event.name.c_str(), &version))
            return;
-         const u16 fixed_build = 10548;
+         constexpr u16 fixed_build = 10548;
          if (version.build >= fixed_build)
            return;
-         const UcrtPatchInfo patches[] = {
+         constexpr UcrtPatchInfo patches[] = {
              // 10.0.10240.16384 (th1.150709-1700)
              {0xF61ED, 0x6AE7B, 5},
              // 10.0.10240.16390 (th1_st1.150714-1601)

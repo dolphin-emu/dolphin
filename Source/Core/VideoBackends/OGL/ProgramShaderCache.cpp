@@ -211,7 +211,7 @@ bool PipelineProgramKey::operator<(const PipelineProgramKey& rhs) const
 std::size_t PipelineProgramKeyHash::operator()(const PipelineProgramKey& key) const
 {
   // We would really want std::hash_combine for this..
-  const std::hash<u64> hasher;
+  constexpr std::hash<u64> hasher;
   return hasher(key.vertex_shader_id) + hasher(key.geometry_shader_id) +
          hasher(key.pixel_shader_id);
 }

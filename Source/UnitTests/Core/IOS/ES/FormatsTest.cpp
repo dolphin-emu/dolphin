@@ -14,11 +14,11 @@ TEST(ESFormats, TitleType)
   EXPECT_TRUE(IOS::ES::IsTitleType(Titles::SYSTEM_MENU, IOS::ES::TitleType::System));
   EXPECT_FALSE(IOS::ES::IsDiscTitle(Titles::SYSTEM_MENU));
 
-  const u64 ios59_title_id = 0x000000010000003b;
+  constexpr u64 ios59_title_id = 0x000000010000003b;
   EXPECT_TRUE(IOS::ES::IsTitleType(ios59_title_id, IOS::ES::TitleType::System));
   EXPECT_FALSE(IOS::ES::IsDiscTitle(ios59_title_id));
 
-  const u64 ztp_title_id = 0x00010000525a4445;
+  constexpr u64 ztp_title_id = 0x00010000525a4445;
   EXPECT_TRUE(IOS::ES::IsTitleType(ztp_title_id, IOS::ES::TitleType::Game));
   EXPECT_TRUE(IOS::ES::IsDiscTitle(ztp_title_id));
 }
