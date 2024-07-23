@@ -20,6 +20,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Debugger/OSThread.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
@@ -357,12 +358,12 @@ bool PPCDebugInterface::IsBreakpoint(u32 address) const
   return m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(address);
 }
 
-void PPCDebugInterface::SetBreakpoint(u32 address)
+void PPCDebugInterface::AddBreakpoint(u32 address)
 {
   m_system.GetPowerPC().GetBreakPoints().Add(address);
 }
 
-void PPCDebugInterface::ClearBreakpoint(u32 address)
+void PPCDebugInterface::RemoveBreakpoint(u32 address)
 {
   m_system.GetPowerPC().GetBreakPoints().Remove(address);
 }
@@ -374,11 +375,7 @@ void PPCDebugInterface::ClearAllBreakpoints()
 
 void PPCDebugInterface::ToggleBreakpoint(u32 address)
 {
-  auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
-  if (breakpoints.IsAddressBreakPoint(address))
-    breakpoints.Remove(address);
-  else
-    breakpoints.Add(address);
+  m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(address);
 }
 
 void PPCDebugInterface::ClearAllMemChecks()
@@ -506,8 +503,11 @@ void PPCDebugInterface::SetPC(u32 address)
   m_system.GetPPCState().pc = address;
 }
 
-void PPCDebugInterface::RunToBreakpoint()
+void PPCDebugInterface::RunTo(u32 address)
 {
+  auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+  breakpoints.SetTemporary(address);
+  m_system.GetCPU().SetStepping(false);
 }
 
 std::shared_ptr<Core::NetworkCaptureLogger> PPCDebugInterface::NetworkLogger()

@@ -228,7 +228,7 @@ public:
     IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
     // Without this call, we deadlock in initialization in dual core, as the FIFO is disabled and
     // thus ClearEfb()'s call to WaitForGPUInactive() never returns
-    m_parent->m_system.GetCPU().EnableStepping(false);
+    m_parent->m_system.GetCPU().SetStepping(false);
 
     m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
     m_parent->LoadMemory();
@@ -243,7 +243,7 @@ public:
   void SingleStep() override
   {
     // NOTE: AdvanceFrame() will get stuck forever in Dual Core because the FIFO
-    //   is disabled by CPU::EnableStepping(true) so the frame never gets displayed.
+    //   is disabled by CPU::SetStepping(true) so the frame never gets displayed.
     PanicAlertFmtT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
   }
 

@@ -382,10 +382,11 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     if (ins == "blr")
       ins_item->setForeground(dark_theme ? QColor(0xa0FFa0) : Qt::darkGreen);
 
-    if (debug_interface.IsBreakpoint(addr))
+    const TBreakPoint* bp = power_pc.GetBreakPoints().GetRegularBreakpoint(addr);
+    if (bp != nullptr)
     {
       auto icon = Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
-      if (!power_pc.GetBreakPoints().IsBreakPointEnable(addr))
+      if (!bp->is_enabled)
       {
         QPixmap disabled_icon(icon.size());
         disabled_icon.fill(Qt::transparent);
@@ -594,7 +595,7 @@ void CodeViewWidget::OnContextMenu()
       menu->addAction(tr("Set symbol &end address"), this, &CodeViewWidget::OnSetSymbolEndAddress);
   menu->addSeparator();
 
-  menu->addAction(tr("Run &To Here"), this, &CodeViewWidget::OnRunToHere);
+  auto* run_to_action = menu->addAction(tr("Run &To Here"), this, &CodeViewWidget::OnRunToHere);
   auto* function_action =
       menu->addAction(tr("&Add function"), this, &CodeViewWidget::OnAddFunction);
   auto* ppc_action = menu->addAction(tr("PPC vs Host"), this, &CodeViewWidget::OnPPCComparison);
@@ -645,8 +646,8 @@ void CodeViewWidget::OnContextMenu()
   follow_branch_action->setEnabled(follow_branch_enabled);
 
   for (auto* action :
-       {copy_address_action, copy_line_action, copy_hex_action, function_action, ppc_action,
-        insert_blr_action, insert_nop_action, replace_action, assemble_action})
+       {copy_address_action, copy_line_action, copy_hex_action, function_action, run_to_action,
+        ppc_action, insert_blr_action, insert_nop_action, replace_action, assemble_action})
   {
     action->setEnabled(running);
   }
@@ -869,9 +870,7 @@ void CodeViewWidget::OnRunToHere()
 {
   const u32 addr = GetContextAddress();
 
-  m_system.GetPowerPC().GetDebugInterface().SetBreakpoint(addr);
-  m_system.GetPowerPC().GetDebugInterface().RunToBreakpoint();
-  Update();
+  m_system.GetPowerPC().GetDebugInterface().RunTo(addr);
 }
 
 void CodeViewWidget::OnPPCComparison()
@@ -1137,11 +1136,7 @@ void CodeViewWidget::showEvent(QShowEvent* event)
 
 void CodeViewWidget::ToggleBreakpoint()
 {
-  auto& power_pc = m_system.GetPowerPC();
-  if (power_pc.GetDebugInterface().IsBreakpoint(GetContextAddress()))
-    power_pc.GetBreakPoints().Remove(GetContextAddress());
-  else
-    power_pc.GetBreakPoints().Add(GetContextAddress());
+  m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(GetContextAddress());
 
   emit BreakpointsChanged();
   Update();
