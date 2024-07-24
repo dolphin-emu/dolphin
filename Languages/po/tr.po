@@ -3,6 +3,7 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
+# sctech-tr, 2024
 # Ahmet Emin, 2024
 # Ali Ozderya <ozozderya@gmail.com>, 2019
 # Bahadır Usta <bahadirusta@hotmail.com.tr>, 2017
@@ -20,8 +21,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-07-02 08:02+0200\n"
-"PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Ahmet Emin, 2024\n"
+"PO-Revision-Date: 2024-07-24 16:26+0300\n"
+"Last-Translator: sctech-tr, 2024\n"
 "Language-Team: Turkish (http://app.transifex.com/delroth/dolphin-emu/"
 "language/tr/)\n"
 "Language: tr\n"
@@ -29,6 +30,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.4.4\n"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1456
 msgid ""
@@ -180,11 +182,11 @@ msgstr "%1 MB (MEM2)"
 #. i18n: A positive number of version control commits made compared to some named branch
 #: Source/Core/DolphinQt/AboutDialog.cpp:27
 msgid "%1 commit(s) ahead of %2"
-msgstr ""
+msgstr "%2'den %1 işlem ileride"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:141
 msgid "%1 doesn't support this feature on your system."
-msgstr "%1, sisteminde bu özellik desteklemiyor."
+msgstr "%1, sisteminizde bu özellik desteklemiyor."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:296
 msgid "%1 doesn't support this feature."
@@ -437,7 +439,7 @@ msgstr "&Denetleyici Ayarları"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:1040
 msgid "&Copy Address"
-msgstr ""
+msgstr "&Adresi kopyala"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:575
 msgid "&Copy address"
@@ -480,7 +482,7 @@ msgstr "&Diski Çıkar"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:346
 msgid "&Emulation"
-msgstr "&Emülasyon"
+msgstr "&Öykünme"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:259
 msgid "&Export"
@@ -542,7 +544,7 @@ msgstr "&İçe Aktar"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:416
 msgid "&Import Save Game..."
-msgstr "&İçeri oyun kaydı aktar"
+msgstr "&Oyun kaydını içeri aktar..."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:424
 msgid "&Import State..."
@@ -550,7 +552,7 @@ msgstr "&Durumu İçe Aktar..."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:127
 msgid "&Import..."
-msgstr "&İçeri aktar"
+msgstr "&İçeri aktar..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:259
 msgid "&Infinity Base"
@@ -578,7 +580,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:369
 msgid "&Load State"
-msgstr "Durumu &Yükle"
+msgstr "&Durumu yükle"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1030
 msgid "&Load Symbol Map"
@@ -695,7 +697,7 @@ msgstr "&e-Okuyucu Kart(lar)ı Tara..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:258
 msgid "&Skylanders Portal"
-msgstr "&Skylanders Portal"
+msgstr "&Skylanders Portalı"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:179
 msgid "&Speed Limit:"
@@ -715,7 +717,7 @@ msgstr "&İş parçacıkları"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:297
 msgid "&Tool"
-msgstr ""
+msgstr "&Araç"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:248
 msgid "&Tools"
@@ -743,7 +745,7 @@ msgstr "&İzle"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:618
 msgid "&Website"
-msgstr "&Website"
+msgstr "&Web sitesi"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:404
 msgid "&Wiki"
@@ -775,7 +777,7 @@ msgstr "(Sistem)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:143
 msgid "(host)"
-msgstr "(evsahibi)"
+msgstr "(ev sahibi)"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:270
 msgid "(off)"
@@ -1079,7 +1081,7 @@ msgid ""
 msgstr ""
 "<h2>Yeni bir Dolphin sürümü mevcut!</h2>Dolphin %1 indirmeye açık. Şu anda "
 "%2 sürümü bulunuyor.<br>Yükseltmek ister misin?<br><h4>Bu güncelemeyle "
-"birlikte gelen yenilikler:</h4> "
+"birlikte gelen yenilikler:</h4>"
 
 #: Source/Core/DolphinQt/Debugger/AssembleInstructionDialog.cpp:20
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:51
@@ -1094,7 +1096,7 @@ msgid ""
 "<span style=\"color:#ffcc00\">Warning</span> invalid base address, "
 "defaulting to 0"
 msgstr ""
-"<span style=\"color:#ffcc00\">Uyarı</span> geçersiz taban adres, varsayılan "
+"<span style=\"color:#ffcc00\">Uyarı</span> geçersiz taban adresi, varsayılan "
 "olarak 0'a ayarlandı"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:289
@@ -1137,7 +1139,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Main.cpp:229
 msgid "A save state cannot be loaded without specifying a game to launch."
-msgstr "Başlatılacak oyun belirtilmeden 'kaydetme durumu' yüklenemez."
+msgstr "Başlatılacak oyun belirtilmeden 'kayıt durumu' yüklenemez."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:953
 msgid ""
@@ -1161,7 +1163,7 @@ msgstr "Senkronizasyon, ancak bir Wii oyunu çalışırken yapılabilir."
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:292
 msgid "A&uto Save"
-msgstr ""
+msgstr "Oto&matik kayıt"
 
 #. i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
 #: Source/Core/Core/HW/EXI/EXI_Device.h:98
@@ -1387,15 +1389,15 @@ msgstr "Breakpoint Ekle"
 
 #: Source/Core/Core/HotkeyManager.cpp:78
 msgid "Add a Memory Breakpoint"
-msgstr "Breakpoint Ekle"
+msgstr "Bellek Kırılma Noktası Ekle"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:138
 msgid "Add memory &breakpoint"
-msgstr "Bellek &breakpoint'i ekle"
+msgstr "Bellek &kırılma noktası ekle"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:127
 msgid "Add memory breakpoint"
-msgstr "Bellek breakpoint'i ekle"
+msgstr "Bellek kırılma noktası ekle"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
@@ -1460,7 +1462,7 @@ msgstr ""
 "<br><br>'Varsayılan' dışındaki herhangi bir seçenek oyunun dokularının "
 "görünümünü değiştirir ve az sayıda oyunlarda sorunlara neden olabilir."
 "<br><br>\"Bu seçenek Manuel Doku Örnekleme ile uyumlu değildir."
-"<br><br><dolphin_emphasis>Emin değilsen, 'Varsayılan'ı seç.</"
+"<br><br><dolphin_emphasis>Emin değilseniz, 'Varsayılan'ı seçin.</"
 "dolphin_emphasis>"
 
 #. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
@@ -1476,11 +1478,11 @@ msgid ""
 "garbled in certain games.<br><br><dolphin_emphasis>If unsure, select the "
 "rightmost value.</dolphin_emphasis>"
 msgstr ""
-"GPU'nun RAM'den doku güncellemelerini alma doğruluğunu ayarlar.<br><br>"
-"\"Güvenli\" ayarı GPU'nun RAM'den doku güncellemelerini kaçırma olasılığını "
-"ortadan kaldırır. Düşük doğruluklar bazı oyunlarda oyun içi metnin bozuk "
-"görünmesine neden olur.<br><br><dolphin_emphasis>Emin değilsen, en sağdaki "
-"değeri seçin."
+"GPU'nun RAM'den doku güncellemelerini alma doğruluğunu ayarlar."
+"<br><br>\"Güvenli\" ayarı GPU'nun RAM'den doku güncellemelerini kaçırma "
+"olasılığını ortadan kaldırır. Düşük doğruluklar bazı oyunlarda oyun içi "
+"metnin bozuk görünmesine neden olur.<br><br><dolphin_emphasis>Emin "
+"değilseniz, en sağdaki değeri seçin.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:151
 msgid ""
@@ -1513,7 +1515,7 @@ msgstr ""
 "oyunun dahili kare atlamasını etkinleştirerek performansı artırabilir.\n"
 "\n"
 "UYARI: Bunu varsayılandan (%100) değiştirmek oyunları bozabilir ve "
-"'glitch'lere neden olabilir. Bunu kendi sorumluluğunuzda yapın. Lütfen "
+"glitch'lere neden olabilir. Bunu kendi sorumluluğunuzda yapın. Lütfen "
 "varsayılan olmayan bir saat hızıyla oluşan hataları bildirmeyin."
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:104
@@ -1579,7 +1581,7 @@ msgstr "Tüm Assembly dosyaları"
 #. i18n: A double precision floating point number
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:170
 msgid "All Double"
-msgstr "Tüm Double"
+msgstr "Tüm İkililer"
 
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:586
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:769
@@ -1601,7 +1603,7 @@ msgstr "Tüm Dosyalar (*)"
 #. i18n: A floating point number
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:167
 msgid "All Float"
-msgstr "Tüm Float"
+msgstr "Tüm kayan noktalı sayılar"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:779
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
@@ -1619,11 +1621,11 @@ msgstr "Tüm Kayıt Durumları (*.sav *.s##);; Tüm Dosyalar (*)"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:162
 msgid "All Signed Integer"
-msgstr "Tüm İmzalı Tamsayı"
+msgstr "Tüm İmzalı Tamsayılar"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:164
 msgid "All Unsigned Integer"
-msgstr "Tüm İmzasız Tamsayı"
+msgstr "Tüm İmzasız Tamsayılar"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
 msgid "All files (*)"
@@ -1780,7 +1782,7 @@ msgstr "En-Boy Oranı"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:144
 msgid "Aspect Ratio Corrected Internal Resolution"
-msgstr ""
+msgstr "En-Boy Oranı Düzeltilmiş Dahili Çözünürlük"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:92
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:163
@@ -1814,7 +1816,7 @@ msgstr "Denetleyici Ata"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:536
 msgid ""
 "At least two of the selected save files have the same internal filename."
-msgstr "Seçilen kayıt dosyalarının en az ikisi aynı iç dosya adına sahip."
+msgstr "Seçilen kayıt dosyalarının en az ikisi aynı dahili dosya adına sahip."
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:284
 msgid "Attach MotionPlus"
@@ -1879,7 +1881,7 @@ msgstr "Otomatik Gizle"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1348
 msgid "Auto-detect RSO modules?"
-msgstr "RSO modüllerini otomatik olarak algıla?"
+msgstr "RSO modülleri otomatik olarak algılansın mı?"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:240
 msgid "Automatically Sync with Folder"
@@ -1902,7 +1904,7 @@ msgstr "Otomatik olarak geçerli değerleri güncelleştirin"
 #. (Auxiliary RAM).
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:172
 msgid "Auxiliary"
-msgstr "Auxiliary"
+msgstr "Ek"
 
 #. i18n: The symbol for the unit "bytes"
 #: Source/Core/UICommon/UICommon.cpp:551
@@ -1933,7 +1935,7 @@ msgstr "BIOS:"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:534
 msgid "BP register "
-msgstr "BP kaydı"
+msgstr "BP kaydı "
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:237
 msgid "Back Chain"
@@ -2081,6 +2083,10 @@ msgid ""
 "\n"
 "Try again with a different character."
 msgstr ""
+"Boş figür yaratımı şurada başarısız oldu:\n"
+"%1\n"
+"\n"
+"Lütfen başka bir karakter ile yeniden deneyin."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1010
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:232
@@ -2372,7 +2378,7 @@ msgstr "Düğmeler"
 
 #: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:214
 msgid "By: %1"
-msgstr "%1"
+msgstr "%1 tarafından"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:57
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:31
@@ -2390,7 +2396,7 @@ msgstr "CP kaydı "
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:63
 msgid "CPU Emulation Engine:"
-msgstr "CPU Öykünme Motoru"
+msgstr "CPU Öykünme Motoru:"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:52
 msgid "CPU Options"
@@ -2508,15 +2514,15 @@ msgstr "Kalibrasyonu İptal Et"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:929
 msgid "Candidates: %1"
-msgstr ""
+msgstr "Adaylar: %1"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:932
 msgid "Candidates: %1 | Excluded: %2 | Remaining: %3"
-msgstr ""
+msgstr "Adaylar: %1 | Hariç tutuldu: %2 | Kalanlar: %3"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:947
 msgid "Candidates: %1 | Filtered: %2 | Remaining: %3"
-msgstr ""
+msgstr "Adaylar: %1 | Filtrelenenler: %2 | Kalanlar: %3"
 
 #: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:247
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
@@ -2604,6 +2610,8 @@ msgid ""
 "Changes the appearance and color of Dolphin's buttons."
 "<br><br><dolphin_emphasis>If unsure, select Clean.</dolphin_emphasis>"
 msgstr ""
+"Dolphin'in düğmelerinin görünüm ve rengini değiştirir."
+"<br><br><dolphin_emphasis>Emin değilseniz, Temiz'i seçin.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:286
 msgid ""
@@ -2865,7 +2873,7 @@ msgstr "Sıkıştırma Seviyesi:"
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:70
 #: Source/Core/DolphinQt/ConvertDialog.cpp:68
 msgid "Compression:"
-msgstr "Sıkıştırma"
+msgstr "Sıkıştırma:"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:47
 msgid "Cond."
@@ -3885,7 +3893,7 @@ msgstr "Açıklama: %1"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:267
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:48
 msgid "Destination"
-msgstr ""
+msgstr "Varış noktası"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:64
 msgid "Destination (UNIX socket path or address:port):"
@@ -4063,7 +4071,7 @@ msgstr "Vazgeç"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:122
 msgid "Display Settings"
-msgstr ""
+msgstr "Görüntü Ayarları"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:183
 msgid "Display Type"
@@ -5438,7 +5446,7 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
-msgstr "Redump.org'a bağlanılamadı."
+msgstr "Redump.org'a bağlanılamadı"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:984
 msgid "Failed to connect to server: %1"
@@ -6088,8 +6096,8 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:91
 msgid ""
-"For setup instructions, <a href=\"https://www.teamxlink.co.uk/wiki/Dolphin"
-"\">refer to this page</a>."
+"For setup instructions, <a href=\"https://www.teamxlink.co.uk/wiki/"
+"Dolphin\">refer to this page</a>."
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:60
@@ -7366,7 +7374,7 @@ msgstr ""
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
 msgid "Internal LZO Error - compression failed"
-msgstr "İç LZO Hatası - Sıkıştırma başarısız."
+msgstr "Dahili LZO Hatası - Sıkıştırma başarısız."
 
 #: Source/Core/Core/NetPlayCommon.cpp:208
 #: Source/Core/Core/NetPlayCommon.cpp:291
@@ -7447,7 +7455,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:158
 msgid "Invalid game."
-msgstr ""
+msgstr "Geçersiz oyun."
 
 #: Source/Core/Core/NetPlayClient.cpp:1984
 msgid "Invalid host"
@@ -12598,10 +12606,12 @@ msgstr ""
 #: Source/Core/DolphinQt/AboutDialog.cpp:76
 msgid "This software should not be used to play games you do not legally own."
 msgstr ""
+"Bu yazılım yasal olarak sizin olmayan oyunları oynamak için "
+"kullanılmamalıdır."
 
 #: Source/Core/Core/ConfigManager.cpp:303
 msgid "This title cannot be booted."
-msgstr ""
+msgstr "Bu içerik başlatılamaz."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:949
 msgid "This title is set to use an invalid IOS."
@@ -12707,7 +12717,7 @@ msgstr "Buraya"
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:99
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:114
 msgid "To:"
-msgstr ""
+msgstr "Şuraya:"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:351
 msgid "Toggle &Fullscreen"
@@ -14150,7 +14160,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:654
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:384
 msgid "disconnected"
-msgstr ""
+msgstr "bağlantı kesildi"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:195
 msgid "e-Reader Cards (*.raw);;All Files (*)"
@@ -14158,7 +14168,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:191
 msgid "errno"
-msgstr ""
+msgstr "hata numarası"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "fake-completion"
@@ -14166,35 +14176,35 @@ msgstr "sahte-tamamlama"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchTableModel.cpp:314
 msgid "false"
-msgstr ""
+msgstr "yanlış"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:190
 msgid "is equal to"
-msgstr ""
+msgstr "'e eşit"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:198
 msgid "is greater than"
-msgstr ""
+msgstr "'den büyük"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:200
 msgid "is greater than or equal to"
-msgstr ""
+msgstr "'den büyük veya eşit"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:194
 msgid "is less than"
-msgstr ""
+msgstr "'den küçüktür"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:196
 msgid "is less than or equal to"
-msgstr ""
+msgstr "'den küçük veya eşit"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:192
 msgid "is not equal to"
-msgstr ""
+msgstr "'e eşit değil"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:208
 msgid "last value"
-msgstr ""
+msgstr "son değer"
 
 #. i18n: The symbol/abbreviation for meters per second.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:44
@@ -14207,6 +14217,8 @@ msgid ""
 "mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *."
 "ss9);;All Files (*)"
 msgstr ""
+"mGBA Kayıt Dosyaları (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 "
+"*.ss9);;Bütün Dosyalar (*)"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "none"
@@ -14236,7 +14248,7 @@ msgstr ""
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:185
 msgid "uDraw GameTablet"
-msgstr ""
+msgstr "uDraw GameTablet"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:176
 msgid "unaligned"
@@ -14297,6 +14309,8 @@ msgid ""
 "© 2003-2024+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. "
 "Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
+"© 2003-2024+ Dolphin Ekibi. “GameCube” ve “Wii” Nintendo'nun ticari "
+"markalarıdır. Dolphin hiçbir şekilde Nintendo'ya bağlı değildir."
 
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
 #. i18n: The degrees symbol.
