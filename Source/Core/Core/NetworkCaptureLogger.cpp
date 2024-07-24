@@ -158,7 +158,7 @@ void PCAPSSLCaptureLogger::Log(const LogType log_type, const void* data, const s
     to = other ? reinterpret_cast<sockaddr_in*>(other) : &peer;
   }
 
-  LogIPv4(log_type, reinterpret_cast<const u8*>(data), static_cast<u16>(length), socket, *from,
+  LogIPv4(log_type, static_cast<const u8*>(data), static_cast<u16>(length), socket, *from,
           *to);
 }
 

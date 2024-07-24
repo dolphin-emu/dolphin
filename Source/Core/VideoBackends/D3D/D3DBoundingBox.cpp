@@ -79,7 +79,7 @@ std::vector<BBoxType> D3DBoundingBox::Read(const u32 index, const u32 length)
   const HRESULT hr = D3D::context->Map(m_staging_buffer.Get(), 0, D3D11_MAP_READ, 0, &map);
   if (SUCCEEDED(hr))
   {
-    std::memcpy(values.data(), reinterpret_cast<const u8*>(map.pData) + sizeof(BBoxType) * index,
+    std::memcpy(values.data(), static_cast<const u8*>(map.pData) + sizeof(BBoxType) * index,
                 sizeof(BBoxType) * length);
 
     D3D::context->Unmap(m_staging_buffer.Get(), 0);

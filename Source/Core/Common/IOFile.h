@@ -89,12 +89,12 @@ public:
 
   bool ReadBytes(void* data, const size_t length)
   {
-    return ReadArray(reinterpret_cast<char*>(data), length);
+    return ReadArray(static_cast<char*>(data), length);
   }
 
   bool WriteBytes(const void* data, const size_t length)
   {
-    return WriteArray(reinterpret_cast<const char*>(data), length);
+    return WriteArray(static_cast<const char*>(data), length);
   }
 
   bool WriteString(const std::string_view str) { return WriteBytes(str.data(), str.size()); }

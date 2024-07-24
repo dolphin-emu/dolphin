@@ -327,7 +327,7 @@ bool DXStagingTexture::Map()
   if (FAILED(hr))
     return false;
 
-  m_map_pointer = reinterpret_cast<char*>(sr.pData);
+  m_map_pointer = static_cast<char*>(sr.pData);
   m_map_stride = sr.RowPitch;
   return true;
 }

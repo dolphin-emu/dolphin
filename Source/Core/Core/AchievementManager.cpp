@@ -786,7 +786,7 @@ void AchievementManager::LeaderboardEntriesCallback(const int result, const char
                                                     const rc_client_leaderboard_entry_list_t* list,
                                                     rc_client_t* client, void* userdata)
 {
-  u32* leaderboard_id = reinterpret_cast<u32*>(userdata);
+  u32* leaderboard_id = static_cast<u32*>(userdata);
   Common::ScopeGuard on_end_scope([&]() { delete leaderboard_id; });
 
   if (result != RC_OK)

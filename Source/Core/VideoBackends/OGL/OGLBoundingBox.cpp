@@ -55,7 +55,7 @@ std::vector<BBoxType> OGLBoundingBox::Read(const u32 index, const u32 length)
                                        GL_MAP_READ_BIT);
     if (ptr)
     {
-      std::memcpy(values.data(), reinterpret_cast<const u8*>(ptr) + sizeof(BBoxType) * index,
+      std::memcpy(values.data(), static_cast<const u8*>(ptr) + sizeof(BBoxType) * index,
                   sizeof(BBoxType) * length);
 
       glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
