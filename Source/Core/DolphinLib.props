@@ -428,7 +428,8 @@
     <ClInclude Include="Core\PatchEngine.h" />
     <ClInclude Include="Core\PowerPC\BreakPoints.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.h" />
-    <ClInclude Include="Core\PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
+    <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreterBlockCache.h" />
+    <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreterEmitter.h" />
     <ClInclude Include="Core\PowerPC\ConditionRegister.h" />
     <ClInclude Include="Core\PowerPC\CPUCoreBase.h" />
     <ClInclude Include="Core\PowerPC\Expression.h" />
@@ -1089,7 +1090,8 @@
     <ClCompile Include="Core\PatchEngine.cpp" />
     <ClCompile Include="Core\PowerPC\BreakPoints.cpp" />
     <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
-    <ClCompile Include="Core\PowerPC\CachedInterpreter\InterpreterBlockCache.cpp" />
+    <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreterBlockCache.cpp" />
+    <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreterEmitter.cpp" />
     <ClCompile Include="Core\PowerPC\ConditionRegister.cpp" />
     <ClCompile Include="Core\PowerPC\Expression.cpp" />
     <ClCompile Include="Core\PowerPC\GDBStub.cpp" />
