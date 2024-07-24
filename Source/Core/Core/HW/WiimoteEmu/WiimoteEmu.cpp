@@ -970,7 +970,7 @@ Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::
 
 Common::Vec3 Wiimote::GetTotalAcceleration() const
 {
-  constexpr Common::Vec3 default_accel = Common::Vec3(0, 0, static_cast<float>(GRAVITY_ACCELERATION));
+  constexpr Common::Vec3 default_accel = Common::Vec3(0, 0, GRAVITY_ACCELERATION);
   const Common::Vec3 accel = m_imu_accelerometer->GetState().value_or(default_accel);
 
   return OverrideVec3(m_imu_accelerometer, GetAcceleration(accel));

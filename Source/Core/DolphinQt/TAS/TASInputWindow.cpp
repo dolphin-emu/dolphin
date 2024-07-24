@@ -51,20 +51,20 @@ TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
-  QGridLayout* settings_layout = new QGridLayout;
+  auto settings_layout = new QGridLayout;
 
   m_use_controller = new QCheckBox(tr("Enable Controller Inpu&t"));
   m_use_controller->setToolTip(tr("Warning: Analog inputs may reset to controller values at "
                                   "random. In some cases this can be fixed by adding a deadzone."));
   settings_layout->addWidget(m_use_controller, 0, 0, 1, 2);
 
-  QLabel* turbo_press_label = new QLabel(tr("Duration of Turbo Button Press (frames):"));
+  auto turbo_press_label = new QLabel(tr("Duration of Turbo Button Press (frames):"));
   m_turbo_press_frames = new QSpinBox();
   m_turbo_press_frames->setMinimum(1);
   settings_layout->addWidget(turbo_press_label, 1, 0);
   settings_layout->addWidget(m_turbo_press_frames, 1, 1);
 
-  QLabel* turbo_release_label = new QLabel(tr("Duration of Turbo Button Release (frames):"));
+  auto turbo_release_label = new QLabel(tr("Duration of Turbo Button Release (frames):"));
   m_turbo_release_frames = new QSpinBox();
   m_turbo_release_frames->setMinimum(1);
   settings_layout->addWidget(turbo_release_label, 2, 0);
@@ -87,7 +87,7 @@ int TASInputWindow::GetTurboReleaseFrames() const
 TASCheckBox* TASInputWindow::CreateButton(const QString& text, const std::string_view group_name,
                                           const std::string_view control_name, InputOverrider* overrider)
 {
-  TASCheckBox* checkbox = new TASCheckBox(text, this);
+  auto checkbox = new TASCheckBox(text, this);
 
   overrider->AddFunction(group_name, control_name, [this, checkbox](const ControlState controller_state) {
     return GetButton(checkbox, controller_state);
@@ -101,8 +101,8 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, const std::str
                                              int max_x, int max_y, const Qt::Key x_shortcut_key,
                                              const Qt::Key y_shortcut_key)
 {
-  const QKeySequence x_shortcut_key_sequence = QKeySequence(Qt::ALT | x_shortcut_key);
-  const QKeySequence y_shortcut_key_sequence = QKeySequence(Qt::ALT | y_shortcut_key);
+  const auto x_shortcut_key_sequence = QKeySequence(Qt::ALT | x_shortcut_key);
+  const auto y_shortcut_key_sequence = QKeySequence(Qt::ALT | y_shortcut_key);
 
   auto* box =
       new QGroupBox(QStringLiteral("%1 (%2/%3)")
@@ -159,7 +159,7 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
     InputOverrider* overrider, const int zero, const int default_, const int min, const int max,
     const Qt::Key shortcut_key, QWidget* shortcut_widget, const std::optional<ControlState> scale)
 {
-  const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT | shortcut_key);
+  const auto shortcut_key_sequence = QKeySequence(Qt::ALT | shortcut_key);
 
   auto* label = new QLabel(QStringLiteral("%1 (%2)").arg(
       text, shortcut_key_sequence.toString(QKeySequence::NativeText)));

@@ -50,7 +50,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
   m_standard_address_space->setChecked(true);
   m_custom_address_space = new QRadioButton(tr("Custom Address Space"));
 
-  QLabel* label_standard_address_space =
+  auto label_standard_address_space =
       new QLabel(tr("Sets up the search using standard MEM1 and (on Wii) MEM2 mappings in virtual "
                     "address space. This will work for the vast majority of games."));
   label_standard_address_space->setWordWrap(true);
@@ -70,9 +70,9 @@ void CheatSearchFactoryWidget::CreateWidgets()
   custom_address_space_layout->addWidget(m_custom_physical_address_space);
   custom_address_space_layout->addWidget(m_custom_effective_address_space);
 
-  QLabel* label_range_start = new QLabel(tr("Range Start: "));
+  auto label_range_start = new QLabel(tr("Range Start: "));
   m_custom_address_start = new QLineEdit(QStringLiteral("0x80000000"));
-  QLabel* label_range_end = new QLabel(tr("Range End: "));
+  auto label_range_end = new QLabel(tr("Range End: "));
   m_custom_address_end = new QLineEdit(QStringLiteral("0x81800000"));
   custom_address_space_layout->addWidget(label_range_start);
   custom_address_space_layout->addWidget(m_custom_address_start);

@@ -494,7 +494,7 @@ void Interpreter::SetLongProduct(const s64 value) const
 {
   // For accurate emulation, this is wrong - but the real prod registers behave
   // in completely bizarre ways. Not needed to emulate them correctly for game ucodes.
-  m_dsp_core.DSPState().r.prod.val = static_cast<u64>(value & 0x000000FFFFFFFFFFULL);
+  m_dsp_core.DSPState().r.prod.val = value & 0x000000FFFFFFFFFFULL;
 }
 
 s64 Interpreter::GetMultiplyProduct(const u16 a, const u16 b, const u8 sign) const

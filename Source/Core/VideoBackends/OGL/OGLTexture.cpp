@@ -236,7 +236,7 @@ void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   }
   else
   {
-    BlitFramebuffer(const_cast<OGLTexture*>(src_gltex), src_rect, src_layer, src_level, dst_rect,
+    BlitFramebuffer(src_gltex, src_rect, src_layer, src_level, dst_rect,
                     dst_layer, dst_level);
   }
 }
@@ -273,7 +273,7 @@ void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
                m_config.height == srcentry->m_config.height && m_config.samples == 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
                rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
-  BlitFramebuffer(const_cast<OGLTexture*>(srcentry), rect, layer, level, rect, layer, level);
+  BlitFramebuffer(srcentry, rect, layer, level, rect, layer, level);
 }
 
 void OGLTexture::Load(const u32 level, const u32 width, const u32 height, const u32 row_length, const u8* buffer,

@@ -86,7 +86,7 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
   setLayout(balloontip_layout);
 
   const auto create_label = [=](const QString& text) {
-    QLabel* const label = new QLabel;
+    const auto label = new QLabel;
     balloontip_layout->addWidget(label);
 
     label->setText(text);

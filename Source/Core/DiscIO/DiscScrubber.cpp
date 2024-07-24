@@ -29,7 +29,7 @@ bool DiscScrubber::SetupScrub(const Volume& disc)
   m_has_wii_hashes = disc.HasWiiHashes();
 
   // Round up when diving by CLUSTER_SIZE, otherwise MarkAsUsed might write out of bounds
-  const size_t num_clusters = static_cast<size_t>((m_file_size + CLUSTER_SIZE - 1) / CLUSTER_SIZE);
+  const size_t num_clusters = (m_file_size + CLUSTER_SIZE - 1) / CLUSTER_SIZE;
 
   // Table of free blocks
   m_free_table.resize(num_clusters, 1);

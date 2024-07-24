@@ -224,7 +224,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
 
   const auto* item = m_tree_model->itemFromIndex(selection->selectedIndexes()[0]);
 
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   const EntryType type = item->data(ENTRY_TYPE).value<EntryType>();

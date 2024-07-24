@@ -227,7 +227,7 @@ private:
       m_files_size += sizeof(FileHDR);
 
       if (metadata->is_file)
-        m_files_size += static_cast<u32>(Common::AlignUp(metadata->size, BLOCK_SZ));
+        m_files_size += Common::AlignUp(metadata->size, BLOCK_SZ);
       else
         ScanForFiles(path);
     }
@@ -460,7 +460,7 @@ private:
     IOS::CertECC ap_cert;
     Common::ec::Signature ap_sig;
     m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
-                data_sha1.data(), static_cast<u32>(data_sha1.size()));
+                data_sha1.data(), data_sha1.size());
 
     // Write signatures.
     if (!m_file.Seek(0, File::SeekOrigin::End))

@@ -223,7 +223,7 @@ void WiiPane::CreateSDCard()
   ++row;
 
   {
-    QHBoxLayout* hlayout = new QHBoxLayout;
+    auto hlayout = new QHBoxLayout;
     m_sd_raw_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX)));
     connect(m_sd_raw_edit, &QLineEdit::editingFinished,
             [this] { SetSDRaw(m_sd_raw_edit->text()); });
@@ -244,7 +244,7 @@ void WiiPane::CreateSDCard()
   ++row;
 
   {
-    QHBoxLayout* hlayout = new QHBoxLayout;
+    auto hlayout = new QHBoxLayout;
     m_sd_sync_folder_edit =
         new QLineEdit(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)));
     connect(m_sd_sync_folder_edit, &QLineEdit::editingFinished,
@@ -329,12 +329,12 @@ void WiiPane::CreateWhitelistedUSBPassthroughDevices()
   m_whitelist_usb_add_button = new NonDefaultQPushButton(tr("Add..."));
   m_whitelist_usb_remove_button = new NonDefaultQPushButton(tr("Remove"));
 
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
   hlayout->addStretch();
   hlayout->addWidget(m_whitelist_usb_add_button);
   hlayout->addWidget(m_whitelist_usb_remove_button);
 
-  QVBoxLayout* vlayout = new QVBoxLayout;
+  auto vlayout = new QVBoxLayout;
   vlayout->addWidget(m_whitelist_usb_list);
   vlayout->addLayout(hlayout);
 
@@ -477,8 +477,8 @@ void WiiPane::OnUSBWhitelistRemoveButton() const
 {
   const QString device = m_whitelist_usb_list->currentItem()->text().left(9);
   QStringList split = device.split(QString::fromStdString(":"));
-  const QString vid = QString(split[0]);
-  const QString pid = QString(split[1]);
+  const auto vid = QString(split[0]);
+  const auto pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
   auto whitelist = Config::GetUSBDeviceWhitelist();
@@ -493,7 +493,7 @@ void WiiPane::PopulateUSBPassthroughListWidget() const
   const auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : whitelist)
   {
-    QListWidgetItem* usb_lwi =
+    auto usb_lwi =
         new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));
     m_whitelist_usb_list->addItem(usb_lwi);
   }

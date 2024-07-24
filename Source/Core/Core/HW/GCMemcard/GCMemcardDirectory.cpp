@@ -484,7 +484,7 @@ inline void GCMemcardDirectory::SyncSaves()
         added = true;
       }
 
-      if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
+      if (added || memcmp(&m_saves[i].m_gci_header, &current->m_dir_entries[i],
                           Memcard::DENTRY_SIZE))
       {
         m_saves[i].m_dirty = true;
@@ -500,7 +500,7 @@ inline void GCMemcardDirectory::SyncSaves()
               Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()),
               Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
         }
-        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
+        memcpy(&m_saves[i].m_gci_header, &current->m_dir_entries[i],
                Memcard::DENTRY_SIZE);
         if (old_start != new_start)
         {

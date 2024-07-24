@@ -227,7 +227,7 @@ bool Jit64::BackPatch(SContext* ctx)
       *ptr = Common::swap32(static_cast<u32>(*ptr));
       break;
     case 64:
-      *ptr = Common::swap64(static_cast<u64>(*ptr));
+      *ptr = Common::swap64(*ptr);
       break;
     default:
       DEBUG_ASSERT(false);

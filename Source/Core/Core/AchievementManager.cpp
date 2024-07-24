@@ -383,7 +383,7 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
     if (known_id)
     {
       const auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch_itr->entries.size())));
+      context->Update(Common::BitCastToArray<u8>(patch_itr->entries.size()));
       for (const auto& entry : patch_itr->entries)
       {
         context->Update(Common::BitCastToArray<u8>(entry.type));

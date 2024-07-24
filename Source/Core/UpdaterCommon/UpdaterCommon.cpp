@@ -721,7 +721,7 @@ bool RunUpdater(std::vector<std::string> args)
 
     const auto pid = opts.parent_pid.value();
 
-    UI::WaitForPID(static_cast<u32>(pid));
+    UI::WaitForPID(pid);
 
     LogToFile("Completed! Proceeding with update.\n");
   }

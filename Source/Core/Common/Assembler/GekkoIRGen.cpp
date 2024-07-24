@@ -236,7 +236,7 @@ void GekkoIRPlugin::OnResolvedExprPost()
     AddBytes<u32>(static_cast<u32>(m_eval_stack.back()));
     break;
   case GekkoDirective::_8byte:
-    AddBytes<u64>(static_cast<u64>(m_eval_stack.back()));
+    AddBytes<u64>(m_eval_stack.back());
     break;
   default:
     return;
@@ -758,7 +758,7 @@ void GekkoIRPlugin::EvalTerminalAbs(const Terminal type, const AssemblerToken& t
   }
 
   case Terminal::Dot:
-    m_eval_stack.push_back(static_cast<u64>(CurrentAddress()));
+    m_eval_stack.push_back(CurrentAddress());
     break;
 
   case Terminal::Id:

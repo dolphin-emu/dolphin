@@ -250,7 +250,7 @@ void OpenALStream::SoundLoop()
   ALenum err = palGetError();
 
   // Generate some AL Buffers for streaming
-  palGenBuffers(OAL_BUFFERS, (ALuint*)m_buffers.data());
+  palGenBuffers(OAL_BUFFERS, m_buffers.data());
   err = CheckALError("generating buffers");
 
   // Generate a Source to playback the Buffers

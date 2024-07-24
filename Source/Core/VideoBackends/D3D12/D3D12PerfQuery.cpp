@@ -245,7 +245,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(const u32 query_count)
     std::memcpy(&result, mapped_ptr + (index * sizeof(PerfQueryDataType)), sizeof(result));
 
     // NOTE: Reported pixel metrics should be referenced to native resolution
-    u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH /
+    u64 native_res_result = result * EFB_WIDTH /
                             g_framebuffer_manager->GetEFBWidth() * EFB_HEIGHT /
                             g_framebuffer_manager->GetEFBHeight();
     if (g_ActiveConfig.iMultisamples > 1)

@@ -79,7 +79,7 @@ void LogWidget::UpdateLog()
 
   for (auto& line : elements_to_push)
   {
-    const char* color = "white";
+    auto color = "white";
     switch (std::get<Common::Log::LogLevel>(line))
     {
     case Common::Log::LogLevel::LERROR:
@@ -143,7 +143,7 @@ void LogWidget::CreateWidgets()
   log_layout->addWidget(m_log_clear, 0, 2);
   log_layout->addWidget(m_log_text, 1, 0, 1, -1);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(log_layout);
 
   setWidget(widget);

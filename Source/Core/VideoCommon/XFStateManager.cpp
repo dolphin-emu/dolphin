@@ -25,7 +25,7 @@ void XFStateManager::Init()
   ResetPerVertexNormalMatrixChanges();
   ResetPostTransformMatrixChanges();
 
-  std::memset(static_cast<void*>(&xfmem), 0, sizeof(xfmem));
+  std::memset(&xfmem, 0, sizeof(xfmem));
 }
 
 void XFStateManager::DoState(PointerWrap& p)

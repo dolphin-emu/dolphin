@@ -199,7 +199,7 @@ private:
   {
   public:
     explicit Button(const ButtonValueType* button) : m_button(*button) {}
-    ControlState GetState() const override { return static_cast<ControlState>(m_button != 0); }
+    ControlState GetState() const override { return m_button != 0; }
 
   private:
     const ButtonValueType& m_button;
@@ -237,7 +237,7 @@ private:
     {
     }
 
-    ControlState GetState() const override { return static_cast<ControlState>(m_axis - m_base) / m_range; }
+    ControlState GetState() const override { return (m_axis - m_base) / m_range; }
 
   protected:
     const double m_base;
@@ -333,7 +333,7 @@ private:
       // directions. This tests that the current switch state value is within 1 of the desired
       // state.
       const auto direction_diff = std::abs(static_cast<int32_t>(m_switch) - m_direction);
-      return static_cast<ControlState>(direction_diff <= 1 || direction_diff == 7);
+      return direction_diff <= 1 || direction_diff == 7;
     }
 
   private:

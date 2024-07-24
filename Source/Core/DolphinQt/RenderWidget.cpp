@@ -233,7 +233,7 @@ void RenderWidget::SetCursorLocked(const bool locked, const bool follow_aspect_r
     render_rect.moveTopLeft(parentWidget()->mapToGlobal(render_rect.topLeft()));
   }
   const auto scale = devicePixelRatioF();  // Seems to always be rounded on Win. Should we round results?
-  QPoint screen_offset = QPoint(0, 0);
+  auto screen_offset = QPoint(0, 0);
   if (window()->windowHandle() && window()->windowHandle()->screen())
   {
     screen_offset = window()->windowHandle()->screen()->geometry().topLeft();
@@ -525,7 +525,7 @@ void RenderWidget::PassEventToPresenter(const QEvent* event) const
     // we need to track (e.g. alt) are above this value, we mask the lower 9 bits.
     // Even masked, the key codes are still unique, so conflicts aren't an issue.
     // The actual text input goes through AddInputCharactersUTF8().
-    const QKeyEvent* key_event = static_cast<const QKeyEvent*>(event);
+    auto key_event = static_cast<const QKeyEvent*>(event);
     const bool is_down = event->type() == QEvent::KeyPress;
     const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
 
@@ -561,7 +561,7 @@ void RenderWidget::PassEventToPresenter(const QEvent* event) const
   case QEvent::MouseButtonPress:
   case QEvent::MouseButtonRelease:
   {
-    const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
+    const u32 button_mask = static_cast<const QMouseEvent*>(event)->buttons();
     g_presenter->SetMousePress(button_mask);
   }
   break;

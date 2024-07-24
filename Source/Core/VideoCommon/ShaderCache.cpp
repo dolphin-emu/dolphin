@@ -611,7 +611,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   // TODO: static_assert(std::is_trivially_copyable_v<GXPipelineUid>);
   // GXPipelineUid is not trivially copyable because RasterizationState and BlendingState aren't
   // either, but we can pretend it is for now. This will be improved after PR #10848 is finished.
-  memcpy(static_cast<void*>(&out), static_cast<const void*>(&in), sizeof(out));  // copy padding
+  memcpy(&out, &in, sizeof(out));  // copy padding
   pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
   BlendingState& blend = out.blending_state;
 
@@ -784,7 +784,7 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
   // TODO: static_assert(std::is_trivially_copyable_v<GXUberPipelineUid>);
   // GXUberPipelineUid is not trivially copyable because RasterizationState and BlendingState aren't
   // either, but we can pretend it is for now. This will be improved after PR #10848 is finished.
-  memcpy(static_cast<void*>(&out), static_cast<const void*>(&in), sizeof(out));  // Copy padding
+  memcpy(&out, &in, sizeof(out));  // Copy padding
   if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
     out.vertex_format = nullptr;
 
@@ -941,7 +941,7 @@ void ShaderCache::LoadPipelineUIDCache()
       // garbage or invalid UIDs.
       const u64 file_size = m_gx_pipeline_uid_cache_file.GetSize();
       const size_t uid_count =
-          static_cast<size_t>(file_size - CACHE_HEADER_SIZE) / sizeof(SerializedGXPipelineUid);
+          (file_size - CACHE_HEADER_SIZE) / sizeof(SerializedGXPipelineUid);
       const size_t expected_size = uid_count * sizeof(SerializedGXPipelineUid) + CACHE_HEADER_SIZE;
       uid_file_valid = file_size == expected_size;
       if (uid_file_valid)

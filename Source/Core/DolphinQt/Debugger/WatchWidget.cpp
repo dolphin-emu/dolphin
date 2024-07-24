@@ -116,7 +116,7 @@ void WatchWidget::CreateWidgets()
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(layout);
 
   setWidget(widget);
@@ -326,7 +326,7 @@ void WatchWidget::OnSave() const
 
 void WatchWidget::ShowContextMenu()
 {
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   if (!m_table->selectedItems().empty())

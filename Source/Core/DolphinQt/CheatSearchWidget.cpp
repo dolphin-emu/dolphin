@@ -87,7 +87,7 @@ Q_DECLARE_METATYPE(Cheats::FilterType);
 
 void CheatSearchWidget::CreateWidgets()
 {
-  QLabel* session_info_label = new QLabel();
+  auto session_info_label = new QLabel();
   {
     QString ranges;
     const size_t range_count = m_session->GetMemoryRangeCount();
@@ -249,7 +249,7 @@ void CheatSearchWidget::CreateWidgets()
   checkboxes_layout->addWidget(m_autoupdate_current_values);
   checkboxes_layout->setStretchFactor(m_autoupdate_current_values, 2);
 
-  QVBoxLayout* layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout();
   layout->addWidget(session_info_label);
   layout->addWidget(instructions_label);
   layout->addLayout(value_layout);
@@ -494,7 +494,7 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   const auto* item = m_address_table->selectedItems()[0];
   const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
 
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });

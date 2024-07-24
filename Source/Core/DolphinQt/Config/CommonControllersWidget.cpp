@@ -57,7 +57,7 @@ void CommonControllersWidget::ConnectWidgets()
 
 void CommonControllersWidget::OnControllerInterfaceConfigure()
 {
-  ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
+  auto window = new ControllerInterfaceWindow(this);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   SetQWidgetWindowDecorations(window);

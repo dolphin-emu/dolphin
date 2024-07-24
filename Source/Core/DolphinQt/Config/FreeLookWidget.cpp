@@ -101,7 +101,7 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
   if (m_freelook_controller_configure_button != sender())
     return;
   constexpr int index = 0;
-  MappingWindow* window = new MappingWindow(this, MappingWindow::Type::MAPPING_FREELOOK, index);
+  auto window = new MappingWindow(this, MappingWindow::Type::MAPPING_FREELOOK, index);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   SetQWidgetWindowDecorations(window);

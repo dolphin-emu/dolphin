@@ -94,7 +94,7 @@ void MixedTriggers::GetState(u16* digital, const u16* bitmasks, ControlState* an
     }
 
     if (const std::optional<ControlState> button_override =
-            override_func(name, controls[i]->name, static_cast<ControlState>(button_bool)))
+            override_func(name, controls[i]->name, button_bool))
     {
       button_bool = std::lround(*button_override) > 0;
     }

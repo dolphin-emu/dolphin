@@ -21,8 +21,8 @@ CPState g_preprocess_cp_state;
 void CopyPreprocessCPStateFromMain()
 {
   static_assert(std::is_trivially_copyable_v<CPState>);
-  std::memcpy(static_cast<void*>(&g_preprocess_cp_state),
-              static_cast<const void*>(&g_main_cp_state), sizeof(CPState));
+  std::memcpy(&g_preprocess_cp_state,
+              &g_main_cp_state, sizeof(CPState));
 }
 
 std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)

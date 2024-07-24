@@ -92,7 +92,7 @@ void RegisterWidget::CreateWidgets()
 
   m_table->setHorizontalHeaderLabels(empty_list);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   auto* layout = new QVBoxLayout;
   layout->addWidget(m_table);
   layout->setContentsMargins(2, 2, 2, 2);
@@ -117,7 +117,7 @@ void RegisterWidget::OnItemChanged(QTableWidgetItem* item) const
 
 void RegisterWidget::ShowContextMenu()
 {
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   auto* raw_item = m_table->currentItem();
@@ -144,7 +144,7 @@ void RegisterWidget::ShowContextMenu()
 
     menu->addSeparator();
 
-    QActionGroup* group = new QActionGroup(menu);
+    auto group = new QActionGroup(menu);
     group->setExclusive(true);
 
     auto* view_hex = menu->addAction(tr("Hexadecimal"));

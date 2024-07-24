@@ -382,13 +382,13 @@ void Tev::Indirect(const unsigned int stageNum, const s32 s, const s32 t)
 
   if (indirect.fb_addprev)
   {
-    TexCoord.s += (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
-    TexCoord.t += (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
+    TexCoord.s += WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
+    TexCoord.t += WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
   }
   else
   {
-    TexCoord.s = (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
-    TexCoord.t = (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
+    TexCoord.s = WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
+    TexCoord.t = WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
   }
 }
 
@@ -606,7 +606,7 @@ void Tev::Draw()
       // First, calculate the offset from the viewport center (normalized to 0..1)
       const float offset =
           (Position[0] - (static_cast<s32>(bpmem.fogRange.Base.Center.Value()) - 342)) /
-          static_cast<float>(xfmem.viewport.wd);
+          xfmem.viewport.wd;
 
       // Based on that, choose the index such that points which are far away from the z-axis use the
       // 10th "k" value and such that central points use the first value.

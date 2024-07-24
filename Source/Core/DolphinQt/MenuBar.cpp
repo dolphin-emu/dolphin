@@ -319,7 +319,7 @@ void MenuBar::AddToolsMenu()
   m_export_wii_saves =
       tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
-  QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
+  auto menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
   tools_menu->addSeparator();
   tools_menu->addMenu(menu);
@@ -651,7 +651,7 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
   QAction* grid_view = view_menu->addAction(tr("Grid View"));
   grid_view->setCheckable(true);
 
-  QActionGroup* list_group = new QActionGroup(this);
+  auto list_group = new QActionGroup(this);
   list_group->addAction(list_view);
   list_group->addAction(grid_view);
 
@@ -681,7 +681,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Compression"), &Config::MAIN_GAMELIST_COLUMN_COMPRESSION},
       {tr("Tags"), &Config::MAIN_GAMELIST_COLUMN_TAGS}};
 
-  QActionGroup* column_group = new QActionGroup(this);
+  auto column_group = new QActionGroup(this);
   m_cols_menu = view_menu->addMenu(tr("List Columns"));
   column_group->setExclusive(false);
 
@@ -706,7 +706,7 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
       {tr("Show WAD"), &Config::MAIN_GAMELIST_LIST_WAD},
       {tr("Show ELF/DOL"), &Config::MAIN_GAMELIST_LIST_ELF_DOL}};
 
-  QActionGroup* platform_group = new QActionGroup(this);
+  auto platform_group = new QActionGroup(this);
   QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
   platform_group->setExclusive(false);
 
@@ -1363,7 +1363,7 @@ void MenuBar::GenerateSymbolsFromRSO()
   const Core::CPUThreadGuard guard(system);
 
   RSOChainView rso_chain;
-  if (rso_chain.Load(guard, static_cast<u32>(address)))
+  if (rso_chain.Load(guard, address))
   {
     rso_chain.Apply(guard, &system.GetPPCSymbolDB());
     emit Host::GetInstance()->PPCSymbolsChanged();

@@ -143,7 +143,7 @@ CEXIMemoryCard::CEXIMemoryCard(Core::System& system, const Slot slot, const bool
 
   m_memory_card_size = m_memory_card->GetCardId() * SIZE_TO_Mb;
   std::array<u8, 20> header{};
-  m_memory_card->Read(0, static_cast<s32>(header.size()), header.data());
+  m_memory_card->Read(0, header.size(), header.data());
   auto& sram = system.GetSRAM();
   SetCardFlashID(&sram, header.data(), m_card_slot);
 }

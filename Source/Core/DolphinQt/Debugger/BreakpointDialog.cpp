@@ -156,7 +156,7 @@ void BreakpointDialog::CreateWidgets()
 
   // i18n: If a condition is set for a breakpoint, the condition becoming true is a prerequisite for
   // triggering the breakpoint.
-  QGroupBox* condition_box = new QGroupBox(tr("Condition"));
+  auto condition_box = new QGroupBox(tr("Condition"));
   auto* condition_layout = new QHBoxLayout;
   condition_box->setLayout(condition_layout);
 
@@ -169,9 +169,9 @@ void BreakpointDialog::CreateWidgets()
   memory_layout->addWidget(m_memory_box, 1, 0);
   memory_widget->setLayout(memory_layout);
 
-  QGroupBox* action_box = new QGroupBox(tr("Action"));
+  auto action_box = new QGroupBox(tr("Action"));
 
-  QHBoxLayout* conditional_layout = new QHBoxLayout;
+  auto conditional_layout = new QHBoxLayout;
   m_conditional = new QLineEdit();
   // i18n: If a condition is set for a breakpoint, the condition becoming true is a prerequisite for
   // triggering the breakpoint.

@@ -419,7 +419,7 @@ void NetPlayServer::ThreadFunc()
 static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_identifier)
 {
   // We cast here due to a potential long vs long long mismatch
-  spac << static_cast<sf::Uint64>(sync_identifier.dol_elf_size);
+  spac << sync_identifier.dol_elf_size;
 
   spac << sync_identifier.game_id;
   spac << sync_identifier.revision;

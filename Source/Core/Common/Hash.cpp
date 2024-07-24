@@ -98,7 +98,7 @@ static u64 fmix64(u64 k)
 
 static u64 GetMurmurHash3(const u8* src, const u32 len, u32 samples)
 {
-  const u8* data = (const u8*)src;
+  const u8* data = src;
   const int nblocks = len / 16;
   u32 Step = (len / 8);
   if (samples == 0)
@@ -129,7 +129,7 @@ static u64 GetMurmurHash3(const u8* src, const u32 len, u32 samples)
   //----------
   // tail
 
-  const u8* tail = (const u8*)(data + nblocks * 16);
+  const u8* tail = data + nblocks * 16;
 
   u64 k1 = 0;
   u64 k2 = 0;

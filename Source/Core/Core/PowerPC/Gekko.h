@@ -936,7 +936,7 @@ enum CPUEmuFeatureFlags : u32
 
 constexpr s32 SignExt16(const s16 x)
 {
-  return (s32)x;
+  return x;
 }
 constexpr s32 SignExt26(const u32 x)
 {

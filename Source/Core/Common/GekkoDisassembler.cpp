@@ -573,7 +573,7 @@ void GekkoDisassembler::bc(const u32 in)
 
 void GekkoDisassembler::bli(const u32 in)
 {
-  unsigned int d = (unsigned int)(in & 0x3fffffc);
+  unsigned int d = in & 0x3fffffc;
 
   if (d & 0x02000000)
     d |= 0xfc000000;
@@ -888,7 +888,7 @@ void GekkoDisassembler::ldst(const u32 in, const std::string_view name, char reg
 {
   int s = static_cast<int>(PPCGETD(in));
   const int a = static_cast<int>(PPCGETA(in));
-  const int d = (u32)(in & 0xffff);
+  const int d = in & 0xffff;
 
   m_opcode = name;
 
@@ -2280,8 +2280,8 @@ std::string GekkoDisassembler::Disassemble(const u32 opcode, const u32 current_i
   u32 opc = opcode;
   u32 addr = current_instruction_address;
 
-  m_instr = (u32*)&opc;
-  m_iaddr = (u32*)&addr;
+  m_instr = &opc;
+  m_iaddr = &addr;
 
   DoDisassembly(big_endian);
 

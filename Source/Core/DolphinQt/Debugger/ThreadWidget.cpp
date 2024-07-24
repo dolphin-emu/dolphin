@@ -110,7 +110,7 @@ void ThreadWidget::ConnectWidgets()
 
 void ThreadWidget::ShowContextMenu(const QTableWidget* table)
 {
-  const auto* item = static_cast<QTableWidgetItem*>(table->currentItem());
+  const auto* item = table->currentItem();
   if (item == nullptr)
     return;
 
@@ -119,7 +119,7 @@ void ThreadWidget::ShowContextMenu(const QTableWidget* table)
   if (!ok)
     return;
 
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   const QString watch_name = QStringLiteral("thread_context_%1").arg(addr, 8, 16, QLatin1Char('0'));
@@ -135,7 +135,7 @@ void ThreadWidget::ShowContextMenu(const QTableWidget* table)
 
 QLineEdit* ThreadWidget::CreateLineEdit() const
 {
-  QLineEdit* line_edit = new QLineEdit(QStringLiteral("00000000"));
+  auto line_edit = new QLineEdit(QStringLiteral("00000000"));
   line_edit->setReadOnly(true);
   line_edit->setFixedWidth(
       line_edit->fontMetrics().boundingRect(QStringLiteral(" 00000000 ")).width());
@@ -144,8 +144,8 @@ QLineEdit* ThreadWidget::CreateLineEdit() const
 
 QGroupBox* ThreadWidget::CreateContextGroup()
 {
-  QGroupBox* context_group = new QGroupBox(tr("Thread context"));
-  QGridLayout* context_layout = new QGridLayout;
+  auto context_group = new QGroupBox(tr("Thread context"));
+  auto context_layout = new QGridLayout;
   context_group->setLayout(context_layout);
   context_layout->addWidget(new QLabel(tr("Current context")), 0, 0);
   m_current_context = CreateLineEdit();
@@ -162,7 +162,7 @@ QGroupBox* ThreadWidget::CreateContextGroup()
 
 QGroupBox* ThreadWidget::CreateActiveThreadQueueGroup()
 {
-  QGroupBox* thread_queue_group = new QGroupBox(tr("Active thread queue"));
+  auto thread_queue_group = new QGroupBox(tr("Active thread queue"));
   auto* thread_queue_layout = new QGridLayout;
   thread_queue_group->setLayout(thread_queue_layout);
   thread_queue_layout->addWidget(new QLabel(tr("Head")), 0, 0);
@@ -177,8 +177,8 @@ QGroupBox* ThreadWidget::CreateActiveThreadQueueGroup()
 
 QGroupBox* ThreadWidget::CreateThreadGroup()
 {
-  QGroupBox* thread_group = new QGroupBox(tr("Active threads"));
-  QGridLayout* thread_layout = new QGridLayout;
+  auto thread_group = new QGroupBox(tr("Active threads"));
+  auto thread_layout = new QGridLayout;
   thread_group->setLayout(thread_layout);
 
   m_thread_table = new QTableWidget();
@@ -207,8 +207,8 @@ QGroupBox* ThreadWidget::CreateThreadGroup()
 
 QGroupBox* ThreadWidget::CreateThreadContextGroup()
 {
-  QGroupBox* thread_context_group = new QGroupBox(tr("Selected thread context"));
-  QGridLayout* thread_context_layout = new QGridLayout;
+  auto thread_context_group = new QGroupBox(tr("Selected thread context"));
+  auto thread_context_layout = new QGridLayout;
   thread_context_group->setLayout(thread_context_layout);
 
   m_context_table = new QTableWidget();
@@ -229,8 +229,8 @@ QGroupBox* ThreadWidget::CreateThreadContextGroup()
 
 QGroupBox* ThreadWidget::CreateThreadCallstackGroup()
 {
-  QGroupBox* thread_callstack_group = new QGroupBox(tr("Selected thread callstack"));
-  QGridLayout* thread_callstack_layout = new QGridLayout;
+  auto thread_callstack_group = new QGroupBox(tr("Selected thread callstack"));
+  auto thread_callstack_layout = new QGridLayout;
   thread_callstack_group->setLayout(thread_callstack_layout);
 
   m_callstack_table = new QTableWidget();

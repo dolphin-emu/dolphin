@@ -168,7 +168,7 @@ QVariant GameListModel::data(const QModelIndex& index, const int role) const
       return QString::fromStdString(str);
     }
     if (role == SORT_ROLE)
-      return static_cast<quint64>(game.GetFileSize());
+      return game.GetFileSize();
     break;
   case Column::FileFormat:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
@@ -178,7 +178,7 @@ QVariant GameListModel::data(const QModelIndex& index, const int role) const
     if (role == Qt::DisplayRole)
       return QString::fromStdString(UICommon::FormatSize(game.GetBlockSize()));
     if (role == SORT_ROLE)
-      return static_cast<quint64>(game.GetBlockSize());
+      return game.GetBlockSize();
     break;
   case Column::Compression:
     if (role == Qt::DisplayRole || role == SORT_ROLE)

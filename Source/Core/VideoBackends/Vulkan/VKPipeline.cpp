@@ -214,7 +214,7 @@ GetVulkanColorBlendState(const BlendingState& state,
        VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
        VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
 
-  VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logicopenable);
+  VkBool32 vk_logic_op_enable = state.logicopenable;
   if (vk_logic_op_enable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
   {
     // At the time of writing, Adreno and Mali drivers didn't support logic ops.

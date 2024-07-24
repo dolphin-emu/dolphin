@@ -55,7 +55,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
   bool later = false;
 
   const std::optional<int> choice = RunOnObject(m_parent, [&] {
-    QDialog* dialog = new QDialog(m_parent);
+    auto dialog = new QDialog(m_parent);
     dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     dialog->setWindowTitle(tr("Update available"));
     dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);

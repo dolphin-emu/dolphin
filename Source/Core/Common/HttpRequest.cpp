@@ -113,8 +113,7 @@ int HttpRequest::Impl::CurlProgressCallback(const Impl* impl, const curl_off_t d
                                             const curl_off_t ultotal, const curl_off_t ulnow)
 {
   // Abort if callback isn't true
-  return !impl->m_callback(static_cast<s64>(dltotal), static_cast<s64>(dlnow),
-                           static_cast<s64>(ultotal), static_cast<s64>(ulnow));
+  return !impl->m_callback(dltotal, dlnow, ultotal, ulnow);
 }
 
 HttpRequest::Impl::Impl(const std::chrono::milliseconds timeout_ms, ProgressCallback callback)

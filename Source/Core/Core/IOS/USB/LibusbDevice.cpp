@@ -348,7 +348,7 @@ void LibusbDevice::TransferCallback(libusb_transfer* transfer)
     }
     default:
       cmd.FillBuffer(transfer->buffer, transfer->actual_length);
-      return static_cast<s32>(transfer->actual_length);
+      return transfer->actual_length;
     }
   });
 }

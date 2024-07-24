@@ -54,7 +54,7 @@ Host::~Host()
 
 Host* Host::GetInstance()
 {
-  static Host* s_instance = new Host();
+  static auto s_instance = new Host();
   return s_instance;
 }
 

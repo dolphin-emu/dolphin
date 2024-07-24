@@ -218,7 +218,7 @@ void AsmEditor::paintEvent(QPaintEvent* event)
   QPainter painter(viewport());
   QTextCursor tc(document());
 
-  QPen p = QPen(Qt::red);
+  auto p = QPen(Qt::red);
   p.setStyle(Qt::PenStyle::SolidLine);
   p.setWidth(1);
   painter.setPen(p);

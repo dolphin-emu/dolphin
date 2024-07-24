@@ -122,7 +122,7 @@ static u32 OnTextEdited(QLineEdit* edit, const QString& text)
 
 QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
 {
-  QGroupBox* box = new QGroupBox();
+  auto box = new QGroupBox();
 
   auto* type = new QGroupBox(tr("Type"));
   auto* type_layout = new QHBoxLayout;

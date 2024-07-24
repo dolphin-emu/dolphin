@@ -63,17 +63,17 @@ void GameCubePane::CreateWidgets()
 {
   using ExpansionInterface::EXIDeviceType;
 
-  QVBoxLayout* layout = new QVBoxLayout(this);
+  auto layout = new QVBoxLayout(this);
 
   // IPL Settings
-  QGroupBox* ipl_box = new QGroupBox(tr("IPL Settings"), this);
-  QVBoxLayout* ipl_box_layout = new QVBoxLayout(ipl_box);
+  auto ipl_box = new QGroupBox(tr("IPL Settings"), this);
+  auto ipl_box_layout = new QVBoxLayout(ipl_box);
   ipl_box->setLayout(ipl_box_layout);
 
   m_skip_main_menu = new QCheckBox(tr("Skip Main Menu"), ipl_box);
   ipl_box_layout->addWidget(m_skip_main_menu);
 
-  QFormLayout* ipl_language_layout = new QFormLayout;
+  auto ipl_language_layout = new QFormLayout;
   ipl_language_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
   ipl_language_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   ipl_box_layout->addLayout(ipl_language_layout);
@@ -91,8 +91,8 @@ void GameCubePane::CreateWidgets()
   }
 
   // Device Settings
-  QGroupBox* device_box = new QGroupBox(tr("Device Settings"), this);
-  QGridLayout* device_layout = new QGridLayout(device_box);
+  auto device_box = new QGroupBox(tr("Device Settings"), this);
+  auto device_layout = new QGridLayout(device_box);
   device_box->setLayout(device_layout);
 
   for (const ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
@@ -365,7 +365,7 @@ void GameCubePane::UpdateButton(const ExpansionInterface::Slot slot)
 
 void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
 {
-  const ExpansionInterface::EXIDeviceType device =
+  const auto device =
       static_cast<ExpansionInterface::EXIDeviceType>(m_slot_combos[slot]->currentData().toInt());
 
   switch (device)

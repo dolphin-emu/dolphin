@@ -189,7 +189,7 @@ bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer, DirectoryBlo
   }
 
   // Zero fill if we went beyond the last DiscContent
-  std::fill_n(buffer, static_cast<size_t>(length), 0);
+  std::fill_n(buffer, length, 0);
 
   return true;
 }
@@ -1254,7 +1254,7 @@ static void PadToAddress(const u64 start_address, u64* address, u64* length, u8*
   if (start_address > *address && *length > 0)
   {
     const u64 padBytes = std::min(start_address - *address, *length);
-    memset(*buffer, 0, (size_t)padBytes);
+    memset(*buffer, 0, padBytes);
     *length -= padBytes;
     *buffer += padBytes;
     *address += padBytes;

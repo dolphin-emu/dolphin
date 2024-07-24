@@ -833,7 +833,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
       return;
     }
 
-    const auto size = static_cast<size_t>(file_size - header_len);
+    const auto size = file_size - header_len;
     buffer.resize(size);
 
     if (!f.ReadBytes(buffer.data(), size))

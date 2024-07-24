@@ -85,7 +85,7 @@ public:
   {
     return m_gpu_descriptor_heaps.data();
   }
-  u32 GetGPUDescriptorHeapCount() const { return static_cast<u32>(m_gpu_descriptor_heaps.size()); }
+  u32 GetGPUDescriptorHeapCount() const { return m_gpu_descriptor_heaps.size(); }
   const DescriptorHandle& GetNullSRVDescriptor() const { return m_null_srv_descriptor; }
 
   // Root signature access.

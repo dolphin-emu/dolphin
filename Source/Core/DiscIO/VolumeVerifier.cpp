@@ -606,7 +606,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   {
     const u64 data_size =
         m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE).value_or(0);
-    const size_t blocks = static_cast<size_t>(data_size / VolumeWii::BLOCK_TOTAL_SIZE);
+    const size_t blocks = data_size / VolumeWii::BLOCK_TOTAL_SIZE;
 
     if (data_size % VolumeWii::BLOCK_TOTAL_SIZE != 0)
     {
@@ -1206,8 +1206,7 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.crc32)
     {
       m_crc32_future = std::async(std::launch::async, [this, byte_increment] {
-        m_crc32_context = Common::UpdateCRC32(m_crc32_context, m_data.data(),
-                                              static_cast<size_t>(byte_increment));
+        m_crc32_context = Common::UpdateCRC32(m_crc32_context, m_data.data(), byte_increment);
       });
     }
 

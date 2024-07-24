@@ -26,7 +26,7 @@
 
 VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(std::move(volume))
 {
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   CreateWidgets();
   ConnectWidgets();
@@ -104,11 +104,11 @@ void VerifyWidget::CreateWidgets()
 
 std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout, const QString& text)
 {
-  QLineEdit* line_edit = new QLineEdit(this);
+  auto line_edit = new QLineEdit(this);
   line_edit->setReadOnly(true);
-  QCheckBox* checkbox = new QCheckBox(tr("Calculate"), this);
+  auto checkbox = new QCheckBox(tr("Calculate"), this);
 
-  QHBoxLayout* hbox_layout = new QHBoxLayout;
+  auto hbox_layout = new QHBoxLayout;
   hbox_layout->addWidget(line_edit);
   hbox_layout->addWidget(checkbox);
 
@@ -226,7 +226,7 @@ void VerifyWidget::Verify()
 
 void VerifyWidget::SetProblemCellText(const int row, const int column, const QString& text) const
 {
-  QLabel* label = new QLabel(text);
+  auto label = new QLabel(text);
   label->setTextInteractionFlags(Qt::TextSelectableByMouse);
   label->setWordWrap(true);
   label->setMargin(4);

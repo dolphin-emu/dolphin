@@ -54,13 +54,13 @@ void DiscordJoinRequestDialog::CreateLayout(const std::string& discord_tag, cons
   m_decline_button = new QPushButton(tr("\u2716 Decline"));
   m_ignore_button = new QPushButton(tr("Ignore"));
 
-  QLabel* text =
+  auto text =
       new QLabel(tr("%1\nwants to join your party.").arg(QString::fromStdString(discord_tag)));
   text->setAlignment(Qt::AlignCenter);
 
   if (!avatar.isNull())
   {
-    QLabel* picture = new QLabel();
+    auto picture = new QLabel();
     picture->setPixmap(avatar);
     m_main_layout->addWidget(picture, 1, 0, 1, 3, Qt::AlignHCenter);
   }

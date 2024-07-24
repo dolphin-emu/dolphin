@@ -66,7 +66,7 @@ void GraphicsModListWidget::CreateWidgets()
 
   m_open_directory_button = new QPushButton(tr("Open Directory..."));
   m_refresh = new QPushButton(tr("&Refresh List"));
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
   hlayout->addWidget(m_open_directory_button);
   hlayout->addWidget(m_refresh);
 
@@ -146,7 +146,7 @@ void GraphicsModListWidget::RefreshModList()
       continue;
     }
 
-    QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(mod.m_title));
+    auto item = new QListWidgetItem(QString::fromStdString(mod.m_title));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
     item->setData(Qt::UserRole, QString::fromStdString(mod.GetAbsolutePath()));
     item->setCheckState(mod.m_enabled ? Qt::Checked : Qt::Unchecked);

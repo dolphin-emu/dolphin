@@ -106,7 +106,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
         // Copy cpmem now, because end_of_primitives isn't triggered until the first opcode after
         // primitive data, and the first opcode might update cpmem
         static_assert(std::is_trivially_copyable_v<CPState>);
-        std::memcpy(static_cast<void*>(&cpmem), static_cast<const void*>(&analyzer.m_cpmem),
+        std::memcpy(&cpmem, &analyzer.m_cpmem,
                     sizeof(CPState));
       }
       if (analyzer.m_end_of_primitives)

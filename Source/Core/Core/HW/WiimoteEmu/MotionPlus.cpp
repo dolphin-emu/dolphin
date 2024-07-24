@@ -437,14 +437,14 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       {
         constexpr u8 INIT_OFFSET = offsetof(Register, init_trigger);
         constexpr std::array<u8, 1> enc_data = {0x55};
-        m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, static_cast<int>(enc_data.size()), enc_data.data());
+        m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, enc_data.size(), enc_data.data());
       }
 
       // Read identifier
       {
         constexpr u8 ID_OFFSET = offsetof(Register, ext_identifier);
         std::array<u8, 6> id_data = {};
-        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, static_cast<int>(id_data.size()), id_data.data());
+        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, id_data.size(), id_data.data());
         m_reg_data.passthrough_ext_id_0 = id_data[0];
         m_reg_data.passthrough_ext_id_4 = id_data[4];
         m_reg_data.passthrough_ext_id_5 = id_data[5];
@@ -454,7 +454,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       {
         constexpr u8 CAL_OFFSET = offsetof(Register, calibration_data);
         m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, CAL_OFFSET,
-                          static_cast<int>(m_reg_data.passthrough_ext_calib.size()),
+                          m_reg_data.passthrough_ext_calib.size(),
                           m_reg_data.passthrough_ext_calib.data());
       }
     }
@@ -558,8 +558,7 @@ MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& an
 MotionPlus::DataFormat::Data MotionPlus::GetDefaultGyroscopeData()
 {
   return DataFormat::Data{
-      DataFormat::GyroRawValue{
-          DataFormat::GyroType(static_cast<u16>(ZERO_VALUE), static_cast<u16>(ZERO_VALUE), static_cast<u16>(ZERO_VALUE))},
+      DataFormat::GyroRawValue{DataFormat::GyroType(ZERO_VALUE, ZERO_VALUE, ZERO_VALUE)},
       DataFormat::SlowType(true, true, true)};
 }
 

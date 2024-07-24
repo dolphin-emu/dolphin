@@ -448,7 +448,7 @@ void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand() const
 
   const int ret =
       libusb_control_transfer(m_handle, REQUEST_TYPE, 0, 0, 0, reinterpret_cast<u8*>(&payload),
-                              static_cast<u16>(sizeof(payload)), TIMEOUT);
+                              sizeof(payload), TIMEOUT);
   if (ret < LIBUSB_SUCCESS)
     WARN_LOG_FMT(IOS_WIIMOTE, "libusb_control_transfer failed: {}", LibusbUtils::ErrorWrap(ret));
 }
@@ -506,7 +506,7 @@ void BluetoothRealDevice::FakeVendorCommandReply(const USB::V0IntrMessage& ctrl)
   hci_event.PacketIndicator = 0x01;
   hci_event.Opcode = m_fake_vendor_command_reply_opcode;
   memory.CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
-  GetEmulationKernel().EnqueueIPCReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event)));
+  GetEmulationKernel().EnqueueIPCReply(ctrl.ios_request, sizeof(hci_event));
 }
 
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
@@ -535,7 +535,7 @@ void BluetoothRealDevice::FakeReadBufferSizeReply(const USB::V0IntrMessage& ctrl
   reply.num_sco_pkts = SCO_PKT_NUM;
   memory.CopyToEmu(ctrl.data_address + sizeof(hci_event), &reply, sizeof(reply));
   GetEmulationKernel().EnqueueIPCReply(ctrl.ios_request,
-                                       static_cast<s32>(sizeof(hci_event) + sizeof(reply)));
+                                       sizeof(hci_event) + sizeof(reply));
 }
 
 void BluetoothRealDevice::FakeSyncButtonEvent(const USB::V0IntrMessage& ctrl, const u8* payload,

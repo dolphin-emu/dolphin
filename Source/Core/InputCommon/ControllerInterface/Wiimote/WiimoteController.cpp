@@ -1160,7 +1160,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
   {
     // We can assume the last received input report is the current reporting mode.
     // FYI: This logic fails to properly handle the (never used) "interleaved" reports.
-    m_reporting_mode = static_cast<InputReportID>(report_id);
+    m_reporting_mode = report_id;
   }
 
   const auto manipulator = MakeDataReportManipulator(
@@ -1391,7 +1391,7 @@ void Device::ProcessMotionPlusExtensionData(const u8* ext_data, const u32 ext_si
   // Undo bit-hacks of M+ passthrough.
   WiimoteEmu::MotionPlus::ReversePassthroughModifications(*m_mplus_state.current_mode, data.data());
 
-  ProcessNormalExtensionData(data.data(), static_cast<u32>(data.size()));
+  ProcessNormalExtensionData(data.data(), data.size());
 }
 
 void Device::ProcessNormalExtensionData(const u8* ext_data, const u32 ext_size)

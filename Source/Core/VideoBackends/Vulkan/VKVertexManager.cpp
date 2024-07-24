@@ -407,7 +407,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, con
   }
 
   std::memcpy(m_texel_stream_buffer->GetCurrentHostPointer(), data, data_size);
-  *out_offset = static_cast<u32>(m_texel_stream_buffer->GetCurrentOffset()) / elem_size;
+  *out_offset = m_texel_stream_buffer->GetCurrentOffset() / elem_size;
   m_texel_stream_buffer->CommitMemory(data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
   StateTracker::GetInstance()->SetTexelBuffer(0, m_texel_buffer_views[format]);
@@ -440,9 +440,9 @@ bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, con
   std::memcpy(m_texel_stream_buffer->GetCurrentHostPointer(), data, data_size);
   std::memcpy(m_texel_stream_buffer->GetCurrentHostPointer() + palette_byte_offset, palette_data,
               palette_size);
-  *out_offset = static_cast<u32>(m_texel_stream_buffer->GetCurrentOffset()) / elem_size;
+  *out_offset = m_texel_stream_buffer->GetCurrentOffset() / elem_size;
   *out_palette_offset =
-      (static_cast<u32>(m_texel_stream_buffer->GetCurrentOffset()) + palette_byte_offset) /
+      (m_texel_stream_buffer->GetCurrentOffset() + palette_byte_offset) /
       palette_elem_size;
 
   m_texel_stream_buffer->CommitMemory(palette_byte_offset + palette_size);

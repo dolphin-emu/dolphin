@@ -468,8 +468,8 @@ MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(const u32 tile_
   const u32 start_y = tile_y * m_efb_cache_tile_size;
   const u32 start_x = tile_x * m_efb_cache_tile_size;
   return MathUtil::Rectangle<int>(
-      start_x, start_y, std::min(start_x + m_efb_cache_tile_size, static_cast<u32>(EFB_WIDTH)),
-      std::min(start_y + m_efb_cache_tile_size, static_cast<u32>(EFB_HEIGHT)));
+      start_x, start_y, std::min(start_x + m_efb_cache_tile_size, EFB_WIDTH),
+      std::min(start_y + m_efb_cache_tile_size, EFB_HEIGHT));
 }
 
 u32 FramebufferManager::PeekEFBColor(const u32 x, u32 y)
@@ -1031,7 +1031,7 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, const u
   g_gfx->BeginUtilityDrawing();
   u32 base_vertex, base_index;
   g_vertex_manager->UploadUtilityVertices(vertices, sizeof(EFBPokeVertex),
-                                          static_cast<u32>(vertex_count), nullptr, 0, &base_vertex,
+                                          vertex_count, nullptr, 0, &base_vertex,
                                           &base_index);
 
   // Now we can draw.

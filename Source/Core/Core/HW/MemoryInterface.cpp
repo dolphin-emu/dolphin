@@ -61,7 +61,7 @@ MemoryInterfaceManager::~MemoryInterfaceManager() = default;
 void MemoryInterfaceManager::Init()
 {
   static_assert(std::is_trivially_copyable_v<MIMemStruct>);
-  std::memset(static_cast<void*>(&m_mi_mem), 0, sizeof(MIMemStruct));
+  std::memset(&m_mi_mem, 0, sizeof(MIMemStruct));
 }
 
 void MemoryInterfaceManager::Shutdown()

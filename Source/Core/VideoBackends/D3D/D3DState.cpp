@@ -234,7 +234,7 @@ void StateManager::SetComputeUAV(const u32 index, ID3D11UnorderedAccessView* uav
     return;
 
   m_compute_images[index] = uav;
-  context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
+  context->CSSetUnorderedAccessViews(0, m_compute_images.size(),
                                           m_compute_images.data(), nullptr);
 }
 

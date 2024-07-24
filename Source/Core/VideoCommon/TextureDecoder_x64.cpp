@@ -536,7 +536,7 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, const int width, c
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-          DecodeBytes_C8_RGB5A3((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlut);
+          DecodeBytes_C8_RGB5A3(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
   break;
 

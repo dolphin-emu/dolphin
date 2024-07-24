@@ -137,7 +137,7 @@ private:
 
 void GekkoSyntaxHighlight::highlightBlock(const QString& text)
 {
-  BlockInfo* info = static_cast<BlockInfo*>(currentBlockUserData());
+  auto info = static_cast<BlockInfo*>(currentBlockUserData());
   if (info == nullptr)
   {
     info = new BlockInfo;

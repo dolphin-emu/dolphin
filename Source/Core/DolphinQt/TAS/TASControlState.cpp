@@ -26,7 +26,7 @@ bool TASControlState::OnControllerValueChanged(const int new_value)
     return false;
   }
 
-  const State new_state{static_cast<int>(cpu_thread_state.version + 1), new_value};
+  const State new_state{(cpu_thread_state.version + 1), new_value};
   m_cpu_thread_state.store(new_state, std::memory_order_relaxed);
 
   return true;

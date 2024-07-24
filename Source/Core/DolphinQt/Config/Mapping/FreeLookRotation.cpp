@@ -31,7 +31,7 @@ void FreeLookRotation::CreateMainLayout()
   alternate_input_layout->addWidget(note_label, 1);
   alternate_input_layout->addWidget(alternate_input_sources_button, 0, Qt::AlignRight);
   connect(alternate_input_sources_button, &QPushButton::clicked, this, [this] {
-    ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
+    auto window = new ControllerInterfaceWindow(this);
     window->setAttribute(Qt::WA_DeleteOnClose, true);
     window->setWindowModality(Qt::WindowModality::WindowModal);
     SetQWidgetWindowDecorations(window);

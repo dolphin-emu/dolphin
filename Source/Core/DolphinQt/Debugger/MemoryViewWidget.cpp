@@ -50,7 +50,7 @@ constexpr int SCROLLBAR_PAGESTEP = 250;
 constexpr int SCROLLBAR_MAXIMUM = 20000;
 constexpr int SCROLLBAR_CENTER = SCROLLBAR_MAXIMUM / 2;
 
-const QString INVALID_MEMORY = QStringLiteral("-");
+const auto INVALID_MEMORY = QStringLiteral("-");
 
 class MemoryViewTable final : public QTableWidget
 {
@@ -149,7 +149,7 @@ public:
   void OnItemChanged(const QTableWidgetItem* item) const
   {
     const QString text = item->text();
-    const MemoryViewWidget::Type type =
+    const auto type =
         static_cast<MemoryViewWidget::Type>(item->data(USER_ROLE_VALUE_TYPE).toInt());
     const std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
 
@@ -470,7 +470,7 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard) const
     {
       auto* cell_item = m_table->item(i, c + MISC_COLUMNS);
       const u32 cell_address = cell_item->data(USER_ROLE_CELL_ADDRESS).toUInt();
-      const Type type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
+      const auto type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
 
       cell_item->setText(guard ? ValueToString(*guard, cell_address, type) : INVALID_MEMORY);
 

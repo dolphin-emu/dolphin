@@ -140,7 +140,7 @@ const char* ErrorWrap::GetName() const
 const char* ErrorWrap::GetStrError() const
 {
 #if defined(__LIBUSB__)
-  return libusb_strerror(static_cast<libusb_error>(m_error));
+  return libusb_strerror(m_error);
 #else
   return "__LIBUSB__ not defined";
 #endif

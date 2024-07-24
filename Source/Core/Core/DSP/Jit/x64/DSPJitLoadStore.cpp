@@ -120,7 +120,7 @@ void DSPEmitter::si(const UDSPInstruction opc)
 
   const X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  MOV(32, R(tmp1), Imm32((u32)imm));
+  MOV(32, R(tmp1), Imm32(imm));
   dmem_write_imm(address, tmp1);
 
   m_gpr.PutXReg(tmp1);

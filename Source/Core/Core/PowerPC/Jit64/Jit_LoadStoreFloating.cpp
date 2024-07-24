@@ -56,7 +56,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   else
   {
     if (update)
-      ADD(32, addr, Imm32((s32)static_cast<s16>(inst.SIMM_16)));
+      ADD(32, addr, Imm32(static_cast<s16>(inst.SIMM_16)));
     else
       offset = static_cast<s16>(inst.SIMM_16);
   }

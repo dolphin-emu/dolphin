@@ -292,7 +292,7 @@ void Sleep(const int sleep)
 
 void WaitForPID(const u32 pid)
 {
-  const HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
+  const HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, pid);
   if (parent_handle)
   {
     WaitForSingleObject(parent_handle, INFINITE);

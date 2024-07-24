@@ -82,7 +82,7 @@ TEST(PatchAllowlist, VerifyHashes)
         continue;
       // Hash patch
       auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch.entries.size())));
+      context->Update(Common::BitCastToArray<u8>(patch.entries.size()));
       for (const auto& entry : patch.entries)
       {
         context->Update(Common::BitCastToArray<u8>(entry.type));

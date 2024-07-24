@@ -42,11 +42,11 @@ QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
 
     if (buffer.empty() || !Get(Config::MAIN_USE_GAME_COVERS))
     {
-      QPixmap banner = model
-                           ->data(model->index(source_index.row(),
-                                               static_cast<int>(GameListModel::Column::Banner)),
-                                  Qt::DecorationRole)
-                           .value<QPixmap>();
+      auto banner = model
+                    ->data(model->index(source_index.row(),
+                                        static_cast<int>(GameListModel::Column::Banner)),
+                           Qt::DecorationRole)
+                    .value<QPixmap>();
 
       banner = banner.scaled(pixmap.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
@@ -62,7 +62,7 @@ QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
     else
     {
       pixmap = QPixmap::fromImage(QImage::fromData(
-          reinterpret_cast<const unsigned char*>(&buffer[0]), static_cast<int>(buffer.size())));
+          &buffer[0], static_cast<int>(buffer.size())));
 
       return pixmap.scaled(QSize(160, 224) * model->GetScale() * pixmap.devicePixelRatio(),
                            Qt::KeepAspectRatio, Qt::SmoothTransformation);

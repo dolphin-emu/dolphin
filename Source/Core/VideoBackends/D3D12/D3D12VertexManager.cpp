@@ -211,8 +211,8 @@ bool VertexManager::ReserveConstantStorage()
   const auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   static constexpr u32 reserve_size =
-      static_cast<u32>(std::max({sizeof(PixelShaderConstants), sizeof(VertexShaderConstants),
-                                 sizeof(GeometryShaderConstants)}));
+      std::max({sizeof(PixelShaderConstants), sizeof(VertexShaderConstants),
+                sizeof(GeometryShaderConstants)});
   const u32 custom_constants_size = static_cast<u32>(pixel_shader_manager.custom_constants.size());
   if (m_uniform_stream_buffer.ReserveMemory(reserve_size + custom_constants_size,
                                             D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT))
@@ -333,7 +333,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, con
   }
 
   std::memcpy(m_texel_stream_buffer.GetCurrentHostPointer(), data, data_size);
-  *out_offset = static_cast<u32>(m_texel_stream_buffer.GetCurrentOffset()) / elem_size;
+  *out_offset = m_texel_stream_buffer.GetCurrentOffset() / elem_size;
   m_texel_stream_buffer.CommitMemory(data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
   Gfx::GetInstance()->SetTextureDescriptor(0, m_texel_buffer_views[format].cpu_handle);
@@ -366,9 +366,9 @@ bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, con
   std::memcpy(m_texel_stream_buffer.GetCurrentHostPointer(), data, data_size);
   std::memcpy(m_texel_stream_buffer.GetCurrentHostPointer() + palette_byte_offset, palette_data,
               palette_size);
-  *out_offset = static_cast<u32>(m_texel_stream_buffer.GetCurrentOffset()) / elem_size;
+  *out_offset = m_texel_stream_buffer.GetCurrentOffset() / elem_size;
   *out_palette_offset =
-      (static_cast<u32>(m_texel_stream_buffer.GetCurrentOffset()) + palette_byte_offset) /
+      (m_texel_stream_buffer.GetCurrentOffset() + palette_byte_offset) /
       palette_elem_size;
 
   m_texel_stream_buffer.CommitMemory(palette_byte_offset + palette_size);

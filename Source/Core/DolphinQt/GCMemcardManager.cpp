@@ -297,7 +297,7 @@ void GCMemcardManager::UpdateSlotTable(Slot slot)
     for (auto* item : {item_filename, item_banner, item_text, item_icon, item_blocks})
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      item->setData(Qt::UserRole, static_cast<int>(file_index));
+      item->setData(Qt::UserRole, file_index);
     }
 
     m_slot_active_icons[slot].emplace(file_index, std::move(icon_data));

@@ -322,8 +322,8 @@ void NetworkWidget::Update() const
 
 QGroupBox* NetworkWidget::CreateSocketTableGroup()
 {
-  QGroupBox* socket_table_group = new QGroupBox(tr("Socket table"));
-  QGridLayout* socket_table_layout = new QGridLayout;
+  auto socket_table_group = new QGroupBox(tr("Socket table"));
+  auto socket_table_layout = new QGridLayout;
   socket_table_group->setLayout(socket_table_layout);
 
   m_socket_table = new QTableWidget();
@@ -345,8 +345,8 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
 
 QGroupBox* NetworkWidget::CreateSSLContextGroup()
 {
-  QGroupBox* ssl_context_group = new QGroupBox(tr("SSL context"));
-  QGridLayout* ssl_context_layout = new QGridLayout;
+  auto ssl_context_group = new QGroupBox(tr("SSL context"));
+  auto ssl_context_layout = new QGridLayout;
   ssl_context_group->setLayout(ssl_context_layout);
 
   m_ssl_table = new QTableWidget();

@@ -84,7 +84,7 @@ private:
     {
       const QRect r = option.rect;
       const QSize size = pix.deviceIndependentSize().toSize();
-      const QPoint p = QPoint((r.width() - size.width()) / 2, (r.height() - size.height()) / 2);
+      const auto p = QPoint((r.width() - size.width()) / 2, (r.height() - size.height()) / 2);
       painter->drawPixmap(r.topLeft() + p, pix);
     }
   }
@@ -177,7 +177,7 @@ void BreakpointWidget::CreateWidgets()
   m_load->setEnabled(false);
   m_save->setEnabled(false);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(layout);
 
   setWidget(widget);
@@ -213,7 +213,7 @@ void BreakpointWidget::OnClicked(const QTableWidgetItem* item)
     return;
   }
 
-  const u32 address = static_cast<u32>(m_table->item(item->row(), 0)->data(ADDRESS_ROLE).toUInt());
+  const u32 address = m_table->item(item->row(), 0)->data(ADDRESS_ROLE).toUInt();
 
   if (item->column() == ENABLED_COLUMN)
   {
@@ -285,16 +285,16 @@ void BreakpointWidget::Update() const
       Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(downscale, downscale));
 
   const auto create_item = [](const QString& string = {}) {
-    QTableWidgetItem* item = new QTableWidgetItem(string);
+    auto item = new QTableWidgetItem(string);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     return item;
   };
 
-  QTableWidgetItem empty_item = QTableWidgetItem();
+  auto empty_item = QTableWidgetItem();
   empty_item.setFlags(Qt::NoItemFlags);
-  QTableWidgetItem icon_item = QTableWidgetItem();
+  auto icon_item = QTableWidgetItem();
   icon_item.setData(Qt::DecorationRole, enabled_icon);
-  QTableWidgetItem disabled_item = QTableWidgetItem();
+  auto disabled_item = QTableWidgetItem();
   disabled_item.setFlags(Qt::NoItemFlags);
 
   const QColor disabled_color =
@@ -437,7 +437,7 @@ void BreakpointWidget::OnClear()
 
 void BreakpointWidget::OnNewBreakpoint()
 {
-  BreakpointDialog* dialog = new BreakpointDialog(this);
+  auto dialog = new BreakpointDialog(this);
   dialog->setAttribute(Qt::WA_DeleteOnClose, true);
   SetQWidgetWindowDecorations(dialog);
   dialog->exec();
@@ -513,7 +513,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
   if (selected_item == nullptr)
     return;
 
-  const auto bp_address = static_cast<u32>(selected_item->data(ADDRESS_ROLE).toUInt());
+  const auto bp_address = selected_item->data(ADDRESS_ROLE).toUInt();
   const auto is_memory_breakpoint = selected_item->data(IS_MEMCHECK_ROLE).toBool();
 
   auto* menu = new QMenu(this);
@@ -570,7 +570,7 @@ void BreakpointWidget::OnItemChanged(const QTableWidgetItem* item)
 
   const bool is_code_bp = !m_table->item(item->row(), 0)->data(IS_MEMCHECK_ROLE).toBool();
   const u32 base_address =
-      static_cast<u32>(m_table->item(item->row(), 0)->data(ADDRESS_ROLE).toUInt());
+      m_table->item(item->row(), 0)->data(ADDRESS_ROLE).toUInt();
 
   if (is_code_bp)
   {
@@ -581,8 +581,7 @@ void BreakpointWidget::OnItemChanged(const QTableWidgetItem* item)
   }
   else
   {
-    const u32 end_address = static_cast<u32>(
-        m_table->item(item->row(), END_ADDRESS_COLUMN)->data(ADDRESS_ROLE).toUInt());
+    const u32 end_address = m_table->item(item->row(), END_ADDRESS_COLUMN)->data(ADDRESS_ROLE).toUInt();
 
     // Need to check that the start/base address is always <= end_address.
     if ((item->column() == ADDRESS_COLUMN && new_address == base_address) ||

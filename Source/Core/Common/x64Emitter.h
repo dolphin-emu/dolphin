@@ -126,7 +126,7 @@ struct OpArg
   u64 Imm64() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM64);
-    return (u64)offset;
+    return offset;
   }
   u32 Imm32() const
   {
@@ -168,7 +168,7 @@ struct OpArg
   OpArg AsImm64() const
   {
     DEBUG_ASSERT(IsImm());
-    return OpArg((u64)offset, SCALE_IMM64);
+    return OpArg(offset, SCALE_IMM64);
   }
   OpArg AsImm32() const
   {
@@ -245,7 +245,7 @@ private:
 template <typename T>
 inline OpArg M(const T* ptr)
 {
-  return OpArg((u64)static_cast<const void*>(ptr), (int)SCALE_RIP);
+  return OpArg((u64)static_cast<const void*>(ptr), SCALE_RIP);
 }
 constexpr OpArg R(const X64Reg value)
 {

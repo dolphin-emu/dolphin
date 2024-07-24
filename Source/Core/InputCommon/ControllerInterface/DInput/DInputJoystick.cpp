@@ -37,7 +37,7 @@ static std::mutex s_guids_mutex;
 void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
 {
   std::list<DIDEVICEINSTANCE> joysticks;
-  idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks,
+  idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, &joysticks,
                     DIEDFL_ATTACHEDONLY);
 
   const std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
@@ -174,7 +174,7 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
 
   // Force feedback:
   std::list<DIDEVICEOBJECTINSTANCE> objects;
-  if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
+  if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, &objects, DIDFT_AXIS)))
   {
     const int num_ff_axes =
         std::count_if(std::begin(objects), std::end(objects),
@@ -295,7 +295,7 @@ ControlState Joystick::Axis::GetState() const
 
 ControlState Joystick::Button::GetState() const
 {
-  return static_cast<ControlState>(m_button > 0);
+  return m_button > 0;
 }
 
 ControlState Joystick::Hat::GetState() const

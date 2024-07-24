@@ -43,8 +43,8 @@ using namespace WiimoteCommon;
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, const int num) : TASInputWindow(parent), m_num(num)
 {
-  const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
-  const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);
+  const auto ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
+  const auto ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);
 
   m_ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
                                .arg(tr("IR"),

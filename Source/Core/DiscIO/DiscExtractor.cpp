@@ -61,7 +61,7 @@ bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u6
   while (size)
   {
     // Limit read size to 128 MB
-    const size_t read_size = static_cast<size_t>(std::min<u64>(size, 0x08000000));
+    const size_t read_size = std::min<u64>(size, 0x08000000);
 
     std::vector<u8> buffer(read_size);
 

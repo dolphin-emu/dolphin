@@ -66,7 +66,7 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, const Common::Ve
 
   const auto camera_view =
       Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
-      Matrix44::FromMatrix33(Matrix33::RotateX(static_cast<float>(MathUtil::TAU / 4))) * transform;
+      Matrix44::FromMatrix33(Matrix33::RotateX(MathUtil::TAU / 4)) * transform;
 
   std::array<CameraPoint, NUM_POINTS> camera_points;
 

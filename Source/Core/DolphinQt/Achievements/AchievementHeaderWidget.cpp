@@ -40,24 +40,24 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_progress_label->setStyleSheet(QStringLiteral("background-color:transparent;"));
   m_progress_label->setAlignment(Qt::AlignCenter);
 
-  QVBoxLayout* icon_col = new QVBoxLayout();
+  auto icon_col = new QVBoxLayout();
   icon_col->addWidget(m_user_icon);
   icon_col->addWidget(m_game_icon);
-  QVBoxLayout* text_col = new QVBoxLayout();
+  auto text_col = new QVBoxLayout();
   text_col->addWidget(m_name);
   text_col->addWidget(m_points);
   text_col->addWidget(m_game_progress);
   text_col->addWidget(m_rich_presence);
-  QVBoxLayout* prog_layout = new QVBoxLayout(m_game_progress);
+  auto prog_layout = new QVBoxLayout(m_game_progress);
   prog_layout->setContentsMargins(0, 0, 0, 0);
   prog_layout->addWidget(m_progress_label);
-  QHBoxLayout* header_layout = new QHBoxLayout();
+  auto header_layout = new QHBoxLayout();
   header_layout->addLayout(icon_col);
   header_layout->addLayout(text_col);
   m_header_box = new QGroupBox();
   m_header_box->setLayout(header_layout);
 
-  QVBoxLayout* m_total = new QVBoxLayout();
+  auto m_total = new QVBoxLayout();
   m_total->addWidget(m_header_box);
 
   m_total->setContentsMargins(0, 0, 0, 0);

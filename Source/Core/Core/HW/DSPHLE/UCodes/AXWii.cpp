@@ -528,7 +528,7 @@ void AXWiiUCode::MixAUXSamples(const int aux_id, const u32 write_addr, const u32
   {
     for (u32 j = 0; j < 3 * 32; ++j)
     {
-      s64 sample = (s64)static_cast<s32>(Common::swap32(*ptr++));
+      s64 sample = static_cast<s32>(Common::swap32(*ptr++));
       sample *= volume_ramp[j];
       main_buffer[j] += static_cast<s32>(sample >> 15);
     }
@@ -569,7 +569,7 @@ void AXWiiUCode::UploadAUXMixLRSC(const int aux_id, const u32* addresses, const 
 
     for (u32 i = 0; i < 96; ++i)
     {
-      s64 sample = (s64)(s32)aux_left[i];
+      s64 sample = aux_left[i];
       sample *= volume_ramp[i];
       mix_dest[mix_i][i] += static_cast<s32>(sample >> 15);
     }

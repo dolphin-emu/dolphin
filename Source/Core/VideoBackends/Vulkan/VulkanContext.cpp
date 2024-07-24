@@ -966,7 +966,7 @@ void VulkanContext::InitDriverDetails() const
 #endif
 
   Init(DriverDetails::API_VULKAN, vendor, driver,
-                      static_cast<double>(m_device_properties.driverVersion),
+                      m_device_properties.driverVersion,
                       DriverDetails::Family::UNKNOWN, std::move(device_name));
 }
 

@@ -26,7 +26,7 @@ PathPane::PathPane(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Paths"));
 
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
   layout->addWidget(MakeGameFolderBox());
   layout->addLayout(MakePathsLayout());
 
@@ -117,8 +117,8 @@ void PathPane::OnNANDPathChanged() const
 
 QGroupBox* PathPane::MakeGameFolderBox()
 {
-  QGroupBox* game_box = new QGroupBox(tr("Game Folders"));
-  QVBoxLayout* vlayout = new QVBoxLayout;
+  auto game_box = new QGroupBox(tr("Game Folders"));
+  auto vlayout = new QVBoxLayout;
 
   m_path_list = new QListWidget;
   m_path_list->insertItems(0, Settings::Instance().GetPaths());
@@ -135,7 +135,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
 
   vlayout->addWidget(m_path_list);
 
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
 
   hlayout->addStretch();
   QPushButton* add = new NonDefaultQPushButton(tr("Add..."));
@@ -172,7 +172,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
 
 QGridLayout* PathPane::MakePathsLayout()
 {
-  QGridLayout* layout = new QGridLayout;
+  auto layout = new QGridLayout;
   layout->setColumnStretch(1, 1);
 
   m_game_edit = new QLineEdit(Settings::Instance().GetDefaultGame());

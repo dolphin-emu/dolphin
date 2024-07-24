@@ -485,7 +485,7 @@ bool BluetoothEmuDevice::SendEventInquiryResponse()
   const auto& wiimote = *iter;
 
   SQueuedEvent event(
-      static_cast<u32>(sizeof(SHCIEventInquiryResult) + num_responses * sizeof(hci_inquiry_response)), 0);
+      sizeof(SHCIEventInquiryResult) + num_responses * sizeof(hci_inquiry_response), 0);
 
   const auto inquiry_result = reinterpret_cast<SHCIEventInquiryResult*>(event.buffer);
   inquiry_result->EventType = HCI_EVENT_INQUIRY_RESULT;
@@ -791,8 +791,8 @@ bool BluetoothEmuDevice::SendEventRoleChange(const bdaddr_t bd, const bool maste
 
 bool BluetoothEmuDevice::SendEventNumberOfCompletedPackets()
 {
-  const SQueuedEvent event((u32)(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) +
-                                 (sizeof(hci_num_compl_pkts_info) * m_wiimotes.size())),
+  const SQueuedEvent event(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) +
+                           sizeof(hci_num_compl_pkts_info) * m_wiimotes.size(),
                            0);
 
   DEBUG_LOG_FMT(IOS_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");

@@ -78,7 +78,7 @@ void ARCodeWidget::CreateWidgets()
   button_layout->addWidget(m_code_edit);
   button_layout->addWidget(m_code_remove);
 
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   layout->addWidget(m_warning);
 #ifdef USE_RETRO_ACHIEVEMENTS

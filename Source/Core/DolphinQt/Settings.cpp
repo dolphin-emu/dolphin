@@ -189,7 +189,7 @@ void Settings::ApplyStyle()
   if (!stylesheet_name.isEmpty() && style_type == StyleType::User)
   {
     // Load custom user stylesheet
-    QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
+    auto directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
     QFile stylesheet(directory.filePath(stylesheet_name));
 
     if (stylesheet.open(QFile::ReadOnly))
@@ -706,7 +706,7 @@ void Settings::SetDebugFont(const QFont& font)
 
 QFont Settings::GetDebugFont() const
 {
-  QFont default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+  auto default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
   default_font.setPointSizeF(9.0);
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();

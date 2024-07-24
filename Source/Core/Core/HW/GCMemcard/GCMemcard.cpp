@@ -823,7 +823,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(const u8 index)  // index in the
   // here that has an empty file with the filename "Broken File000" where the actual deleted file
   // was. Determine when exactly this happens and if this is neccessary for anything.
 
-  memset(reinterpret_cast<u8*>(&UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
+  memset(&UpdatedDir.m_dir_entries[index], 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   UpdateDirectory(UpdatedDir);
 
@@ -1209,10 +1209,10 @@ void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, const u
   u64 rand = format_time;
   for (int i = 0; i < 12; i++)
   {
-    rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
+    rand = (((rand * 0x0000000041c64e6dULL) + 0x0000000000003039ULL) >> 16);
     data->m_serial[i] = static_cast<u8>(flash_id[i] + (u32)rand);
-    rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-    rand &= (u64)0x0000000000007fffULL;
+    rand = (((rand * 0x0000000041c64e6dULL) + 0x0000000000003039ULL) >> 16);
+    rand &= 0x0000000000007fffULL;
   }
   data->m_sram_bias = rtc_bias;
   data->m_sram_language = sram_language;
@@ -1271,7 +1271,7 @@ std::pair<u32, u32> Header::CalculateSerial() const
 
 DEntry::DEntry()
 {
-  memset(reinterpret_cast<u8*>(this), 0xFF, DENTRY_SIZE);
+  memset(this, 0xFF, DENTRY_SIZE);
 }
 
 void Header::FixChecksums()
@@ -1322,7 +1322,7 @@ bool Header::IsShiftJIS() const
 
 Directory::Directory()
 {
-  memset(reinterpret_cast<u8*>(this), 0xFF, BLOCK_SIZE);
+  memset(this, 0xFF, BLOCK_SIZE);
   m_update_counter = 0;
   m_checksum = Common::swap16(0xF003);
   m_checksum_inv = 0;

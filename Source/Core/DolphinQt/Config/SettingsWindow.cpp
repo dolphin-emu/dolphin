@@ -28,7 +28,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   // Main Layout
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   // Add content to layout before dialog buttons.
   m_tab_widget = new QTabWidget();
@@ -43,7 +43,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_tab_widget->addTab(GetWrappedWidget(new AdvancedPane, this, 125, 200), tr("Advanced"));
 
   // Dialog box buttons
-  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+  auto close_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 

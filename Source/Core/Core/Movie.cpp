@@ -1057,7 +1057,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
     m_total_input_count = m_temp_header.inputCount;
     m_total_tick_count = m_tick_count_at_last_input = m_temp_header.tickCount;
 
-    m_temp_input.resize(static_cast<size_t>(totalSavedBytes));
+    m_temp_input.resize(totalSavedBytes);
     t_record.ReadBytes(m_temp_input.data(), m_temp_input.size());
   }
   else if (m_current_byte > 0)

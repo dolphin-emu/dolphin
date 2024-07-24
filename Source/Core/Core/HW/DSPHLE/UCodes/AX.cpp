@@ -404,7 +404,7 @@ void AXUCode::DownloadAndMixWithVolume(const u32 addr, const u16 vol_main, const
       int* buffer = buffers[i][j];
       for (u32 k = 0; k < 5 * 32; ++k)
       {
-        s64 sample = (s64)static_cast<s32>(Common::swap32(*ptr++));
+        s64 sample = static_cast<s32>(Common::swap32(*ptr++));
         sample *= volume;
         buffer[k] += static_cast<s32>(sample >> 15);
       }

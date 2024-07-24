@@ -64,7 +64,7 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, const int controller_id)
 
   buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 4);
 
-  QGroupBox* buttons_box = new QGroupBox(tr("Buttons"));
+  auto buttons_box = new QGroupBox(tr("Buttons"));
   buttons_box->setLayout(buttons_layout);
 
   auto* layout = new QVBoxLayout;

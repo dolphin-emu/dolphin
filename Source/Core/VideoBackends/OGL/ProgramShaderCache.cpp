@@ -584,7 +584,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
   {
     u32 program_binary_type;
     std::memcpy(&program_binary_type, cache_data, sizeof(u32));
-    glProgramBinary(prog->shader.glprogid, static_cast<GLenum>(program_binary_type),
+    glProgramBinary(prog->shader.glprogid, program_binary_type,
                     static_cast<const u8*>(cache_data) + sizeof(u32),
                     static_cast<GLsizei>(cache_data_size - sizeof(u32)));
 

@@ -305,7 +305,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     // occasionally used as MOV - emulate, with immediate propagation
     if (a != 0 && d != a && gpr.IsImm(a))
     {
-      gpr.SetImmediate32(d, gpr.Imm32(a) + static_cast<u32>((s32)inst.SIMM_16));
+      gpr.SetImmediate32(d, gpr.Imm32(a) + static_cast<u32>(inst.SIMM_16));
     }
     else if (a != 0 && d != a && inst.SIMM_16 == 0)
     {
@@ -316,7 +316,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     }
     else
     {
-      regimmop(d, a, false, static_cast<u32>((s32)inst.SIMM_16), Add, &XEmitter::ADD);  // addi
+      regimmop(d, a, false, static_cast<u32>(inst.SIMM_16), Add, &XEmitter::ADD);  // addi
     }
     break;
   case 15:  // addis
@@ -358,10 +358,10 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     break;
   }
   case 12:  // addic
-    regimmop(d, a, false, static_cast<u32>((s32)inst.SIMM_16), Add, &XEmitter::ADD, false, true);
+    regimmop(d, a, false, static_cast<u32>(inst.SIMM_16), Add, &XEmitter::ADD, false, true);
     break;
   case 13:  // addic_rc
-    regimmop(d, a, true, static_cast<u32>((s32)inst.SIMM_16), Add, &XEmitter::ADD, true, true);
+    regimmop(d, a, true, static_cast<u32>(inst.SIMM_16), Add, &XEmitter::ADD, true, true);
     break;
   default:
     FALLBACK_IF(true);
@@ -377,11 +377,10 @@ bool Jit64::CheckMergedBranch(const u32 crf) const
     return false;
 
   const UGeckoInstruction& next = js.op[1].inst;
-  return (((next.OPCD == 16 /* bcx */) ||
-           ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
-           ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
-          (next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
-          static_cast<u32>(next.BI >> 2) == crf);
+  return (((next.OPCD == 16 /* bcx */) || ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */)
+           || ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) && (
+            next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
+            next.BI >> 2 == crf);
 }
 
 void Jit64::DoMergedBranch()
@@ -587,7 +586,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   // cmpli
   case 10:
     signedCompare = false;
-    comparand = RCOpArg::Imm32((u32)inst.UIMM);
+    comparand = RCOpArg::Imm32(inst.UIMM);
     break;
 
   // cmpi
@@ -1081,7 +1080,7 @@ void Jit64::extsXx(UGeckoInstruction inst)
 
   if (gpr.IsImm(s))
   {
-    gpr.SetImmediate32(a, static_cast<u32>((s32)(size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s))));
+    gpr.SetImmediate32(a, static_cast<u32>((size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s))));
   }
   else
   {
@@ -2756,7 +2755,7 @@ void Jit64::twX(UGeckoInstruction inst)
   {
     RCOpArg Ra = gpr.UseNoImm(a, RCMode::Read);
     RegCache::Realize(Ra);
-    CMP(32, Ra, Imm32((s32)static_cast<s16>(inst.SIMM_16)));
+    CMP(32, Ra, Imm32(static_cast<s16>(inst.SIMM_16)));
   }
   else  // tw
   {

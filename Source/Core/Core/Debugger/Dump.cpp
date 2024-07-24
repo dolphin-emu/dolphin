@@ -14,7 +14,7 @@ CDump::CDump(const std::string& filename)
   File::IOFile pStream(filename, "rb");
   if (pStream)
   {
-    m_size = (size_t)pStream.GetSize();
+    m_size = pStream.GetSize();
 
     m_pData = new u8[m_size];
 

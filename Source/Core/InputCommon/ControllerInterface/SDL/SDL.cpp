@@ -873,7 +873,7 @@ bool GameController::Button::IsMatchingName(const std::string_view name) const
 ControlState GameController::MotionInput::GetState() const
 {
   std::array<float, 3> data{};
-  SDL_GameControllerGetSensorData(m_gc, m_type, data.data(), (int)data.size());
+  SDL_GameControllerGetSensorData(m_gc, m_type, data.data(), data.size());
   return m_scale * data[m_index];
 }
 

@@ -130,7 +130,7 @@ void GeckoCodeWidget::CreateWidgets()
   layout->addWidget(m_code_description);
   layout->addWidget(m_code_view);
 
-  QHBoxLayout* btn_layout = new QHBoxLayout;
+  auto btn_layout = new QHBoxLayout;
 
   btn_layout->addWidget(m_add_code);
   btn_layout->addWidget(m_edit_code);

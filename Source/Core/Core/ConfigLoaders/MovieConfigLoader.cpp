@@ -37,9 +37,9 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, dtm->bProgressive);
   config_layer->Set(Config::SYSCONF_PAL60, dtm->bPAL60);
   if (dtm->bWii)
-    config_layer->Set(Config::SYSCONF_LANGUAGE, static_cast<u32>(dtm->language));
+    config_layer->Set(Config::SYSCONF_LANGUAGE, dtm->language);
   else
-    config_layer->Set(Config::MAIN_GC_LANGUAGE, static_cast<int>(dtm->language));
+    config_layer->Set(Config::MAIN_GC_LANGUAGE, dtm->language);
   config_layer->Set(Config::SYSCONF_WIDESCREEN, dtm->bWidescreen);
 
   config_layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, dtm->bEFBAccessEnable);

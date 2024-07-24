@@ -582,7 +582,7 @@ bool PopulateConfig(const GLContext* m_main_gl_context)
           static_assert(sizeof(GLint) == sizeof(u32));
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat, GL_SAMPLES,
                                 num_color_sample_counts,
-                                reinterpret_cast<GLint*>(color_aa_modes.data()));
+                                color_aa_modes.data());
           ASSERT_MSG(VIDEO, std::is_sorted(color_aa_modes.rbegin(), color_aa_modes.rend()),
                      "GPU driver didn't return sorted color AA modes: [{}]",
                      fmt::join(color_aa_modes, ", "));
@@ -611,7 +611,7 @@ bool PopulateConfig(const GLContext* m_main_gl_context)
           static_assert(sizeof(GLint) == sizeof(u32));
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat, GL_SAMPLES,
                                 num_depth_sample_counts,
-                                reinterpret_cast<GLint*>(depth_aa_modes.data()));
+                                depth_aa_modes.data());
           ASSERT_MSG(VIDEO, std::is_sorted(depth_aa_modes.rbegin(), depth_aa_modes.rend()),
                      "GPU driver didn't return sorted depth AA modes: [{}]",
                      fmt::join(depth_aa_modes, ", "));

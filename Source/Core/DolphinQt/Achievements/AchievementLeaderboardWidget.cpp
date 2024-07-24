@@ -57,25 +57,25 @@ void AchievementLeaderboardWidget::UpdateData(const bool clean_all)
       {
         const auto* leaderboard = leaderboard_bucket.leaderboards[board];
         m_leaderboard_order[leaderboard->id] = row;
-        QLabel* a_title = new QLabel(QString::fromUtf8(leaderboard->title));
+        auto a_title = new QLabel(QString::fromUtf8(leaderboard->title));
         a_title->setWordWrap(true);
         a_title->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-        QLabel* a_description = new QLabel(QString::fromUtf8(leaderboard->description));
+        auto a_description = new QLabel(QString::fromUtf8(leaderboard->description));
         a_description->setWordWrap(true);
         a_description->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-        QVBoxLayout* a_col_left = new QVBoxLayout();
+        auto a_col_left = new QVBoxLayout();
         a_col_left->addWidget(a_title);
         a_col_left->addWidget(a_description);
-        QFrame* a_divider = new QFrame();
+        auto a_divider = new QFrame();
         a_divider->setFrameShape(QFrame::HLine);
         m_common_layout->addWidget(a_divider, row - 1, 0);
         m_common_layout->addLayout(a_col_left, row, 0);
         for (size_t ix = 0; ix < 4; ix++)
         {
-          QVBoxLayout* a_col = new QVBoxLayout();
+          auto a_col = new QVBoxLayout();
           for (size_t jx = 0; jx < 3; jx++)
             a_col->addWidget(new QLabel(QStringLiteral("---")));
-          QFrame* a_divider_2 = new QFrame();
+          auto a_divider_2 = new QFrame();
           a_divider_2->setFrameShape(QFrame::HLine);
           m_common_layout->addWidget(a_divider_2, row - 1, static_cast<int>(ix) + 1);
           m_common_layout->addLayout(a_col, row, static_cast<int>(ix) + 1);
@@ -145,7 +145,7 @@ void AchievementLeaderboardWidget::UpdateRow(const AchievementManager::Achieveme
     const auto it = board->entries.find(to_display[ix]);
     if (it != board->entries.end())
     {
-      QVBoxLayout* a_col = new QVBoxLayout();
+      auto a_col = new QVBoxLayout();
       a_col->addWidget(new QLabel(tr("Rank %1").arg(it->second.rank)));
       a_col->addWidget(new QLabel(QString::fromStdString(it->second.username)));
       a_col->addWidget(new QLabel(QString::fromUtf8(it->second.score.data())));

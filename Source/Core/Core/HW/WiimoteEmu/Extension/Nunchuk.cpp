@@ -108,7 +108,7 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   Common::Vec3 accel =
       transformation *
       (m_swing_state.acceleration +
-       m_imu_accelerometer->GetState().value_or(Common::Vec3(0, 0, static_cast<float>(GRAVITY_ACCELERATION))));
+       m_imu_accelerometer->GetState().value_or(Common::Vec3(0, 0, GRAVITY_ACCELERATION)));
 
   // shake
   accel += m_shake_state.acceleration;

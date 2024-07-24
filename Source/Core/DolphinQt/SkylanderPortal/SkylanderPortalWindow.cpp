@@ -176,7 +176,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
     m_edit_skylanders[i] = new QLineEdit();
     m_edit_skylanders[i]->setEnabled(false);
 
-    QRadioButton* button = new QRadioButton;
+    auto button = new QRadioButton;
     m_slot_radios[i] = button;
     button->setProperty("id", i);
     hbox_skylander->addWidget(button);
@@ -251,7 +251,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
 
   for (size_t i = 0; i < m_game_filters.size(); ++i)
   {
-    QCheckBox* checkbox = new QCheckBox(this);
+    auto checkbox = new QCheckBox(this);
     checkbox->setChecked(true);
     connect(checkbox, &QCheckBox::toggled, this, &SkylanderPortalWindow::RefreshList);
     m_game_filters[i] = checkbox;
@@ -297,7 +297,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
   auto* radio_layout_right = new QVBoxLayout();
   for (int i = 0; i < NUM_SKYLANDER_ELEMENTS_RADIO; i++)
   {
-    QRadioButton* radio = new QRadioButton(this);
+    auto radio = new QRadioButton(this);
     radio->setProperty("id", i);
     if (i == 0)
     {
@@ -377,7 +377,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
   auto* radio_type_layout_right = new QVBoxLayout();
   for (int i = 0; i < NUM_SKYLANDER_TYPES; i++)
   {
-    QRadioButton* radio = new QRadioButton(this);
+    auto radio = new QRadioButton(this);
     radio->setProperty("id", i);
     if (i == 0)
     {
@@ -568,7 +568,7 @@ void SkylanderPortalWindow::LoadFromFile()
 
 void SkylanderPortalWindow::CreateSkylanderAdvanced()
 {
-  QDialog* create_window = new QDialog;
+  auto create_window = new QDialog;
 
   auto* layout = new QVBoxLayout;
 
@@ -706,7 +706,7 @@ void SkylanderPortalWindow::RefreshList() const
   m_skylander_list->clear();
   if (m_only_show_collection->isChecked())
   {
-    const QDir collection = QDir(m_collection_path);
+    const auto collection = QDir(m_collection_path);
     const auto& system = Core::System::GetInstance();
     for (const auto& file : collection.entryInfoList(
              QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")
@@ -726,7 +726,7 @@ void SkylanderPortalWindow::RefreshList() const
       if (PassesFilter(file.baseName(), ids.first, ids.second))
       {
         const uint qvar = (ids.first << 16) | ids.second;
-        QListWidgetItem* skylander = new QListWidgetItem(file.baseName());
+        auto skylander = new QListWidgetItem(file.baseName());
         if (is_dark_theme)
         {
           skylander->setBackground(GetBaseColor(ids, true));
@@ -751,7 +751,7 @@ void SkylanderPortalWindow::RefreshList() const
       if (PassesFilter(tr(entry.second.name), id, var))
       {
         const uint qvar = (entry.first.first << 16) | entry.first.second;
-        QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second.name));
+        auto skylander = new QListWidgetItem(tr(entry.second.name));
         if (is_dark_theme)
         {
           skylander->setBackground(GetBaseColor(entry.first, true));
@@ -910,7 +910,7 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
 
 QString SkylanderPortalWindow::GetFilePath(const u16 id, const u16 var) const
 {
-  const QDir collection = QDir(m_collection_path);
+  const auto collection = QDir(m_collection_path);
   const auto& system = Core::System::GetInstance();
   for (const auto& file : collection.entryInfoList(
            QStringList() << QStringLiteral("*.sky") << QStringLiteral("*.bin")

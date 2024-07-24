@@ -50,7 +50,7 @@ static constexpr Common::EnumMap<float, GammaCorrection::Invalid2_2> s_gammaLUT 
 
 void BPInit()
 {
-  memset(reinterpret_cast<u8*>(&bpmem), 0, sizeof(bpmem));
+  memset(&bpmem, 0, sizeof(bpmem));
   bpmem.bpMask = 0xFFFFFF;
 }
 

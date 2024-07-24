@@ -124,7 +124,7 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
         Config::ToGameCubeRegion(SConfig::GetInstance().m_region) == DiscIO::Region::NTSC_J;
     const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
     const u32 rtc_bias = sram.settings.rtc_bias;
-    const u32 sram_language = static_cast<u32>(sram.settings.language);
+    const u32 sram_language = sram.settings.language;
     const u64 format_time =
         Common::Timer::GetLocalTimeSinceJan1970() - CEXIIPL::GC_EPOCH;
 

@@ -69,7 +69,7 @@ bool Init()
       continue;
     }
 
-    order->Set(pack->GetManifest()->GetID(), static_cast<u64>(i));
+    order->Set(pack->GetManifest()->GetID(), i);
   }
 
   file.Save(packs_path);

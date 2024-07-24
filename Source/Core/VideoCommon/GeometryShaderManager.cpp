@@ -64,8 +64,8 @@ void GeometryShaderManager::SetConstants(const PrimitiveType prim)
       constants.stereoparams[0] = constants.stereoparams[1] = 0;
     }
 
-    constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence *
-                                        (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
+    constants.stereoparams[2] = g_ActiveConfig.iStereoConvergence *
+                                (g_ActiveConfig.iStereoConvergencePercentage / 100.0f);
 
     dirty = true;
   }

@@ -343,7 +343,7 @@ void NetPlayBrowser::SaveSettings() const
   settings.setValue(QStringLiteral("netplaybrowser/name"), m_edit_name->text());
   settings.setValue(QStringLiteral("netplaybrowser/game_id"), m_edit_game_id->text());
 
-  QString visibility(QStringLiteral("all"));
+  auto visibility(QStringLiteral("all"));
   if (m_radio_public->isChecked())
     visibility = QStringLiteral("public");
   else if (m_radio_private->isChecked())

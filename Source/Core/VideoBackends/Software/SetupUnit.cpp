@@ -22,7 +22,7 @@ void SetupUnit::Init(const OpcodeDecoder::Primitive primitive_type)
 
 OutputVertexData* SetupUnit::GetVertex() const
 {
-  memset(reinterpret_cast<u8*>(m_VertWritePointer), 0, sizeof(*m_VertWritePointer));
+  memset(m_VertWritePointer, 0, sizeof(*m_VertWritePointer));
   return m_VertWritePointer;
 }
 

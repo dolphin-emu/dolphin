@@ -44,7 +44,7 @@ struct std::hash<Core::BranchWatchCollectionKey>
 {
   std::size_t operator()(const Core::BranchWatchCollectionKey& s) const noexcept
   {
-    return std::hash<u64>{}(static_cast<const Core::FakeBranchWatchCollectionKey&>(s));
+    return std::hash<u64>{}(s);
   }
 };
 

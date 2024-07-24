@@ -228,8 +228,7 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
 
     // Copy the decrypted data
     const u64 copy_size = std::min(length, BLOCK_DATA_SIZE - data_offset_in_block);
-    memcpy(buffer, &m_last_decrypted_block_data[data_offset_in_block],
-           static_cast<size_t>(copy_size));
+    memcpy(buffer, &m_last_decrypted_block_data[data_offset_in_block], copy_size);
 
     // Update offsets
     length -= copy_size;

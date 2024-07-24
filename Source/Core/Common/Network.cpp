@@ -99,7 +99,7 @@ EthernetHeader::EthernetHeader(const MACAddress& dest, const MACAddress& src, co
 
 u16 EthernetHeader::Size() const
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 IPv4Header::IPv4Header() = default;
@@ -119,7 +119,7 @@ IPv4Header::IPv4Header(const u16 data_size, const u8 ip_proto, const sockaddr_in
 
 u16 IPv4Header::Size() const
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 u8 IPv4Header::DefinedSize() const
@@ -174,12 +174,12 @@ u8 TCPHeader::GetHeaderSize() const
 
 u16 TCPHeader::Size() const
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 u8 TCPHeader::IPProto() const
 {
-  return static_cast<u8>(IPPROTO_TCP);
+  return IPPROTO_TCP;
 }
 
 UDPHeader::UDPHeader() = default;
@@ -193,12 +193,12 @@ UDPHeader::UDPHeader(const sockaddr_in& from, const sockaddr_in& to, const u16 d
 
 u16 UDPHeader::Size() const
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 u8 UDPHeader::IPProto() const
 {
-  return static_cast<u8>(IPPROTO_UDP);
+  return IPPROTO_UDP;
 }
 
 ARPHeader::ARPHeader() = default;
@@ -218,7 +218,7 @@ ARPHeader::ARPHeader(const u32 from_ip, const MACAddress& from_mac, const u32 to
 
 u16 ARPHeader::Size() const
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 DHCPBody::DHCPBody() = default;
@@ -329,7 +329,7 @@ ARPPacket::ARPPacket() = default;
 
 u16 ARPPacket::Size() const
 {
-  return static_cast<u16>(SIZE);
+  return SIZE;
 }
 
 ARPPacket::ARPPacket(const MACAddress& destination, const MACAddress& source)

@@ -333,7 +333,7 @@ void DXTexture::Load(const u32 level, const u32 width, const u32 height, const u
   const u32 aligned_height = Common::AlignUp(height, block_size);
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {m_resource.Get(),
                                                D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-                                               {static_cast<UINT>(CalcSubresource(level, layer))}};
+                                               {(CalcSubresource(level, layer))}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       upload_buffer_resource,
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
@@ -363,11 +363,11 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
       m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      {static_cast<UINT>(CalcSubresource(dst_level, dst_layer))}};
+      {(CalcSubresource(dst_level, dst_layer))}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       src_dxtex->m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      {static_cast<UINT>(src_dxtex->CalcSubresource(src_level, src_layer))}};
+      {(src_dxtex->CalcSubresource(src_level, src_layer))}};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
   const D3D12_RESOURCE_STATES old_src_state = src_dxtex->m_state;
   src_dxtex->TransitionToState(D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -691,7 +691,7 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
         m_config.height, 1u, static_cast<UINT>(m_map_stride)}}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       src_tex->GetResource(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      static_cast<UINT>(src_tex->CalcSubresource(src_level, src_layer))};
+      (src_tex->CalcSubresource(src_level, src_layer))};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
   g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, dst_rect.left, dst_rect.top, 0,
                                                     &src_loc, &src_box);
@@ -726,7 +726,7 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   // Copy from VRAM -> host-visible memory.
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
       dst_tex->GetResource(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      static_cast<UINT>(dst_tex->CalcSubresource(dst_level, dst_layer))};
+      (dst_tex->CalcSubresource(dst_level, dst_layer))};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,

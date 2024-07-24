@@ -239,7 +239,7 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_server_name, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
   connect(m_host_server_password, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
   connect(m_host_server_region,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+          &QComboBox::currentIndexChanged, this,
           &NetPlaySetupDialog::SaveSettings);
 
 #ifdef USE_UPNP

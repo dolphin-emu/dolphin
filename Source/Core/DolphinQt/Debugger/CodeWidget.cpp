@@ -32,7 +32,7 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
-static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
+static const auto BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
     "margin-right: 10px; }");
 
@@ -153,7 +153,7 @@ void CodeWidget::CreateWidgets()
   layout->addWidget(m_branch_watch, 0, 2);
   layout->addWidget(m_code_splitter, 1, 0, -1, -1);
 
-  QWidget* widget = new QWidget(this);
+  auto widget = new QWidget(this);
   widget->setLayout(layout);
   setWidget(widget);
 }

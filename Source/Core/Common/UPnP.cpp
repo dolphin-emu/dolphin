@@ -83,7 +83,7 @@ static bool InitUPnP()
                                             static_cast<int>(s_our_ip.size()), 0, &statusCode)));
 #else
     desc_xml.reset(static_cast<char*>(miniwget_getaddr(
-        dev->descURL, &desc_xml_size, s_our_ip.data(), static_cast<int>(s_our_ip.size()), 0)));
+        dev->descURL, &desc_xml_size, s_our_ip.data(), s_our_ip.size(), 0)));
 #endif
     if (desc_xml && statusCode == 200)
     {

@@ -559,7 +559,7 @@ void CodeViewWidget::ReplaceAddress(const u32 address, const ReplaceWith replace
 
 void CodeViewWidget::OnContextMenu()
 {
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   const bool running = GetState(m_system) != Core::State::Uninitialized;

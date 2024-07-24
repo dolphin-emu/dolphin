@@ -158,7 +158,7 @@ std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core
 
 static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 {
-  std::string platform_name = static_cast<const char*>(options.get("platform"));
+  std::string platform_name = options.get("platform");
 
 #if HAVE_X11
   if (platform_name == "x11" || platform_name.empty())
@@ -239,7 +239,7 @@ int main(const int argc, char* argv[])
   }
   else if (options.is_set("nand_title"))
   {
-    const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
+    const std::string hex_string = options.get("nand_title");
     if (hex_string.length() != 16)
     {
       fprintf(stderr, "Invalid title ID\n");
@@ -264,7 +264,7 @@ int main(const int argc, char* argv[])
 
   std::string user_directory;
   if (options.is_set("user"))
-    user_directory = static_cast<const char*>(options.get("user"));
+    user_directory = options.get("user");
 
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())

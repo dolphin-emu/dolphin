@@ -169,12 +169,12 @@ public:
 
 extern "C" DSTATUS disk_status(const BYTE pdrv)
 {
-  return static_cast<DSTATUS>(s_callbacks->DiskStatus(pdrv));
+  return s_callbacks->DiskStatus(pdrv);
 }
 
 extern "C" DSTATUS disk_initialize(const BYTE pdrv)
 {
-  return static_cast<DSTATUS>(s_callbacks->DiskInitialize(pdrv));
+  return s_callbacks->DiskInitialize(pdrv);
 }
 
 extern "C" DRESULT disk_read(const BYTE pdrv, BYTE* buff, const LBA_t sector, const UINT count)
@@ -194,7 +194,7 @@ extern "C" DRESULT disk_ioctl(const BYTE pdrv, const BYTE cmd, void* buff)
 
 extern "C" DWORD get_fattime(void)
 {
-  return static_cast<DWORD>(s_callbacks->GetCurrentTimeFAT());
+  return s_callbacks->GetCurrentTimeFAT();
 }
 
 #if FF_USE_LFN == 3  // match ff.h; currently unused by Dolphin
@@ -401,7 +401,7 @@ static bool Pack(const std::function<bool()>& cancelled, const File::FSTEntry& e
       if (cancelled())
         return false;
 
-      const u32 chunk_size = static_cast<u32>(std::min(size, static_cast<u64>(tmp_buffer.size())));
+      const u32 chunk_size = static_cast<u32>(std::min(size, tmp_buffer.size()));
       if (!src.ReadBytes(tmp_buffer.data(), chunk_size))
       {
         ERROR_LOG_FMT(COMMON, "Failed to read data from file at {}", entry.physicalName);

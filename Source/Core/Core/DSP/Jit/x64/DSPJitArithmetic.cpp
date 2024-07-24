@@ -789,7 +789,7 @@ void DSPEmitter::incm(const UDSPInstruction opc)
   get_long_acc(dreg, acc);
   // const s64 res = acc + sub;
   constexpr X64Reg res = RCX;
-  LEA(64, res, MDisp(acc, static_cast<s32>(subtract)));
+  LEA(64, res, MDisp(acc, subtract));
   // SetLongAcc(dreg, res);
   set_long_acc(dreg, res);
   if (FlagsNeeded())

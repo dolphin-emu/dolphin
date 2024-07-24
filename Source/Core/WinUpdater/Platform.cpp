@@ -120,7 +120,7 @@ struct BuildInfos
 
 // This default value should be kept in sync with the value of VCToolsUpdateURL in
 // build_info.txt.in
-static const char* VCToolsUpdateURLDefault = "https://aka.ms/vs/17/release/vc_redist.x64.exe";
+static auto VCToolsUpdateURLDefault = "https://aka.ms/vs/17/release/vc_redist.x64.exe";
 #define VC_RUNTIME_REGKEY R"(SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\)"
 
 static const char* VCRuntimeRegistrySubkey()

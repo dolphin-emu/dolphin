@@ -82,7 +82,7 @@ void CheatCodeEditor::CreateWidgets()
   m_creator_label = new QLabel(tr("Creator:"));
   m_notes_label = new QLabel(tr("Notes:"));
 
-  QGridLayout* grid_layout = new QGridLayout;
+  auto grid_layout = new QGridLayout;
 
   grid_layout->addWidget(new QLabel(tr("Name:")), 0, 0);
   grid_layout->addWidget(m_name_edit, 0, 1);

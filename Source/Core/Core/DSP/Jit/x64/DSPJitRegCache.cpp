@@ -474,7 +474,7 @@ void DSPJitRegCache::PushRegs()
 void DSPJitRegCache::PopRegs()
 {
   int push_count = 0;
-  for (int i = static_cast<int>(m_xregs.size() - 1); i >= 0; i--)
+  for (int i = m_xregs.size() - 1; i >= 0; i--)
   {
     if (m_xregs[i].pushed)
     {

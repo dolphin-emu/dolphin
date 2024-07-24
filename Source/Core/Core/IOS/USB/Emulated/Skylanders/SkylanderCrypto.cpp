@@ -125,8 +125,7 @@ std::array<u8, 11> ComputeToyCode(u64 code)
 {
   if (code == 0)
   {
-    static constexpr std::array<u8, 11> invalid_code_result{
-        static_cast<u8>('N'), static_cast<u8>('/'), static_cast<u8>('A')};
+    static constexpr std::array<u8, 11> invalid_code_result{'N', '/', 'A'};
     return invalid_code_result;
   }
 

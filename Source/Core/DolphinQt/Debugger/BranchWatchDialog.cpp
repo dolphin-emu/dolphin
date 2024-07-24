@@ -281,10 +281,10 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
 
     // Menu Bar
     main_layout->setMenuBar([this]() {
-      QMenuBar* const menu_bar = new QMenuBar;
+      const auto menu_bar = new QMenuBar;
       menu_bar->setNativeMenuBar(false);
 
-      QMenu* const menu_file = new QMenu(tr("&File"), menu_bar);
+      const auto menu_file = new QMenu(tr("&File"), menu_bar);
       menu_file->addAction(tr("&Save Branch Watch"), this, &BranchWatchDialog::OnSave);
       menu_file->addAction(tr("Save Branch Watch &As..."), this, &BranchWatchDialog::OnSaveAs);
       menu_file->addAction(tr("&Load Branch Watch"), this, &BranchWatchDialog::OnLoad);
@@ -294,7 +294,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       connect(m_act_autosave, &QAction::toggled, this, &BranchWatchDialog::OnToggleAutoSave);
       menu_bar->addMenu(menu_file);
 
-      QMenu* const menu_tool = new QMenu(tr("&Tool"), menu_bar);
+      const auto menu_tool = new QMenu(tr("&Tool"), menu_bar);
       menu_tool->setToolTipsVisible(true);
       menu_tool->addAction(tr("Hide &Controls"), this, &BranchWatchDialog::OnHideShowControls)
           ->setCheckable(true);
@@ -367,7 +367,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
 
       const auto routine = [this, layout](const QString& text, const QString& tooltip, const int row,
                                           const int column, void (BranchWatchProxyModel::*slot)(bool)) {
-        QCheckBox* const check_box = new QCheckBox(text);
+        const auto check_box = new QCheckBox(text);
         check_box->setToolTip(tooltip);
         layout->addWidget(check_box, row, column);
         connect(check_box, &QCheckBox::toggled, [this, slot](const bool checked) {
@@ -406,7 +406,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       const auto routine = [this, layout](const QString& placeholder_text, const int row, const int column,
                                           const int width,
                                           void (BranchWatchProxyModel::*slot)(const QString&)) {
-        QLineEdit* const line_edit = new QLineEdit;
+        const auto line_edit = new QLineEdit;
         layout->addWidget(line_edit, row, column, 1, width);
         connect(line_edit, &QLineEdit::textChanged, [this, slot](const QString& text) {
           (m_table_proxy->*slot)(text);
@@ -439,7 +439,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
 
       const auto routine = [this, layout](const QString& text,
                                           void (BranchWatchProxyModel::*slot)(bool)) {
-        QCheckBox* const check_box = new QCheckBox(text);
+        const auto check_box = new QCheckBox(text);
         layout->addWidget(check_box);
         connect(check_box, &QCheckBox::toggled, [this, slot](const bool checked) {
           (m_table_proxy->*slot)(checked);

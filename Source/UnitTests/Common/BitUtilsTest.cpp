@@ -81,10 +81,10 @@ TEST(BitUtils, IsValidLowMask)
   EXPECT_TRUE(Common::IsValidLowMask(static_cast<u32>(~0b0)));
   EXPECT_FALSE(Common::IsValidLowMask(static_cast<u32>(~0b0 - 1)));
   EXPECT_FALSE(Common::IsValidLowMask(static_cast<u32>(~(0b10000))));
-  EXPECT_FALSE(Common::IsValidLowMask((u32)(~(static_cast<u32>(~0b0) >> 1) | 0b1111)));
+  EXPECT_FALSE(Common::IsValidLowMask(~(static_cast<u32>(~0b0) >> 1) | 0b1111));
 
   EXPECT_TRUE(Common::IsValidLowMask(static_cast<u64>(~0b0)));
   EXPECT_FALSE(Common::IsValidLowMask(static_cast<u64>(~0b0 - 1)));
   EXPECT_FALSE(Common::IsValidLowMask(static_cast<u64>(~(0b10000))));
-  EXPECT_FALSE(Common::IsValidLowMask((u64)(~(static_cast<u64>(~0b0) >> 1) | 0b1111)));
+  EXPECT_FALSE(Common::IsValidLowMask(~(static_cast<u64>(~0b0) >> 1) | 0b1111));
 }

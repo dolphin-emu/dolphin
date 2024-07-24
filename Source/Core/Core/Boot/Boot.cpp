@@ -405,7 +405,7 @@ bool CBoot::Load_BS2(const Core::System& system, const std::string& boot_rom_fil
     if (!file)
       return false;
 
-    data.resize(static_cast<size_t>(std::min<u64>(file.GetSize(), max_ipl_size)));
+    data.resize(std::min<u64>(file.GetSize(), max_ipl_size));
     if (!file.ReadArray(data.data(), data.size()))
       return false;
   }

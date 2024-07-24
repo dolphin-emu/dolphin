@@ -191,7 +191,7 @@ bool EmuCodeBlock::UnsafeLoadToReg(const X64Reg reg_value, OpArg opAddress, cons
   }
   else if (opAddress.IsImm())
   {
-    MOV(32, R(reg_value), Imm32((u32)(opAddress.Imm32() + offset)));
+    MOV(32, R(reg_value), Imm32(opAddress.Imm32() + offset));
     memOperand = MRegSum(RMEM, reg_value);
   }
   else

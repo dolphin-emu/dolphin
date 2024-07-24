@@ -29,10 +29,10 @@ constexpr int DETERMINISM_AUTO_INDEX = 1;
 constexpr int DETERMINISM_NONE_INDEX = 2;
 constexpr int DETERMINISM_FAKE_COMPLETION_INDEX = 3;
 
-constexpr const char* DETERMINISM_NOT_SET_STRING = "";
-constexpr const char* DETERMINISM_AUTO_STRING = "auto";
-constexpr const char* DETERMINISM_NONE_STRING = "none";
-constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
+constexpr auto DETERMINISM_NOT_SET_STRING = "";
+constexpr auto DETERMINISM_AUTO_STRING = "auto";
+constexpr auto DETERMINISM_NONE_STRING = "none";
+constexpr auto DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
 static void PopulateTab(QTabWidget* tab, const std::string& path, const std::string& game_id,
                         u16 revision, const bool read_only)

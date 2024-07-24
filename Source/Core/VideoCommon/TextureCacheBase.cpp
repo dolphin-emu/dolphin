@@ -945,10 +945,10 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
         // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
         // The backend doesn't do any clamping, so if we don't, we'd pass out-of-range coordinates
         // to the graphics driver, which can cause GPU resets.
-        if (static_cast<u32>(src_x + copy_width) > entry->GetWidth() ||
-            static_cast<u32>(src_y + copy_height) > entry->GetHeight() ||
-            static_cast<u32>(dst_x + copy_width) > entry_to_update->GetWidth() ||
-            static_cast<u32>(dst_y + copy_height) > entry_to_update->GetHeight())
+        if (src_x + copy_width > entry->GetWidth() ||
+            src_y + copy_height > entry->GetHeight() ||
+            dst_x + copy_width > entry_to_update->GetWidth() ||
+            dst_y + copy_height > entry_to_update->GetHeight())
         {
           ++iter.first;
           continue;

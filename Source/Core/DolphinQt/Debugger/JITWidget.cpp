@@ -105,7 +105,7 @@ void JITWidget::CreateWidgets()
   m_asm_splitter->addWidget(m_ppc_asm_widget);
   m_asm_splitter->addWidget(m_host_asm_widget);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(2, 2, 2, 2);
   widget->setLayout(layout);

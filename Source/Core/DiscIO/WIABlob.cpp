@@ -1180,7 +1180,7 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, const u64 bytes_pe
         std::min(Common::AlignUp(data_offset + 1, VolumeWii::BLOCK_TOTAL_SIZE) - data_offset,
                  total_size - position);
 
-    const size_t data_offset_mod = static_cast<size_t>(data_offset % VolumeWii::BLOCK_TOTAL_SIZE);
+    const size_t data_offset_mod = data_offset % VolumeWii::BLOCK_TOTAL_SIZE;
 
     Seed seed;
     const size_t bytes_reconstructed = LaggedFibonacciGenerator::GetSeed(
@@ -1439,7 +1439,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
               ASSERT(hash_offset <= std::numeric_limits<u16>::max());
 
               HashExceptionEntry& exception = exception_lists[exception_list_index].emplace_back();
-              exception.offset = static_cast<u16>(Common::swap16(hash_offset));
+              exception.offset = Common::swap16(hash_offset);
               std::memcpy(exception.hash.data(), desired_hash, Common::SHA1::DIGEST_LEN);
             }
           };

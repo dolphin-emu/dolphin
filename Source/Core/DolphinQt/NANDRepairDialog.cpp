@@ -30,9 +30,9 @@ NANDRepairDialog::NANDRepairDialog(const WiiUtils::NANDCheckResult& result, QWid
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
-  QVBoxLayout* main_layout = new QVBoxLayout();
+  auto main_layout = new QVBoxLayout();
 
-  QLabel* damaged_label =
+  auto damaged_label =
       new QLabel(tr("The emulated NAND is damaged. System titles such as the Wii Menu and "
                     "the Wii Shop Channel may not work correctly."));
   damaged_label->setWordWrap(true);
@@ -40,7 +40,7 @@ NANDRepairDialog::NANDRepairDialog(const WiiUtils::NANDCheckResult& result, QWid
 
   if (!result.titles_to_remove.empty())
   {
-    QLabel* warning_label =
+    auto warning_label =
         new QLabel(tr("WARNING: Fixing this NAND requires the deletion of titles that have "
                       "incomplete data on the NAND, including all associated save data. "
                       "By continuing, the following title(s) will be removed:"));
@@ -74,26 +74,26 @@ NANDRepairDialog::NANDRepairDialog(const WiiUtils::NANDCheckResult& result, QWid
       title_listings += "\n";
     }
 
-    QPlainTextEdit* title_box = new QPlainTextEdit(QString::fromStdString(title_listings));
+    auto title_box = new QPlainTextEdit(QString::fromStdString(title_listings));
     title_box->setReadOnly(true);
     main_layout->addWidget(title_box);
 
-    QLabel* maybe_fix_label = new QLabel(tr("Launching these titles may also fix the issues."));
+    auto maybe_fix_label = new QLabel(tr("Launching these titles may also fix the issues."));
     maybe_fix_label->setWordWrap(true);
     main_layout->addWidget(maybe_fix_label);
   }
 
-  QLabel* question_label = new QLabel(tr("Do you want to try to repair the NAND?"));
+  auto question_label = new QLabel(tr("Do you want to try to repair the NAND?"));
   question_label->setWordWrap(true);
   main_layout->addWidget(question_label);
 
-  QDialogButtonBox* button_box = new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No);
+  auto button_box = new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No);
   main_layout->addWidget(button_box);
 
-  QHBoxLayout* top_layout = new QHBoxLayout();
+  auto top_layout = new QHBoxLayout();
 
   QIcon icon = QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning);
-  QLabel* icon_label = new QLabel;
+  auto icon_label = new QLabel;
   icon_label->setPixmap(icon.pixmap(100));
   icon_label->setAlignment(Qt::AlignTop);
   top_layout->addWidget(icon_label);

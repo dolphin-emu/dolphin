@@ -282,7 +282,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
   RegCache::Realize(Rd, Ra, Rarg2);
 
-  X64Reg dest = static_cast<X64Reg>(Rd);
+  X64Reg dest = Rd;
   if (preserve_inputs && (a == d || arg2 == d))
     dest = XMM1;
   if (round_rhs)
@@ -733,8 +733,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   UGeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
       CanMergeNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
-      static_cast<u32>(next.CRBA >> 2) == crf && static_cast<u32>(next.CRBB >> 2) == crf &&
-      static_cast<u32>(next.CRBD >> 2) == crf)
+      next.CRBA >> 2 == crf && next.CRBB >> 2 == crf && next.CRBD >> 2 == crf)
   {
     js.skipInstructions = 1;
     js.downcountAmount++;

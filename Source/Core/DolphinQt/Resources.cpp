@@ -32,7 +32,7 @@ QIcon Resources::LoadNamedIcon(const std::string_view name, const QString& dir)
   QIcon icon;
 
   auto load_png = [&](const int scale) {
-    QString suffix = QStringLiteral(".png");
+    auto suffix = QStringLiteral(".png");
     if (scale > 1)
       suffix = QString::fromLatin1("@%1x.png").arg(scale);
 

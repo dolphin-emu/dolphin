@@ -745,7 +745,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(BuiltInBBAInterface* s
 
     if (datasize > 0)
     {
-      u8* buffer = reinterpret_cast<u8*>(self->m_eth_ref->mRecvBuffer.get());
+      u8* buffer = self->m_eth_ref->mRecvBuffer.get();
       Common::PacketView packet(buffer, datasize);
       const auto packet_type = packet.GetEtherType();
       if (packet_type.has_value() && packet_type == Common::IPV4_ETHERTYPE)

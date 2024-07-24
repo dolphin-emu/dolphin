@@ -275,8 +275,8 @@ bool Gfx::IsFullscreen() const
 
 SurfaceInfo Gfx::GetSurfaceInfo() const
 {
-  return {m_swap_chain ? static_cast<u32>(m_swap_chain->GetWidth()) : 0,
-          m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0, m_backbuffer_scale,
+  return {m_swap_chain ? m_swap_chain->GetWidth() : 0,
+          m_swap_chain ? m_swap_chain->GetHeight() : 0, m_backbuffer_scale,
           m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined};
 }
 

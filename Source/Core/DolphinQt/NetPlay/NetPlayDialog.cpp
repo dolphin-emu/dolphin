@@ -676,7 +676,7 @@ void NetPlayDialog::UpdateGUI()
     for (auto* item : {name_item, status_item, ping_item, mapping_item, revision_item})
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      item->setData(Qt::UserRole, static_cast<int>(p->pid));
+      item->setData(Qt::UserRole, p->pid);
     }
 
     m_players_list->setItem(i, 0, name_item);
@@ -805,8 +805,8 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
 
   if (g_ActiveConfig.bShowNetPlayMessages && IsRunning(Core::System::GetInstance()))
     g_netplay_chat_ui->AppendChat(msg.toStdString(),
-                                  {static_cast<float>(c.redF()), static_cast<float>(c.greenF()),
-                                   static_cast<float>(c.blueF())});
+                                  {(c.redF()), (c.greenF()),
+                                   (c.blueF())});
 }
 
 void NetPlayDialog::AppendChat(const std::string& msg)

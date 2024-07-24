@@ -421,11 +421,11 @@ void AssemblerWidget::CreateWidgets()
   output_extra_layout->addWidget(m_output_type);
   output_extra_layout->addWidget(m_copy_output_button);
 
-  QWidget* address_input_box = new QWidget();
+  auto address_input_box = new QWidget();
   address_input_box->setLayout(addr_input_layout);
   addr_input_layout->setContentsMargins(0, 0, 0, 0);
 
-  QWidget* output_extra_box = new QWidget();
+  auto output_extra_box = new QWidget();
   output_extra_box->setFixedWidth(output_area_width);
   output_extra_box->setLayout(output_extra_layout);
   output_extra_layout->setContentsMargins(0, 0, 0, 0);
@@ -462,7 +462,7 @@ void AssemblerWidget::CreateWidgets()
         QSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
   }
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(assembler_layout);
   setWidget(widget);
 }
@@ -497,7 +497,7 @@ void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out) const
   }
   const AsmEditor* active_editor = GetEditor(m_asm_tabs->currentIndex());
 
-  AsmKind kind = AsmKind::Raw;
+  auto kind = AsmKind::Raw;
   m_error_box->clear();
   m_output_box->clear();
   switch (m_output_type->currentIndex())
@@ -724,7 +724,7 @@ AsmEditor* AssemblerWidget::GetEditor(const int idx) const
 
 void AssemblerWidget::NewEditor(const QString& path)
 {
-  AsmEditor* new_editor =
+  auto new_editor =
       new AsmEditor(path, path.isEmpty() ? AllocateTabNum() : INVALID_EDITOR_NUM, m_dark_scheme);
   if (!path.isEmpty() && !new_editor->LoadFromPath())
   {
@@ -736,7 +736,7 @@ void AssemblerWidget::NewEditor(const QString& path)
 
   const int tab_idx = m_asm_tabs->addTab(new_editor, QStringLiteral());
   new_editor->connect(new_editor, &AsmEditor::PathChanged, this, [this] {
-    AsmEditor* updated_tab = qobject_cast<AsmEditor*>(sender());
+    auto updated_tab = qobject_cast<AsmEditor*>(sender());
     DisambiguateTabTitles(updated_tab);
     UpdateTabText(updated_tab);
   });

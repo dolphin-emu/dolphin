@@ -2558,7 +2558,7 @@ static std::string SHA1Sum(const std::string& file_path, std::function<bool(int)
 
   while (read_offset < game_size)
   {
-    const size_t read_size = std::min(static_cast<u64>(data.size()), game_size - read_offset);
+    const size_t read_size = std::min(data.size(), game_size - read_offset);
     if (!file->Read(read_offset, read_size, data.data()))
       return "";
 

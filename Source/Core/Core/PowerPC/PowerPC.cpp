@@ -294,8 +294,7 @@ void PowerPCManager::ScheduleInvalidateCacheThreadSafe(const u32 address)
   }
   else
   {
-    m_ppc_state.iCache.Invalidate(m_system.GetMemory(), m_system.GetJitInterface(),
-                                  static_cast<u32>(address));
+    m_ppc_state.iCache.Invalidate(m_system.GetMemory(), m_system.GetJitInterface(), address);
   }
 }
 

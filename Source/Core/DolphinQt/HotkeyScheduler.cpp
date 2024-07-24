@@ -47,7 +47,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
+constexpr auto DUBOIS_ALGORITHM_SHADER = "dubois";
 
 HotkeyScheduler::HotkeyScheduler() : m_stop_requested(false)
 {
@@ -675,7 +675,7 @@ void HotkeyScheduler::CheckDebuggingHotkeys()
 void HotkeyScheduler::CheckGBAHotkeys()
 {
 #ifdef HAS_LIBMGBA
-  GBAWidget* gba_widget = qobject_cast<GBAWidget*>(QApplication::activeWindow());
+  auto gba_widget = qobject_cast<GBAWidget*>(QApplication::activeWindow());
   if (!gba_widget)
     return;
 

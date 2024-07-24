@@ -505,7 +505,7 @@ void DXContext::ExecuteCommandList(const bool wait_for_completion)
   HRESULT hr = res.command_list->Close();
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to close command list: {}", DX12HRWrap(hr));
   const std::array<ID3D12CommandList*, 1> execute_lists{res.command_list.Get()};
-  m_command_queue->ExecuteCommandLists(static_cast<UINT>(execute_lists.size()),
+  m_command_queue->ExecuteCommandLists(execute_lists.size(),
                                        execute_lists.data());
 
   // Update fence when GPU has completed.

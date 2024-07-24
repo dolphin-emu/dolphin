@@ -44,7 +44,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   setWindowTitle(tr("Convert"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  QGridLayout* grid_layout = new QGridLayout;
+  auto grid_layout = new QGridLayout;
   grid_layout->setColumnStretch(1, 1);
 
   m_format = new QComboBox;
@@ -76,15 +76,15 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 4, 0);
   grid_layout->addWidget(m_scrub, 4, 1);
 
-  QPushButton* convert_button = new QPushButton(tr("Convert..."));
+  auto convert_button = new QPushButton(tr("Convert..."));
 
-  QVBoxLayout* options_layout = new QVBoxLayout;
+  auto options_layout = new QVBoxLayout;
   options_layout->addLayout(grid_layout);
   options_layout->addWidget(convert_button);
-  QGroupBox* options_group = new QGroupBox(tr("Options"));
+  auto options_group = new QGroupBox(tr("Options"));
   options_group->setLayout(options_layout);
 
-  QLabel* info_text = new QLabel(
+  auto info_text = new QLabel(
       tr("ISO: A simple and robust format which is supported by many programs. It takes up more "
          "space than any other format.\n\n"
          "GCZ: A basic compressed format which is compatible with most versions of Dolphin and "
@@ -97,12 +97,12 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
          "It can efficiently compress both junk data and encrypted Wii data."));
   info_text->setWordWrap(true);
 
-  QVBoxLayout* info_layout = new QVBoxLayout;
+  auto info_layout = new QVBoxLayout;
   info_layout->addWidget(info_text);
-  QGroupBox* info_group = new QGroupBox(tr("Info"));
+  auto info_group = new QGroupBox(tr("Info"));
   info_group->setLayout(info_layout);
 
-  QVBoxLayout* main_layout = new QVBoxLayout;
+  auto main_layout = new QVBoxLayout;
   main_layout->addWidget(options_group);
   main_layout->addWidget(info_group);
 
@@ -140,7 +140,7 @@ void ConvertDialog::AddToCompressionLevelComboBox(const int level) const
 
 void ConvertDialog::OnFormatChanged()
 {
-  const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
+  const auto format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
 
   m_block_size->clear();
   m_compression->clear();
@@ -291,9 +291,9 @@ bool ConvertDialog::ShowAreYouSureDialog(const QString& text) const
 
 void ConvertDialog::Convert()
 {
-  const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
+  const auto format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
   const int block_size = m_block_size->currentData().toInt();
-  const DiscIO::WIARVZCompressionType compression =
+  const auto compression =
       static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
   const int compression_level = m_compression_level->currentData().toInt();
   const bool scrub = m_scrub->isChecked();
@@ -399,7 +399,7 @@ void ConvertDialog::Convert()
           QDir(dst_dir)
               .absoluteFilePath(QFileInfo(QString::fromStdString(original_path)).completeBaseName())
               .append(extension);
-      QFileInfo dst_info = QFileInfo(dst_path);
+      auto dst_info = QFileInfo(dst_path);
       if (dst_info.exists())
       {
         ModalMessageBox confirm_replace(this);

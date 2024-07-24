@@ -42,9 +42,9 @@ constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
 constexpr int AUTO_UPDATE_BETA_INDEX = 1;
 constexpr int AUTO_UPDATE_DEV_INDEX = 2;
 
-constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
-constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
-constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
+constexpr auto AUTO_UPDATE_DISABLE_STRING = "";
+constexpr auto AUTO_UPDATE_BETA_STRING = "beta";
+constexpr auto AUTO_UPDATE_DEV_STRING = "dev";
 
 constexpr int FALLBACK_REGION_NTSCJ_INDEX = 0;
 constexpr int FALLBACK_REGION_NTSCU_INDEX = 1;
@@ -305,7 +305,7 @@ static QString UpdateTrackFromIndex(const int index)
 
 static DiscIO::Region UpdateFallbackRegionFromIndex(const int index)
 {
-  DiscIO::Region value = DiscIO::Region::Unknown;
+  auto value = DiscIO::Region::Unknown;
 
   switch (index)
   {

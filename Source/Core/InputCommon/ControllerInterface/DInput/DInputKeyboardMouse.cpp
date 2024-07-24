@@ -39,7 +39,7 @@ public:
 
   ControlState GetState() const override
   {
-    return static_cast<ControlState>(m_state.GetValue().data[m_index] * m_scale);
+    return m_state.GetValue().data[m_index] * m_scale;
   }
 
 private:

@@ -207,7 +207,7 @@ static void ReadThreadFunc()
 
     int payload_size = 0;
     int error = libusb_interrupt_transfer(s_handle, s_endpoint_in, input_buffer.data(),
-                                          static_cast<int>(input_buffer.size()), &payload_size, USB_TIMEOUT_MS);
+                                          input_buffer.size(), &payload_size, USB_TIMEOUT_MS);
     if (error != LIBUSB_SUCCESS)
     {
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "Read: libusb_interrupt_transfer failed: {}",

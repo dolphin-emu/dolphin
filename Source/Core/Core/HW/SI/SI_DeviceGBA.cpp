@@ -154,7 +154,7 @@ void GBASockServer::ClockSync(const Core::System& system)
   {
     s_num_connected++;
     m_last_time_slice = core_timing.GetTicks();
-    time_slice = (u32)(system.GetSystemTimers().GetTicksPerSecond() / 60);
+    time_slice = system.GetSystemTimers().GetTicksPerSecond() / 60;
   }
   else
   {

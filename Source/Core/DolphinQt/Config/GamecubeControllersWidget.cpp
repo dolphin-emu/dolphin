@@ -162,7 +162,7 @@ void GamecubeControllersWidget::OnGCPadConfigure(const size_t index)
     return;
   }
 
-  MappingWindow* window = new MappingWindow(this, type, static_cast<int>(index));
+  auto window = new MappingWindow(this, type, static_cast<int>(index));
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   SetQWidgetWindowDecorations(window);

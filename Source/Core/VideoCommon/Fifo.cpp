@@ -220,7 +220,7 @@ void FifoManager::ReadDataFromFifo(const u32 read_ptr)
       static_cast<size_t>(m_video_buffer + FIFO_SIZE - m_video_buffer_write_ptr))
   {
     const size_t existing_len = m_video_buffer_write_ptr - m_video_buffer_read_ptr;
-    if (GPFifo::GATHER_PIPE_SIZE > static_cast<size_t>(FIFO_SIZE - existing_len))
+    if (GPFifo::GATHER_PIPE_SIZE > FIFO_SIZE - existing_len)
     {
       PanicAlertFmt("FIFO out of bounds (existing {} + new {} > {})", existing_len,
                     GPFifo::GATHER_PIPE_SIZE, FIFO_SIZE);
@@ -258,7 +258,7 @@ void FifoManager::ReadDataFromFifoOnCPU(const u32 read_ptr)
     }
     write_ptr = m_video_buffer_write_ptr;
     const size_t existing_len = write_ptr - m_video_buffer_pp_read_ptr;
-    if (GPFifo::GATHER_PIPE_SIZE > static_cast<size_t>(FIFO_SIZE - existing_len))
+    if (GPFifo::GATHER_PIPE_SIZE > FIFO_SIZE - existing_len)
     {
       PanicAlertFmt("FIFO out of bounds (existing {} + new {} > {})", existing_len,
                     GPFifo::GATHER_PIPE_SIZE, FIFO_SIZE);

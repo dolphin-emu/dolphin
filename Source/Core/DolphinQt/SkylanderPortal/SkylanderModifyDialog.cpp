@@ -24,7 +24,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
 {
   bool should_show = true;
 
-  QVBoxLayout* layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout;
 
   IOS::HLE::USB::Skylander* skylander =
       Core::System::GetInstance().GetSkylanderPortal().GetSkylander(slot);
@@ -33,7 +33,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   m_figure_data = m_figure->GetData();
 
   auto* hbox_name = new QHBoxLayout;
-  QString name = QString();
+  auto name = QString();
 
   if ((m_figure_data.skylander_data.nickname[0] != 0x00 &&
        m_figure_data.normalized_type == IOS::HLE::USB::Type::Skylander))

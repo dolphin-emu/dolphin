@@ -58,7 +58,7 @@ static LONG NTAPI Handler(const PEXCEPTION_POINTERS pPtrs)
     }
 
     // virtual address of the inaccessible data
-    const uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
+    const uintptr_t fault_address = pPtrs->ExceptionRecord->ExceptionInformation[1];
     SContext* ctx = pPtrs->ContextRecord;
 
     if (Core::System::GetInstance().GetJitInterface().HandleFault(fault_address, ctx))

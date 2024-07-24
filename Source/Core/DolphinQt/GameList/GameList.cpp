@@ -370,7 +370,7 @@ void GameList::ShowContextMenu(const QPoint&)
     return;
   auto& system = Core::System::GetInstance();
 
-  QMenu* menu = new QMenu(this);
+  auto menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
   if (HasMultipleSelected())
@@ -441,8 +441,8 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)
     {
-      QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
-      QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
+      auto wad_install_action = new QAction(tr("Install to the NAND"), menu);
+      auto wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
 
       connect(wad_install_action, &QAction::triggered, this, &GameList::InstallWAD);
       connect(wad_uninstall_action, &QAction::triggered, this, &GameList::UninstallWAD);
@@ -524,7 +524,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addSeparator();
 
-    QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
+    auto netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
     connect(netplay_host, &QAction::triggered, [this, game] { emit NetPlayHost(*game); });
 
@@ -545,7 +545,7 @@ void GameList::OpenProperties()
   if (!game)
     return;
 
-  PropertiesDialog* properties = new PropertiesDialog(this, *game);
+  auto properties = new PropertiesDialog(this, *game);
   // Since the properties dialog locks the game file, it's important to free it as soon as it's
   // closed so that the file can be moved or deleted.
   properties->setAttribute(Qt::WA_DeleteOnClose, true);

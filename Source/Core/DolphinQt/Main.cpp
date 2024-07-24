@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
   }
   else if (options.is_set("nand_title"))
   {
-    const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
+    const std::string hex_string = options.get("nand_title");
     if (hex_string.length() == 16)
     {
       const u64 title_id = std::stoull(hex_string, nullptr, 16);

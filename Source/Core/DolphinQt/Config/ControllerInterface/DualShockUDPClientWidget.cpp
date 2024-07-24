@@ -40,7 +40,7 @@ void DualShockUDPClientWidget::CreateWidgets()
   m_remove_server = new NonDefaultQPushButton(tr("Remove"));
   m_remove_server->setEnabled(m_servers_enabled->isChecked());
 
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
   hlayout->addStretch();
   hlayout->addWidget(m_add_server);
   hlayout->addWidget(m_remove_server);
@@ -100,7 +100,7 @@ void DualShockUDPClientWidget::RefreshServerList()
     if (server_info.size() < 3)
       continue;
 
-    QListWidgetItem* list_item = new QListWidgetItem(QString::fromStdString(
+    auto list_item = new QListWidgetItem(QString::fromStdString(
         fmt::format("{}:{} - {}", server_info[1], server_info[2], server_info[0])));
     m_server_list->addItem(list_item);
   }

@@ -28,7 +28,7 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 {
   m_volume = DiscIO::CreateVolume(m_game.GetFilePath());
 
-  QVBoxLayout* layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout();
 
   layout->addWidget(CreateFileDetails());
   layout->addWidget(CreateGameDetails());
@@ -43,8 +43,8 @@ InfoWidget::~InfoWidget() = default;
 
 QGroupBox* InfoWidget::CreateFileDetails()
 {
-  QGroupBox* group = new QGroupBox(tr("File Details"));
-  QFormLayout* layout = new QFormLayout;
+  auto group = new QGroupBox(tr("File Details"));
+  auto layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
@@ -84,8 +84,8 @@ QGroupBox* InfoWidget::CreateGameDetails()
 {
   const QString UNKNOWN_NAME = tr("Unknown");
 
-  QGroupBox* group = new QGroupBox(tr("Game Details"));
-  QFormLayout* layout = new QFormLayout;
+  auto group = new QGroupBox(tr("Game Details"));
+  auto layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
@@ -143,8 +143,8 @@ QGroupBox* InfoWidget::CreateGameDetails()
 
 QGroupBox* InfoWidget::CreateBannerDetails()
 {
-  QGroupBox* group = new QGroupBox(tr("Banner Details"));
-  QFormLayout* layout = new QFormLayout;
+  auto group = new QGroupBox(tr("Banner Details"));
+  auto layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
@@ -175,12 +175,12 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 
 QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
 {
-  QWidget* widget = new QWidget();
-  QHBoxLayout* layout = new QHBoxLayout();
+  auto widget = new QWidget();
+  auto layout = new QHBoxLayout();
 
-  QLabel* banner = new QLabel();
+  auto banner = new QLabel();
   banner->setPixmap(image);
-  QPushButton* save = new QPushButton(tr("Save as..."));
+  auto save = new QPushButton(tr("Save as..."));
   connect(save, &QPushButton::clicked, this, &InfoWidget::SaveBanner);
 
   layout->addWidget(banner);
@@ -198,7 +198,7 @@ void InfoWidget::SaveBanner()
 
 QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
 {
-  QLineEdit* value_display = new QLineEdit(value, this);
+  auto value_display = new QLineEdit(value, this);
   value_display->setReadOnly(true);
   value_display->setCursorPosition(0);
   return value_display;
@@ -230,7 +230,7 @@ void InfoWidget::CreateLanguageSelector()
 
 void InfoWidget::ChangeLanguage() const
 {
-  const DiscIO::Language language =
+  const auto language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());
 
   if (m_name)

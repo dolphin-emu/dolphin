@@ -1551,7 +1551,7 @@ void* ZeldaAudioRenderer::GetARAMPtr(const u32 offset) const
   if (m_system.IsWii())
     return HLEMemory_Get_Pointer(m_system.GetMemory(), m_aram_base_addr + offset);
   else
-    return reinterpret_cast<u8*>(m_system.GetDSP().GetARAMPtr()) + offset;
+    return m_system.GetDSP().GetARAMPtr() + offset;
 }
 
 template <typename T>

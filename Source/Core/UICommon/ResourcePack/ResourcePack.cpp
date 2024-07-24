@@ -203,7 +203,7 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
-    const size_t data_size = static_cast<size_t>(texture_info.uncompressed_size);
+    const size_t data_size = texture_info.uncompressed_size;
     auto data = std::make_unique<u8[]>(data_size);
     if (!Common::ReadFileFromZip(file, data.get(), data_size))
     {

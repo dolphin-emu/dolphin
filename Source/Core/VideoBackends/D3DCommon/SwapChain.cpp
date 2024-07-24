@@ -302,7 +302,7 @@ bool SwapChain::Present()
   if (m_allow_tearing_supported && !g_ActiveConfig.bVSyncActive && !m_has_fullscreen)
     present_flags |= DXGI_PRESENT_ALLOW_TEARING;
 
-  const HRESULT hr = m_swap_chain->Present(static_cast<UINT>(g_ActiveConfig.bVSyncActive), present_flags);
+  const HRESULT hr = m_swap_chain->Present(g_ActiveConfig.bVSyncActive, present_flags);
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "Swap chain present failed: {}", Common::HRWrap(hr));

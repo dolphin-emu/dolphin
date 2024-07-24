@@ -681,7 +681,7 @@ IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request) cons
                    memory.Read_U8(request.buffer_in + 8 + 3));
 
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_INETNTOP {}", ip_s);
-  memory.CopyToEmu(request.buffer_out, reinterpret_cast<u8*>(ip_s), std::strlen(ip_s));
+  memory.CopyToEmu(request.buffer_out, ip_s, std::strlen(ip_s));
   return IPCReply(0);
 }
 
@@ -892,7 +892,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
       if (RetVal == NO_ERROR)
       {
         unsigned long dwBestIfIndex = 0;
-        const IPAddr dwDestAddr = static_cast<IPAddr>(default_main_dns_resolver);
+        const IPAddr dwDestAddr = default_main_dns_resolver;
         // If successful, output some information from the data we received
         PIP_ADAPTER_ADDRESSES AdapterList = AdapterAddresses;
         if (GetBestInterface(dwDestAddr, &dwBestIfIndex) == NO_ERROR)

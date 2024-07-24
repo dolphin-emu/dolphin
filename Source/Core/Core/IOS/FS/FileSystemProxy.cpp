@@ -211,7 +211,7 @@ FSCore::ScopedFd FSCore::Open(const Uid uid, const Gid gid, const std::string& p
 
 std::optional<IPCReply> FSDevice::Close(const u32 fd)
 {
-  return MakeIPCReply([&](const Ticks t) { return m_core.Close(static_cast<u64>(fd), t); });
+  return MakeIPCReply([&](const Ticks t) { return m_core.Close(fd, t); });
 }
 
 s32 FSCore::Close(const u64 fd, const Ticks ticks)

@@ -30,14 +30,14 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
     return;
 
   m_badge = new QLabel();
-  QLabel* title = new QLabel(QString::fromUtf8(achievement->title, strlen(achievement->title)));
+  auto title = new QLabel(QString::fromUtf8(achievement->title, strlen(achievement->title)));
   title->setWordWrap(true);
   title->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  QLabel* description =
+  auto description =
       new QLabel(QString::fromUtf8(achievement->description, strlen(achievement->description)));
   description->setWordWrap(true);
   description->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  QLabel* points = new QLabel(tr("%1 points").arg(achievement->points));
+  auto points = new QLabel(tr("%1 points").arg(achievement->points));
   m_status = new QLabel();
   m_progress_bar = new QProgressBar();
   QSizePolicy sp_retain = m_progress_bar->sizePolicy();
@@ -47,22 +47,22 @@ AchievementBox::AchievementBox(QWidget* parent, rc_client_achievement_t* achieve
   m_progress_label->setStyleSheet(QStringLiteral("background-color:transparent;"));
   m_progress_label->setAlignment(Qt::AlignCenter);
 
-  QVBoxLayout* a_col_left = new QVBoxLayout();
+  auto a_col_left = new QVBoxLayout();
   a_col_left->addSpacerItem(new QSpacerItem(0, 0));
   a_col_left->addWidget(m_badge);
   a_col_left->addSpacerItem(new QSpacerItem(0, 0));
   a_col_left->setSizeConstraint(QLayout::SetFixedSize);
   a_col_left->setAlignment(Qt::AlignCenter);
-  QVBoxLayout* a_col_right = new QVBoxLayout();
+  auto a_col_right = new QVBoxLayout();
   a_col_right->addWidget(title);
   a_col_right->addWidget(description);
   a_col_right->addWidget(points);
   a_col_right->addWidget(m_status);
   a_col_right->addWidget(m_progress_bar);
-  QVBoxLayout* a_prog_layout = new QVBoxLayout(m_progress_bar);
+  auto a_prog_layout = new QVBoxLayout(m_progress_bar);
   a_prog_layout->setContentsMargins(0, 0, 0, 0);
   a_prog_layout->addWidget(m_progress_label);
-  QHBoxLayout* a_total = new QHBoxLayout();
+  auto a_total = new QHBoxLayout();
   a_total->addLayout(a_col_left);
   a_total->addLayout(a_col_right);
   setLayout(a_total);

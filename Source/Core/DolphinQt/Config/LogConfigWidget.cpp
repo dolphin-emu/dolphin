@@ -89,7 +89,7 @@ void LogConfigWidget::CreateWidgets()
   types_layout->addWidget(m_types_toggle);
   types_layout->addWidget(m_types_list);
 
-  QWidget* widget = new QWidget;
+  auto widget = new QWidget;
   widget->setLayout(layout);
 
   setWidget(widget);

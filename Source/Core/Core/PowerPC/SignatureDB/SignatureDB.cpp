@@ -129,7 +129,7 @@ void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symb
     {
       // Found the function. Let's rename it according to the symbol file.
       function->Rename(entry.second.name);
-      if (entry.second.size == static_cast<unsigned int>(function->size))
+      if (entry.second.size == function->size)
       {
         INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", entry.second.name,
                      function->address, function->size);

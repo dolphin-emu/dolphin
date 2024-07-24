@@ -37,7 +37,7 @@ u16 SelectWifiChannel(const u16 enabled_channels_mask, const u16 current_channel
       return next_channel;
   }
   // This does not make a lot of sense, but it is what WD does.
-  return static_cast<u16>(enabled_channels[next_channel]);
+  return enabled_channels[next_channel];
 }
 
 u16 MakeNitroAllowedChannelMask(const u16 enabled_channels_mask, u16 nitro_mask)
@@ -275,7 +275,7 @@ IPCReply NetWDCommandDevice::GetLinkState(const IOCtlVRequest& request) const
     return IPCReply(static_cast<u32>(ResultCode::UnavailableCommand));
 
   // Contrary to what the name of the ioctl suggests, this returns a boolean, not the current state.
-  return IPCReply(static_cast<u32>(m_status == GetTargetStatusForMode(m_mode)));
+  return IPCReply(m_status == GetTargetStatusForMode(m_mode));
 }
 
 IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request) const

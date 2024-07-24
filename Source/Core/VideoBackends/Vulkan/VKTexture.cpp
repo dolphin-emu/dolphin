@@ -854,8 +854,8 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
   VkBufferImageCopy image_copy = {};
   const VkImageAspectFlags aspect = VKTexture::GetImageViewAspectForFormat(src_tex->GetFormat());
   image_copy.bufferOffset =
-      static_cast<VkDeviceSize>(static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
-                                static_cast<size_t>(dst_rect.left) * m_texel_size);
+      static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
+      static_cast<size_t>(dst_rect.left) * m_texel_size;
   image_copy.bufferRowLength = static_cast<u32>(m_config.width);
   image_copy.bufferImageHeight = 0;
   image_copy.imageSubresource = {aspect, src_level, src_layer, 1};
@@ -913,8 +913,8 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
   blit.dstSubresource.mipLevel = 0;
   blit.dstSubresource.aspectMask = linear_image_barrier.subresourceRange.aspectMask;
   blit.srcOffsets[0] = {src_rect.left, src_rect.top, 0};
-  blit.srcOffsets[1] = {static_cast<s32>(blit.srcOffsets[0].x + src_rect.GetWidth()),
-                        static_cast<s32>(blit.srcOffsets[0].y + src_rect.GetHeight()), 1};
+  blit.srcOffsets[1] = {(blit.srcOffsets[0].x + src_rect.GetWidth()),
+                        (blit.srcOffsets[0].y + src_rect.GetHeight()), 1};
   blit.dstOffsets[0] = {0, 0, 0};
   blit.dstOffsets[1] = {dst_rect.GetWidth(), dst_rect.GetHeight(), 1u};
 
@@ -955,8 +955,8 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   // Issue the image->buffer copy, but delay it for now.
   VkBufferImageCopy image_copy = {};
   image_copy.bufferOffset =
-      static_cast<VkDeviceSize>(static_cast<size_t>(src_rect.top) * m_config.GetStride() +
-                                static_cast<size_t>(src_rect.left) * m_texel_size);
+      static_cast<size_t>(src_rect.top) * m_config.GetStride() +
+      static_cast<size_t>(src_rect.left) * m_texel_size;
   image_copy.bufferRowLength = static_cast<u32>(m_config.width);
   image_copy.bufferImageHeight = 0;
   image_copy.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, 1};

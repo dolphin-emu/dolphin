@@ -624,7 +624,7 @@ void IOWindow::UpdateDeviceList()
   int previous_device_index = -1;
   for (const auto& name : g_controller_interface.GetAllDeviceStrings())
   {
-    QString qname = QString();
+    auto qname = QString();
     if (name == default_device_name)
     {
       default_device_index = m_devices_combo->count();

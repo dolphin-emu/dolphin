@@ -425,7 +425,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   {
 #ifdef AX_GC
     // signed on GameCube
-    const s32 volume = (s16)pb.vol_env.cur_volume;
+    const s32 volume = pb.vol_env.cur_volume;
 #else
     // unsigned on Wii
     const s32 volume = static_cast<u16>(pb.vol_env.cur_volume);

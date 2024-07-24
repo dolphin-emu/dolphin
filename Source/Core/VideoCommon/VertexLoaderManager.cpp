@@ -152,7 +152,7 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   // Avoid this by initializing the padding to zero.
   PortableVertexDeclaration new_decl;
   static_assert(std::is_trivially_copyable_v<PortableVertexDeclaration>);
-  std::memset(static_cast<void*>(&new_decl), 0, sizeof(new_decl));
+  std::memset(&new_decl, 0, sizeof(new_decl));
   new_decl.stride = decl.stride;
 
   auto MakeDummyAttribute = [](AttributeFormat& attr, const ComponentFormat type, const int components,

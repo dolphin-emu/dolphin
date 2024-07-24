@@ -572,14 +572,14 @@ void XEmitter::SetJumpTarget(const FixupBranch& branch) const
 
   if (branch.type == FixupBranch::Type::Branch8Bit)
   {
-    const s64 distance = (s64)(code - branch.ptr);
+    const s64 distance = code - branch.ptr;
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump::Short target too far away ({}), needs Jump::Near", distance);
     branch.ptr[-1] = static_cast<u8>((s8)distance);
   }
   else if (branch.type == FixupBranch::Type::Branch32Bit)
   {
-    const s64 distance = (s64)(code - branch.ptr);
+    const s64 distance = code - branch.ptr;
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
                "Jump::Near target too far away ({}), needs indirect register", distance);
 

@@ -302,11 +302,11 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   out.Write("// To use color 1, the vertex descriptor must have color 0 and 1.\n"
             "// If color 1 is present but not color 0, it is used for lighting channel 0.\n"
             "bool use_color_1 = ((components & {0}u) == {0}u); // VB_HAS_COL0 | VB_HAS_COL1\n",
-            static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
+            VB_HAS_COL0 | VB_HAS_COL1);
 
   out.Write("if ((components & {0}u) == {0}u) // VB_HAS_COL0 | VB_HAS_COL1\n"
             "{{\n",
-            static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
+            VB_HAS_COL0 | VB_HAS_COL1);
   LoadVertexAttribute(out, host_config, 2, "rawcolor0", "float4", "ubyte4");
   LoadVertexAttribute(out, host_config, 2, "rawcolor1", "float4", "ubyte4");
   out.Write("  vertex_color_0 = rawcolor0;\n"

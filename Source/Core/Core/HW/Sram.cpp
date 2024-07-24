@@ -94,10 +94,10 @@ void SetCardFlashID(Sram* sram, const u8* buffer, const ExpansionInterface::Slot
   u8 csum = 0;
   for (int i = 0; i < 12; i++)
   {
-    rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
+    rand = (((rand * 0x0000000041c64e6dULL) + 0x0000000000003039ULL) >> 16);
     csum += sram->settings_ex.flash_id[card_index][i] = buffer[i] - (static_cast<u8>(rand) & 0xff);
-    rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-    rand &= (u64)0x0000000000007fffULL;
+    rand = (((rand * 0x0000000041c64e6dULL) + 0x0000000000003039ULL) >> 16);
+    rand &= 0x0000000000007fffULL;
   }
   sram->settings_ex.flash_id_checksum[card_index] = csum ^ 0xFF;
 }
