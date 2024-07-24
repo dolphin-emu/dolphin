@@ -1775,7 +1775,7 @@ QSize MainWindow::sizeHint() const
 #ifdef _WIN32
 bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
 {
-  auto* msg = reinterpret_cast<MSG*>(message);
+  auto* msg = static_cast<MSG*>(message);
   if (msg && msg->message == WM_SETTINGCHANGE && msg->lParam != NULL &&
       std::wstring_view(L"ImmersiveColorSet")
               .compare(reinterpret_cast<const wchar_t*>(msg->lParam)) == 0)
