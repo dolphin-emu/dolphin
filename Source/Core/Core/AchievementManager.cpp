@@ -156,7 +156,6 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   rc_client_set_unofficial_enabled(m_client, Config::Get(Config::RA_UNOFFICIAL_ENABLED));
   rc_client_set_encore_mode_enabled(m_client, Config::Get(Config::RA_ENCORE_ENABLED));
   rc_client_set_spectator_mode_enabled(m_client, Config::Get(Config::RA_SPECTATOR_ENABLED));
-  rc_client_set_read_memory_function(m_client, MemoryVerifier);
   if (volume)
   {
     std::lock_guard lg{m_lock};
@@ -181,6 +180,7 @@ void AchievementManager::LoadGame(const std::string& file_path, const DiscIO::Vo
   }
   else
   {
+    rc_client_set_read_memory_function(m_client, MemoryVerifier);
     rc_client_begin_identify_and_load_game(m_client, RC_CONSOLE_GAMECUBE, file_path.c_str(), NULL,
                                            0, LoadGameCallback, NULL);
   }
@@ -863,7 +863,9 @@ void AchievementManager::ChangeMediaCallback(int result, const char* error_messa
 {
   AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
   if (result == RC_OK)
+  {
     return;
+  }
 
   if (result == RC_HARDCORE_DISABLED)
   {
@@ -876,7 +878,6 @@ void AchievementManager::ChangeMediaCallback(int result, const char* error_messa
 
     ERROR_LOG_FMT(ACHIEVEMENTS, "RetroAchievements media change failed: {}", error_message);
   }
-  rc_client_set_read_memory_function(AchievementManager::GetInstance().m_client, MemoryPeeker);
 }
 
 void AchievementManager::DisplayWelcomeMessage()
