@@ -733,6 +733,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
                  Config::Get(Config::RA_USERNAME));
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = result});
     return;
   }
 
@@ -744,6 +745,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   if (!user)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve user information from client.");
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
     return;
   }
 
@@ -762,6 +764,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
       INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.",
                    user->username, Config::Get(Config::RA_USERNAME));
       rc_client_logout(client);
+      AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
       return;
     }
   }

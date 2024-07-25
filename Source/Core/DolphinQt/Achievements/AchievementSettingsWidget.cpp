@@ -39,8 +39,24 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
     ToggleHardcore();
 }
 
-void AchievementSettingsWidget::UpdateData()
+void AchievementSettingsWidget::UpdateData(int login_failed_code)
 {
+  if (login_failed_code != RC_OK)
+  {
+    switch (login_failed_code)
+    {
+    case RC_INVALID_CREDENTIALS:
+      m_common_login_failed->setText(tr("Login Failed - Invalid Username/Password"));
+      break;
+    case RC_NO_RESPONSE:
+      m_common_login_failed->setText(tr("Login Failed - No Internet Connection"));
+      break;
+    default:
+      m_common_login_failed->setText(tr("Login Failed - Server Error"));
+      break;
+    }
+    m_common_login_failed->setVisible(true);
+  }
   LoadSettings();
 }
 
@@ -245,6 +261,7 @@ void AchievementSettingsWidget::ToggleRAIntegration()
 
 void AchievementSettingsWidget::Login()
 {
+  m_common_login_failed->setVisible(false);
   Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
   AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
   m_common_password_input->setText(QString());
