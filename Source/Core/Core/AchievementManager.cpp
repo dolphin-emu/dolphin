@@ -28,6 +28,7 @@
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PatchEngine.h"
@@ -461,10 +462,34 @@ Common::SHA1::Digest AchievementManager::GetCodeHash(const PatchEngine::Patch& p
   return context->Finish();
 }
 
+Common::SHA1::Digest AchievementManager::GetCodeHash(const Gecko::GeckoCode& code) const
+{
+  auto context = Common::SHA1::CreateContext();
+  context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.codes.size())));
+  for (const auto& entry : code.codes)
+  {
+    context->Update(Common::BitCastToArray<u8>(entry.address));
+    context->Update(Common::BitCastToArray<u8>(entry.data));
+  }
+  return context->Finish();
+}
+
 void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                                                const std::string& game_ini_id) const
 {
   FilterApprovedIni(patches, game_ini_id);
+}
+
+void AchievementManager::FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
+                                                  const std::string& game_ini_id) const
+{
+  FilterApprovedIni(codes, game_ini_id);
+}
+
+bool AchievementManager::CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
+                                                const std::string& game_ini_id) const
+{
+  return CheckApprovedCode(code, game_ini_id);
 }
 
 void AchievementManager::SetSpectatorMode()

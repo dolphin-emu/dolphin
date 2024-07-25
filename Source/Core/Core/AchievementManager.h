@@ -45,6 +45,11 @@ namespace PatchEngine
 struct Patch;
 }  // namespace PatchEngine
 
+namespace Gecko
+{
+class GeckoCode;
+}  // namespace Gecko
+
 class AchievementManager
 {
 public:
@@ -125,8 +130,13 @@ public:
   void SetHardcoreMode();
   bool IsHardcoreModeActive() const;
   void SetGameIniId(const std::string& game_ini_id) { m_game_ini_id = game_ini_id; }
+
   void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
                              const std::string& game_ini_id) const;
+  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
+                                const std::string& game_ini_id) const;
+  bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_ini_id) const;
+
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
@@ -186,6 +196,7 @@ private:
   template <typename T>
   bool CheckApprovedCode(const T& code, const std::string& game_ini_id) const;
   Common::SHA1::Digest GetCodeHash(const PatchEngine::Patch& patch) const;
+  Common::SHA1::Digest GetCodeHash(const Gecko::GeckoCode& code) const;
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
                                          rc_client_leaderboard_entry_list_t* list,
@@ -270,6 +281,12 @@ public:
   }
 
   constexpr bool IsHardcoreModeActive() { return false; }
+
+  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code,
+                                        const std::string& game_ini_id)
+  {
+    return true;
+  };
 
   constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
 

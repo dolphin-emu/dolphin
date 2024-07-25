@@ -2070,13 +2070,18 @@ bool NetPlayServer::SyncCodes()
   }
   // Sync Gecko Codes
   {
+    std::vector<Gecko::GeckoCode> codes = Gecko::LoadCodes(globalIni, localIni);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    AchievementManager::GetInstance().FilterApprovedGeckoCodes(codes, game_id);
+#endif  // USE_RETRO_ACHIEVEMENTS
+
     // Create a Gecko Code Vector with just the active codes
-    std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    std::vector<Gecko::GeckoCode> active_codes = Gecko::SetAndReturnActiveCodes(codes);
 
     // Determine Codelist Size
     u16 codelines = 0;
-    for (const Gecko::GeckoCode& active_code : s_active_codes)
+    for (const Gecko::GeckoCode& active_code : active_codes)
     {
       INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
       for (const Gecko::GeckoCode::Code& code : active_code.codes)
@@ -2104,7 +2109,7 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::GeckoData;
       // Iterate through the active code vector and send each codeline
-      for (const Gecko::GeckoCode& active_code : s_active_codes)
+      for (const Gecko::GeckoCode& active_code : active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
         for (const Gecko::GeckoCode::Code& code : active_code.codes)
