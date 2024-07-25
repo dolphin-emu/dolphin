@@ -181,6 +181,12 @@ private:
                                   void* userdata);
   void DisplayWelcomeMessage();
 
+  template <typename T>
+  void FilterApprovedIni(std::vector<T>& codes, const std::string& game_ini_id) const;
+  template <typename T>
+  bool CheckApprovedCode(const T& code, const std::string& game_ini_id) const;
+  Common::SHA1::Digest GetCodeHash(const PatchEngine::Patch& patch) const;
+
   static void LeaderboardEntriesCallback(int result, const char* error_message,
                                          rc_client_leaderboard_entry_list_t* list,
                                          rc_client_t* client, void* userdata);
