@@ -13,6 +13,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/AchievementManager.h"
 #include "Core/CheatCodes.h"
 
 namespace Gecko

@@ -20,6 +20,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
@@ -201,6 +202,13 @@ void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
   const int index = item->data(Qt::UserRole).toInt();
   m_gecko_codes[index].enabled = (item->checkState() == Qt::Checked);
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  {
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+    AchievementManager::GetInstance().FilterApprovedGeckoCodes(m_gecko_codes, m_game_id);
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   if (!m_restart_required)
     Gecko::SetActiveCodes(m_gecko_codes);
 
@@ -265,6 +273,14 @@ void GeckoCodeWidget::LoadCodes()
     const Common::IniFile game_ini_default =
         SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
     m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    if (!m_restart_required)
+    {
+      std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+      AchievementManager::GetInstance().FilterApprovedGeckoCodes(m_gecko_codes, m_game_id);
+    }
+#endif  // USE_RETRO_ACHIEVEMENTS
   }
 
   m_code_list->setEnabled(!m_game_id.empty());
