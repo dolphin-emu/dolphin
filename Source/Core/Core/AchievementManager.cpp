@@ -814,6 +814,15 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
   AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  if (result == RC_API_FAILURE)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Load data request rejected for old Dolphin version.");
+    OSD::AddMessage("RetroAchievements no longer supports this version of Dolphin.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    return;
+  }
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");
