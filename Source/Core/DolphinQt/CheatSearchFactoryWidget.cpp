@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/CheatSearchFactoryWidget.h"
-#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include <string>
 #include <vector>
@@ -26,6 +25,7 @@
 #include "Core/System.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 CheatSearchFactoryWidget::CheatSearchFactoryWidget()
 {
