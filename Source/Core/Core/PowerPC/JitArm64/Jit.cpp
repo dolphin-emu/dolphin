@@ -1040,6 +1040,14 @@ void JitArm64::EraseSingleBlock(const JitBlock& block)
   FreeRanges();
 }
 
+std::vector<JitBase::MemoryStats> JitArm64::GetMemoryStats() const
+{
+  return {{"near_0", m_free_ranges_near_0.get_stats()},
+          {"near_1", m_free_ranges_near_1.get_stats()},
+          {"far_0", m_free_ranges_far_0.get_stats()},
+          {"far_1", m_free_ranges_far_1.get_stats()}};
+}
+
 std::optional<size_t> JitArm64::SetEmitterStateToFreeCodeRegion()
 {
   // Find some large free memory blocks and set code emitters to point at them. If we can't find

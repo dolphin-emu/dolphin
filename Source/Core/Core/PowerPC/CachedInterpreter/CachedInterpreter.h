@@ -47,6 +47,7 @@ public:
   bool DoJit(u32 address, JitBlock* b, u32 nextPC);
 
   void EraseSingleBlock(const JitBlock& block) override;
+  std::vector<MemoryStats> GetMemoryStats() const override;
 
   static std::size_t Disassemble(const JitBlock& block, std::ostream& stream);
 
