@@ -70,6 +70,8 @@ private:
   void FreeRanges();
   void ResetFreeMemoryRanges();
 
+  void LogGeneratedCode() const;
+
   struct EndBlockOperands;
   struct InterpretOperands;
   struct InterpretAndCheckExceptionsOperands;

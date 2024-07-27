@@ -276,6 +276,8 @@ private:
   void FreeRanges();
   void ResetFreeMemoryRanges();
 
+  void LogGeneratedCode() const;
+
   static void ImHere(Jit64& jit);
 
   JitBlockCache blocks{*this};
@@ -294,6 +296,3 @@ private:
   std::map<u32, int> m_been_here;
   std::unique_ptr<HostDisassembler> m_disassembler;
 };
-
-void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
-                     const JitBlock* b);
