@@ -404,6 +404,7 @@ void ShaderCache::ClearCaches()
   m_efb_copy_to_ram_pipelines.clear();
   m_copy_rgba8_pipeline.reset();
   m_rgba8_stereo_copy_pipeline.reset();
+  m_blur_pipeline.reset();
   for (auto& pipeline : m_palette_conversion_pipelines)
     pipeline.reset();
   m_texture_reinterpret_pipelines.clear();
@@ -1532,6 +1533,36 @@ const AbstractPipeline* ShaderCache::GetPaletteConversionPipeline(TLUTFormat for
 {
   ASSERT(static_cast<size_t>(format) < NUM_PALETTE_CONVERSION_SHADERS);
   return m_palette_conversion_pipelines[static_cast<size_t>(format)].get();
+}
+
+const AbstractPipeline* ShaderCache::GetTextureBlurPipeline()
+{
+  if (m_blur_pipeline)
+    return m_blur_pipeline.get();
+
+  std::string shader_source = FramebufferShaderGen::GenerateTextureBlurShader();
+
+  if (shader_source.empty())
+    return nullptr;
+
+  std::unique_ptr<AbstractShader> shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, shader_source, fmt::format("Texture blurring pixel shader"));
+
+  if (!shader)
+    return nullptr;
+
+  AbstractPipelineConfig config;
+  config.vertex_format = nullptr;
+  config.vertex_shader = m_screen_quad_vertex_shader.get();
+  config.geometry_shader = nullptr;
+  config.pixel_shader = shader.get();
+  config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
+  config.depth_state = RenderState::GetNoDepthTestingDepthState();
+  config.blending_state = RenderState::GetNoBlendingBlendState();
+  config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
+  config.usage = AbstractPipelineUsage::Utility;
+  m_blur_pipeline = g_gfx->CreatePipeline(config);
+  return m_blur_pipeline.get();
 }
 
 const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat from_format,

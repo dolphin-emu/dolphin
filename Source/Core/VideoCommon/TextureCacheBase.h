@@ -360,6 +360,8 @@ private:
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
+  void BlurCopy(RcTcacheEntry& existing_entry);
+
   RcTcacheEntry ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette, TLUTFormat tlutfmt);
 
   RcTcacheEntry ReinterpretEntry(const RcTcacheEntry& existing_entry, TextureFormat new_format);
@@ -468,6 +470,8 @@ private:
       AfterFrameEvent::Register([this](Core::System&) { OnFrameEnd(); }, "TextureCache");
 
   VideoCommon::TextureUtils::TextureDumper m_texture_dumper;
+
+  u8* m_bloom_dst_check = nullptr;
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;
