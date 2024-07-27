@@ -308,6 +308,8 @@ protected:
 
   void IntializeSpeculativeConstants();
 
+  void LogGeneratedCode() const;
+
   // AsmRoutines
   void GenerateAsm();
   void GenerateCommonAsm();
