@@ -653,11 +653,6 @@ PRIVATE
   ZLIB::ZLIB
 )
 
-if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
-    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86_64))
-  target_link_libraries(core PRIVATE bdisasm)
-endif()
-
 if (APPLE)
   target_link_libraries(core
   PRIVATE

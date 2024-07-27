@@ -45,9 +45,6 @@ struct JitBlockData
   // and valid_block in particular). This is useful because of
   // of the way the instruction cache works on PowerPC.
   u32 physicalAddress;
-  // The number of bytes of JIT'ed code contained in this block. Mostly
-  // useful for logging.
-  u32 codeSize;
   // The number of PPC instructions represented by this block. Mostly
   // useful for logging.
   u32 originalSize;

@@ -3,7 +3,15 @@
 
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 
+#include <span>
+#include <sstream>
+#include <utility>
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 #include "Common/CommonTypes.h"
+#include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -290,13 +298,15 @@ void CachedInterpreter::Jit(u32 em_address, bool clear_cache_and_retry_on_failur
       b->near_end = GetWritableCodePtr();
       b->far_begin = b->far_end = nullptr;
 
-      b->codeSize = static_cast<u32>(b->near_end - b->normalEntry);
-
       // Mark the memory region that this code block uses in the RangeSizeSet.
       if (b->near_begin != b->near_end)
         m_free_ranges.erase(b->near_begin, b->near_end);
 
       m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
+
+#ifdef JIT_LOG_GENERATED_CODE
+      LogGeneratedCode();
+#endif
 
       return;
     }
@@ -433,4 +443,23 @@ void CachedInterpreter::ClearCache()
   ResetFreeMemoryRanges();
   RefreshConfig();
   Host_JitCacheCleared();
+}
+
+void CachedInterpreter::LogGeneratedCode() const
+{
+  std::ostringstream stream;
+
+  stream << "\nPPC Code Buffer:\n";
+  for (const PPCAnalyst::CodeOp& op :
+       std::span{m_code_buffer.data(), code_block.m_num_instructions})
+  {
+    fmt::print(stream, "0x{:08x}\t\t{}\n", op.address,
+               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
+  }
+
+  stream << "\nHost Code:\n";
+  Disassemble(*js.curBlock, stream);
+
+  // TODO C++20: std::ostringstream::view()
+  DEBUG_LOG_FMT(DYNA_REC, "{}", std::move(stream).str());
 }

@@ -5,10 +5,16 @@
 
 #include <cstdio>
 #include <optional>
+#include <span>
+#include <sstream>
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumUtils.h"
+#include "Common/GekkoDisassembler.h"
 #include "Common/HostDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
@@ -1021,6 +1027,10 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
       b->far_end = far_end;
 
       blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block, m_code_buffer);
+
+#ifdef JIT_LOG_GENERATED_CODE
+      LogGeneratedCode();
+#endif
       return;
     }
   }
@@ -1381,10 +1391,30 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     return false;
   }
 
-  b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
-
   FlushIcache();
   m_far_code.FlushIcache();
 
   return true;
+}
+
+void JitArm64::LogGeneratedCode() const
+{
+  std::ostringstream stream;
+
+  stream << "\nPPC Code Buffer:\n";
+  for (const PPCAnalyst::CodeOp& op :
+       std::span{m_code_buffer.data(), code_block.m_num_instructions})
+  {
+    fmt::print(stream, "0x{:08x}\t\t{}\n", op.address,
+               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
+  }
+
+  const JitBlock* const block = js.curBlock;
+  stream << "\nHost Near Code:\n";
+  m_disassembler->Disassemble(block->normalEntry, block->near_end, stream);
+  stream << "\nHost Far Code:\n";
+  m_disassembler->Disassemble(block->far_begin, block->far_end, stream);
+
+  // TODO C++20: std::ostringstream::view()
+  DEBUG_LOG_FMT(DYNA_REC, "{}", std::move(stream).str());
 }

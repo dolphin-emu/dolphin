@@ -71,6 +71,8 @@ private:
   void FreeRanges();
   void ResetFreeMemoryRanges();
 
+  void LogGeneratedCode() const;
+
   struct StartProfiledBlockOperands;
   template <bool profiled>
   struct EndBlockOperands;
