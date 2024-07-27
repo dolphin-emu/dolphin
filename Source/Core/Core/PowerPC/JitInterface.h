@@ -8,7 +8,10 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <variant>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/MachineContext.h"
@@ -77,6 +80,10 @@ public:
   // use it, or else JitBlockTableModel will contain a dangling reference. If something else from
   // outside of the Core *must* use this, consider reworking the logic in JITWidget.
   void EraseSingleBlock(const JitBlock& block);
+
+  // Memory region name, free size, and fragmentation ratio
+  using MemoryStats = std::pair<std::string_view, std::pair<std::size_t, double>>;
+  std::vector<MemoryStats> GetMemoryStats() const;
 
   // If "forced" is true, a recompile is being requested on code that hasn't been modified.
   void InvalidateICache(u32 address, u32 size, bool forced);

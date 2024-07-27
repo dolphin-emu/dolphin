@@ -41,6 +41,7 @@ public:
   JitBaseBlockCache* GetBlockCache() override { return nullptr; }
   void Jit(u32 em_address) override {}
   void EraseSingleBlock(const JitBlock&) override {}
+  std::vector<MemoryStats> GetMemoryStats() const override { return {}; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {

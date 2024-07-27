@@ -269,6 +269,13 @@ void JitInterface::EraseSingleBlock(const JitBlock& block)
     m_jit->EraseSingleBlock(block);
 }
 
+std::vector<JitBase::MemoryStats> JitInterface::GetMemoryStats() const
+{
+  if (m_jit)
+    return m_jit->GetMemoryStats();
+  return {};
+}
+
 void JitInterface::InvalidateICache(u32 address, u32 size, bool forced)
 {
   if (m_jit)

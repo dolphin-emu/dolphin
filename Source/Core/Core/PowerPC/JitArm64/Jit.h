@@ -49,6 +49,7 @@ public:
   void Jit(u32 em_address, bool clear_cache_and_retry_on_failure);
 
   void EraseSingleBlock(const JitBlock& block) override;
+  std::vector<MemoryStats> GetMemoryStats() const override;
 
   const char* GetName() const override { return "JITARM64"; }
 
