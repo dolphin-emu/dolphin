@@ -1208,6 +1208,11 @@ void Jit64::EraseSingleBlock(const JitBlock& block)
   FreeRanges();
 }
 
+std::vector<JitBase::MemoryStats> Jit64::GetMemoryStats() const
+{
+  return {{"near", m_free_ranges_near.get_stats()}, {"far", m_free_ranges_far.get_stats()}};
+}
+
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 {
   return cb.m_gqr_used & ~cb.m_gqr_modified;

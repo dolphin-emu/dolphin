@@ -408,6 +408,11 @@ void CachedInterpreter::EraseSingleBlock(const JitBlock& block)
   FreeRanges();
 }
 
+std::vector<JitBase::MemoryStats> CachedInterpreter::GetMemoryStats() const
+{
+  return {{"free", m_free_ranges.get_stats()}};
+}
+
 void CachedInterpreter::ClearCache()
 {
   m_block_cache.Clear();
