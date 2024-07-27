@@ -48,6 +48,8 @@ public:
   void Jit(u32 em_address) override;
   void Jit(u32 em_address, bool clear_cache_and_retry_on_failure);
 
+  void EraseSingleBlock(const JitBlock& block) override;
+
   const char* GetName() const override { return "JITARM64"; }
 
   // OPCODES
