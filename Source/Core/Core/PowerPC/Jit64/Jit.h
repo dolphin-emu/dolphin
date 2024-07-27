@@ -266,6 +266,7 @@ private:
 
   bool HandleFunctionHooking(u32 address);
 
+  void FreeRanges();
   void ResetFreeMemoryRanges();
 
   static void ImHere(Jit64& jit);

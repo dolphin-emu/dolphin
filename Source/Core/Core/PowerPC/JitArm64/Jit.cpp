@@ -188,6 +188,34 @@ void JitArm64::GenerateAsmAndResetFreeMemoryRanges()
                         routines_far_end - routines_far_start);
 }
 
+void JitArm64::FreeRanges()
+{
+  // Check if any code blocks have been freed in the block cache and transfer this information to
+  // the local rangesets to allow overwriting them with new code.
+  for (const auto& [from, to] : blocks.GetRangesToFreeNear())
+  {
+    const auto first_fastmem_area = m_fault_to_handler.upper_bound(from);
+    auto last_fastmem_area = first_fastmem_area;
+    const auto end = m_fault_to_handler.end();
+    while (last_fastmem_area != end && last_fastmem_area->first <= to)
+      ++last_fastmem_area;
+    m_fault_to_handler.erase(first_fastmem_area, last_fastmem_area);
+
+    if (from < m_near_code_0.GetCodeEnd())
+      m_free_ranges_near_0.insert(from, to);
+    else
+      m_free_ranges_near_1.insert(from, to);
+  }
+  for (const auto& [from, to] : blocks.GetRangesToFreeFar())
+  {
+    if (from < m_far_code_0.GetCodeEnd())
+      m_free_ranges_far_0.insert(from, to);
+    else
+      m_free_ranges_far_1.insert(from, to);
+  }
+  blocks.ClearRangesToFree();
+}
+
 void JitArm64::ResetFreeMemoryRanges(size_t routines_near_size, size_t routines_far_size)
 {
   // Set the near and far code regions as unused.
@@ -911,31 +939,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   if (SConfig::GetInstance().bJITNoBlockCache)
     ClearCache();
-
-  // Check if any code blocks have been freed in the block cache and transfer this information to
-  // the local rangesets to allow overwriting them with new code.
-  for (auto range : blocks.GetRangesToFreeNear())
-  {
-    auto first_fastmem_area = m_fault_to_handler.upper_bound(range.first);
-    auto last_fastmem_area = first_fastmem_area;
-    auto end = m_fault_to_handler.end();
-    while (last_fastmem_area != end && last_fastmem_area->first <= range.second)
-      ++last_fastmem_area;
-    m_fault_to_handler.erase(first_fastmem_area, last_fastmem_area);
-
-    if (range.first < m_near_code_0.GetCodeEnd())
-      m_free_ranges_near_0.insert(range.first, range.second);
-    else
-      m_free_ranges_near_1.insert(range.first, range.second);
-  }
-  for (auto range : blocks.GetRangesToFreeFar())
-  {
-    if (range.first < m_far_code_0.GetCodeEnd())
-      m_free_ranges_far_0.insert(range.first, range.second);
-    else
-      m_free_ranges_far_1.insert(range.first, range.second);
-  }
-  blocks.ClearRangesToFree();
+  FreeRanges();
 
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
