@@ -294,6 +294,7 @@ protected:
   void Cleanup();
   void ResetStack();
 
+  void FreeRanges();
   void GenerateAsmAndResetFreeMemoryRanges();
   void ResetFreeMemoryRanges(size_t routines_near_size, size_t routines_far_size);
 
