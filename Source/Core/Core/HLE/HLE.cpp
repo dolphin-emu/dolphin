@@ -195,6 +195,11 @@ u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, u32 address)
   return (symbol && symbol->address == address) ? index : 0;
 }
 
+const char* GetHookNameByIndex(u32 index)
+{
+  return os_patches[index].name;
+}
+
 HookType GetHookTypeByIndex(u32 index)
 {
   return os_patches[index].type;

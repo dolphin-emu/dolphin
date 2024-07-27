@@ -69,6 +69,7 @@ void ExecuteFromJIT(u32 current_pc, u32 hook_index, Core::System& system);
 u32 GetHookByAddress(u32 address);
 // Returns the HLE hook index if the address matches the function start
 u32 GetHookByFunctionAddress(PPCSymbolDB& ppc_symbol_db, u32 address);
+const char* GetHookNameByIndex(u32 index);
 HookType GetHookTypeByIndex(u32 index);
 HookFlag GetHookFlagsByIndex(u32 index);
 
