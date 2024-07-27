@@ -46,6 +46,8 @@ public:
   void Jit(u32 address, bool clear_cache_and_retry_on_failure);
   bool DoJit(u32 address, JitBlock* b, u32 nextPC);
 
+  void EraseSingleBlock(const JitBlock& block) override;
+
   static std::size_t Disassemble(const JitBlock& block, std::ostream& stream);
 
   JitBaseBlockCache* GetBlockCache() override { return &m_block_cache; }

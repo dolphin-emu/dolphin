@@ -1034,6 +1034,12 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   exit(-1);
 }
 
+void JitArm64::EraseSingleBlock(const JitBlock& block)
+{
+  blocks.EraseSingleBlock(block);
+  FreeRanges();
+}
+
 std::optional<size_t> JitArm64::SetEmitterStateToFreeCodeRegion()
 {
   // Find some large free memory blocks and set code emitters to point at them. If we can't find

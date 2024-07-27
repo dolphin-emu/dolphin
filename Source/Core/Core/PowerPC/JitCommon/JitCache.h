@@ -180,6 +180,7 @@ public:
   void InvalidateICache(u32 address, u32 length, bool forced);
   void InvalidateICacheLine(u32 address);
   void ErasePhysicalRange(u32 address, u32 length);
+  void EraseSingleBlock(const JitBlock& block);
 
   u32* GetBlockBitSet() const;
 
@@ -213,7 +214,7 @@ private:
   // Range of overlapping code indexed by a masked physical address.
   // This is used for invalidation of memory regions. The range is grouped
   // in macro blocks of each 0x100 bytes.
-  static constexpr u32 BLOCK_RANGE_MAP_ELEMENTS = 0x100;
+  static constexpr u32 BLOCK_RANGE_MAP_MASK = ~(0x100 - 1);
   std::map<u32, std::unordered_set<JitBlock*>> block_range_map;
 
   // This bitsets shows which cachelines overlap with any blocks.

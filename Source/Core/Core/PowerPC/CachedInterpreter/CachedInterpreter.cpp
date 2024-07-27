@@ -402,6 +402,12 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   return true;
 }
 
+void CachedInterpreter::EraseSingleBlock(const JitBlock& block)
+{
+  m_block_cache.EraseSingleBlock(block);
+  FreeRanges();
+}
+
 void CachedInterpreter::ClearCache()
 {
   m_block_cache.Clear();

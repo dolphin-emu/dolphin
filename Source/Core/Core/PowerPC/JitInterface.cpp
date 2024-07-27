@@ -263,6 +263,12 @@ void JitInterface::ClearSafe()
     m_jit->GetBlockCache()->Clear();
 }
 
+void JitInterface::EraseSingleBlock(const JitBlock& block)
+{
+  if (m_jit)
+    m_jit->EraseSingleBlock(block);
+}
+
 void JitInterface::InvalidateICache(u32 address, u32 size, bool forced)
 {
   if (m_jit)
