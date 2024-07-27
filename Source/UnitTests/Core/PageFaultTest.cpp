@@ -40,6 +40,7 @@ public:
   // JitBase methods
   JitBaseBlockCache* GetBlockCache() override { return nullptr; }
   void Jit(u32 em_address) override {}
+  void EraseSingleBlock(const JitBlock&) override {}
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {

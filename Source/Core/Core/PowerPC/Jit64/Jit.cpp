@@ -1202,6 +1202,12 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   return true;
 }
 
+void Jit64::EraseSingleBlock(const JitBlock& block)
+{
+  blocks.EraseSingleBlock(block);
+  FreeRanges();
+}
+
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 {
   return cb.m_gqr_used & ~cb.m_gqr_modified;

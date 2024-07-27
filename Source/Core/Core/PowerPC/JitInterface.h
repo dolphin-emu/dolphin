@@ -16,6 +16,7 @@
 class CPUCoreBase;
 class PointerWrap;
 class JitBase;
+struct JitBlock;
 
 namespace Core
 {
@@ -71,6 +72,11 @@ public:
   // inside a JIT'ed block: it clears the instruction cache, but not
   // the JIT'ed code.
   void ClearSafe();
+
+  // DolphinQt's JITWidget needs EraseSingleBlock. Nothing else (from outside of the Core) should
+  // use it, or else JitBlockTableModel will contain a dangling reference. If something else from
+  // outside of the Core *must* use this, consider reworking the logic in JITWidget.
+  void EraseSingleBlock(const JitBlock& block);
 
   // If "forced" is true, a recompile is being requested on code that hasn't been modified.
   void InvalidateICache(u32 address, u32 size, bool forced);

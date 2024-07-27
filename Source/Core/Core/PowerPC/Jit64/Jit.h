@@ -65,6 +65,8 @@ public:
   void Jit(u32 em_address, bool clear_cache_and_retry_on_failure);
   bool DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
+  void EraseSingleBlock(const JitBlock& block) override;
+
   // Finds a free memory region and sets the near and far code emitters to point at that region.
   // Returns false if no free memory region can be found for either of the two.
   bool SetEmitterStateToFreeCodeRegion();

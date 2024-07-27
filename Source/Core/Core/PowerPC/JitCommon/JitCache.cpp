@@ -155,11 +155,10 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
 
   block.physical_addresses = physical_addresses;
 
-  u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
-  for (u32 addr : physical_addresses)
+  for (u32 addr : block.physical_addresses)
   {
     valid_block.Set(addr / 32);
-    block_range_map[addr & range_mask].insert(&block);
+    block_range_map[addr & BLOCK_RANGE_MAP_MASK].insert(&block);
   }
 
   if (block_link)
@@ -333,8 +332,7 @@ void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 addre
 void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
 {
   // Iterate over all macro blocks which overlap the given range.
-  u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
-  auto start = block_range_map.lower_bound(address & range_mask);
+  auto start = block_range_map.lower_bound(address & BLOCK_RANGE_MAP_MASK);
   auto end = block_range_map.lower_bound(address + length);
   while (start != end)
   {
@@ -348,8 +346,8 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
         // If the block overlaps, also remove all other occupied slots in the other macro blocks.
         // This will leak empty macro blocks, but they may be reused or cleared later on.
         for (u32 addr : block->physical_addresses)
-          if ((addr & range_mask) != start->first)
-            block_range_map[addr & range_mask].erase(block);
+          if ((addr & BLOCK_RANGE_MAP_MASK) != start->first)
+            block_range_map[addr & BLOCK_RANGE_MAP_MASK].erase(block);
 
         // And remove the block.
         DestroyBlock(*block);
@@ -377,6 +375,23 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
     else
       start++;
   }
+}
+
+void JitBaseBlockCache::EraseSingleBlock(const JitBlock& block)
+{
+  const auto equal_range = block_map.equal_range(block.physicalAddress);
+  const auto block_map_iter = std::ranges::find(equal_range.first, equal_range.second, &block,
+                                                [](const auto& kv) { return &kv.second; });
+  if (block_map_iter == equal_range.second) [[unlikely]]
+    return;
+
+  JitBlock& mutable_block = block_map_iter->second;
+
+  for (const u32 addr : mutable_block.physical_addresses)
+    block_range_map[addr & BLOCK_RANGE_MAP_MASK].erase(&mutable_block);
+
+  DestroyBlock(mutable_block);
+  block_map.erase(block_map_iter);  // The original JitBlock reference is now dangling.
 }
 
 u32* JitBaseBlockCache::GetBlockBitSet() const

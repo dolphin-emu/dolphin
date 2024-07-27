@@ -194,6 +194,8 @@ public:
 
   virtual void Jit(u32 em_address) = 0;
 
+  virtual void EraseSingleBlock(const JitBlock& block) = 0;
+
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
