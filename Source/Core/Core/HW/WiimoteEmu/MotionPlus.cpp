@@ -719,7 +719,7 @@ void MotionPlus::ReversePassthroughModifications(PassthroughMode mode, u8* data)
 
     // This is an overwritten unused button bit on the Classic Controller.
     // Note it's a significant bit on the DJ Hero Turntable. (passthrough not feasible)
-    Common::SetBit<0>(data[4], 1);
+    Common::SetBit<0>(data[4], true);
   }
 }
 
