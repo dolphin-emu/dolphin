@@ -1,5 +1,4 @@
 @echo off
-setlocal enabledelayedexpansion
 
 title Mario Party 6 - Custom Orb Expansion Patcher
 
@@ -49,8 +48,27 @@ for %%F in ("%~dp0*.rvz") do (
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     echo Converting RVZ to ISO! This is needed to patch the game...
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-    "tools/dolphintool" convert -i "%%~F" -f "iso" -o "tmp.iso"
-    set "iso_files=tmp.iso"
+    "tools/dolphintool" convert -i "%%~F" -f "iso" -o "tmp/tmp.iso"
+
+    cls
+    echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+    echo Extracting Gamespace!  This may take awhile depending on computer speed...
+    echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+    "tools/pyisotools" "tmp/tmp.iso" E "--dest=tmp/"
+
+    cls
+    echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+    echo Copying mod data!
+    echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+    xcopy "store" "tmp\root\" /s /y /e
+
+    cls
+    echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+    echo Rebuilding! This may take awhile depending on computer speed...
+    echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+    "tools/pyisotools" tmp/root/ B "--dest=../../game.iso"
+    
+    rmdir /s /q tmp
 )
 
 for %%F in ("%~dp0*.iso") do (
@@ -59,7 +77,6 @@ for %%F in ("%~dp0*.iso") do (
     echo Extracting Gamespace!  This may take awhile depending on computer speed...
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     "tools/pyisotools" "%%~F" E "--dest=tmp/"
-    del "%%~F"
 
     cls
     echo = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
