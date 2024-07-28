@@ -572,8 +572,6 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
 
   if (single)
   {
-    const ARM64Reg V0 = fpr.GetReg();
-
     if (is_fctiwzx)
     {
       m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), RoundingMode::Z);
@@ -584,13 +582,8 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
       m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), RoundingMode::Z);
     }
 
-    // Generate 0xFFF8'0000'0000'0000ULL
-    m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF'0000'0000'0000ULL);
-    m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
-
-    m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
-
-    fpr.Unlock(V0);
+    m_float_emit.INS(32, EncodeRegToDouble(VD), 1,
+                     EncodeRegToDouble(FPR_CONSTANT_FFF8_0000_3F80_0000), 1);
   }
   else
   {
@@ -807,9 +800,8 @@ void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, AR
   {
     // Set each 32-bit element of scratch_reg to 0x0000'0000 or 0xFFFF'FFFF depending on whether
     // the absolute value of the corresponding element in src_reg compares greater than 0
-    m_float_emit.MOVI(64, EncodeRegToDouble(scratch_reg), 0);
     m_float_emit.FACGT(32, EncodeRegToDouble(scratch_reg), EncodeRegToDouble(src_reg),
-                       EncodeRegToDouble(scratch_reg));
+                       EncodeRegToDouble(FPR_CONSTANT_0000_0000_0000_0000));
 
     // 0x0000'0000'0000'0000 (zero)     -> 0x0000'0000'0000'0000 (zero)
     // 0x0000'0000'FFFF'FFFF (denormal) -> 0xFF00'0000'FFFF'FFFF (normal)
