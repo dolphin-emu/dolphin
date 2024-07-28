@@ -140,7 +140,7 @@ void GeneralPane::CreateBasic()
   basic_group->setLayout(basic_group_layout);
   m_main_layout->addWidget(basic_group);
 
-  m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speedup)"));
+  m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speedhack)"));
   basic_group_layout->addWidget(m_checkbox_dualcore);
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));

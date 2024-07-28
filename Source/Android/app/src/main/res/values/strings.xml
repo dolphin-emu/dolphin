@@ -69,7 +69,7 @@
 
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
-    <string name="dual_core">Dual Core</string>
+    <string name="dual_core">Dual Core (speedhack)</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="enable_cheats">Enable Cheats</string>
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
