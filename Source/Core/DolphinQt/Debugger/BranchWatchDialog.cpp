@@ -595,7 +595,7 @@ void BranchWatchDialog::OnSaveAs()
   }
 
   const QString filepath = DolphinFileDialog::getSaveFileName(
-      this, tr("Save Branch Watch snapshot"),
+      this, tr("Save Branch Watch Snapshot"),
       QString::fromStdString(File::GetUserPath(D_DUMPDEBUG_BRANCHWATCH_IDX)),
       tr("Text file (*.txt);;All Files (*)"));
   if (filepath.isEmpty())
@@ -612,7 +612,7 @@ void BranchWatchDialog::OnLoad()
 void BranchWatchDialog::OnLoadFrom()
 {
   const QString filepath = DolphinFileDialog::getOpenFileName(
-      this, tr("Load Branch Watch snapshot"),
+      this, tr("Load Branch Watch Snapshot"),
       QString::fromStdString(File::GetUserPath(D_DUMPDEBUG_BRANCHWATCH_IDX)),
       tr("Text file (*.txt);;All Files (*)"), nullptr, QFileDialog::Option::ReadOnly);
   if (filepath.isEmpty())
@@ -775,7 +775,7 @@ void BranchWatchDialog::OnToggleAutoSave(bool checked)
   const QString filepath = DolphinFileDialog::getSaveFileName(
       // i18n: If the user selects a file, Branch Watch will save to that file.
       // If the user presses Cancel, Branch Watch will save to a file in the user folder.
-      this, tr("Select Branch Watch snapshot auto-save file (for user folder location, cancel)"),
+      this, tr("Select Branch Watch Snapshot Auto-Save File (for user folder location, cancel)"),
       QString::fromStdString(File::GetUserPath(D_DUMPDEBUG_BRANCHWATCH_IDX)),
       tr("Text file (*.txt);;All Files (*)"));
   if (filepath.isEmpty())
@@ -1042,11 +1042,11 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
 
     m_mnu_set_breakpoint = new QMenu(tr("Set Brea&kpoint"));
     m_act_break_on_hit = m_mnu_set_breakpoint->addAction(
-        tr("&Break On Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBreak);
-    m_act_log_on_hit = m_mnu_set_breakpoint->addAction(tr("&Log On Hit"), this,
+        tr("&Break on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBreak);
+    m_act_log_on_hit = m_mnu_set_breakpoint->addAction(tr("&Log on Hit"), this,
                                                        &BranchWatchDialog::OnTableSetBreakpointLog);
     m_act_both_on_hit = m_mnu_set_breakpoint->addAction(
-        tr("Break &And Log On Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBoth);
+        tr("Break &and Log on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBoth);
     m_mnu_table_context->addMenu(m_mnu_set_breakpoint);
   }
 

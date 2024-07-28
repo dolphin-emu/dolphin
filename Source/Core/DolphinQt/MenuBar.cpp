@@ -1097,8 +1097,8 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
 
 void MenuBar::InstallWAD()
 {
-  QString wad_file = DolphinFileDialog::getOpenFileName(
-      this, tr("Select a title to install to NAND"), QString(), tr("WAD files (*.wad)"));
+  QString wad_file = DolphinFileDialog::getOpenFileName(this, tr("Select Title to Install to NAND"),
+                                                        QString(), tr("WAD files (*.wad)"));
 
   if (wad_file.isEmpty())
     return;
@@ -1118,7 +1118,7 @@ void MenuBar::InstallWAD()
 void MenuBar::ImportWiiSave()
 {
   QString file =
-      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+      DolphinFileDialog::getOpenFileName(this, tr("Select Save File"), QDir::currentPath(),
                                          tr("Wii save files (*.bin);;"
                                             "All Files (*)"));
 
@@ -1586,7 +1586,7 @@ void MenuBar::SaveSymbolMap()
 void MenuBar::LoadOtherSymbolMap()
 {
   const QString file = DolphinFileDialog::getOpenFileName(
-      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+      this, tr("Load Map File"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
       tr("Dolphin Map File (*.map)"));
 
   if (file.isEmpty())
@@ -1603,7 +1603,7 @@ void MenuBar::LoadOtherSymbolMap()
 void MenuBar::LoadBadSymbolMap()
 {
   const QString file = DolphinFileDialog::getOpenFileName(
-      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+      this, tr("Load Map File"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
       tr("Dolphin Map File (*.map)"));
 
   if (file.isEmpty())
@@ -1621,7 +1621,7 @@ void MenuBar::SaveSymbolMapAs()
 {
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
   const QString file = DolphinFileDialog::getSaveFileName(
-      this, tr("Save map file"),
+      this, tr("Save Map File"),
       QString::fromStdString(File::GetUserPath(D_MAPS_IDX) + "/" + title_id_str + ".map"),
       tr("Dolphin Map File (*.map)"));
 
@@ -1677,7 +1677,7 @@ void MenuBar::CreateSignatureFile()
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"),
       QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
-  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Save signature file"),
+  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Save Signature File"),
                                                           QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
@@ -1702,7 +1702,7 @@ void MenuBar::AppendSignatureFile()
       this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"),
       QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
-  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Append signature to"),
+  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Append Signature To"),
                                                           QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
@@ -1725,7 +1725,7 @@ void MenuBar::AppendSignatureFile()
 
 void MenuBar::ApplySignatureFile()
 {
-  const QString file = DolphinFileDialog::getOpenFileName(this, tr("Apply signature file"),
+  const QString file = DolphinFileDialog::getOpenFileName(this, tr("Apply Signature File"),
                                                           QDir::homePath(), GetSignatureSelector());
 
   if (file.isEmpty())
@@ -1745,17 +1745,17 @@ void MenuBar::ApplySignatureFile()
 void MenuBar::CombineSignatureFiles()
 {
   const QString priorityFile = DolphinFileDialog::getOpenFileName(
-      this, tr("Choose priority input file"), QDir::homePath(), GetSignatureSelector());
+      this, tr("Choose Priority Input File"), QDir::homePath(), GetSignatureSelector());
   if (priorityFile.isEmpty())
     return;
 
   const QString secondaryFile = DolphinFileDialog::getOpenFileName(
-      this, tr("Choose secondary input file"), QDir::homePath(), GetSignatureSelector());
+      this, tr("Choose Secondary Input File"), QDir::homePath(), GetSignatureSelector());
   if (secondaryFile.isEmpty())
     return;
 
   const QString saveFile = DolphinFileDialog::getSaveFileName(
-      this, tr("Save combined output file as"), QDir::homePath(), GetSignatureSelector());
+      this, tr("Save Combined Output File As"), QDir::homePath(), GetSignatureSelector());
   if (saveFile.isEmpty())
     return;
 
