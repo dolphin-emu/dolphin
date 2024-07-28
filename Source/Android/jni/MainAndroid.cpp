@@ -417,6 +417,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteJitBloc
   HostThreadLock guard;
   auto& system = Core::System::GetInstance();
   auto& jit_interface = system.GetJitInterface();
+  const Core::CPUThreadGuard cpu_guard(system);
   if (jit_interface.GetCore() == nullptr)
   {
     env->CallStaticVoidMethod(native_library_class, IDCache::GetDisplayToastMsg(),
@@ -434,7 +435,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteJitBloc
         JNI_FALSE);
     return;
   }
-  jit_interface.JitBlockLogDump(Core::CPUThreadGuard{system}, f.GetHandle());
+  jit_interface.JitBlockLogDump(cpu_guard, f.GetHandle());
   env->CallStaticVoidMethod(native_library_class, IDCache::GetDisplayToastMsg(),
                             ToJString(env, Common::FmtFormatT("Wrote to \"{0}\".", filename)),
                             JNI_FALSE);
