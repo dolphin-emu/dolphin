@@ -12,14 +12,12 @@ set(SOURCES
 
 add_executable(MacUpdater ${SOURCES})
 
-set(MacUpdater_NAME "Dolphin Updater")
-
 add_dependencies(MacUpdater dolphin_scmrev)
 
 set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE true
   MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-  OUTPUT_NAME ${MacUpdater_NAME})
+  OUTPUT_NAME "Dolphin Updater")
 
 target_compile_options(MacUpdater PRIVATE -x objective-c++)
 
