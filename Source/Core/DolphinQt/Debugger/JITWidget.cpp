@@ -12,10 +12,10 @@
 #include <fmt/format.h>
 
 #include "Common/GekkoDisassembler.h"
+#include "Common/HostDisassembler.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/System.h"
-#include "UICommon/Disassembler.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
