@@ -13,8 +13,6 @@ set(SOURCES
 add_executable(MacUpdater ${SOURCES})
 
 set(MacUpdater_NAME "Dolphin Updater")
-set(MacUpdater_BIN_DIR ${CMAKE_BINARY_DIR}/Binaries)
-set(MacUpdater_BUNDLE_PATH ${MacUpdater_BIN_DIR}/${MacUpdater_NAME}.app)
 
 add_dependencies(MacUpdater dolphin_scmrev)
 
