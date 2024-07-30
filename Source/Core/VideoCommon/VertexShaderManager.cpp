@@ -254,10 +254,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       auto sanitize = [](const float f) {
         if (std::isnan(f))
           return 0.0f;
-        else if (std::isinf(f))
+        if (std::isinf(f))
           return f > 0.0f ? 1.0f : -1.0f;
-        else
-          return f;
+        return f;
       };
       double norm = static_cast<double>(light.ddir[0]) * static_cast<double>(light.ddir[0]) +
                     static_cast<double>(light.ddir[1]) * static_cast<double>(light.ddir[1]) +

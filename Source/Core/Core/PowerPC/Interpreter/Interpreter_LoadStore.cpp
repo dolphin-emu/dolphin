@@ -288,10 +288,7 @@ void Interpreter::lmw(Interpreter& interpreter, UGeckoInstruction inst)
       NOTICE_LOG_FMT(POWERPC, "DSI exception in lmw");
       return;
     }
-    else
-    {
-      ppc_state.gpr[i] = temp_reg;
-    }
+    ppc_state.gpr[i] = temp_reg;
   }
 }
 

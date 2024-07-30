@@ -203,11 +203,8 @@ void MemoryCard::ClearBlock(const u32 address)
     PanicAlertFmtT("MemoryCard: ClearBlock called on invalid address ({0:#x})", address);
     return;
   }
-  else
-  {
-    std::unique_lock l(m_flush_mutex);
-    memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
-  }
+  std::unique_lock l(m_flush_mutex);
+  memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
   MakeDirty();
 }
 

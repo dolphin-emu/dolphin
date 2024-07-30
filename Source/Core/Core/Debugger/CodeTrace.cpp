@@ -37,12 +37,11 @@ u32 GetMemoryTargetSize(const std::string_view instr)
   {
     return 1;
   }
-  else if (op.find(HALF_TAG) != std::string::npos)
+  if (op.find(HALF_TAG) != std::string::npos)
   {
     return 2;
   }
-  else if (op.find(DOUBLE_WORD_TAG) != std::string::npos ||
-           op.find(PAIRED_TAG) != std::string::npos)
+  if (op.find(DOUBLE_WORD_TAG) != std::string::npos || op.find(PAIRED_TAG) != std::string::npos)
   {
     return 8;
   }
@@ -296,9 +295,9 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first
 
   if (CompareInstruction(instr.instruction, exclude))
     return HitType::SKIP;
-  else if (CompareInstruction(instr.instruction, compare))
+  if (CompareInstruction(instr.instruction, compare))
     return HitType::PASSIVE;
-  else if (match_reg123 && !match_reg0 && (instr.is_store || instr.is_load))
+  if (match_reg123 && !match_reg0 && (instr.is_store || instr.is_load))
     return HitType::POINTER;
 
   // Update tracking logic. At this point a memory or register hit happened.
@@ -315,7 +314,8 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first
         m_reg_autotrack.push_back(instr.reg0);
         return HitType::SAVELOAD;
       }
-      else if (instr.is_store && !match_reg0)
+
+      if (instr.is_store && !match_reg0)
       {
         // On First Hit it wouldn't necessarily be wrong to track the register, which contains the
         // same value. A matter of preference.
@@ -327,13 +327,10 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first
 
         return HitType::OVERWRITE;
       }
-      else
-      {
-        // If reg0 and store/load are both already tracked, do nothing.
-        return HitType::SAVELOAD;
-      }
+      // If reg0 and store/load are both already tracked, do nothing.
+      return HitType::SAVELOAD;
     }
-    else if (instr.is_store && match_reg0)
+    if (instr.is_store && match_reg0)
     {
       // If store to untracked memory, then track memory.
       for (u32 i = 0; i < instr.memory_target_size; i++)
@@ -341,7 +338,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first
 
       return HitType::SAVELOAD;
     }
-    else if (instr.is_load && match_reg0)
+    if (instr.is_load && match_reg0)
     {
       // Not wrong to track load memory_target here. Preference.
       if (first_hit)
@@ -372,7 +369,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first
       return HitType::ACTIVE;
     }
     // If tracked register is overwritten, stop tracking.
-    else if (match_reg0 && !match_reg123)
+    if (match_reg0 && !match_reg123)
     {
       if (CompareInstruction(instr.instruction, combiner) || first_hit)
         return HitType::UPDATED;
@@ -380,7 +377,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, const bool first
       m_reg_autotrack.erase(reg_itr);
       return HitType::OVERWRITE;
     }
-    else if (match_reg0 && match_reg123)
+    if (match_reg0 && match_reg123)
     {
       // Or moved
       return HitType::UPDATED;

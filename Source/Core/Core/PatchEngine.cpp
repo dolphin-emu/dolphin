@@ -92,11 +92,8 @@ std::string SerializeLine(const PatchEntry& entry)
     return fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
                        PatchTypeAsString(entry.type), entry.value, entry.comparand);
   }
-  else
-  {
-    return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
-                       PatchTypeAsString(entry.type), entry.value);
-  }
+  return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
+                     PatchTypeAsString(entry.type), entry.value);
 }
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,

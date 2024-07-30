@@ -146,7 +146,7 @@ std::optional<std::string> GetHLSL(const D3D_FEATURE_LEVEL feature_level, const 
   {
     return std::string{source};
   }
-  else if (const auto spirv = GetSpirv(stage, source))
+  if (const auto spirv = GetSpirv(stage, source))
   {
     return GetHLSLFromSPIRV(std::move(*spirv), feature_level);
   }

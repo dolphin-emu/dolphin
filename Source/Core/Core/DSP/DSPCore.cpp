@@ -238,12 +238,9 @@ void SDSP::CheckExceptions()
           r.sr &= ~SR_INT_ENABLE;
         break;
       }
-      else
-      {
 #if defined(_DEBUG) || defined(DEBUGFAST)
-        ERROR_LOG_FMT(DSPLLE, "Firing exception {} failed", i);
+      ERROR_LOG_FMT(DSPLLE, "Firing exception {} failed", i);
 #endif
-      }
     }
   }
 }

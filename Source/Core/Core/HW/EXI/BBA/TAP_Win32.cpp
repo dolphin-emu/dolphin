@@ -40,7 +40,7 @@ bool IsTAPDevice(const TCHAR* guid)
 
     if (status == ERROR_NO_MORE_ITEMS)
       break;
-    else if (status != ERROR_SUCCESS)
+    if (status != ERROR_SUCCESS)
       return false;
 
     _sntprintf(unit_string, _countof(unit_string), _T("%s\\%s"), ADAPTER_KEY, enum_name);
@@ -52,35 +52,32 @@ bool IsTAPDevice(const TCHAR* guid)
     {
       return false;
     }
-    else
+    len = sizeof(component_id);
+    status = RegQueryValueEx(unit_key, component_id_string, nullptr, &data_type,
+                             (LPBYTE)component_id, &len);
+
+    if (!(status != ERROR_SUCCESS || data_type != REG_SZ))
     {
-      len = sizeof(component_id);
-      status = RegQueryValueEx(unit_key, component_id_string, nullptr, &data_type,
-                               (LPBYTE)component_id, &len);
+      len = sizeof(net_cfg_instance_id);
+      status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, nullptr, &data_type,
+                               (LPBYTE)net_cfg_instance_id, &len);
 
-      if (!(status != ERROR_SUCCESS || data_type != REG_SZ))
+      if (status == ERROR_SUCCESS && data_type == REG_SZ)
       {
-        len = sizeof(net_cfg_instance_id);
-        status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, nullptr, &data_type,
-                                 (LPBYTE)net_cfg_instance_id, &len);
+        const TCHAR* const component_id_sub = _tcsstr(component_id, TAP_COMPONENT_ID);
 
-        if (status == ERROR_SUCCESS && data_type == REG_SZ)
+        if (component_id_sub)
         {
-          const TCHAR* const component_id_sub = _tcsstr(component_id, TAP_COMPONENT_ID);
-
-          if (component_id_sub)
+          if (!_tcscmp(component_id_sub, TAP_COMPONENT_ID) && !_tcscmp(net_cfg_instance_id, guid))
           {
-            if (!_tcscmp(component_id_sub, TAP_COMPONENT_ID) && !_tcscmp(net_cfg_instance_id, guid))
-            {
-              RegCloseKey(unit_key);
-              RegCloseKey(netcard_key);
-              return true;
-            }
+            RegCloseKey(unit_key);
+            RegCloseKey(netcard_key);
+            return true;
           }
         }
       }
-      RegCloseKey(unit_key);
     }
+    RegCloseKey(unit_key);
     ++i;
   }
 
@@ -138,12 +135,9 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
       {
         continue;
       }
-      else
+      if (IsTAPDevice(enum_name))
       {
-        if (IsTAPDevice(enum_name))
-        {
-          guids.push_back(enum_name);
-        }
+        guids.push_back(enum_name);
       }
 
       RegCloseKey(connection_key);

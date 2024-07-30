@@ -308,14 +308,13 @@ void NetworkWidget::Update() const
   const int combo_index = static_cast<int>([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
     if (is_pcap)
       return FormatComboId::PCAP;
-    else if (is_ssl_read && is_ssl_write)
+    if (is_ssl_read && is_ssl_write)
       return FormatComboId::BinarySSL;
-    else if (is_ssl_read)
+    if (is_ssl_read)
       return FormatComboId::BinarySSLRead;
-    else if (is_ssl_write)
+    if (is_ssl_write)
       return FormatComboId::BinarySSLWrite;
-    else
-      return FormatComboId::None;
+    return FormatComboId::None;
   }());
   m_dump_format_combo->setCurrentIndex(combo_index);
 }

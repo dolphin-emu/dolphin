@@ -368,10 +368,10 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
       WARN_LOG_FMT(FRAMEDUMP, "PTS delta < 1. Current frame will not be dumped.");
       return;
     }
-    else if (pts > m_context->last_pts + 1 && !m_context->gave_vfr_warning)
+    if (pts > m_context->last_pts + 1 && !m_context->gave_vfr_warning)
     {
       WARN_LOG_FMT(FRAMEDUMP, "PTS delta > 1. Resulting file will have variable frame rate. "
-                              "Subsequent occurrences will not be reported.");
+                   "Subsequent occurrences will not be reported.");
       m_context->gave_vfr_warning = true;
     }
   }

@@ -51,8 +51,7 @@ public:
       return nullptr;
     if (sections[section].sh_type != SHT_NOBITS)
       return GetPtr(sections[section].sh_offset);
-    else
-      return nullptr;
+    return nullptr;
   }
   bool IsCodeSegment(const int segment) const { return segments[segment].p_flags & PF_X; }
   const u8* GetSegmentPtr(const int segment) const { return GetPtr(segments[segment].p_offset); }

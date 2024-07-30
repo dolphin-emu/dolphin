@@ -875,10 +875,7 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
   {
     return false;
   }
-  else
-  {
-    character = skypair->second;
-  }
+  character = skypair->second;
 
   bool pass = false;
 

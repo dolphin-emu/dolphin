@@ -168,13 +168,13 @@ static WindowSystemType GetWindowSystemType()
   const QString platform_name = QGuiApplication::platformName();
   if (platform_name == QStringLiteral("windows"))
     return WindowSystemType::Windows;
-  else if (platform_name == QStringLiteral("cocoa"))
+  if (platform_name == QStringLiteral("cocoa"))
     return WindowSystemType::MacOS;
-  else if (platform_name == QStringLiteral("xcb"))
+  if (platform_name == QStringLiteral("xcb"))
     return WindowSystemType::X11;
-  else if (platform_name == QStringLiteral("wayland"))
+  if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
-  else if (platform_name == QStringLiteral("haiku"))
+   if (platform_name == QStringLiteral("haiku"))
     return WindowSystemType::Haiku;
 
   ModalMessageBox::critical(
@@ -983,12 +983,9 @@ bool MainWindow::RequestStop()
 
       return false;
     }
-    else
-    {
-      m_render_widget->SetCursorLockedOnNextActivation(false);
-      // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
-      m_render_widget->SetWaitingForMessageBox(false);
-    }
+    m_ender_widget->SetCursorLockedOnNextActivation(false);
+    // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
+    m_render_widget->SetWaitingForMessageBox(false);
   }
 
   OnStopRecording();

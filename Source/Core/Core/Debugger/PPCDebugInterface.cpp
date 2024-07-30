@@ -295,10 +295,7 @@ std::string PPCDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u3
 
     return disasm;
   }
-  else
-  {
-    return "<unknown>";
-  }
+  return "<unknown>";
 }
 
 std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& guard, const int memory,

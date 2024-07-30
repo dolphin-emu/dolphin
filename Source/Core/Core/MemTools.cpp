@@ -65,18 +65,16 @@ static LONG NTAPI Handler(const PEXCEPTION_POINTERS pPtrs)
     {
       return EXCEPTION_CONTINUE_EXECUTION;
     }
-    else
-    {
-      // Let's not prevent debugging.
-      return EXCEPTION_CONTINUE_SEARCH;
-    }
+    // Let's not prevent debugging.
+    return EXCEPTION_CONTINUE_SEARCH;
   }
 
   case EXCEPTION_STACK_OVERFLOW:
+  {
     if (Core::System::GetInstance().GetJitInterface().HandleStackFault())
       return EXCEPTION_CONTINUE_EXECUTION;
-    else
-      return EXCEPTION_CONTINUE_SEARCH;
+    return EXCEPTION_CONTINUE_SEARCH;
+  }
 
   case EXCEPTION_ILLEGAL_INSTRUCTION:
     // No SSE support? Or simply bad codegen?

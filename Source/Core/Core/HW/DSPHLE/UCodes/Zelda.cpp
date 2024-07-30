@@ -1550,8 +1550,7 @@ void* ZeldaAudioRenderer::GetARAMPtr(const u32 offset) const
 {
   if (m_system.IsWii())
     return HLEMemory_Get_Pointer(m_system.GetMemory(), m_aram_base_addr + offset);
-  else
-    return m_system.GetDSP().GetARAMPtr() + offset;
+  return m_system.GetDSP().GetARAMPtr() + offset;
 }
 
 template <typename T>
@@ -1636,7 +1635,7 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
     {
       return;  // We have output everything we needed.
     }
-    else if (requested_samples_count <= vpb->GetRemainingLength())
+    if (requested_samples_count <= vpb->GetRemainingLength())
     {
       // Each AFC block is 16 samples.
       const u16 requested_blocks_count = (requested_samples_count + 0xF) >> 4;
@@ -1671,52 +1670,46 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
 
       return;
     }
-    else
+    // More samples asked than available. Either complete the sound, or
+    // start looping.
+    if (vpb->GetRemainingLength())  // Skip if we cannot load anything.
     {
-      // More samples asked than available. Either complete the sound, or
-      // start looping.
-      if (vpb->GetRemainingLength())  // Skip if we cannot load anything.
-      {
-        requested_samples_count -= vpb->GetRemainingLength();
-        const u16 requested_blocks_count = (vpb->GetRemainingLength() + 0xF) >> 4;
-        DecodeAFC(vpb, dst, requested_blocks_count);
-        dst += vpb->GetRemainingLength();
-      }
-
-      if (!vpb->is_looping)
-      {
-        vpb->done = true;
-        for (size_t i = 0; i < requested_samples_count; ++i)
-          *dst++ = 0;
-        return;
-      }
-      else
-      {
-        // We need to loop. Compute the new position, decode a block,
-        // and loop back to the beginning of the download logic.
-
-        // Use the fact that the sample source number also represents
-        // the number of bytes per 16 samples.
-        const u32 loop_off_in_bytes = (vpb->GetLoopAddress() >> 4) * vpb->samples_source_type;
-        const u32 loop_start_addr = vpb->GetBaseAddress() + loop_off_in_bytes;
-        vpb->SetCurrentARAMAddr(loop_start_addr);
-
-        *vpb->AFCYN2() = vpb->loop_yn2;
-        *vpb->AFCYN1() = vpb->loop_yn1;
-
-        DecodeAFC(vpb, vpb->afc_remaining_samples, 1);
-
-        // Realign and recompute the number of internally cached
-        // samples and the current position.
-        vpb->afc_remaining_decoded_samples = 0x10 - (vpb->GetLoopAddress() & 0xF);
-
-        u32 remaining_length = vpb->GetLoopStartPosition();
-        remaining_length -= vpb->afc_remaining_decoded_samples;
-        remaining_length -= vpb->GetLoopAddress();
-        vpb->SetRemainingLength(remaining_length);
-        continue;
-      }
+      requested_samples_count -= vpb->GetRemainingLength();
+      const u16 requested_blocks_count = (vpb->GetRemainingLength() + 0xF) >> 4;
+      DecodeAFC(vpb, dst, requested_blocks_count);
+      dst += vpb->GetRemainingLength();
     }
+
+    if (!vpb->is_looping)
+    {
+      vpb->done = true;
+      for (size_t i = 0; i < requested_samples_count; ++i)
+        *dst++ = 0;
+      return;
+    }
+    // We need to loop. Compute the new position, decode a block,
+    // and loop back to the beginning of the download logic.
+
+    // Use the fact that the sample source number also represents
+    // the number of bytes per 16 samples.
+    const u32 loop_off_in_bytes = (vpb->GetLoopAddress() >> 4) * vpb->samples_source_type;
+    const u32 loop_start_addr = vpb->GetBaseAddress() + loop_off_in_bytes;
+    vpb->SetCurrentARAMAddr(loop_start_addr);
+
+    *vpb->AFCYN2() = vpb->loop_yn2;
+    *vpb->AFCYN1() = vpb->loop_yn1;
+
+    DecodeAFC(vpb, vpb->afc_remaining_samples, 1);
+
+    // Realign and recompute the number of internally cached
+    // samples and the current position.
+    vpb->afc_remaining_decoded_samples = 0x10 - (vpb->GetLoopAddress() & 0xF);
+
+    u32 remaining_length = vpb->GetLoopStartPosition();
+    remaining_length -= vpb->afc_remaining_decoded_samples;
+    remaining_length -= vpb->GetLoopAddress();
+    vpb->SetRemainingLength(remaining_length);
+    continue;
   }
 }
 

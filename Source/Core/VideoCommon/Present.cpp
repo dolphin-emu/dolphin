@@ -416,17 +416,17 @@ float Presenter::CalculateDrawAspectRatio(const bool allow_stretch) const
   {
     return SourceAspectRatioToWidescreen(source_aspect_ratio);
   }
-  else if (aspect_mode == AspectMode::Custom)
+  if (aspect_mode == AspectMode::Custom)
   {
     return source_aspect_ratio * (g_ActiveConfig.GetCustomAspectRatio() / (4.0f / 3.0f));
   }
   // For the "custom stretch" mode, we force the exact target aspect ratio, without
   // acknowleding the difference between the source aspect ratio and 4:3.
-  else if (aspect_mode == AspectMode::CustomStretch)
+  if (aspect_mode == AspectMode::CustomStretch)
   {
     return g_ActiveConfig.GetCustomAspectRatio();
   }
-  else if (aspect_mode == AspectMode::Raw)
+  if (aspect_mode == AspectMode::Raw)
   {
     return m_xfb_entry ? (static_cast<float>(m_last_xfb_width) / m_last_xfb_height) : 1.f;
   }

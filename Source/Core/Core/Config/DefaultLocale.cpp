@@ -50,8 +50,7 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
     // Mainland China and Singapore use simplified characters
     if (locale_contains("CN") || locale_contains("SG"))
       return DiscIO::Language::SimplifiedChinese;
-    else
-      return DiscIO::Language::TraditionalChinese;
+    return DiscIO::Language::TraditionalChinese;
   }
 
   // Same order as in Wii SYSCONF

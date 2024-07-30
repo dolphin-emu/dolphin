@@ -580,16 +580,10 @@ u8 DSPManager::ReadARAM(const u32 address) const
     {
       return m_aram.ptr[address & m_aram.mask];
     }
-    else
-    {
-      const auto& memory = m_system.GetMemory();
-      return memory.Read_U8(address & memory.GetRamMask());
-    }
+    const auto& memory = m_system.GetMemory();
+    return memory.Read_U8(address & memory.GetRamMask());
   }
-  else
-  {
-    return m_aram.ptr[address & m_aram.mask];
-  }
+  return m_aram.ptr[address & m_aram.mask];
 }
 
 void DSPManager::WriteARAM(const u8 value, const u32 address) const

@@ -163,18 +163,18 @@ protected:
           inside_parens = true;
           continue;
         }
-        else if (inside_parens)
+        if (inside_parens)
         {
           if (c == ')')
             inside_parens = false;
           continue;
         }
-        else if (isspace(c))
+        if (isspace(c))
         {
           previous_was_space = true;
           continue;
         }
-        else if (previous_was_space)
+        if (previous_was_space)
         {
           previous_was_space = false;
           if (!out.empty())

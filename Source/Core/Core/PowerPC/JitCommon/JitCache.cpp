@@ -212,15 +212,12 @@ const u8* JitBaseBlockCache::Dispatch()
     {
       return entry_point;
     }
-    else
-    {
-      const JitBlock* block = MoveBlockIntoFastCache(ppc_state.pc, ppc_state.feature_flags);
+    const JitBlock* block = MoveBlockIntoFastCache(ppc_state.pc, ppc_state.feature_flags);
 
-      if (!block)
-        return nullptr;
+    if (!block)
+      return nullptr;
 
-      return block->normalEntry;
-    }
+    return block->normalEntry;
   }
 
   const JitBlock* block =
@@ -522,8 +519,5 @@ size_t JitBaseBlockCache::FastLookupIndexForAddress(const u32 address, const u32
   {
     return (static_cast<size_t>(feature_flags) << 30) | (address >> 2);
   }
-  else
-  {
-    return (address >> 2) & FAST_BLOCK_MAP_FALLBACK_MASK;
-  }
+  return (address >> 2) & FAST_BLOCK_MAP_FALLBACK_MASK;
 }

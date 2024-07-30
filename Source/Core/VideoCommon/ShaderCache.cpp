@@ -138,8 +138,7 @@ std::optional<const AbstractPipeline*> ShaderCache::GetPipelineForUidAsync(const
     // .second is the pending flag, i.e. compiling in the background.
     if (!it->second.second)
       return it->second.first.get();
-    else
-      return {};
+    return {};
   }
 
   AppendGXPipelineUID(uid);

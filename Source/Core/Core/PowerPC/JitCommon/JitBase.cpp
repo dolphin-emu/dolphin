@@ -280,8 +280,7 @@ bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op
 {
   if (jo.fp_exceptions)
     return (op->opinfo->flags & FL_FLOAT_EXCEPTION) != 0;
-  else if (jo.div_by_zero_exceptions)
+  if (jo.div_by_zero_exceptions)
     return (op->opinfo->flags & FL_FLOAT_DIV) != 0;
-  else
-    return false;
+  return false;
 }

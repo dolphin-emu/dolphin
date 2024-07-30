@@ -300,25 +300,22 @@ bool NetPlayClient::Connect()
     Disconnect();
     return false;
   }
-  else
-  {
-    rpac >> m_pid;
+  rpac >> m_pid;
 
-    Player player;
-    player.name = m_player_name;
-    player.pid = m_pid;
-    player.revision = Common::GetNetplayDolphinVer();
+  Player player;
+  player.name = m_player_name;
+  player.pid = m_pid;
+  player.revision = Common::GetNetplayDolphinVer();
 
-    // add self to player list
-    m_players[m_pid] = player;
-    m_local_player = &m_players[m_pid];
+  // add self to player list
+  m_players[m_pid] = player;
+  m_local_player = &m_players[m_pid];
 
-    m_dialog->Update();
+  m_dialog->Update();
 
-    m_is_connected = true;
+  m_is_connected = true;
 
-    return true;
-  }
+  return true;
 }
 
 static void ReceiveSyncIdentifier(sf::Packet& spac, SyncIdentifier& sync_identifier)

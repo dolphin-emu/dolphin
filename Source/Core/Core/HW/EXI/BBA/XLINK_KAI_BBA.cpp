@@ -129,11 +129,8 @@ bool CEXIETHERNET::XLinkNetworkInterface::SendFrame(const u8* frame, u32 size)
                   errno);
     return false;
   }
-  else
-  {
-    m_eth_ref->SendComplete();
-    return true;
-  }
+  m_eth_ref->SendComplete();
+  return true;
 }
 
 void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(

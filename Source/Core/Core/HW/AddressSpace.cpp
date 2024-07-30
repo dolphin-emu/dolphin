@@ -443,14 +443,13 @@ Accessors* GetAccessors(const Type address_space)
   case Type::Effective:
     return &s_effective_address_space_accessors;
   case Type::Physical:
+  {
     if (Core::System::GetInstance().IsWii())
     {
       return &s_physical_address_space_accessors_wii;
     }
-    else
-    {
-      return &s_physical_address_space_accessors_gcn;
-    }
+    return &s_physical_address_space_accessors_gcn;
+  }
   case Type::Mem1:
     return &s_mem1_address_space_accessors;
   case Type::Mem2:

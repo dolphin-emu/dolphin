@@ -668,10 +668,7 @@ size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, const
     filereader_state->position += requested_bytes;
     return requested_bytes;
   }
-  else
-  {
-    return 0;
-  }
+  return 0;
 }
 
 void AchievementManager::FilereaderClose(void* file_handle)

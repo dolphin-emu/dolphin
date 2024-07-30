@@ -26,10 +26,7 @@ public:
       b[addr] = temp ? 2 : 1;
       return true;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 
   // Remove Breakpoint

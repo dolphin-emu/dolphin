@@ -49,7 +49,7 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
   {
     return;
   }
-  else if (gch_gameid - Gecko::MAGIC_GAMEID > 5)
+  if (gch_gameid - Gecko::MAGIC_GAMEID > 5)
   {
     gch_gameid = Gecko::MAGIC_GAMEID;
   }

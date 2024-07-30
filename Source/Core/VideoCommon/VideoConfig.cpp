@@ -254,8 +254,7 @@ u32 VideoConfig::GetShaderCompilerThreads() const
 
   if (iShaderCompilerThreads >= 0)
     return static_cast<u32>(iShaderCompilerThreads);
-  else
-    return GetNumAutoShaderCompilerThreads();
+  return GetNumAutoShaderCompilerThreads();
 }
 
 u32 VideoConfig::GetShaderPrecompilerThreads() const
@@ -269,10 +268,9 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
 
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
-  else if (!HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION))
+  if (!HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION))
     return GetNumAutoShaderPreCompilerThreads();
-  else
-    return 1;
+  return 1;
 }
 
 void CheckForConfigChanges()

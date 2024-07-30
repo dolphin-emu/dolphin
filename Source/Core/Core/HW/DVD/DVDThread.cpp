@@ -285,8 +285,7 @@ void DVDThread::FinishRead(const u64 id, const s64 cycles_late)
 
       if (result.first.id == id)
         break;
-      else
-        m_result_map.emplace(result.first.id, std::move(result));
+      m_result_map.emplace(result.first.id, std::move(result));
     }
   }
   // We have now obtained the right ReadResult.

@@ -89,9 +89,9 @@ static u8 Hex2char(const u8 hex)
 {
   if (hex >= '0' && hex <= '9')
     return hex - '0';
-  else if (hex >= 'a' && hex <= 'f')
+  if (hex >= 'a' && hex <= 'f')
     return hex - 'a' + 0xa;
-  else if (hex >= 'A' && hex <= 'F')
+   if (hex >= 'A' && hex <= 'F')
     return hex - 'A' + 0xa;
 
   ERROR_LOG_FMT(GDB_STUB, "Invalid nibble: {} ({:02x})", static_cast<char>(hex), hex);
@@ -103,8 +103,7 @@ static u8 Nibble2hex(u8 n)
   n &= 0xf;
   if (n < 0xa)
     return '0' + n;
-  else
-    return 'A' + n - 0xa;
+  return 'A' + n - 0xa;
 }
 
 static void Mem2hex(u8* dst, const u8* src, u32 len)
@@ -209,7 +208,7 @@ static void ReadCommand()
     // ignore ack
     return;
   }
-  else if (c == 0x03)
+  if (c == 0x03)
   {
     const auto& system = Core::System::GetInstance();
     system.GetCPU().Break();
@@ -218,7 +217,7 @@ static void ReadCommand()
     INFO_LOG_FMT(GDB_STUB, "gdb: CPU::Break due to break command");
     return;
   }
-  else if (c != GDB_STUB_START)
+   if (c != GDB_STUB_START)
   {
     WARN_LOG_FMT(GDB_STUB, "gdb: read invalid byte {:02x}", c);
     return;
@@ -334,13 +333,13 @@ static void HandleQuery()
     return SendReply("QC1");
   if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
     return SendReply("m1");
-  else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+  if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
     return SendReply("l");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+  if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
     return SendReply("00");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+  if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
     return WriteHostInfo();
-  else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
+  if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
     return SendReply("swbreak+;hwbreak+");
 
   SendReply("");
@@ -962,10 +961,9 @@ void ProcessCommands(const bool loop_until_continue)
     {
       if (loop_until_continue)
         continue;
-      else
-        return;
+      return;
     }
-    ReadCommand();
+   ReadCommand();
     // No more commands
     if (s_cmd_len == 0)
       continue;

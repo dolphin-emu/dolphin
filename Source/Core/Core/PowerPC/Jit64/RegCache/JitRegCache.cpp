@@ -97,11 +97,11 @@ OpArg RCOpArg::Location() const
     ASSERT(rc->IsRealized(*preg));
     return rc->R(*preg);
   }
-  else if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
+  if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
   {
     return Gen::R(*xr);
   }
-  else if (const u32* imm = std::get_if<u32>(&contents))
+  if (const u32* imm = std::get_if<u32>(&contents))
   {
     return Gen::Imm32(*imm);
   }
@@ -138,7 +138,7 @@ bool RCOpArg::IsImm() const
   {
     return rc->R(*preg).IsImm();
   }
-  else if (std::holds_alternative<u32>(contents))
+  if (std::holds_alternative<u32>(contents))
   {
     return true;
   }
@@ -151,7 +151,7 @@ s32 RCOpArg::SImm32() const
   {
     return rc->R(*preg).SImm32();
   }
-  else if (const u32* imm = std::get_if<u32>(&contents))
+  if (const u32* imm = std::get_if<u32>(&contents))
   {
     return static_cast<s32>(*imm);
   }
@@ -165,7 +165,7 @@ u32 RCOpArg::Imm32() const
   {
     return rc->R(*preg).Imm32();
   }
-  else if (const u32* imm = std::get_if<u32>(&contents))
+  if (const u32* imm = std::get_if<u32>(&contents))
   {
     return *imm;
   }
@@ -219,7 +219,7 @@ RCX64Reg::operator X64Reg() const&
     ASSERT(rc->IsRealized(*preg));
     return rc->RX(*preg);
   }
-  else if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
+  if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
   {
     return *xr;
   }

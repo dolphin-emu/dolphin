@@ -94,8 +94,7 @@ u64 DiscScrubber::ToClusterOffset(const u64 offset) const
 {
   if (m_has_wii_hashes)
     return offset / 0x7c00 * CLUSTER_SIZE;
-  else
-    return Common::AlignDown(offset, CLUSTER_SIZE);
+  return Common::AlignDown(offset, CLUSTER_SIZE);
 }
 
 // Helper functions for reading the BE volume

@@ -30,17 +30,17 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(const std::strin
 {
   if (backend == BACKEND_CUBEB)
     return std::make_unique<CubebStream>();
-  else if (backend == BACKEND_OPENAL && OpenALStream::IsValid())
+  if (backend == BACKEND_OPENAL && OpenALStream::IsValid())
     return std::make_unique<OpenALStream>();
-  else if (backend == BACKEND_NULLSOUND)
+  if (backend == BACKEND_NULLSOUND)
     return std::make_unique<NullSound>();
-  else if (backend == BACKEND_ALSA && AlsaSound::IsValid())
+  if (backend == BACKEND_ALSA && AlsaSound::IsValid())
     return std::make_unique<AlsaSound>();
-  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::IsValid())
+  if (backend == BACKEND_PULSEAUDIO && PulseAudio::IsValid())
     return std::make_unique<PulseAudio>();
-  else if (backend == BACKEND_OPENSLES && OpenSLESStream::IsValid())
+  if (backend == BACKEND_OPENSLES && OpenSLESStream::IsValid())
     return std::make_unique<OpenSLESStream>();
-  else if (backend == BACKEND_WASAPI && WASAPIStream::IsValid())
+   if (backend == BACKEND_WSAPI && WASAPIStream::IsValid())
     return std::make_unique<WASAPIStream>();
   return {};
 }

@@ -91,35 +91,35 @@ bool ParsePropertyValue(const CustomAssetLibrary::AssetID& asset_id,
   {
     return ParseNumeric<s32, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int2")
+  if (type == "int2")
   {
     return ParseNumeric<s32, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int3")
+  if (type == "int3")
   {
     return ParseNumeric<s32, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int4")
+  if (type == "int4")
   {
     return ParseNumeric<s32, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float")
+  if (type == "float")
   {
     return ParseNumeric<float, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float2")
+  if (type == "float2")
   {
     return ParseNumeric<float, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float3")
+  if (type == "float3")
   {
     return ParseNumeric<float, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float4")
+  if (type == "float4")
   {
     return ParseNumeric<float, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "bool")
+  if (type == "bool")
   {
     if (json_value.is<bool>())
     {

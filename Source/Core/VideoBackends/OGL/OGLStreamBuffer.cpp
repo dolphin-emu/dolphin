@@ -379,8 +379,7 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
     {
       if (HasBug(DriverDetails::BUG_BROKEN_BUFFER_STREAM))
         return std::make_unique<BufferData>(type, size);
-      else
-        return std::make_unique<BufferSubData>(type, size);
+      return std::make_unique<BufferSubData>(type, size);
     }
 
     // mapping fallback

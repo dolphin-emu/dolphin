@@ -218,9 +218,6 @@ struct fmt::formatter<DX12::DX12HRWrap>
           ctx.out(), "{}\nDevice removal reason: {}", Common::HRWrap(hr.m_hr),
           Common::HRWrap(DX12::g_dx_context->GetDevice()->GetDeviceRemovedReason()));
     }
-    else
-    {
-      return fmt::format_to(ctx.out(), "{}", Common::HRWrap(hr.m_hr));
-    }
+    return fmt::format_to(ctx.out(), "{}", Common::HRWrap(hr.m_hr));
   }
 };

@@ -280,10 +280,7 @@ bool CEXIMic::IsInterruptSet()
 
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 void CEXIMic::TransferByte(u8& byte)

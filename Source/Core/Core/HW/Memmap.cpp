@@ -479,14 +479,12 @@ std::string MemoryManager::GetString(u32 em_address, const size_t size) const
     }
     return result;
   }
-  else  // Fixed size string, potentially null terminated or null padded.
-  {
-    result.resize(size);
-    CopyFromEmu(result.data(), em_address, size);
-    const size_t length = strnlen(result.data(), size);
-    result.resize(length);
-    return result;
-  }
+  // Fixed size string, potentially null terminated or null padded.
+  result.resize(size);
+  CopyFromEmu(result.data(), em_address, size);
+  const size_t length = strnlen(result.data(), size);
+  result.resize(length);
+  return result;
 }
 
 std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const

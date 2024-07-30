@@ -44,7 +44,7 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
     ERROR_LOG_FMT(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
     return false;
   }
-  else if (GLExtensions::Version() < 310)
+  if (GLExtensions::Version() < 310)
   {
     ERROR_LOG_FMT(VIDEO, "OpenGL Version {} detected, but at least 3.1 is required.",
                   GLExtensions::Version());

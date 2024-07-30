@@ -191,11 +191,8 @@ T MMU::ReadFromHardware(u32 em_address)
     {
       return EFB_Read(em_address);
     }
-    else
-    {
-      return static_cast<T>(
-          m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, em_address));
-    }
+    return static_cast<T>(
+      m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, em_address));
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
@@ -482,11 +479,8 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
     {
       return TryReadInstResult{false, false, 0, 0};
     }
-    else
-    {
-      address = tlb_addr.address;
-      from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
-    }
+    address = tlb_addr.address;
+    from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
   }
 
   u32 hex;
@@ -966,17 +960,16 @@ bool MMU::IsRAMAddress(u32 address, const bool translate)
   {
     return true;
   }
-  else if (m_memory.GetEXRAM() && segment == 0x1 &&
-           (address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
+  if (m_memory.GetEXRAM() && segment == 0x1 && (address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
   {
     return true;
   }
-  else if (m_memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
   {
     return true;
   }
-  else if (m_memory.GetL1Cache() && segment == 0xE &&
-           (address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && segment == 0xE &&
+      (address < (0xE0000000 + m_memory.GetL1CacheSize())))
   {
     return true;
   }

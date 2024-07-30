@@ -181,8 +181,7 @@ std::string DeviceQualifier::ToString() const
 
   if (cid > -1)
     return fmt::format("{}/{}/{}", source, cid, name);
-  else
-    return fmt::format("{}//{}", source, name);
+  return fmt::format("{}//{}", source, name);
 }
 
 //

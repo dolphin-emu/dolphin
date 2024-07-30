@@ -138,39 +138,36 @@ u32 CEXIModem::ImmRead(const u32 size)
     ERROR_LOG_FMT(SP1, "Received EXI IMM read ({} bytes) with no pending transfer", size);
     return 0;
   }
-  else if (IsWriteTransfer(m_transfer_descriptor))
+  if (IsWriteTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI IMM read ({} bytes) after write command {:x}", size,
                   m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
     return 0;
   }
-  else if (IsModemTransfer(m_transfer_descriptor))
+  if (IsModemTransfer(m_transfer_descriptor))
   {
     u32 be_data = 0;
     HandleReadModemTransfer(&be_data, size);
     return ntohl(be_data);
   }
-  else
+  // Read device register
+  const u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
+  if (reg_num == 0)
   {
-    // Read device register
-    const u8 reg_num = static_cast<uint8_t>((m_transfer_descriptor >> 24) & 0x1F);
-    if (reg_num == 0)
-    {
-      return 0x02020000;  // Device ID (modem)
-    }
-    u32 ret = 0;
-    for (u8 z = 0; z < size; z++)
-    {
-      if (reg_num + z >= m_regs.size())
-      {
-        break;
-      }
-      ret |= (m_regs[reg_num + z] << ((3 - z) * 8));
-    }
-    m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
-    return ret;
+    return 0x02020000;  // Device ID (modem)
   }
+  u32 ret = 0;
+  for (u8 z = 0; z < size; z++)
+  {
+    if (reg_num + z >= m_regs.size())
+    {
+      break;
+    }
+    ret |= (m_regs[reg_num + z] << ((3 - z) * 8));
+  }
+  m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
+  return ret;
 }
 
 void CEXIModem::DMARead(const u32 addr, const u32 size)

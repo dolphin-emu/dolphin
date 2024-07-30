@@ -72,10 +72,7 @@ OpArg VertexLoaderX64::GetVertexAddr(const CPArray array, const VertexComponentF
     MOV(64, R(scratch2), MPIC(&VertexLoaderManager::cached_arraybases[array]));
     return MRegSum(scratch1, scratch2);
   }
-  else
-  {
-    return data;
-  }
+  return data;
 }
 
 void VertexLoaderX64::ReadVertex(OpArg data, const VertexComponentFormat attribute,

@@ -525,10 +525,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                                                       IOCTLV_NET_SSL_DOHANDSHAKE);
       return std::nullopt;
     }
-    else
-    {
-      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
-    }
+    WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     break;
   }
   case IOCTLV_NET_SSL_WRITE:
@@ -540,10 +537,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                                                       IOCTLV_NET_SSL_WRITE);
       return std::nullopt;
     }
-    else
-    {
-      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
-    }
+    WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_WRITE "
                  "BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
@@ -564,10 +558,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                                                       IOCTLV_NET_SSL_READ);
       return std::nullopt;
     }
-    else
-    {
-      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
-    }
+    WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
 
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_READ({})"

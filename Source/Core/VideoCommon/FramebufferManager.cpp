@@ -136,8 +136,7 @@ AbstractTextureFormat FramebufferManager::GetEFBDepthFormat()
   // We still resolve this to a R32F texture, as there is no 24-bit format.
   if (HasBug(DriverDetails::BUG_BROKEN_D32F_CLEAR))
     return AbstractTextureFormat::D24_S8;
-  else
-    return AbstractTextureFormat::D32F;
+  return AbstractTextureFormat::D32F;
 }
 
 AbstractTextureFormat FramebufferManager::GetEFBDepthCopyFormat()

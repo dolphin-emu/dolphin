@@ -271,10 +271,7 @@ void TraversalClient::HandleResends()
         m_OutgoingTraversalPackets.clear();
         break;
       }
-      else
-      {
-        ResendPacket(&tpi);
-      }
+      ResendPacket(&tpi);
     }
   }
   HandlePing();
@@ -358,7 +355,7 @@ void TraversalClient::HandleTraversalTest()
         waitCondition = 0;
         break;
       }
-      else if (waitCondition & ENET_SOCKET_WAIT_RECEIVE)
+      if (waitCondition & ENET_SOCKET_WAIT_RECEIVE)
       {
         // try reading the packet and see if it's relevant
         ENetAddress raddr;
@@ -373,8 +370,8 @@ void TraversalClient::HandleTraversalTest()
           waitCondition = 0;
           break;
         }
-        else if (rv < static_cast<int>(sizeof(packet)) || raddr.host != m_ServerAddress.host ||
-                 raddr.host != m_portAlt || packet.requestId != m_TestRequestId)
+        if (rv < static_cast<int>(sizeof(packet)) || raddr.host != m_ServerAddress.host ||
+            raddr.host != m_portAlt || packet.requestId != m_TestRequestId)
         {
           // irrelevant packet, ignore
           continue;

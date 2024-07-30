@@ -2243,11 +2243,8 @@ struct fmt::formatter<BPU_PreloadTileInfo>
     {
       return fmt::format_to(ctx.out(), "GX_TexModeSync (type and count are both 0)");
     }
-    else
-    {
-      return fmt::format_to(ctx.out(), "Type: {}\nCount: 0x{:x} lines (0x{:x} bytes)", info.type,
-                            info.count, info.count * 32);
-    }
+    return fmt::format_to(ctx.out(), "Type: {}\nCount: 0x{:x} lines (0x{:x} bytes)", info.type,
+                          info.count, info.count * 32);
   }
 };
 
@@ -2523,8 +2520,7 @@ struct BPMemory
       return EmulatedZ::Disabled;
     if (zcontrol.early_ztest)
       return EmulatedZ::Early;
-    else
-      return EmulatedZ::Late;
+    return EmulatedZ::Late;
   }
 };
 

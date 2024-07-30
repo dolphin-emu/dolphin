@@ -71,45 +71,40 @@ u32 Renderer::AccessEFB(const EFBAccessType type, const u32 x, const u32 y, u32 
     {
       return color;
     }
-    else if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadFF)
+    if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadFF)
     {
       return color | 0xFF000000;
     }
-    else
+    if (alpha_read_mode != PixelEngine::AlphaReadMode::Read00)
     {
-      if (alpha_read_mode != PixelEngine::AlphaReadMode::Read00)
-      {
-        PanicAlertFmt("Invalid PE alpha read mode: {}", static_cast<u16>(alpha_read_mode));
-      }
-      return color & 0x00FFFFFF;
+      PanicAlertFmt("Invalid PE alpha read mode: {}", static_cast<u16>(alpha_read_mode));
     }
+    return color & 0x00FFFFFF;
   }
-  else  // if (type == EFBAccessType::PeekZ)
+  // if (type == EFBAccessType::PeekZ)
+  // Depth buffer is inverted for improved precision near far plane
+  float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    depth = 1.0f - depth;
+
+  // Convert to 24bit depth
+  const u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+
+  if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
   {
-    // Depth buffer is inverted for improved precision near far plane
-    float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
-    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-      depth = 1.0f - depth;
+    // When in RGB565_Z16 mode, EFB Z peeks return a 16bit value, which is presumably a
+    // resolved sample from the MSAA buffer.
+    // Dolphin doesn't currently emulate the 3 sample MSAA mode (and potentially never will)
+    // it just transparently upgrades the framebuffer to 24bit depth and color and whatever
+    // level of MSAA and higher Internal Resolution the user has configured.
 
-    // Convert to 24bit depth
-    const u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+    // This is mostly transparent, unless the game does an EFB read.
+    // But we can simply convert the 24bit depth on the fly to the 16bit depth the game expects.
 
-    if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
-    {
-      // When in RGB565_Z16 mode, EFB Z peeks return a 16bit value, which is presumably a
-      // resolved sample from the MSAA buffer.
-      // Dolphin doesn't currently emulate the 3 sample MSAA mode (and potentially never will)
-      // it just transparently upgrades the framebuffer to 24bit depth and color and whatever
-      // level of MSAA and higher Internal Resolution the user has configured.
-
-      // This is mostly transparent, unless the game does an EFB read.
-      // But we can simply convert the 24bit depth on the fly to the 16bit depth the game expects.
-
-      return CompressZ16(z24depth, bpmem.zcontrol.zformat);
-    }
-
-    return z24depth;
+    return CompressZ16(z24depth, bpmem.zcontrol.zformat);
   }
+
+  return z24depth;
 }
 
 void Renderer::PokeEFB(const EFBAccessType type, const EfbPokeData* points, const size_t num_points)

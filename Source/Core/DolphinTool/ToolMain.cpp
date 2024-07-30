@@ -46,11 +46,11 @@ int main(const int argc, char* argv[])
 
   if (command_str == "convert")
     return DolphinTool::ConvertCommand(args);
-  else if (command_str == "verify")
+  if (command_str == "verify")
     return DolphinTool::VerifyCommand(args);
-  else if (command_str == "header")
+  if (command_str == "header")
     return DolphinTool::HeaderCommand(args);
-  else if (command_str == "extract")
+  if (command_str == "extract")
     return DolphinTool::Extract(args);
   PrintUsage();
   return EXIT_FAILURE;

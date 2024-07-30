@@ -352,16 +352,11 @@ const char* GetInterpolationQualifier(const bool msaa, const bool ssaa, const bo
   {
     if (!ssaa)
       return in ? "centroid in" : "centroid out";
-    else
-      return in ? "sample in" : "sample out";
+    return in ? "sample in" : "sample out";
   }
-  else
-  {
-    if (!ssaa)
-      return "centroid";
-    else
-      return "sample";
-  }
+  if (!ssaa)
+    return "centroid";
+  return "sample";
 }
 
 void WriteCustomShaderStructDef(ShaderCode* out, u32 numtexgens)

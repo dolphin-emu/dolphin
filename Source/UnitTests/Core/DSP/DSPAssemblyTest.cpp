@@ -69,11 +69,8 @@ static bool SuperTrip(const char* asm_code)
     fmt::print("SuperTrip: Disassembly failed\n");
     return false;
   }
-  else
-  {
-    fmt::print("Disassembly:\n");
-    fmt::print("{}", text);
-  }
+  fmt::print("Disassembly:\n");
+  fmt::print("{}", text);
 
   if (!DSP::Assemble(text, code2))
   {

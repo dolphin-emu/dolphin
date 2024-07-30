@@ -783,8 +783,7 @@ GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) 
     // So if the hash differs, then it's probably a different game even if the game ID matches.
     if (m_is_datel_disc)
       return NetPlay::SyncIdentifierComparison::DifferentGame;
-    else
-      return NetPlay::SyncIdentifierComparison::DifferentHash;
+    return NetPlay::SyncIdentifierComparison::DifferentHash;
   }
 
   return NetPlay::SyncIdentifierComparison::SameGame;

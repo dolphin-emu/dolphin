@@ -134,7 +134,7 @@ static void HandleFrameStepHotkeys()
 
     return;
   }
-  else if (frame_step_count > 0)
+  if (frame_step_count > 0)
   {
     // Reset frame advance
     frame_step_count = 0;

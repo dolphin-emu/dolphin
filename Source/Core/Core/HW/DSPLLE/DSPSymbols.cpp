@@ -25,8 +25,7 @@ int Addr2Line(const u16 address)  // -1 for not found
   const std::map<u16, int>::iterator iter = addr_to_line.find(address);
   if (iter != addr_to_line.end())
     return iter->second;
-  else
-    return -1;
+  return -1;
 }
 
 int Line2Addr(const int line)  // -1 for not found
@@ -34,8 +33,7 @@ int Line2Addr(const int line)  // -1 for not found
   const std::map<int, u16>::iterator iter = line_to_addr.find(line);
   if (iter != line_to_addr.end())
     return iter->second;
-  else
-    return -1;
+  return -1;
 }
 
 const char* GetLineText(const int line)
@@ -44,10 +42,7 @@ const char* GetLineText(const int line)
   {
     return lines[line].c_str();
   }
-  else
-  {
-    return "----";
-  }
+  return "----";
 }
 
 void AutoDisassembly(const SDSP& dsp, const u16 start_addr, const u16 end_addr)

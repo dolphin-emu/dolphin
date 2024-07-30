@@ -715,7 +715,7 @@ static bool DecompressLZ4(std::vector<u8>& raw_buffer, const u64 size, File::IOF
     {
       return true;
     }
-    else if (total_bytes_read > size)
+    if (total_bytes_read > size)
     {
       PanicAlertFmtT("Internal LZ4 Error - payload size mismatch ({0} / {1}))", total_bytes_read,
                      size);

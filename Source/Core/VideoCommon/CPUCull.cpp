@@ -76,14 +76,13 @@ static CPUCull::TransformFunction GetTransformFunction()
 #if defined(USE_SSE)
   if (MIN_SSE >= 51 || (cpu_info.bAVX && cpu_info.bFMA))
     return CPUCull_FMA::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else if (MIN_SSE >= 50 || cpu_info.bAVX)
+  if (MIN_SSE >= 50 || cpu_info.bAVX)
     return CPUCull_AVX::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else if (PositionHas3Elems && PerVertexPosMtx && (MIN_SSE >= 41 || cpu_info.bSSE4_1))
+  if (PositionHas3Elems && PerVertexPosMtx && (MIN_SSE >= 41 || cpu_info.bSSE4_1))
     return CPUCull_SSE41::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else if (PositionHas3Elems && (MIN_SSE >= 30 || cpu_info.bSSE3))
+  if (PositionHas3Elems && (MIN_SSE >= 30 || cpu_info.bSSE3))
     return CPUCull_SSE3::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
-  else
-    return CPUCull_SSE::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
+  return CPUCull_SSE::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
 #elif defined(USE_NEON)
   return CPUCull_NEON::TransformVertices<PositionHas3Elems, PerVertexPosMtx>;
 #else
@@ -99,10 +98,9 @@ static CPUCull::CullFunction GetCullFunction0()
   // Sorry, MSVC + Sandy Bridge.  (Ivy+ and AMD see very little benefit thanks to mov elimination)
   if (MIN_SSE >= 50 || cpu_info.bAVX)
     return CPUCull_AVX::AreAllVerticesCulled<Primitive, Mode>;
-  else if (MIN_SSE >= 30 || cpu_info.bSSE3)
+  if (MIN_SSE >= 30 || cpu_info.bSSE3)
     return CPUCull_SSE3::AreAllVerticesCulled<Primitive, Mode>;
-  else
-    return CPUCull_SSE::AreAllVerticesCulled<Primitive, Mode>;
+  return CPUCull_SSE::AreAllVerticesCulled<Primitive, Mode>;
 #elif defined(USE_NEON)
   return CPUCull_NEON::AreAllVerticesCulled<Primitive, Mode>;
 #else

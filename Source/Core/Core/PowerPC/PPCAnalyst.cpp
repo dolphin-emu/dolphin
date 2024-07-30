@@ -135,7 +135,7 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
           func.flags |= Common::FFLAG_STRAIGHT;
         return true;
       }
-      else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
+      if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
       {
         func.flags &= ~Common::FFLAG_LEAF;
         func.flags |= Common::FFLAG_EVIL;
@@ -377,8 +377,7 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
         const Common::Symbol* f = func_db->AddFunction(guard, location);
         if (!f)
           break;
-        else
-          location += f->size;
+        location += f->size;
       }
       else
         break;

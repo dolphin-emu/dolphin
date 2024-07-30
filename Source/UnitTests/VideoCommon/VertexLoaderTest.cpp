@@ -573,15 +573,11 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
       const u32 base_size = (addr == VertexComponentFormat::Index8) ? 1 : 2;
       if (elements == NormalComponentCount::NTB)
         return (index3 ? 3 : 1) * base_size;
-      else
-        return 1 * base_size;
+      return 1 * base_size;
     }
-    else
-    {
-      const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
-      const u32 base_size = GetElementSize(format);
-      return base_count * base_size;
-    }
+    const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+    const u32 base_size = GetElementSize(format);
+    return base_count * base_size;
   }();
   const u32 out_size = [&]() -> u32 {
     if (addr == VertexComponentFormat::NotPresent)

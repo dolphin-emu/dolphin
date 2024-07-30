@@ -52,10 +52,7 @@ bool LabelMap::RegisterLabel(std::string label, u16 lval, LabelType type)
       fmt::print("Attempted to redefine label {} from {:04x} to {:04x}\n", label, lval, *old_value);
       return false;
     }
-    else
-    {
-      return true;
-    }
+    return true;
   }
   labels.emplace_back(std::move(label), lval, type);
   return true;
@@ -83,10 +80,7 @@ std::optional<u16> LabelMap::GetLabelValue(std::string_view name, const LabelTyp
       {
         return label.addr;
       }
-      else
-      {
-        fmt::print("Wrong label type requested. {}\n", name);
-      }
+      fmt::print("Wrong label type requested. {}\n", name);
     }
   }
 

@@ -640,7 +640,8 @@ TokenType Lexer::ClassifyAlnum() const
     {
       return true;
     }
-    else if (rn.length() == 2 && std::isdigit(rn[0]) && std::isdigit(rn[1]))
+
+    if (rn.length() == 2 && std::isdigit(rn[0]) && std::isdigit(rn[1]))
     {
       if (rn[0] == '1' || rn[0] == '2')
       {
@@ -660,36 +661,36 @@ TokenType Lexer::ClassifyAlnum() const
   {
     return TokenType::GPR;
   }
-  else if ((CaseInsensitiveEquals(alnum, "sp")) || (CaseInsensitiveEquals(alnum, "rtoc")))
+  if ((CaseInsensitiveEquals(alnum, "sp")) || (CaseInsensitiveEquals(alnum, "rtoc")))
   {
     return TokenType::GPR;
   }
-  else if (std::tolower(alnum[0]) == 'f' && valid_regnum(alnum.substr(1)))
+  if (std::tolower(alnum[0]) == 'f' && valid_regnum(alnum.substr(1)))
   {
     return TokenType::FPR;
   }
-  else if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") &&
-           alnum[2] >= '0' && alnum[2] <= '7')
+  if (alnum.length() == 3 && CaseInsensitiveEquals(alnum.substr(0, 2), "cr") &&
+      alnum[2] >= '0' && alnum[2] <= '7')
   {
     return TokenType::CRField;
   }
-  else if (CaseInsensitiveEquals(alnum, "lt"))
+  if (CaseInsensitiveEquals(alnum, "lt"))
   {
     return TokenType::Lt;
   }
-  else if (CaseInsensitiveEquals(alnum, "gt"))
+  if (CaseInsensitiveEquals(alnum, "gt"))
   {
     return TokenType::Gt;
   }
-  else if (CaseInsensitiveEquals(alnum, "eq"))
+  if (CaseInsensitiveEquals(alnum, "eq"))
   {
     return TokenType::Eq;
   }
-  else if (CaseInsensitiveEquals(alnum, "so"))
+  if (CaseInsensitiveEquals(alnum, "so"))
   {
     return TokenType::So;
   }
-  else if (sprg_map.Find(alnum) != nullptr)
+  if (sprg_map.Find(alnum) != nullptr)
   {
     return TokenType::SPR;
   }

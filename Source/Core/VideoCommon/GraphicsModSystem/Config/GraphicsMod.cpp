@@ -86,10 +86,7 @@ std::optional<GraphicsModConfig> GraphicsModConfig::Create(const picojson::objec
                               relative_path),
                   Source::System);
   }
-  else
-  {
-    return Create(File::GetUserPath(D_GRAPHICSMOD_IDX) + relative_path, Source::User);
-  }
+  return Create(File::GetUserPath(D_GRAPHICSMOD_IDX) + relative_path, Source::User);
 }
 
 std::string GraphicsModConfig::GetAbsolutePath() const
@@ -99,10 +96,7 @@ std::string GraphicsModConfig::GetAbsolutePath() const
     return WithUnifiedPathSeparators(fmt::format("{}{}{}", File::GetSysDirectory(),
                                                  DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR, m_relative_path));
   }
-  else
-  {
-    return WithUnifiedPathSeparators(File::GetUserPath(D_GRAPHICSMOD_IDX) + m_relative_path);
-  }
+  return WithUnifiedPathSeparators(File::GetUserPath(D_GRAPHICSMOD_IDX) + m_relative_path);
 }
 
 void GraphicsModConfig::SerializeToConfig(picojson::object& json_obj) const

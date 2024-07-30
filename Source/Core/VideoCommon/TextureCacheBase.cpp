@@ -979,13 +979,10 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
           iter.first = InvalidateTexture(iter.first);
           continue;
         }
-        else
-        {
-          // Link the two textures together, so we won't apply this partial update again
-          entry->CreateReference(entry_to_update.get());
-          // Mark the texture update as used, as if it was loaded directly
-          entry->frameCount = FRAMECOUNT_INVALID;
-        }
+        // Link the two textures together, so we won't apply this partial update again
+        entry->CreateReference(entry_to_update.get());
+        // Mark the texture update as used, as if it was loaded directly
+        entry->frameCount = FRAMECOUNT_INVALID;
       }
       else
       {
@@ -1437,19 +1434,13 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
             unreinterpreted_copy = iter++;
             continue;
           }
-          else
-          {
-            // If the EFB copies are in a different format and are not reinterpretable, use the RAM
-            // copy.
-            ++iter;
-            continue;
-          }
+          // If the EFB copies are in a different format and are not reinterpretable, use the RAM
+          // copy.
+          ++iter;
+          continue;
         }
-        else
-        {
-          // Prefer the already-converted copy.
-          unconverted_copy = m_textures_by_address.end();
-        }
+        // Prefer the already-converted copy.
+        unconverted_copy = m_textures_by_address.end();
 
         // TODO: We should check width/height/levels for EFB copies. I'm not sure what effect
         // checking width/height/levels would have.
@@ -1969,14 +1960,11 @@ RcTcacheEntry TextureCacheBase::GetXFBFromCache(const u32 address, const u32 wid
       {
         return entry;
       }
-      else
-      {
-        // At this point, we either have an xfb copy that has changed its hash
-        // or an xfb created by stitching or from memory that has been changed
-        // we are safe to invalidate this
-        iter = InvalidateTexture(iter);
-        continue;
-      }
+      // At this point, we either have an xfb copy that has changed its hash
+      // or an xfb created by stitching or from memory that has been changed
+      // we are safe to invalidate this
+      iter = InvalidateTexture(iter);
+      continue;
     }
 
     ++iter;
@@ -3168,28 +3156,25 @@ u64 TCacheEntry::CalculateHash() const
   {
     return Common::GetHash64(ptr, size_in_bytes, hash_sample_size);
   }
-  else
+  const u32 num_blocks_y = NumBlocksY();
+  u64 temp_hash = size_in_bytes;
+
+  u32 samples_per_row = 0;
+  if (hash_sample_size != 0)
   {
-    const u32 num_blocks_y = NumBlocksY();
-    u64 temp_hash = size_in_bytes;
-
-    u32 samples_per_row = 0;
-    if (hash_sample_size != 0)
-    {
-      // Hash at least 4 samples per row to avoid hashing in a bad pattern, like just on the left
-      // side of the efb copy
-      samples_per_row = std::max(hash_sample_size / num_blocks_y, 4u);
-    }
-
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
-      // canceling each other out
-      temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, bytes_per_row, samples_per_row);
-      ptr += memory_stride;
-    }
-    return temp_hash;
+    // Hash at least 4 samples per row to avoid hashing in a bad pattern, like just on the left
+    // side of the efb copy
+    samples_per_row = std::max(hash_sample_size / num_blocks_y, 4u);
   }
+
+  for (u32 i = 0; i < num_blocks_y; i++)
+  {
+    // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
+    // canceling each other out
+    temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, bytes_per_row, samples_per_row);
+    ptr += memory_stride;
+  }
+  return temp_hash;
 }
 
 TextureCacheBase::TexPoolEntry::TexPoolEntry(std::unique_ptr<AbstractTexture> tex,

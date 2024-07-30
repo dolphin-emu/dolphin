@@ -591,12 +591,9 @@ const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 
   {
     return it->second;
   }
-  else
-  {
-    return m_arp_table
-        .emplace_hint(it, inet_ip, GenerateMacAddress(Common::MACConsumer::BBA))
-        ->second;
-  }
+  return m_arp_table
+         .emplace_hint(it, inet_ip, GenerateMacAddress(Common::MACConsumer::BBA))
+         ->second;
 }
 
 bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)

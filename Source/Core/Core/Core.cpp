@@ -738,8 +738,7 @@ State GetState(const System& system)
   const State state = s_state.load();
   if (state == State::Running && system.GetCPU().IsStepping())
     return State::Paused;
-  else
-    return state;
+  return state;
 }
 
 static std::string GenerateScreenshotFolderPath()

@@ -37,18 +37,16 @@ static s16 av_clip16(const s32 a)
 {
   if ((a + 32768) & ~65535)
     return (a >> 31) ^ 32767;
-  else
-    return a;
+  return a;
 }
 
 static s32 av_clip(const s32 a, const s32 amin, const s32 amax)
 {
   if (a < amin)
     return amin;
-  else if (a > amax)
+  if (a > amax)
     return amax;
-  else
-    return a;
+  return a;
 }
 
 static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, const u8 nibble)
@@ -213,12 +211,9 @@ int SpeakerLogic::BusWrite(const u8 slave_addr, const u8 addr, const int count, 
     SpeakerData(data_in, count, m_speaker_pan_setting.GetValue() / 100);
     return count;
   }
-  else
-  {
-    // TODO: Does writing immediately change the decoder config even when active
-    // or does a write to 0x08 activate the new configuration or something?
-    return RawWrite(&reg_data, addr, count, data_in);
-  }
+  // TODO: Does writing immediately change the decoder config even when active
+  // or does a write to 0x08 activate the new configuration or something?
+  return RawWrite(&reg_data, addr, count, data_in);
 }
 
 }  // namespace WiimoteEmu

@@ -70,8 +70,7 @@ std::string VideoBackend::GetDisplayName() const
 {
   if (g_ogl_config.bIsES)
     return _trans("OpenGL ES");
-  else
-    return _trans("OpenGL");
+  return _trans("OpenGL");
 }
 
 void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)

@@ -39,11 +39,8 @@ bool PlainFileReader::Read(const u64 offset, const u64 nbytes, u8* out_ptr)
   {
     return true;
   }
-  else
-  {
-    m_file.ClearError();
-    return false;
-  }
+  m_file.ClearError();
+  return false;
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,

@@ -23,11 +23,11 @@ std::optional<WrapMode> ReadWrapModeFromJSON(const picojson::object& json, const
   {
     return WrapMode::Clamp;
   }
-  else if (uv_mode == "repeat")
+  if (uv_mode == "repeat")
   {
     return WrapMode::Repeat;
   }
-  else if (uv_mode == "mirror")
+  if (uv_mode == "mirror")
   {
     return WrapMode::Mirror;
   }
@@ -45,7 +45,7 @@ std::optional<FilterMode> ReadFilterModeFromJSON(const picojson::object& json,
   {
     return FilterMode::Linear;
   }
-  else if (filter_mode == "near")
+  if (filter_mode == "near")
   {
     return FilterMode::Near;
   }

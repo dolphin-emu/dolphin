@@ -141,13 +141,12 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
     const auto post_underscore = texture_info.find_first_of('_', letter_n_pos + 2);
     if (post_underscore == std::string::npos)
       return texture_info.erase(letter_n_pos, texture_info.size() - letter_n_pos);
-    else
-      return texture_info.erase(letter_n_pos, post_underscore - letter_n_pos);
+    return texture_info.erase(letter_n_pos, post_underscore - letter_n_pos);
   };
 
   if (texture_info.starts_with(EFB_DUMP_PREFIX))
     return handle_fb_texture("an efb");
-  else if (texture_info.starts_with(XFB_DUMP_PREFIX))
+  if (texture_info.starts_with(XFB_DUMP_PREFIX))
     return handle_fb_texture("a xfb");
   return texture_info;
 }
@@ -223,7 +222,7 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     target.m_texture_info_string = texture_info.value();
     return target;
   }
-  else if (type == "load_texture")
+  if (type == "load_texture")
   {
     std::optional<std::string> texture_info = ExtractTextureFilenameForConfig(obj);
     if (!texture_info.has_value())
@@ -233,7 +232,7 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     target.m_texture_info_string = texture_info.value();
     return target;
   }
-  else if (type == "create_texture")
+  if (type == "create_texture")
   {
     std::optional<std::string> texture_info = ExtractTextureFilenameForConfig(obj);
     if (!texture_info.has_value())
@@ -243,15 +242,15 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     target.m_texture_info_string = texture_info.value();
     return target;
   }
-  else if (type == "efb")
+  if (type == "efb")
   {
     return DeserializeFBTargetFromConfig<EFBTarget>(obj, EFB_DUMP_PREFIX);
   }
-  else if (type == "xfb")
+  if (type == "xfb")
   {
     return DeserializeFBTargetFromConfig<XFBTarget>(obj, EFB_DUMP_PREFIX);
   }
-  else if (type == "projection")
+  if (type == "projection")
   {
     ProjectionTarget target;
     const auto texture_iter = obj.find("texture_filename");
@@ -286,16 +285,12 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     else
     {
       ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, option 'value' is not a valid "
-                           "value, valid values are: 2d, 3d");
+                    "value, valid values are: 2d, 3d");
       return std::nullopt;
     }
     return target;
   }
-  else
-  {
-    ERROR_LOG_FMT(VIDEO,
-                  "Failed to load mod configuration file, option 'type' is not a valid value");
-  }
+  ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, option 'type' is not a valid value");
   return std::nullopt;
 }
 

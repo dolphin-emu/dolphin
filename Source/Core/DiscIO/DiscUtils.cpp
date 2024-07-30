@@ -151,10 +151,7 @@ static u64 GetBiggestReferencedOffset(const Volume& volume, const FileInfo& file
       biggest_offset = std::max(biggest_offset, GetBiggestReferencedOffset(volume, f));
     return biggest_offset;
   }
-  else
-  {
-    return file_info.GetOffset() + file_info.GetSize();
-  }
+  return file_info.GetOffset() + file_info.GetSize();
 }
 
 u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition>& partitions)

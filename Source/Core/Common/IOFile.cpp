@@ -121,8 +121,7 @@ u64 IOFile::GetSize() const
 {
   if (IsOpen())
     return File::GetSize(m_file);
-  else
-    return 0;
+  return 0;
 }
 
 bool IOFile::Seek(const s64 offset, const SeekOrigin origin)
@@ -153,8 +152,7 @@ u64 IOFile::Tell() const
 {
   if (IsOpen())
     return ftello(m_file);
-  else
-    return UINT64_MAX;
+  return UINT64_MAX;
 }
 
 bool IOFile::Flush()

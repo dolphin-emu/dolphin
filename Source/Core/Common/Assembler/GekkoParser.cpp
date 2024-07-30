@@ -101,7 +101,7 @@ void ParseIdLocation(ParseState* state)
       state->lexer.EatN<3>();
       return;
     }
-    else if (toks[2].token_val == "l")
+    if (toks[2].token_val == "l")
     {
       state->plugin.OnLoaddr(toks[0].token_val);
       if (state->error)

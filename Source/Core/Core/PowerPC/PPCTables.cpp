@@ -634,15 +634,12 @@ const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst, u32 pc)
       return &s_tables.all_instructions[s_tables.unknown_op_info];
     }
   }
-  else
+  if (info->type == OpType::Invalid)
   {
-    if (info->type == OpType::Invalid)
-    {
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op {:08x} @ {:08x}", inst.hex, pc);
-      return &s_tables.all_instructions[s_tables.unknown_op_info];
-    }
-    return info;
+    ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op {:08x} @ {:08x}", inst.hex, pc);
+    return &s_tables.all_instructions[s_tables.unknown_op_info];
   }
+  return info;
 }
 
 // #define OPLOG

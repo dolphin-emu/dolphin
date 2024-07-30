@@ -85,12 +85,11 @@ bool HexDecode(const std::string& hex, u8* buffer, const size_t size)
   auto DecodeNibble = [](const char c) -> std::optional<u8> {
     if (c >= '0' && c <= '9')
       return static_cast<u8>(c - '0');
-    else if (c >= 'a' && c <= 'f')
+    if (c >= 'a' && c <= 'f')
       return static_cast<u8>(c - 'a' + 10);
-    else if (c >= 'A' && c <= 'F')
+    if (c >= 'A' && c <= 'F')
       return static_cast<u8>(c - 'A' + 10);
-    else
-      return {};
+    return {};
   };
   for (size_t i = 0; i < size; ++i)
   {
@@ -348,23 +347,20 @@ bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
       LogToFile("File %s is already missing.\n", op.filename.c_str());
       continue;
     }
-    else
+    std::string contents;
+    if (!File::ReadFileToString(path, contents))
     {
-      std::string contents;
-      if (!File::ReadFileToString(path, contents))
-      {
-        LogToFile("Could not read file planned for deletion: %s.\n", op.filename.c_str());
-        return false;
-      }
-      Manifest::Hash contents_hash = ComputeHash(contents);
-      if (contents_hash != op.old_hash)
-      {
-        if (!BackupFile(path))
-          return false;
-      }
-
-      File::Delete(path);
+      LogToFile("Could not read file planned for deletion: %s.\n", op.filename.c_str());
+      return false;
     }
+    Manifest::Hash contents_hash = ComputeHash(contents);
+    if (contents_hash != op.old_hash)
+    {
+      if (!BackupFile(path))
+        return false;
+    }
+
+    File::Delete(path);
   }
   return true;
 }
@@ -434,7 +430,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
         LogToFile("File %s was already up to date. Partial update?\n", op.filename.c_str());
         continue;
       }
-      else if (!op.old_hash || contents_hash != *op.old_hash || is_self)
+      if (!op.old_hash || contents_hash != *op.old_hash || is_self)
       {
         if (!BackupFile(path))
           return false;

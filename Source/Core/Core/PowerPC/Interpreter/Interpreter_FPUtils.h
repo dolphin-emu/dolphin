@@ -349,19 +349,16 @@ inline u32 ConvertToSingle(const u64 x)
   {
     return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
-  else if (exp >= 874)
+  if (exp >= 874)
   {
     u32 t = static_cast<u32>(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
     t = t >> (905 - exp);
     t |= static_cast<u32>((x >> 32) & 0x80000000);
     return t;
   }
-  else
-  {
-    // This is said to be undefined.
-    // The code is based on hardware tests.
-    return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
-  }
+  // This is said to be undefined.
+  // The code is based on hardware tests.
+  return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
 }
 
 // used by psq_stXX operations.
@@ -373,10 +370,7 @@ inline u32 ConvertToSingleFTZ(const u64 x)
   {
     return static_cast<u32>(((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff));
   }
-  else
-  {
-    return static_cast<u32>((x >> 32) & 0x80000000);
-  }
+  return static_cast<u32>((x >> 32) & 0x80000000);
 }
 
 inline u64 ConvertToDouble(const u32 value)
@@ -396,7 +390,7 @@ inline u64 ConvertToDouble(const u32 value)
     const u64 z = y << 61 | y << 60 | y << 59;
     return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
   }
-  else if (exp == 0 && frac != 0)  // Subnormal number
+  if (exp == 0 && frac != 0)  // Subnormal number
   {
     exp = 1023 - 126;
     do
@@ -407,10 +401,8 @@ inline u64 ConvertToDouble(const u32 value)
 
     return ((x & 0x80000000) << 32) | (exp << 52) | ((frac & 0x007fffff) << 29);
   }
-  else  // QNaN, SNaN or Zero
-  {
-    const u64 y = exp >> 7;
-    const u64 z = y << 61 | y << 60 | y << 59;
-    return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
-  }
+  // QNaN, SNaN or Zero
+  const u64 y = exp >> 7;
+  const u64 z = y << 61 | y << 60 | y << 59;
+  return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
 }

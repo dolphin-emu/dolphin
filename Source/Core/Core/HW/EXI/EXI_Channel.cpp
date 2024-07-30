@@ -214,10 +214,7 @@ bool CEXIChannel::IsCausingInterrupt()
   {
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select) const

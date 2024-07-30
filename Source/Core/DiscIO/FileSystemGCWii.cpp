@@ -140,15 +140,15 @@ bool FileInfoGCWii::NameCaseInsensitiveEquals(const std::string_view other) cons
       // so if we reach this case, this is shorter than other
       return false;
     }
-    else if (static_cast<unsigned char>(*this_ptr) >= 0x80 &&
-             static_cast<unsigned char>(*other_ptr) >= 0x80)
+    if (static_cast<unsigned char>(*this_ptr) >= 0x80 &&
+        static_cast<unsigned char>(*other_ptr) >= 0x80)
     {
       // other is in UTF-8 and this is in Shift-JIS, so we convert so that we can compare correctly
       const std::string this_utf8 = SHIFTJISToUTF8(this_ptr);
       return std::equal(this_utf8.cbegin(), this_utf8.cend(), other.cbegin() + i, other.cend(),
                         [](const char a, const char b) { return Common::ToLower(a) == Common::ToLower(b); });
     }
-    else if (Common::ToLower(*this_ptr) != Common::ToLower(*other_ptr))
+    if (Common::ToLower(*this_ptr) != Common::ToLower(*other_ptr))
     {
       return false;
     }
@@ -168,19 +168,16 @@ std::string FileInfoGCWii::GetPath() const
     const u32 parent_directory_index = Get(EntryProperty::FILE_OFFSET);
     return FileInfoGCWii(*this, parent_directory_index).GetPath() + GetName() + "/";
   }
-  else
+  // The parent directory can be found by searching backwards
+  // for a directory that contains this file. The search cannot fail,
+  // because the root directory at index 0 contains all files.
+  FileInfoGCWii potential_parent(*this, m_index - 1);
+  while (!(potential_parent.IsDirectory() &&
+           potential_parent.Get(EntryProperty::FILE_SIZE) > m_index))
   {
-    // The parent directory can be found by searching backwards
-    // for a directory that contains this file. The search cannot fail,
-    // because the root directory at index 0 contains all files.
-    FileInfoGCWii potential_parent(*this, m_index - 1);
-    while (!(potential_parent.IsDirectory() &&
-             potential_parent.Get(EntryProperty::FILE_SIZE) > m_index))
-    {
-      potential_parent = FileInfoGCWii(*this, potential_parent.m_index - 1);
-    }
-    return potential_parent.GetPath() + GetName();
+    potential_parent = FileInfoGCWii(*this, potential_parent.m_index - 1);
   }
+  return potential_parent.GetPath() + GetName();
 }
 
 bool FileInfoGCWii::IsValid(const u64 fst_size, const FileInfoGCWii& parent_directory) const

@@ -428,8 +428,7 @@ u32 VideoInterfaceManager::GetXFBAddressTop() const
 {
   if (m_xfb_info_top.POFF)
     return m_xfb_info_top.FBB << 5;
-  else
-    return m_xfb_info_top.FBB;
+  return m_xfb_info_top.FBB;
 }
 
 u32 VideoInterfaceManager::GetXFBAddressBottom() const
@@ -437,8 +436,7 @@ u32 VideoInterfaceManager::GetXFBAddressBottom() const
   // POFF for XFB bottom is connected to POFF for XFB top
   if (m_xfb_info_top.POFF)
     return m_xfb_info_bottom.FBB << 5;
-  else
-    return m_xfb_info_bottom.FBB;
+  return m_xfb_info_bottom.FBB;
 }
 
 u32 VideoInterfaceManager::GetHalfLinesPerEvenField() const
@@ -546,11 +544,11 @@ float VideoInterfaceManager::GetAspectRatio() const
   // 5. Calculate the final ratio and scale to 4:3
   const float ratio = horizontal_active_ratio / vertical_active_ratio;
   const bool running_fifo_log = m_system.GetFifoPlayer().IsRunningWithFakeVideoInterfaceUpdates();
-  if (std::isnormal(ratio) &&      // Check we have a sane ratio without any infs/nans/zeros
-      !running_fifo_log)           // we don't know the correct ratio for fifos
-    return ratio * (4.0f / 3.0f);  // Scale to 4:3
-  else
-    return (4.0f / 3.0f);  // VI isn't initialized correctly, just return 4:3 instead
+  if (std::isnormal(ratio) &&     // Check we have a sane ratio without any infs/nans/zeros
+      !running_fifo_log)          // we don't know the correct ratio for fifos
+    return ratio * (4.0f / 3.0f); // Scale to 4:3
+  return (4.0f / 3.0f);
+  // VI isn't initialized correctly, just return 4:3 instead
 }
 
 // This function updates:

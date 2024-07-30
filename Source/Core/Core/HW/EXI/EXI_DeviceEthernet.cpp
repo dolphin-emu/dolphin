@@ -289,55 +289,51 @@ const char* CEXIETHERNET::GetRegisterName() const
       return "unknown";
     }
   }
-  else
+  switch (transfer.address)
   {
-    switch (transfer.address)
-    {
-      STR_RETURN(BBA_NCRA)
-      STR_RETURN(BBA_NCRB)
-      STR_RETURN(BBA_LTPS)
-      STR_RETURN(BBA_LRPS)
-      STR_RETURN(BBA_IMR)
-      STR_RETURN(BBA_IR)
-      STR_RETURN(BBA_BP)
-      STR_RETURN(BBA_TLBP)
-      STR_RETURN(BBA_TWP)
-      STR_RETURN(BBA_IOB)
-      STR_RETURN(BBA_TRP)
-      STR_RETURN(BBA_RWP)
-      STR_RETURN(BBA_RRP)
-      STR_RETURN(BBA_RHBP)
-      STR_RETURN(BBA_RXINTT)
-      STR_RETURN(BBA_NAFR_PAR0)
-      STR_RETURN(BBA_NAFR_PAR1)
-      STR_RETURN(BBA_NAFR_PAR2)
-      STR_RETURN(BBA_NAFR_PAR3)
-      STR_RETURN(BBA_NAFR_PAR4)
-      STR_RETURN(BBA_NAFR_PAR5)
-      STR_RETURN(BBA_NAFR_MAR0)
-      STR_RETURN(BBA_NAFR_MAR1)
-      STR_RETURN(BBA_NAFR_MAR2)
-      STR_RETURN(BBA_NAFR_MAR3)
-      STR_RETURN(BBA_NAFR_MAR4)
-      STR_RETURN(BBA_NAFR_MAR5)
-      STR_RETURN(BBA_NAFR_MAR6)
-      STR_RETURN(BBA_NAFR_MAR7)
-      STR_RETURN(BBA_NWAYC)
-      STR_RETURN(BBA_NWAYS)
-      STR_RETURN(BBA_GCA)
-      STR_RETURN(BBA_MISC)
-      STR_RETURN(BBA_TXFIFOCNT)
-      STR_RETURN(BBA_WRTXFIFOD)
-      STR_RETURN(BBA_MISC2)
-      STR_RETURN(BBA_SI_ACTRL)
-      STR_RETURN(BBA_SI_STATUS)
-      STR_RETURN(BBA_SI_ACTRL2)
-    default:
-      if (transfer.address >= 0x100 && transfer.address <= 0xfff)
-        return "packet buffer";
-      else
-        return "unknown";
-    }
+  STR_RETURN(BBA_NCRA)
+  STR_RETURN(BBA_NCRB)
+  STR_RETURN(BBA_LTPS)
+  STR_RETURN(BBA_LRPS)
+  STR_RETURN(BBA_IMR)
+  STR_RETURN(BBA_IR)
+  STR_RETURN(BBA_BP)
+  STR_RETURN(BBA_TLBP)
+  STR_RETURN(BBA_TWP)
+  STR_RETURN(BBA_IOB)
+  STR_RETURN(BBA_TRP)
+  STR_RETURN(BBA_RWP)
+  STR_RETURN(BBA_RRP)
+  STR_RETURN(BBA_RHBP)
+  STR_RETURN(BBA_RXINTT)
+  STR_RETURN(BBA_NAFR_PAR0)
+  STR_RETURN(BBA_NAFR_PAR1)
+  STR_RETURN(BBA_NAFR_PAR2)
+  STR_RETURN(BBA_NAFR_PAR3)
+  STR_RETURN(BBA_NAFR_PAR4)
+  STR_RETURN(BBA_NAFR_PAR5)
+  STR_RETURN(BBA_NAFR_MAR0)
+  STR_RETURN(BBA_NAFR_MAR1)
+  STR_RETURN(BBA_NAFR_MAR2)
+  STR_RETURN(BBA_NAFR_MAR3)
+  STR_RETURN(BBA_NAFR_MAR4)
+  STR_RETURN(BBA_NAFR_MAR5)
+  STR_RETURN(BBA_NAFR_MAR6)
+  STR_RETURN(BBA_NAFR_MAR7)
+  STR_RETURN(BBA_NWAYC)
+  STR_RETURN(BBA_NWAYS)
+  STR_RETURN(BBA_GCA)
+  STR_RETURN(BBA_MISC)
+  STR_RETURN(BBA_TXFIFOCNT)
+  STR_RETURN(BBA_WRTXFIFOD)
+  STR_RETURN(BBA_MISC2)
+  STR_RETURN(BBA_SI_ACTRL)
+  STR_RETURN(BBA_SI_STATUS)
+  STR_RETURN(BBA_SI_ACTRL2)
+  default:
+    if (transfer.address >= 0x100 && transfer.address <= 0xfff)
+      return "packet buffer";
+    return "unknown";
   }
 
 #undef STR_RETURN
@@ -504,22 +500,19 @@ inline bool CEXIETHERNET::RecvMACFilter()
   {
     return memcmp(mRecvBuffer.get(), &mBbaMem[BBA_NAFR_PAR0], 6) == 0;
   }
-  else if (memcmp(mRecvBuffer.get(), broadcast, 6) == 0)
+  if (memcmp(mRecvBuffer.get(), broadcast, 6) == 0)
   {
     // Accept broadcast?
     return !!(mBbaMem[BBA_NCRB] & NCRB_AB);
   }
-  else if (mBbaMem[BBA_NCRB] & NCRB_PM)
+  if (mBbaMem[BBA_NCRB] & NCRB_PM)
   {
     // Accept all multicast
     return true;
   }
-  else
-  {
-    // Lookup the dest eth address in the hashmap
-    const u16 index = HashIndex(mRecvBuffer.get());
-    return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
-  }
+  // Lookup the dest eth address in the hashmap
+  const u16 index = HashIndex(mRecvBuffer.get());
+  return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
 }
 
 inline void CEXIETHERNET::inc_rwp()

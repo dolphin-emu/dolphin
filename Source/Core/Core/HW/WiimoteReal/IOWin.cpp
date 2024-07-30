@@ -319,7 +319,7 @@ int IOWritePerWriteFile(const HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
     CancelIo(dev_handle);
     return 1;
   }
-  else if (WAIT_FAILED == wait_result)
+  if (WAIT_FAILED == wait_result)
   {
     WARN_LOG_FMT(WIIMOTE, "IOWrite[WWM_WRITE_FILE]: A wait error occurred on writing to Wiimote.");
     CancelIo(dev_handle);
@@ -611,10 +611,7 @@ bool WiimoteScannerWindows::IsReady() const
     pBluetoothFindRadioClose(hFindRadio);
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 // Connect to a Wiimote with a known device path.
@@ -723,10 +720,11 @@ size_t GetReportSize(u8 rid)
   case InputReportID::Ack:
     return sizeof(InputReportAck);
   default:
+  {
     if (DataReportBuilder::IsValidMode(report_id))
       return MakeDataReportManipulator(report_id, nullptr)->GetDataSize();
-    else
-      return 0;
+    return 0;
+  }
   }
 }
 
@@ -764,7 +762,7 @@ int IORead(const HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, cons
       }
       // If IOWakeup sets the event so GetOverlappedResult returns prematurely, but the request is
       // still pending
-      else if (hid_overlap_read.Internal == STATUS_PENDING)
+      if (hid_overlap_read.Internal == STATUS_PENDING)
       {
         // Don't forget to cancel it.
         CancelIo(dev_handle);

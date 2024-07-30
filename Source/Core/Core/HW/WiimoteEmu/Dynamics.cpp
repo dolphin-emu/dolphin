@@ -74,10 +74,7 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
     const auto axis = gyro_vec.Cross(normalized_accel).Normalized();
     return Common::Quaternion::Rotate(std::acos(cos_angle) * accel_weight, axis) * gyroscope;
   }
-  else
-  {
-    return gyroscope;
-  }
+  return gyroscope;
 }
 
 void EmulateShake(PositionalState* state, const ControllerEmu::Shake* const shake_group,

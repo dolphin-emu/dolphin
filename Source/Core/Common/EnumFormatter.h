@@ -70,20 +70,23 @@ public:
     {
     default:
     case 'u':
+    {
       if (has_name)
         return fmt::format_to(ctx.out(), "{} ({})", m_names[e], value_s);
-      else
-        return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
+      return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
+    }
     case 's':
+    {
       if (has_name)
         return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value_u, m_names[e]);
-      else
-        return fmt::format_to(ctx.out(), "{:#x}u /* Invalid */", value_u);
+      return fmt::format_to(ctx.out(), "{:#x}u /* Invalid */", value_u);
+    }
     case 'n':
+    {
       if (has_name)
         return fmt::format_to(ctx.out(), "{}", m_names[e]);
-      else
-        return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
+      return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
+    }
     }
   }
 

@@ -31,7 +31,7 @@ QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
         sourceModel()->index(source_index.row(), static_cast<int>(GameListModel::Column::Title)),
         Qt::DisplayRole);
   }
-  else if (role == Qt::DecorationRole)
+  if (role == Qt::DecorationRole)
   {
     const auto* model = static_cast<GameListModel*>(sourceModel());
 
@@ -59,14 +59,11 @@ QVariant GridProxyModel::data(const QModelIndex& i, const int role) const
 
       return pixmap;
     }
-    else
-    {
-      pixmap = QPixmap::fromImage(QImage::fromData(
-          &buffer[0], static_cast<int>(buffer.size())));
+    pixmap = QPixmap::fromImage(QImage::fromData(
+        &buffer[0], static_cast<int>(buffer.size())));
 
-      return pixmap.scaled(QSize(160, 224) * model->GetScale() * pixmap.devicePixelRatio(),
-                           Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
+    return pixmap.scaled(QSize(160, 224) * model->GetScale() * pixmap.devicePixelRatio(),
+                         Qt::KeepAspectRatio, Qt::SmoothTransformation);
   }
   return QVariant();
 }

@@ -72,17 +72,17 @@ const u8* GetAttribPacket(const u32 serviceHandle, const u32 cont, u32& _size)
       _size = sizeof(packet1);
       return packet1;
     }
-    else if (cont == 0x76)
+    if (cont == 0x76)
     {
       _size = sizeof(packet2);
       return packet2;
     }
-    else if (cont == 0xec)
+    if (cont == 0xec)
     {
       _size = sizeof(packet3);
       return packet3;
     }
-    else if (cont == 0x162)
+    if (cont == 0x162)
     {
       _size = sizeof(packet4);
       return packet4;

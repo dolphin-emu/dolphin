@@ -83,35 +83,35 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
   {
     return ParseNumeric<s32, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int2")
+  if (type == "int2")
   {
     return ParseNumeric<s32, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int3")
+  if (type == "int3")
   {
     return ParseNumeric<s32, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "int4")
+  if (type == "int4")
   {
     return ParseNumeric<s32, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float")
+  if (type == "float")
   {
     return ParseNumeric<float, 1>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float2")
+  if (type == "float2")
   {
     return ParseNumeric<float, 2>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float3")
+  if (type == "float3")
   {
     return ParseNumeric<float, 3>(asset_id, json_value, code_name, value);
   }
-  else if (type == "float4")
+  if (type == "float4")
   {
     return ParseNumeric<float, 4>(asset_id, json_value, code_name, value);
   }
-  else if (type == "rgb")
+  if (type == "rgb")
   {
     ShaderProperty::RGB rgb;
     if (!ParseNumeric<float, 3>(asset_id, json_value, code_name, &rgb.value))
@@ -119,7 +119,7 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     *value = std::move(rgb);
     return true;
   }
-  else if (type == "rgba")
+  if (type == "rgba")
   {
     ShaderProperty::RGBA rgba;
     if (!ParseNumeric<float, 4>(asset_id, json_value, code_name, &rgba.value))
@@ -127,7 +127,7 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     *value = std::move(rgba);
     return true;
   }
-  else if (type == "bool")
+  if (type == "bool")
   {
     if (json_value.is<bool>())
     {
@@ -380,55 +380,55 @@ ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(const std::str
   {
     return Sampler2D{};
   }
-  else if (name == "sampler2darray")
+  if (name == "sampler2darray")
   {
     return Sampler2DArray{};
   }
-  else if (name == "samplercube")
+  if (name == "samplercube")
   {
     return SamplerCube{};
   }
-  else if (name == "int")
+  if (name == "int")
   {
     return 0;
   }
-  else if (name == "int2")
+  if (name == "int2")
   {
     return std::array<s32, 2>{};
   }
-  else if (name == "int3")
+  if (name == "int3")
   {
     return std::array<s32, 3>{};
   }
-  else if (name == "int4")
+  if (name == "int4")
   {
     return std::array<s32, 4>{};
   }
-  else if (name == "float")
+  if (name == "float")
   {
     return 0.0f;
   }
-  else if (name == "float2")
+  if (name == "float2")
   {
     return std::array<float, 2>{};
   }
-  else if (name == "float3")
+  if (name == "float3")
   {
     return std::array<float, 3>{};
   }
-  else if (name == "float4")
+  if (name == "float4")
   {
     return std::array<float, 4>{};
   }
-  else if (name == "rgb")
+  if (name == "rgb")
   {
     return RGB{};
   }
-  else if (name == "rgba")
+  if (name == "rgba")
   {
     return RGBA{};
   }
-  else if (name == "bool")
+  if (name == "bool")
   {
     return false;
   }

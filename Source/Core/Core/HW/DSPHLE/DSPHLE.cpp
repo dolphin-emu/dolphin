@@ -146,10 +146,7 @@ u16 DSPHLE::DSP_ReadMailBoxHigh(const bool cpu_mailbox)
   {
     return (m_dsp_state.cpu_mailbox >> 16) & 0xFFFF;
   }
-  else
-  {
-    return AccessMailHandler().ReadDSPMailboxHigh();
-  }
+  return AccessMailHandler().ReadDSPMailboxHigh();
 }
 
 u16 DSPHLE::DSP_ReadMailBoxLow(const bool cpu_mailbox)
@@ -158,10 +155,7 @@ u16 DSPHLE::DSP_ReadMailBoxLow(const bool cpu_mailbox)
   {
     return m_dsp_state.cpu_mailbox & 0xFFFF;
   }
-  else
-  {
-    return AccessMailHandler().ReadDSPMailboxLow();
-  }
+  return AccessMailHandler().ReadDSPMailboxLow();
 }
 
 void DSPHLE::DSP_WriteMailBoxHigh(const bool cpu_mailbox, const u16 value)

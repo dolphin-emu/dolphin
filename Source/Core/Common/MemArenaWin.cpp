@@ -305,19 +305,16 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
     regions.insert(it + 1, WindowsMemoryRegion(new_mapping_start, new_mapping_size, false));
     return &regions[mapping_index + 1];
   }
-  else
-  {
-    // split into three; update tracked mappings and return the middle one
-    it->m_size = size_before;
-    u8* const middle_mapping_start = address;
-    const size_t middle_mapping_size = size;
-    u8* const after_mapping_start = address + size;
-    const size_t after_mapping_size = mapping_size - minimum_size;
-    regions.insert(it + 1, WindowsMemoryRegion(after_mapping_start, after_mapping_size, false));
-    regions.insert(regions.begin() + mapping_index + 1,
-                   WindowsMemoryRegion(middle_mapping_start, middle_mapping_size, false));
-    return &regions[mapping_index + 1];
-  }
+  // split into three; update tracked mappings and return the middle one
+  it->m_size = size_before;
+  u8* const middle_mapping_start = address;
+  const size_t middle_mapping_size = size;
+  u8* const after_mapping_start = address + size;
+  const size_t after_mapping_size = mapping_size - minimum_size;
+  regions.insert(it + 1, WindowsMemoryRegion(after_mapping_start, after_mapping_size, false));
+  regions.insert(regions.begin() + mapping_index + 1,
+                 WindowsMemoryRegion(middle_mapping_start, middle_mapping_size, false));
+  return &regions[mapping_index + 1];
 }
 
 void* MemArena::MapInMemoryRegion(const s64 offset, const size_t size, void* base)

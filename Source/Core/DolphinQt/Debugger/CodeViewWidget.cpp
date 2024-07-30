@@ -704,7 +704,8 @@ void CodeViewWidget::AutoStep(const CodeTrace::AutoStop option)
           QMessageBox::Cancel);
       return;
     }
-    else if (results.timed_out)
+
+    if (results.timed_out)
     {
       // Can keep running and try again after a time out.
       msgbox.setText(

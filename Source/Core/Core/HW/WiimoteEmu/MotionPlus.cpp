@@ -167,16 +167,11 @@ MotionPlus::ActivationStatus MotionPlus::GetActivationStatus() const
   {
     if (ChallengeState::Activating == m_reg_data.challenge_state)
       return ActivationStatus::Activating;
-    else
-      return ActivationStatus::Active;
+    return ActivationStatus::Active;
   }
-  else
-  {
-    if (m_progress_timer != 0)
-      return ActivationStatus::Deactivating;
-    else
-      return ActivationStatus::Inactive;
-  }
+  if (m_progress_timer != 0)
+    return ActivationStatus::Deactivating;
+  return ActivationStatus::Inactive;
 }
 
 MotionPlus::PassthroughMode MotionPlus::GetPassthroughMode() const

@@ -656,35 +656,32 @@ bool EmuCodeBlock::WriteToConstAddress(const int accessSize, OpArg arg, const u3
     m_jit.js.fifoBytesSinceCheck += accessSize >> 3;
     return false;
   }
-  else if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
+  if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
   {
     WriteToConstRamAddress(accessSize, arg, address);
     return false;
   }
-  else
-  {
-    // Helps external systems know which instruction triggered the write
-    MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+  // Helps external systems know which instruction triggered the write
+  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
 
-    ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-    switch (accessSize)
-    {
-    case 64:
-      ABI_CallFunctionPAC(64, PowerPC::WriteU64FromJit, &m_jit.m_mmu, arg, address);
-      break;
-    case 32:
-      ABI_CallFunctionPAC(32, PowerPC::WriteU32FromJit, &m_jit.m_mmu, arg, address);
-      break;
-    case 16:
-      ABI_CallFunctionPAC(16, PowerPC::WriteU16FromJit, &m_jit.m_mmu, arg, address);
-      break;
-    case 8:
-      ABI_CallFunctionPAC(8, PowerPC::WriteU8FromJit, &m_jit.m_mmu, arg, address);
-      break;
-    }
-    ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-    return true;
+  ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+  switch (accessSize)
+  {
+  case 64:
+    ABI_CallFunctionPAC(64, PowerPC::WriteU64FromJit, &m_jit.m_mmu, arg, address);
+    break;
+  case 32:
+    ABI_CallFunctionPAC(32, PowerPC::WriteU32FromJit, &m_jit.m_mmu, arg, address);
+    break;
+  case 16:
+    ABI_CallFunctionPAC(16, PowerPC::WriteU16FromJit, &m_jit.m_mmu, arg, address);
+    break;
+  case 8:
+    ABI_CallFunctionPAC(8, PowerPC::WriteU8FromJit, &m_jit.m_mmu, arg, address);
+    break;
   }
+  ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+  return true;
 }
 
 void EmuCodeBlock::WriteToConstRamAddress(const int accessSize, OpArg arg, const u32 address, const bool swap)

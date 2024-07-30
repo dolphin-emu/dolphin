@@ -487,19 +487,19 @@ std::string GetXFMemName(u32 address)
     const u32 col = (address - XFMEM_POSMATRICES) % 4;
     return fmt::format("Position matrix row {:2d} col {:2d}", row, col);
   }
-  else if (address >= XFMEM_NORMALMATRICES && address < XFMEM_NORMALMATRICES_END)
+  if (address >= XFMEM_NORMALMATRICES && address < XFMEM_NORMALMATRICES_END)
   {
     const u32 row = (address - XFMEM_NORMALMATRICES) / 3;
     const u32 col = (address - XFMEM_NORMALMATRICES) % 3;
     return fmt::format("Normal matrix row {:2d} col {:2d}", row, col);
   }
-  else if (address >= XFMEM_POSTMATRICES && address < XFMEM_POSTMATRICES_END)
+  if (address >= XFMEM_POSTMATRICES && address < XFMEM_POSTMATRICES_END)
   {
     const u32 row = (address - XFMEM_POSTMATRICES) / 4;
     const u32 col = (address - XFMEM_POSTMATRICES) % 4;
     return fmt::format("Post matrix row {:2d} col {:2d}", row, col);
   }
-  else if (address >= XFMEM_LIGHTS && address < XFMEM_LIGHTS_END)
+  if (address >= XFMEM_LIGHTS && address < XFMEM_LIGHTS_END)
   {
     const u32 light = (address - XFMEM_LIGHTS) / 16;
     const u32 offset = (address - XFMEM_LIGHTS) % 16;
@@ -534,10 +534,7 @@ std::string GetXFMemName(u32 address)
       return fmt::format("Light {0} {1} direction or half angle {1}", light, "xyz"[offset - 13]);
     }
   }
-  else
-  {
-    return fmt::format("Unknown memory {:04x}", address);
-  }
+  return fmt::format("Unknown memory {:04x}", address);
 }
 
 std::string GetXFMemDescription(const u32 address, u32 value)
@@ -549,7 +546,7 @@ std::string GetXFMemDescription(const u32 address, u32 value)
     // The matrices all use floats
     return fmt::format("{} = {}", GetXFMemName(address), std::bit_cast<float>(value));
   }
-  else if (address >= XFMEM_LIGHTS && address < XFMEM_LIGHTS_END)
+  if (address >= XFMEM_LIGHTS && address < XFMEM_LIGHTS_END)
   {
     // Each light is 16 words; for this function we don't care which light it is
     const u32 offset = (address - XFMEM_LIGHTS) % 16;
@@ -558,17 +555,11 @@ std::string GetXFMemDescription(const u32 address, u32 value)
       // The unused parameters (0, 1, 2) and the color (3) should be hex-formatted
       return fmt::format("{} = {:08x}", GetXFMemName(address), value);
     }
-    else
-    {
-      // Everything else is a float
-      return fmt::format("{} = {}", GetXFMemName(address), std::bit_cast<float>(value));
-    }
+    // Everything else is a float
+    return fmt::format("{} = {}", GetXFMemName(address), std::bit_cast<float>(value));
   }
-  else
-  {
-    // Unknown address
-    return fmt::format("{} = {:08x}", GetXFMemName(address), value);
-  }
+  // Unknown address
+  return fmt::format("{} = {:08x}", GetXFMemName(address), value);
 }
 
 std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, const u8 transfer_size,
@@ -578,7 +569,7 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, const u8
   {
     return std::make_pair("Invalid XF Transfer", "Base address past end of address space");
   }
-  else if (transfer_size == 1 && base_address >= XFMEM_REGISTERS_START)
+  if (transfer_size == 1 && base_address >= XFMEM_REGISTERS_START)
   {
     // Write directly to a single register
     const u32 value = Common::swap32(data);

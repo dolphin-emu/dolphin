@@ -56,10 +56,9 @@ std::string DynamicLibrary::GetVersionedFilename(const char* libname, int major,
 #if defined(_WIN32)
   if (major >= 0 && minor >= 0)
     return fmt::format("{}-{}-{}.dll", libname, major, minor);
-  else if (major >= 0)
+  if (major >= 0)
     return fmt::format("{}-{}.dll", libname, major);
-  else
-    return fmt::format("{}.dll", libname);
+  return fmt::format("{}.dll", libname);
 #elif defined(__APPLE__)
   const char* prefix = std::strncmp(libname, "lib", 3) ? "lib" : "";
   if (major >= 0 && minor >= 0)

@@ -94,10 +94,7 @@ static bool InitUPnP()
       NOTICE_LOG_FMT(NETPLAY, "Got info from IGD at {}.", dev->descURL);
       break;
     }
-    else
-    {
-      WARN_LOG_FMT(NETPLAY, "Error getting info from IGD at {}.", dev->descURL);
-    }
+    WARN_LOG_FMT(NETPLAY, "Error getting info from IGD at {}.", dev->descURL);
   }
 
   if (!found_valid_igd)

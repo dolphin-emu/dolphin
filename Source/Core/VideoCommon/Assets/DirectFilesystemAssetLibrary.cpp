@@ -397,7 +397,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
 
     return LoadInfo{GetAssetSize(data->m_texture) + metadata_size, GetLastAssetWriteTime(asset_id)};
   }
-  else if (ext == ".png")
+  if (ext == ".png")
   {
     // PNG could support more complicated texture types in the future
     // but for now just error

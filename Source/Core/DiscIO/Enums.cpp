@@ -156,16 +156,14 @@ int ToGameCubeLanguage(Language language)
 {
   if (language < Language::English || language > Language::Dutch)
     return 0;
-  else
-    return static_cast<int>(language) - 1;
+  return static_cast<int>(language) - 1;
 }
 
 Language FromGameCubeLanguage(const int language)
 {
   if (language < 0 || language > 5)
     return Language::Unknown;
-  else
-    return static_cast<Language>(language + 1);
+  return static_cast<Language>(language + 1);
 }
 
 // Increment CACHE_REVISION (GameFileCache.cpp) if the code below is modified
@@ -224,8 +222,7 @@ Region CountryCodeToRegion(const u8 country_code, const Platform platform, const
   case 'W':
     if (expected_region == Region::PAL)
       return Region::PAL;  // Only the Nordic version of Ratatouille (Wii)
-    else
-      return Region::NTSC_J;  // Korean GC games in English or Taiwanese Wii games
+    return Region::NTSC_J;  // Korean GC games in English or Taiwanese Wii games
 
   case 'E':
     if (platform != Platform::GameCubeDisc)
@@ -234,17 +231,12 @@ Region CountryCodeToRegion(const u8 country_code, const Platform platform, const
     if (revision)
     {
       if (*revision >= 0x30)
-        return Region::NTSC_J;  // Korean GC games in English
-      else
-        return Region::NTSC_U;  // The most common country code for NTSC-U
+        return Region::NTSC_J; // Korean GC games in English
+      return Region::NTSC_U; // The most common country code for NTSC-U
     }
-    else
-    {
-      if (expected_region == Region::NTSC_J)
-        return Region::NTSC_J;  // Korean GC games in English
-      else
-        return Region::NTSC_U;  // The most common country code for NTSC-U
-    }
+    if (expected_region == Region::NTSC_J)
+      return Region::NTSC_J; // Korean GC games in English
+    return Region::NTSC_U; // The most common country code for NTSC-U
 
   case 'B':
   case 'N':
@@ -299,10 +291,9 @@ Country CountryCodeToCountry(const u8 country_code, const Platform platform, con
   case 'W':
     if (platform == Platform::GameCubeDisc)
       return Country::Korea;  // GC games in English released in Korea
-    else if (region == Region::PAL)
+    if (region == Region::PAL)
       return Country::Europe;  // Only the Nordic version of Ratatouille (Wii)
-    else
-      return Country::Taiwan;  // Wii games in traditional Chinese released in Taiwan
+    return Country::Taiwan;  // Wii games in traditional Chinese released in Taiwan
 
   // PAL
   case 'D':
@@ -340,17 +331,12 @@ Country CountryCodeToCountry(const u8 country_code, const Platform platform, con
     if (revision)
     {
       if (*revision >= 0x30)
-        return Country::Korea;  // GC games in English released in Korea
-      else
-        return Country::USA;  // The most common country code for NTSC-U
+        return Country::Korea; // GC games in English released in Korea
+      return Country::USA; // The most common country code for NTSC-U
     }
-    else
-    {
-      if (region == Region::NTSC_J)
-        return Country::Korea;  // GC games in English released in Korea
-      else
-        return Country::USA;  // The most common country code for NTSC-U
-    }
+    if (region == Region::NTSC_J)
+      return Country::Korea;  // GC games in English released in Korea
+    return Country::USA;  // The most common country code for NTSC-U
 
   case 'B':  // PAL games released on NTSC-U VC
   case 'N':  // NTSC-J games released on NTSC-U VC
@@ -878,7 +864,6 @@ const std::string& GetCompanyFromID(const std::string& company_id)
   const auto iterator = companies.find(company_id);
   if (iterator != companies.end())
     return iterator->second;
-  else
-    return EMPTY_STRING;
+  return EMPTY_STRING;
 }
 }  // namespace DiscIO

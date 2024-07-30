@@ -38,17 +38,15 @@ public:
     {
       if (m_config.IsMultisampled())
         return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
-      else
-        return GL_TEXTURE_2D_ARRAY;
+      return GL_TEXTURE_2D_ARRAY;
     }
-    else if (m_config.type == AbstractTextureType::Texture_2D)
+    if (m_config.type == AbstractTextureType::Texture_2D)
     {
       if (m_config.IsMultisampled())
         return GL_TEXTURE_2D_MULTISAMPLE;
-      else
-        return GL_TEXTURE_2D;
+      return GL_TEXTURE_2D;
     }
-    else if (m_config.type == AbstractTextureType::Texture_CubeMap)
+    if (m_config.type == AbstractTextureType::Texture_CubeMap)
     {
       return GL_TEXTURE_CUBE_MAP;
     }

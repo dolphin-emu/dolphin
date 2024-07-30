@@ -106,23 +106,20 @@ bool InputConfig::LoadConfig()
     m_dynamic_input_tex_config_manager.GenerateTextures(inifile, controller_names);
     return true;
   }
-  else
+  // Only load the default profile for the first controller and clear the others,
+  // otherwise they would all share the same mappings on the same (default) device
+  if (m_controllers.size() > 0)
   {
-    // Only load the default profile for the first controller and clear the others,
-    // otherwise they would all share the same mappings on the same (default) device
-    if (m_controllers.size() > 0)
-    {
-      m_controllers[0]->LoadDefaults(g_controller_interface);
-      m_controllers[0]->UpdateReferences(g_controller_interface);
-    }
-    for (size_t i = 1; i < m_controllers.size(); ++i)
-    {
-      // Calling the base version just clears all settings without overwriting them with a default
-      m_controllers[i]->EmulatedController::LoadDefaults(g_controller_interface);
-      m_controllers[i]->UpdateReferences(g_controller_interface);
-    }
-    return false;
+    m_controllers[0]->LoadDefaults(g_controller_interface);
+    m_controllers[0]->UpdateReferences(g_controller_interface);
   }
+  for (size_t i = 1; i < m_controllers.size(); ++i)
+  {
+    // Calling the base version just clears all settings without overwriting them with a default
+    m_controllers[i]->EmulatedController::LoadDefaults(g_controller_interface);
+    m_controllers[i]->UpdateReferences(g_controller_interface);
+  }
+  return false;
 }
 
 void InputConfig::SaveConfig() const

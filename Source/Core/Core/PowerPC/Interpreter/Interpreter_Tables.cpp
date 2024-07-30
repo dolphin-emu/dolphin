@@ -456,16 +456,15 @@ Interpreter::Instruction Interpreter::GetInterpreterOp(UGeckoInstruction inst)
   Instruction result = s_interpreter_op_table[inst.OPCD];
   if (result == RunTable4)
     return s_interpreter_op_table4[inst.SUBOP10];
-  else if (result == RunTable19)
+  if (result == RunTable19)
     return s_interpreter_op_table19[inst.SUBOP10];
-  else if (result == RunTable31)
+  if (result == RunTable31)
     return s_interpreter_op_table31[inst.SUBOP10];
-  else if (result == RunTable59)
+  if (result == RunTable59)
     return s_interpreter_op_table59[inst.SUBOP5];
-  else if (result == RunTable63)
+  if (result == RunTable63)
     return s_interpreter_op_table63[inst.SUBOP10];
-  else
-    return result;
+  return result;
 }
 
 void Interpreter::RunInterpreterOp(Interpreter& interpreter, UGeckoInstruction inst)

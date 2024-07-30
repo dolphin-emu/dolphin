@@ -19,10 +19,9 @@ std::unique_ptr<PerfQueryBase> GetPerfQuery(const bool is_gles)
 {
   if (is_gles && GLExtensions::Supports("GL_NV_occlusion_query_samples"))
     return std::make_unique<PerfQueryGLESNV>();
-  else if (is_gles)
+  if (is_gles)
     return std::make_unique<PerfQueryGL>(GL_ANY_SAMPLES_PASSED);
-  else
-    return std::make_unique<PerfQueryGL>(GL_SAMPLES_PASSED);
+  return std::make_unique<PerfQueryGL>(GL_SAMPLES_PASSED);
 }
 
 PerfQuery::PerfQuery() : m_query_read_pos()

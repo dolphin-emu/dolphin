@@ -310,6 +310,7 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, const bool
     return std::make_unique<AESndUCode>(dsphle, crc);
 
   default:
+  {
     if (wii)
     {
       PanicAlertFmtT(
@@ -319,15 +320,13 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, const bool
           crc);
       return std::make_unique<AXWiiUCode>(dsphle, crc);
     }
-    else
-    {
-      PanicAlertFmtT(
-          "This title might be incompatible with DSP HLE emulation. Try using LLE if this "
-          "is homebrew.\n\n"
-          "DSPHLE: Unknown ucode (CRC = {0:08x}) - forcing AX.",
-          crc);
-      return std::make_unique<AXUCode>(dsphle, crc);
-    }
+    PanicAlertFmtT(
+        "This title might be incompatible with DSP HLE emulation. Try using LLE if this "
+        "is homebrew.\n\n"
+        "DSPHLE: Unknown ucode (CRC = {0:08x}) - forcing AX.",
+        crc);
+    return std::make_unique<AXUCode>(dsphle, crc);
+  }
 
   case UCODE_NULL:
     break;

@@ -475,64 +475,61 @@ void ConvertDialog::Convert()
           tr("Failed to open the input file \"%1\".").arg(QString::fromStdString(original_path)));
       return;
     }
-    else
+    const auto callback = [&progress_dialog](const std::string& text, const float percent) {
+      progress_dialog.SetValue(percent * 100);
+      return !progress_dialog.WasCanceled();
+    };
+
+    std::future<bool> success;
+
+    switch (format)
     {
-      const auto callback = [&progress_dialog](const std::string& text, const float percent) {
-        progress_dialog.SetValue(percent * 100);
-        return !progress_dialog.WasCanceled();
-      };
+    case DiscIO::BlobType::PLAIN:
+      success = std::async(std::launch::async, [&] {
+        const bool good = ConvertToPlain(blob_reader.get(), original_path,
+                                         dst_path.toStdString(), callback);
+        progress_dialog.Reset();
+        return good;
+      });
+      break;
 
-      std::future<bool> success;
+    case DiscIO::BlobType::GCZ:
+      success = std::async(std::launch::async, [&] {
+        const bool good = ConvertToGCZ(
+            blob_reader.get(), original_path, dst_path.toStdString(),
+            file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, block_size, callback);
+        progress_dialog.Reset();
+        return good;
+      });
+      break;
 
-      switch (format)
-      {
-      case DiscIO::BlobType::PLAIN:
-        success = std::async(std::launch::async, [&] {
-          const bool good = ConvertToPlain(blob_reader.get(), original_path,
-                                                   dst_path.toStdString(), callback);
-          progress_dialog.Reset();
-          return good;
-        });
-        break;
+    case DiscIO::BlobType::WIA:
+    case DiscIO::BlobType::RVZ:
+      success = std::async(std::launch::async, [&] {
+        const bool good =
+            ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
+                              format == DiscIO::BlobType::RVZ, compression,
+                              compression_level, block_size, callback);
+        progress_dialog.Reset();
+        return good;
+      });
+      break;
 
-      case DiscIO::BlobType::GCZ:
-        success = std::async(std::launch::async, [&] {
-          const bool good = ConvertToGCZ(
-              blob_reader.get(), original_path, dst_path.toStdString(),
-              file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, block_size, callback);
-          progress_dialog.Reset();
-          return good;
-        });
-        break;
-
-      case DiscIO::BlobType::WIA:
-      case DiscIO::BlobType::RVZ:
-        success = std::async(std::launch::async, [&] {
-          const bool good =
-              ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
-                                        format == DiscIO::BlobType::RVZ, compression,
-                                        compression_level, block_size, callback);
-          progress_dialog.Reset();
-          return good;
-        });
-        break;
-
-      default:
-        ASSERT(false);
-        break;
-      }
-
-      SetQWidgetWindowDecorations(progress_dialog.GetRaw());
-      progress_dialog.GetRaw()->exec();
-      if (!success.get())
-      {
-        ModalMessageBox::critical(this, tr("Error"),
-                                  tr("Dolphin failed to complete the requested action."));
-        return;
-      }
-
-      success_count++;
+    default:
+      ASSERT(false);
+      break;
     }
+
+    SetQWidgetWindowDecorations(progress_dialog.GetRaw());
+    progress_dialog.GetRaw()->exec();
+    if (!success.get())
+    {
+      ModalMessageBox::critical(this, tr("Error"),
+                                tr("Dolphin failed to complete the requested action."));
+      return;
+    }
+
+    success_count++;
   }
 
   ModalMessageBox::information(this, tr("Success"),

@@ -415,7 +415,7 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
     {
       continue;
     }
-    else if (component == ".." && !normalized_components.empty())
+    if (component == ".." && !normalized_components.empty())
     {
       normalized_components.pop_back();
     }

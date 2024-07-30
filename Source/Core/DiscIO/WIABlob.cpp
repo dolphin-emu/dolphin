@@ -68,10 +68,14 @@ std::pair<int, int> GetAllowedCompressionLevels(const WIARVZCompressionType comp
     // The actual minimum level can be gotten by calling ZSTD_minCLevel(). However, returning that
     // would make the UI rather weird, because it is a negative number with very large magnitude.
     // Note: Level 0 is a special number which means "default level" (level 3 as of this writing).
+  {
+    // The actual minimum level can be gotten by calling ZSTD_minCLevel(). However, returning that
+    // would make the UI rather weird, because it is a negative number with very large magnitude.
+    // Note: Level 0 is a special number which means "default level" (level 3 as of this writing).
     if (gui)
       return {1, ZSTD_maxCLevel()};
-    else
-      return {ZSTD_minCLevel(), ZSTD_maxCLevel()};
+    return {ZSTD_minCLevel(), ZSTD_maxCLevel()};
+  }
   default:
     return {0, -1};
   }
@@ -620,8 +624,7 @@ std::string WIARVZFileReader<RVZ>::VersionToString(const u32 version)
 
   if (d == 0 || d == 0xff)
     return fmt::format("{}.{:02x}.{:02x}", a, b, c);
-  else
-    return fmt::format("{}.{:02x}.{:02x}.beta{}", a, b, c, d);
+  return fmt::format("{}.{:02x}.{:02x}.beta{}", a, b, c, d);
 }
 
 template <bool RVZ>

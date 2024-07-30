@@ -163,13 +163,10 @@ ScissorRect ScissorResult::Best() const
   {
     return m_result.back();
   }
-  else
-  {
-    // But if we have no rectangles, use a bogus one that's out of bounds.
-    // Ideally, all backends will support multiple scissor rects, in which case this won't be
-    // needed.
-    return ScissorRect(ScissorRange{0, 1000, 1001}, ScissorRange{0, 1000, 1001});
-  }
+  // But if we have no rectangles, use a bogus one that's out of bounds.
+  // Ideally, all backends will support multiple scissor rects, in which case this won't be
+  // needed.
+  return ScissorRect(ScissorRange{0, 1000, 1001}, ScissorRange{0, 1000, 1001});
 }
 
 ScissorResult ComputeScissorRects()
@@ -372,7 +369,7 @@ void OnPixelFormatChange()
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGBA6);
       return;
     }
-    else if (new_format == PixelFormat::RGB565_Z16)
+    if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGB565);
       return;
@@ -387,7 +384,7 @@ void OnPixelFormatChange()
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB8);
       return;
     }
-    else if (new_format == PixelFormat::RGB565_Z16)
+    if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB565);
       return;
@@ -402,7 +399,7 @@ void OnPixelFormatChange()
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGB8);
       return;
     }
-    else if (new_format == PixelFormat::RGBA6_Z24)
+    if (new_format == PixelFormat::RGBA6_Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGBA6);
       return;

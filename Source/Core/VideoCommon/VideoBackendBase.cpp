@@ -136,19 +136,16 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data
     AsyncRequests::GetInstance()->PushEvent(e, false);
     return 0;
   }
-  else
-  {
-    AsyncRequests::Event e;
-    u32 result;
-    e.type = type == EFBAccessType::PeekColor ? AsyncRequests::Event::EFB_PEEK_COLOR :
-                                                AsyncRequests::Event::EFB_PEEK_Z;
-    e.time = 0;
-    e.efb_peek.x = x;
-    e.efb_peek.y = y;
-    e.efb_peek.data = &result;
-    AsyncRequests::GetInstance()->PushEvent(e, true);
-    return result;
-  }
+  AsyncRequests::Event e;
+  u32 result;
+  e.type = type == EFBAccessType::PeekColor ? AsyncRequests::Event::EFB_PEEK_COLOR :
+             AsyncRequests::Event::EFB_PEEK_Z;
+  e.time = 0;
+  e.efb_peek.x = x;
+  e.efb_peek.y = y;
+  e.efb_peek.data = &result;
+  AsyncRequests::GetInstance()->PushEvent(e, true);
+  return result;
 }
 
 u32 VideoBackendBase::Video_GetQueryResult(const PerfQueryType type)

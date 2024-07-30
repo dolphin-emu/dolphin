@@ -100,11 +100,11 @@ struct pixel_shader_uid_data
   {
     if (index == 0)
       return tevindref_bc0;
-    else if (index == 1)
+    if (index == 1)
       return tevindref_bc1;
-    else if (index == 2)
+    if (index == 2)
       return tevindref_bc2;
-    else if (index == 3)
+    if (index == 3)
       return tevindref_bc3;
     return 0;
   }
@@ -113,11 +113,11 @@ struct pixel_shader_uid_data
   {
     if (index == 0)
       return tevindref_bi0;
-    else if (index == 1)
+    if (index == 1)
       return tevindref_bi1;
-    else if (index == 2)
+    if (index == 2)
       return tevindref_bi2;
-    else if (index == 3)
+    if (index == 3)
       return tevindref_bi3;
     return 0;
   }

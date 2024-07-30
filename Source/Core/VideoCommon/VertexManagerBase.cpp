@@ -256,37 +256,31 @@ u32 VertexManagerBase::GetRemainingIndices(const Primitive primitive) const
           return 0;
         }
       }
-      else
-      {
-        switch (primitive)
-        {
-        case Primitive::GX_DRAW_LINES:
-          return index_len / 6 * 2;
-        case Primitive::GX_DRAW_LINE_STRIP:
-          return index_len / 6 + 1;
-        case Primitive::GX_DRAW_POINTS:
-          return index_len / 6;
-        default:
-          return 0;
-        }
-      }
-    }
-    else
-    {
       switch (primitive)
       {
       case Primitive::GX_DRAW_LINES:
-        return index_len;
+        return index_len / 6 * 2;
       case Primitive::GX_DRAW_LINE_STRIP:
-        return index_len / 2 + 1;
+        return index_len / 6 + 1;
       case Primitive::GX_DRAW_POINTS:
-        return index_len;
+        return index_len / 6;
       default:
         return 0;
       }
     }
+    switch (primitive)
+    {
+    case Primitive::GX_DRAW_LINES:
+      return index_len;
+    case Primitive::GX_DRAW_LINE_STRIP:
+      return index_len / 2 + 1;
+    case Primitive::GX_DRAW_POINTS:
+      return index_len;
+    default:
+      return 0;
+    }
   }
-  else if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  if (g_Config.backend_info.bSupportsPrimitiveRestart)
   {
     switch (primitive)
     {
@@ -303,22 +297,19 @@ u32 VertexManagerBase::GetRemainingIndices(const Primitive primitive) const
       return 0;
     }
   }
-  else
+  switch (primitive)
   {
-    switch (primitive)
-    {
-    case Primitive::GX_DRAW_QUADS:
-    case Primitive::GX_DRAW_QUADS_2:
-      return index_len / 6 * 4;
-    case Primitive::GX_DRAW_TRIANGLES:
-      return index_len;
-    case Primitive::GX_DRAW_TRIANGLE_STRIP:
-      return index_len / 3 + 2;
-    case Primitive::GX_DRAW_TRIANGLE_FAN:
-      return index_len / 3 + 2;
-    default:
-      return 0;
-    }
+  case Primitive::GX_DRAW_QUADS:
+  case Primitive::GX_DRAW_QUADS_2:
+    return index_len / 6 * 4;
+  case Primitive::GX_DRAW_TRIANGLES:
+    return index_len;
+  case Primitive::GX_DRAW_TRIANGLE_STRIP:
+    return index_len / 3 + 2;
+  case Primitive::GX_DRAW_TRIANGLE_FAN:
+    return index_len / 3 + 2;
+  default:
+    return 0;
   }
 }
 
@@ -1158,8 +1149,8 @@ const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
         {
           return *pipeline;
         }
-        else if (const auto uber_pipeline = m_custom_shader_cache->GetPipelineAsync(
-                     current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
+        if (const auto uber_pipeline = m_custom_shader_cache->GetPipelineAsync(
+            current_uber_pipeline_config, custom_shaders, current_pipeline->m_config))
         {
           return *uber_pipeline;
         }

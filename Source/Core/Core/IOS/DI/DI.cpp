@@ -124,13 +124,10 @@ std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& requ
     WARN_LOG_FMT(IOS_DI, "Output buffer is too small to contain result; returning security error");
     return DIResult::SecurityError;
   }
-  else
-  {
-    const auto& system = GetSystem();
-    const auto& memory = system.GetMemory();
-    memory.Write_U32(value, request.buffer_out);
-    return DIResult::Success;
-  }
+  const auto& system = GetSystem();
+  const auto& memory = system.GetMemory();
+  memory.Write_U32(value, request.buffer_out);
+  return DIResult::Success;
 }
 
 namespace
@@ -356,10 +353,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
           system.GetDVDInterface().ForceOutOfBoundsRead(DVD::ReplyType::IOS);
           return {};
         }
-        else
-        {
-          return StartDMATransfer(length, request);
-        }
+        return StartDMATransfer(length, request);
       }
     }
     WARN_LOG_FMT(IOS_DI, "DVDLowUnencryptedRead: trying to read from an illegal region!");

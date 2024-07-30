@@ -257,8 +257,7 @@ bool IniFile::Load(const std::string& filename, const bool keep_current_data)
     {
       if (in.eof())
         return true;
-      else
-        return false;
+      return false;
     }
 
     std::string_view line = line_str;

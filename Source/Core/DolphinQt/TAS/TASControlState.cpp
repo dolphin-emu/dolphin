@@ -50,9 +50,6 @@ int TASControlState::ApplyControllerValueChange()
     // The UI thread state is already up to date with the CPU thread. No need to do anything
     return ui_thread_state.value;
   }
-  else
-  {
-    m_ui_thread_state.store(cpu_thread_state, std::memory_order_relaxed);
-    return cpu_thread_state.value;
-  }
+  m_ui_thread_state.store(cpu_thread_state, std::memory_order_relaxed);
+  return cpu_thread_state.value;
 }

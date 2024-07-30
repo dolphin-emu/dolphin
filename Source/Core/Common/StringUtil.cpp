@@ -129,11 +129,8 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
     out[writtenCount] = '\0';
     return true;
   }
-  else
-  {
-    out[outsize - 1] = '\0';
-    return false;
-  }
+  out[outsize - 1] = '\0';
+  return false;
 }
 
 std::string StringFromFormat(const char* format, ...)
@@ -204,8 +201,7 @@ static std::string_view StripEnclosingChars(std::string_view str, T chars)
 
   if (str.npos != s)
     return str.substr(s, str.find_last_not_of(chars) - s + 1);
-  else
-    return "";
+  return "";
 }
 
 // Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
@@ -226,8 +222,7 @@ std::string_view StripQuotes(const std::string_view s)
 {
   if (!s.empty() && '\"' == s[0] && '\"' == *s.rbegin())
     return s.substr(1, s.size() - 2);
-  else
-    return s;
+  return s;
 }
 
 // Turns "\n\rhello" into "  hello".

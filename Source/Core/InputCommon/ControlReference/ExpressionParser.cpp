@@ -203,10 +203,9 @@ Token Lexer::NextToken()
   default:
     if (isalpha(c, std::locale::classic()))
       return GetBareword(c);
-    else if (isdigit(c, std::locale::classic()))
+    if (isdigit(c, std::locale::classic()))
       return GetRealLiteral(c);
-    else
-      return Token(TOK_INVALID);
+    return Token(TOK_INVALID);
   }
 }
 
@@ -453,8 +452,7 @@ static ParseResult MakeLiteralExpression(const Token& token)
   ControlState val{};
   if (TryParse(token.data, &val))
     return ParseResult::MakeSuccessfulResult(std::make_unique<LiteralReal>(val));
-  else
-    return ParseResult::MakeErrorResult(token, Common::GetStringT("Invalid literal."));
+  return ParseResult::MakeErrorResult(token, Common::GetStringT("Invalid literal."));
 }
 
 class VariableExpression : public Expression
@@ -527,11 +525,8 @@ public:
       // Our modifiers are active. Pass through the final input.
       return final_input_state;
     }
-    else
-    {
-      m_suppressor = {};
-      m_is_blocked = final_input_state > CONDITION_THRESHOLD;
-    }
+    m_suppressor = {};
+    m_is_blocked = final_input_state > CONDITION_THRESHOLD;
 
     return 0;
   }
@@ -608,8 +603,7 @@ std::shared_ptr<Device> ControlEnvironment::FindDevice(const ControlQualifier& q
 {
   if (qualifier.has_device)
     return container.FindDevice(qualifier.device_qualifier);
-  else
-    return container.FindDevice(default_device);
+  return container.FindDevice(default_device);
 }
 
 Device::Input* ControlEnvironment::FindInput(const ControlQualifier& qualifier) const
@@ -818,8 +812,7 @@ private:
     {
       if (tok.data.empty())
         return ParseResult::MakeErrorResult(tok, Common::GetStringT("Expected variable name."));
-      else
-        return ParseResult::MakeSuccessfulResult(std::make_unique<VariableExpression>(tok.data));
+      return ParseResult::MakeSuccessfulResult(std::make_unique<VariableExpression>(tok.data));
     }
     case TOK_LPAREN:
     {

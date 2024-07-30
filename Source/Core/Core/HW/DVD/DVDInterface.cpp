@@ -354,10 +354,9 @@ static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
   // RVT-R (devkit) consoles can't read the extra megabytes there are on RVT-R (DVD-R) discs.
   if (should_be_mini_dvd && size <= DiscIO::MINI_DVD_SIZE)
     return DiscIO::MINI_DVD_SIZE;
-  else if (size <= DiscIO::SL_DVD_R_SIZE)
+  if (size <= DiscIO::SL_DVD_R_SIZE)
     return DiscIO::SL_DVD_SIZE;
-  else
-    return DiscIO::DL_DVD_SIZE;
+  return DiscIO::DL_DVD_SIZE;
 }
 
 void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
@@ -717,11 +716,8 @@ bool DVDInterface::ExecuteReadCommand(const u64 dvd_offset, const u32 output_add
     *interrupt_type = DIInterruptType::DEINT;
     return false;
   }
-  else
-  {
-    // Disc read succeeds
-    *interrupt_type = DIInterruptType::TCINT;
-  }
+  // Disc read succeeds
+  *interrupt_type = DIInterruptType::TCINT;
 
   if (dvd_length > output_length)
   {

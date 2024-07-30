@@ -404,8 +404,7 @@ Common::Vec2 ControllerInterface::GetWindowInputScale() const
 
   if (ar > 1)
     return {1.f, ar};
-  else
-    return {1 / ar, 1.f};
+  return {1 / ar, 1.f};
 }
 
 void ControllerInterface::SetMouseCenteringRequested(const bool center)

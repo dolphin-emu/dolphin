@@ -398,8 +398,7 @@ GameListModel::FindSecondDisc(const UICommon::GameFile& game) const
       {
         if (game.GetRevision() == other_game->GetRevision())
           return other_game;
-        else
-          match_without_revision = other_game;
+        match_without_revision = other_game;
       }
     }
   }

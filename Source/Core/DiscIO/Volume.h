@@ -155,8 +155,7 @@ protected:
 
     if (GetRegion() == Region::NTSC_J)
       return SHIFTJISToUTF8(string);
-    else
-      return CP1252ToUTF8(string);
+    return CP1252ToUTF8(string);
   }
 
   void ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,

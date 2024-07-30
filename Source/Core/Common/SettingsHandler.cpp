@@ -45,17 +45,14 @@ std::string SettingsHandler::GetValue(const std::string_view key) const
       delimFound = decoded.length() - 1;
     return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
   }
-  else
+  toFind = std::string(key).append("=");
+  found = decoded.find(toFind);
+  if (found == 0)
   {
-    toFind = std::string(key).append("=");
-    found = decoded.find(toFind);
-    if (found == 0)
-    {
-      size_t delimFound = decoded.find(delim, found + toFind.length());
-      if (delimFound == std::string_view::npos)
-        delimFound = decoded.length() - 1;
-      return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
-    }
+    size_t delimFound = decoded.find(delim, found + toFind.length());
+    if (delimFound == std::string_view::npos)
+      delimFound = decoded.length() - 1;
+    return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
   }
 
   return "";

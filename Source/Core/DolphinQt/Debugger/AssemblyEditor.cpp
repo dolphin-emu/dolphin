@@ -92,15 +92,12 @@ bool AsmEditor::LoadFromPath()
     {
       continue;
     }
-    else if (base_addr_line[i] == '#')
+    if (base_addr_line[i] == '#')
     {
       base_address = base_addr_line.substr(i + 1);
       break;
     }
-    else
-    {
-      break;
-    }
+    break;
   }
 
   if (base_address.empty())

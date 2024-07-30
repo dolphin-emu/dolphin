@@ -180,10 +180,7 @@ void DrawMessages()
       it = s_messages.erase(it);
       continue;
     }
-    else
-    {
-      ++it;
-    }
+    ++it;
 
     if (draw_messages)
       current_y += DrawMessage(index++, msg, ImVec2(current_x, current_y), time_left);

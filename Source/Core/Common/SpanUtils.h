@@ -20,8 +20,7 @@ template <class T>
 {
   if (count == std::dynamic_extent || offset > span.size())
     return span.subspan(std::min(offset, span.size()));
-  else
-    return span.subspan(offset, std::min(count, span.size() - offset));
+  return span.subspan(offset, std::min(count, span.size() - offset));
 }
 
 // Default-constructs an object of type T, then copies data into it from the specified offset in

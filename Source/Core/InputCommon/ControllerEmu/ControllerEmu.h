@@ -231,8 +231,7 @@ public:
 
     if (input_value > 0)
       return T(std::llround((pos_1_value - zero_value) * input_value + zero_value));
-    else
-      return T(std::llround((zero_value - neg_1_value) * input_value + zero_value));
+    return T(std::llround((zero_value - neg_1_value) * input_value + zero_value));
   }
 
   // The inverse of the function above.
@@ -246,8 +245,7 @@ public:
 
     if (input_value >= zero_value)
       return F(input_value - zero_value) / F(pos_1_value - zero_value);
-    else
-      return -F(zero_value - input_value) / F(zero_value - neg_1_value);
+    return -F(zero_value - input_value) / F(zero_value - neg_1_value);
   }
 
 protected:

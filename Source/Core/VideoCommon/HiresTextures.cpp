@@ -180,18 +180,15 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_in
   {
     return iter->second;
   }
-  else
+  const auto& system = Core::System::GetInstance();
+  auto hires_texture = std::make_shared<HiresTexture>(
+      has_arb_mipmaps,
+      system.GetCustomAssetLoader().LoadGameTexture(base_filename, s_file_library));
+  if (g_ActiveConfig.bCacheHiresTextures)
   {
-    const auto& system = Core::System::GetInstance();
-    auto hires_texture = std::make_shared<HiresTexture>(
-        has_arb_mipmaps,
-        system.GetCustomAssetLoader().LoadGameTexture(base_filename, s_file_library));
-    if (g_ActiveConfig.bCacheHiresTextures)
-    {
-      s_hires_texture_cache.try_emplace(base_filename, hires_texture);
-    }
-    return hires_texture;
+    s_hires_texture_cache.try_emplace(base_filename, hires_texture);
   }
+  return hires_texture;
 }
 
 HiresTexture::HiresTexture(const bool has_arbitrary_mipmaps,

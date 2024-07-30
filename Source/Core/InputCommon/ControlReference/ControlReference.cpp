@@ -35,8 +35,7 @@ int ControlReference::BoundCount() const
 {
   if (m_parsed_expression)
     return m_parsed_expression->CountNumControls();
-  else
-    return 0;
+  return 0;
 }
 
 ParseStatus ControlReference::GetParseStatus() const

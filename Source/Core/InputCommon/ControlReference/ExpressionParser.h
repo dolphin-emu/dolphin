@@ -117,8 +117,7 @@ public:
   {
     if (has_device)
       return device_qualifier.ToString() + ":" + control_name;
-    else
-      return control_name;
+    return control_name;
   }
 
   void FromString(const std::string& str)

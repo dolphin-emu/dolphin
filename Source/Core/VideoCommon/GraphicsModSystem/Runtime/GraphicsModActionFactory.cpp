@@ -18,19 +18,19 @@ std::unique_ptr<GraphicsModAction> Create(const std::string_view name, const pic
   {
     return std::make_unique<PrintAction>();
   }
-  else if (name == SkipAction::factory_name)
+  if (name == SkipAction::factory_name)
   {
     return std::make_unique<SkipAction>();
   }
-  else if (name == MoveAction::factory_name)
+  if (name == MoveAction::factory_name)
   {
     return MoveAction::Create(json_data);
   }
-  else if (name == ScaleAction::factory_name)
+  if (name == ScaleAction::factory_name)
   {
     return ScaleAction::Create(json_data);
   }
-  else if (name == CustomPipelineAction::factory_name)
+  if (name == CustomPipelineAction::factory_name)
   {
     return CustomPipelineAction::Create(json_data, std::move(library));
   }

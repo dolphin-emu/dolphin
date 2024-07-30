@@ -415,8 +415,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
               ReturnValue = SSL_ERR_RAGAIN;
               break;
             }
-            else if (connecting_state == ConnectingState::None ||
-                     connecting_state == ConnectingState::Error)
+            if (connecting_state == ConnectingState::None ||
+                connecting_state == ConnectingState::Error)
             {
               WriteReturnValue(memory, SSL_ERR_SYSCALL, BufferIn);
               ReturnValue = SSL_ERR_SYSCALL;

@@ -391,19 +391,21 @@ std::string GekkoDisassembler::imm(const u32 in, const int uimm, const int type,
     return fmt::format("{}, {}, {}", regnames[PPCGETD(in)], regnames[PPCGETA(in)], i);
 
   case 1:
+  {
     if (hex)
       return fmt::format("{}, {}, 0x{:04X}", regnames[PPCGETA(in)], regnames[PPCGETD(in)], i);
-    else
-      return fmt::format("{}, {}, {}", regnames[PPCGETA(in)], regnames[PPCGETD(in)], i);
+    return fmt::format("{}, {}, {}", regnames[PPCGETA(in)], regnames[PPCGETD(in)], i);
+  }
 
   case 2:
     return fmt::format("{}, {}", regnames[PPCGETA(in)], i);
 
   case 3:
+  {
     if (hex)
       return fmt::format("{}, 0x{:04X}", regnames[PPCGETD(in)], i);
-    else
-      return fmt::format("{}, {}", regnames[PPCGETD(in)], i);
+    return fmt::format("{}, {}", regnames[PPCGETD(in)], i);
+  }
 
   default:
     return "imm(): Wrong type";

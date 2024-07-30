@@ -627,7 +627,7 @@ public:
       u32 count;
       if (cformat == VertexComponentFormat::NotPresent)
         return;
-      else if (cformat == VertexComponentFormat::Index8)
+      if (cformat == VertexComponentFormat::Index8)
       {
         format = ComponentFormat::UByte;
         count = indexed_count;

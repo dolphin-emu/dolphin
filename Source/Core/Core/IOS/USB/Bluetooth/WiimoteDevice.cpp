@@ -818,7 +818,7 @@ static u32 ParseCont(u8* cont)
   {
     return attrib_list.Read16(attrib_offset);
   }
-  else if (type_id == 0x00)
+  if (type_id == 0x00)
   {
     return 0x00;
   }

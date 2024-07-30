@@ -278,8 +278,8 @@ std::string Joystick::Axis::GetName() const
   const char sign = m_range < 0 ? '-' : '+';
   if (m_index < 6)  // axis
     return fmt::format("Axis {:c}{}{:c}", 'X' + m_index % 3, m_index > 2 ? "r" : "", sign);
-  else  // slider
-    return fmt::format("Slider {}{:c}", m_index - 6, sign);
+    // slider
+  return fmt::format("Slider {}{:c}", m_index - 6, sign);
 }
 
 std::string Joystick::Hat::GetName() const

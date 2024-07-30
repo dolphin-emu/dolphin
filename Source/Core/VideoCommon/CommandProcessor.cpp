@@ -259,13 +259,10 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
         return static_cast<u16>(fifo_.CPWritePointer.load(std::memory_order_relaxed) -
                                 fifo_.SafeCPReadPointer.load(std::memory_order_relaxed));
       }
-      else
-      {
-        return static_cast<u16>(fifo_.CPEnd.load(std::memory_order_relaxed) -
-                                fifo_.SafeCPReadPointer.load(std::memory_order_relaxed) +
-                                fifo_.CPWritePointer.load(std::memory_order_relaxed) -
-                                fifo_.CPBase.load(std::memory_order_relaxed) + 32);
-      }
+      return static_cast<u16>(fifo_.CPEnd.load(std::memory_order_relaxed) -
+                              fifo_.SafeCPReadPointer.load(std::memory_order_relaxed) +
+                              fifo_.CPWritePointer.load(std::memory_order_relaxed) -
+                              fifo_.CPBase.load(std::memory_order_relaxed) + 32);
     });
   }
   else
@@ -290,14 +287,11 @@ void CommandProcessorManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
                 fifo_.SafeCPReadPointer.load(std::memory_order_relaxed)) >>
                16;
       }
-      else
-      {
-        return (fifo_.CPEnd.load(std::memory_order_relaxed) -
-                fifo_.SafeCPReadPointer.load(std::memory_order_relaxed) +
-                fifo_.CPWritePointer.load(std::memory_order_relaxed) -
-                fifo_.CPBase.load(std::memory_order_relaxed) + 32) >>
-               16;
-      }
+      return (fifo_.CPEnd.load(std::memory_order_relaxed) -
+              fifo_.SafeCPReadPointer.load(std::memory_order_relaxed) +
+              fifo_.CPWritePointer.load(std::memory_order_relaxed) -
+              fifo_.CPBase.load(std::memory_order_relaxed) + 32) >>
+             16;
     });
   }
   else

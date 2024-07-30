@@ -1821,22 +1821,20 @@ static int GetVEXmmmmm(const u16 op)
   // Currently, only 0x38 and 0x3A are used as secondary escape byte.
   if ((op >> 8) == 0x3A)
     return 3;
-  else if ((op >> 8) == 0x38)
+  if ((op >> 8) == 0x38)
     return 2;
-  else
-    return 1;
+  return 1;
 }
 
 static int GetVEXpp(const u8 opPrefix)
 {
   if (opPrefix == 0x66)
     return 1;
-  else if (opPrefix == 0xF3)
+  if (opPrefix == 0xF3)
     return 2;
-  else if (opPrefix == 0xF2)
+  if (opPrefix == 0xF2)
     return 3;
-  else
-    return 0;
+  return 0;
 }
 
 void XEmitter::WriteVEXOp(const u8 opPrefix, const u16 op, const X64Reg regOp1, const X64Reg regOp2, const OpArg& arg,

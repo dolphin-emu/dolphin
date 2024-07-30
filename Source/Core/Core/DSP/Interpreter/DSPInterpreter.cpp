@@ -486,8 +486,7 @@ s64 Interpreter::GetLongProductRounded() const
 
   if ((prod & 0x10000) != 0)
     return (prod + 0x8000) & ~0xffff;
-  else
-    return (prod + 0x7fff) & ~0xffff;
+  return (prod + 0x7fff) & ~0xffff;
 }
 
 void Interpreter::SetLongProduct(const s64 value) const
@@ -738,8 +737,7 @@ u16 Interpreter::OpReadRegister(const int reg_) const
       {
         if (acc > 0)
           return 0x7fff;
-        else
-          return 0x8000;
+        return 0x8000;
       }
 
       return state.r.ac[reg - DSP_REG_ACM0].m;

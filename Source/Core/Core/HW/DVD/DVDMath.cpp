@@ -118,8 +118,7 @@ double CalculateSeekTime(const u64 offset_from, const u64 offset_to)
 
   if (distance < SHORT_SEEK_MAX_DISTANCE)
     return distance * SHORT_SEEK_VELOCITY_INVERSE + SHORT_SEEK_CONSTANT;
-  else
-    return distance * LONG_SEEK_VELOCITY_INVERSE + LONG_SEEK_CONSTANT;
+  return distance * LONG_SEEK_VELOCITY_INVERSE + LONG_SEEK_CONSTANT;
 }
 
 // Returns the time in seconds it takes for the disc to spin to the angle where the

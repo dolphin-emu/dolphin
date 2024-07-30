@@ -85,10 +85,9 @@ u64 CompressedBlobReader::GetBlockCompressedSize(const u64 block_num) const
   const u64 start = m_block_pointers[block_num];
   if (block_num < m_header.num_blocks - 1)
     return m_block_pointers[block_num + 1] - start;
-  else if (block_num == m_header.num_blocks - 1)
+  if (block_num == m_header.num_blocks - 1)
     return m_header.compressed_data_size - start;
-  else
-    ERROR_LOG_FMT(DISCIO, "{} - illegal block number {}", __func__, block_num);
+  ERROR_LOG_FMT(DISCIO, "{} - illegal block number {}", __func__, block_num);
   return 0;
 }
 

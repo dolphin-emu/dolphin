@@ -301,10 +301,7 @@ char* DSPAssembler::FindBrackets(char* src, char* dst)
         dst[j] = 0;
         return &src[i + 1];
       }
-      else
-      {
-        dst[j++] = src[i];
-      }
+      dst[j++] = src[i];
     }
     else
     {
@@ -625,7 +622,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, const s
       ShowError(AssemblerError::WrongParameter);
       break;
     }
-    else if ((opc->params[i].type & 3) != 0 && (par[i].type & 3) != 0)
+    if ((opc->params[i].type & 3) != 0 && (par[i].type & 3) != 0)
     {
       // modified by Hermes: test NUMBER range
       int value = get_mask_shifted_down(opc->params[i].mask);

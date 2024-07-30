@@ -89,8 +89,7 @@ protected:
     // held.
     if (cursorAction == MoveHome || cursorAction == MoveEnd)
       return QTableView::moveCursor(cursorAction, modifiers | Qt::ControlModifier);
-    else
-      return QTableView::moveCursor(cursorAction, modifiers);
+    return QTableView::moveCursor(cursorAction, modifiers);
   }
 };
 }  // namespace
