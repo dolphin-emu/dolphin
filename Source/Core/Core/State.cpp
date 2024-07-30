@@ -46,6 +46,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Slippi/SlippiNetplay.h"
 #include "Core/System.h"
 
 #include "VideoCommon/FrameDumpFFMpeg.h"
@@ -207,6 +208,11 @@ void LoadFromBuffer(std::vector<u8>& buffer)
   if (NetPlay::IsNetPlayRunning())
   {
     OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+    return;
+  }
+
+  if (IsOnline())
+  {
     return;
   }
 
@@ -844,6 +850,11 @@ void LoadAs(const std::string& filename)
   if (NetPlay::IsNetPlayRunning())
   {
     OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+    return;
+  }
+
+  if (IsOnline())
+  {
     return;
   }
 
