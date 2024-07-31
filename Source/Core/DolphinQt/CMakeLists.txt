@@ -637,9 +637,13 @@ if(APPLE)
   endif()
 
   if(MACOS_CODE_SIGNING)
-    # Code sign make file builds
-    add_custom_command(TARGET dolphin-emu POST_BUILD
-      COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements" "$<TARGET_BUNDLE_DIR:dolphin-emu>")
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD
+      COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
+      "-e" "${CMAKE_CURRENT_SOURCE_DIR}/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements"
+      "${MACOS_CODE_SIGNING_IDENTITY}"
+      "${BUNDLE_PATH}"
+    )
   endif()
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
