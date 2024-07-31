@@ -54,6 +54,10 @@ foreach(sb ${STORYBOARDS})
 endforeach()
 
 if(MACOS_CODE_SIGNING)
-  add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options runtime $<TARGET_BUNDLE_DIR:MacUpdater>)
+  add_custom_command(TARGET MacUpdater
+    POST_BUILD
+    COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
+    "${MACOS_CODE_SIGNING_IDENTITY}"
+    "$<TARGET_BUNDLE_DIR:MacUpdater>"
+  )
 endif()

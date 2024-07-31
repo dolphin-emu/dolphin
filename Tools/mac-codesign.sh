@@ -52,7 +52,7 @@ if [ -d "$TARGET_PATH" ]; then
   # Newlines are the only valid separator character in find's output.
   IFS=$'\n'
 
-  for framework in $(find "$TARGET_PATH" -not -path "*/Helpers/*" -name '*.dylib' -or -name '*.framework'); do
+  for framework in $(find "$TARGET_PATH" -depth -not -path "*/Helpers/*" -name '*.dylib' -or -name '*.framework'); do
     sign "$framework"
   done
 
