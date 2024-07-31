@@ -40,6 +40,17 @@ ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_
 
 ARCodeWidget::~ARCodeWidget() = default;
 
+void ARCodeWidget::ChangeGame(std::string game_id, const u16 game_revision)
+{
+  m_game_id = std::move(game_id);
+  m_game_revision = game_revision;
+  m_restart_required = false;
+
+  m_ar_codes.clear();
+
+  LoadCodes();
+}
+
 void ARCodeWidget::CreateWidgets()
 {
   m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);

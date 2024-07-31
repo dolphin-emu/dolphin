@@ -45,6 +45,24 @@ GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u1
   LoadCodes();
 }
 
+void GeckoCodeWidget::ChangeGame(std::string game_id, std::string gametdb_id,
+                                 const u16 game_revision)
+{
+  m_game_id = std::move(game_id);
+  m_gametdb_id = std::move(gametdb_id);
+  m_game_revision = game_revision;
+  m_restart_required = false;
+
+  m_gecko_codes.clear();
+  m_code_list->clear();
+  m_name_label->clear();
+  m_creator_label->clear();
+  m_code_description->clear();
+  m_code_view->clear();
+
+  LoadCodes();
+}
+
 GeckoCodeWidget::~GeckoCodeWidget() = default;
 
 void GeckoCodeWidget::CreateWidgets()
