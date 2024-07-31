@@ -317,8 +317,6 @@ def build(config):
                 + config[arch+"_mac_os_deployment_target"],
                 "-DMACOS_CODE_SIGNING_IDENTITY="
                 + config["codesign_identity"],
-                "-DMACOS_CODE_SIGNING_IDENTITY_UPDATER="
-                + config["codesign_identity"],
                 '-DMACOS_CODE_SIGNING="ON"',
                 "-DSTEAM="
                 + python_to_cmake_bool(config["steam"]),
