@@ -40,6 +40,22 @@ ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_
 
 ARCodeWidget::~ARCodeWidget() = default;
 
+void ARCodeWidget::ChangeGame(std::string game_id, const u16 game_revision)
+{
+  m_game_id = std::move(game_id);
+  m_game_revision = game_revision;
+  m_restart_required = false;
+
+  m_ar_codes.clear();
+
+  // If a CheatCodeEditor is open, it's now trying to add or edit a code in the previous game's code
+  // list which is no longer loaded. Letting the user save the code wouldn't make sense, so close
+  // the dialog instead.
+  m_cheat_code_editor->reject();
+
+  LoadCodes();
+}
+
 void ARCodeWidget::CreateWidgets()
 {
   m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
@@ -50,6 +66,8 @@ void ARCodeWidget::CreateWidgets()
   m_code_add = new NonDefaultQPushButton(tr("&Add New Code..."));
   m_code_edit = new NonDefaultQPushButton(tr("&Edit Code..."));
   m_code_remove = new NonDefaultQPushButton(tr("&Remove Code"));
+
+  m_cheat_code_editor = new CheatCodeEditor(this);
 
   m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -250,10 +268,9 @@ void ARCodeWidget::OnCodeAddClicked()
   ActionReplay::ARCode ar;
   ar.enabled = true;
 
-  CheatCodeEditor ed(this);
-  ed.SetARCode(&ar);
-  SetQWidgetWindowDecorations(&ed);
-  if (ed.exec() == QDialog::Rejected)
+  m_cheat_code_editor->SetARCode(&ar);
+  SetQWidgetWindowDecorations(m_cheat_code_editor);
+  if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 
   m_ar_codes.push_back(std::move(ar));
@@ -270,23 +287,19 @@ void ARCodeWidget::OnCodeEditClicked()
 
   const auto* const selected = items[0];
   auto& current_ar = m_ar_codes[m_code_list->row(selected)];
+  SetQWidgetWindowDecorations(m_cheat_code_editor);
 
-  CheatCodeEditor ed(this);
   if (current_ar.user_defined)
   {
-    ed.SetARCode(&current_ar);
-
-    SetQWidgetWindowDecorations(&ed);
-    if (ed.exec() == QDialog::Rejected)
+    m_cheat_code_editor->SetARCode(&current_ar);
+    if (m_cheat_code_editor->exec() == QDialog::Rejected)
       return;
   }
   else
   {
     ActionReplay::ARCode ar = current_ar;
-    ed.SetARCode(&ar);
-
-    SetQWidgetWindowDecorations(&ed);
-    if (ed.exec() == QDialog::Rejected)
+    m_cheat_code_editor->SetARCode(&ar);
+    if (m_cheat_code_editor->exec() == QDialog::Rejected)
       return;
 
     m_ar_codes.push_back(std::move(ar));

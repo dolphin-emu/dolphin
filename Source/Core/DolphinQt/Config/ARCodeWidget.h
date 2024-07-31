@@ -15,6 +15,7 @@ namespace ActionReplay
 struct ARCode;
 }
 
+class CheatCodeEditor;
 class CheatWarningWidget;
 #ifdef USE_RETRO_ACHIEVEMENTS
 class HardcoreWarningWidget;
@@ -31,6 +32,7 @@ public:
   explicit ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required = true);
   ~ARCodeWidget() override;
 
+  void ChangeGame(std::string game_id, u16 game_revision);
   void AddCode(ActionReplay::ARCode code);
 
 signals:
@@ -70,6 +72,8 @@ private:
   QPushButton* m_code_add;
   QPushButton* m_code_edit;
   QPushButton* m_code_remove;
+
+  CheatCodeEditor* m_cheat_code_editor;
 
   std::vector<ActionReplay::ARCode> m_ar_codes;
   bool m_restart_required;
