@@ -52,6 +52,7 @@ private:
   void EditCode();
   void RemoveCode();
   void DownloadCodes();
+  void LoadCodes();
   void SaveCodes();
   void SortAlphabetically();
   void SortEnabledCodesFirst();

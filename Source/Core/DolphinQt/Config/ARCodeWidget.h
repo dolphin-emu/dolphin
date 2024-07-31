@@ -47,6 +47,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateList();
+  void LoadCodes();
   void SaveCodes();
   void SortAlphabetically();
   void SortEnabledCodesFirst();

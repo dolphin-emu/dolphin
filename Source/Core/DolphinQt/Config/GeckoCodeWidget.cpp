@@ -42,20 +42,7 @@ GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u1
   CreateWidgets();
   ConnectWidgets();
 
-  if (!m_game_id.empty())
-  {
-    Common::IniFile game_ini_local;
-
-    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
-    // will always be stored in GS/${GAMEID}.ini
-    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-
-    const Common::IniFile game_ini_default =
-        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
-    m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
-  }
-
-  UpdateList();
+  LoadCodes();
 }
 
 GeckoCodeWidget::~GeckoCodeWidget() = default;
@@ -92,17 +79,6 @@ void GeckoCodeWidget::CreateWidgets()
   m_download_codes = new NonDefaultQPushButton(tr("Download Codes"));
 
   m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
-
-  m_code_list->setEnabled(!m_game_id.empty());
-  m_name_label->setEnabled(!m_game_id.empty());
-  m_creator_label->setEnabled(!m_game_id.empty());
-  m_code_description->setEnabled(!m_game_id.empty());
-  m_code_view->setEnabled(!m_game_id.empty());
-
-  m_add_code->setEnabled(!m_game_id.empty());
-  m_edit_code->setEnabled(false);
-  m_remove_code->setEnabled(false);
-  m_download_codes->setEnabled(!m_game_id.empty());
 
   auto* layout = new QVBoxLayout;
 
@@ -251,6 +227,35 @@ void GeckoCodeWidget::RemoveCode()
 
   UpdateList();
   SaveCodes();
+}
+
+void GeckoCodeWidget::LoadCodes()
+{
+  if (!m_game_id.empty())
+  {
+    Common::IniFile game_ini_local;
+
+    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
+    // will always be stored in GS/${GAMEID}.ini
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+
+    const Common::IniFile game_ini_default =
+        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
+    m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+  }
+
+  m_code_list->setEnabled(!m_game_id.empty());
+  m_name_label->setEnabled(!m_game_id.empty());
+  m_creator_label->setEnabled(!m_game_id.empty());
+  m_code_description->setEnabled(!m_game_id.empty());
+  m_code_view->setEnabled(!m_game_id.empty());
+
+  m_add_code->setEnabled(!m_game_id.empty());
+  m_edit_code->setEnabled(false);
+  m_remove_code->setEnabled(false);
+  m_download_codes->setEnabled(!m_game_id.empty());
+
+  UpdateList();
 }
 
 void GeckoCodeWidget::SaveCodes()
