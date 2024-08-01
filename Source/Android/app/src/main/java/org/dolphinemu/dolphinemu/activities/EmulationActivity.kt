@@ -29,6 +29,7 @@ import com.google.android.material.slider.Slider
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
+import org.dolphinemu.dolphinemu.databinding.DialogHapticsAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogNfcFiguresManagerBinding
 import org.dolphinemu.dolphinemu.features.infinitybase.InfinityConfig
@@ -37,7 +38,9 @@ import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlot
 import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlotAdapter
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener
+import org.dolphinemu.dolphinemu.features.input.model.DolphinVibratorManagerFactory
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
@@ -58,6 +61,8 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.utils.HapticEffect
+import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -412,6 +417,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             menu.findItem(R.id.menu_emulation_ir_recenter).isChecked =
                 BooleanSetting.MAIN_IR_ALWAYS_RECENTER.boolean
         }
+        // Hide the haptic feedback menu item if the device has no vibrator
+        if (!DolphinVibratorManagerFactory.getSystemVibratorManager().getDefaultVibrator()
+                .hasVibrator()
+        ) {
+            menu.findItem(R.id.menu_emulation_haptics).setVisible(false)
+        }
         popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
         popup.show()
     }
@@ -492,6 +503,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_SKYLANDERS -> showSkylanderPortalSettings()
             MENU_ACTION_INFINITY_BASE -> showInfinityBaseSettings()
             MENU_ACTION_EXIT -> emulationFragment!!.stopEmulation()
+            MENU_ACTION_ADJUST_HAPTICS -> adjustHaptics()
         }
     }
 
@@ -664,6 +676,62 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 emulationFragment!!.toggleInputOverlayVisibility(settings)
             }
             .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int -> emulationFragment?.refreshInputOverlay() }
+            .show()
+    }
+
+    private fun adjustHaptics() {
+        val dialogBinding = DialogHapticsAdjustBinding.inflate(layoutInflater)
+        val hapticsProvider = HapticsProvider()
+        dialogBinding.apply {
+            val toggleIntensity = { isChecked: Boolean ->
+                hapticsIntensityName.isEnabled = isChecked
+                hapticsIntensitySlider.isEnabled = isChecked
+                hapticsIntensityValue.isEnabled = isChecked
+            }
+            val checkboxes =
+                listOf(hapticsPressCheckbox, hapticsReleaseCheckbox, hapticsJoystickCheckbox)
+            hapticsPressCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean
+            hapticsReleaseCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean
+            hapticsJoystickCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.boolean
+            if (checkboxes.none { it.isChecked }) {
+                toggleIntensity(false)
+            }
+            checkboxes.forEach { checkbox ->
+                checkbox.setOnCheckedChangeListener { _, _ ->
+                    toggleIntensity(checkboxes.any { it.isChecked })
+                }
+            }
+            hapticsIntensitySlider.apply {
+                val setValueText = { value: Float ->
+                    hapticsIntensityValue.text =
+                        getString(R.string.slider_setting_value, value * 100f, '%')
+                }
+                stepSize = 0.1f
+                valueFrom = 0.1f
+                valueTo = 1.0f
+                value = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float.also { setValueText(it) }
+                addOnChangeListener { _: Slider, value: Float, _: Boolean ->
+                    setValueText(value)
+                    hapticsProvider.provideFeedback(HapticEffect.LOW_TICK, value)
+                }
+            }
+        }
+        MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.setBoolean(
+                    settings, dialogBinding.hapticsPressCheckbox.isChecked
+                )
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.setBoolean(
+                    settings, dialogBinding.hapticsReleaseCheckbox.isChecked
+                )
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.setBoolean(
+                    settings, dialogBinding.hapticsJoystickCheckbox.isChecked
+                )
+                FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.setFloat(
+                    settings, dialogBinding.hapticsIntensitySlider.value
+                )
+            }
             .show()
     }
 
@@ -1059,6 +1127,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
         const val MENU_ACTION_LATCHING_CONTROLS = 38
+        const val MENU_ACTION_ADJUST_HAPTICS = 39
 
         init {
             buttonsActionsMap.apply {
@@ -1072,6 +1141,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 append(R.id.menu_emulation_ir_recenter, MENU_SET_IR_RECENTER)
                 append(R.id.menu_emulation_set_ir_mode, MENU_SET_IR_MODE)
                 append(R.id.menu_emulation_choose_doubletap, MENU_ACTION_CHOOSE_DOUBLETAP)
+                append(R.id.menu_emulation_haptics, MENU_ACTION_ADJUST_HAPTICS)
             }
         }
 
