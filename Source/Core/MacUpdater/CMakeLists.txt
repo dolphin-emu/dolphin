@@ -53,6 +53,18 @@ foreach(sb ${STORYBOARDS})
     COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
 
+if(NOT SKIP_POSTPROCESS_BUNDLE)
+  # Update library references to make the bundle portable
+  include(DolphinPostprocessBundle)
+  dolphin_postprocess_bundle(MacUpdater)
+
+  # Fix rpath
+  add_custom_command(TARGET MacUpdater
+    POST_BUILD COMMAND
+    ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
+    $<TARGET_FILE:MacUpdater>)
+endif()
+
 if(MACOS_CODE_SIGNING)
   add_custom_command(TARGET MacUpdater
     POST_BUILD
