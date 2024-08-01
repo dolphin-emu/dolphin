@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.model
 import android.content.pm.ActivityInfo
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer
+import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import java.util.*
 
 enum class IntSetting(
@@ -80,6 +81,18 @@ enum class IntSetting(
         Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
         "DoubleTapButton",
         NativeLibrary.ButtonType.WIIMOTE_BUTTON_A
+    ),
+    MAIN_HAPTICS_DURATION(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "HapticsDuration",
+        HapticsProvider.DEFAULT_DURATION.toInt()
+    ),
+    MAIN_HAPTICS_AMPLITUDE(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_ANDROID,
+        "HapticsAmplitude",
+        HapticsProvider.DEFAULT_AMPLITUDE
     ),
     SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
     SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),
