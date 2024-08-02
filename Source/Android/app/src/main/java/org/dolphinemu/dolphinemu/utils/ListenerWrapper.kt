@@ -27,9 +27,9 @@ object ListenerWrapper {
             if (buttonView != null) {
                 /** Using old constants because [HapticFeedbackConstantsCompat.TOGGLE_ON]
                  *  and [HapticFeedbackConstantsCompat.TOGGLE_OFF] don't seem to work. */
-                val feedbackConstant =
-                    HapticFeedbackConstantsCompat.CONTEXT_CLICK.takeIf { isChecked }
-                        ?: HapticFeedbackConstantsCompat.CLOCK_TICK
+                val feedbackConstant = if (buttonView.isChecked) {
+                    HapticFeedbackConstantsCompat.CONTEXT_CLICK
+                } else HapticFeedbackConstantsCompat.CLOCK_TICK
                 hapticsProvider.performHapticFeedback(buttonView, feedbackConstant, false)
             }
         }

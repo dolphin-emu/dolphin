@@ -747,7 +747,8 @@ private:
   void AddMotors(JNIEnv* env, jobject input_device)
   {
     jobject vibrator_manager = env->CallStaticObjectMethod(
-        s_controller_interface_class, s_controller_interface_get_device_vibrator_manager, input_device);
+        s_controller_interface_class, s_controller_interface_get_device_vibrator_manager,
+        input_device);
     AddMotorsFromManager(env, vibrator_manager);
     env->DeleteLocalRef(vibrator_manager);
   }
@@ -895,8 +896,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       env->GetMethodID(s_dolphin_vibrator_manager_class, "getVibrator", "(I)Landroid/os/Vibrator;");
   s_dolphin_vibrator_manager_get_vibrator_ids =
       env->GetMethodID(s_dolphin_vibrator_manager_class, "getVibratorIds", "()[I");
-  s_dolphin_vibrator_manager_get_default_vibrator =
-      env->GetMethodID(s_dolphin_vibrator_manager_class, "getDefaultVibrator", "()Landroid/os/Vibrator;");
+  s_dolphin_vibrator_manager_get_default_vibrator = env->GetMethodID(
+      s_dolphin_vibrator_manager_class, "getDefaultVibrator", "()Landroid/os/Vibrator;");
   env->DeleteLocalRef(dolphin_vibrator_manager_class);
 
   jintArray keycodes_array = CreateKeyCodesArray(env);
