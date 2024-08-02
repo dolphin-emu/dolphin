@@ -61,6 +61,7 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
+import org.dolphinemu.dolphinemu.utils.ListenerWrapper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -727,7 +728,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 isChecked = BooleanSetting.MAIN_FALLBACK_HAPTICS.boolean.also {
                     if (!it) toggleSwitch(false)
                 }
-                setOnCheckedChangeListener { _, isChecked -> toggleSwitch(isChecked) }
+                setOnCheckedChangeListener(ListenerWrapper.wrapOnCheckedChangeListener { _, isChecked ->
+                    toggleSwitch(isChecked)
+                })
             }
             hapticsDurationSlider.apply {
                 val setValueText = { value: Float ->
@@ -738,7 +741,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                     )
                 }
                 value = IntSetting.MAIN_HAPTICS_DURATION.int.toFloat().also { setValueText(it) }
-                addOnChangeListener(Slider.OnChangeListener { _: Slider, value: Float, _: Boolean ->
+                addOnChangeListener(Slider.OnChangeListener { _: Slider, value: Float, fromUser: Boolean ->
+                    if (fromUser) {
+                        hapticsProvider.vibrate(
+                            value.toLong(), hapticsAmplitudeSlider.value.toInt()
+                        )
+                    }
                     setValueText(value)
                 })
             }
@@ -748,7 +756,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                         value = this.toFloat()
                         hapticsAmplitudeValue.text = this.toString()
                     }
-                    addOnChangeListener(Slider.OnChangeListener { _: Slider, value: Float, _: Boolean ->
+                    addOnChangeListener(Slider.OnChangeListener { _: Slider, value: Float, fromUser: Boolean ->
+                        if (fromUser) {
+                            hapticsProvider.vibrate(
+                                hapticsDurationSlider.value.toLong(), value.toInt()
+                            )
+                        }
                         hapticsAmplitudeValue.text = value.toInt().toString()
                     })
                 }
@@ -814,7 +827,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 150f
                 value = IntSetting.MAIN_CONTROL_SCALE.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(Slider.OnChangeListener { _: Slider?, progress: Float, _: Boolean ->
+                addOnChangeListener(
+                    ListenerWrapper.wrapOnChangeListener { _: Slider, progress: Float, _: Boolean ->
                     dialogBinding.inputScaleValue.text = "${(progress.toInt() + 50)}%"
                 })
             }
@@ -825,7 +839,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 100f
                 value = IntSetting.MAIN_CONTROL_OPACITY.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(Slider.OnChangeListener { slider: Slider?, progress: Float, _: Boolean ->
+                addOnChangeListener(
+                    ListenerWrapper.wrapOnChangeListener { _: Slider, progress: Float, _: Boolean ->
                     inputOpacityValue.text = progress.toInt().toString() + "%"
                 })
             }
