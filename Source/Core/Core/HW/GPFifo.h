@@ -36,7 +36,7 @@ public:
   void CheckGatherPipe();
   void FastCheckGatherPipe();
 
-  bool IsBNE() const;
+  static bool IsBNE();
 
   // Write
   void Write8(u8 value);

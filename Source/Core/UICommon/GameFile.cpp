@@ -549,7 +549,7 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
   return languages;
 }
 
-bool GameFile::CheckIfTwoDiscGame(const std::string& game_id) const
+bool GameFile::CheckIfTwoDiscGame(const std::string& game_id)
 {
   constexpr size_t GAME_ID_PREFIX_SIZE = 3;
   if (game_id.size() < GAME_ID_PREFIX_SIZE)

@@ -73,7 +73,7 @@ struct ConfigDescriptor
 
 struct InterfaceDescriptor
 {
-  void Swap();
+  static void Swap();
   u8 bLength;
   u8 bDescriptorType;
   u8 bInterfaceNumber;

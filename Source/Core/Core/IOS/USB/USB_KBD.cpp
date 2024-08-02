@@ -223,7 +223,7 @@ std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-bool USB_KBD::IsKeyPressed(const int key) const
+bool USB_KBD::IsKeyPressed(const int key)
 {
 #ifdef _WIN32
   return (GetAsyncKeyState(key) & 0x8000) != 0;

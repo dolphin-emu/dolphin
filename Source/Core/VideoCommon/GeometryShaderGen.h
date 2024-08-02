@@ -16,7 +16,7 @@ enum class APIType;
 #pragma pack(1)
 struct geometry_shader_uid_data
 {
-  u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
+  static u32 NumValues() { return sizeof(geometry_shader_uid_data); }
   bool IsPassthrough() const;
 
   u32 numTexGens : 4;
@@ -34,7 +34,7 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
 template <>
 struct fmt::formatter<geometry_shader_uid_data>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const geometry_shader_uid_data& uid, FormatContext& ctx) const
   {

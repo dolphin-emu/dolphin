@@ -698,7 +698,7 @@ bool IOSC::HasOwnership(const Handle handle, const u32 pid) const
          (GetOwnership(handle, &owner_mask) == IPC_SUCCESS && ((1 << pid) & owner_mask) != 0);
 }
 
-bool IOSC::IsDefaultHandle(const Handle handle) const
+bool IOSC::IsDefaultHandle(const Handle handle)
 {
   constexpr Handle last_default_handle = HANDLE_NEW_COMMON_KEY;
   return handle <= last_default_handle || handle == HANDLE_ROOT_KEY;

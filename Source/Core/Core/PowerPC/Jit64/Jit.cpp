@@ -1199,7 +1199,7 @@ bool Jit64::DoJit(const u32 em_address, JitBlock* b, const u32 nextPC)
   return true;
 }
 
-BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
+BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb)
 {
   return cb.m_gqr_used & ~cb.m_gqr_modified;
 }

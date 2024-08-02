@@ -148,7 +148,7 @@ private:
   bool UseGeometryShaderForEFBCopies() const;
 
   // GX pipeline compiler methods
-  AbstractPipelineConfig
+  static AbstractPipelineConfig
   GetGXPipelineConfig(const NativeVertexFormat* vertex_format, const AbstractShader* vertex_shader,
                       const AbstractShader* geometry_shader, const AbstractShader* pixel_shader,
                       const RasterizationState& rasterization_state, const DepthState& depth_state,
@@ -174,7 +174,7 @@ private:
   template <ShaderStage stage, typename K, typename T>
   void LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid);
   template <typename T>
-  void ClearShaderCache(T& cache);
+  static void ClearShaderCache(T& cache);
   template <typename KeyType, typename DiskKeyType, typename T>
   void LoadPipelineCache(T& cache, Common::LinearDiskCache<DiskKeyType, u8>& disk_cache,
                          APIType api_type, const char* type, bool include_gameid);

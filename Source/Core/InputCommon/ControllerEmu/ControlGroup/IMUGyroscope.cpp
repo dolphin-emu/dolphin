@@ -129,7 +129,7 @@ bool IMUGyroscope::AreInputsBound() const
   });
 }
 
-bool IMUGyroscope::CanCalibrate() const
+bool IMUGyroscope::CanCalibrate()
 {
   // If the input gate is disabled, miscalibration to zero values would occur.
   return ControlReference::GetInputGate();

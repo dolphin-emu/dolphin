@@ -46,17 +46,17 @@ protected:
   // If needed, extract the updates related fields from a PB. We need to
   // reinject them afterwards so that the correct PB typs is written to RAM.
   bool ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates, u32* updates_addr) const;
-  void ReinjectUpdatesFields(AXPBWii& pb, const u16* num_updates, u32 updates_addr);
+  static void ReinjectUpdatesFields(AXPBWii& pb, const u16* num_updates, u32 updates_addr);
 
   // Convert a mixer_control bitfield to our internal representation for that
   // value. Required because that bitfield has a different meaning in some
   // versions of AX.
-  AXMixControl ConvertMixerControl(u32 mixer_control);
+  static AXMixControl ConvertMixerControl(u32 mixer_control);
 
   // Generate a volume ramp from vol1 to vol2, interpolating n volume values.
   // Uses floating point arithmetic, which isn't exactly what the UCode does,
   // but this gives better precision and nicer code.
-  void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
+  static void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
 
   void HandleCommandList() override;
 

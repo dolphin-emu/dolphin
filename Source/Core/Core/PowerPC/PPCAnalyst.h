@@ -196,7 +196,7 @@ private:
                                ReorderType type) const;
   void ReorderInstructions(u32 instructions, CodeOp* code) const;
   void SetInstructionStats(const CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo) const;
-  bool IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, size_t instructions) const;
+  static bool IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, size_t instructions);
 
   // Options
   u32 m_options = 0;

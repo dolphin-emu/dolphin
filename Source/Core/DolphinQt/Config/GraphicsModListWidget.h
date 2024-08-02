@@ -56,7 +56,7 @@ private:
 
   void SaveModList();
 
-  void OpenGraphicsModDir();
+  static void OpenGraphicsModDir();
 
   void CalculateGameRunning(Core::State state);
   bool m_loaded_game_is_running = false;

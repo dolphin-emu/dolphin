@@ -114,7 +114,7 @@ private:
 
   [[nodiscard]] QVariant DisplayRoleData(const QModelIndex& index) const;
   [[nodiscard]] QVariant FontRoleData(const QModelIndex& index) const;
-  [[nodiscard]] QVariant TextAlignmentRoleData(const QModelIndex& index) const;
+  [[nodiscard]] static QVariant TextAlignmentRoleData(const QModelIndex& index);
   [[nodiscard]] QVariant ForegroundRoleData(const QModelIndex& index) const;
   [[nodiscard]] QVariant ClickRoleData(const QModelIndex& index) const;
   [[nodiscard]] QVariant SortRoleData(const QModelIndex& index) const;

@@ -109,7 +109,7 @@ public:
 
 #ifdef WIN32
   // Returns the platform-specific exclusive fullscreen structure.
-  VkSurfaceFullScreenExclusiveWin32InfoEXT
+  static VkSurfaceFullScreenExclusiveWin32InfoEXT
   GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
 #endif
 

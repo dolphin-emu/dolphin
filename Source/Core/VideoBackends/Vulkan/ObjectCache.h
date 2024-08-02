@@ -85,7 +85,7 @@ private:
   void DestroyRenderPassCache();
   bool CreatePipelineCache();
   bool LoadPipelineCache();
-  bool ValidatePipelineCache(const u8* data, size_t data_length);
+  static bool ValidatePipelineCache(const u8* data, size_t data_length);
   void DestroyPipelineCache();
 
   std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SET_LAYOUTS> m_descriptor_set_layouts = {};

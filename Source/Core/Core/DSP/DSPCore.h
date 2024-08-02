@@ -456,7 +456,7 @@ private:
   const u8* DDMAIn(u16 dsp_addr, u32 addr, u32 size) const;
   const u8* DDMAOut(u16 dsp_addr, u32 addr, u32 size) const;
   const u8* IDMAIn(u16 dsp_addr, u32 addr, u32 size) const;
-  const u8* IDMAOut(u16 dsp_addr, u32 addr, u32 size);
+  static const u8* IDMAOut(u16 dsp_addr, u32 addr, u32 size);
 
   u16 ReadIFXImpl(u16 address);
 

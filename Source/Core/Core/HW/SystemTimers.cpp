@@ -231,7 +231,7 @@ s64 SystemTimersManager::GetLocalTimeRTCOffset() const
   return m_localtime_rtc_offset;
 }
 
-double SystemTimersManager::GetEstimatedEmulationPerformance() const
+double SystemTimersManager::GetEstimatedEmulationPerformance()
 {
   return g_perf_metrics.GetMaxSpeed();
 }

@@ -366,7 +366,7 @@ union IND_MTXA
 template <>
 struct fmt::formatter<IND_MTXA>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const IND_MTXA& col, FormatContext& ctx) const
   {
@@ -388,7 +388,7 @@ union IND_MTXB
 template <>
 struct fmt::formatter<IND_MTXB>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const IND_MTXB& col, FormatContext& ctx) const
   {
@@ -413,7 +413,7 @@ union IND_MTXC
 template <>
 struct fmt::formatter<IND_MTXC>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const IND_MTXC& col, FormatContext& ctx) const
   {
@@ -488,7 +488,7 @@ struct TevStageCombiner
 template <>
 struct fmt::formatter<TevStageCombiner::ColorCombiner>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TevStageCombiner::ColorCombiner& cc, FormatContext& ctx) const
   {
@@ -597,7 +597,7 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
 template <>
 struct fmt::formatter<TevStageCombiner::AlphaCombiner>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TevStageCombiner::AlphaCombiner& ac, FormatContext& ctx) const
   {
@@ -737,7 +737,7 @@ union TevStageIndirect
 template <>
 struct fmt::formatter<TevStageIndirect>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TevStageIndirect& tevind, FormatContext& ctx) const
   {
@@ -800,7 +800,7 @@ union TwoTevStageOrders
 template <>
 struct fmt::formatter<std::pair<u8, TwoTevStageOrders>>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const std::pair<u8, TwoTevStageOrders>& p, FormatContext& ctx) const
   {
@@ -831,7 +831,7 @@ union TEXSCALE
 template <>
 struct fmt::formatter<std::pair<u8, TEXSCALE>>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const std::pair<u8, TEXSCALE>& p, FormatContext& ctx) const
   {
@@ -868,7 +868,7 @@ union RAS1_IREF
 template <>
 struct fmt::formatter<RAS1_IREF>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const RAS1_IREF& indref, FormatContext& ctx) const
   {
@@ -959,7 +959,7 @@ union TexMode0
 template <>
 struct fmt::formatter<TexMode0>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexMode0& mode, FormatContext& ctx) const
   {
@@ -988,7 +988,7 @@ union TexMode1
 template <>
 struct fmt::formatter<TexMode1>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexMode1& mode, FormatContext& ctx) const
   {
@@ -1007,7 +1007,7 @@ union TexImage0
 template <>
 struct fmt::formatter<TexImage0>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexImage0& teximg, FormatContext& ctx) const
   {
@@ -1032,7 +1032,7 @@ union TexImage1
 template <>
 struct fmt::formatter<TexImage1>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexImage1& teximg, FormatContext& ctx) const
   {
@@ -1056,7 +1056,7 @@ union TexImage2
 template <>
 struct fmt::formatter<TexImage2>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexImage2& teximg, FormatContext& ctx) const
   {
@@ -1077,7 +1077,7 @@ union TexImage3
 template <>
 struct fmt::formatter<TexImage3>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexImage3& teximg, FormatContext& ctx) const
   {
@@ -1095,7 +1095,7 @@ union TexTLUT
 template <>
 struct fmt::formatter<TexTLUT>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TexTLUT& tlut, FormatContext& ctx) const
   {
@@ -1112,7 +1112,7 @@ union ZTex1
 template <>
 struct fmt::formatter<ZTex1>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const ZTex1& ztex1, FormatContext& ctx) const
   {
@@ -1129,7 +1129,7 @@ union ZTex2
 template <>
 struct fmt::formatter<ZTex2>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const ZTex2& ztex2, FormatContext& ctx) const
   {
@@ -1176,7 +1176,7 @@ union GenMode
 template <>
 struct fmt::formatter<GenMode>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const GenMode& mode, FormatContext& ctx) const
   {
@@ -1221,7 +1221,7 @@ union LPSize
 template <>
 struct fmt::formatter<LPSize>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const LPSize& lp, FormatContext& ctx) const
   {
@@ -1251,7 +1251,7 @@ union ScissorPos
 template <>
 struct fmt::formatter<ScissorPos>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const ScissorPos& pos, FormatContext& ctx)
   {
@@ -1277,7 +1277,7 @@ union ScissorOffset
 template <>
 struct fmt::formatter<ScissorOffset>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const ScissorOffset& off, FormatContext& ctx)
   {
@@ -1396,7 +1396,7 @@ union BlendMode
 template <>
 struct fmt::formatter<BlendMode>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const BlendMode& mode, FormatContext& ctx) const
   {
@@ -1429,7 +1429,7 @@ union FogParam0
 template <>
 struct fmt::formatter<FogParam0>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const FogParam0& param, FormatContext& ctx) const
   {
@@ -1488,7 +1488,7 @@ union FogParam3
 template <>
 struct fmt::formatter<FogParam3>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const FogParam3& param, FormatContext& ctx) const
   {
@@ -1523,7 +1523,7 @@ struct FogRangeParams
 template <>
 struct fmt::formatter<FogRangeParams::RangeBase>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const FogRangeParams::RangeBase& range, FormatContext& ctx) const
   {
@@ -1534,7 +1534,7 @@ struct fmt::formatter<FogRangeParams::RangeBase>
 template <>
 struct fmt::formatter<FogRangeKElement>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const FogRangeKElement& range, FormatContext& ctx) const
   {
@@ -1570,7 +1570,7 @@ struct FogParams
 template <>
 struct fmt::formatter<FogParams::FogColor>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const FogParams::FogColor& color, FormatContext& ctx) const
   {
@@ -1608,7 +1608,7 @@ union ZMode
 template <>
 struct fmt::formatter<ZMode>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const ZMode& mode, FormatContext& ctx) const
   {
@@ -1630,7 +1630,7 @@ union ConstantAlpha
 template <>
 struct fmt::formatter<ConstantAlpha>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const ConstantAlpha& c, FormatContext& ctx) const
   {
@@ -1650,7 +1650,7 @@ union FieldMode
 template <>
 struct fmt::formatter<FieldMode>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const FieldMode& mode, FormatContext& ctx) const
   {
@@ -1680,7 +1680,7 @@ union FieldMask
 template <>
 struct fmt::formatter<FieldMask>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const FieldMask& mask, FormatContext& ctx) const
   {
@@ -1742,7 +1742,7 @@ union PEControl
 template <>
 struct fmt::formatter<PEControl>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const PEControl& config, FormatContext& ctx) const
   {
@@ -1769,7 +1769,7 @@ union TCInfo
 template <>
 struct fmt::formatter<std::pair<bool, TCInfo>>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const std::pair<bool, TCInfo>& p, FormatContext& ctx) const
   {
@@ -1834,7 +1834,7 @@ struct TevReg
 template <>
 struct fmt::formatter<TevReg::RA>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TevReg::RA& ra, FormatContext& ctx) const
   {
@@ -1845,7 +1845,7 @@ struct fmt::formatter<TevReg::RA>
 template <>
 struct fmt::formatter<TevReg::BG>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TevReg::BG& bg, FormatContext& ctx) const
   {
@@ -1856,7 +1856,7 @@ struct fmt::formatter<TevReg::BG>
 template <>
 struct fmt::formatter<TevReg>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TevReg& reg, FormatContext& ctx) const
   {
@@ -1962,7 +1962,7 @@ union TevKSel
 template <>
 struct fmt::formatter<std::pair<u8, TevKSel>>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const std::pair<u8, TevKSel>& p, FormatContext& ctx) const
   {
@@ -2088,7 +2088,7 @@ union AlphaTest
 template <>
 struct fmt::formatter<AlphaTest>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const AlphaTest& test, FormatContext& ctx) const
   {
@@ -2156,7 +2156,7 @@ union UPE_Copy
 template <>
 struct fmt::formatter<UPE_Copy>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UPE_Copy& copy, FormatContext& ctx) const
   {
@@ -2235,7 +2235,7 @@ union BPU_PreloadTileInfo
 template <>
 struct fmt::formatter<BPU_PreloadTileInfo>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const BPU_PreloadTileInfo& info, FormatContext& ctx) const
   {
@@ -2257,7 +2257,7 @@ union BPU_LoadTlutInfo
 template <>
 struct fmt::formatter<BPU_LoadTlutInfo>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const BPU_LoadTlutInfo& info, FormatContext& ctx) const
   {

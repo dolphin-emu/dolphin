@@ -261,7 +261,7 @@ private:
 
   Handle GetHandleFromIterator(KeyEntries::iterator iterator) const;
   bool HasOwnership(Handle handle, u32 pid) const;
-  bool IsDefaultHandle(Handle handle) const;
+  static bool IsDefaultHandle(Handle handle);
   ReturnCode DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* iv, const u8* input,
                             size_t size, u8* output, u32 pid) const;
 

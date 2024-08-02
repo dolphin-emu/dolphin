@@ -58,7 +58,7 @@ public:
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 
-  bool HasHookInstalled() const;
+  static bool HasHookInstalled();
   void ResetButton() const;
   void PowerButton() const;
 

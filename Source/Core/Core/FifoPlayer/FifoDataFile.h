@@ -62,7 +62,7 @@ public:
   void SetIsWii(bool isWii);
   bool GetIsWii() const;
   bool HasBrokenEFBCopies() const;
-  bool ShouldGenerateFakeVIUpdates() const;
+  static bool ShouldGenerateFakeVIUpdates();
 
   u32* GetBPMem() { return m_BPMem.data(); }
   u32* GetCPMem() { return m_CPMem.data(); }
@@ -85,12 +85,12 @@ private:
     FLAG_IS_WII = 1
   };
 
-  void PadFile(size_t numBytes, const File::IOFile& file);
+  static void PadFile(size_t numBytes, const File::IOFile& file);
 
   void SetFlag(u32 flag, bool set);
   bool GetFlag(u32 flag) const;
 
-  u64 WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
+  static u64 WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
   static void ReadMemoryUpdates(u64 fileOffset, u32 numUpdates,
                                 std::vector<MemoryUpdate>& memUpdates, File::IOFile& file);
 

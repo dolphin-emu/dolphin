@@ -180,7 +180,7 @@ public:
 
   bool IsInterruptWaiting() const;
 
-  void SetCpClearRegister();
+  static void SetCpClearRegister();
   void SetCpControlRegister();
   void SetCpStatusRegister();
 

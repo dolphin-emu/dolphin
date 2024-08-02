@@ -18,7 +18,7 @@ namespace TextureConversionShaderGen
 #pragma pack(1)
 struct UidData
 {
-  u32 NumValues() const { return sizeof(UidData); }
+  static u32 NumValues() { return sizeof(UidData); }
   EFBCopyFormat dst_format;
 
   u32 efb_has_alpha : 1;
@@ -45,7 +45,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 template <>
 struct fmt::formatter<TextureConversionShaderGen::UidData>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TextureConversionShaderGen::UidData& uid, FormatContext& ctx) const
   {

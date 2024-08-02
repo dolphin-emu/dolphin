@@ -135,7 +135,7 @@ private:
   bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);
   bool TryLoadGameModDescriptorBanner();
-  bool CheckIfTwoDiscGame(const std::string& game_id) const;
+  static bool CheckIfTwoDiscGame(const std::string& game_id);
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
   // If anything is changed, make sure DoState handles it properly and

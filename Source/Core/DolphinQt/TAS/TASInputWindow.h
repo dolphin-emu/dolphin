@@ -65,9 +65,9 @@ protected:
                                     const QKeySequence& shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget,
                                     std::optional<ControlState> scale = {});
-  TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
-                                    const QKeySequence& shortcut_key_sequence, Qt::Orientation orientation,
-                                    QWidget* shortcut_widget);
+  static TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
+                                           const QKeySequence& shortcut_key_sequence, Qt::Orientation orientation,
+                                           QWidget* shortcut_widget);
 
   void changeEvent(QEvent* event) override;
 

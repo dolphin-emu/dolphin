@@ -33,7 +33,7 @@ private:
   void SaveSettings() const;
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
-  void OnWiimoteRefreshPressed();
+  static void OnWiimoteRefreshPressed();
   void OnWiimoteConfigure(size_t index);
 
   void CreateLayout();

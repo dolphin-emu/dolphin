@@ -13,7 +13,7 @@ struct vertex_ubershader_uid_data
 {
   u32 num_texgens : 4;
 
-  u32 NumValues() const { return sizeof(vertex_ubershader_uid_data); }
+  static u32 NumValues() { return sizeof(vertex_ubershader_uid_data); }
 };
 #pragma pack()
 
@@ -29,7 +29,7 @@ void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>
 template <>
 struct fmt::formatter<UberShader::vertex_ubershader_uid_data>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UberShader::vertex_ubershader_uid_data& uid, FormatContext& ctx) const
   {

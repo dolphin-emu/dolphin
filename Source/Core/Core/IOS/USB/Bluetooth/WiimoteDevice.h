@@ -83,7 +83,7 @@ public:
   u8 GetLMPVersion() const { return m_lmp_version; }
   u16 GetLMPSubVersion() const { return m_lmp_subversion; }
   // Broadcom Corporation
-  u16 GetManufactorID() const { return 0x000F; }
+  static u16 GetManufactorID() { return 0x000F; }
   const ClassType& GetClass() const { return m_class; }
   const FeaturesType& GetFeatures() const { return m_features; }
   const LinkKeyType& GetLinkKey() const { return m_link_key; }

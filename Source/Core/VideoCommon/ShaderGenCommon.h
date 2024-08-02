@@ -44,7 +44,7 @@ public:
    * @note In the ShaderCode implementation, this does indeed write the parameter string to an
    * internal buffer. However, you're free to do whatever you like with the parameter.
    */
-  void Write(const char*, ...)
+  static void Write(const char*, ...)
 #ifdef __GNUC__
       __attribute__((format(printf, 2, 3)))
 #endif
@@ -54,7 +54,7 @@ public:
   /*
    * Tells us that a specific constant range (including last_index) is being used by the shader
    */
-  void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
+  static void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 };
 
 /*
@@ -135,7 +135,7 @@ public:
       constant_usage[i] = true;
   }
 
-  bool ConstantIsUsed(unsigned int index) const
+  static bool ConstantIsUsed(unsigned int index)
   {
     // TODO: Not ready for usage yet
     return true;

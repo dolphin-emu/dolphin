@@ -418,7 +418,7 @@ ControllerEmu::ControlGroup* HotkeyManager::GetHotkeyGroup(const HotkeyGroup gro
   return m_hotkey_groups[group];
 }
 
-int HotkeyManager::FindGroupByID(int id) const
+int HotkeyManager::FindGroupByID(int id)
 {
   const auto i = std::ranges::find_if(s_groups_info, [id](const auto& entry) {
     return entry.last >= id;
@@ -427,7 +427,7 @@ int HotkeyManager::FindGroupByID(int id) const
   return static_cast<int>(std::distance(s_groups_info.begin(), i));
 }
 
-int HotkeyManager::GetIndexForGroup(const int group, const int id) const
+int HotkeyManager::GetIndexForGroup(const int group, const int id)
 {
   return id - s_groups_info[group].first;
 }

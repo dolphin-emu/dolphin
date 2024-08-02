@@ -294,17 +294,17 @@ private:
     return (static_cast<u16>(mBbaMem[index + 1]) << 8) | mBbaMem[index];
   }
 
-  bool IsMXCommand(u32 const data);
-  bool IsWriteCommand(u32 const data);
+  static bool IsMXCommand(u32 const data);
+  static bool IsWriteCommand(u32 const data);
   const char* GetRegisterName() const;
   void MXHardReset();
   void MXCommandHandler(u32 data, u32 size);
   void DirectFIFOWrite(const u8* data, u32 size);
   void SendFromDirectFIFO();
-  void SendFromPacketBuffer();
+  static void SendFromPacketBuffer();
   void SendComplete();
   void SendCompleteBack();
-  u8 HashIndex(const u8* dest_eth_addr);
+  static u8 HashIndex(const u8* dest_eth_addr);
   bool RecvMACFilter();
   void inc_rwp();
   void set_rwp(u16 value);

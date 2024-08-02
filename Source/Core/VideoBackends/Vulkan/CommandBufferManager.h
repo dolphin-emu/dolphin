@@ -105,7 +105,7 @@ private:
                            u32 present_image_index);
   void BeginCommandBuffer();
 
-  VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
+  static VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
 
   const u32 DESCRIPTOR_SETS_PER_POOL = 1024;
 

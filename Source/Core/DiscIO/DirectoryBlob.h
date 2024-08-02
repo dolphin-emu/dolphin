@@ -223,10 +223,10 @@ private:
                 std::vector<u8>* disc_header);
 
   // FST creation
-  void WriteEntryData(std::vector<u8>* fst_data, u32* entry_offset, u8 type, u32 name_offset,
-                      u64 data_offset, u64 length, u32 address_shift);
-  void WriteEntryName(std::vector<u8>* fst_data, u32* name_offset, const std::string& name,
-                      u64 name_table_offset);
+  static void WriteEntryData(std::vector<u8>* fst_data, u32* entry_offset, u8 type, u32 name_offset,
+                             u64 data_offset, u64 length, u32 address_shift);
+  static void WriteEntryName(std::vector<u8>* fst_data, u32* name_offset, const std::string& name,
+                             u64 name_table_offset);
   void WriteDirectory(std::vector<u8>* fst_data, std::vector<FSTBuilderNode>* parent_entries,
                       u32* fst_offset, u32* name_offset, u64* data_offset, u32 parent_entry_index,
                       u64 name_table_offset);

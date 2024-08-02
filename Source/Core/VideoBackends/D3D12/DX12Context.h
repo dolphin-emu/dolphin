@@ -109,7 +109,7 @@ public:
   bool SupportsTextureFormat(DXGI_FORMAT format) const;
 
   // Creates command lists, global buffers and descriptor heaps.
-  bool CreateGlobalResources();
+  static bool CreateGlobalResources();
 
   // Executes the current command list.
   void ExecuteCommandList(bool wait_for_completion);
@@ -161,7 +161,7 @@ private:
   bool CreateTextureUploadBuffer();
   bool CreateCommandLists();
   void MoveToNextCommandList();
-  void DestroyPendingResources(CommandListResources& cmdlist);
+  static void DestroyPendingResources(CommandListResources& cmdlist);
 
   ComPtr<IDXGIFactory> m_dxgi_factory;
   ComPtr<ID3D12Debug> m_debug_interface;
@@ -207,7 +207,7 @@ struct DX12HRWrap
 template <>
 struct fmt::formatter<DX12::DX12HRWrap>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DX12::DX12HRWrap& hr, FormatContext& ctx) const
   {

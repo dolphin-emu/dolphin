@@ -1010,7 +1010,7 @@ bool ESCore::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
   return title_identifier && (title_identifier & ~permitted_title_mask) == permitted_title_id;
 }
 
-bool ESCore::IsIssuerCorrect(const VerifyContainerType type, const ES::CertReader& issuer_cert) const
+bool ESCore::IsIssuerCorrect(const VerifyContainerType type, const ES::CertReader& issuer_cert)
 {
   switch (type)
   {

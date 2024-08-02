@@ -46,7 +46,7 @@ bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj
   return true;
 }
 
-void GraphicsModFeatureConfig::SerializeToProfile(picojson::object*) const
+void GraphicsModFeatureConfig::SerializeToProfile(picojson::object*)
 {
 }
 

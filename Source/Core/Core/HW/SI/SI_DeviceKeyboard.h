@@ -35,7 +35,7 @@ public:
 private:
   using KeyArray = std::array<u8, 3>;
 
-  KeyArray MapKeys(const KeyboardStatus& key_status) const;
+  static KeyArray MapKeys(const KeyboardStatus& key_status);
 
   // Internal counter synchonizing GC and keyboard
   u8 m_counter = 0;

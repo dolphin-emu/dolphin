@@ -40,7 +40,7 @@ public:
   ~AudioInterfaceManager();
 
   void Init();
-  void Shutdown();
+  static void Shutdown();
   void DoState(PointerWrap& p);
   bool IsPlaying() const;
 

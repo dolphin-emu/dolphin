@@ -238,7 +238,7 @@ public:
   };
 
   Device::Input* FindInput(std::string_view name, const Device* def_dev) const;
-  Device::Output* FindOutput(std::string_view name, const Device* def_dev) const;
+  static Device::Output* FindOutput(std::string_view name, const Device* def_dev);
 
   std::vector<std::shared_ptr<Device>> GetAllDevices() const;
   std::vector<std::string> GetAllDeviceStrings() const;

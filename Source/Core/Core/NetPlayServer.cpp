@@ -2178,7 +2178,7 @@ void NetPlayServer::CheckSyncAndStartGame()
   }
 }
 
-u64 NetPlayServer::GetInitialNetPlayRTC() const
+u64 NetPlayServer::GetInitialNetPlayRTC()
 {
   if (Get(Config::MAIN_CUSTOM_RTC_ENABLE))
     return Get(Config::MAIN_CUSTOM_RTC_VALUE);
@@ -2281,7 +2281,7 @@ u16 NetPlayServer::GetPort() const
 }
 
 // called from ---GUI--- thread
-std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
+std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
 {
   std::unordered_set<std::string> result;
   for (const auto& list_entry : GetInterfaceListInternal())
@@ -2307,7 +2307,7 @@ std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
 }
 
 // called from ---GUI--- thread
-std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal() const
+std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal()
 {
   std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)

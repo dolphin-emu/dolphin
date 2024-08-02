@@ -321,7 +321,7 @@ Device::Input* DeviceContainer::FindInput(const std::string_view name, const Dev
   return nullptr;
 }
 
-Device::Output* DeviceContainer::FindOutput(const std::string_view name, const Device* def_dev) const
+Device::Output* DeviceContainer::FindOutput(const std::string_view name, const Device* def_dev)
 {
   return def_dev->FindOutput(name);
 }

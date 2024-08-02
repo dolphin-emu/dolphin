@@ -97,7 +97,7 @@ EthernetHeader::EthernetHeader(const MACAddress& dest, const MACAddress& src, co
 {
 }
 
-u16 EthernetHeader::Size() const
+u16 EthernetHeader::Size()
 {
   return SIZE;
 }
@@ -117,7 +117,7 @@ IPv4Header::IPv4Header(const u16 data_size, const u8 ip_proto, const sockaddr_in
   header_checksum = htons(ComputeNetworkChecksum(this, Size()));
 }
 
-u16 IPv4Header::Size() const
+u16 IPv4Header::Size()
 {
   return SIZE;
 }
@@ -172,12 +172,12 @@ u8 TCPHeader::GetHeaderSize() const
   return (ntohs(properties) & 0xf000) >> 10;
 }
 
-u16 TCPHeader::Size() const
+u16 TCPHeader::Size()
 {
   return SIZE;
 }
 
-u8 TCPHeader::IPProto() const
+u8 TCPHeader::IPProto()
 {
   return IPPROTO_TCP;
 }
@@ -191,12 +191,12 @@ UDPHeader::UDPHeader(const sockaddr_in& from, const sockaddr_in& to, const u16 d
   length = htons(Size() + data_length);
 }
 
-u16 UDPHeader::Size() const
+u16 UDPHeader::Size()
 {
   return SIZE;
 }
 
-u8 UDPHeader::IPProto() const
+u8 UDPHeader::IPProto()
 {
   return IPPROTO_UDP;
 }
@@ -216,7 +216,7 @@ ARPHeader::ARPHeader(const u32 from_ip, const MACAddress& from_mac, const u32 to
   sender_address = from_mac;
 }
 
-u16 ARPHeader::Size() const
+u16 ARPHeader::Size()
 {
   return SIZE;
 }
@@ -327,7 +327,7 @@ static inline void InsertObj(Container* container, const T& obj)
 
 ARPPacket::ARPPacket() = default;
 
-u16 ARPPacket::Size() const
+u16 ARPPacket::Size()
 {
   return SIZE;
 }

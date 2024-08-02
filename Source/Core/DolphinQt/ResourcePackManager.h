@@ -17,7 +17,7 @@ public:
 private:
   void CreateWidgets();
   void ConnectWidgets();
-  void OpenResourcePackDir();
+  static void OpenResourcePackDir();
   void RepopulateTable();
   void Change();
   void Install();
@@ -28,7 +28,7 @@ private:
   void Refresh();
 
   void SelectionChanged();
-  void ItemDoubleClicked(const QTableWidgetItem* item);
+  static void ItemDoubleClicked(const QTableWidgetItem* item);
 
   int GetResourcePackIndex(const QTableWidgetItem* item) const;
 

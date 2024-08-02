@@ -58,9 +58,9 @@ public:
     return m_array[static_cast<std::size_t>(key.Value())];
   }
 
-  constexpr bool InBounds(T key) const { return static_cast<std::size_t>(key) < s_size; }
+  static constexpr bool InBounds(T key) { return static_cast<std::size_t>(key) < s_size; }
 
-  constexpr size_t size() const noexcept { return s_size; }
+  static constexpr size_t size() noexcept { return s_size; }
 
   constexpr V* data() { return m_array.data(); }
   constexpr const V* data() const { return m_array.data(); }

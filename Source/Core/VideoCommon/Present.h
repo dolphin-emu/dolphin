@@ -65,9 +65,9 @@ public:
   // Crops the target rectangle to the framebuffer dimensions, reducing the size of the source
   // rectangle if it is greater. Works even if the source and target rectangles don't have a
   // 1:1 pixel mapping, scaling as appropriate.
-  void AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
-                                   MathUtil::Rectangle<int>* source_rect, int fb_width,
-                                   int fb_height);
+  static void AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
+                                          MathUtil::Rectangle<int>* source_rect, int fb_width,
+                                          int fb_height);
 
   void ReleaseXFBContentLock() const;
 
@@ -111,8 +111,8 @@ private:
   // also accounting for crop and other minor adjustments
   std::tuple<int, int> CalculateOutputDimensions(int width, int height,
                                                  bool allow_stretch = true) const;
-  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
-                                                   bool allow_stretch = true) const;
+  static std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
+                                                          bool allow_stretch = true);
   // Scales a raw XFB resolution to the target (display) aspect ratio
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
                                                      bool allow_stretch = true) const;

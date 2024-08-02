@@ -127,7 +127,7 @@ public:
   void InvokeStop();
   bool StopGame();
   void Stop();
-  bool ChangeGame(const std::string& game);
+  static bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
   void RequestStopGame();
   void SendPowerButtonEvent();
@@ -264,8 +264,8 @@ private:
 
   void UpdateDevices() const;
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet) const;
-  void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
-                               sf::Packet& packet);
+  static void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
+                                      sf::Packet& packet);
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL) const;
   void Disconnect();
   bool Connect();

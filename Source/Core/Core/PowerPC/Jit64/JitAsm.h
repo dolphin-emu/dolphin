@@ -37,7 +37,7 @@ public:
   void Init();
   void Regenerate();
 
-  void ResetStack(X64CodeBlock& emitter);
+  static void ResetStack(X64CodeBlock& emitter);
 
 private:
   void Generate();

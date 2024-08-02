@@ -89,7 +89,7 @@ public:
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
-  int GetSSLFreeID() const;
+  static int GetSSLFreeID();
 
   static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
 

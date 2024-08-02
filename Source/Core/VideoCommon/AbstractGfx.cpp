@@ -139,14 +139,14 @@ void AbstractGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
 
 MathUtil::Rectangle<int>
 AbstractGfx::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                         const AbstractFramebuffer* framebuffer) const
+                                         const AbstractFramebuffer* framebuffer)
 {
   return ConvertFramebufferRectangle(rect, framebuffer->GetWidth(), framebuffer->GetHeight());
 }
 
 MathUtil::Rectangle<int>
 AbstractGfx::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect, u32 fb_width,
-                                         const u32 fb_height) const
+                                         const u32 fb_height)
 {
   MathUtil::Rectangle<int> ret = rect;
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -172,7 +172,7 @@ void AbstractGfx::OnConfigChanged(const u32 changed_bits)
   }
 }
 
-bool AbstractGfx::UseGeometryShaderForUI() const
+bool AbstractGfx::UseGeometryShaderForUI()
 {
   // OpenGL doesn't render to a 2-layer backbuffer like D3D/Vulkan for quad-buffered stereo,
   // instead drawing twice and the eye selected by glDrawBuffer() (see Presenter::RenderXFBToScreen)

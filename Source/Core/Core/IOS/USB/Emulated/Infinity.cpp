@@ -431,7 +431,7 @@ std::array<u8, 32> InfinityBase::PopAddedRemovedResponse()
   return response;
 }
 
-u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, const int num_of_bytes) const
+u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, const int num_of_bytes)
 {
   int checksum = 0;
   for (int i = 0; i < num_of_bytes; i++)
@@ -441,7 +441,7 @@ u8 InfinityBase::GenerateChecksum(const std::array<u8, 32>& data, const int num_
   return (checksum & 0xFF);
 }
 
-void InfinityBase::GetBlankResponse(const u8 sequence, std::array<u8, 32>& reply_buf) const
+void InfinityBase::GetBlankResponse(const u8 sequence, std::array<u8, 32>& reply_buf)
 {
   reply_buf[0] = 0xaa;
   reply_buf[1] = 0x01;
@@ -740,7 +740,7 @@ std::span<const std::pair<const char*, const u32>> InfinityBase::GetFigureList()
   return list_infinity_figures;
 }
 
-std::string InfinityBase::FindFigure(const u32 number) const
+std::string InfinityBase::FindFigure(const u32 number)
 {
   for (auto it = list_infinity_figures.begin(); it != list_infinity_figures.end(); it++)
   {

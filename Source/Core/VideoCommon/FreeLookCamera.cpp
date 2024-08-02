@@ -230,7 +230,7 @@ void CameraControllerInput::IncreaseFovY(const float fov)
   m_fov_y_multiplier = std::max(m_fov_y_multiplier, MIN_FOV_MULTIPLIER);
 }
 
-float CameraControllerInput::GetFovStepSize() const
+float CameraControllerInput::GetFovStepSize()
 {
   return 1.5f;
 }
@@ -328,7 +328,7 @@ void FreeLookCamera::DoState(PointerWrap& p)
   }
 }
 
-bool FreeLookCamera::IsActive() const
+bool FreeLookCamera::IsActive()
 {
   return FreeLook::GetActiveConfig().enabled;
 }

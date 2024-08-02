@@ -72,7 +72,7 @@ private:
 
   QWidget* AddWidget(const QString& name, QWidget* widget);
 
-  void RefreshDevices();
+  static void RefreshDevices();
 
   void OnSelectProfile(int index) const;
   void OnProfileTextChanged(const QString& text) const;

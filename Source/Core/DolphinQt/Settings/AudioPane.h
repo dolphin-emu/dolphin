@@ -40,8 +40,8 @@ private:
   void CheckNeedForLatencyControl();
   bool m_latency_control_supported;
 
-  QString GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const;
-  QString GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const;
+  static QString GetDPL2QualityLabel(AudioCommon::DPL2Quality value);
+  static QString GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value);
   void EnableDolbyQualityWidgets(bool enabled) const;
 
   QHBoxLayout* m_main_layout;

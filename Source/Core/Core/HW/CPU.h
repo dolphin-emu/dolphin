@@ -56,7 +56,7 @@ public:
   void Stop();
 
   // Reset [NOT IMPLEMENTED]
-  void Reset();
+  static void Reset();
 
   // StepOpcode (Steps one Opcode)
   void StepOpcode(Common::Event* event = nullptr);

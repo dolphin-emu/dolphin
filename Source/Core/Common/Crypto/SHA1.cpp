@@ -144,7 +144,7 @@ class CyclicArray
 public:
   inline ValueType operator[](const size_t i) const { return data[i % Size]; }
   inline ValueType& operator[](const size_t i) { return data[i % Size]; }
-  constexpr size_t size() { return Size; }
+  static constexpr size_t size() { return Size; }
 
 private:
   std::array<ValueType, Size> data;

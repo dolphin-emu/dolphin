@@ -66,10 +66,10 @@ private:
   void OnSetValue();
   void OnSetValueFromFile();
 
-  void OnDumpMRAM();
-  void OnDumpExRAM();
-  void OnDumpARAM();
-  void OnDumpFakeVMEM();
+  static void OnDumpMRAM();
+  static void OnDumpExRAM();
+  static void OnDumpARAM();
+  static void OnDumpFakeVMEM();
 
   void ValidateAndPreviewInputValue() const;
   QByteArray GetInputData() const;

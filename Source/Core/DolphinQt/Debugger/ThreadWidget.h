@@ -36,7 +36,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  QLineEdit* CreateLineEdit() const;
+  static QLineEdit* CreateLineEdit();
   QGroupBox* CreateContextGroup();
   QGroupBox* CreateActiveThreadQueueGroup();
   QGroupBox* CreateThreadGroup();

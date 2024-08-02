@@ -106,7 +106,7 @@ using MaskArray = std::array<KeyMasks, N>;
 template <size_t N>
 using KeyScanCodeArray = std::array<KeyScanCode, N>;
 
-CSIDevice_Keyboard::KeyArray CSIDevice_Keyboard::MapKeys(const KeyboardStatus& key_status) const
+CSIDevice_Keyboard::KeyArray CSIDevice_Keyboard::MapKeys(const KeyboardStatus& key_status)
 {
   static constexpr MaskArray<16> key0_masks{
       KEYMASK_HOME, KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN, KEYMASK_SCROLLLOCK, KEYMASK_A,

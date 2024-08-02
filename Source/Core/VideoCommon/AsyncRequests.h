@@ -94,7 +94,7 @@ public:
 
 private:
   void PullEventsInternal();
-  void HandleEvent(const Event& e);
+  static void HandleEvent(const Event& e);
 
   static AsyncRequests s_singleton;
 

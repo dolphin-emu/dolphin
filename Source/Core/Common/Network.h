@@ -50,7 +50,7 @@ struct EthernetHeader
   EthernetHeader();
   explicit EthernetHeader(u16 ether_type);
   EthernetHeader(const MACAddress& dest, const MACAddress& src, u16 ether_type);
-  u16 Size() const;
+  static u16 Size();
 
   static constexpr std::size_t SIZE = 14;
 
@@ -65,7 +65,7 @@ struct IPv4Header
 {
   IPv4Header();
   IPv4Header(u16 data_size, u8 ip_proto, const sockaddr_in& from, const sockaddr_in& to);
-  u16 Size() const;
+  static u16 Size();
   u8 DefinedSize() const;
 
   static constexpr std::size_t SIZE = 20;
@@ -90,8 +90,8 @@ struct TCPHeader
   TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, const u8* data, u16 length);
   TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags);
   u8 GetHeaderSize() const;
-  u16 Size() const;
-  u8 IPProto() const;
+  static u16 Size();
+  static u8 IPProto();
 
   static constexpr std::size_t SIZE = 20;
 
@@ -111,8 +111,8 @@ struct UDPHeader
 {
   UDPHeader();
   UDPHeader(const sockaddr_in& from, const sockaddr_in& to, u16 data_length);
-  u16 Size() const;
-  u8 IPProto() const;
+  static u16 Size();
+  static u8 IPProto();
 
   static constexpr std::size_t SIZE = 8;
 
@@ -129,7 +129,7 @@ struct ARPHeader
 {
   ARPHeader();
   ARPHeader(u32 from_ip, const MACAddress& from_mac, u32 to_ip, const MACAddress& to_mac);
-  u16 Size() const;
+  static u16 Size();
 
   static constexpr std::size_t SIZE = 28;
 
@@ -188,7 +188,7 @@ struct ARPPacket
   ARPPacket();
   ARPPacket(const MACAddress& destination, const MACAddress& source);
   std::vector<u8> Build() const;
-  u16 Size() const;
+  static u16 Size();
 
   EthernetHeader eth_header;
   ARPHeader arp_header;

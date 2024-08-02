@@ -52,14 +52,14 @@ public:
 
   // UI
   void TriggerThemeChanged();
-  void InitDefaultPalette();
-  void UpdateSystemDark();
-  void SetSystemDark(bool dark);
-  bool IsSystemDark();
-  bool IsThemeDark();
+  static void InitDefaultPalette();
+  static void UpdateSystemDark();
+  static void SetSystemDark(bool dark);
+  static bool IsSystemDark();
+  static bool IsThemeDark();
 
-  void SetUserStyleName(const QString& stylesheet_name);
-  QString GetUserStyleName() const;
+  static void SetUserStyleName(const QString& stylesheet_name);
+  static QString GetUserStyleName();
 
   enum class StyleType : int
   {
@@ -72,67 +72,67 @@ public:
     MaxValue = 3,
   };
 
-  void SetStyleType(StyleType type);
-  StyleType GetStyleType() const;
+  static void SetStyleType(StyleType type);
+  static StyleType GetStyleType();
 
   // this evaluates the current stylesheet settings and refreshes the GUI with them
-  void ApplyStyle();
+  static void ApplyStyle();
 
-  void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,
-                       QColor& border_color, const QPalette& palette,
-                       const QPalette& high_contrast_palette) const;
+  static void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,
+                              QColor& border_color, const QPalette& palette,
+                              const QPalette& high_contrast_palette);
 
-  bool IsLogVisible() const;
+  static bool IsLogVisible();
   void SetLogVisible(bool visible);
-  bool IsLogConfigVisible() const;
+  static bool IsLogConfigVisible();
   void SetLogConfigVisible(bool visible);
   void SetToolBarVisible(bool visible);
-  bool IsToolBarVisible() const;
+  static bool IsToolBarVisible();
   void SetWidgetsLocked(bool visible);
-  bool AreWidgetsLocked() const;
+  static bool AreWidgetsLocked();
 
   void RefreshWidgetVisibility();
 
   // GameList
-  QStringList GetPaths() const;
+  static QStringList GetPaths();
   void AddPath(const QString& path);
   void RemovePath(const QString& path);
-  bool GetPreferredView() const;
-  void SetPreferredView(bool list);
-  QString GetDefaultGame() const;
+  static bool GetPreferredView();
+  static void SetPreferredView(bool list);
+  static QString GetDefaultGame();
   void SetDefaultGame(const QString& path);
   void RefreshGameList();
   void NotifyRefreshGameListStarted();
   void NotifyRefreshGameListComplete();
   void NotifyMetadataRefreshComplete();
   void ReloadTitleDB();
-  bool IsAutoRefreshEnabled() const;
+  static bool IsAutoRefreshEnabled();
   void SetAutoRefreshEnabled(bool enabled);
 
   // Emulation
-  int GetStateSlot() const;
-  void SetStateSlot(int);
+  static int GetStateSlot();
+  static void SetStateSlot(int);
   bool IsBatchModeEnabled() const;
   void SetBatchModeEnabled(bool batch);
 
-  bool IsSDCardInserted() const;
+  static bool IsSDCardInserted();
   void SetSDCardInserted(bool inserted);
-  bool IsUSBKeyboardConnected() const;
+  static bool IsUSBKeyboardConnected();
   void SetUSBKeyboardConnected(bool connected);
 
   void SetIsContinuouslyFrameStepping(bool is_stepping);
   bool GetIsContinuouslyFrameStepping() const;
 
   // Graphics
-  Config::ShowCursor GetCursorVisibility() const;
-  bool GetLockCursor() const;
+  static Config::ShowCursor GetCursorVisibility();
+  static bool GetLockCursor();
   void SetKeepWindowOnTop(bool top);
-  bool IsKeepWindowOnTopEnabled() const;
-  bool GetGraphicModsEnabled() const;
+  static bool IsKeepWindowOnTopEnabled();
+  static bool GetGraphicModsEnabled();
   void SetGraphicModsEnabled(bool enabled);
 
   // Audio
-  int GetVolume() const;
+  static int GetVolume();
   void SetVolume(int volume);
   void IncreaseVolume(int volume);
   void DecreaseVolume(int volume);
@@ -144,42 +144,42 @@ public:
   void ResetNetPlayServer(NetPlay::NetPlayServer* server = nullptr);
 
   // Cheats
-  bool GetCheatsEnabled() const;
+  static bool GetCheatsEnabled();
 
   // Debug
   void SetDebugModeEnabled(bool enabled);
-  bool IsDebugModeEnabled() const;
+  static bool IsDebugModeEnabled();
   void SetRegistersVisible(bool enabled);
-  bool IsRegistersVisible() const;
+  static bool IsRegistersVisible();
   void SetThreadsVisible(bool enabled);
-  bool IsThreadsVisible() const;
+  static bool IsThreadsVisible();
   void SetWatchVisible(bool enabled);
-  bool IsWatchVisible() const;
+  static bool IsWatchVisible();
   void SetBreakpointsVisible(bool enabled);
-  bool IsBreakpointsVisible() const;
+  static bool IsBreakpointsVisible();
   void SetCodeVisible(bool enabled);
-  bool IsCodeVisible() const;
+  static bool IsCodeVisible();
   void SetMemoryVisible(bool enabled);
-  bool IsMemoryVisible() const;
+  static bool IsMemoryVisible();
   void SetNetworkVisible(bool enabled);
-  bool IsNetworkVisible() const;
+  static bool IsNetworkVisible();
   void SetJITVisible(bool enabled);
-  bool IsJITVisible() const;
+  static bool IsJITVisible();
   void SetAssemblerVisible(bool enabled);
-  bool IsAssemblerVisible() const;
-  QFont GetDebugFont() const;
+  static bool IsAssemblerVisible();
+  static QFont GetDebugFont();
   void SetDebugFont(const QFont& font);
 
   // Auto-Update
-  QString GetAutoUpdateTrack() const;
+  static QString GetAutoUpdateTrack();
   void SetAutoUpdateTrack(const QString& mode);
 
   // Fallback Region
-  DiscIO::Region GetFallbackRegion() const;
+  static DiscIO::Region GetFallbackRegion();
   void SetFallbackRegion(const DiscIO::Region& region);
 
   // Analytics
-  bool IsAnalyticsEnabled() const;
+  static bool IsAnalyticsEnabled();
   void SetAnalyticsEnabled(bool enabled);
 
 signals:

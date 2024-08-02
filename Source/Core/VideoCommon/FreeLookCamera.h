@@ -58,7 +58,7 @@ public:
 
   void IncreaseFovX(float fov);
   void IncreaseFovY(float fov);
-  float GetFovStepSize() const;
+  static float GetFovStepSize();
 
   void ModifySpeed(float multiplier);
   void ResetSpeed();
@@ -85,7 +85,7 @@ public:
 
   void DoState(PointerWrap& p);
 
-  bool IsActive() const;
+  static bool IsActive();
 
   CameraController* GetController() const;
 

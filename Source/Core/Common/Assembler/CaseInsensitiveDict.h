@@ -50,7 +50,7 @@ private:
     TrieEntry() { std::fill(_conns.begin(), _conns.end(), INVALID_CONN); }
   };
 
-  constexpr size_t IndexOf(char c) const
+  static constexpr size_t IndexOf(char c)
   {
     size_t idx;
     if (std::isalpha(c))

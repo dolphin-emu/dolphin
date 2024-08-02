@@ -765,7 +765,7 @@ void SetOutput(float4 color)
   return ss.str();
 }
 
-std::string PostProcessing::GetFooter() const
+std::string PostProcessing::GetFooter()
 {
   return {};
 }

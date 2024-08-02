@@ -171,7 +171,7 @@ protected:
 
   void InitBLROptimization();
   void ProtectStack();
-  void UnprotectStack();
+  static void UnprotectStack();
   void CleanUpAfterStackFault();
 
   bool CanMergeNextInstructions(int count) const;

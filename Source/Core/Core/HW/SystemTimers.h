@@ -87,7 +87,7 @@ public:
   // - 0.5: the emulator is running at 50% speed (falling behind).
   // - 1.0: the emulator is running at 100% speed.
   // - 2.0: the emulator is running at 200% speed (or 100% speed but sleeping half of the time).
-  double GetEstimatedEmulationPerformance() const;
+  static double GetEstimatedEmulationPerformance();
 
 private:
   static void DSPCallback(const Core::System& system, u64 userdata, s64 cycles_late);

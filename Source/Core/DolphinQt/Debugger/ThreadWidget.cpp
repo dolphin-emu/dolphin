@@ -133,7 +133,7 @@ void ThreadWidget::ShowContextMenu(const QTableWidget* table)
   menu->exec(QCursor::pos());
 }
 
-QLineEdit* ThreadWidget::CreateLineEdit() const
+QLineEdit* ThreadWidget::CreateLineEdit()
 {
   auto line_edit = new QLineEdit(QStringLiteral("00000000"));
   line_edit->setReadOnly(true);

@@ -39,7 +39,7 @@ Country VolumeDisc::GetCountry(const Partition& partition) const
   return CountryCodeToCountry(country_byte, GetVolumeType(), region, revision);
 }
 
-Region VolumeDisc::RegionCodeToRegion(const std::optional<u32> region_code) const
+Region VolumeDisc::RegionCodeToRegion(const std::optional<u32> region_code)
 {
   if (!region_code)
     return Region::Unknown;

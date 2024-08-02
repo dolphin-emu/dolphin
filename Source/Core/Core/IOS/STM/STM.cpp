@@ -111,7 +111,7 @@ void STMEventHookDevice::DoState(PointerWrap& p)
   }
 }
 
-bool STMEventHookDevice::HasHookInstalled() const
+bool STMEventHookDevice::HasHookInstalled()
 {
   return s_event_hook_request != nullptr;
 }

@@ -58,7 +58,7 @@ public:
   bool Save();
 
 private:
-  bool UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file);
+  static bool UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file);
 
   bool SyncCacheFile(bool save);
   void DoState(PointerWrap* p, u64 size = 0);

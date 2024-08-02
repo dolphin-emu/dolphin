@@ -72,8 +72,8 @@ public:
                                AutoStop stop_on = AutoStop::Always);
 
 private:
-  InstructionAttributes GetInstructionAttributes(const TraceOutput& line) const;
-  TraceOutput SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const;
+  static InstructionAttributes GetInstructionAttributes(const TraceOutput& line);
+  static TraceOutput SaveCurrentInstruction(const Core::CPUThreadGuard& guard);
   HitType TraceLogic(const TraceOutput& current_instr, bool first_hit = false);
 
   bool m_recording = false;

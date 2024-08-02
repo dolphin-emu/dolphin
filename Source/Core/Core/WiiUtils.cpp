@@ -371,7 +371,7 @@ OnlineSystemUpdater::OnlineSystemUpdater(UpdateCallback update_callback, const s
 }
 
 OnlineSystemUpdater::Response
-OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
+OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response)
 {
   pugi::xml_document doc;
   const pugi::xml_parse_result result = doc.load_buffer(response.data(), response.size());

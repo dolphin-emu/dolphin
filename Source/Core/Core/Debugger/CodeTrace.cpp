@@ -69,7 +69,7 @@ void CodeTrace::SetRegTracked(const std::string& reg)
   m_reg_autotrack.push_back(reg);
 }
 
-InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& instruction) const
+InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& instruction)
 {
   // Slower process of breaking down saved instruction. Only used when stepping through code if a
   // decision has to be made, otherwise used afterwards on a log file.
@@ -119,7 +119,7 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
   return tmp_attributes;
 }
 
-TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const
+TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard)
 {
   const auto& system = guard.GetSystem();
   auto& power_pc = system.GetPowerPC();

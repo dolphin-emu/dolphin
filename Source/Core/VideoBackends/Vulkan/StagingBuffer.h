@@ -23,8 +23,8 @@ public:
   bool IsMapped() const { return m_map_pointer != nullptr; }
   const char* GetMapPointer() const { return m_map_pointer; }
   char* GetMapPointer() { return m_map_pointer; }
-  bool Map();
-  void Unmap();
+  static bool Map();
+  static void Unmap();
 
   // Upload part 1: Prepare from device read from the CPU side
   void FlushCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) const;

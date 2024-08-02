@@ -50,8 +50,8 @@ public:
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
 private:
-  void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 32>& data,
-                        u64 expected_time_us);
+  static void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 32>& data,
+                               u64 expected_time_us);
 
   EmulationKernel& m_ios;
   u16 m_vid = 0;
@@ -104,9 +104,9 @@ public:
   // Returns Infinity Figure name based on data from in_file param
   std::string LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE>& buf,
                          File::IOFile in_file, FigureUIPosition position);
-  bool CreateFigure(const std::string& file_path, u32 character);
+  static bool CreateFigure(const std::string& file_path, u32 character);
   static std::span<const std::pair<const char*, const u32>> GetFigureList();
-  std::string FindFigure(u32 character) const;
+  static std::string FindFigure(u32 character);
 
 protected:
   std::mutex m_infinity_mutex;
@@ -114,14 +114,14 @@ protected:
 
 private:
   InfinityFigure& GetFigureByOrder(u8 order_added);
-  std::array<u8, 16> GenerateInfinityFigureKey(const std::vector<u8>& sha1_data);
-  std::array<u8, 16> GenerateBlankFigureData(u32 figure_num);
-  FigureBasePosition DeriveFigurePosition(FigureUIPosition position);
+  static std::array<u8, 16> GenerateInfinityFigureKey(const std::vector<u8>& sha1_data);
+  static std::array<u8, 16> GenerateBlankFigureData(u32 figure_num);
+  static FigureBasePosition DeriveFigurePosition(FigureUIPosition position);
   void GenerateSeed(u32 seed);
   u32 GetNext();
-  u64 Scramble(u32 num_to_scramble, u32 garbage);
-  u32 Descramble(u64 num_to_descramble);
-  u8 GenerateChecksum(const std::array<u8, 32>& data, int num_of_bytes) const;
+  static u64 Scramble(u32 num_to_scramble, u32 garbage);
+  static u32 Descramble(u64 num_to_descramble);
+  static u8 GenerateChecksum(const std::array<u8, 32>& data, int num_of_bytes);
 
   // These 4 variables are state variables used during the seeding and use of the random number
   // generator.

@@ -133,8 +133,8 @@ public:
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                              const std::vector<u8>& cert_chain,
                              VerifySignature verify_signature = VerifySignature::Yes) const;
-  ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
-  ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
+  static ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
+  static ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
   ReturnCode ImportContentEnd(Context& context, u32 content_fd) const;
   ReturnCode ImportTitleDone(Context& context) const;
   ReturnCode ImportTitleCancel(Context& context) const;
@@ -200,7 +200,7 @@ private:
 
   bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
 
-  bool IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert) const;
+  static bool IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert);
   ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
   ReturnCode WriteNewCertToStore(const ES::CertReader& cert) const;
 
@@ -351,7 +351,7 @@ private:
   // Device identity and encryption
   IPCReply GetDeviceId(const IOCtlVRequest& request) const;
   IPCReply GetDeviceCertificate(const IOCtlVRequest& request) const;
-  IPCReply CheckKoreaRegion(const IOCtlVRequest& request);
+  static IPCReply CheckKoreaRegion(const IOCtlVRequest& request);
   IPCReply Sign(const IOCtlVRequest& request) const;
   IPCReply VerifySign(const IOCtlVRequest& request) const;
   IPCReply Encrypt(u32 uid, const IOCtlVRequest& request) const;
@@ -364,7 +364,7 @@ private:
   IPCReply GetConsumption(const IOCtlVRequest& request) const;
   std::optional<IPCReply> Launch(const IOCtlVRequest& request);
   std::optional<IPCReply> LaunchBC(const IOCtlVRequest& request);
-  IPCReply DIVerify(const IOCtlVRequest& request);
+  static IPCReply DIVerify(const IOCtlVRequest& request);
   IPCReply SetUpStreamKey(const Context& context, const IOCtlVRequest& request) const;
   IPCReply DeleteStreamKey(const IOCtlVRequest& request) const;
 

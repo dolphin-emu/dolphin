@@ -161,7 +161,7 @@ private:
   IPCReply SetFileVersionControl(const Handle& handle, const IOCtlRequest& request) const;
   IPCReply GetFileStats(const Handle& handle, const IOCtlRequest& request) const;
   IPCReply GetUsage(const Handle& handle, const IOCtlVRequest& request) const;
-  IPCReply Shutdown(const Handle& handle, const IOCtlRequest& request);
+  static IPCReply Shutdown(const Handle& handle, const IOCtlRequest& request);
 
   FSCore& m_core;
 };

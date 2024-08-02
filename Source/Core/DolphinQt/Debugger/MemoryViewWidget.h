@@ -61,7 +61,7 @@ public:
   void UpdateFont(const QFont& font);
   void ToggleBreakpoint(u32 addr, bool row);
 
-  std::vector<u8> ConvertTextToBytes(Type type, QStringView input_text) const;
+  static std::vector<u8> ConvertTextToBytes(Type type, QStringView input_text);
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);

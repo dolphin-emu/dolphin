@@ -131,9 +131,9 @@ public:
   void mulxmv(UDSPInstruction opc);
   void mulxmvz(UDSPInstruction opc);
   void neg(UDSPInstruction opc);
-  void nop(UDSPInstruction opc);
+  static void nop(UDSPInstruction opc);
   void notc(UDSPInstruction opc);
-  void nx(UDSPInstruction opc);
+  static void nx(UDSPInstruction opc);
   void orc(UDSPInstruction opc);
   void ori(UDSPInstruction opc) const;
   void orr(UDSPInstruction opc);
@@ -187,7 +187,7 @@ public:
   void dr(UDSPInstruction opc);
   void ir(UDSPInstruction opc);
   void nr(UDSPInstruction opc);
-  void nop_ext(UDSPInstruction opc);
+  static void nop_ext(UDSPInstruction opc);
 
 private:
   void ExecuteInstruction(UDSPInstruction inst);
@@ -235,8 +235,8 @@ private:
   void ConditionalExtendAccum(int reg) const;
 
   void WriteToBackLog(int i, int idx, u16 value);
-  void ZeroWriteBackLog();
-  void ZeroWriteBackLogPreserveAcc(u8 acc);
+  static void ZeroWriteBackLog();
+  static void ZeroWriteBackLogPreserveAcc(u8 acc);
 
   DSPCore& m_dsp_core;
 

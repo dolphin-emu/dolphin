@@ -89,16 +89,16 @@ signals:
 
 private:
   void Open();
-  void RefreshGameList();
+  static void RefreshGameList();
   void Play(const std::optional<std::string>& savestate_path = {});
-  void Pause();
+  static void Pause();
   void TogglePause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
   bool RequestStop();
-  void ForceStop();
-  void Reset();
-  void FrameAdvance();
+  static void ForceStop();
+  static void Reset();
+  static void FrameAdvance();
   void StateLoad();
   void StateSave();
   void StateLoadSlot() const;
@@ -116,7 +116,7 @@ private:
 
   void PerformOnlineUpdate(const std::string& region);
 
-  void SetFullScreenResolution(bool fullscreen);
+  static void SetFullScreenResolution(bool fullscreen);
 
   void FullScreen();
   void UnlockCursor() const;
@@ -181,11 +181,11 @@ private:
   void NetPlayInit();
   bool NetPlayJoin();
   bool NetPlayHost(const UICommon::GameFile& game);
-  void NetPlayQuit();
+  static void NetPlayQuit();
 
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
-  void OnConnectWiiRemote(int id);
+  static void OnConnectWiiRemote(int id);
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   void OnSignal();
@@ -200,9 +200,9 @@ private:
   void ShowTASInput() const;
 
   void ChangeDisc();
-  void EjectDisc();
+  static void EjectDisc();
 
-  void OpenUserFolder();
+  static void OpenUserFolder();
 
   QStringList PromptFileNames();
 

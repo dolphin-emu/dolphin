@@ -357,7 +357,7 @@ bool FrameDumper::IsFrameDumping() const
   return false;
 }
 
-int FrameDumper::GetRequiredResolutionLeastCommonMultiple() const
+int FrameDumper::GetRequiredResolutionLeastCommonMultiple()
 {
   if (Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return VIDEO_ENCODER_LCM;

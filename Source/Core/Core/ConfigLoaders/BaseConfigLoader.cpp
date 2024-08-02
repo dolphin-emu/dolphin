@@ -184,7 +184,7 @@ public:
   }
 
 private:
-  void LoadFromSYSCONF(Config::Layer* layer)
+  static void LoadFromSYSCONF(Config::Layer* layer)
   {
     if (IsRunning(Core::System::GetInstance()))
       return;

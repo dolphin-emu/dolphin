@@ -110,7 +110,7 @@ public:
 
   // Returns a register with the same contents as reg that is safe
   // to use through saveStaticRegs and for ABI-calls
-  Gen::X64Reg MakeABICallSafe(Gen::X64Reg reg);
+  static Gen::X64Reg MakeABICallSafe(Gen::X64Reg reg);
 
   // Gives no SCALE_RIP with abs(offset) >= 0x80000000
   // 32/64 bit writes allowed when the register has a _64 or _32 suffix

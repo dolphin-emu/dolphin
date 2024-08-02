@@ -35,18 +35,18 @@ public:
 private:
   void CycleProfile(CycleDirection cycle_direction, const InputConfig* device_configuration,
                     int& profile_index, int controller_index);
-  void CycleProfileForGame(CycleDirection cycle_direction, const InputConfig* device_configuration,
-                           int& profile_index, const std::string& setting, int controller_index);
-  std::vector<std::string> GetProfilesForDevice(const InputConfig* device_configuration);
-  std::string GetProfile(CycleDirection cycle_direction, int& profile_index,
-                         const std::vector<std::string>& profiles);
-  std::vector<std::string> GetMatchingProfilesFromSetting(const std::string& setting,
-                                                          const std::vector<std::string>& profiles,
-                                                          const InputConfig* device_configuration);
-  void UpdateToProfile(const std::string& profile_filename,
-                       ControllerEmu::EmulatedController* controller,
-                       const InputConfig* device_configuration);
-  std::string GetWiimoteInputProfilesForGame(int controller_index);
+  static void CycleProfileForGame(CycleDirection cycle_direction, const InputConfig* device_configuration,
+                                  int& profile_index, const std::string& setting, int controller_index);
+  static std::vector<std::string> GetProfilesForDevice(const InputConfig* device_configuration);
+  static std::string GetProfile(CycleDirection cycle_direction, int& profile_index,
+                                const std::vector<std::string>& profiles);
+  static std::vector<std::string> GetMatchingProfilesFromSetting(const std::string& setting,
+                                                                 const std::vector<std::string>& profiles,
+                                                                 const InputConfig* device_configuration);
+  static void UpdateToProfile(const std::string& profile_filename,
+                              ControllerEmu::EmulatedController* controller,
+                              const InputConfig* device_configuration);
+  static std::string GetWiimoteInputProfilesForGame(int controller_index);
 
   int m_wiimote_profile_index = 0;
 };

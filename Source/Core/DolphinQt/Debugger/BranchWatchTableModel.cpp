@@ -373,7 +373,7 @@ QVariant BranchWatchTableModel::FontRoleData(const QModelIndex& index) const
   return m_font;
 }
 
-QVariant BranchWatchTableModel::TextAlignmentRoleData(const QModelIndex& index) const
+QVariant BranchWatchTableModel::TextAlignmentRoleData(const QModelIndex& index)
 {
   // Qt enums become QFlags when operators are used. QVariant's constructors don't support QFlags.
   switch (index.column())

@@ -70,7 +70,7 @@ public:
   bool SetEmitterStateToFreeCodeRegion();
 
   BitSet32 CallerSavedRegistersInUse() const;
-  BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
+  static BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&);
 
   void IntializeSpeculativeConstants();
 
@@ -155,7 +155,7 @@ public:
   // OPCODES
   using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
   void FallBackToInterpreter(UGeckoInstruction _inst);
-  void DoNothing(UGeckoInstruction _inst);
+  static void DoNothing(UGeckoInstruction _inst);
   void HLEFunction(u32 hook_index);
 
   void DynaRunTable4(UGeckoInstruction inst);

@@ -72,7 +72,7 @@ public:
   /// @param view Pointer returned by CreateView().
   /// @param size Size passed to the corresponding CreateView() call.
   ///
-  void ReleaseView(const void* view, size_t size);
+  static void ReleaseView(const void* view, size_t size);
 
   ///
   /// Reserve the singular 'virtual' memory region handled by this MemArena. This is used to create

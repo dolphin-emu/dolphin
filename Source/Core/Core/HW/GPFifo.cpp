@@ -58,7 +58,7 @@ void GPFifoManager::Init()
   memset(m_gather_pipe, 0, sizeof(m_gather_pipe));
 }
 
-bool GPFifoManager::IsBNE() const
+bool GPFifoManager::IsBNE()
 {
   // TODO: It's not clear exactly when the BNE (buffer not empty) bit is set.
   // The PPC 750cl manual says in section 2.1.2.12 "Write Pipe Address Register (WPAR)" (page 78):

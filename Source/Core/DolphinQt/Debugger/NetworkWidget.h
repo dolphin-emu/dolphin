@@ -37,7 +37,7 @@ private:
   QGroupBox* CreateSSLContextGroup();
   QGroupBox* CreateDumpOptionsGroup();
   QGroupBox* CreateSecurityOptionsGroup();
-  QComboBox* CreateDumpFormatCombo();
+  static QComboBox* CreateDumpFormatCombo();
 
   void OnDumpFormatComboChanged(int index) const;
 

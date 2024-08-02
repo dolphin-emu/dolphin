@@ -115,7 +115,7 @@ public:
 protected:
   std::string GetUniformBufferHeader(bool user_post_process) const;
   std::string GetHeader(bool user_post_process) const;
-  std::string GetFooter() const;
+  static std::string GetFooter();
 
   bool CompileVertexShader();
   bool CompilePixelShader();

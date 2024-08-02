@@ -246,10 +246,10 @@ public:
 
 public:
   constexpr bool IsSigned() const { return std::is_signed<T>(); }
-  constexpr std::size_t StartBit() const { return position; }
-  constexpr std::size_t NumBits() const { return bits; }
-  constexpr std::size_t Size() const { return size; }
-  constexpr std::size_t TotalNumBits() const { return bits * size; }
+  static constexpr std::size_t StartBit() { return position; }
+  static constexpr std::size_t NumBits() { return bits; }
+  static constexpr std::size_t Size() { return size; }
+  static constexpr std::size_t TotalNumBits() { return bits * size; }
 
   constexpr T Value(size_t index) const { return Value(std::is_signed<T>(), index); }
   void SetValue(const size_t index, T value)

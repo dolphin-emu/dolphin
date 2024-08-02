@@ -29,7 +29,7 @@
 template <>
 struct fmt::formatter<DSP::DSPAssembler::LocationContext>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DSP::DSPAssembler::LocationContext& loc, FormatContext& ctx) const
   {

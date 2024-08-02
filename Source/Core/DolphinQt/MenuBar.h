@@ -159,11 +159,11 @@ private:
 
   // Debugging UI
   void ClearSymbols();
-  void GenerateSymbolsFromAddress();
+  static void GenerateSymbolsFromAddress();
   void GenerateSymbolsFromSignatureDB();
   void GenerateSymbolsFromRSO();
   void GenerateSymbolsFromRSOAuto();
-  RSOVector DetectRSOModules(ParallelProgressDialog& progress);
+  static RSOVector DetectRSOModules(ParallelProgressDialog& progress);
   void LoadSymbolMap();
   void LoadOtherSymbolMap();
   void LoadBadSymbolMap();
@@ -176,9 +176,9 @@ private:
   void AppendSignatureFile();
   void ApplySignatureFile();
   void CombineSignatureFiles();
-  void PatchHLEFunctions();
-  void ClearCache();
-  void LogInstructions();
+  static void PatchHLEFunctions();
+  static void ClearCache();
+  static void LogInstructions();
   void SearchInstruction();
 
   void OnSelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file);
@@ -187,7 +187,7 @@ private:
   void OnDebugModeToggled(bool enabled);
   void OnWriteJitBlockLogDump();
 
-  QString GetSignatureSelector() const;
+  static QString GetSignatureSelector();
 
   static QPointer<MenuBar> s_menu_bar;
 

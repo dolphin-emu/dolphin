@@ -128,7 +128,7 @@ void Settings::TriggerThemeChanged()
   emit ThemeChanged();
 }
 
-QString Settings::GetUserStyleName() const
+QString Settings::GetUserStyleName()
 {
   if (GetQSettings().contains(QStringLiteral("userstyle/name")))
     return GetQSettings().value(QStringLiteral("userstyle/name")).toString();
@@ -257,7 +257,7 @@ void Settings::ApplyStyle()
   qApp->setStyleSheet(stylesheet_contents);
 }
 
-Settings::StyleType Settings::GetStyleType() const
+Settings::StyleType Settings::GetStyleType()
 {
   if (GetQSettings().contains(QStringLiteral("userstyle/styletype")))
   {
@@ -285,7 +285,7 @@ void Settings::SetStyleType(StyleType type)
 
 void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
                                QColor& emphasis_text_color, QColor& border_color,
-                               const QPalette& palette, const QPalette& high_contrast_palette) const
+                               const QPalette& palette, const QPalette& high_contrast_palette)
 {
   const auto theme_window_color = palette.color(QPalette::Base);
   const auto theme_window_hsv = theme_window_color.toHsv();
@@ -309,7 +309,7 @@ void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
   }
 }
 
-QStringList Settings::GetPaths() const
+QStringList Settings::GetPaths()
 {
   QStringList list;
   for (const auto& path : Config::GetIsoPaths())
@@ -369,7 +369,7 @@ void Settings::ReloadTitleDB()
   emit TitleDBReloadRequested();
 }
 
-bool Settings::IsAutoRefreshEnabled() const
+bool Settings::IsAutoRefreshEnabled()
 {
   return GetQSettings().value(QStringLiteral("gamelist/autorefresh"), true).toBool();
 }
@@ -384,7 +384,7 @@ void Settings::SetAutoRefreshEnabled(const bool enabled)
   emit AutoRefreshToggled(enabled);
 }
 
-QString Settings::GetDefaultGame() const
+QString Settings::GetDefaultGame()
 {
   return QString::fromStdString(Get(Config::MAIN_DEFAULT_ISO));
 }
@@ -398,7 +398,7 @@ void Settings::SetDefaultGame(const QString& path)
   }
 }
 
-bool Settings::GetPreferredView() const
+bool Settings::GetPreferredView()
 {
   return GetQSettings().value(QStringLiteral("PreferredView"), true).toBool();
 }
@@ -408,7 +408,7 @@ void Settings::SetPreferredView(const bool list)
   GetQSettings().setValue(QStringLiteral("PreferredView"), list);
 }
 
-int Settings::GetStateSlot() const
+int Settings::GetStateSlot()
 {
   return GetQSettings().value(QStringLiteral("Emulation/StateSlot"), 1).toInt();
 }
@@ -418,12 +418,12 @@ void Settings::SetStateSlot(const int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-Config::ShowCursor Settings::GetCursorVisibility() const
+Config::ShowCursor Settings::GetCursorVisibility()
 {
   return Get(Config::MAIN_SHOW_CURSOR);
 }
 
-bool Settings::GetLockCursor() const
+bool Settings::GetLockCursor()
 {
   return Get(Config::MAIN_LOCK_CURSOR);
 }
@@ -436,12 +436,12 @@ void Settings::SetKeepWindowOnTop(const bool top)
   emit KeepWindowOnTopChanged(top);
 }
 
-bool Settings::IsKeepWindowOnTopEnabled() const
+bool Settings::IsKeepWindowOnTopEnabled()
 {
   return Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
 }
 
-bool Settings::GetGraphicModsEnabled() const
+bool Settings::GetGraphicModsEnabled()
 {
   return Get(Config::GFX_MODS_ENABLE);
 }
@@ -457,7 +457,7 @@ void Settings::SetGraphicModsEnabled(const bool enabled)
   emit EnableGfxModsChanged(enabled);
 }
 
-int Settings::GetVolume() const
+int Settings::GetVolume()
 {
   return Get(Config::MAIN_AUDIO_VOLUME);
 }
@@ -483,7 +483,7 @@ void Settings::DecreaseVolume(const int volume)
   emit VolumeChanged(GetVolume());
 }
 
-bool Settings::IsLogVisible() const
+bool Settings::IsLogVisible()
 {
   return GetQSettings().value(QStringLiteral("logging/logvisible")).toBool();
 }
@@ -497,7 +497,7 @@ void Settings::SetLogVisible(const bool visible)
   }
 }
 
-bool Settings::IsLogConfigVisible() const
+bool Settings::IsLogConfigVisible()
 {
   return GetQSettings().value(QStringLiteral("logging/logconfigvisible")).toBool();
 }
@@ -534,7 +534,7 @@ void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
   m_server.reset(server);
 }
 
-bool Settings::GetCheatsEnabled() const
+bool Settings::GetCheatsEnabled()
 {
   return Get(Config::MAIN_ENABLE_CHEATS);
 }
@@ -552,7 +552,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
   }
 }
 
-bool Settings::IsDebugModeEnabled() const
+bool Settings::IsDebugModeEnabled()
 {
   return Get(Config::MAIN_ENABLE_DEBUGGING);
 }
@@ -567,7 +567,7 @@ void Settings::SetRegistersVisible(const bool enabled)
   }
 }
 
-bool Settings::IsThreadsVisible() const
+bool Settings::IsThreadsVisible()
 {
   return GetQSettings().value(QStringLiteral("debugger/showthreads")).toBool();
 }
@@ -581,7 +581,7 @@ void Settings::SetThreadsVisible(const bool enabled)
   emit ThreadsVisibilityChanged(enabled);
 }
 
-bool Settings::IsRegistersVisible() const
+bool Settings::IsRegistersVisible()
 {
   return GetQSettings().value(QStringLiteral("debugger/showregisters")).toBool();
 }
@@ -596,7 +596,7 @@ void Settings::SetWatchVisible(const bool enabled)
   }
 }
 
-bool Settings::IsWatchVisible() const
+bool Settings::IsWatchVisible()
 {
   return GetQSettings().value(QStringLiteral("debugger/showwatch")).toBool();
 }
@@ -611,7 +611,7 @@ void Settings::SetBreakpointsVisible(const bool enabled)
   }
 }
 
-bool Settings::IsBreakpointsVisible() const
+bool Settings::IsBreakpointsVisible()
 {
   return GetQSettings().value(QStringLiteral("debugger/showbreakpoints")).toBool();
 }
@@ -626,7 +626,7 @@ void Settings::SetCodeVisible(const bool enabled)
   }
 }
 
-bool Settings::IsCodeVisible() const
+bool Settings::IsCodeVisible()
 {
   return GetQSettings().value(QStringLiteral("debugger/showcode")).toBool();
 }
@@ -640,7 +640,7 @@ void Settings::SetMemoryVisible(const bool enabled)
   emit MemoryVisibilityChanged(enabled);
 }
 
-bool Settings::IsMemoryVisible() const
+bool Settings::IsMemoryVisible()
 {
   return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
 }
@@ -654,7 +654,7 @@ void Settings::SetNetworkVisible(const bool enabled)
   emit NetworkVisibilityChanged(enabled);
 }
 
-bool Settings::IsNetworkVisible() const
+bool Settings::IsNetworkVisible()
 {
   return GetQSettings().value(QStringLiteral("debugger/shownetwork")).toBool();
 }
@@ -668,7 +668,7 @@ void Settings::SetJITVisible(const bool enabled)
   emit JITVisibilityChanged(enabled);
 }
 
-bool Settings::IsJITVisible() const
+bool Settings::IsJITVisible()
 {
   return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
@@ -682,7 +682,7 @@ void Settings::SetAssemblerVisible(const bool enabled)
   emit AssemblerVisibilityChanged(enabled);
 }
 
-bool Settings::IsAssemblerVisible() const
+bool Settings::IsAssemblerVisible()
 {
   return QSettings().value(QStringLiteral("debugger/showassembler")).toBool();
 }
@@ -704,7 +704,7 @@ void Settings::SetDebugFont(const QFont& font)
   }
 }
 
-QFont Settings::GetDebugFont() const
+QFont Settings::GetDebugFont()
 {
   auto default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
   default_font.setPointSizeF(9.0);
@@ -722,7 +722,7 @@ void Settings::SetAutoUpdateTrack(const QString& mode)
   emit AutoUpdateTrackChanged(mode);
 }
 
-QString Settings::GetAutoUpdateTrack() const
+QString Settings::GetAutoUpdateTrack()
 {
   return QString::fromStdString(Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 }
@@ -737,7 +737,7 @@ void Settings::SetFallbackRegion(const DiscIO::Region& region)
   emit FallbackRegionChanged(region);
 }
 
-DiscIO::Region Settings::GetFallbackRegion() const
+DiscIO::Region Settings::GetFallbackRegion()
 {
   return Get(Config::MAIN_FALLBACK_REGION);
 }
@@ -752,7 +752,7 @@ void Settings::SetAnalyticsEnabled(const bool enabled)
   emit AnalyticsToggled(enabled);
 }
 
-bool Settings::IsAnalyticsEnabled() const
+bool Settings::IsAnalyticsEnabled()
 {
   return Get(Config::MAIN_ANALYTICS_ENABLED);
 }
@@ -767,7 +767,7 @@ void Settings::SetToolBarVisible(const bool visible)
   emit ToolBarVisibilityChanged(visible);
 }
 
-bool Settings::IsToolBarVisible() const
+bool Settings::IsToolBarVisible()
 {
   return GetQSettings().value(QStringLiteral("toolbar/visible"), true).toBool();
 }
@@ -782,7 +782,7 @@ void Settings::SetWidgetsLocked(const bool locked)
   emit WidgetLockChanged(locked);
 }
 
-bool Settings::AreWidgetsLocked() const
+bool Settings::AreWidgetsLocked()
 {
   return GetQSettings().value(QStringLiteral("widgets/locked"), true).toBool();
 }
@@ -796,7 +796,7 @@ void Settings::SetBatchModeEnabled(const bool batch)
   m_batch = batch;
 }
 
-bool Settings::IsSDCardInserted() const
+bool Settings::IsSDCardInserted()
 {
   return Get(Config::MAIN_WII_SD_CARD);
 }
@@ -810,7 +810,7 @@ void Settings::SetSDCardInserted(const bool inserted)
   }
 }
 
-bool Settings::IsUSBKeyboardConnected() const
+bool Settings::IsUSBKeyboardConnected()
 {
   return Get(Config::MAIN_WII_KEYBOARD);
 }

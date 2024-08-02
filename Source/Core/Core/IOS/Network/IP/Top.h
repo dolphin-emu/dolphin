@@ -105,13 +105,13 @@ private:
   IPCReply HandleSetSockOptRequest(const IOCtlRequest& request) const;
   IPCReply HandleGetSockNameRequest(const IOCtlRequest& request) const;
   IPCReply HandleGetPeerNameRequest(const IOCtlRequest& request) const;
-  IPCReply HandleGetHostIDRequest(const IOCtlRequest& request);
+  static IPCReply HandleGetHostIDRequest(const IOCtlRequest& request);
   IPCReply HandleInetAToNRequest(const IOCtlRequest& request) const;
   IPCReply HandleInetPToNRequest(const IOCtlRequest& request) const;
   IPCReply HandleInetNToPRequest(const IOCtlRequest& request) const;
   std::optional<IPCReply> HandlePollRequest(const IOCtlRequest& request) const;
   IPCReply HandleGetHostByNameRequest(const IOCtlRequest& request) const;
-  IPCReply HandleICMPCancelRequest(const IOCtlRequest& request);
+  static IPCReply HandleICMPCancelRequest(const IOCtlRequest& request);
 
   IPCReply HandleGetInterfaceOptRequest(const IOCtlVRequest& request) const;
   std::optional<IPCReply> HandleSendToRequest(const IOCtlVRequest& request) const;

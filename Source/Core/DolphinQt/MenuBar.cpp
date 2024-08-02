@@ -72,7 +72,7 @@
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
-QString MenuBar::GetSignatureSelector() const
+QString MenuBar::GetSignatureSelector()
 {
   return QStringLiteral("%1 (*.dsy);; %2 (*.csv);; %3 (*.mega)")
       .arg(tr("Dolphin Signature File"), tr("Dolphin Signature CSV File"),

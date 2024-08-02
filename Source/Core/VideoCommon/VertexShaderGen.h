@@ -54,7 +54,7 @@ constexpr ShaderAttrib operator+(ShaderAttrib attrib, const int offset)
 
 struct vertex_shader_uid_data
 {
-  u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
+  static u32 NumValues() { return sizeof(vertex_shader_uid_data); }
   u32 components : 23;
   u32 numTexGens : 4;
   u32 numColorChans : 2;

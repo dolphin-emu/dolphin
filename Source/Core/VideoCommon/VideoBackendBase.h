@@ -56,13 +56,13 @@ public:
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
-  void Video_ExitLoop();
+  static void Video_ExitLoop();
 
   void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks) const;
 
-  u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
-  u32 Video_GetQueryResult(PerfQueryType type);
-  u16 Video_GetBoundingBox(int index);
+  static u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
+  static u32 Video_GetQueryResult(PerfQueryType type);
+  static u16 Video_GetBoundingBox(int index);
 
   static std::string GetDefaultBackendName();
   static const std::vector<std::unique_ptr<VideoBackendBase>>& GetAvailableBackends();
@@ -74,7 +74,7 @@ public:
   static void PopulateBackendInfoFromUI(const WindowSystemInfo& wsi);
 
   // Wrapper function which pushes the event to the GPU thread.
-  void DoState(PointerWrap& p);
+  static void DoState(PointerWrap& p);
 
 protected:
   // For hardware backends

@@ -16,6 +16,6 @@ struct GraphicsModFeatureConfig
   void SerializeToConfig(picojson::object& json_obj) const;
   bool DeserializeFromConfig(const picojson::object& value);
 
-  void SerializeToProfile(picojson::object* value) const;
-  void DeserializeFromProfile(const picojson::object& value);
+  static void SerializeToProfile(picojson::object* value);
+  static void DeserializeFromProfile(const picojson::object& value);
 };

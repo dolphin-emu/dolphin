@@ -131,7 +131,7 @@ void AchievementManager::Login(const std::string& password) const
   }
 }
 
-bool AchievementManager::HasAPIToken() const
+bool AchievementManager::HasAPIToken()
 {
   return !Get(Config::RA_API_TOKEN).empty();
 }

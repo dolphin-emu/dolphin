@@ -73,7 +73,7 @@ public:
 
   u16 GetPort() const;
 
-  std::unordered_set<std::string> GetInterfaceSet() const;
+  static std::unordered_set<std::string> GetInterfaceSet();
   std::string GetInterfaceHost(const std::string& inter) const;
 
   bool is_connected = false;
@@ -127,7 +127,7 @@ private:
   bool SyncCodes();
   void CheckSyncAndStartGame();
 
-  u64 GetInitialNetPlayRTC() const;
+  static u64 GetInitialNetPlayRTC();
 
   template <typename... Data>
   void SendResponseToPlayer(const Client& player, const MessageID message_id,
@@ -136,7 +136,7 @@ private:
   void SendResponseToAllPlayers(const MessageID message_id, Data&&... data_to_send);
   void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
                      u8 channel_id = DEFAULT_CHANNEL);
-  void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
+  static void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   ConnectionError OnConnect(ENetPeer* socket, sf::Packet& received_packet);
   unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
@@ -148,7 +148,7 @@ private:
   void UpdatePadMapping();
   void UpdateGBAConfig();
   void UpdateWiimoteMapping();
-  std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
+  static std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal();
   void ChunkedDataThreadFunc();
   void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
   void ChunkedDataAbort();

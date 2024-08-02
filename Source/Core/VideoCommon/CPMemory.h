@@ -269,7 +269,7 @@ struct TVtxDesc
 template <>
 struct fmt::formatter<TVtxDesc::Low>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TVtxDesc::Low& desc, FormatContext& ctx) const
   {
@@ -299,7 +299,7 @@ struct fmt::formatter<TVtxDesc::Low>
 template <>
 struct fmt::formatter<TVtxDesc::High>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TVtxDesc::High& desc, FormatContext& ctx) const
   {
@@ -319,7 +319,7 @@ struct fmt::formatter<TVtxDesc::High>
 template <>
 struct fmt::formatter<TVtxDesc>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TVtxDesc& desc, FormatContext& ctx) const
   {
@@ -354,7 +354,7 @@ union UVAT_group0
 template <>
 struct fmt::formatter<UVAT_group0>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UVAT_group0& g0, FormatContext& ctx) const
   {
@@ -411,7 +411,7 @@ union UVAT_group1
 template <>
 struct fmt::formatter<UVAT_group1>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UVAT_group1& g1, FormatContext& ctx) const
   {
@@ -457,7 +457,7 @@ union UVAT_group2
 template <>
 struct fmt::formatter<UVAT_group2>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UVAT_group2& g2, FormatContext& ctx) const
   {
@@ -687,7 +687,7 @@ struct VAT
 template <>
 struct fmt::formatter<VAT>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const VAT& vat, FormatContext& ctx) const
   {
@@ -708,7 +708,7 @@ union TMatrixIndexA
 template <>
 struct fmt::formatter<TMatrixIndexA>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TMatrixIndexA& m, FormatContext& ctx) const
   {
@@ -729,7 +729,7 @@ union TMatrixIndexB
 template <>
 struct fmt::formatter<TMatrixIndexB>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const TMatrixIndexB& m, FormatContext& ctx) const
   {

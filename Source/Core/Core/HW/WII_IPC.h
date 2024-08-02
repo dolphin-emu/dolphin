@@ -122,7 +122,7 @@ public:
 
   void Init();
   void Reset();
-  void Shutdown();
+  static void Shutdown();
   void DoState(PointerWrap& p);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);

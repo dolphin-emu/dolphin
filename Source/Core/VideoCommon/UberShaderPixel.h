@@ -20,7 +20,7 @@ struct pixel_ubershader_uid_data
   u32 uint_output : 1;
   u32 no_dual_src : 1;
 
-  u32 NumValues() const { return sizeof(pixel_ubershader_uid_data); }
+  static u32 NumValues() { return sizeof(pixel_ubershader_uid_data); }
 };
 #pragma pack()
 
@@ -40,7 +40,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
 template <>
 struct fmt::formatter<UberShader::pixel_ubershader_uid_data>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const UberShader::pixel_ubershader_uid_data& uid, FormatContext& ctx) const
   {

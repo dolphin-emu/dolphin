@@ -36,7 +36,7 @@ private:
 
   static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-  bool RegisterRenderWindowClass();
+  static bool RegisterRenderWindowClass();
   bool CreateRenderWindow();
   void UpdateWindowPosition();
   void ProcessEvents() const;

@@ -408,7 +408,7 @@ bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, Texel
   return false;
 }
 
-BitSet32 VertexManagerBase::UsedTextures() const
+BitSet32 VertexManagerBase::UsedTextures()
 {
   BitSet32 usedtextures;
   for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)

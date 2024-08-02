@@ -34,8 +34,8 @@ public:
   QBrush GetBBoxBrush() const;
   QColor GetRawInputColor() const;
   QPen GetInputShapePen() const;
-  QColor GetCenterColor() const;
-  QColor GetAdjustedInputColor() const;
+  static QColor GetCenterColor();
+  static QColor GetAdjustedInputColor();
   QColor GetDeadZoneColor() const;
   QPen GetDeadZonePen() const;
   QBrush GetDeadZoneBrush(const QPainter&) const;

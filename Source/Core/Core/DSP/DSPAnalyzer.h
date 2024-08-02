@@ -68,7 +68,7 @@ public:
   }
 
   // Whether or not the address describes an instruction that requires updating the SR register.
-  [[nodiscard]] bool IsUpdateSR(u16 address) const
+  [[nodiscard]] static bool IsUpdateSR(u16 address)
   {
 #ifdef DISABLE_UPDATE_SR_ANALYSIS
     return true;

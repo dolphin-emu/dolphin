@@ -97,7 +97,7 @@ public:
                          BitSet32 registersInUse, int flags = 0);
 
   // applies to safe and unsafe WriteRegToReg
-  bool WriteClobbersRegValue(int accessSize, bool swap);
+  static bool WriteClobbersRegValue(int accessSize, bool swap);
 
   // returns true if an exception could have been caused
   bool WriteToConstAddress(int accessSize, Gen::OpArg arg, u32 address, BitSet32 registersInUse);

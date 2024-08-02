@@ -84,12 +84,12 @@ QPen MappingIndicator::GetInputShapePen() const
   return QPen{GetRawInputColor(), 0.0, Qt::DashLine};
 }
 
-QColor MappingIndicator::GetAdjustedInputColor() const
+QColor MappingIndicator::GetAdjustedInputColor()
 {
   return Qt::red;
 }
 
-QColor MappingIndicator::GetCenterColor() const
+QColor MappingIndicator::GetCenterColor()
 {
   return Qt::blue;
 }
@@ -302,7 +302,7 @@ void CursorIndicator::Draw()
                           std::nullopt);
 }
 
-qreal SquareIndicator::GetContentsScale() const
+qreal SquareIndicator::GetContentsScale()
 {
   return (NORMAL_INDICATOR_WIDTH - 1.0) / 2;
 }

@@ -258,7 +258,7 @@ void USBHost::ScanThread::Stop()
 }
 
 std::optional<IPCReply> USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, const u32 request,
-                                                std::function<s32()> submit) const
+                                                std::function<s32()> submit)
 {
   if (!device)
     return IPCReply(IPC_ENOENT);

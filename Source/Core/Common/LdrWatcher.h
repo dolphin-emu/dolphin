@@ -31,7 +31,7 @@ public:
   ~LdrWatcher();
 
 private:
-  bool InjectCurrentModules(const LdrObserver& observer);
+  static bool InjectCurrentModules(const LdrObserver& observer);
   void UninstallAll();
   std::list<LdrObserver> observers;
 };

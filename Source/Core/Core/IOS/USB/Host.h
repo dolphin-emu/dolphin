@@ -71,8 +71,8 @@ protected:
   virtual bool ShouldAddDevice(const USB::Device& device) const;
   virtual ScanThread& GetScanThread() = 0;
 
-  std::optional<IPCReply> HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
-                                         std::function<s32()> submit) const;
+  static std::optional<IPCReply> HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
+                                                std::function<s32()> submit);
 
 private:
   bool AddDevice(std::unique_ptr<USB::Device> device);

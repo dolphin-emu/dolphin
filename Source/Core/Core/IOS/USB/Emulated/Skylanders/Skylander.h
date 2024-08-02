@@ -88,8 +88,8 @@ public:
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
-  void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 64>& data,
-                        s32 expected_count, u64 expected_time_us);
+  static void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 64>& data,
+                               s32 expected_count, u64 expected_time_us);
 
 private:
   EmulationKernel& m_ios;
@@ -143,7 +143,7 @@ public:
   bool RemoveSkylander(u8 sky_num);
   u8 LoadSkylander(std::unique_ptr<SkylanderFigure> figure);
   Skylander* GetSkylander(u8 slot);
-  std::pair<u16, u16> CalculateIDs(const std::array<u8, 0x40 * 0x10>& file_data);
+  static std::pair<u16, u16> CalculateIDs(const std::array<u8, 0x40 * 0x10>& file_data);
 
 private:
   static bool IsSkylanderNumberValid(u8 sky_num);

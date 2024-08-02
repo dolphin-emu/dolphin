@@ -173,8 +173,8 @@ private:
   void LoadXFReg(u16 reg, u32 value) const;
   void LoadXFMem16(u16 address, const u32* data) const;
 
-  bool ShouldLoadBP(u8 address);
-  bool ShouldLoadXF(u8 address);
+  static bool ShouldLoadBP(u8 address);
+  static bool ShouldLoadXF(u8 address);
 
   bool IsIdleSet() const;
   bool IsHighWatermarkSet() const;

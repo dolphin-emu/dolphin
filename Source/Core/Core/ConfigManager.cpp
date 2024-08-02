@@ -357,7 +357,7 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
   return true;
 }
 
-DiscIO::Language SConfig::GetCurrentLanguage(const bool wii) const
+DiscIO::Language SConfig::GetCurrentLanguage(const bool wii)
 {
   DiscIO::Language language;
   if (wii)
@@ -371,7 +371,7 @@ DiscIO::Language SConfig::GetCurrentLanguage(const bool wii) const
   return language;
 }
 
-DiscIO::Language SConfig::GetLanguageAdjustedForRegion(const bool wii, DiscIO::Region region) const
+DiscIO::Language SConfig::GetLanguageAdjustedForRegion(const bool wii, DiscIO::Region region)
 {
   const DiscIO::Language language = GetCurrentLanguage(wii);
 
@@ -446,7 +446,7 @@ Common::IniFile SConfig::LoadGameIni(const std::string& id, const std::optional<
   return game_ini;
 }
 
-std::string SConfig::GetGameTDBImageRegionCode(const bool wii, const DiscIO::Region region) const
+std::string SConfig::GetGameTDBImageRegionCode(const bool wii, const DiscIO::Region region)
 {
   switch (region)
   {

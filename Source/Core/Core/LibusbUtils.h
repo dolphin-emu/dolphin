@@ -58,7 +58,7 @@ struct ErrorWrap
 template <>
 struct fmt::formatter<LibusbUtils::ErrorWrap>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const LibusbUtils::ErrorWrap& wrap, FormatContext& ctx) const
   {

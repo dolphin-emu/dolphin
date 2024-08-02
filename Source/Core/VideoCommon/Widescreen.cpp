@@ -55,7 +55,7 @@ WidescreenManager::WidescreenManager()
   }
 }
 
-std::optional<bool> WidescreenManager::GetWidescreenOverride() const
+std::optional<bool> WidescreenManager::GetWidescreenOverride()
 {
   std::optional<bool> is_game_widescreen;
 

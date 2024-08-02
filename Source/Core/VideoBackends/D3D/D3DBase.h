@@ -55,7 +55,7 @@ struct DX11HRWrap
 template <>
 struct fmt::formatter<DX11::DX11HRWrap>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DX11::DX11HRWrap& hr, FormatContext& ctx) const
   {

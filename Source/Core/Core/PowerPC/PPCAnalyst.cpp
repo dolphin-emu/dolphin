@@ -730,7 +730,7 @@ void PPCAnalyzer::SetInstructionStats(const CodeBlock* block, CodeOp* code,
   }
 }
 
-bool PPCAnalyzer::IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, const size_t instructions) const
+bool PPCAnalyzer::IsBusyWaitLoop(const CodeBlock* block, const CodeOp* code, const size_t instructions)
 {
   // Very basic algorithm to detect busy wait loops:
   //   * It loops to itself and does not contain any other branches.

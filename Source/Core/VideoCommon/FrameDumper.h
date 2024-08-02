@@ -33,7 +33,7 @@ public:
   void SaveScreenshot(std::string filename);
 
   bool IsFrameDumping() const;
-  int GetRequiredResolutionLeastCommonMultiple() const;
+  static int GetRequiredResolutionLeastCommonMultiple();
 
   void DoState(const PointerWrap& p);
 

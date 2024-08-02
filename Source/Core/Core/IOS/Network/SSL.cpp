@@ -122,7 +122,7 @@ NetSSLDevice::~NetSSLDevice()
   }
 }
 
-int NetSSLDevice::GetSSLFreeID() const
+int NetSSLDevice::GetSSLFreeID()
 {
   for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
   {

@@ -251,7 +251,7 @@ private:
     }
   }
 
-  void LoadFromSystemSection(Config::Layer* layer, const Common::IniFile::Section& section) const
+  static void LoadFromSystemSection(Config::Layer* layer, const Common::IniFile::Section& section)
   {
     const std::string section_name = section.GetName();
 

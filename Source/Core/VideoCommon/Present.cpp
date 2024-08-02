@@ -540,7 +540,7 @@ void Presenter::SetSuggestedWindowSize(const int width, const int height)
 
 // Crop to exact forced aspect ratios if enabled and not AspectMode::Stretch.
 std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float height,
-                                                            const bool allow_stretch) const
+                                                            const bool allow_stretch)
 {
   auto aspect_mode = g_ActiveConfig.aspect_mode;
 

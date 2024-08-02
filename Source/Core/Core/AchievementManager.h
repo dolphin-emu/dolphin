@@ -105,7 +105,7 @@ public:
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password) const;
-  bool HasAPIToken() const;
+  static bool HasAPIToken();
   void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);

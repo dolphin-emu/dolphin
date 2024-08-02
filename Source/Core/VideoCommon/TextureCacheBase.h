@@ -100,7 +100,7 @@ struct EFBCopyParams
 template <>
 struct fmt::formatter<EFBCopyParams>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const EFBCopyParams& uid, FormatContext& ctx) const
   {
@@ -384,8 +384,8 @@ private:
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter,
                                            bool discard_pending_efb_copy = false);
 
-  void UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
-  void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
+  static void UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
+  static void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
 
   // Precomputing the coefficients for the previous, current, and next lines for the copy filter.
   static std::array<u32, 3>

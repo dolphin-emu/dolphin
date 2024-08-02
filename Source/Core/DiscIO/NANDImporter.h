@@ -66,7 +66,7 @@ public:
 private:
   bool ReadNANDBin(const std::string& path_to_bin, std::function<std::string()> get_otp_dump_path);
   bool FindSuperblock();
-  std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
+  static std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
   std::vector<u8> GetEntryData(const NANDFSTEntry& entry) const;
@@ -84,7 +84,7 @@ private:
 template <>
 struct fmt::formatter<DiscIO::NANDImporter::NANDFSTEntry>
 {
-  constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
+  static constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const DiscIO::NANDImporter::NANDFSTEntry& entry, FormatContext& ctx) const
   {

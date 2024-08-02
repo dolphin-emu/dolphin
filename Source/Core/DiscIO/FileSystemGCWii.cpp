@@ -302,7 +302,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string_view p
 }
 
 std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
-                                                        const FileInfo& file_info) const
+                                                        const FileInfo& file_info)
 {
   // Given a path like "directory1/directory2/fileA.bin", this function will
   // find directory1 and then call itself to search for "directory2/fileA.bin".

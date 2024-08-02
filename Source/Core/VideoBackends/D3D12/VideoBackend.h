@@ -21,6 +21,6 @@ public:
   static constexpr const char* NAME = "D3D12";
 
 private:
-  void FillBackendInfo();
+  static void FillBackendInfo();
 };
 }  // namespace DX12

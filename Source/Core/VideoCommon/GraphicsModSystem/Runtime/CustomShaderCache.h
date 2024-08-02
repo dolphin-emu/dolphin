@@ -120,20 +120,20 @@ private:
   using UberPixelShaderIterator =
       Cache<UberShader::PixelShaderUid, AbstractShader>::CacheList::iterator;
 
-  void NotifyPipelineFinished(PipelineIterator iterator,
-                              std::unique_ptr<AbstractPipeline> pipeline);
-  void NotifyPipelineFinished(UberPipelineIterator iterator,
-                              std::unique_ptr<AbstractPipeline> pipeline);
+  static void NotifyPipelineFinished(PipelineIterator iterator,
+                                     std::unique_ptr<AbstractPipeline> pipeline);
+  static void NotifyPipelineFinished(UberPipelineIterator iterator,
+                                     std::unique_ptr<AbstractPipeline> pipeline);
 
   std::unique_ptr<AbstractShader>
   CompilePixelShader(const PixelShaderUid& uid, const CustomShaderInstance& custom_shaders) const;
-  void NotifyPixelShaderFinished(PixelShaderIterator iterator,
-                                 std::unique_ptr<AbstractShader> shader);
+  static void NotifyPixelShaderFinished(PixelShaderIterator iterator,
+                                        std::unique_ptr<AbstractShader> shader);
   std::unique_ptr<AbstractShader>
   CompilePixelShader(const UberShader::PixelShaderUid& uid,
                      const CustomShaderInstance& custom_shaders) const;
-  void NotifyPixelShaderFinished(UberPixelShaderIterator iterator,
-                                 std::unique_ptr<AbstractShader> shader);
+  static void NotifyPixelShaderFinished(UberPixelShaderIterator iterator,
+                                        std::unique_ptr<AbstractShader> shader);
 
   void QueuePixelShaderCompile(const PixelShaderUid& uid,
                                const CustomShaderInstance& custom_shaders);
