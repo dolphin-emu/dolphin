@@ -451,7 +451,14 @@ std::string SConfig::GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) 
   switch (region)
   {
   case DiscIO::Region::NTSC_J:
+  {
+    // Taiwanese games share the Japanese region code however their title ID ends with 'W'.
+    // GameTDB differentiates the covers using the code "ZH".
+    if (m_game_id.size() >= 4 && m_game_id.at(3) == 'W')
+      return "ZH";
+
     return "JA";
+  }
   case DiscIO::Region::NTSC_U:
     return "US";
   case DiscIO::Region::NTSC_K:
