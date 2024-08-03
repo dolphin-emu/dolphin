@@ -693,7 +693,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                         isEnabled = checkboxes.any { it.isChecked }
                     }
                 }
-                setOnClickListener { adjustVibration() }
+                setOnClickListener(ListenerWrapper.wrapOnClickListener({ adjustVibration() }))
             }
         }
         MaterialAlertDialogBuilder(this)

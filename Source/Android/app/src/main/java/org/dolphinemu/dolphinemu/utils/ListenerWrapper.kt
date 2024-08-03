@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.utils
 
+import android.view.View
 import android.widget.CompoundButton
 import androidx.core.view.HapticFeedbackConstantsCompat
 import com.google.android.material.slider.Slider
@@ -10,6 +11,30 @@ import com.google.android.material.slider.Slider
 object ListenerWrapper {
     private val hapticsProvider = HapticsProvider(null)
 
+    /**
+     * Wraps a [View.OnClickListener] with additional functionality.
+     *
+     * @param listener The [View.OnClickListener] to be wrapped. Can be null.
+     * @param feedbackConstant The haptic feedback constant to be used for haptic feedback.
+     * Defaults to [HapticFeedbackConstantsCompat.CONTEXT_CLICK] if not specified.
+     * @return An enhanced [View.OnClickListener] which wraps [listener].
+     */
+    fun wrapOnClickListener(
+        listener: View.OnClickListener?,
+        feedbackConstant: Int = HapticFeedbackConstantsCompat.CONTEXT_CLICK
+    ): View.OnClickListener {
+        return View.OnClickListener { view: View ->
+            listener?.onClick(view)
+            hapticsProvider.performHapticFeedback(view, feedbackConstant, false)
+        }
+    }
+
+    /**
+     * Wraps a [Slider.OnChangeListener] with additional functionality.
+     *
+     * @param listener The [Slider.OnChangeListener] to be wrapped. Can be null.
+     * @return An enhanced [Slider.OnChangeListener] which wraps [listener].
+     */
     fun wrapOnChangeListener(listener: Slider.OnChangeListener?): Slider.OnChangeListener {
         return Slider.OnChangeListener { slider: Slider, value: Float, fromUser: Boolean ->
             listener?.onValueChange(slider, value, fromUser)
@@ -21,6 +46,12 @@ object ListenerWrapper {
         }
     }
 
+    /**
+     * Wraps a [CompoundButton.OnCheckedChangeListener] with additional functionality.
+     *
+     * @param listener The [CompoundButton.OnCheckedChangeListener] to be wrapped. Can be null.
+     * @return An enhanced [CompoundButton.OnCheckedChangeListener] which wraps [listener].
+     */
     fun wrapOnCheckedChangeListener(listener: CompoundButton.OnCheckedChangeListener?): CompoundButton.OnCheckedChangeListener {
         return CompoundButton.OnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
             listener?.onCheckedChanged(buttonView, isChecked)
