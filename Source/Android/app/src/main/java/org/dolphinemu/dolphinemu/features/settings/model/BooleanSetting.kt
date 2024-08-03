@@ -646,28 +646,22 @@ enum class BooleanSetting(
         "ButtonLatchingNunchukZ",
         false
     ),
-    MAIN_PRESS_HAPTICS(
+    MAIN_OVERLAY_HAPTICS_PRESS(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
-        "PressHaptics",
+        "OverlayHapticsPress",
         false
     ),
-    MAIN_RELEASE_HAPTICS(
+    MAIN_OVERLAY_HAPTICS_RELEASE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
-        "ReleaseHaptics",
+        "OverlayHapticsRelease",
         false
     ),
-    MAIN_JOYSTICK_HAPTICS(
+    MAIN_OVERLAY_HAPTICS_JOYSTICK(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
-        "JoystickHaptics",
-        false
-    ),
-    MAIN_FALLBACK_HAPTICS(
-        Settings.FILE_DOLPHIN,
-        Settings.SECTION_INI_ANDROID,
-        "FallbackHaptics",
+        "OverlayHapticsJoystick",
         false
     ),
     SYSCONF_SCREENSAVER(Settings.FILE_SYSCONF, "IPL", "SSV", false),

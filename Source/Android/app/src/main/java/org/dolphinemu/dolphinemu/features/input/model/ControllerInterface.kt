@@ -11,6 +11,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.annotation.Keep
 import org.dolphinemu.dolphinemu.DolphinApplication
+import org.dolphinemu.dolphinemu.utils.HapticEffect
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import org.dolphinemu.dolphinemu.utils.LooperThread
 
@@ -113,7 +114,10 @@ object ControllerInterface {
 
     @Keep
     @JvmStatic
-    private fun vibrate(vibrator: Vibrator) = HapticsProvider(vibrator).vibrate()
+    private fun vibrate(vibrator: Vibrator) {
+        // TODO: Add a slider to the Rumble options that allows adjusting the vibration intensity.
+        HapticsProvider(vibrator).provideFeedback(HapticEffect.SPIN, HapticsProvider.MAX_INTENSITY)
+    }
 
     private class InputDeviceListener : InputManager.InputDeviceListener {
         // Simple implementation for now. We could do something fancier if we wanted to.

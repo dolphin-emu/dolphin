@@ -8,10 +8,10 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
-import android.view.View
-import androidx.core.view.HapticFeedbackConstantsCompat
 import org.dolphinemu.dolphinemu.features.input.model.InputOverrider
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
+import org.dolphinemu.dolphinemu.utils.HapticEffect
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -105,12 +105,13 @@ class InputOverlayDrawableJoystick(
         boundsBoxBitmap.draw(canvas)
     }
 
-    fun trackEvent(v: View, event: MotionEvent): Boolean {
+    fun trackEvent(event: MotionEvent): Boolean {
         val reCenter = BooleanSetting.MAIN_JOYSTICK_REL_CENTER.boolean
         val action = event.actionMasked
         val firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
                 action != MotionEvent.ACTION_POINTER_UP
         val pointerIndex = if (firstPointer) 0 else event.actionIndex
+        val hapticsIntensity = IntSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.int
         var pressed = false
 
         when (action) {
@@ -123,10 +124,8 @@ class InputOverlayDrawableJoystick(
                 ) {
                     pressed = true
                     pressedState = true
-                    if (BooleanSetting.MAIN_PRESS_HAPTICS.boolean) {
-                        hapticsProvider.performHapticFeedback(
-                            v, HapticFeedbackConstantsCompat.VIRTUAL_KEY
-                        )
+                    if (BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean) {
+                        hapticsProvider.provideFeedback(HapticEffect.CLICK, hapticsIntensity)
                     }
                     outerBitmap.alpha = 0
                     boundsBoxBitmap.alpha = opacity
@@ -146,10 +145,8 @@ class InputOverlayDrawableJoystick(
                 if (trackId == event.getPointerId(pointerIndex)) {
                     pressed = true
                     pressedState = false
-                    if (BooleanSetting.MAIN_RELEASE_HAPTICS.boolean) {
-                        hapticsProvider.performHapticFeedback(
-                            v, HapticFeedbackConstantsCompat.VIRTUAL_KEY_RELEASE
-                        )
+                    if (BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean) {
+                        hapticsProvider.provideFeedback(HapticEffect.CLICK, hapticsIntensity)
                     }
                     y = 0f
                     x = y
@@ -184,16 +181,16 @@ class InputOverlayDrawableJoystick(
                 y = touchY / maxY
 
                 setInnerBounds()
-                if (BooleanSetting.MAIN_JOYSTICK_HAPTICS.boolean) {
+                if (BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.boolean) {
                     val radiusThreshold = maxRadius / 3.0
                     val angleDeg = Math.toDegrees(angle).roundToInt()
                     val angularDistance = kotlin.math.abs(previousAngleDeg - angleDeg)
                         .let { kotlin.math.min(it, 360 - it) }
                     if (kotlin.math.abs(previousRadius - radius) >= radiusThreshold ||
-                        (radius >= radiusThreshold && (angularDistance >= 45 ||
-                                radius == maxRadius && angularDistance != 0 && angleDeg % 15 == 0))
+                        (radius >= radiusThreshold && (angularDistance >= 90 / hapticsIntensity ||
+                                radius == maxRadius && angularDistance != 0 && angleDeg % 45 == 0))
                     ) {
-                        hapticsProvider.performHapticFeedback(v, HapticFeedbackConstantsCompat.CLOCK_TICK)
+                        hapticsProvider.provideFeedback(HapticEffect.LOW_TICK, hapticsIntensity)
                         previousRadius = radius
                         previousAngleDeg = angleDeg
                     }

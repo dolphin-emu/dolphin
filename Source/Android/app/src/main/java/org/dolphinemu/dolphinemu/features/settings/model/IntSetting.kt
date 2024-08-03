@@ -82,17 +82,11 @@ enum class IntSetting(
         "DoubleTapButton",
         NativeLibrary.ButtonType.WIIMOTE_BUTTON_A
     ),
-    MAIN_HAPTICS_DURATION(
+    MAIN_OVERLAY_HAPTICS_INTENSITY(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
-        "HapticsDuration",
-        HapticsProvider.DEFAULT_DURATION.toInt()
-    ),
-    MAIN_HAPTICS_AMPLITUDE(
-        Settings.FILE_DOLPHIN,
-        Settings.SECTION_INI_ANDROID,
-        "HapticsAmplitude",
-        HapticsProvider.DEFAULT_AMPLITUDE
+        "OverlayHapticsIntensity",
+        HapticsProvider.MAX_INTENSITY
     ),
     SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
     SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),

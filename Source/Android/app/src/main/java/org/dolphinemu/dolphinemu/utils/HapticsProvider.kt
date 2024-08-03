@@ -5,101 +5,94 @@ package org.dolphinemu.dolphinemu.utils
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.view.View
+import androidx.annotation.IntRange
 import androidx.annotation.RequiresApi
-import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.core.view.ViewCompat
 import org.dolphinemu.dolphinemu.features.input.model.DolphinVibratorManagerFactory
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 
 /**
  * This class provides methods that facilitate performing haptic feedback.
  *
- * @property vibrator The [Vibrator] instance to be used for (fallback) vibration.
- * Can be null. Defaults to the system default vibrator.
+ * @property vibrator The [Vibrator] instance to be used for vibration.
+ * Defaults to the system default vibrator.
  */
 class HapticsProvider(
-    private val vibrator: Vibrator? =
+    private val vibrator: Vibrator =
         DolphinVibratorManagerFactory.getSystemVibratorManager().getDefaultVibrator()
 ) {
+    private val primitiveSupport: Boolean = areAllPrimitivesSupported()
 
     /**
-     * Perform a [feedbackConstant] type of haptic feedback.
-     * If a [fallback] vibration is desired, [vibrate] is called for a vibration
-     * with an intensity scaled to mimic the [feedbackConstant].
+     * Perform haptic feedback by composing primitives if supported,
+     * with a fallback to a waveform or a deprecated vibration.
      *
-     * @param view The [View] to perform haptic feedback on.
-     * @param feedbackConstant A haptic feedback constant from [HapticFeedbackConstantsCompat].
-     * @param fallback Whether to fallback to a scaled vibration. Defaults to the relevant setting.
+     * @param effect The desired [HapticEffect] of the feedback.
+     * @param intensity The desired intensity of the feedback.
+     * This should be an integer between [MIN_INTENSITY] and [MAX_INTENSITY].
      */
-    fun performHapticFeedback(
-        view: View,
-        feedbackConstant: Int,
-        fallback: Boolean = BooleanSetting.MAIN_FALLBACK_HAPTICS.boolean
-    ) {
-        if (fallback) {
-            val scale = getVibrationScale(feedbackConstant)
-            val scaledDuration =
-                (IntSetting.MAIN_HAPTICS_DURATION.int * scale).toLong().coerceAtLeast(1L)
-            val scaledAmplitude =
-                (IntSetting.MAIN_HAPTICS_AMPLITUDE.int * scale).toInt().coerceIn(1, 255)
-            vibrate(scaledDuration, scaledAmplitude)
-        } else {
-            ViewCompat.performHapticFeedback(
-                view,
-                feedbackConstant,
-                HapticFeedbackConstantsCompat.FLAG_IGNORE_VIEW_SETTING
+    fun provideFeedback(effect: HapticEffect, @IntRange(from = 1, to = 5) intensity: Int) {
+        val scale = intensity / MAX_INTENSITY.toFloat()
+        if (primitiveSupport) {
+            vibrator.vibrate(
+                VibrationEffect.startComposition().addPrimitive(getPrimitive(effect), scale)
+                    .compose()
             )
-        }
-    }
-
-    /**
-     * Vibrate for the specified [duration] with [amplitude] strength (if [vibrator] is capable).
-     *
-     * @param duration The number of milliseconds to vibrate. This must be a positive number.
-     * @param amplitude The strength of the vibration. This must be a value between 1 and 255,
-     * or [VibrationEffect.DEFAULT_AMPLITUDE].
-     */
-    fun vibrate(duration: Long = DEFAULT_DURATION, amplitude: Int = DEFAULT_AMPLITUDE) {
-        if (!hasVibrator()) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val timings = longArrayOf(0, duration)
-            val amplitudes = intArrayOf(0, amplitude.takeIf { hasAmplitudeControl() }
-                ?: VibrationEffect.DEFAULT_AMPLITUDE)
-            vibrator!!.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
         } else {
-            vibrator!!.vibrate(duration)
+            val duration = (getMaxDuration(effect) * scale).toLong()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // TODO: Define amplitudes for each effect for devices with amplitude control.
+                vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0L, duration), -1))
+            } else {
+                vibrator.vibrate(duration)
+            }
         }
     }
 
     /**
-     * Determine a scaling factor for the duration and amplitude of a vibration
-     * based on the type of the provided [feedbackConstant].
+     * Get the maximum duration value for a fallback vibration based on the [effect].
      *
-     * For creating a weak and strong vibration effect, it is recommended that the scales
-     * differ by a ratio of 1.4 or more, so the difference in intensity can be easily perceived.
+     * Most of these durations are about 5 times longer than those recommended by the Android
+     * source docs, which specifies them in `frameworks/base/core/res/res/values/config.xml`.
+     * That is because lower-end devices are unable to vibrate for relatively short durations.
      *
-     * @param feedbackConstant A haptic feedback constant from [HapticFeedbackConstantsCompat].
-     * @return A scaling factor for the desired vibration.
+     * @param effect The [HapticEffect] of the vibration.
+     * @return The maximum duration in milliseconds of the specified [effect].
      */
-    private fun getVibrationScale(feedbackConstant: Int): Float {
-        return when (feedbackConstant) {
-            HapticFeedbackConstantsCompat.VIRTUAL_KEY_RELEASE -> 0.7f
-            HapticFeedbackConstantsCompat.CLOCK_TICK -> 0.5f
-            else -> 1.0f
+    private fun getMaxDuration(effect: HapticEffect): Long {
+        // Note: It is recommended that these values differ by a ratio of 1.4 or more,
+        // so the difference in the duration of the vibration can be easily perceived.
+        return when (effect) {
+            HapticEffect.CLICK -> 100L
+            HapticEffect.TICK -> 70L
+            HapticEffect.LOW_TICK -> 50L
+            HapticEffect.SPIN -> 35L // TODO: Replace this with a "spinning" pattern?
         }
     }
 
-    // Passthrough methods used to determine the vibrator capabilities.
-    fun hasVibrator(): Boolean = vibrator?.hasVibrator() ?: false
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun getPrimitive(effect: HapticEffect): Int {
+        return when (effect) {
+            HapticEffect.CLICK -> VibrationEffect.Composition.PRIMITIVE_CLICK
+            HapticEffect.TICK -> VibrationEffect.Composition.PRIMITIVE_TICK
+            HapticEffect.LOW_TICK -> VibrationEffect.Composition.PRIMITIVE_LOW_TICK
+            HapticEffect.SPIN -> VibrationEffect.Composition.PRIMITIVE_SPIN
+        }
+    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun hasAmplitudeControl(): Boolean = vibrator?.hasAmplitudeControl() ?: false
+    private fun areAllPrimitivesSupported(): Boolean {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && vibrator.areAllPrimitivesSupported(
+            *HapticEffect.values().map { getPrimitive(it) }.toIntArray()
+        )
+    }
 
     companion object {
-        // Default vibration values for a non-buzzy click sensation.
-        const val DEFAULT_DURATION = 20L
-        const val DEFAULT_AMPLITUDE = 255
+        const val MIN_INTENSITY = 1
+        const val MAX_INTENSITY = 5
     }
+}
+
+enum class HapticEffect {
+    CLICK,
+    TICK,
+    LOW_TICK,
+    SPIN
 }

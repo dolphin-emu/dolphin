@@ -3,13 +3,13 @@ package org.dolphinemu.dolphinemu.utils
 import android.view.View
 import android.widget.CompoundButton
 import androidx.core.view.HapticFeedbackConstantsCompat
+import androidx.core.view.ViewCompat
 import com.google.android.material.slider.Slider
 
 /**
  * Wrapper that enhances listeners with additional features, such as haptic feedback.
  */
 object ListenerWrapper {
-    private val hapticsProvider = HapticsProvider(null)
 
     /**
      * Wraps a [View.OnClickListener] with additional functionality.
@@ -25,7 +25,7 @@ object ListenerWrapper {
     ): View.OnClickListener {
         return View.OnClickListener { view: View ->
             listener?.onClick(view)
-            hapticsProvider.performHapticFeedback(view, feedbackConstant, false)
+            ViewCompat.performHapticFeedback(view, feedbackConstant)
         }
     }
 
@@ -39,9 +39,7 @@ object ListenerWrapper {
         return Slider.OnChangeListener { slider: Slider, value: Float, fromUser: Boolean ->
             listener?.onValueChange(slider, value, fromUser)
             if (fromUser) {
-                hapticsProvider.performHapticFeedback(
-                    slider, HapticFeedbackConstantsCompat.CLOCK_TICK, false
-                )
+                ViewCompat.performHapticFeedback(slider, HapticFeedbackConstantsCompat.CLOCK_TICK)
             }
         }
     }
@@ -61,7 +59,7 @@ object ListenerWrapper {
                 val feedbackConstant = if (buttonView.isChecked) {
                     HapticFeedbackConstantsCompat.CONTEXT_CLICK
                 } else HapticFeedbackConstantsCompat.CLOCK_TICK
-                hapticsProvider.performHapticFeedback(buttonView, feedbackConstant, false)
+                ViewCompat.performHapticFeedback(buttonView, feedbackConstant)
             }
         }
     }

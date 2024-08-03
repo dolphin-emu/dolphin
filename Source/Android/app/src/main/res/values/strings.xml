@@ -612,7 +612,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_choose_doubletap">Double tap button</string>
     <string name="emulation_haptics">Touch Haptics</string>
     <string name="emulation_haptics_triggers">Feedback Triggers</string>
-    <string name="emulation_haptics_vibration">Adjust Vibration</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
@@ -819,10 +818,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="haptics_press">Press</string>
     <string name="haptics_release">Release</string>
     <string name="haptics_joystick">Joystick</string>
-    <string name="haptics_fallback">Vibration Fallback</string>
-    <string name="haptics_duration">Duration</string>
-    <string name="haptics_milliseconds">ms</string>
-    <string name="haptics_amplitude">Amplitude</string>
+    <string name="haptics_intensity">Intensity</string>
 
     <!-- Double Tap Buttons -->
     <string name="double_tap_a">Button A</string>

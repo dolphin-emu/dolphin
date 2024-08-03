@@ -30,7 +30,6 @@ import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
 import org.dolphinemu.dolphinemu.databinding.DialogHapticsConfigureBinding
-import org.dolphinemu.dolphinemu.databinding.DialogHapticsVibrationBinding
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogNfcFiguresManagerBinding
 import org.dolphinemu.dolphinemu.features.infinitybase.InfinityConfig
@@ -39,6 +38,7 @@ import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlot
 import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlotAdapter
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener
+import org.dolphinemu.dolphinemu.features.input.model.DolphinVibratorManagerFactory
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
@@ -60,6 +60,7 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.utils.HapticEffect
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import org.dolphinemu.dolphinemu.utils.ListenerWrapper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
@@ -417,7 +418,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 BooleanSetting.MAIN_IR_ALWAYS_RECENTER.boolean
         }
         // Hide the haptic feedback menu item if the device has no vibrator
-        if (!HapticsProvider().hasVibrator()) {
+        if (!DolphinVibratorManagerFactory.getSystemVibratorManager().getDefaultVibrator()
+                .hasVibrator()
+        ) {
             menu.findItem(R.id.menu_emulation_haptics).setVisible(false)
         }
         popup.setOnMenuItemClickListener { item: MenuItem -> onOptionsItemSelected(item) }
@@ -678,118 +681,60 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
     private fun configureHaptics() {
         val dialogBinding = DialogHapticsConfigureBinding.inflate(layoutInflater)
-        dialogBinding.apply {
-            val checkboxes =
-                listOf(hapticsPressCheckbox, hapticsReleaseCheckbox, hapticsJoystickCheckbox)
-            hapticsPressCheckbox.isChecked = BooleanSetting.MAIN_PRESS_HAPTICS.boolean
-            hapticsReleaseCheckbox.isChecked = BooleanSetting.MAIN_RELEASE_HAPTICS.boolean
-            hapticsJoystickCheckbox.isChecked = BooleanSetting.MAIN_JOYSTICK_HAPTICS.boolean
-            hapticsAdjustButton.apply {
-                if (checkboxes.none { it.isChecked }) {
-                    isEnabled = false
-                }
-                checkboxes.forEach { checkbox ->
-                    checkbox.setOnCheckedChangeListener { _, _ ->
-                        isEnabled = checkboxes.any { it.isChecked }
-                    }
-                }
-                setOnClickListener(ListenerWrapper.wrapOnClickListener({ adjustVibration() }))
-            }
-        }
-        MaterialAlertDialogBuilder(this)
-            .setView(dialogBinding.root)
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
-                BooleanSetting.MAIN_PRESS_HAPTICS.setBoolean(
-                    settings, dialogBinding.hapticsPressCheckbox.isChecked
-                )
-                BooleanSetting.MAIN_RELEASE_HAPTICS.setBoolean(
-                    settings, dialogBinding.hapticsReleaseCheckbox.isChecked
-                )
-                BooleanSetting.MAIN_JOYSTICK_HAPTICS.setBoolean(
-                    settings, dialogBinding.hapticsJoystickCheckbox.isChecked
-                )
-            }
-            .show()
-    }
-
-    private fun adjustVibration() {
-        val dialogBinding = DialogHapticsVibrationBinding.inflate(layoutInflater)
         val hapticsProvider = HapticsProvider()
         dialogBinding.apply {
-            hapticsFallbackSwitch.apply {
-                val toggleSwitch = { isChecked: Boolean ->
-                    hapticsDurationName.isEnabled = isChecked
-                    hapticsDurationValue.isEnabled = isChecked
-                    hapticsDurationSlider.isEnabled = isChecked
-                    hapticsAmplitudeName.isEnabled = isChecked
-                    hapticsAmplitudeValue.isEnabled = isChecked
-                    hapticsAmplitudeSlider.isEnabled = isChecked
-                }
-                isChecked = BooleanSetting.MAIN_FALLBACK_HAPTICS.boolean.also {
-                    if (!it) toggleSwitch(false)
-                }
-                setOnCheckedChangeListener(ListenerWrapper.wrapOnCheckedChangeListener { _, isChecked ->
-                    toggleSwitch(isChecked)
-                })
+            val toggleIntensity = { isChecked: Boolean ->
+                hapticsIntensityName.isEnabled = isChecked
+                hapticsIntensitySlider.isEnabled = isChecked
+                hapticsIntensityValue.isEnabled = isChecked
             }
-            hapticsDurationSlider.apply {
-                val setValueText = { value: Float ->
-                    hapticsDurationValue.text = getString(
-                        R.string.slider_setting_value,
-                        value,
-                        getString(R.string.haptics_milliseconds)
-                    )
-                }
-                value = IntSetting.MAIN_HAPTICS_DURATION.int.toFloat().also { setValueText(it) }
-                addOnChangeListener(Slider.OnChangeListener { _: Slider, value: Float, fromUser: Boolean ->
-                    if (fromUser) {
-                        hapticsProvider.vibrate(
-                            value.toLong(), hapticsAmplitudeSlider.value.toInt()
-                        )
-                    }
-                    setValueText(value)
-                })
+            val checkboxes =
+                listOf(hapticsPressCheckbox, hapticsReleaseCheckbox, hapticsJoystickCheckbox)
+            hapticsPressCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean
+            hapticsReleaseCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean
+            hapticsJoystickCheckbox.isChecked = BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.boolean
+            if (checkboxes.none { it.isChecked }) {
+                toggleIntensity(false)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hapticsProvider.hasAmplitudeControl()) {
-                hapticsAmplitudeSlider.apply {
-                    IntSetting.MAIN_HAPTICS_AMPLITUDE.int.apply {
-                        value = this.toFloat()
-                        hapticsAmplitudeValue.text = this.toString()
+            checkboxes.forEach { checkbox ->
+                checkbox.setOnCheckedChangeListener(
+                    ListenerWrapper.wrapOnCheckedChangeListener { _, _ ->
+                        toggleIntensity(checkboxes.any { it.isChecked })
                     }
-                    addOnChangeListener(Slider.OnChangeListener { _: Slider, value: Float, fromUser: Boolean ->
-                        if (fromUser) {
-                            hapticsProvider.vibrate(
-                                hapticsDurationSlider.value.toLong(), value.toInt()
-                            )
-                        }
-                        hapticsAmplitudeValue.text = value.toInt().toString()
-                    })
+                )
+            }
+            hapticsIntensitySlider.apply {
+                stepSize = 1.0f
+                valueFrom = HapticsProvider.MIN_INTENSITY.toFloat()
+                valueTo = HapticsProvider.MAX_INTENSITY.toFloat()
+                IntSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.int.apply {
+                    value = this.toFloat()
+                    hapticsIntensityValue.text = this.toString()
                 }
-                hapticsAmplitude.visibility = View.VISIBLE
+                addOnChangeListener { _: Slider, value: Float, _: Boolean ->
+                    val intensity = value.toInt()
+                    hapticsIntensityValue.text = intensity.toString()
+                    hapticsProvider.provideFeedback(HapticEffect.TICK, intensity)
+                }
             }
         }
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.emulation_haptics_vibration)
             .setView(dialogBinding.root)
             .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
-                BooleanSetting.MAIN_FALLBACK_HAPTICS.setBoolean(
-                    settings, dialogBinding.hapticsFallbackSwitch.isChecked
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.setBoolean(
+                    settings, dialogBinding.hapticsPressCheckbox.isChecked
                 )
-                IntSetting.MAIN_HAPTICS_DURATION.setInt(
-                    settings, dialogBinding.hapticsDurationSlider.value.toInt()
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.setBoolean(
+                    settings, dialogBinding.hapticsReleaseCheckbox.isChecked
                 )
-                IntSetting.MAIN_HAPTICS_AMPLITUDE.setInt(
-                    settings, dialogBinding.hapticsAmplitudeSlider.value.toInt()
+                BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.setBoolean(
+                    settings, dialogBinding.hapticsJoystickCheckbox.isChecked
+                )
+                IntSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.setInt(
+                    settings, dialogBinding.hapticsIntensitySlider.value.toInt()
                 )
             }
-            .setNeutralButton(R.string.default_values, null)
             .show()
-            .getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener {
-                dialogBinding.apply {
-                    hapticsDurationSlider.value = HapticsProvider.DEFAULT_DURATION.toFloat()
-                    hapticsAmplitudeSlider.value = HapticsProvider.DEFAULT_AMPLITUDE.toFloat()
-                }
-            }
     }
 
     private fun chooseDoubleTapButton() {
