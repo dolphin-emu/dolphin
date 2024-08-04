@@ -98,6 +98,10 @@ private:
   void OnTableSetBreakpointLog();
   void OnTableSetBreakpointBoth();
 
+  void ConnectSlots();
+  void DisconnectSlots();
+  void Show();
+  void Hide();
   void LoadQSettings();
   void SaveQSettings() const;
 
