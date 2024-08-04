@@ -203,19 +203,11 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
 
   // Branch Watch Table
-  const auto& ui_settings = Settings::Instance();
-
   m_table_proxy = new BranchWatchProxyModel(m_branch_watch);
   m_table_proxy->setSourceModel(
       m_table_model = new BranchWatchTableModel(m_system, m_branch_watch, ppc_symbol_db));
   m_table_proxy->setSortRole(UserRole::SortRole);
   m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
-
-  m_table_model->setFont(ui_settings.GetDebugFont());
-  connect(&ui_settings, &Settings::DebugFontChanged, m_table_model,
-          &BranchWatchTableModel::setFont);
-  connect(Host::GetInstance(), &Host::PPCSymbolsChanged, m_table_model,
-          &BranchWatchTableModel::UpdateSymbols);
 
   m_table_view = new QTableView;
   m_table_view->setModel(m_table_proxy);
@@ -476,12 +468,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     menu_bar->addMenu(menu);
   }
 
-  UpdateIcons();
-
   connect(m_timer = new QTimer, &QTimer::timeout, this, &BranchWatchDialog::OnTimeout);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &BranchWatchDialog::OnEmulationStateChanged);
-  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &BranchWatchDialog::OnThemeChanged);
   connect(m_table_proxy, &BranchWatchProxyModel::layoutChanged, this,
           &BranchWatchDialog::UpdateStatus);
 
@@ -508,15 +495,13 @@ static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State st
 
 void BranchWatchDialog::hideEvent(QHideEvent* event)
 {
-  if (m_timer->isActive())
-    m_timer->stop();
+  Hide();
   QDialog::hideEvent(event);
 }
 
 void BranchWatchDialog::showEvent(QShowEvent* event)
 {
-  if (TimerCondition(m_branch_watch, Core::GetState(m_system)))
-    m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
+  Show();
   QDialog::showEvent(event);
 }
 
@@ -674,9 +659,6 @@ void BranchWatchDialog::OnTimeout()
 
 void BranchWatchDialog::OnEmulationStateChanged(Core::State new_state)
 {
-  if (!isVisible())
-    return;
-
   if (TimerCondition(m_branch_watch, new_state))
     m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   else if (m_timer->isActive())
@@ -884,6 +866,47 @@ void BranchWatchDialog::OnTableSetBreakpointLog()
 void BranchWatchDialog::OnTableSetBreakpointBoth()
 {
   SetBreakpoints(true, true);
+}
+
+void BranchWatchDialog::ConnectSlots()
+{
+  const auto* const settings = &Settings::Instance();
+  connect(settings, &Settings::EmulationStateChanged, this,
+          &BranchWatchDialog::OnEmulationStateChanged);
+  connect(settings, &Settings::ThemeChanged, this, &BranchWatchDialog::OnThemeChanged);
+  connect(settings, &Settings::DebugFontChanged, m_table_model, &BranchWatchTableModel::setFont);
+  const auto* const host = Host::GetInstance();
+  connect(host, &Host::PPCSymbolsChanged, m_table_model, &BranchWatchTableModel::UpdateSymbols);
+}
+
+void BranchWatchDialog::DisconnectSlots()
+{
+  const auto* const settings = &Settings::Instance();
+  disconnect(settings, &Settings::EmulationStateChanged, this,
+             &BranchWatchDialog::OnEmulationStateChanged);
+  disconnect(settings, &Settings::ThemeChanged, this, &BranchWatchDialog::OnThemeChanged);
+  disconnect(settings, &Settings::DebugFontChanged, m_table_model,
+             &BranchWatchTableModel::OnDebugFontChanged);
+  const auto* const host = Host::GetInstance();
+  disconnect(host, &Host::PPCSymbolsChanged, m_table_model,
+             &BranchWatchTableModel::OnPPCSymbolsChanged);
+}
+
+void BranchWatchDialog::Show()
+{
+  ConnectSlots();
+  // Hit every slot that may have missed a signal while this widget was hidden.
+  OnEmulationStateChanged(Core::GetState(m_system));
+  OnThemeChanged();
+  m_table_model->OnDebugFontChanged(Settings::Instance().GetDebugFont());
+  m_table_model->OnPPCSymbolsChanged();
+}
+
+void BranchWatchDialog::Hide()
+{
+  DisconnectSlots();
+  if (m_timer->isActive())
+    m_timer->stop();
 }
 
 void BranchWatchDialog::LoadQSettings()

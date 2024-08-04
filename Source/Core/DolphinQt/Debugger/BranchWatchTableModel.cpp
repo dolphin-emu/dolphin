@@ -145,6 +145,16 @@ void BranchWatchTableModel::OnWipeInspection()
                    roles);
 }
 
+void BranchWatchTableModel::OnDebugFontChanged(const QFont& font)
+{
+  setFont(font);
+}
+
+void BranchWatchTableModel::OnPPCSymbolsChanged()
+{
+  UpdateSymbols();
+}
+
 void BranchWatchTableModel::Save(const Core::CPUThreadGuard& guard, std::FILE* file) const
 {
   m_branch_watch.Save(guard, file);
