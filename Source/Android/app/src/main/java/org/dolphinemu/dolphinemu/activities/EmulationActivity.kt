@@ -29,7 +29,7 @@ import com.google.android.material.slider.Slider
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding
-import org.dolphinemu.dolphinemu.databinding.DialogHapticsConfigureBinding
+import org.dolphinemu.dolphinemu.databinding.DialogHapticsAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding
 import org.dolphinemu.dolphinemu.databinding.DialogNfcFiguresManagerBinding
 import org.dolphinemu.dolphinemu.features.infinitybase.InfinityConfig
@@ -503,7 +503,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_SKYLANDERS -> showSkylanderPortalSettings()
             MENU_ACTION_INFINITY_BASE -> showInfinityBaseSettings()
             MENU_ACTION_EXIT -> emulationFragment!!.stopEmulation()
-            MENU_ACTION_CONFIGURE_HAPTICS -> configureHaptics()
+            MENU_ACTION_ADJUST_HAPTICS -> adjustHaptics()
         }
     }
 
@@ -679,8 +679,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             .show()
     }
 
-    private fun configureHaptics() {
-        val dialogBinding = DialogHapticsConfigureBinding.inflate(layoutInflater)
+    private fun adjustHaptics() {
+        val dialogBinding = DialogHapticsAdjustBinding.inflate(layoutInflater)
         val hapticsProvider = HapticsProvider()
         dialogBinding.apply {
             val toggleIntensity = { isChecked: Boolean ->
@@ -1131,7 +1131,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
         const val MENU_ACTION_LATCHING_CONTROLS = 38
-        const val MENU_ACTION_CONFIGURE_HAPTICS = 39
+        const val MENU_ACTION_ADJUST_HAPTICS = 39
 
         init {
             buttonsActionsMap.apply {
@@ -1145,7 +1145,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 append(R.id.menu_emulation_ir_recenter, MENU_SET_IR_RECENTER)
                 append(R.id.menu_emulation_set_ir_mode, MENU_SET_IR_MODE)
                 append(R.id.menu_emulation_choose_doubletap, MENU_ACTION_CHOOSE_DOUBLETAP)
-                append(R.id.menu_emulation_haptics, MENU_ACTION_CONFIGURE_HAPTICS)
+                append(R.id.menu_emulation_haptics, MENU_ACTION_ADJUST_HAPTICS)
             }
         }
 

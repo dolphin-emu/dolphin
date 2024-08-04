@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/spacing_medlarge"
-            android:text="@string/emulation_haptics_triggers"
+            android:text="@string/haptics_triggers"
             android:textAlignment="viewStart"
             android:textAppearance="@style/TextAppearance.AppCompat.Title"
             app:layout_constraintBottom_toTopOf="@id/haptics_release_checkbox"
@@ -96,13 +96,13 @@
 
         <TextView
             android:id="@+id/haptics_intensity_value"
-            android:layout_width="36dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/haptics_intensity_slider"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="10" />
+            tools:text="5" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
