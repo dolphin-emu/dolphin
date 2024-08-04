@@ -202,10 +202,8 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   setWindowTitle(tr("Branch Watch Tool"));
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
 
-  auto* main_layout = new QVBoxLayout;
-
   // Controls Toolbar (widgets are added later)
-  main_layout->addWidget(m_control_toolbar = new QToolBar);
+  m_control_toolbar = new QToolBar;
 
   // Branch Watch Table
   const auto& ui_settings = Settings::Instance();
@@ -257,8 +255,6 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   connect(new QShortcut(QKeySequence(Qt::Key_Delete), this), &QShortcut::activated, this,
           &BranchWatchDialog::OnTableDeleteKeypress);
 
-  main_layout->addWidget(m_table_view);
-
   {
     // Column Visibility Menu
     static constexpr std::array<const char*, Column::NumberOfColumns> headers = {
@@ -277,11 +273,11 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
       action->setCheckable(true);
     }
   }
-  {
-    // Menu Bar
-    QMenuBar* const menu_bar = new QMenuBar;
-    menu_bar->setNativeMenuBar(false);
 
+  // Menu Bar
+  QMenuBar* const menu_bar = new QMenuBar;
+  menu_bar->setNativeMenuBar(false);
+  {
     QMenu* const menu_file = new QMenu(tr("&File"), menu_bar);
     menu_file->addAction(tr("&Save Branch Watch"), this, &BranchWatchDialog::OnSave);
     menu_file->addAction(tr("Save Branch Watch &As..."), this, &BranchWatchDialog::OnSaveAs);
@@ -309,37 +305,38 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     menu_tool->addAction(tr("&Help"), this, &BranchWatchDialog::OnHelp);
 
     menu_bar->addMenu(menu_tool);
+  }
 
-    main_layout->setMenuBar(menu_bar);
-  }
-  {
-    // Status Bar
-    m_status_bar = new QStatusBar;
-    m_status_bar->setSizeGripEnabled(false);
-    main_layout->addWidget(m_status_bar);
-  }
+  // Status Bar
+  m_status_bar = new QStatusBar;
+  m_status_bar->setSizeGripEnabled(false);
+
   {
     // Tool Controls
-    auto* const layout = new QGridLayout;
-
-    layout->addWidget(m_btn_start_pause = new QPushButton(tr("Start Branch Watch")), 0, 0);
+    m_btn_start_pause = new QPushButton(tr("Start Branch Watch"));
     connect(m_btn_start_pause, &QPushButton::toggled, this, &BranchWatchDialog::OnStartPause);
     m_btn_start_pause->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     m_btn_start_pause->setCheckable(true);
 
-    layout->addWidget(m_btn_clear_watch = new QPushButton(tr("Clear Branch Watch")), 1, 0);
+    m_btn_clear_watch = new QPushButton(tr("Clear Branch Watch"));
     connect(m_btn_clear_watch, &QPushButton::pressed, this, &BranchWatchDialog::OnClearBranchWatch);
     m_btn_clear_watch->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-    layout->addWidget(m_btn_path_was_taken = new QPushButton(tr("Code Path Was Taken")), 0, 1);
+    m_btn_path_was_taken = new QPushButton(tr("Code Path Was Taken"));
     connect(m_btn_path_was_taken, &QPushButton::pressed, this,
             &BranchWatchDialog::OnCodePathWasTaken);
     m_btn_path_was_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-    layout->addWidget(m_btn_path_not_taken = new QPushButton(tr("Code Path Not Taken")), 1, 1);
+    m_btn_path_not_taken = new QPushButton(tr("Code Path Not Taken"));
     connect(m_btn_path_not_taken, &QPushButton::pressed, this,
             &BranchWatchDialog::OnCodePathNotTaken);
     m_btn_path_not_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+
+    auto* const layout = new QGridLayout;
+    layout->addWidget(m_btn_start_pause, 0, 0);
+    layout->addWidget(m_btn_clear_watch, 1, 0);
+    layout->addWidget(m_btn_path_was_taken, 0, 1);
+    layout->addWidget(m_btn_path_not_taken, 1, 1);
 
     auto* const group_box = new QGroupBox(tr("Tool Controls"));
     group_box->setLayout(layout);
@@ -455,23 +452,26 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   }
   {
     // Misc. Controls
-    auto* const layout = new QVBoxLayout;
-
-    layout->addWidget(m_btn_was_overwritten = new QPushButton(tr("Branch Was Overwritten")));
+    m_btn_was_overwritten = new QPushButton(tr("Branch Was Overwritten"));
     connect(m_btn_was_overwritten, &QPushButton::pressed, this,
             &BranchWatchDialog::OnBranchWasOverwritten);
     m_btn_was_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-    layout->addWidget(m_btn_not_overwritten = new QPushButton(tr("Branch Not Overwritten")));
+    m_btn_not_overwritten = new QPushButton(tr("Branch Not Overwritten"));
     connect(m_btn_not_overwritten, &QPushButton::pressed, this,
             &BranchWatchDialog::OnBranchNotOverwritten);
     m_btn_not_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-    layout->addWidget(m_btn_wipe_recent_hits = new QPushButton(tr("Wipe Recent Hits")));
+    m_btn_wipe_recent_hits = new QPushButton(tr("Wipe Recent Hits"));
     connect(m_btn_wipe_recent_hits, &QPushButton::pressed, this,
             &BranchWatchDialog::OnWipeRecentHits);
     m_btn_wipe_recent_hits->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     m_btn_wipe_recent_hits->setEnabled(false);
+
+    auto* const layout = new QVBoxLayout;
+    layout->addWidget(m_btn_was_overwritten);
+    layout->addWidget(m_btn_not_overwritten);
+    layout->addWidget(m_btn_wipe_recent_hits);
 
     auto* const group_box = new QGroupBox(tr("Misc. Controls"));
     group_box->setLayout(layout);
@@ -489,6 +489,11 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   connect(m_table_proxy, &BranchWatchProxyModel::layoutChanged, this,
           &BranchWatchDialog::UpdateStatus);
 
+  auto* const main_layout = new QVBoxLayout;
+  main_layout->setMenuBar(menu_bar);
+  main_layout->addWidget(m_control_toolbar);
+  main_layout->addWidget(m_table_view);
+  main_layout->addWidget(m_status_bar);
   setLayout(main_layout);
 
   const auto& settings = Settings::GetQSettings();
