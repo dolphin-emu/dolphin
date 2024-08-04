@@ -26,7 +26,6 @@
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
-#include "Core/System.h"
 
 namespace IOS::HLE
 {

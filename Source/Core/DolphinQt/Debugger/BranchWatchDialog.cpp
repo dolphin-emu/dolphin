@@ -15,7 +15,6 @@
 #include <QGroupBox>
 #include <QHeaderView>
 #include <QLineEdit>
-#include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
 #include <QShortcut>
@@ -46,7 +45,6 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 

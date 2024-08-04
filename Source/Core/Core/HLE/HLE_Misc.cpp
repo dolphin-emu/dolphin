@@ -3,7 +3,6 @@
 
 #include "Core/HLE/HLE_Misc.h"
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"

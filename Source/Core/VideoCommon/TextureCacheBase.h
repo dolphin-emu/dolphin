@@ -10,7 +10,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -18,7 +17,6 @@
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "Common/MathUtil.h"
 
 #include "VideoCommon/AbstractTexture.h"

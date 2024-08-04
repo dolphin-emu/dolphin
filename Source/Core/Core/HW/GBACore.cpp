@@ -15,7 +15,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
@@ -25,7 +24,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"

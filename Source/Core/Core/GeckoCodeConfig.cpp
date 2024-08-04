@@ -3,7 +3,6 @@
 
 #include "Core/GeckoCodeConfig.h"
 
-#include <algorithm>
 #include <optional>
 #include <sstream>
 #include <string>

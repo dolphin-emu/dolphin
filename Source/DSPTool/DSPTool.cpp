@@ -11,7 +11,6 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
-#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 

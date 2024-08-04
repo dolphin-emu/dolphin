@@ -3,17 +3,13 @@
 
 #include "Core/IOS/Crypto/Sha.h"
 
-#include <algorithm>
 #include <array>
 #include <iterator>
-#include <memory>
 #include <optional>
 #include <vector>
 
 #include <mbedtls/sha1.h>
 
-#include "Common/Assert.h"
-#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"

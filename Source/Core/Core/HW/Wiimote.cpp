@@ -10,19 +10,15 @@
 #include "Common/Config/Config.h"
 
 #include "Core/Config/WiimoteSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/InputConfig.h"
 
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state

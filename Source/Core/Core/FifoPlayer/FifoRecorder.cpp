@@ -19,7 +19,6 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFMemory.h"
-#include "VideoCommon/XFStructs.h"
 
 class FifoRecorder::FifoRecordAnalyzer : public OpcodeDecoder::Callback
 {

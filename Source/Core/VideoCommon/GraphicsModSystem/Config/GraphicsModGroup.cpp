@@ -4,18 +4,15 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
 #include <map>
-#include <sstream>
 #include <string>
 
 #include <picojson.h>
 
 #include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Constants.h"

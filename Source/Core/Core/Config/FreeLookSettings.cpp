@@ -3,8 +3,6 @@
 
 #include "Core/Config/FreeLookSettings.h"
 
-#include <string>
-
 #include "Common/Config/Config.h"
 #include "Core/FreeLookConfig.h"
 

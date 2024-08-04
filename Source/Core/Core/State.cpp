@@ -12,7 +12,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -30,12 +29,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Common/TimeUtil.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -49,7 +46,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-#include "VideoCommon/FrameDumpFFMpeg.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 

@@ -17,7 +17,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"

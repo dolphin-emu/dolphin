@@ -6,7 +6,6 @@
 #include <array>
 #include <climits>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <initializer_list>
 #include <type_traits>

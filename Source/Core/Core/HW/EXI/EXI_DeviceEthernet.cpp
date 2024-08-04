@@ -3,7 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
-#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>

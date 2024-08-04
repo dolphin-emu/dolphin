@@ -29,7 +29,6 @@
 #include "Common/NandPaths.h"
 #include "Common/QoSSession.h"
 #include "Common/SFMLHelper.h"
-#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
@@ -39,7 +38,6 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/Config/WiimoteSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -56,7 +54,6 @@
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
@@ -69,9 +66,7 @@
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
-#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"

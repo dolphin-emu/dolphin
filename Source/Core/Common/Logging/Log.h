@@ -5,8 +5,6 @@
 
 #include <cstddef>
 #include <fmt/format.h>
-#include <string_view>
-#include "Common/FormatUtil.h"
 
 namespace Common::Log
 {

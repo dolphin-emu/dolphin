@@ -17,7 +17,6 @@
 
 #include "Common/Flag.h"
 #include "Common/Network.h"
-#include "Common/SocketContext.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/BBA/TAPServerConnection.h"
 #include "Core/HW/EXI/EXI_Device.h"

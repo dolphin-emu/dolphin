@@ -5,14 +5,11 @@
 
 #include <QDialogButtonBox>
 #include <QEvent>
-#include <QGroupBox>
-#include <QLabel>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"

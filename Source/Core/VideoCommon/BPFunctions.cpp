@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <string_view>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -17,7 +16,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"

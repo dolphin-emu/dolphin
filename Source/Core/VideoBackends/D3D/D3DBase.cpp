@@ -3,7 +3,6 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 
-#include <algorithm>
 #include <array>
 
 #include "Common/CommonTypes.h"
@@ -11,7 +10,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"

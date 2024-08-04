@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 /*
  * Constants
  */

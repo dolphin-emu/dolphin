@@ -9,7 +9,6 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <QListWidget>
-#include <QPushButton>
 
 #include "Common/Config/Config.h"
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"

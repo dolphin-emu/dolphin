@@ -5,7 +5,6 @@
 
 #include "Common/EnumUtils.h"
 #include "VideoCommon/ConstantManager.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/VertexShaderGen.h"

@@ -5,7 +5,6 @@
 
 #include <memory>
 
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
 
 class PointerWrap;

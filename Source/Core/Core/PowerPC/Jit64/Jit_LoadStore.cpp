@@ -17,7 +17,6 @@
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitInterface.h"

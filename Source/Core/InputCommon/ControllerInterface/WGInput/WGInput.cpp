@@ -15,9 +15,7 @@
 // NOTE: winrt translates com failures to c++ exceptions, so we must use try/catch in this file to
 // prevent possible errors from escaping and terminating Dolphin.
 #include <winrt/base.h>
-#include <winrt/windows.devices.haptics.h>
 #include <winrt/windows.devices.power.h>
-#include <winrt/windows.foundation.collections.h>
 #include <winrt/windows.gaming.input.h>
 #include <winrt/windows.system.power.h>
 #pragma comment(lib, "windowsapp")

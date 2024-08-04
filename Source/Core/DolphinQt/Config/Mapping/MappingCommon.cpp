@@ -7,7 +7,6 @@
 
 #include <QApplication>
 #include <QPushButton>
-#include <QRegularExpression>
 #include <QString>
 #include <QTimer>
 

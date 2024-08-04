@@ -3,12 +3,10 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
-#include <algorithm>
 #include <array>
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"

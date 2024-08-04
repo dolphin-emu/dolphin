@@ -17,7 +17,6 @@
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"

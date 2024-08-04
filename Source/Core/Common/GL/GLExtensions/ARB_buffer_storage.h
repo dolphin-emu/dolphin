@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 #define GL_MAP_READ_BIT 0x0001
 #define GL_MAP_WRITE_BIT 0x0002
 #define GL_MAP_PERSISTENT_BIT 0x00000040

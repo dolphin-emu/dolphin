@@ -7,14 +7,11 @@
 #include <array>
 #include <atomic>
 #include <chrono>
-#include <ctime>
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
-#include <string_view>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -26,8 +23,6 @@
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/HttpRequest.h"
 #include "Common/JsonUtil.h"
 #include "Common/Lazy.h"
 #include "Common/WorkQueueThread.h"

@@ -24,7 +24,6 @@
 #include <fmt/format.h>
 
 #include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"

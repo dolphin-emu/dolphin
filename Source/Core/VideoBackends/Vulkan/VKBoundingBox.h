@@ -5,7 +5,6 @@
 
 #include <array>
 #include <memory>
-#include <string>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"

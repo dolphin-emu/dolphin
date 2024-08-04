@@ -41,7 +41,6 @@ Make AA apply instantly during gameplay if possible
 
 #include "Common/Common.h"
 #include "Common/GL/GLContext.h"
-#include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Config/GraphicsSettings.h"

@@ -8,7 +8,6 @@
 
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
-#include "Common/Thread.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"

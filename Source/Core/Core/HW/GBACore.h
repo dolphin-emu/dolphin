@@ -9,14 +9,12 @@
 #include <mutex>
 #include <queue>
 #include <string>
-#include <string_view>
 #include <thread>
 #include <vector>
 
 #define PYCPARSE  // Remove static functions from the header
 #include <mgba/core/interface.h>
 #undef PYCPARSE
-#include <mgba/core/core.h>
 #include <mgba/gba/interface.h>
 
 #include "Common/CommonTypes.h"

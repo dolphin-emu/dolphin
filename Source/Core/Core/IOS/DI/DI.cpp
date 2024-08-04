@@ -6,7 +6,6 @@
 #include <memory>
 #include <vector>
 
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

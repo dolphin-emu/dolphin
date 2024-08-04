@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <variant>
 
 #include "Common/BitUtils.h"

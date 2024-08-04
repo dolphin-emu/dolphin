@@ -3,9 +3,7 @@
 
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
-#include <algorithm>
 #include <array>
-#include <cstring>
 #include <functional>
 #include <map>
 #include <set>

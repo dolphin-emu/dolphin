@@ -3,8 +3,6 @@
 
 #include "VideoBackends/D3D12/D3D12PerfQuery.h"
 
-#include <algorithm>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 

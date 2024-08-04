@@ -3,8 +3,6 @@
 
 #include "VideoCommon/GeometryShaderGen.h"
 
-#include <cmath>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "VideoCommon/DriverDetails.h"

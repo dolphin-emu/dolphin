@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 #define GL_COMPUTE_SHADER 0x91B9
 #define GL_MAX_COMPUTE_UNIFORM_BLOCKS 0x91BB
 #define GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS 0x91BC

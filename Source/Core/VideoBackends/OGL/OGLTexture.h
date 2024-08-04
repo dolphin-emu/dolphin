@@ -8,8 +8,6 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/GL/GLUtil.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"

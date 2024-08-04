@@ -12,7 +12,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/System.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 //#define WIIMOTE_SPEAKER_DUMP

@@ -19,7 +19,6 @@
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 
-#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/TextureCacheBase.h"

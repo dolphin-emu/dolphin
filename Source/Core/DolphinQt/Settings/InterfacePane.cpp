@@ -3,13 +3,11 @@
 
 #include "DolphinQt/Settings/InterfacePane.h"
 
-#include <QCheckBox>
 #include <QComboBox>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -31,8 +29,6 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/GameFile.h"
 
 static ConfigStringChoice* MakeLanguageComboBox()
 {

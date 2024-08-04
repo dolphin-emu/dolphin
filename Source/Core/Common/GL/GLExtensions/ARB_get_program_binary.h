@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 #define GL_PROGRAM_BINARY_RETRIEVABLE_HINT 0x8257
 #define GL_PROGRAM_BINARY_LENGTH 0x8741
 #define GL_NUM_PROGRAM_BINARY_FORMATS 0x87FE

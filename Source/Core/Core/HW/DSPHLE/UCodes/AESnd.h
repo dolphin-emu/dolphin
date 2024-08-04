@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"

@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 
-#include "Core/Core.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/NANDImporter.h"

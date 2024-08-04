@@ -5,7 +5,6 @@
 
 #include <cmath>
 
-#include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"

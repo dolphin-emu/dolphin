@@ -5,10 +5,8 @@
 
 #include <array>
 #include <memory>
-#include <string_view>
 
 #include "Common/CommonTypes.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Constants.h"
 

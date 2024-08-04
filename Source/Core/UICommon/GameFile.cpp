@@ -12,7 +12,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -29,7 +28,6 @@
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/Image.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -41,7 +39,6 @@
 #include "Core/TitleDatabase.h"
 
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/Volume.h"

@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace Vulkan

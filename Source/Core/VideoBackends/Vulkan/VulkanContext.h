@@ -4,13 +4,11 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan

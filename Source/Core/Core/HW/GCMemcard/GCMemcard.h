@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <bitset>
 #include <limits>
@@ -13,7 +12,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "Common/Swap.h"
-#include "Common/Timer.h"
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"

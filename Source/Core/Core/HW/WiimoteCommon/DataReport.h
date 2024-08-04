@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"

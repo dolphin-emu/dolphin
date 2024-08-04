@@ -8,7 +8,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace D3DCommon

@@ -15,7 +15,6 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/VideoState.h"
 
 AsyncRequests AsyncRequests::s_singleton;

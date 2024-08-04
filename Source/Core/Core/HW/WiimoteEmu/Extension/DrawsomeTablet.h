@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu

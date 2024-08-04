@@ -8,7 +8,6 @@
 #endif
 
 #include <array>
-#include <sstream>
 #include <string>
 
 #include <fmt/chrono.h>

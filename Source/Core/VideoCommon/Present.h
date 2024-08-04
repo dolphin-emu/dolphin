@@ -14,7 +14,6 @@
 #include <array>
 #include <memory>
 #include <mutex>
-#include <span>
 #include <tuple>
 
 class AbstractTexture;

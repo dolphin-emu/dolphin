@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <memory>
 #include <optional>
 #include <string>
@@ -36,7 +35,6 @@
 #include "Core/HW/StreamADPCM.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/DI/DI.h"
-#include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
 

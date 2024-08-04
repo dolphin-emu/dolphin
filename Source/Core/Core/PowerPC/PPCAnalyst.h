@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <cstddef>
 #include <set>
 #include <vector>

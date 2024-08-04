@@ -8,7 +8,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace Vulkan

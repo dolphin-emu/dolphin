@@ -13,7 +13,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"

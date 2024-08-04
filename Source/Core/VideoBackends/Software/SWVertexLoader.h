@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"

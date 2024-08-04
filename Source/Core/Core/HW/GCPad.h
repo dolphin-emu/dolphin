@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class InputConfig;

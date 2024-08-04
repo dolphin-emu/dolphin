@@ -10,7 +10,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"

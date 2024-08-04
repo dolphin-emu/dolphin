@@ -10,7 +10,6 @@
 #include <fmt/format.h>
 
 #include <QApplication>
-#include <QCoreApplication>
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -18,17 +17,13 @@
 #include "Common/Thread.h"
 
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
-#include "Core/Host.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/State.h"
 #include "Core/System.h"
@@ -44,7 +39,6 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 constexpr auto DUBOIS_ALGORITHM_SHADER = "dubois";

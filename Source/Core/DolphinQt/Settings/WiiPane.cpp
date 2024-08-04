@@ -9,16 +9,13 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDir>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPushButton>
 #include <QSlider>
-#include <QSpacerItem>
 #include <QStringList>
 
 #include "Common/Config/Config.h"
@@ -28,7 +25,6 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/System.h"
 

@@ -5,7 +5,6 @@
 
 #include <SFML/Network/Packet.hpp>
 
-#include <array>
 #include <chrono>
 #include <optional>
 #include <string>

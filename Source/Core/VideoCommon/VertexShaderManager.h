@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "VideoCommon/ConstantManager.h"

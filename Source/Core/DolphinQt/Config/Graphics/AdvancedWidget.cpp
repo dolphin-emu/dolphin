@@ -3,11 +3,9 @@
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 
-#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QSpinBox>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"

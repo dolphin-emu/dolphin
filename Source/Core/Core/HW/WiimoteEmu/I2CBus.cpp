@@ -3,8 +3,6 @@
 
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 
-#include <algorithm>
-
 namespace WiimoteEmu
 {
 void I2CBus::AddSlave(I2CSlave* slave)

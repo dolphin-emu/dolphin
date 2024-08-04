@@ -15,7 +15,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
 #include "Core/CheatCodes.h"

@@ -8,7 +8,6 @@
 
 #include "Common/CommonTypes.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/InputConfig.h"
 
 namespace ControllerEmu
 {

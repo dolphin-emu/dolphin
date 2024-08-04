@@ -3,7 +3,6 @@
 
 #include "UICommon/ResourcePack/Manager.h"
 
-#include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

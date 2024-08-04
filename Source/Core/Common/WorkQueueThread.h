@@ -8,7 +8,6 @@
 #include <functional>
 #include <queue>
 #include <string>
-#include <string_view>
 #include <thread>
 
 #include "Common/Thread.h"

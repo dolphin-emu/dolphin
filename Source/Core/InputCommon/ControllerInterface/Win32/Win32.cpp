@@ -5,8 +5,6 @@
 
 #include <Windows.h>
 #include <cfgmgr32.h>
-// must be before hidclass
-#include <initguid.h>
 
 #include <hidclass.h>
 

@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -24,7 +23,6 @@
 #include "Common/Timer.h"
 
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"

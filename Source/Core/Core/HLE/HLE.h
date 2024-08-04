@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <string_view>
-
 #include "Common/CommonTypes.h"
 
 namespace Core

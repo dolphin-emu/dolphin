@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 #include "Common/MemArena.h"
 #include "Common/Swap.h"
 #include "Core/PowerPC/MMU.h"

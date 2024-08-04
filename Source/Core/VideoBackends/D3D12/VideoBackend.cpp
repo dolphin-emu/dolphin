@@ -19,7 +19,6 @@
 #include "VideoBackends/D3D12/DX12Context.h"
 
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"

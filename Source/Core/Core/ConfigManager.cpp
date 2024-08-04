@@ -7,7 +7,6 @@
 #include <climits>
 #include <memory>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -18,7 +17,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -26,24 +24,17 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
-#include "Core/CommonTitles.h"
-#include "Core/Config/DefaultLocale.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
-#include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"

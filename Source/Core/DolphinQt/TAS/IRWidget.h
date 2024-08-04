@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <QDialog>
-
 #include "Common/CommonTypes.h"
 
 class IRWidget : public QWidget

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <array>
 #include <string>
 
 #include "Common/BitUtils.h"

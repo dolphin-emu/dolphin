@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"

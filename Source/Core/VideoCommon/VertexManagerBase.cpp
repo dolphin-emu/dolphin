@@ -38,11 +38,9 @@
 #include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-#include "VideoCommon/XFStateManager.h"
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 

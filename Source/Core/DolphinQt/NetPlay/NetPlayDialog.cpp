@@ -23,9 +23,7 @@
 #include <QTextBrowser>
 
 #include <algorithm>
-#include <sstream>
 
-#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
@@ -35,12 +33,10 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
-#include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
 #include "Core/System.h"

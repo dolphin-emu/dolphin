@@ -9,7 +9,6 @@
 
 #include <zlib.h>
 
-#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"

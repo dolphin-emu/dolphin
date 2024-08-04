@@ -4,7 +4,6 @@
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 
 #include <optional>
-#include <thread>
 
 #include <QBrush>
 #include <QColor>
@@ -17,7 +16,6 @@
 #include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QSlider>
 #include <QSpinBox>
 #include <QTableWidget>
 #include <QVBoxLayout>

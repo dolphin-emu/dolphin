@@ -4,7 +4,6 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 
 #include <QFileDialog>
-#include <QObject>
 
 QString DolphinFileDialog::getExistingDirectory(QWidget* parent, const QString& caption,
                                                 const QString& dir, const QFileDialog::Options options)

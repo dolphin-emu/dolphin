@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
@@ -22,7 +21,6 @@
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/Memmap.h"
-#include "Core/System.h"
 
 namespace DSP::HLE
 {

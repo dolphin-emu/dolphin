@@ -25,7 +25,6 @@
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 #include "Core/HW/SI/SI_DeviceNull.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/System.h"
 
 namespace SerialInterface
 {

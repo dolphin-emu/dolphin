@@ -4,7 +4,6 @@
 #include "DiscIO/VolumeFileBlobReader.h"
 
 #include <memory>
-#include <string_view>
 
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"

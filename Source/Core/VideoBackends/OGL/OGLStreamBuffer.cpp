@@ -4,7 +4,6 @@
 #include "VideoBackends/OGL/OGLStreamBuffer.h"
 
 #include "Common/Align.h"
-#include "Common/GL/GLUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 

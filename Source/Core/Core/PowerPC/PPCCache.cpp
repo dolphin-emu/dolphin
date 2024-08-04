@@ -13,7 +13,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 
 namespace PowerPC
 {

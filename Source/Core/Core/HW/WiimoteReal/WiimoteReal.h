@@ -10,7 +10,6 @@
 #include <thread>
 #include <vector>
 
-#include "Common/Common.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"

@@ -10,9 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3DCommon/SwapChain.h"
-#include "VideoCommon/TextureConfig.h"
 
 namespace DX12
 {

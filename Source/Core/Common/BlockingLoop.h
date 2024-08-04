@@ -5,7 +5,6 @@
 
 #include <atomic>
 #include <mutex>
-#include <thread>
 
 #include "Common/Event.h"
 #include "Common/Flag.h"

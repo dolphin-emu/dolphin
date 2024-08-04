@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <memory>
 
 #include "Common/CommonTypes.h"

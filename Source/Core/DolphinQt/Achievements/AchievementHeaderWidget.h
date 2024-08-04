@@ -6,8 +6,6 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QWidget>
 
-#include "Core/AchievementManager.h"
-
 class QGroupBox;
 class QLabel;
 class QProgressBar;

@@ -19,7 +19,6 @@
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigEdit.h"
 
 #include "UICommon/GameFile.h"

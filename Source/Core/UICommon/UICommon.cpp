@@ -6,10 +6,8 @@
 #include <algorithm>
 #include <clocale>
 #include <cmath>
-#include <iomanip>
 #include <locale>
 #include <memory>
-#include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 
@@ -22,7 +20,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -48,7 +45,6 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
-#include "UICommon/USBUtils.h"
 
 #ifdef HAVE_X11
 #include "UICommon/X11Utils.h"

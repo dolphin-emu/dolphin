@@ -5,10 +5,7 @@
 
 #include <algorithm>
 #include <memory>
-#include <mutex>
 #include <string>
-#include <string_view>
-#include <thread>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -21,10 +18,8 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
-#include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/OnScreenDisplay.h"

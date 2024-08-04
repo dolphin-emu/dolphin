@@ -6,7 +6,6 @@
 #include <cstring>
 #include <memory>
 #include <utility>
-#include <vector>
 
 #include <fmt/format.h>
 

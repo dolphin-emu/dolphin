@@ -7,7 +7,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdio>
-#include <vector>
 
 #include <fmt/format.h>
 

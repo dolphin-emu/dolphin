@@ -6,9 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
-#include <list>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <unordered_set>
 #include <utility>

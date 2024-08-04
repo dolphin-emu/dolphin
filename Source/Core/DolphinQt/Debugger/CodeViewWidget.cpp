@@ -12,17 +12,13 @@
 #include <QClipboard>
 #include <QHeaderView>
 #include <QInputDialog>
-#include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QResizeEvent>
-#include <QScrollBar>
 #include <QStyleHints>
 #include <QStyledItemDelegate>
 #include <QTableWidgetItem>
-#include <QWheelEvent>
 
 #include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"

@@ -7,10 +7,8 @@
 #include <chrono>
 #include <regex>
 
-#include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 

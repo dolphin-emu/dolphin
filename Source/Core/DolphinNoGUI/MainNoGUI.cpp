@@ -6,14 +6,11 @@
 #include <OptionParser.h>
 #include <cstddef>
 #include <cstdio>
-#include <cstring>
 #include <signal.h>
 #include <string>
 #include <vector>
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
+#ifdef _WIN32
 #include <Windows.h>
 #endif
 
@@ -31,8 +28,6 @@
 #include "UICommon/DiscordPresence.h"
 #endif
 #include "UICommon/UICommon.h"
-
-#include "InputCommon/GCAdapter.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 

@@ -6,7 +6,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFont>
-#include <QFontDatabase>
 #include <QGridLayout>
 #include <QPlainTextEdit>
 #include <QPushButton>

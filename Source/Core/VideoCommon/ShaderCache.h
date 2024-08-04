@@ -5,12 +5,9 @@
 
 #include <array>
 #include <cstddef>
-#include <cstring>
 #include <map>
 #include <memory>
 #include <optional>
-#include <string>
-#include <unordered_map>
 #include <utility>
 
 #include "Common/CommonTypes.h"
@@ -25,7 +22,6 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/UberShaderVertex.h"

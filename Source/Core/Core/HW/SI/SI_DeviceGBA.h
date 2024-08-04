@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <array>
 #include <memory>
 
 #include <SFML/Network.hpp>

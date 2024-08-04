@@ -7,10 +7,8 @@
 #include <QGroupBox>
 #include <QListWidget>
 #include <QPushButton>
-#include <QRadioButton>
 #include <QVBoxLayout>
 
-#include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"

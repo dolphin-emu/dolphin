@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <array>
-
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"

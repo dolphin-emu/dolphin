@@ -14,7 +14,6 @@
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"

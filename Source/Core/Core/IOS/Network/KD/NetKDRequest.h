@@ -8,7 +8,6 @@
 #include <queue>
 #include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"

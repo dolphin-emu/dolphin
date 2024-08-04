@@ -4,16 +4,13 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 
 #include <QAction>
-#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
-#include <QPushButton>
 #include <QTabWidget>
 #include <QTimer>
 #include <QToolButton>
-#include <QVBoxLayout>
 
 #include "Core/Core.h"
 #include "Core/HotkeyManager.h"

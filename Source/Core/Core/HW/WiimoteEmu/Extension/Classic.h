@@ -6,7 +6,6 @@
 #include <limits>
 
 #include "Common/Matrix.h"
-#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu

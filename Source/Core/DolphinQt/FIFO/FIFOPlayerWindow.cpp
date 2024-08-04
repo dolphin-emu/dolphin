@@ -3,19 +3,15 @@
 
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 
-#include <QCheckBox>
 #include <QDialogButtonBox>
-#include <QEvent>
 #include <QGroupBox>
 #include <QHBoxLayout>
-#include <QIcon>
 #include <QKeyEvent>
 #include <QKeySequence>
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTabWidget>
-#include <QVBoxLayout>
 
 #include <algorithm>
 

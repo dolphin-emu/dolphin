@@ -10,7 +10,6 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 namespace Common

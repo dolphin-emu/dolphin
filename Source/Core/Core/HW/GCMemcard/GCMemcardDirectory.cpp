@@ -9,7 +9,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include <fmt/format.h>
@@ -26,16 +25,12 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
-#include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
 
 static const char* MC_HDR = "MC_SYSTEM_AREA";

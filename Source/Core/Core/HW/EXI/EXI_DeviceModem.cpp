@@ -8,14 +8,12 @@
 #include <algorithm>
 #include <cstring>
 #include <memory>
-#include <optional>
 #include <string>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/Network.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"

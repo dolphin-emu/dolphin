@@ -3,7 +3,6 @@
 
 #include "VideoBackends/D3D12/DX12Context.h"
 
-#include <algorithm>
 #include <array>
 #include <dxgi1_2.h>
 #include <queue>

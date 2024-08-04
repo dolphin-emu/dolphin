@@ -12,7 +12,6 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 
 namespace ControllerEmu

@@ -4,23 +4,12 @@
 #include "VideoBackends/D3D/D3DGfx.h"
 
 #include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstring>
 #include <memory>
-#include <string>
-#include <strsafe.h>
-#include <tuple>
 
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
-#include "Core/Core.h"
-
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3D/D3DBoundingBox.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/DXPipeline.h"
@@ -29,7 +18,6 @@
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoConfig.h"

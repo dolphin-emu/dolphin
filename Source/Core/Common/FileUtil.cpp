@@ -4,7 +4,6 @@
 #include "Common/FileUtil.h"
 
 #include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -35,11 +34,8 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <Shlwapi.h>
-#include <commdlg.h>  // for GetSaveFileName
-#include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
-#include <shellapi.h>
 #else
 #include <dirent.h>
 #include <errno.h>

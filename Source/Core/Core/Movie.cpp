@@ -12,7 +12,6 @@
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
-#include <sstream>
 #include <thread>
 #include <utility>
 #include <variant>
@@ -30,7 +29,6 @@
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
@@ -38,7 +36,6 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -69,11 +66,8 @@
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
-#include "DiscIO/Enums.h"
-
 #include "InputCommon/GCPadStatus.h"
 
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 // The chunk to allocate movie data in multiples of.

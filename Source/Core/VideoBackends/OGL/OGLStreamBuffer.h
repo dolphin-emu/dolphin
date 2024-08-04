@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLUtil.h"
 
 namespace OGL
 {

@@ -6,9 +6,6 @@
 #include <memory>
 #include <string>
 
-#include "Common/Common.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
-
 namespace ControllerEmu
 {
 Buttons::Buttons(const std::string& name_) : Buttons(name_, name_)

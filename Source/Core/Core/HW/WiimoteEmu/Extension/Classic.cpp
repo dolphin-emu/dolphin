@@ -4,10 +4,8 @@
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 
 #include <array>
-#include <string_view>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 

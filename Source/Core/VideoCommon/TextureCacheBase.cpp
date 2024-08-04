@@ -27,7 +27,6 @@
 #include "Common/MemoryUtil.h"
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"

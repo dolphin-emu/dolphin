@@ -4,7 +4,6 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 
 #include <algorithm>
-#include <array>
 #include <optional>
 
 #include <fmt/format.h>
@@ -12,7 +11,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/VariantUtil.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"

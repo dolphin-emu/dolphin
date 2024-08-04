@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
 namespace Common
 {

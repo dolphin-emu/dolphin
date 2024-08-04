@@ -4,12 +4,10 @@
 #include "Core/FreeLookManager.h"
 
 #include "Common/Common.h"
-#include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/ScopeGuard.h"
 
 #include "Core/Config/FreeLookSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookConfig.h"
 
@@ -19,7 +17,6 @@
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/OnScreenDisplay.h"
 
 namespace
 {

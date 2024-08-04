@@ -7,7 +7,6 @@
 #include <deque>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/HW/Wiimote.h"

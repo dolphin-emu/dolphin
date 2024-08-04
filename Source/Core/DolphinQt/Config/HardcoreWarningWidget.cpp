@@ -11,8 +11,6 @@
 #include <QStyle>
 
 #include "Core/AchievementManager.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Settings.h"
 

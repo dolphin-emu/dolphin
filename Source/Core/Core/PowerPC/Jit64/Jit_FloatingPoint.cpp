@@ -3,7 +3,6 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <optional>
@@ -15,7 +14,6 @@
 #include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"

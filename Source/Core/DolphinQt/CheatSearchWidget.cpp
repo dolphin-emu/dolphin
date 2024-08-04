@@ -18,29 +18,22 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPushButton>
-#include <QSettings>
 #include <QSignalBlocker>
 #include <QString>
 #include <QTableWidget>
-#include <QVBoxLayout>
 
 #include <fmt/format.h>
 
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 #include "Core/ActionReplay.h"
 #include "Core/CheatGeneration.h"
 #include "Core/CheatSearch.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 
-#include "DolphinQt/Config/CheatCodeEditor.h"
-#include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 

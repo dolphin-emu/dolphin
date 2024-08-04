@@ -8,7 +8,6 @@
 #include <span>
 #include <tuple>
 #include <type_traits>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 

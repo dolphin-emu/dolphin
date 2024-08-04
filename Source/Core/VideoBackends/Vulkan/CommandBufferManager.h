@@ -4,20 +4,12 @@
 #pragma once
 
 #include <array>
-#include <cstddef>
-#include <deque>
 #include <functional>
-#include <map>
 #include <memory>
-#include <mutex>
-#include <thread>
-#include <utility>
 #include <vector>
 
 #include <Common/WorkQueueThread.h>
-#include "Common/BlockingLoop.h"
 #include "Common/Flag.h"
-#include "Common/Semaphore.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
 

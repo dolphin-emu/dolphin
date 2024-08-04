@@ -7,19 +7,13 @@
 #include <array>
 #include <type_traits>
 
-#include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/ConfigManager.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/VideoCommon.h"

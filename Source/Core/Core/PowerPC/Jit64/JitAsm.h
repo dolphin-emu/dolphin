@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
 namespace Gen

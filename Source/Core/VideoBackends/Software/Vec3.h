@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cmath>
 #include <cstdlib>
 
 class Vec3

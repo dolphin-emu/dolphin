@@ -9,7 +9,6 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
 
 namespace Core
 {

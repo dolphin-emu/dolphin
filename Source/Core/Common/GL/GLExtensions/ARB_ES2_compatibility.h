@@ -3,8 +3,6 @@
 ** SPDX-License-Identifier: MIT
 */
 
-#include "Common/GL/GLExtensions/gl_common.h"
-
 typedef void(APIENTRYP PFNDOLRELEASESHADERCOMPILERPROC)(void);
 typedef void(APIENTRYP PFNDOLSHADERBINARYPROC)(GLsizei count, const GLuint* shaders,
                                                GLenum binaryformat, const void* binary,

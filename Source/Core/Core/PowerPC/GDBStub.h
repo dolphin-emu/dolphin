@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Core/CoreTiming.h"
 
 namespace GDBStub
 {

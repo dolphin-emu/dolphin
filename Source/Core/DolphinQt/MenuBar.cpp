@@ -9,7 +9,6 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QDesktopServices>
-#include <QFileDialog>
 #include <QFontDialog>
 #include <QInputDialog>
 #include <QMap>
@@ -21,7 +20,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-#include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
@@ -35,7 +33,6 @@
 #include "Core/HW/AddressSpace.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/WiiSave.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
@@ -50,14 +47,11 @@
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/State.h"
 #include "Core/System.h"
-#include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDImporter.h"
-#include "DiscIO/WiiSaveBanner.h"
 
-#include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/NANDRepairDialog.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"

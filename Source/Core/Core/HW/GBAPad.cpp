@@ -4,7 +4,6 @@
 #include "Core/HW/GBAPad.h"
 
 #include "Core/HW/GBAPadEmu.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 

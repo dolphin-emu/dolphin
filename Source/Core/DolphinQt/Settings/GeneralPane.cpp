@@ -3,15 +3,11 @@
 
 #include "DolphinQt/Settings/GeneralPane.h"
 
-#include <map>
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QPushButton>
-#include <QSlider>
 #include <QVBoxLayout>
 #include <QWidget>
 

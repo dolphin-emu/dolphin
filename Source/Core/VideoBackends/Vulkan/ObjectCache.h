@@ -12,14 +12,10 @@
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
-#include "Common/LinearDiskCache.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
 
-#include "VideoCommon/GeometryShaderGen.h"
-#include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/VertexShaderGen.h"
 
 namespace Vulkan
 {

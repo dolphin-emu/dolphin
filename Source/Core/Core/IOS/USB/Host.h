@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstddef>
 #include <functional>
 #include <map>
 #include <memory>
@@ -11,7 +10,6 @@
 #include <set>
 #include <string>
 #include <thread>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"

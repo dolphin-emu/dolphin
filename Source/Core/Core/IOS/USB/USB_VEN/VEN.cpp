@@ -3,7 +3,6 @@
 
 #include "Core/IOS/USB/USB_VEN/VEN.h"
 
-#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <mutex>

@@ -3,7 +3,6 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 
-#include <QEvent>
 #include <QFont>
 #include <QSignalBlocker>
 
