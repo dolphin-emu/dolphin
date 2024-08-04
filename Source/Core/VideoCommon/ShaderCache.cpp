@@ -351,6 +351,12 @@ void ShaderCache::ClearPipelineCache(T& cache, Y& disk_cache)
 
 void ShaderCache::LoadCaches()
 {
+  if (g_ActiveConfig.bEnableBreadcrumbs)
+  {
+    // We want to print all shaders to the log when using breadcrumbs.
+    return;
+  }
+
   // Ubershader caches, if present.
   if (g_ActiveConfig.backend_info.bSupportsShaderBinaries)
   {

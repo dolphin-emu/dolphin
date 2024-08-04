@@ -22,10 +22,17 @@ public:
   AbstractPipelineUsage GetUsage() const { return m_usage; }
   static std::unique_ptr<VKPipeline> Create(const AbstractPipelineConfig& config);
 
+  u64 GetVSHash() const { return m_vsHash; }
+  u64 GetPSHash() const { return m_psHash; }
+  u64 GetGSHash() const { return m_gsHash; }
+
 private:
   VkPipeline m_pipeline;
   VkPipelineLayout m_pipeline_layout;
   AbstractPipelineUsage m_usage;
+  u64 m_vsHash = 0;
+  u64 m_psHash = 0;
+  u64 m_gsHash = 0;
 };
 
 }  // namespace Vulkan

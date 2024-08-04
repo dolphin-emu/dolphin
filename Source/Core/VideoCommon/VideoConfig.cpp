@@ -142,6 +142,7 @@ void VideoConfig::Refresh()
   bDisableFog = Config::Get(Config::GFX_DISABLE_FOG);
   bBorderlessFullscreen = Config::Get(Config::GFX_BORDERLESS_FULLSCREEN);
   bEnableValidationLayer = Config::Get(Config::GFX_ENABLE_VALIDATION_LAYER);
+  bEnableBreadcrumbs = Config::Get(Config::GFX_ENABLE_BREADCRUMBS);
   bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);

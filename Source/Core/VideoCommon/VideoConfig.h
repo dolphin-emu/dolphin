@@ -258,6 +258,9 @@ struct VideoConfig final
   // Enable API validation layers, currently only supported with Vulkan.
   bool bEnableValidationLayer = false;
 
+  // Enable GPU breadcrumbs, currently only supported with Vulkan.
+  bool bEnableBreadcrumbs = false;
+
   // Multithreaded submission, currently only supported with Vulkan.
   bool bBackendMultithreading = true;
 
