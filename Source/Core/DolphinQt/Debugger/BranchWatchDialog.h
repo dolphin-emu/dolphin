@@ -153,6 +153,8 @@ private:
   QMenu* m_mnu_column_visibility;
 
   QToolBar* m_control_toolbar;
+  QAction *m_act_branch_type_filters, *m_act_origin_destin_filters, *m_act_condition_filters,
+      *m_act_misc_controls;
   QTableView* m_table_view;
   BranchWatchProxyModel* m_table_proxy;
   BranchWatchTableModel* m_table_model;

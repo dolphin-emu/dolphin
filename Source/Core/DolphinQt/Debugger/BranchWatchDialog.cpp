@@ -321,7 +321,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     group_box->setLayout(layout);
     group_box->setAlignment(Qt::AlignHCenter);
 
-    m_control_toolbar->addWidget(group_box);
+    m_act_branch_type_filters = m_control_toolbar->addWidget(group_box);
   }
   {
     // Origin and Destination Filter Options
@@ -353,7 +353,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     group_box->setLayout(layout);
     group_box->setAlignment(Qt::AlignHCenter);
 
-    m_control_toolbar->addWidget(group_box);
+    m_act_origin_destin_filters = m_control_toolbar->addWidget(group_box);
   }
   {
     // Condition Filter Options
@@ -382,7 +382,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     group_box->setLayout(layout);
     group_box->setAlignment(Qt::AlignHCenter);
 
-    m_control_toolbar->addWidget(group_box);
+    m_act_condition_filters = m_control_toolbar->addWidget(group_box);
   }
   {
     // Misc. Controls
@@ -411,7 +411,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     group_box->setLayout(layout);
     group_box->setAlignment(Qt::AlignHCenter);
 
-    m_control_toolbar->addWidget(group_box);
+    m_act_misc_controls = m_control_toolbar->addWidget(group_box);
   }
 
   // Table Context Menus
@@ -486,6 +486,21 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     }
   }
 
+  // Toolbar Visibility Menu
+  auto* const toolbar_visibility_menu = new QMenu(this);
+  {
+    const auto routine = [toolbar_visibility_menu](const QString& text, QAction* toolbar_action) {
+      auto* const menu_action =
+          toolbar_visibility_menu->addAction(text, toolbar_action, &QAction::setVisible);
+      menu_action->setChecked(toolbar_action->isVisible());
+      menu_action->setCheckable(true);
+    };
+    routine(tr("&Branch Type"), m_act_branch_type_filters);
+    routine(tr("&Origin and Destination"), m_act_origin_destin_filters);
+    routine(tr("&Condition"), m_act_condition_filters);
+    routine(tr("&Misc. Controls"), m_act_misc_controls);
+  }
+
   // Menu Bar
   auto* const menu_bar = new QMenuBar(nullptr);
   menu_bar->setNativeMenuBar(false);
@@ -512,6 +527,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     connect(act_ignore_apploader, &QAction::toggled, this,
             &BranchWatchDialog::OnToggleIgnoreApploader);
     menu->addMenu(m_mnu_column_visibility)->setText(tr("Column &Visibility"));
+    menu->addMenu(toolbar_visibility_menu)->setText(tr("&Toolbar Visibility"));
     menu->addAction(tr("Wipe &Inspection Data"), this, &BranchWatchDialog::OnWipeInspection);
     menu->addAction(tr("&Help"), this, &BranchWatchDialog::OnHelp);
   }
@@ -985,6 +1001,14 @@ void BranchWatchDialog::LoadQSettings()
   restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
   m_table_view->horizontalHeader()->restoreState(  // Restore column visibility state.
       settings.value(QStringLiteral("branchwatchdialog/tableheader/state")).toByteArray());
+  m_act_branch_type_filters->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/branch_type_hidden")).toBool());
+  m_act_origin_destin_filters->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/origin_destin_hidden")).toBool());
+  m_act_condition_filters->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/condition_hidden")).toBool());
+  m_act_misc_controls->setVisible(
+      !settings.value(QStringLiteral("branchwatchdialog/toolbar/misc_controls_hidden")).toBool());
 }
 
 void BranchWatchDialog::SaveQSettings() const
@@ -993,6 +1017,14 @@ void BranchWatchDialog::SaveQSettings() const
   settings.setValue(QStringLiteral("branchwatchdialog/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("branchwatchdialog/tableheader/state"),
                     m_table_view->horizontalHeader()->saveState());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/branch_type_hidden"),
+                    !m_act_branch_type_filters->isVisible());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/origin_destin_hidden"),
+                    !m_act_origin_destin_filters->isVisible());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/condition_hidden"),
+                    !m_act_condition_filters->isVisible());
+  settings.setValue(QStringLiteral("branchwatchdialog/toolbar/misc_controls_hidden"),
+                    !m_act_misc_controls->isVisible());
 }
 
 void BranchWatchDialog::Update() const
