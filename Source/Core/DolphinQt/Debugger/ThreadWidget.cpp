@@ -258,7 +258,7 @@ void ThreadWidget::Update()
 
   auto& system = Core::System::GetInstance();
   const auto emu_state = Core::GetState(system);
-  if (emu_state == Core::State::Stopping)
+  if (emu_state == Core::State::Stopping || emu_state == Core::State::Uninitialized)
   {
     m_thread_table->setRowCount(0);
     UpdateThreadContext({});

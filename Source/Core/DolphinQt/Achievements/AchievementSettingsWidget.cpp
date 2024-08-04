@@ -159,6 +159,8 @@ void AchievementSettingsWidget::OnControllerInterfaceConfigure()
 
 void AchievementSettingsWidget::LoadSettings()
 {
+  Core::System& system = Core::System::GetInstance();
+
   bool enabled = Config::Get(Config::RA_ENABLED);
   bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
   bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
@@ -174,18 +176,15 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_password_input)->setVisible(logged_out);
   SignalBlocking(m_common_password_input)->setEnabled(enabled);
   SignalBlocking(m_common_login_button)->setVisible(logged_out);
-  SignalBlocking(m_common_login_button)
-      ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
+  SignalBlocking(m_common_login_button)->setEnabled(enabled && Core::IsUninitialized(system));
   SignalBlocking(m_common_logout_button)->setVisible(!logged_out);
   SignalBlocking(m_common_logout_button)->setEnabled(enabled);
 
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
-  auto& system = Core::System::GetInstance();
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setEnabled(enabled &&
-                   (hardcore_enabled || (Core::GetState(system) == Core::State::Uninitialized &&
-                                         !system.GetMovie().IsPlayingInput())));
+      ->setEnabled(enabled && (hardcore_enabled || (Core::IsUninitialized(system) &&
+                                                    !system.GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_unofficial_enabled_input)
       ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));

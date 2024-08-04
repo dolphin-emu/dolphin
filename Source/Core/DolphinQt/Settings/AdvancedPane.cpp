@@ -239,7 +239,7 @@ void AdvancedPane::ConnectLayout()
 
 void AdvancedPane::Update()
 {
-  const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
+  const bool running = !Core::IsUninitialized(Core::System::GetInstance());
   const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
   const bool enable_custom_rtc_widgets = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
