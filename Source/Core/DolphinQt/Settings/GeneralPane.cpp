@@ -396,13 +396,12 @@ void GeneralPane::AddDescriptions()
                  "<br><br>This setting cannot be changed while emulation is active."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 #endif
-  static constexpr char TR_SPEEDLIMIT_DESCRIPTION[] = QT_TR_NOOP(
-      "Sets the maximum time scale of emulation. Values higher than 100% will accelerate emulated "
-      "time by processing faster than the original hardware, while values lower than 100% will "
-      "slow emulated time. Unlimited will emulate as fast as your host hardware can run."
-      "<br><br>Higher speeds are proportionally more costly to emulate. Depending on the title, "
-      "your settings, and your host hardware, some of these values may not be sustainable."
-      "<br><br><dolphin_emphasis>If unsure, select 100%.</dolphin_emphasis>");
+  static constexpr char TR_SPEEDLIMIT_DESCRIPTION[] =
+      QT_TR_NOOP("Controls how fast emulation runs."
+                 "<br><br>Values lower than 100% make games run in slow motion. Values higher than "
+                 "100% make games run sped up, if your hardware is powerful enough to run "
+                 "emulation that fast. Unlimited will emulate as fast as your hardware can run."
+                 "<br><br><dolphin_emphasis>If unsure, select 100%.</dolphin_emphasis>");
   static constexpr char TR_UPDATE_TRACK_DESCRIPTION[] = QT_TR_NOOP(
       "Selects which update track Dolphin uses when checking for updates at startup. If a new "
       "update is available, Dolphin will show a list of changes made since your current version "
