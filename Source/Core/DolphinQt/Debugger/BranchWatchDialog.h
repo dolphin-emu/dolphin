@@ -98,7 +98,8 @@ private:
   void OnTableSetBreakpointLog();
   void OnTableSetBreakpointBoth();
 
-  void SaveSettings();
+  void LoadQSettings();
+  void SaveQSettings() const;
 
 public:
   // TODO: Step doesn't cause EmulationStateChanged to be emitted, so it has to call this manually.

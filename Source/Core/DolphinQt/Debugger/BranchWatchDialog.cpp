@@ -202,9 +202,6 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   setWindowTitle(tr("Branch Watch Tool"));
   setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
 
-  // Controls Toolbar (widgets are added later)
-  m_control_toolbar = new QToolBar;
-
   // Branch Watch Table
   const auto& ui_settings = Settings::Instance();
 
@@ -238,10 +235,6 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   // The default column width (100 units) is fine for the rest.
 
   QHeaderView* const horizontal_header = m_table_view->horizontalHeader();
-  horizontal_header->restoreState(  // Restore column visibility state.
-      Settings::GetQSettings()
-          .value(QStringLiteral("branchwatchdialog/tableheader/state"))
-          .toByteArray());
   horizontal_header->setContextMenuPolicy(Qt::CustomContextMenu);
   horizontal_header->setStretchLastSection(true);
   horizontal_header->setSectionsMovable(true);
@@ -255,62 +248,12 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   connect(new QShortcut(QKeySequence(Qt::Key_Delete), this), &QShortcut::activated, this,
           &BranchWatchDialog::OnTableDeleteKeypress);
 
-  {
-    // Column Visibility Menu
-    static constexpr std::array<const char*, Column::NumberOfColumns> headers = {
-        QT_TR_NOOP("Instruction"),   QT_TR_NOOP("Condition"),         QT_TR_NOOP("Origin"),
-        QT_TR_NOOP("Destination"),   QT_TR_NOOP("Recent Hits"),       QT_TR_NOOP("Total Hits"),
-        QT_TR_NOOP("Origin Symbol"), QT_TR_NOOP("Destination Symbol")};
-
-    m_mnu_column_visibility = new QMenu();
-    for (int column = 0; column < Column::NumberOfColumns; ++column)
-    {
-      QAction* const action =
-          m_mnu_column_visibility->addAction(tr(headers[column]), [this, column](bool enabled) {
-            m_table_view->setColumnHidden(column, !enabled);
-          });
-      action->setChecked(!m_table_view->isColumnHidden(column));
-      action->setCheckable(true);
-    }
-  }
-
-  // Menu Bar
-  QMenuBar* const menu_bar = new QMenuBar;
-  menu_bar->setNativeMenuBar(false);
-  {
-    QMenu* const menu_file = new QMenu(tr("&File"), menu_bar);
-    menu_file->addAction(tr("&Save Branch Watch"), this, &BranchWatchDialog::OnSave);
-    menu_file->addAction(tr("Save Branch Watch &As..."), this, &BranchWatchDialog::OnSaveAs);
-    menu_file->addAction(tr("&Load Branch Watch"), this, &BranchWatchDialog::OnLoad);
-    menu_file->addAction(tr("Load Branch Watch &From..."), this, &BranchWatchDialog::OnLoadFrom);
-    m_act_autosave = menu_file->addAction(tr("A&uto Save"));
-    m_act_autosave->setCheckable(true);
-    connect(m_act_autosave, &QAction::toggled, this, &BranchWatchDialog::OnToggleAutoSave);
-    menu_bar->addMenu(menu_file);
-
-    QMenu* const menu_tool = new QMenu(tr("&Tool"), menu_bar);
-    menu_tool->setToolTipsVisible(true);
-    menu_tool->addAction(tr("Hide &Controls"), this, &BranchWatchDialog::OnHideShowControls)
-        ->setCheckable(true);
-    QAction* const act_ignore_apploader = menu_tool->addAction(tr("Ignore &Apploader Branch Hits"));
-    act_ignore_apploader->setToolTip(
-        tr("This only applies to the initial boot of the emulated software."));
-    act_ignore_apploader->setChecked(m_system.IsBranchWatchIgnoreApploader());
-    act_ignore_apploader->setCheckable(true);
-    connect(act_ignore_apploader, &QAction::toggled, this,
-            &BranchWatchDialog::OnToggleIgnoreApploader);
-
-    menu_tool->addMenu(m_mnu_column_visibility)->setText(tr("Column &Visibility"));
-    menu_tool->addAction(tr("Wipe &Inspection Data"), this, &BranchWatchDialog::OnWipeInspection);
-    menu_tool->addAction(tr("&Help"), this, &BranchWatchDialog::OnHelp);
-
-    menu_bar->addMenu(menu_tool);
-  }
-
   // Status Bar
   m_status_bar = new QStatusBar;
   m_status_bar->setSizeGripEnabled(false);
 
+  // Controls Toolbar
+  m_control_toolbar = new QToolBar;
   {
     // Tool Controls
     m_btn_start_pause = new QPushButton(tr("Start Branch Watch"));
@@ -480,6 +423,59 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     m_control_toolbar->addWidget(group_box);
   }
 
+  LoadQSettings();
+
+  // Column Visibility Menu
+  m_mnu_column_visibility = new QMenu();
+  {
+    static constexpr std::array<const char*, Column::NumberOfColumns> headers = {
+        QT_TR_NOOP("Instruction"),   QT_TR_NOOP("Condition"),         QT_TR_NOOP("Origin"),
+        QT_TR_NOOP("Destination"),   QT_TR_NOOP("Recent Hits"),       QT_TR_NOOP("Total Hits"),
+        QT_TR_NOOP("Origin Symbol"), QT_TR_NOOP("Destination Symbol")};
+
+    for (int column = 0; column < Column::NumberOfColumns; ++column)
+    {
+      QAction* const action =
+          m_mnu_column_visibility->addAction(tr(headers[column]), [this, column](bool enabled) {
+            m_table_view->setColumnHidden(column, !enabled);
+          });
+      action->setChecked(!m_table_view->isColumnHidden(column));
+      action->setCheckable(true);
+    }
+  }
+
+  // Menu Bar
+  QMenuBar* const menu_bar = new QMenuBar;
+  menu_bar->setNativeMenuBar(false);
+  {
+    QMenu* const menu = new QMenu(tr("&File"), menu_bar);
+    menu->addAction(tr("&Save Branch Watch"), this, &BranchWatchDialog::OnSave);
+    menu->addAction(tr("Save Branch Watch &As..."), this, &BranchWatchDialog::OnSaveAs);
+    menu->addAction(tr("&Load Branch Watch"), this, &BranchWatchDialog::OnLoad);
+    menu->addAction(tr("Load Branch Watch &From..."), this, &BranchWatchDialog::OnLoadFrom);
+    m_act_autosave = menu->addAction(tr("A&uto Save"));
+    m_act_autosave->setCheckable(true);
+    connect(m_act_autosave, &QAction::toggled, this, &BranchWatchDialog::OnToggleAutoSave);
+    menu_bar->addMenu(menu);
+  }
+  {
+    QMenu* const menu = new QMenu(tr("&Tool"), menu_bar);
+    menu->setToolTipsVisible(true);
+    menu->addAction(tr("Hide &Controls"), this, &BranchWatchDialog::OnHideShowControls)
+        ->setCheckable(true);
+    QAction* const act_ignore_apploader = menu->addAction(tr("Ignore &Apploader Branch Hits"));
+    act_ignore_apploader->setToolTip(
+        tr("This only applies to the initial boot of the emulated software."));
+    act_ignore_apploader->setChecked(m_system.IsBranchWatchIgnoreApploader());
+    act_ignore_apploader->setCheckable(true);
+    connect(act_ignore_apploader, &QAction::toggled, this,
+            &BranchWatchDialog::OnToggleIgnoreApploader);
+    menu->addMenu(m_mnu_column_visibility)->setText(tr("Column &Visibility"));
+    menu->addAction(tr("Wipe &Inspection Data"), this, &BranchWatchDialog::OnWipeInspection);
+    menu->addAction(tr("&Help"), this, &BranchWatchDialog::OnHelp);
+    menu_bar->addMenu(menu);
+  }
+
   UpdateIcons();
 
   connect(m_timer = new QTimer, &QTimer::timeout, this, &BranchWatchDialog::OnTimeout);
@@ -495,14 +491,11 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   main_layout->addWidget(m_table_view);
   main_layout->addWidget(m_status_bar);
   setLayout(main_layout);
-
-  const auto& settings = Settings::GetQSettings();
-  restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
 }
 
 BranchWatchDialog::~BranchWatchDialog()
 {
-  SaveSettings();
+  SaveQSettings();
 }
 
 static constexpr int BRANCH_WATCH_TOOL_TIMER_DELAY_MS = 100;
@@ -893,7 +886,15 @@ void BranchWatchDialog::OnTableSetBreakpointBoth()
   SetBreakpoints(true, true);
 }
 
-void BranchWatchDialog::SaveSettings()
+void BranchWatchDialog::LoadQSettings()
+{
+  const auto& settings = Settings::GetQSettings();
+  restoreGeometry(settings.value(QStringLiteral("branchwatchdialog/geometry")).toByteArray());
+  m_table_view->horizontalHeader()->restoreState(  // Restore column visibility state.
+      settings.value(QStringLiteral("branchwatchdialog/tableheader/state")).toByteArray());
+}
+
+void BranchWatchDialog::SaveQSettings() const
 {
   auto& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("branchwatchdialog/geometry"), saveGeometry());
