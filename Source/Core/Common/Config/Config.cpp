@@ -7,6 +7,7 @@
 #include <atomic>
 #include <map>
 #include <mutex>
+#include <ranges>
 #include <shared_mutex>
 #include <utility>
 #include <vector>
@@ -95,8 +96,8 @@ void OnConfigChanged()
   if (s_callback_guards)
     return;
 
-  for (const auto& callback : s_callbacks)
-    callback.second();
+  for (const auto& val : s_callbacks | std::views::values)
+    val();
 }
 
 u64 GetConfigVersion()
@@ -110,8 +111,8 @@ void Load()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (const auto& layer : s_layers)
-      layer.second->Load();
+    for (const auto& val : s_layers | std::views::values)
+      val->Load();
   }
   OnConfigChanged();
 }
@@ -121,8 +122,8 @@ void Save()
   {
     ReadLock lock(s_layers_rw_lock);
 
-    for (const auto& layer : s_layers)
-      layer.second->Save();
+    for (const auto& val : s_layers | std::views::values)
+      val->Save();
   }
   OnConfigChanged();
 }

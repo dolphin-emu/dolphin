@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
+#include <ranges>
 
 #include <fmt/format.h>
 
@@ -174,8 +175,8 @@ void BranchWatch::IsolateNotExecuted(const CPUThreadGuard&)
   case Phase::Blacklist:
   {
     const auto routine = [&](Collection& collection) {
-      for (Collection::value_type& kv : collection)
-        kv.second.hits_snapshot = kv.second.total_hits;
+      for (auto& val : collection | std::views::values)
+        val.hits_snapshot = val.total_hits;
     };
     routine(m_collection_vt);
     routine(m_collection_vf);

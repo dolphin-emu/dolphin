@@ -6,6 +6,7 @@
 #include <array>
 #include <functional>
 #include <map>
+#include <ranges>
 #include <set>
 #include <utility>
 
@@ -78,9 +79,9 @@ void JitBaseBlockCache::Clear()
   m_jit.js.fifoWriteAddresses.clear();
   m_jit.js.pairedQuantizeAddresses.clear();
   m_jit.js.noSpeculativeConstantsAddresses.clear();
-  for (auto& e : block_map)
+  for (auto& val : block_map | std::views::values)
   {
-    DestroyBlock(e.second);
+    DestroyBlock(val);
   }
   block_map.clear();
   links_to.clear();
@@ -111,8 +112,8 @@ JitBlock** JitBaseBlockCache::GetFastBlockMapFallback()
 void JitBaseBlockCache::RunOnBlocks(const Core::CPUThreadGuard&,
                                     std::function<void(const JitBlock&)> f) const
 {
-  for (const auto& e : block_map)
-    f(e.second);
+  for (const auto& val : block_map | std::views::values)
+    f(val);
 }
 
 JitBlock* JitBaseBlockCache::AllocateBlock(const u32 em_address)

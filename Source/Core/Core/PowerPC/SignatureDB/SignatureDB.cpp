@@ -13,6 +13,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 
 // Format Handlers
+#include <ranges>
+
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
@@ -146,16 +148,16 @@ void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symb
 
 void HashSignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filter)
 {
-  for (const auto& symbol : symbol_db->Symbols())
+  for (const auto& val : symbol_db->Symbols() | std::views::values)
   {
-    if ((filter.empty() && (!symbol.second.name.empty()) &&
-         symbol.second.name.substr(0, 3) != "zz_" && symbol.second.name.substr(0, 1) != ".") ||
-        ((!filter.empty()) && symbol.second.name.substr(0, filter.size()) == filter))
+    if ((filter.empty() && (!val.name.empty()) &&
+         val.name.substr(0, 3) != "zz_" && val.name.substr(0, 1) != ".") ||
+        ((!filter.empty()) && val.name.substr(0, filter.size()) == filter))
     {
       DBFunc temp_dbfunc;
-      temp_dbfunc.name = symbol.second.name;
-      temp_dbfunc.size = symbol.second.size;
-      m_database[symbol.second.hash] = temp_dbfunc;
+      temp_dbfunc.name = val.name;
+      temp_dbfunc.size = val.size;
+      m_database[val.hash] = temp_dbfunc;
     }
   }
 }

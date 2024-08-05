@@ -71,16 +71,16 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
   m_progress_box->setTitle(title);
   m_data_size = data_size;
 
-  for (const auto& pair : m_progress_bars)
+  for (const auto& val : m_progress_bars | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
-  for (const auto& pair : m_status_labels)
+  for (const auto& val : m_status_labels | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
   m_progress_bars.clear();

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <map>
+#include <ranges>
 
 #include "Common/Config/Config.h"
 
@@ -59,9 +60,9 @@ bool Layer::DeleteKey(const Location& location)
 void Layer::DeleteAllKeys()
 {
   m_is_dirty = true;
-  for (auto& pair : m_map)
+  for (auto& val : m_map | std::views::values)
   {
-    pair.second.reset();
+    val.reset();
   }
 }
 

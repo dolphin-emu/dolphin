@@ -83,9 +83,9 @@ void GamecubeControllersWidget::CreateLayout()
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
     auto* gc_button = m_gc_buttons[i] = new NonDefaultQPushButton(tr("Configure"));
 
-    for (const auto& item : s_gc_types)
+    for (const auto& val : s_gc_types | std::views::values)
     {
-      gc_box->addItem(tr(item.second));
+      gc_box->addItem(tr(val));
     }
 
     const int controller_row = m_gc_layout->rowCount();

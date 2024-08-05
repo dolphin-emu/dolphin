@@ -17,6 +17,7 @@
 
 #include <fmt/format.h>
 #include <libusb.h>
+#include <ranges>
 
 #include "Common/ChunkFile.h"
 #include "Common/EnumUtils.h"
@@ -339,8 +340,8 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
   if (!p.IsReadMode())
   {
     // Save addresses of transfer commands to discard on savestate load.
-    for (const auto& transfer : m_current_transfers)
-      addresses_to_discard.push_back(transfer.second.command->ios_request.address);
+    for (const auto& val : m_current_transfers | std::views::values)
+      addresses_to_discard.push_back(val.command->ios_request.address);
   }
   p.Do(addresses_to_discard);
   if (p.IsReadMode())

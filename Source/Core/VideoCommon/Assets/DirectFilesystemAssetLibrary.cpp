@@ -4,6 +4,7 @@
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
 #include <algorithm>
+#include <ranges>
 #include <vector>
 
 #include <fmt/std.h>
@@ -59,7 +60,7 @@ DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) con
   {
     const auto& asset_map_path = iter->second;
     TimeType max_entry;
-    for (const auto& [key, value] : asset_map_path)
+    for (const auto& value : asset_map_path | std::views::values)
     {
       std::error_code ec;
       const auto tp = last_write_time(value, ec);

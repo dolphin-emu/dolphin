@@ -5,9 +5,11 @@
 
 #include <cstring>
 #include <map>
+#include <ranges>
 #include <string>
 #include <utility>
 
+#include "FormatUtil.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -34,10 +36,10 @@ void Symbol::Rename(const std::string& symbol_name)
 
 void SymbolDB::List() const
 {
-  for (const auto& func : m_functions)
+  for (const auto& val : m_functions | std::views::values)
   {
-    DEBUG_LOG_FMT(OSHLE, "{} @ {:08x}: {} bytes (hash {:08x}) : {} calls", func.second.name,
-                  func.second.address, func.second.size, func.second.hash, func.second.num_calls);
+    DEBUG_LOG_FMT(OSHLE, "{} @ {:08x}: {} bytes (hash {:08x}) : {} calls", val.name, val.address,
+                  val.size, val.hash, val.num_calls);
   }
   INFO_LOG_FMT(OSHLE, "{} functions known in this program above.", m_functions.size());
 }
@@ -57,18 +59,18 @@ void SymbolDB::Clear(const char* prefix)
 void SymbolDB::Index()
 {
   int i = 0;
-  for (auto& func : m_functions)
+  for (auto& val : m_functions | std::views::values)
   {
-    func.second.index = i++;
+    val.index = i++;
   }
 }
 
 Symbol* SymbolDB::GetSymbolFromName(const std::string_view name)
 {
-  for (auto& func : m_functions)
+  for (auto& val : m_functions | std::views::values)
   {
-    if (func.second.function_name == name)
-      return &func.second;
+    if (val.function_name == name)
+      return &val;
   }
 
   return nullptr;
@@ -78,10 +80,10 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromName(const std::string_view name)
 {
   std::vector<Symbol*> symbols;
 
-  for (auto& func : m_functions)
+  for (auto& val : m_functions | std::views::values)
   {
-    if (func.second.function_name == name)
-      symbols.push_back(&func.second);
+    if (val.function_name == name)
+      symbols.push_back(&val);
   }
 
   return symbols;

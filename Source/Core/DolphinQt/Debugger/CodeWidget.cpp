@@ -370,19 +370,19 @@ void CodeWidget::UpdateSymbols() const
                                 m_symbols_list->selectedItems()[0]->text();
   m_symbols_list->clear();
 
-  for (const auto& symbol : m_ppc_symbol_db.Symbols())
+  for (const auto& val : m_ppc_symbol_db.Symbols() | std::views::values)
   {
-    QString name = QString::fromStdString(symbol.second.name);
+    QString name = QString::fromStdString(val.name);
 
     auto* item = new QListWidgetItem(name);
     if (name == selection)
       item->setSelected(true);
 
     // Disable non-function symbols as you can't do anything with them.
-    if (symbol.second.type != Common::Symbol::Type::Function)
+    if (val.type != Common::Symbol::Type::Function)
       item->setFlags(Qt::NoItemFlags);
 
-    item->setData(Qt::UserRole, symbol.second.address);
+    item->setData(Qt::UserRole, val.address);
 
     if (name.contains(m_symbol_filter, Qt::CaseInsensitive))
       m_symbols_list->addItem(item);

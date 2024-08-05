@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <mutex>
+#include <ranges>
 #include <string>
 #include <utility>
 
@@ -96,11 +97,11 @@ EmulatedController::GetExpressionVariables() const
 
 void EmulatedController::ResetExpressionVariables() const
 {
-  for (auto& var : m_expression_vars)
+  for (auto& val : m_expression_vars | std::views::values)
   {
-    if (var.second)
+    if (val)
     {
-      *var.second = 0;
+      *val = 0;
     }
   }
 }

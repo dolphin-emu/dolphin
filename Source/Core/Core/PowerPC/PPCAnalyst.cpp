@@ -352,8 +352,8 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
 {
   std::vector<u32> funcAddrs;
 
-  for (const auto& func : func_db->Symbols())
-    funcAddrs.push_back(func.second.address + func.second.size);
+  for (const auto& val : func_db->Symbols() | std::views::values)
+    funcAddrs.push_back(val.address + val.size);
 
   auto& mmu = guard.GetSystem().GetMMU();
   for (u32& location : funcAddrs)
@@ -399,15 +399,15 @@ void FindFunctions(const Core::CPUThreadGuard& guard, const u32 startAddr, const
   int numLeafs = 0, numNice = 0, numUnNice = 0;
   int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
   int leafSize = 0, niceSize = 0, unniceSize = 0;
-  for (auto& func : func_db->AccessSymbols())
+  for (auto& val : func_db->AccessSymbols() | std::views::values)
   {
-    if (func.second.address == 4)
+    if (val.address == 4)
     {
       WARN_LOG_FMT(SYMBOLS, "Weird function");
       continue;
     }
-    AnalyzeFunction2(func_db, &(func.second));
-    Common::Symbol& f = func.second;
+    AnalyzeFunction2(func_db, &(val));
+    Common::Symbol& f = val;
     if (f.name.substr(0, 3) == "zzz")
     {
       if (f.flags & Common::FFLAG_LEAF)

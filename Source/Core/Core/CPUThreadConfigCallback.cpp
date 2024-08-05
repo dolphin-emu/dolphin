@@ -4,6 +4,7 @@
 #include "Core/CPUThreadConfigCallback.h"
 
 #include <atomic>
+#include <ranges>
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
@@ -21,8 +22,8 @@ static size_t s_next_callback_id = 0;
 
 void RunCallbacks()
 {
-  for (const auto& callback : s_callbacks)
-    callback.second();
+  for (const auto& val : s_callbacks | std::views::values)
+    val();
 }
 
 void OnConfigChanged()

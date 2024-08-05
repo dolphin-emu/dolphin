@@ -405,10 +405,10 @@ void NetPlayServer::ThreadFunc()
   INFO_LOG_FMT(NETPLAY, "NetPlayServer shutting down.");
 
   // close listening socket and client sockets
-  for (const auto& player_entry : m_players)
+  for (const auto& val : m_players | std::views::values)
   {
-    ClearPeerPlayerId(player_entry.second.socket);
-    enet_peer_disconnect(player_entry.second.socket, 0);
+    ClearPeerPlayerId(val.socket);
+    enet_peer_disconnect(val.socket, 0);
   }
   m_players.clear();
 }
@@ -482,13 +482,13 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
 
   SendResponseToPlayer(new_player, MessageID::HostInputAuthority, m_host_input_authority);
 
-  for (const auto& existing_player : m_players)
+  for (const auto& val : m_players | std::views::values)
   {
-    SendResponseToPlayer(new_player, MessageID::PlayerJoin, existing_player.second.pid,
-                         existing_player.second.name, existing_player.second.revision);
+    SendResponseToPlayer(new_player, MessageID::PlayerJoin, val.pid,
+                         val.name, val.revision);
 
-    SendResponseToPlayer(new_player, MessageID::GameStatus, existing_player.second.pid,
-                         static_cast<u8>(existing_player.second.game_status));
+    SendResponseToPlayer(new_player, MessageID::GameStatus, val.pid,
+                         static_cast<u8>(val.game_status));
   }
 
   if (Get(Config::NETPLAY_ENABLE_QOS))
@@ -2187,11 +2187,11 @@ u64 NetPlayServer::GetInitialNetPlayRTC()
 void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid,
                                   const u8 channel_id)
 {
-  for (const auto& p : m_players)
+  for (const auto& val : m_players | std::views::values)
   {
-    if (p.second.pid && p.second.pid != skip_pid)
+    if (val.pid && val.pid != skip_pid)
     {
-      Send(p.second.socket, packet, channel_id);
+      Send(val.socket, packet, channel_id);
     }
   }
 }
@@ -2203,11 +2203,11 @@ void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 ch
 
 void NetPlayServer::KickPlayer(const PlayerId player) const
 {
-  for (auto& current_player : m_players)
+  for (const auto& val : m_players | std::views::values)
   {
-    if (current_player.second.pid == player)
+    if (val.pid == player)
     {
-      enet_peer_disconnect(current_player.second.socket, 0);
+      enet_peer_disconnect(val.socket, 0);
       return;
     }
   }
@@ -2378,10 +2378,10 @@ void NetPlayServer::ChunkedDataThreadFunc()
         }
         else
         {
-          for (const auto& pl : m_players)
+          for (const auto& val : m_players | std::views::values)
           {
-            if (pl.second.pid != e.target_pid)
-              players.push_back(pl.second.pid);
+            if (val.pid != target_pid)
+              players.push_back(val.pid);
           }
         }
         player_count = players.size();

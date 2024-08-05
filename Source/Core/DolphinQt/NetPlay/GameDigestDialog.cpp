@@ -70,16 +70,16 @@ void GameDigestDialog::show(const QString& title)
 {
   m_progress_box->setTitle(title);
 
-  for (const auto& pair : m_progress_bars)
+  for (const auto& val : m_progress_bars | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
-  for (const auto& pair : m_status_labels)
+  for (const auto& val : m_status_labels | std::views::values)
   {
-    m_progress_layout->removeWidget(pair.second);
-    pair.second->deleteLater();
+    m_progress_layout->removeWidget(val);
+    val->deleteLater();
   }
 
   m_progress_bars.clear();

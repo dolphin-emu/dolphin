@@ -1028,18 +1028,18 @@ void WiiSockMan::Update()
 
   if (ret >= 0)
   {
-    for (auto& pair : WiiSockets)
+    for (auto& val : WiiSockets | std::views::values)
     {
-      WiiSocket& sock = pair.second;
+      WiiSocket& sock = val;
       sock.Update(FD_ISSET(sock.fd, &read_fds) != 0, FD_ISSET(sock.fd, &write_fds) != 0,
                   FD_ISSET(sock.fd, &except_fds) != 0);
     }
   }
   else
   {
-    for (auto& elem : WiiSockets)
+    for (auto& val : WiiSockets | std::views::values)
     {
-      elem.second.Update(false, false, false);
+      val.Update(false, false, false);
     }
   }
   UpdatePollCommands();

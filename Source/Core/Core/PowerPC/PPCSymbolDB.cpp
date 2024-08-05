@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -116,9 +117,9 @@ std::string_view PPCSymbolDB::GetDescription(const u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-  for (auto& p : m_functions)
+  for (auto& val : m_functions | std::views::values)
   {
-    p.second.callers.clear();
+    val.callers.clear();
   }
 
   for (auto& entry : m_functions)
@@ -458,9 +459,9 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   std::vector<const Common::Symbol*> function_symbols;
   std::vector<const Common::Symbol*> data_symbols;
 
-  for (const auto& function : m_functions)
+  for (const auto& val : m_functions | std::views::values)
   {
-    const Common::Symbol& symbol = function.second;
+    const Common::Symbol& symbol = val;
     if (symbol.type == Common::Symbol::Type::Function)
       function_symbols.push_back(&symbol);
     else
@@ -506,9 +507,9 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
   const auto& ppc_debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
 
   u32 next_address = 0;
-  for (const auto& function : m_functions)
+  for (const auto& val : m_functions | std::views::values)
   {
-    const Common::Symbol& symbol = function.second;
+    const Common::Symbol& symbol = val;
 
     // Skip functions which are inside bigger functions
     if (symbol.address + symbol.size <= next_address)

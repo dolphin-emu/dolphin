@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <mutex>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
@@ -212,9 +213,9 @@ void USB_HIDv4::TriggerDeviceChangeReply()
     std::lock_guard lk(m_devices_mutex);
     const u32 dest = m_devicechange_hook_request->buffer_out;
     u32 offset = 0;
-    for (const auto& device : m_devices)
+    for (const auto& val : m_devices | std::views::values)
     {
-      const std::vector<u8> device_section = GetDeviceEntry(*device.second.get());
+      const std::vector<u8> device_section = GetDeviceEntry(*val.get());
       if (offset + device_section.size() > m_devicechange_hook_request->buffer_out_size - 1)
       {
         WARN_LOG_FMT(IOS_USB, "Too many devices connected, skipping");

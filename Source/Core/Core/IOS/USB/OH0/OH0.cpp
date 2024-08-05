@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <ranges>
 #include <tuple>
 #include <utility>
 
@@ -116,17 +117,17 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
   const u8 interface_class = memory.Read_U8(request.in_vectors[1].address);
   u8 entries_count = 0;
   std::lock_guard lk(m_devices_mutex);
-  for (const auto& device : m_devices)
+  for (const auto& val : m_devices | std::views::values)
   {
     if (entries_count >= max_entries_count)
       break;
-    if (!device.second->HasClass(interface_class))
+    if (!val->HasClass(interface_class))
       continue;
 
     DeviceEntry entry;
     entry.unknown = 0;
-    entry.vid = Common::swap16(device.second->GetVid());
-    entry.pid = Common::swap16(device.second->GetPid());
+    entry.vid = Common::swap16(val->GetVid());
+    entry.pid = Common::swap16(val->GetPid());
     memory.CopyToEmu(request.io_vectors[1].address + 8 * entries_count++, &entry, 8);
   }
   memory.Write_U8(entries_count, request.io_vectors[0].address);
@@ -263,20 +264,20 @@ std::pair<ReturnCode, u64> OH0::DeviceOpen(const u16 vid, const u16 pid)
   std::lock_guard lk(m_devices_mutex);
 
   bool has_device_with_vid_pid = false;
-  for (const auto& device : m_devices)
+  for (const auto& val : m_devices | std::views::values)
   {
-    if (device.second->GetVid() != vid || device.second->GetPid() != pid)
+    if (val->GetVid() != vid || val->GetPid() != pid)
       continue;
     has_device_with_vid_pid = true;
 
-    if (m_opened_devices.contains(device.second->GetId()) ||
-        !device.second->Attach())
+    if (m_opened_devices.contains(val->GetId()) ||
+        !val->Attach())
     {
       continue;
     }
 
-    m_opened_devices.emplace(device.second->GetId());
-    return {IPC_SUCCESS, device.second->GetId()};
+    m_opened_devices.emplace(val->GetId());
+    return {IPC_SUCCESS, val->GetId()};
   }
   // IOS doesn't allow opening the same device more than once (IPC_EEXIST)
   return {has_device_with_vid_pid ? IPC_EEXIST : IPC_ENOENT, 0};

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -160,9 +161,8 @@ bool MEGASignatureDB::Save(const std::string& file_path) const
 
 void MEGASignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
-  for (auto& it : symbol_db->AccessSymbols())
+  for (auto& symbol : symbol_db->AccessSymbols() | std::views::values)
   {
-    auto& symbol = it.second;
     for (const auto& sig : m_signatures)
     {
       if (Compare(guard, symbol.address, symbol.size, sig))
