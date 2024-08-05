@@ -3,6 +3,9 @@
 
 #include "VideoCommon/Assets/TextureAsset.h"
 
+#include <optional>
+
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/BPMemory.h"
@@ -11,6 +14,45 @@ namespace VideoCommon
 {
 namespace
 {
+std::optional<WrapMode> ReadWrapModeFromJSON(const picojson::object& json, const std::string& uv)
+{
+  auto uv_mode = ReadStringFromJson(json, uv).value_or("");
+  Common::ToLower(&uv_mode);
+
+  if (uv_mode == "clamp")
+  {
+    return WrapMode::Clamp;
+  }
+  else if (uv_mode == "repeat")
+  {
+    return WrapMode::Repeat;
+  }
+  else if (uv_mode == "mirror")
+  {
+    return WrapMode::Mirror;
+  }
+
+  return std::nullopt;
+}
+
+std::optional<FilterMode> ReadFilterModeFromJSON(const picojson::object& json,
+                                                 const std::string& filter)
+{
+  auto filter_mode = ReadStringFromJson(json, filter).value_or("");
+  Common::ToLower(&filter_mode);
+
+  if (filter_mode == "linear")
+  {
+    return FilterMode::Linear;
+  }
+  else if (filter_mode == "near")
+  {
+    return FilterMode::Near;
+  }
+
+  return std::nullopt;
+}
+
 bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
                   const picojson::object& json, SamplerState* sampler)
 {
@@ -19,78 +61,93 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
 
   *sampler = RenderState::GetLinearSamplerState();
 
-  const auto sampler_state_mode_iter = json.find("texture_mode");
-  if (sampler_state_mode_iter == json.end())
+  const auto sampler_state_wrap_iter = json.find("wrap_mode");
+  if (sampler_state_wrap_iter != json.end())
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_mode' not found", asset_id);
-    return false;
-  }
-  if (!sampler_state_mode_iter->second.is<std::string>())
-  {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_mode' is not the right type",
-                  asset_id);
-    return false;
-  }
-  std::string sampler_state_mode = sampler_state_mode_iter->second.to_str();
-  Common::ToLower(&sampler_state_mode);
+    if (!sampler_state_wrap_iter->second.is<picojson::object>())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'wrap_mode' is not the right type",
+                    asset_id);
+      return false;
+    }
+    const auto sampler_state_wrap_obj = sampler_state_wrap_iter->second.get<picojson::object>();
 
-  if (sampler_state_mode == "clamp")
-  {
-    sampler->tm0.wrap_u = WrapMode::Clamp;
-    sampler->tm0.wrap_v = WrapMode::Clamp;
-  }
-  else if (sampler_state_mode == "repeat")
-  {
-    sampler->tm0.wrap_u = WrapMode::Repeat;
-    sampler->tm0.wrap_v = WrapMode::Repeat;
-  }
-  else if (sampler_state_mode == "mirrored_repeat")
-  {
-    sampler->tm0.wrap_u = WrapMode::Mirror;
-    sampler->tm0.wrap_v = WrapMode::Mirror;
-  }
-  else
-  {
-    ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' failed to parse json, 'texture_mode' has an invalid "
-                  "value '{}'",
-                  asset_id, sampler_state_mode);
-    return false;
+    if (const auto mode = ReadWrapModeFromJSON(sampler_state_wrap_obj, "u"))
+    {
+      sampler->tm0.wrap_u = *mode;
+    }
+    else
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' failed to parse json, 'wrap_mode[u]' has an invalid "
+                    "value",
+                    asset_id);
+      return false;
+    }
+
+    if (const auto mode = ReadWrapModeFromJSON(sampler_state_wrap_obj, "v"))
+    {
+      sampler->tm0.wrap_v = *mode;
+    }
+    else
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' failed to parse json, 'wrap_mode[v]' has an invalid "
+                    "value",
+                    asset_id);
+      return false;
+    }
   }
 
-  const auto sampler_state_filter_iter = json.find("texture_filter");
-  if (sampler_state_filter_iter == json.end())
+  const auto sampler_state_filter_iter = json.find("filter_mode");
+  if (sampler_state_filter_iter != json.end())
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_filter' not found", asset_id);
-    return false;
-  }
-  if (!sampler_state_filter_iter->second.is<std::string>())
-  {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_filter' is not the right type",
-                  asset_id);
-    return false;
-  }
-  std::string sampler_state_filter = sampler_state_filter_iter->second.to_str();
-  Common::ToLower(&sampler_state_filter);
-  if (sampler_state_filter == "linear")
-  {
-    sampler->tm0.min_filter = FilterMode::Linear;
-    sampler->tm0.mag_filter = FilterMode::Linear;
-    sampler->tm0.mipmap_filter = FilterMode::Linear;
-  }
-  else if (sampler_state_filter == "point")
-  {
-    sampler->tm0.min_filter = FilterMode::Linear;
-    sampler->tm0.mag_filter = FilterMode::Linear;
-    sampler->tm0.mipmap_filter = FilterMode::Linear;
-  }
-  else
-  {
-    ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' failed to parse json, 'texture_filter' has an invalid "
-                  "value '{}'",
-                  asset_id, sampler_state_filter);
-    return false;
+    if (!sampler_state_filter_iter->second.is<picojson::object>())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'filter_mode' is not the right type",
+                    asset_id);
+      return false;
+    }
+    const auto sampler_state_filter_obj = sampler_state_filter_iter->second.get<picojson::object>();
+
+    if (const auto mode = ReadFilterModeFromJSON(sampler_state_filter_obj, "min"))
+    {
+      sampler->tm0.min_filter = *mode;
+    }
+    else
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' failed to parse json, 'filter_mode[min]' has an invalid "
+                    "value",
+                    asset_id);
+      return false;
+    }
+
+    if (const auto mode = ReadFilterModeFromJSON(sampler_state_filter_obj, "mag"))
+    {
+      sampler->tm0.mag_filter = *mode;
+    }
+    else
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' failed to parse json, 'filter_mode[mag]' has an invalid "
+                    "value",
+                    asset_id);
+      return false;
+    }
+
+    if (const auto mode = ReadFilterModeFromJSON(sampler_state_filter_obj, "mipmap"))
+    {
+      sampler->tm0.mipmap_filter = *mode;
+    }
+    else
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' failed to parse json, 'filter_mode[mipmap]' has an invalid "
+                    "value",
+                    asset_id);
+      return false;
+    }
   }
 
   return true;
@@ -140,6 +197,61 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   }
 
   return true;
+}
+
+void TextureData::ToJson(picojson::object* obj, const TextureData& data)
+{
+  if (!obj) [[unlikely]]
+    return;
+
+  auto& json_obj = *obj;
+  switch (data.m_type)
+  {
+  case TextureData::Type::Type_Texture2D:
+    json_obj.emplace("type", "texture2d");
+    break;
+  case TextureData::Type::Type_TextureCube:
+    json_obj.emplace("type", "texturecube");
+    break;
+  case TextureData::Type::Type_Undefined:
+    break;
+  };
+
+  auto wrap_mode_to_string = [](WrapMode mode) {
+    switch (mode)
+    {
+    case WrapMode::Clamp:
+      return "clamp";
+    case WrapMode::Mirror:
+      return "mirror";
+    case WrapMode::Repeat:
+      return "repeat";
+    };
+
+    return "";
+  };
+  auto filter_mode_to_string = [](FilterMode mode) {
+    switch (mode)
+    {
+    case FilterMode::Linear:
+      return "linear";
+    case FilterMode::Near:
+      return "near";
+    };
+
+    return "";
+  };
+
+  picojson::object wrap_mode;
+  wrap_mode.emplace("u", wrap_mode_to_string(data.m_sampler.tm0.wrap_u));
+  wrap_mode.emplace("v", wrap_mode_to_string(data.m_sampler.tm0.wrap_v));
+  json_obj.emplace("wrap_mode", wrap_mode);
+
+  picojson::object filter_mode;
+  filter_mode.emplace("min", filter_mode_to_string(data.m_sampler.tm0.min_filter));
+  filter_mode.emplace("mag", filter_mode_to_string(data.m_sampler.tm0.mag_filter));
+  filter_mode.emplace("mipmap", filter_mode_to_string(data.m_sampler.tm0.mipmap_filter));
+  json_obj.emplace("filter_mode", filter_mode);
 }
 
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)

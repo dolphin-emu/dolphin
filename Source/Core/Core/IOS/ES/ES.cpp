@@ -112,9 +112,9 @@ ESCore::~ESCore() = default;
 ESDevice::ESDevice(EmulationKernel& ios, ESCore& core, const std::string& device_name)
     : EmulationDevice(ios, device_name), m_core(core)
 {
-  if (Core::IsRunningAndStarted())
+  auto& system = ios.GetSystem();
+  if (Core::IsRunning(system))
   {
-    auto& system = ios.GetSystem();
     auto& core_timing = system.GetCoreTiming();
     core_timing.RemoveEvent(s_finish_init_event);
     core_timing.ScheduleEvent(GetESBootTicks(ios.GetVersion()), s_finish_init_event);
@@ -446,7 +446,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     }
 
     const u64 required_ios = tmd.GetIOSId();
-    if (!Core::IsRunningAndStarted())
+    if (!Core::IsRunning(system))
       return LaunchTitle(required_ios, HangPPC::Yes);
     core_timing.RemoveEvent(s_reload_ios_for_ppc_launch_event);
     core_timing.ScheduleEvent(ticks, s_reload_ios_for_ppc_launch_event, required_ios);
@@ -475,7 +475,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     return false;
 
   m_pending_ppc_boot_content_path = m_core.GetContentPath(tmd.GetTitleId(), content);
-  if (!Core::IsRunningAndStarted())
+  if (!Core::IsRunning(system))
     return BootstrapPPC();
 
   INFO_LOG_FMT(ACHIEVEMENTS,

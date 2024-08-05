@@ -185,22 +185,22 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
-  if (Core::IsRunning(system))
-  {
+
+  const bool is_running_or_starting = Core::IsRunningOrStarting(system);
+  if (is_running_or_starting)
     Core::UpdateTitle(system);
-  }
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
-  if (Core::IsRunning(system))
+  if (is_running_or_starting)
     DolphinAnalytics::Instance().ReportGameStart();
 }
 
 void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
-  if (!Core::IsRunning(system))
+  if (!Core::IsRunningOrStarting(system))
     return;
 
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
@@ -451,7 +451,14 @@ std::string SConfig::GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) 
   switch (region)
   {
   case DiscIO::Region::NTSC_J:
+  {
+    // Taiwanese games share the Japanese region code however their title ID ends with 'W'.
+    // GameTDB differentiates the covers using the code "ZH".
+    if (m_game_id.size() >= 4 && m_game_id.at(3) == 'W')
+      return "ZH";
+
     return "JA";
+  }
   case DiscIO::Region::NTSC_U:
     return "US";
   case DiscIO::Region::NTSC_K:

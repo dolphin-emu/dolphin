@@ -131,11 +131,9 @@ u64 GetBiggestReferencedOffset(const Volume& volume)
   // This can happen when certain programs that create WBFS files scrub the entirety of
   // the Masterpiece partitions in Super Smash Bros. Brawl without removing them from
   // the partition table. https://bugs.dolphin-emu.org/issues/8733
-  const auto it =
-      std::remove_if(partitions.begin(), partitions.end(), [&](const Partition& partition) {
-        return volume.ReadSwapped<u32>(0x18, partition) != WII_DISC_MAGIC;
-      });
-  partitions.erase(it, partitions.end());
+  std::erase_if(partitions, [&](const Partition& partition) {
+    return volume.ReadSwapped<u32>(0x18, partition) != WII_DISC_MAGIC;
+  });
 
   if (partitions.empty())
     partitions.push_back(PARTITION_NONE);

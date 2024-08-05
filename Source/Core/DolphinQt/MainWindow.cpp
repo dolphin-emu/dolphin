@@ -240,7 +240,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
   restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
   if (!Settings::Instance().IsBatchModeEnabled())
+  {
+    SetQWidgetWindowDecorations(this);
     show();
+  }
 
   InitControllers();
   ConnectHotkeys();
@@ -320,6 +323,12 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   }
 
   Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
+
+  if (m_pending_boot != nullptr)
+  {
+    StartGame(std::move(m_pending_boot));
+    m_pending_boot.reset();
+  }
 }
 
 MainWindow::~MainWindow()
@@ -649,6 +658,10 @@ void MainWindow::ConnectHotkeys()
     movie.SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_hotkey_scheduler, &HotkeyScheduler::OpenAchievements, this,
+          &MainWindow::ShowAchievementsWindow, Qt::QueuedConnection);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StepOver, m_code_widget, &CodeWidget::StepOver);
@@ -1882,7 +1895,7 @@ void MainWindow::OnStartRecording()
 {
   auto& system = Core::System::GetInstance();
   auto& movie = system.GetMovie();
-  if ((!Core::IsRunningAndStarted() && Core::IsRunning(system)) || movie.IsRecordingInput() ||
+  if (Core::GetState(system) == Core::State::Starting || movie.IsRecordingInput() ||
       movie.IsPlayingInput())
   {
     return;
@@ -2071,20 +2084,4 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
 
   AddRiivolutionPatches(boot_params.get(), std::move(w.GetPatches()));
   StartGame(std::move(boot_params));
-}
-
-void MainWindow::Show()
-{
-  if (!Settings::Instance().IsBatchModeEnabled())
-  {
-    SetQWidgetWindowDecorations(this);
-    QWidget::show();
-  }
-
-  // If the booting of a game was requested on start up, do that now
-  if (m_pending_boot != nullptr)
-  {
-    StartGame(std::move(m_pending_boot));
-    m_pending_boot.reset();
-  }
 }

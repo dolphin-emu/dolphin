@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <array>
 #include <iterator>
-#include <map>
 #include <mutex>
 #include <optional>
 #include <span>
@@ -48,7 +47,6 @@ constexpr std::array<const char*, 3> s_patch_type_strings{{
 static std::vector<Patch> s_on_frame;
 static std::vector<std::size_t> s_on_frame_memory;
 static std::mutex s_on_frame_memory_mutex;
-static std::map<u32, u32> s_speed_hacks;
 
 const char* PatchTypeAsString(PatchType type)
 {
@@ -175,38 +173,6 @@ void SavePatchSection(Common::IniFile* local_ini, const std::vector<Patch>& patc
   local_ini->SetLines("OnFrame", lines);
 }
 
-static void LoadSpeedhacks(const std::string& section, Common::IniFile& ini)
-{
-  std::vector<std::string> keys;
-  ini.GetKeys(section, &keys);
-  for (const std::string& key : keys)
-  {
-    std::string value;
-    ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
-    if (value != "BOGUS")
-    {
-      u32 address;
-      u32 cycles;
-      bool success = true;
-      success &= TryParse(key, &address);
-      success &= TryParse(value, &cycles);
-      if (success)
-      {
-        s_speed_hacks[address] = cycles;
-      }
-    }
-  }
-}
-
-u32 GetSpeedhackCycles(const u32 addr)
-{
-  const auto iter = s_speed_hacks.find(addr);
-  if (iter == s_speed_hacks.end())
-    return 0;
-
-  return iter->second;
-}
-
 void LoadPatches()
 {
   const auto& sconfig = SConfig::GetInstance();
@@ -215,6 +181,13 @@ void LoadPatches()
   Common::IniFile localIni = sconfig.LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  {
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+    AchievementManager::GetInstance().FilterApprovedPatches(s_on_frame, sconfig.GetGameID());
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Check if I'm syncing Codes
   if (Config::Get(Config::SESSION_CODE_SYNC_OVERRIDE))
@@ -227,15 +200,10 @@ void LoadPatches()
     Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
     ActionReplay::LoadAndApplyCodes(globalIni, localIni);
   }
-
-  LoadSpeedhacks("Speedhacks", merged);
 }
 
 static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
-  if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return;
-
   for (const Patch& patch : patches)
   {
     if (patch.enabled)
@@ -360,7 +328,6 @@ bool ApplyFramePatches(Core::System& system)
 void Shutdown()
 {
   s_on_frame.clear();
-  s_speed_hacks.clear();
   ActionReplay::ApplyCodes({});
   Gecko::Shutdown();
 }

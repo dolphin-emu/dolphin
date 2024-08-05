@@ -333,53 +333,54 @@ void OnScreenUI::DrawDebugText()
 
 void OnScreenUI::DrawChallengesAndLeaderboards()
 {
+  if (!Config::Get(Config::MAIN_OSD_MESSAGES))
+    return;
 #ifdef USE_RETRO_ACHIEVEMENTS
-  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
-  const auto& challenge_icons = AchievementManager::GetInstance().GetChallengeIcons();
-  const auto& leaderboard_progress = AchievementManager::GetInstance().GetActiveLeaderboards();
-  float leaderboard_y = ImGui::GetIO().DisplaySize.y;
-  if (!challenge_icons.empty())
+  auto& instance = AchievementManager::GetInstance();
+  std::lock_guard lg{instance.GetLock()};
+  if (instance.AreChallengesUpdated())
   {
+    instance.ResetChallengesUpdated();
+    const auto& challenges = instance.GetActiveChallenges();
+    m_challenge_texture_map.clear();
+    for (const auto& name : challenges)
+    {
+      const auto& icon = instance.GetAchievementBadge(name, false);
+      const u32 width = icon.width;
+      const u32 height = icon.height;
+      TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
+                               AbstractTextureType::Texture_2DArray);
+      auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
+      res.first->second->Load(0, width, height, width, icon.data.data(),
+                              sizeof(u32) * width * height);
+    }
+  }
+
+  float leaderboard_y = ImGui::GetIO().DisplaySize.y;
+  if (!m_challenge_texture_map.empty())
+  {
+    float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
+    ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), 0,
-                            ImVec2(1.0, 1.0));
-    ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+                            ImVec2(1, 1));
     if (ImGui::Begin("Challenges", nullptr,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
                          ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      for (const auto& [name, icon] : challenge_icons)
-      {
-        if (m_challenge_texture_map.find(name) != m_challenge_texture_map.end())
-          continue;
-        const u32 width = icon->width;
-        const u32 height = icon->height;
-        TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
-                                 AbstractTextureType::Texture_2DArray);
-        auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
-        res.first->second->Load(0, width, height, width, icon->data.data(),
-                                sizeof(u32) * width * height);
-      }
       for (auto& [name, texture] : m_challenge_texture_map)
       {
-        auto icon_itr = challenge_icons.find(name);
-        if (icon_itr == challenge_icons.end())
-        {
-          m_challenge_texture_map.erase(name);
-          continue;
-        }
-        if (texture)
-        {
-          ImGui::Image(texture.get(), ImVec2(static_cast<float>(icon_itr->second->width),
-                                             static_cast<float>(icon_itr->second->height)));
-        }
+        ImGui::Image(texture.get(), ImVec2(static_cast<float>(texture->GetWidth()) * scale,
+                                           static_cast<float>(texture->GetHeight()) * scale));
+        ImGui::SameLine();
       }
-      leaderboard_y -= ImGui::GetWindowHeight();
     }
+    leaderboard_y -= ImGui::GetWindowHeight();
     ImGui::End();
   }
 
+  const auto& leaderboard_progress = instance.GetActiveLeaderboards();
   if (!leaderboard_progress.empty())
   {
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, leaderboard_y), 0,
@@ -392,7 +393,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
       for (const auto& value : leaderboard_progress)
-        ImGui::Text(value.data());
+        ImGui::TextUnformatted(value.c_str());
     }
     ImGui::End();
   }

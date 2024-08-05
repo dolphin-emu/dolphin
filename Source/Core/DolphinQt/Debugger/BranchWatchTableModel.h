@@ -97,7 +97,6 @@ public:
   void OnBranchNotOverwritten(const Core::CPUThreadGuard& guard);
   void OnWipeRecentHits();
   void OnWipeInspection();
-  void OnDelete(QModelIndexList index_list);
 
   void Save(const Core::CPUThreadGuard& guard, std::FILE* file) const;
   void Load(const Core::CPUThreadGuard& guard, std::FILE* file);

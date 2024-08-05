@@ -594,7 +594,7 @@ static u32 InfinityCRC32(const std::array<u8, 16>& buffer)
 
 std::string
 InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE>& buf,
-                         File::IOFile in_file, u8 position)
+                         File::IOFile in_file, FigureUIPosition position)
 {
   std::lock_guard lock(m_infinity_mutex);
   u8 order_added;
@@ -615,7 +615,7 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
                u32(infinity_decrypted_block[3]);
   DEBUG_LOG_FMT(IOS_USB, "Toy Number: {}", number);
 
-  InfinityFigure& figure = m_figures[position];
+  InfinityFigure& figure = m_figures[static_cast<u8>(position)];
 
   figure.inf_file = std::move(in_file);
   memcpy(figure.data.data(), buf.data(), figure.data.size());
@@ -627,19 +627,25 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
   }
   order_added = figure.order_added;
 
-  position = DeriveFigurePosition(position);
+  FigureBasePosition derived_position = DeriveFigurePosition(position);
+  if (derived_position == FigureBasePosition::Unknown)
+  {
+    ERROR_LOG_FMT(IOS_USB, "Invalid Position for Infinity Figure");
+    return "Unknown Figure";
+  }
 
-  std::array<u8, 32> figure_change_response = {0xab, 0x04, position, 0x09, order_added, 0x00};
+  std::array<u8, 32> figure_change_response = {0xab, 0x04,        static_cast<u8>(derived_position),
+                                               0x09, order_added, 0x00};
   figure_change_response[6] = GenerateChecksum(figure_change_response, 6);
   m_figure_added_removed_response.push(figure_change_response);
 
   return FindFigure(number);
 }
 
-void InfinityBase::RemoveFigure(u8 position)
+void InfinityBase::RemoveFigure(FigureUIPosition position)
 {
   std::lock_guard lock(m_infinity_mutex);
-  InfinityFigure& figure = m_figures[position];
+  InfinityFigure& figure = m_figures[static_cast<u8>(position)];
 
   if (figure.inf_file.IsOpen())
   {
@@ -649,12 +655,17 @@ void InfinityBase::RemoveFigure(u8 position)
 
   if (figure.present)
   {
+    FigureBasePosition derived_position = DeriveFigurePosition(position);
+    if (derived_position == FigureBasePosition::Unknown)
+    {
+      ERROR_LOG_FMT(IOS_USB, "Invalid Position for Infinity Figure");
+      return;
+    }
+
     figure.present = false;
 
-    position = DeriveFigurePosition(position);
-
-    std::array<u8, 32> figure_change_response = {0xab, 0x04, position, 0x09, figure.order_added,
-                                                 0x01};
+    std::array<u8, 32> figure_change_response = {
+        0xab, 0x04, static_cast<u8>(derived_position), 0x09, figure.order_added, 0x01};
     figure_change_response[6] = GenerateChecksum(figure_change_response, 6);
     m_figure_added_removed_response.push(figure_change_response);
   }
@@ -741,17 +752,36 @@ std::string InfinityBase::FindFigure(u32 number) const
   return "Unknown Figure";
 }
 
-u8 InfinityBase::DeriveFigurePosition(u8 position)
+FigureBasePosition InfinityBase::DeriveFigurePosition(FigureUIPosition position)
 {
   // In the added/removed response, position needs to be 1 for the hexagon, 2 for Player 1 and
-  // Player 1's abilities, and 3 for Player 2 and Player 2's abilities. Abilities are in positions
-  // > 2 in the UI (3/5 for player 1, 4/6 for player 2) so decrement the position until < 2.
+  // Player 1's abilities, and 3 for Player 2 and Player 2's abilities. In the UI, positions 0, 1
+  // and 2 represent the hexagon slot, 3, 4 and 5 represent Player 1's slot and 6, 7 and 8 represent
+  // Player 2's slot.
 
-  while (position > 2)
-    position -= 2;
-
-  position++;
-  return position;
+  switch (position)
+  {
+  case FigureUIPosition::HexagonDiscOne:
+  case FigureUIPosition::HexagonDiscTwo:
+  case FigureUIPosition::HexagonDiscThree:
+  {
+    return FigureBasePosition::HexagonSlot;
+  }
+  case FigureUIPosition::PlayerOne:
+  case FigureUIPosition::P1AbilityOne:
+  case FigureUIPosition::P1AbilityTwo:
+  {
+    return FigureBasePosition::PlayerOneSlot;
+  }
+  case FigureUIPosition::PlayerTwo:
+  case FigureUIPosition::P2AbilityOne:
+  case FigureUIPosition::P2AbilityTwo:
+  {
+    return FigureBasePosition::PlayerTwoSlot;
+  }
+  default:
+    return FigureBasePosition::Unknown;
+  }
 }
 
 InfinityFigure& InfinityBase::GetFigureByOrder(u8 order_added)

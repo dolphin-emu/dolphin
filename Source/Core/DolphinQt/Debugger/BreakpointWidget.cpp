@@ -83,7 +83,8 @@ private:
     if (!pix.isNull())
     {
       const QRect r = option.rect;
-      const QPoint p = QPoint((r.width() - pix.width()) / 2, (r.height() - pix.height()) / 2);
+      const QSize size = pix.deviceIndependentSize().toSize();
+      const QPoint p = QPoint((r.width() - size.width()) / 2, (r.height() - size.height()) / 2);
       painter->drawPixmap(r.topLeft() + p, pix);
     }
   }
@@ -173,7 +174,6 @@ void BreakpointWidget::CreateWidgets()
   m_load = m_toolbar->addAction(tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = m_toolbar->addAction(tr("Save"), this, &BreakpointWidget::OnSave);
 
-  m_new->setEnabled(false);
   m_load->setEnabled(false);
   m_save->setEnabled(false);
 
@@ -215,9 +215,9 @@ void BreakpointWidget::OnClicked(QTableWidgetItem* item)
   if (item->column() == ENABLED_COLUMN)
   {
     if (item->data(IS_MEMCHECK_ROLE).toBool())
-      m_system.GetPowerPC().GetMemChecks().ToggleBreakPoint(address);
+      m_system.GetPowerPC().GetMemChecks().ToggleEnable(address);
     else
-      m_system.GetPowerPC().GetBreakPoints().ToggleBreakPoint(address);
+      m_system.GetPowerPC().GetBreakPoints().ToggleEnable(address);
 
     emit BreakpointsChanged();
     Update();
@@ -252,7 +252,6 @@ void BreakpointWidget::UpdateButtonsEnabled()
     return;
 
   const bool is_initialised = Core::GetState(m_system) != Core::State::Uninitialized;
-  m_new->setEnabled(is_initialised);
   m_load->setEnabled(is_initialised);
   m_save->setEnabled(is_initialised);
 }
@@ -443,8 +442,8 @@ void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
 {
   if (is_instruction_bp)
   {
-    auto* dialog =
-        new BreakpointDialog(this, m_system.GetPowerPC().GetBreakPoints().GetBreakpoint(address));
+    auto* dialog = new BreakpointDialog(
+        this, m_system.GetPowerPC().GetBreakPoints().GetRegularBreakpoint(address));
     dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     SetQWidgetWindowDecorations(dialog);
     dialog->exec();
@@ -602,14 +601,13 @@ void BreakpointWidget::OnItemChanged(QTableWidgetItem* item)
 
 void BreakpointWidget::AddBP(u32 addr)
 {
-  AddBP(addr, false, true, true, {});
+  AddBP(addr, true, true, {});
 }
 
-void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on_hit,
-                             const QString& condition)
+void BreakpointWidget::AddBP(u32 addr, bool break_on_hit, bool log_on_hit, const QString& condition)
 {
   m_system.GetPowerPC().GetBreakPoints().Add(
-      addr, temp, break_on_hit, log_on_hit,
+      addr, break_on_hit, log_on_hit,
       !condition.isEmpty() ? Expression::TryParse(condition.toUtf8().constData()) : std::nullopt);
 
   emit BreakpointsChanged();
@@ -619,7 +617,7 @@ void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on
 void BreakpointWidget::EditBreakpoint(u32 address, int edit, std::optional<QString> string)
 {
   TBreakPoint bp;
-  const TBreakPoint* old_bp = m_system.GetPowerPC().GetBreakPoints().GetBreakpoint(address);
+  const TBreakPoint* old_bp = m_system.GetPowerPC().GetBreakPoints().GetRegularBreakpoint(address);
   bp.is_enabled = edit == ENABLED_COLUMN ? !old_bp->is_enabled : old_bp->is_enabled;
   bp.log_on_hit = edit == LOG_COLUMN ? !old_bp->log_on_hit : old_bp->log_on_hit;
   bp.break_on_hit = edit == BREAK_COLUMN ? !old_bp->break_on_hit : old_bp->break_on_hit;

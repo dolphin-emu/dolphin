@@ -237,7 +237,10 @@ void AchievementSettingsWidget::ToggleRAIntegration()
   else
     instance.Shutdown();
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
     emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+    emit Settings::Instance().HardcoreStateChanged();
+  }
 }
 
 void AchievementSettingsWidget::Login()
@@ -263,10 +266,11 @@ void AchievementSettingsWidget::ToggleHardcore()
     if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
       Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
     Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
-    Settings::Instance().SetCheatsEnabled(false);
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
     Settings::Instance().SetDebugModeEnabled(false);
   }
   emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  emit Settings::Instance().HardcoreStateChanged();
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()

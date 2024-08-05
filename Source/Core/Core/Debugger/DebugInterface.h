@@ -73,8 +73,8 @@ public:
   }
   virtual bool IsAlive() const { return true; }
   virtual bool IsBreakpoint(u32 /*address*/) const { return false; }
-  virtual void SetBreakpoint(u32 /*address*/) {}
-  virtual void ClearBreakpoint(u32 /*address*/) {}
+  virtual void AddBreakpoint(u32 /*address*/) {}
+  virtual void RemoveBreakpoint(u32 /*address*/) {}
   virtual void ClearAllBreakpoints() {}
   virtual void ToggleBreakpoint(u32 /*address*/) {}
   virtual void ClearAllMemChecks() {}
@@ -99,7 +99,7 @@ public:
   virtual u32 GetPC() const { return 0; }
   virtual void SetPC(u32 /*address*/) {}
   virtual void Step() {}
-  virtual void RunToBreakpoint() {}
+  virtual void RunTo(u32 /*address*/) {}
   virtual u32 GetColor(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
   {
     return 0xFFFFFFFF;

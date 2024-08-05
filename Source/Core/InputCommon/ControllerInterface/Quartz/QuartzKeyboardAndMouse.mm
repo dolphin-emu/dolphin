@@ -244,7 +244,8 @@ Core::DeviceRemoval KeyboardAndMouse::UpdateInput()
   const double window_width = std::max(bounds.size.width, 1.0);
   const double window_height = std::max(bounds.size.height, 1.0);
 
-  if (g_controller_interface.IsMouseCenteringRequested() && Host_RendererHasFocus())
+  if (g_controller_interface.IsMouseCenteringRequested() &&
+      (Host_RendererHasFocus() || Host_TASInputHasFocus()))
   {
     m_cursor.x = 0;
     m_cursor.y = 0;
@@ -258,8 +259,13 @@ Core::DeviceRemoval KeyboardAndMouse::UpdateInput()
 
     g_controller_interface.SetMouseCenteringRequested(false);
   }
-  else
+  else if (!Host_TASInputHasFocus())
   {
+    // When a TAS Input window has focus and "Enable Controller Input" is checked most types of
+    // input should be read normally as if the render window had focus instead. The cursor is an
+    // exception, as otherwise using the mouse to set any control in the TAS Input window will also
+    // update the Wii IR value (or any other input controlled by the cursor).
+
     NSPoint loc = [NSEvent mouseLocation];
 
     const auto window_scale = g_controller_interface.GetWindowInputScale();
@@ -281,6 +287,11 @@ std::string KeyboardAndMouse::GetName() const
 std::string KeyboardAndMouse::GetSource() const
 {
   return Quartz::GetSourceName();
+}
+
+int KeyboardAndMouse::GetSortPriority() const
+{
+  return DEFAULT_DEVICE_SORT_PRIORITY;
 }
 
 ControlState KeyboardAndMouse::Cursor::GetState() const
