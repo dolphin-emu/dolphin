@@ -209,8 +209,7 @@ static void RestoreSYSCONF()
         },
         setting.config_info);
   }
-  // Save the SYSCONF.
-  Config::GetLayer(Config::LayerType::Base)->Save();
+  ConfigLoaders::SaveToSYSCONF(Config::LayerType::Base);
 }
 
 void RestoreConfig()
