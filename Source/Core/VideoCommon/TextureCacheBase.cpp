@@ -2909,13 +2909,13 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
     u32 padding;
   };
   Uniforms uniforms;
-  const float rcp_efb_width = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBWidth());
+  const double rcp_efb_width = 1.0 / static_cast<double>(g_framebuffer_manager->GetEFBWidth());
   const u32 efb_height = g_framebuffer_manager->GetEFBHeight();
-  const float rcp_efb_height = 1.0f / static_cast<float>(efb_height);
-  uniforms.src_left = framebuffer_rect.left * rcp_efb_width;
-  uniforms.src_top = framebuffer_rect.top * rcp_efb_height;
-  uniforms.src_width = framebuffer_rect.GetWidth() * rcp_efb_width;
-  uniforms.src_height = framebuffer_rect.GetHeight() * rcp_efb_height;
+  const double rcp_efb_height = 1.0 / static_cast<double>(efb_height);
+  uniforms.src_left = static_cast<float>(framebuffer_rect.left * rcp_efb_width);
+  uniforms.src_top = static_cast<float>(framebuffer_rect.top * rcp_efb_height);
+  uniforms.src_width = static_cast<float>(framebuffer_rect.GetWidth() * rcp_efb_width);
+  uniforms.src_height = static_cast<float>(framebuffer_rect.GetHeight() * rcp_efb_height);
   uniforms.filter_coefficients = filter_coefficients;
   uniforms.gamma_rcp = 1.0f / gamma;
   //   NOTE: when the clamp bits aren't set, the hardware will happily read beyond the EFB,
@@ -2924,10 +2924,10 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   //         In our implementation, the garbage just so happens to be the top or bottom row.
   //         Statistically, that could happen.
   const u32 top_coord = clamp_top ? framebuffer_rect.top : 0;
-  uniforms.clamp_top = (static_cast<float>(top_coord) + .5f) * rcp_efb_height;
+  uniforms.clamp_top = static_cast<float>((static_cast<double>(top_coord) + 0.5) * rcp_efb_height);
   const u32 bottom_coord = (clamp_bottom ? framebuffer_rect.bottom : efb_height) - 1;
-  uniforms.clamp_bottom = (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
-  uniforms.pixel_height = g_ActiveConfig.bCopyEFBScaled ? rcp_efb_height : 1.0f / EFB_HEIGHT;
+  uniforms.clamp_bottom = static_cast<float>((static_cast<double>(bottom_coord) + 0.5) * (1.0 / static_cast<double>(efb_height)));
+  uniforms.pixel_height = static_cast<float>(g_ActiveConfig.bCopyEFBScaled ? rcp_efb_height : 1.0 / static_cast<double>(EFB_HEIGHT));
   uniforms.padding = 0;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
@@ -2984,7 +2984,7 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   };
   Uniforms encoder_params;
   const u32 efb_height = g_framebuffer_manager->GetEFBHeight();
-  const float rcp_efb_height = 1.0f / static_cast<float>(efb_height);
+  const double rcp_efb_height = 1.0 / static_cast<double>(efb_height);
   encoder_params.position_uniform[0] = src_rect.left;
   encoder_params.position_uniform[1] = src_rect.top;
   encoder_params.position_uniform[2] = static_cast<s32>(native_width);
@@ -2997,9 +2997,9 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   //         In our implementation, the garbage just so happens to be the top or bottom row.
   //         Statistically, that could happen.
   const u32 top_coord = clamp_top ? framebuffer_rect.top : 0;
-  encoder_params.clamp_top = (static_cast<float>(top_coord) + .5f) * rcp_efb_height;
+  encoder_params.clamp_top = static_cast<float>((static_cast<double>(top_coord) + 0.5) * rcp_efb_height);
   const u32 bottom_coord = (clamp_bottom ? framebuffer_rect.bottom : efb_height) - 1;
-  encoder_params.clamp_bottom = (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
+  encoder_params.clamp_bottom = static_cast<float>((static_cast<double>(bottom_coord) + 0.5) * rcp_efb_height);
   encoder_params.filter_coefficients = filter_coefficients;
   g_vertex_manager->UploadUtilityUniforms(&encoder_params, sizeof(encoder_params));
 
