@@ -81,6 +81,9 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
                   QStringLiteral("<font color=\"#%1\"><b>").arg(dolphin_emphasis.rgba(), 0, 16));
   message.replace(QStringLiteral("</dolphin_emphasis>"), QStringLiteral("</b></font>"));
 
+  // Save parent to reference the window borders of
+  this->m_parent = parent;
+
   auto* const balloontip_layout = new QVBoxLayout;
   balloontip_layout->setSizeConstraint(QLayout::SetFixedSize);
   setLayout(balloontip_layout);
@@ -111,9 +114,6 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
 
   if (!message.isEmpty())
     create_label(message);
-
-  // Save parent to reference the window borders of
-  this->m_parent = parent;
 }
 
 void BalloonTip::paintEvent(QPaintEvent*)
@@ -179,9 +179,13 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   const int arrow_nearest_edge_x_offset =
       std::min(adjusted_arrow_x_offset, centered_arrow_x_offset);
 
-  // The BalloonTip should be contained entirely within the parent window that contains the target
-  // position.
-  const QRect parent_rect = m_parent->window()->geometry();
+  // Get the window's bounds to draw the tool tip within.
+  // Just using window->geometry(), will return invalid geometry until the window is moved
+  // updateGeometry does not work 100% of the time for this, so mapToGlobal was used.
+  const QWidget* window = m_parent->window();
+  const QPoint top_left = window->mapToGlobal(window->rect().topLeft());
+  const QPoint bottom_right = window->mapToGlobal(window->rect().bottomRight());
+  const QRect parent_rect = QRect(top_left, bottom_right);
 
   QPainterPath rect_path;
   rect_path.addRoundedRect(rect_left, rect_top, rect_width, rect_height, corner_outer_radius,
