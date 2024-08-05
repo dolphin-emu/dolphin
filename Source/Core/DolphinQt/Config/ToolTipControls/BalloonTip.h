@@ -42,4 +42,5 @@ protected:
 private:
   QColor m_border_color;
   QPixmap m_pixmap;
+  QWidget* m_parent;
 };
