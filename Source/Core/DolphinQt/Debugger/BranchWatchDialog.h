@@ -118,7 +118,11 @@ private:
   void SetStubPatches(u32 value) const;
   void SetBreakpoints(bool break_on_hit, bool log_on_hit) const;
 
-  [[nodiscard]] QMenu* GetTableContextMenu(const QModelIndex& index);
+  void SetBreakpointMenuActionsIcons() const;
+  QMenu* GetTableContextMenu(const QModelIndex& index) const;
+  QMenu* GetTableContextMenu_Origin(bool core_initialized) const;
+  QMenu* GetTableContextMenu_Destin(bool core_initialized) const;
+  QMenu* GetTableContextMenu_Symbol(bool core_initialized) const;
 
   Core::System& m_system;
   Core::BranchWatch& m_branch_watch;
@@ -134,7 +138,8 @@ private:
   QAction* m_act_break_on_hit;
   QAction* m_act_log_on_hit;
   QAction* m_act_both_on_hit;
-  QMenu* m_mnu_table_context = nullptr;
+  QMenu *m_mnu_table_context_origin, *m_mnu_table_context_destin_or_symbol,
+      *m_mnu_table_context_other;
   QMenu* m_mnu_column_visibility;
 
   QToolBar* m_control_toolbar;

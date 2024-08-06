@@ -34,6 +34,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Unreachable.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/BranchWatch.h"
@@ -413,6 +414,38 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
 
     m_control_toolbar->addWidget(group_box);
   }
+
+  // Table Context Menus
+  auto* const delete_action = new QAction(tr("&Delete"), this);
+  connect(delete_action, &QAction::triggered, this, &BranchWatchDialog::OnTableDelete);
+
+  m_act_copy_address = new QAction(tr("&Copy Address"), this);
+  connect(m_act_copy_address, &QAction::triggered, this, &BranchWatchDialog::OnTableCopyAddress);
+
+  m_act_insert_nop = new QAction(tr("Insert &NOP"), this);
+  connect(m_act_insert_nop, &QAction::triggered, this, &BranchWatchDialog::OnTableSetNOP);
+
+  m_act_insert_blr = new QAction(tr("Insert &BLR"), this);
+  connect(m_act_insert_blr, &QAction::triggered, this, &BranchWatchDialog::OnTableSetBLR);
+
+  m_mnu_set_breakpoint = new QMenu(tr("Set Brea&kpoint"), this);
+  m_act_break_on_hit = m_mnu_set_breakpoint->addAction(
+      tr("&Break on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBreak);
+  m_act_log_on_hit = m_mnu_set_breakpoint->addAction(tr("&Log on Hit"), this,
+                                                     &BranchWatchDialog::OnTableSetBreakpointLog);
+  m_act_both_on_hit = m_mnu_set_breakpoint->addAction(tr("Break &and Log on Hit"), this,
+                                                      &BranchWatchDialog::OnTableSetBreakpointBoth);
+
+  m_mnu_table_context_origin = new QMenu(this);
+  m_mnu_table_context_origin->addActions(
+      {delete_action, m_act_insert_nop, m_act_copy_address, m_mnu_set_breakpoint->menuAction()});
+
+  m_mnu_table_context_destin_or_symbol = new QMenu(this);
+  m_mnu_table_context_destin_or_symbol->addActions(
+      {delete_action, m_act_insert_blr, m_act_copy_address, m_mnu_set_breakpoint->menuAction()});
+
+  m_mnu_table_context_other = new QMenu(this);
+  m_mnu_table_context_other->addAction(delete_action);
 
   LoadQSettings();
 
@@ -1040,112 +1073,88 @@ void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
   m_code_widget->Update();
 }
 
-QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index)
+void BranchWatchDialog::SetBreakpointMenuActionsIcons() const
 {
-  if (m_mnu_table_context == nullptr)
+  qsizetype bp_break_count = 0, bp_log_count = 0, bp_both_count = 0;
+  for (auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+       const QModelIndex& index : m_index_list_temp)
   {
-    m_mnu_table_context = new QMenu(this);
-    m_mnu_table_context->addAction(tr("&Delete"), this, &BranchWatchDialog::OnTableDelete);
-    m_act_insert_nop =
-        m_mnu_table_context->addAction(tr("Insert &NOP"), this, &BranchWatchDialog::OnTableSetNOP);
-    m_act_insert_blr =
-        m_mnu_table_context->addAction(tr("Insert &BLR"), this, &BranchWatchDialog::OnTableSetBLR);
-    m_act_copy_address = m_mnu_table_context->addAction(tr("&Copy Address"), this,
-                                                        &BranchWatchDialog::OnTableCopyAddress);
-
-    m_mnu_set_breakpoint = new QMenu(tr("Set Brea&kpoint"), this);
-    m_act_break_on_hit = m_mnu_set_breakpoint->addAction(
-        tr("&Break on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBreak);
-    m_act_log_on_hit = m_mnu_set_breakpoint->addAction(tr("&Log on Hit"), this,
-                                                       &BranchWatchDialog::OnTableSetBreakpointLog);
-    m_act_both_on_hit = m_mnu_set_breakpoint->addAction(
-        tr("Break &and Log on Hit"), this, &BranchWatchDialog::OnTableSetBreakpointBoth);
-    m_mnu_table_context->addMenu(m_mnu_set_breakpoint);
+    if (const TBreakPoint* bp = breakpoints.GetRegularBreakpoint(
+            m_table_proxy->data(index, UserRole::ClickRole).value<u32>()))
+    {
+      if (bp->break_on_hit && bp->log_on_hit)
+      {
+        bp_both_count += 1;
+        continue;
+      }
+      bp_break_count += bp->break_on_hit;
+      bp_log_count += bp->log_on_hit;
+    }
   }
+  const qsizetype selected_row_count = m_index_list_temp.size();
+  m_act_break_on_hit->setIconVisibleInMenu(bp_break_count != 0);
+  m_act_break_on_hit->setIcon(bp_break_count == selected_row_count ? m_icn_full : m_icn_partial);
+  m_act_log_on_hit->setIconVisibleInMenu(bp_log_count != 0);
+  m_act_log_on_hit->setIcon(bp_log_count == selected_row_count ? m_icn_full : m_icn_partial);
+  m_act_both_on_hit->setIconVisibleInMenu(bp_both_count != 0);
+  m_act_both_on_hit->setIcon(bp_both_count == selected_row_count ? m_icn_full : m_icn_partial);
+}
 
+QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index) const
+{
   const bool core_initialized = Core::GetState(m_system) != Core::State::Uninitialized;
-
-  bool supported_column = true;
   switch (index.column())
   {
+  case Column::Instruction:
+  case Column::Condition:
+    return m_mnu_table_context_other;
   case Column::Origin:
-    m_act_insert_blr->setVisible(false);
-    m_act_insert_nop->setVisible(true);
-    m_act_insert_nop->setEnabled(core_initialized);
-    m_act_copy_address->setEnabled(true);
-    m_mnu_set_breakpoint->setEnabled(true);
-    break;
+    return GetTableContextMenu_Origin(core_initialized);
   case Column::Destination:
-  {
-    m_act_insert_nop->setVisible(false);
-    m_act_insert_blr->setVisible(true);
-    const bool all_branches_save_lr =
-        core_initialized &&
-        std::all_of(
-            m_index_list_temp.begin(), m_index_list_temp.end(), [this](const QModelIndex& idx) {
-              const QModelIndex sibling = idx.siblingAtColumn(Column::Instruction);
-              return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
-            });
-    m_act_insert_blr->setEnabled(all_branches_save_lr);
-    m_act_copy_address->setEnabled(true);
-    m_mnu_set_breakpoint->setEnabled(true);
-    break;
-  }
+    return GetTableContextMenu_Destin(core_initialized);
+  case Column::RecentHits:
+  case Column::TotalHits:
+    return m_mnu_table_context_other;
   case Column::OriginSymbol:
   case Column::DestinSymbol:
-  {
-    m_act_insert_nop->setVisible(false);
-    m_act_insert_blr->setVisible(true);
-    const bool all_symbols_valid =
-        core_initialized &&
-        std::all_of(m_index_list_temp.begin(), m_index_list_temp.end(),
-                    [this](const QModelIndex& idx) {
-                      return m_table_proxy->data(idx, UserRole::ClickRole).isValid();
-                    });
-    m_act_insert_blr->setEnabled(all_symbols_valid);
-    m_act_copy_address->setEnabled(all_symbols_valid);
-    m_mnu_set_breakpoint->setEnabled(all_symbols_valid);
-    break;
+    return GetTableContextMenu_Symbol(core_initialized);
   }
-  default:
-    m_act_insert_nop->setVisible(false);
-    m_act_insert_blr->setVisible(false);
-    supported_column = false;
-    break;
-  }
-  m_act_copy_address->setVisible(supported_column);
-  m_mnu_set_breakpoint->menuAction()->setVisible(supported_column);
-  // Setting breakpoints while nothing is being emulated is discouraged in the UI.
-  m_mnu_set_breakpoint->setEnabled(core_initialized);
+  static_assert(Column::NumberOfColumns == 8);
+  Common::Unreachable();
+}
 
-  if (core_initialized && supported_column)
-  {
-    qsizetype bp_break_count = 0, bp_log_count = 0, bp_both_count = 0;
-    for (auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
-         const QModelIndex& idx : m_index_list_temp)
-    {
-      if (const TBreakPoint* bp = breakpoints.GetRegularBreakpoint(
-              m_table_proxy->data(idx, UserRole::ClickRole).value<u32>()))
-      {
-        if (bp->break_on_hit && bp->log_on_hit)
-        {
-          bp_both_count += 1;
-          continue;
-        }
-        bp_break_count += bp->break_on_hit;
-        bp_log_count += bp->log_on_hit;
-      }
-    }
-    m_act_break_on_hit->setIconVisibleInMenu(bp_break_count != 0);
-    m_act_break_on_hit->setIcon(bp_break_count == m_index_list_temp.size() ? m_icn_full :
-                                                                             m_icn_partial);
-    m_act_log_on_hit->setIconVisibleInMenu(bp_log_count != 0);
-    m_act_log_on_hit->setIcon(bp_log_count == m_index_list_temp.size() ? m_icn_full :
-                                                                         m_icn_partial);
-    m_act_both_on_hit->setIconVisibleInMenu(bp_both_count != 0);
-    m_act_both_on_hit->setIcon(bp_both_count == m_index_list_temp.size() ? m_icn_full :
-                                                                           m_icn_partial);
-  }
+QMenu* BranchWatchDialog::GetTableContextMenu_Origin(bool core_initialized) const
+{
+  SetBreakpointMenuActionsIcons();
+  m_act_insert_nop->setEnabled(core_initialized);
+  m_act_copy_address->setEnabled(true);
+  m_mnu_set_breakpoint->setEnabled(true);
+  return m_mnu_table_context_origin;
+}
 
-  return m_mnu_table_context;
+QMenu* BranchWatchDialog::GetTableContextMenu_Destin(bool core_initialized) const
+{
+  SetBreakpointMenuActionsIcons();
+  const bool all_branches_save_lr =  // Taking advantage of short-circuit evaluation here.
+      core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        const QModelIndex sibling = index.siblingAtColumn(Column::Instruction);
+        return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
+      });
+  m_act_insert_blr->setEnabled(all_branches_save_lr);
+  m_act_copy_address->setEnabled(true);
+  m_mnu_set_breakpoint->setEnabled(true);
+  return m_mnu_table_context_destin_or_symbol;
+}
+
+QMenu* BranchWatchDialog::GetTableContextMenu_Symbol(bool core_initialized) const
+{
+  SetBreakpointMenuActionsIcons();
+  const bool all_symbols_valid =
+      std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        return m_table_proxy->data(index, UserRole::ClickRole).isValid();
+      });
+  m_act_insert_blr->setEnabled(core_initialized && all_symbols_valid);
+  m_act_copy_address->setEnabled(all_symbols_valid);
+  m_mnu_set_breakpoint->setEnabled(all_symbols_valid);
+  return m_mnu_table_context_destin_or_symbol;
 }
