@@ -178,7 +178,7 @@ void AchievementSettingsWidget::LoadSettings()
       ->setEnabled(enabled && !Core::IsRunning(Core::System::GetInstance()));
   if (enabled && Core::IsRunning(Core::System::GetInstance()))
   {
-    SignalBlocking(m_common_login_button)->setText(tr("To login, stop the current emulation."));
+    SignalBlocking(m_common_login_button)->setText(tr("To log in, stop the current emulation."));
   }
   else
   {
