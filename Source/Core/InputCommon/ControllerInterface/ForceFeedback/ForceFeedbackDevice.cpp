@@ -106,14 +106,14 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, c
   diPE.dwPhase = 0;
   diPE.dwPeriod = DI_SECONDS / 1000 * RUMBLE_PERIOD_MS;
 
-  for (auto& f : force_type_names)
+  for (const auto& [guid, name] : force_type_names)
   {
-    if (f.guid == GUID_ConstantForce)
+    if (guid == GUID_ConstantForce)
     {
       eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
       eff.lpvTypeSpecificParams = &diCF;
     }
-    else if (f.guid == GUID_RampForce)
+    else if (guid == GUID_RampForce)
     {
       eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
       eff.lpvTypeSpecificParams = &diRF;
@@ -126,14 +126,14 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, c
     }
 
     LPDIRECTINPUTEFFECT pEffect;
-    if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, nullptr)))
+    if (SUCCEEDED(device->CreateEffect(guid, &eff, &pEffect, nullptr)))
     {
-      if (f.guid == GUID_ConstantForce)
-        AddOutput(new ForceConstant(this, f.name, pEffect, diCF));
-      else if (f.guid == GUID_RampForce)
-        AddOutput(new ForceRamp(this, f.name, pEffect, diRF));
+      if (guid == GUID_ConstantForce)
+        AddOutput(new ForceConstant(this, name, pEffect, diCF));
+      else if (guid == GUID_RampForce)
+        AddOutput(new ForceRamp(this, name, pEffect, diRF));
       else
-        AddOutput(new ForcePeriodic(this, f.name, pEffect, diPE));
+        AddOutput(new ForcePeriodic(this, name, pEffect, diPE));
     }
   }
 

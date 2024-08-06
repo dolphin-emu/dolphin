@@ -49,19 +49,19 @@ bool VertexManager::Initialize()
           {TEXEL_BUFFER_FORMAT_RGBA8_UINT, DXGI_FORMAT_R8G8B8A8_UINT},
           {TEXEL_BUFFER_FORMAT_R32G32_UINT, DXGI_FORMAT_R32G32_UINT},
       }};
-  for (const auto& it : format_mapping)
+  for (const auto& [fst, snd] : format_mapping)
   {
-    DescriptorHandle& dh = m_texel_buffer_views[it.first];
+    DescriptorHandle& dh = m_texel_buffer_views[fst];
     if (!g_dx_context->GetDescriptorHeapManager().Allocate(&dh))
     {
       PanicAlertFmt("Failed to allocate descriptor for texel buffer");
       return false;
     }
 
-    D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {it.second, D3D12_SRV_DIMENSION_BUFFER,
+    D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {snd, D3D12_SRV_DIMENSION_BUFFER,
                                                 D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
     srv_desc.Buffer.NumElements =
-        m_texel_stream_buffer.GetSize() / GetTexelBufferElementSize(it.first);
+        m_texel_stream_buffer.GetSize() / GetTexelBufferElementSize(fst);
     g_dx_context->GetDevice()->CreateShaderResourceView(m_texel_stream_buffer.GetBuffer(),
                                                         &srv_desc, dh.cpu_handle);
   }

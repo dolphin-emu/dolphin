@@ -237,41 +237,41 @@ void ProgramShaderCache::UploadConstants()
   {
     const u32 custom_constants_size = static_cast<u32>(
         Common::AlignUp(pixel_shader_manager.custom_constants.size(), s_ubo_align));
-    const auto buffer = s_buffer->Map(s_ubo_buffer_size + custom_constants_size, s_ubo_align);
+    const auto [fst, snd] = s_buffer->Map(s_ubo_buffer_size + custom_constants_size, s_ubo_align);
 
-    memcpy(buffer.first, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
+    memcpy(fst, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
 
     u64 size = Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align);
 
-    memcpy(buffer.first + size, &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
+    memcpy(fst + size, &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
     size += Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align);
 
     if (!pixel_shader_manager.custom_constants.empty())
     {
-      memcpy(buffer.first + size, pixel_shader_manager.custom_constants.data(),
+      memcpy(fst + size, pixel_shader_manager.custom_constants.data(),
              pixel_shader_manager.custom_constants.size());
       size += custom_constants_size;
     }
 
-    memcpy(buffer.first + size, &geometry_shader_manager.constants,
+    memcpy(fst + size, &geometry_shader_manager.constants,
            sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size + custom_constants_size);
 
-    glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, snd,
                       sizeof(PixelShaderConstants));
     size = Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer, buffer.second + size,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer, snd + size,
                       sizeof(VertexShaderConstants));
     size += Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align);
 
     if (!pixel_shader_manager.custom_constants.empty())
     {
-      glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer, buffer.second + size,
+      glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer, snd + size,
                         pixel_shader_manager.custom_constants.size());
       size += Common::AlignUp(pixel_shader_manager.custom_constants.size(), s_ubo_align);
     }
-    glBindBufferRange(GL_UNIFORM_BUFFER, 4, s_buffer->m_buffer, buffer.second + size,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 4, s_buffer->m_buffer, snd + size,
                       sizeof(GeometryShaderConstants));
 
     pixel_shader_manager.dirty = false;
@@ -287,13 +287,13 @@ void ProgramShaderCache::UploadConstants(const void* data, const u32 data_size)
 {
   // allocate and copy
   const u32 alloc_size = Common::AlignUp(data_size, s_ubo_align);
-  const auto buffer = s_buffer->Map(alloc_size, s_ubo_align);
-  std::memcpy(buffer.first, data, data_size);
+  const auto [fst, snd] = s_buffer->Map(alloc_size, s_ubo_align);
+  std::memcpy(fst, data, data_size);
   s_buffer->Unmap(alloc_size);
 
   // bind the same sub-buffer to all stages
   for (u32 index = 1; index <= 4; index++)
-    glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, buffer.second, data_size);
+    glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, snd, data_size);
 
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
 }
@@ -662,8 +662,8 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
   if (s_is_shared_context)
     glFinish();
 
-  const auto ip = s_pipeline_programs.emplace(key, std::move(prog));
-  return ip.first->second.get();
+  const auto [fst, _snd] = s_pipeline_programs.emplace(key, std::move(prog));
+  return fst->second.get();
 }
 
 void ProgramShaderCache::ReleasePipelineProgram(PipelineProgram* prog)

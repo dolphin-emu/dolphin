@@ -514,21 +514,21 @@ void MemoryWidget::SetAddress(const u32 address)
 
 void MemoryWidget::OnSearchAddress() const
 {
-  const auto target_addr = GetTargetAddress();
+  const auto [address, is_good_address, is_good_offset] = GetTargetAddress();
 
-  if (target_addr.is_good_address && target_addr.is_good_offset)
-    m_memory_view->SetAddress(target_addr.address);
+  if (is_good_address && is_good_offset)
+    m_memory_view->SetAddress(address);
 
   QFont addr_font, offset_font;
   QPalette addr_palette, offset_palette;
 
-  if (!target_addr.is_good_address)
+  if (!is_good_address)
   {
     addr_font.setBold(true);
     addr_palette.setColor(QPalette::Text, Qt::red);
   }
 
-  if (!target_addr.is_good_offset)
+  if (!is_good_offset)
   {
     offset_font.setBold(true);
     offset_palette.setColor(QPalette::Text, Qt::red);
@@ -627,15 +627,15 @@ void MemoryWidget::OnSetValue()
   if (!IsRunning(m_system))
     return;
 
-  auto target_addr = GetTargetAddress();
+  auto [address, is_good_address, is_good_offset] = GetTargetAddress();
 
-  if (!target_addr.is_good_address)
+  if (!is_good_address)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
     return;
   }
 
-  if (!target_addr.is_good_offset)
+  if (!is_good_offset)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
     return;
@@ -653,9 +653,9 @@ void MemoryWidget::OnSetValue()
   const Core::CPUThreadGuard guard(m_system);
 
   AddressSpace::Accessors* accessors = GetAccessors(m_memory_view->GetAddressSpace());
-  const u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
+  const u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
 
-  if (!accessors->IsValidAddress(guard, target_addr.address) ||
+  if (!accessors->IsValidAddress(guard, address) ||
       !accessors->IsValidAddress(guard, end_address))
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Target address range is invalid."));
@@ -663,7 +663,7 @@ void MemoryWidget::OnSetValue()
   }
 
   for (const char c : bytes)
-    accessors->WriteU8(guard, target_addr.address++, static_cast<u8>(c));
+    accessors->WriteU8(guard, address++, static_cast<u8>(c));
 
   Update();
 }
@@ -673,15 +673,15 @@ void MemoryWidget::OnSetValueFromFile()
   if (!IsRunning(m_system))
     return;
 
-  auto target_addr = GetTargetAddress();
+  auto [address, is_good_address, is_good_offset] = GetTargetAddress();
 
-  if (!target_addr.is_good_address)
+  if (!is_good_address)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
     return;
   }
 
-  if (!target_addr.is_good_offset)
+  if (!is_good_offset)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
     return;
@@ -715,7 +715,7 @@ void MemoryWidget::OnSetValueFromFile()
   const Core::CPUThreadGuard guard(m_system);
 
   for (const u8 b : file_contents)
-    accessors->WriteU8(guard, target_addr.address++, b);
+    accessors->WriteU8(guard, address++, b);
 
   Update();
 }
@@ -798,15 +798,15 @@ MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
 
 void MemoryWidget::FindValue(const bool next) const
 {
-  auto target_addr = GetTargetAddress();
+  auto [address, is_good_address, is_good_offset] = GetTargetAddress();
 
-  if (!target_addr.is_good_address)
+  if (!is_good_address)
   {
     m_result_label->setText(tr("Bad address provided."));
     return;
   }
 
-  if (!target_addr.is_good_offset)
+  if (!is_good_offset)
   {
     m_result_label->setText(tr("Bad offset provided."));
     return;
@@ -823,14 +823,14 @@ void MemoryWidget::FindValue(const bool next) const
   if (!m_search_address->currentText().isEmpty())
   {
     // skip the quoted address so we don't potentially refind the last result
-    target_addr.address += next ? 1 : -1;
+    address += next ? 1 : -1;
   }
 
   const std::optional<u32> found_addr = [&] {
     const AddressSpace::Accessors* accessors = GetAccessors(m_memory_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_system);
-    return accessors->Search(guard, target_addr.address,
+    return accessors->Search(guard, address,
                              reinterpret_cast<const u8*>(search_for.data()),
                              static_cast<u32>(search_for.size()), next);
   }();

@@ -496,10 +496,10 @@ const std::array<pdlabel_t, 36> regnames =
 
 std::string pdname(u16 val)
 {
-  for (const pdlabel_t& pdlabel : pdlabels)
+  for (const auto& [addr, name, _description] : pdlabels)
   {
-    if (pdlabel.addr == val)
-      return pdlabel.name;
+    if (addr == val)
+      return name;
   }
 
   return fmt::format("0x{:04x}", val);

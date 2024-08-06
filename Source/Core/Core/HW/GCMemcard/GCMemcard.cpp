@@ -968,9 +968,9 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
   std::vector<GCMemcardAnimationFrameRGBA8> output;
   for (u32 i = 0; i < frame_count; ++i)
   {
-    GCMemcardAnimationFrameRGBA8& output_frame = output.emplace_back();
-    output_frame.image_data.resize(pixels_per_frame);
-    output_frame.delay = frame_delays[i];
+    auto& [image_data, delay] = output.emplace_back();
+    image_data.resize(pixels_per_frame);
+    delay = frame_delays[i];
 
     // Note on how to interpret this inner loop here: In the general case this just degenerates into
     // j == i for every iteration, but in some rare cases (such as Luigi's Mansion or Pikmin) some
@@ -984,7 +984,7 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
     {
       if (frame_formats[j] == MEMORY_CARD_ICON_FORMAT_CI8_SHARED_PALETTE)
       {
-        Common::DecodeCI8Image(output_frame.image_data.data(),
+        Common::DecodeCI8Image(image_data.data(),
                                save_data_bytes->data() + frame_offsets[j], shared_palette.data(),
                                MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT);
         break;
@@ -995,7 +995,7 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
         std::array<u16, pixels_per_frame> pxdata;
         std::memcpy(pxdata.data(), save_data_bytes->data() + frame_offsets[j],
                     pixels_per_frame * 2);
-        Common::Decode5A3Image(output_frame.image_data.data(), pxdata.data(),
+        Common::Decode5A3Image(image_data.data(), pxdata.data(),
                                MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT);
         break;
       }
@@ -1005,7 +1005,7 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
         std::array<u16, MEMORY_CARD_CI8_PALETTE_ENTRIES> paldata;
         std::memcpy(paldata.data(), save_data_bytes->data() + frame_offsets[j] + pixels_per_frame,
                     MEMORY_CARD_CI8_PALETTE_ENTRIES * 2);
-        Common::DecodeCI8Image(output_frame.image_data.data(),
+        Common::DecodeCI8Image(image_data.data(),
                                save_data_bytes->data() + frame_offsets[j], paldata.data(),
                                MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT);
         break;

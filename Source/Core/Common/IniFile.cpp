@@ -46,8 +46,7 @@ IniFile::Section::Section(std::string name_) : name{std::move(name_)}
 
 void IniFile::Section::Set(const std::string& key, std::string new_value)
 {
-  const auto result = values.insert_or_assign(key, std::move(new_value));
-  const bool insertion_occurred = result.second;
+  const auto [_fst, insertion_occurred] = values.insert_or_assign(key, std::move(new_value));
 
   if (insertion_occurred)
     keys_order.push_back(key);

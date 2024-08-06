@@ -154,9 +154,9 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, const bool block_link,
 
   if (block_link)
   {
-    for (const auto& e : block.linkData)
+    for (const auto& [_exitPtrs, exitAddress, _linkStatus, _call] : block.linkData)
     {
-      links_to[e.exitAddress].insert(&block);
+      links_to[exitAddress].insert(&block);
     }
 
     LinkBlock(block);
@@ -189,10 +189,10 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(const u32 addr, const CPUE
     translated_addr = translated.address;
   }
 
-  auto iter = block_map.equal_range(translated_addr);
-  for (; iter.first != iter.second; iter.first++)
+  auto [fst, snd] = block_map.equal_range(translated_addr);
+  for (; fst != snd; fst++)
   {
-    JitBlock& b = iter.first->second;
+    JitBlock& b = fst->second;
     if (b.effectiveAddress == addr && b.feature_flags == feature_flags)
       return &b;
   }
@@ -202,16 +202,20 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(const u32 addr, const CPUE
 
 const u8* JitBaseBlockCache::Dispatch()
 {
-  const auto& ppc_state = m_jit.m_ppc_state;
+  const auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = m_jit.m_ppc_state;
   if (m_entry_points_ptr)
   {
     const u8* entry_point =
-        m_entry_points_ptr[FastLookupIndexForAddress(ppc_state.pc, ppc_state.feature_flags)];
+        m_entry_points_ptr[FastLookupIndexForAddress(pc, feature_flags)];
     if (entry_point)
     {
       return entry_point;
     }
-    const JitBlock* block = MoveBlockIntoFastCache(ppc_state.pc, ppc_state.feature_flags);
+    const JitBlock* block = MoveBlockIntoFastCache(pc, feature_flags);
 
     if (!block)
       return nullptr;
@@ -220,12 +224,12 @@ const u8* JitBaseBlockCache::Dispatch()
   }
 
   const JitBlock* block =
-      m_fast_block_map_fallback[FastLookupIndexForAddress(ppc_state.pc, ppc_state.feature_flags)];
+      m_fast_block_map_fallback[FastLookupIndexForAddress(pc, feature_flags)];
 
-  if (!block || block->effectiveAddress != ppc_state.pc ||
-      block->feature_flags != ppc_state.feature_flags)
+  if (!block || block->effectiveAddress != pc ||
+      block->feature_flags != feature_flags)
   {
-    block = MoveBlockIntoFastCache(ppc_state.pc, ppc_state.feature_flags);
+    block = MoveBlockIntoFastCache(pc, feature_flags);
   }
 
   if (!block)
@@ -340,15 +344,15 @@ void JitBaseBlockCache::ErasePhysicalRange(const u32 address, const u32 length)
 
         // And remove the block.
         DestroyBlock(*block);
-        auto block_map_iter = block_map.equal_range(block->physicalAddress);
-        while (block_map_iter.first != block_map_iter.second)
+        auto [fst, snd] = block_map.equal_range(block->physicalAddress);
+        while (fst != snd)
         {
-          if (&block_map_iter.first->second == block)
+          if (&fst->second == block)
           {
-            block_map.erase(block_map_iter.first);
+            block_map.erase(fst);
             break;
           }
-          block_map_iter.first++;
+          fst++;
         }
         iter = start->second.erase(iter);
       }
@@ -459,9 +463,9 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& block)
   UnlinkBlock(block);
 
   // Delete linking addresses
-  for (const auto& e : block.linkData)
+  for (const auto& [_exitPtrs, exitAddress, _linkStatus, _call] : block.linkData)
   {
-    auto it = links_to.find(e.exitAddress);
+    auto it = links_to.find(exitAddress);
     if (it == links_to.end())
       continue;
     it->second.erase(&block);

@@ -191,9 +191,9 @@ bool MEGASignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 
 
 void MEGASignatureDB::List() const
 {
-  for (const auto& entry : m_signatures)
+  for (const auto& [code, name, _refs] : m_signatures)
   {
-    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes", entry.name, entry.code.size() * sizeof(u32));
+    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes", name, code.size() * sizeof(u32));
   }
   INFO_LOG_FMT(SYMBOLS, "{} functions known in current MEGA database.", m_signatures.size());
 }

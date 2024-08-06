@@ -157,7 +157,10 @@ bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard&
 
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
-  auto& ppc_state = system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
   auto& mmu = system.GetMMU();
   auto& branch_watch = system.GetPowerPC().GetBranchWatch();
 
@@ -168,9 +171,9 @@ bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard&
   // Call iAppLoaderEntry.
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderEntry");
   const u32 iAppLoaderFuncAddr = is_wii ? 0x80004000 : 0x80003100;
-  ppc_state.gpr[3] = iAppLoaderFuncAddr + 0;
-  ppc_state.gpr[4] = iAppLoaderFuncAddr + 4;
-  ppc_state.gpr[5] = iAppLoaderFuncAddr + 8;
+  gpr[3] = iAppLoaderFuncAddr + 0;
+  gpr[4] = iAppLoaderFuncAddr + 4;
+  gpr[5] = iAppLoaderFuncAddr + 8;
   RunFunction(system, *entry);
   const u32 iAppLoaderInit = mmu.Read_U32(iAppLoaderFuncAddr + 0);
   const u32 iAppLoaderMain = mmu.Read_U32(iAppLoaderFuncAddr + 4);
@@ -180,7 +183,7 @@ bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard&
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderInit");
   PowerPC::MMU::HostWrite_U32(guard, 0x4E800020, 0x81300000);  // Write BLR
   HLE::Patch(system, 0x81300000, "AppLoaderReport");           // HLE OSReport for Apploader
-  ppc_state.gpr[3] = 0x81300000;
+  gpr[3] = 0x81300000;
   RunFunction(system, iAppLoaderInit);
 
   // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
@@ -188,9 +191,9 @@ bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard&
   // ch 13.
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderMain");
 
-  ppc_state.gpr[3] = 0x81300004;
-  ppc_state.gpr[4] = 0x81300008;
-  ppc_state.gpr[5] = 0x8130000c;
+  gpr[3] = 0x81300004;
+  gpr[4] = 0x81300008;
+  gpr[5] = 0x8130000c;
 
   RunFunction(system, iAppLoaderMain);
 
@@ -198,7 +201,7 @@ bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard&
   // Typical behaviour is doing it once for each section defined in the DOL header. Some unlicensed
   // titles don't have a properly constructed DOL and maintain a table of these values in apploader.
   // iAppLoaderMain returns 0 when there are no more sections to copy.
-  while (ppc_state.gpr[3] != 0x00)
+  while (gpr[3] != 0x00)
   {
     const u32 ram_address = mmu.Read_U32(0x81300004);
     const u32 length = mmu.Read_U32(0x81300008);
@@ -211,9 +214,9 @@ bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard&
     ApplyApploaderMemoryPatches(guard, riivolution_patches, ram_address,
                                                      length);
 
-    ppc_state.gpr[3] = 0x81300004;
-    ppc_state.gpr[4] = 0x81300008;
-    ppc_state.gpr[5] = 0x8130000c;
+    gpr[3] = 0x81300004;
+    gpr[4] = 0x81300008;
+    gpr[5] = 0x8130000c;
 
     RunFunction(system, iAppLoaderMain);
   }
@@ -224,7 +227,7 @@ bool CBoot::RunApploader(const Core::System& system, const Core::CPUThreadGuard&
   HLE::UnPatch(system, "AppLoaderReport");
 
   // return
-  ppc_state.pc = ppc_state.gpr[3];
+  pc = gpr[3];
 
   branch_watch.SetRecordingActive(resume_branch_watch);
 

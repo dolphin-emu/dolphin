@@ -31,14 +31,14 @@ constexpr u32 BUFFER_CHUNK_SIZE = 65536;
 
 HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
-  for (const auto& redirect : m_nand_redirects)
+  for (const auto& [source_path, target_path] : m_nand_redirects)
   {
-    if (wii_path.starts_with(redirect.source_path) &&
-        (wii_path.size() == redirect.source_path.size() ||
-         wii_path[redirect.source_path.size()] == '/'))
+    if (wii_path.starts_with(source_path) &&
+        (wii_path.size() == source_path.size() ||
+         wii_path[source_path.size()] == '/'))
     {
-      const std::string relative_to_redirect = wii_path.substr(redirect.source_path.size());
-      return HostFilename{redirect.target_path + Common::EscapePath(relative_to_redirect), true};
+      const std::string relative_to_redirect = wii_path.substr(source_path.size());
+      return HostFilename{target_path + Common::EscapePath(relative_to_redirect), true};
     }
   }
 
@@ -243,12 +243,12 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   if (!IsValidNonRootPath(path))
     return nullptr;
 
-  const auto host_file = BuildFilename(path);
-  const File::FileInfo host_file_info{host_file.host_path};
+  const auto [host_path, is_redirect] = BuildFilename(path);
+  const File::FileInfo host_file_info{host_path};
   if (!host_file_info.Exists())
     return nullptr;
 
-  FstEntry* entry = host_file.is_redirect ? &m_redirect_fst : &m_root_entry;
+  FstEntry* entry = is_redirect ? &m_redirect_fst : &m_root_entry;
   std::string complete_path = "";
   for (const std::string& component : SplitString(std::string(path.substr(1)), '/'))
   {
@@ -264,7 +264,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
       // This code path is also reached when creating a new file or directory;
       // proper metadata is filled in later.
       INFO_LOG_FMT(IOS_FS, "Creating a default entry for {} ({})", complete_path,
-                   host_file.is_redirect ? "redirect" : "NAND");
+                   is_redirect ? "redirect" : "NAND");
       entry = &entry->children.emplace_back();
       entry->name = component;
       entry->data.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
@@ -329,28 +329,28 @@ void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_pat
 void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path) const
 {
   const std::string path = BuildFilename(start_directory_path).host_path;
-  File::FSTEntry parent_entry = File::ScanDirectoryTree(path, true);
+  auto [_isDirectory, _size, _physicalName, _virtualName, children] =
+      File::ScanDirectoryTree(path, true);
   std::deque<File::FSTEntry> todo;
-  todo.insert(todo.end(), parent_entry.children.begin(), parent_entry.children.end());
+  todo.insert(todo.end(), children.begin(), children.end());
 
   while (!todo.empty())
   {
-    File::FSTEntry& entry = todo.front();
-    std::string name = entry.physicalName;
+    auto& [isDirectory, size, physicalName, _virtualName, children] = todo.front();
+    std::string name = physicalName;
     name.erase(0, path.length() + 1);
-    char type = entry.isDirectory ? 'd' : 'f';
+    char type = isDirectory ? 'd' : 'f';
     p.Do(type);
     p.Do(name);
-    if (entry.isDirectory)
+    if (isDirectory)
     {
-      todo.insert(todo.end(), entry.children.begin(), entry.children.end());
+      todo.insert(todo.end(), children.begin(), children.end());
     }
     else
     {
-      u32 size = static_cast<u32>(entry.size);
       p.Do(size);
 
-      File::IOFile handle(entry.physicalName, "rb");
+      File::IOFile handle(physicalName, "rb");
       char buf[BUFFER_CHUNK_SIZE];
       u32 count = size;
       while (count > BUFFER_CHUNK_SIZE)
@@ -372,8 +372,8 @@ void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_dir
 void HostFileSystem::DoState(PointerWrap& p)
 {
   // Temporarily close the file, to prevent any issues with the savestating of files/folders.
-  for (Handle& handle : m_handles)
-    handle.host_file.reset();
+  for (auto& [_opened, _mode, _wii_path, host_file, _file_offset] : m_handles)
+    host_file.reset();
 
   // The format for the next part of the save state is follows:
   // 1. bool Movie::WasMovieActiveWhenStateSaved() &&
@@ -429,14 +429,14 @@ void HostFileSystem::DoState(PointerWrap& p)
     }
   }
 
-  for (Handle& handle : m_handles)
+  for (auto& [opened, mode, wii_path, host_file, file_offset] : m_handles)
   {
-    p.Do(handle.opened);
-    p.Do(handle.mode);
-    p.Do(handle.wii_path);
-    p.Do(handle.file_offset);
-    if (handle.opened)
-      handle.host_file = OpenHostFile(BuildFilename(handle.wii_path).host_path);
+    p.Do(opened);
+    p.Do(mode);
+    p.Do(wii_path);
+    p.Do(file_offset);
+    if (opened)
+      host_file = OpenHostFile(BuildFilename(wii_path).host_path);
   }
 }
 
@@ -467,10 +467,10 @@ ResultCode HostFileSystem::CreateFileOrDirectory(const Uid uid, const Gid gid, c
   if (!is_file && std::ranges::count(path, '/') > static_cast<int>(MaxPathDepth))
     return ResultCode::TooManyPathComponents;
 
-  const auto split_path = SplitPathAndBasename(path);
+  const auto [split_path_parent, file_name] = SplitPathAndBasename(path);
   const std::string host_path = BuildFilename(path).host_path;
 
-  const FstEntry* parent = GetFstEntryForPath(split_path.parent);
+  const FstEntry* parent = GetFstEntryForPath(split_path_parent);
   if (!parent)
     return ResultCode::NotFound;
 
@@ -489,7 +489,7 @@ ResultCode HostFileSystem::CreateFileOrDirectory(const Uid uid, const Gid gid, c
 
   FstEntry* child = GetFstEntryForPath(path);
   *child = {};
-  child->name = split_path.file_name;
+  child->name = file_name;
   child->data.is_file = is_file;
   child->data.modes = modes;
   child->data.uid = uid;
@@ -531,9 +531,9 @@ ResultCode HostFileSystem::Delete(const Uid uid, const Gid gid, const std::strin
     return ResultCode::Invalid;
 
   const std::string host_path = BuildFilename(path).host_path;
-  const auto split_path = SplitPathAndBasename(path);
+  const auto [split_path_parent, file_name] = SplitPathAndBasename(path);
 
-  FstEntry* parent = GetFstEntryForPath(split_path.parent);
+  FstEntry* parent = GetFstEntryForPath(split_path_parent);
   if (!parent)
     return ResultCode::NotFound;
 
@@ -550,7 +550,7 @@ ResultCode HostFileSystem::Delete(const Uid uid, const Gid gid, const std::strin
   else
     return ResultCode::InUse;
 
-  const auto it = std::ranges::find_if(parent->children, GetNamePredicate(split_path.file_name));
+  const auto it = std::ranges::find_if(parent->children, GetNamePredicate(file_name));
   if (it != parent->children.end())
     parent->children.erase(it);
   SaveFst();
@@ -564,11 +564,11 @@ ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::strin
   if (!IsValidNonRootPath(old_path) || !IsValidNonRootPath(new_path))
     return ResultCode::Invalid;
 
-  const auto split_old_path = SplitPathAndBasename(old_path);
-  const auto split_new_path = SplitPathAndBasename(new_path);
+  const auto [old_path_parent, old_path_file_name] = SplitPathAndBasename(old_path);
+  const auto [new_path_parent, new_path_file_name] = SplitPathAndBasename(new_path);
 
-  FstEntry* old_parent = GetFstEntryForPath(split_old_path.parent);
-  const FstEntry* new_parent = GetFstEntryForPath(split_new_path.parent);
+  FstEntry* old_parent = GetFstEntryForPath(old_path_parent);
+  const FstEntry* new_parent = GetFstEntryForPath(new_path_parent);
   if (!old_parent || !new_parent)
     return ResultCode::NotFound;
 
@@ -583,7 +583,7 @@ ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::strin
     return ResultCode::NotFound;
 
   // For files, the file name is not allowed to change.
-  if (entry->data.is_file && split_old_path.file_name != split_new_path.file_name)
+  if (entry->data.is_file && old_path_file_name != new_path_file_name)
     return ResultCode::Invalid;
 
   if ((!entry->data.is_file && IsDirectoryInUse(old_path)) ||
@@ -592,10 +592,8 @@ ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::strin
     return ResultCode::InUse;
   }
 
-  const auto host_old_info = BuildFilename(old_path);
-  const auto host_new_info = BuildFilename(new_path);
-  const std::string& host_old_path = host_old_info.host_path;
-  const std::string& host_new_path = host_new_info.host_path;
+  const auto [host_old_path, old_info_is_redirect] = BuildFilename(old_path);
+  const auto [host_new_path, new_info_is_redirect] = BuildFilename(new_path);
 
   // If there is already something of the same type at the new path, delete it.
   if (File::Exists(host_new_path))
@@ -612,7 +610,7 @@ ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::strin
 
   if (!File::Rename(host_old_path, host_new_path))
   {
-    if (host_old_info.is_redirect || host_new_info.is_redirect)
+    if (old_info_is_redirect || new_info_is_redirect)
     {
       // If either path is a redirect, the source and target may be on a different partition or
       // device, so a simple rename may not work. Fall back to Copy & Delete and see if that works.
@@ -636,11 +634,11 @@ ResultCode HostFileSystem::Rename(const Uid uid, const Gid gid, const std::strin
   }
 
   FstEntry* new_entry = GetFstEntryForPath(new_path);
-  new_entry->name = split_new_path.file_name;
+  new_entry->name = new_path_file_name;
 
   // Finally, remove the child from the old parent and move it to the new parent.
   const auto it =
-    std::ranges::find_if(old_parent->children, GetNamePredicate(split_old_path.file_name));
+    std::ranges::find_if(old_parent->children, GetNamePredicate(old_path_file_name));
   if (it != old_parent->children.end())
   {
     new_entry->data = it->data;
@@ -704,8 +702,9 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(const Uid uid, co
       });
 
   std::vector<std::string> output;
-  for (const File::FSTEntry& child : host_entry.children)
-    output.emplace_back(child.virtualName);
+  for (const auto& [_isDirectory, _size, _physicalName, virtualName, _children] :
+    host_entry.children)
+    output.emplace_back(virtualName);
   return output;
 }
 
@@ -721,8 +720,8 @@ Result<Metadata> HostFileSystem::GetMetadata(const Uid uid, const Gid gid, const
     if (!IsValidNonRootPath(path))
       return ResultCode::Invalid;
 
-    const auto split_path = SplitPathAndBasename(path);
-    const FstEntry* parent = GetFstEntryForPath(split_path.parent);
+    const auto [split_path_parent, _file_name] = SplitPathAndBasename(path);
+    const FstEntry* parent = GetFstEntryForPath(split_path_parent);
     if (!parent)
       return ResultCode::NotFound;
     if (!parent->CheckPermission(uid, gid, Mode::Read))

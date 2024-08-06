@@ -203,9 +203,9 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, const FigureUIPosition s
   auto* combo_figlist = new QComboBox();
   QStringList filterlist;
   u32 first_entry = 0;
-  for (const auto& entry : IOS::HLE::USB::InfinityBase::GetFigureList())
+  for (const auto& [fst, snd] : IOS::HLE::USB::InfinityBase::GetFigureList())
   {
-    const auto figure = entry.second;
+    const auto figure = snd;
     // Only display entry if it is a piece appropriate for the slot
     if ((slot == FigureUIPosition::HexagonDiscOne &&
          ((figure > 0x1E8480 && figure < 0x2DC6BF) || (figure > 0x3D0900 && figure < 0x4C4B3F))) ||
@@ -217,7 +217,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, const FigureUIPosition s
           slot == FigureUIPosition::P2AbilityOne || slot == FigureUIPosition::P2AbilityTwo) &&
          (figure > 0x2DC6C0 && figure < 0x3D08FF)))
     {
-      const auto figure_name = QString::fromStdString(entry.first);
+      const auto figure_name = QString::fromStdString(fst);
       combo_figlist->addItem(figure_name, QVariant(figure));
       filterlist << figure_name;
       if (first_entry == 0)

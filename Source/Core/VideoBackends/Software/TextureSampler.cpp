@@ -76,8 +76,8 @@ void Sample(const s32 s, const s32 t, const s32 lod, const bool linear, const u8
   bool mipLinear = false;
 
 #if (ALLOW_MIPMAP)
-  const auto texUnit = bpmem.tex.GetUnit(texmap);
-  const TexMode0& tm0 = texUnit.texMode0;
+  const auto [tm0, _texMode1, _texImage0, _texImage1, _texImage2, _texImage3, _texTlut, _unknown] =
+    bpmem.tex.GetUnit(texmap);
 
   const s32 lodFract = lod & 0xf;
 
@@ -117,28 +117,26 @@ void Sample(const s32 s, const s32 t, const s32 lod, const bool linear, const u8
 
 void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 {
-  auto texUnit = bpmem.tex.GetUnit(texmap);
+  auto [tm0, _texMode1, ti0, texImage1, texImage2, texImage3, texTlut, _unknown] =
+    bpmem.tex.GetUnit(texmap);
 
-  const TexMode0& tm0 = texUnit.texMode0;
-  const TexImage0& ti0 = texUnit.texImage0;
-  const TexTLUT& texTlut = texUnit.texTlut;
   const TextureFormat texfmt = ti0.format;
   const TLUTFormat tlutfmt = texTlut.tlut_format;
 
   std::span<const u8> image_src;
   std::span<const u8> image_src_odd;
-  if (texUnit.texImage1.cache_manually_managed)
+  if (texImage1.cache_manually_managed)
   {
-    image_src = TexDecoder_GetTmemSpan(texUnit.texImage1.tmem_even * TMEM_LINE_SIZE);
+    image_src = TexDecoder_GetTmemSpan(texImage1.tmem_even * TMEM_LINE_SIZE);
     if (texfmt == TextureFormat::RGBA8)
-      image_src_odd = TexDecoder_GetTmemSpan(texUnit.texImage2.tmem_odd * TMEM_LINE_SIZE);
+      image_src_odd = TexDecoder_GetTmemSpan(texImage2.tmem_odd * TMEM_LINE_SIZE);
   }
   else
   {
     auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
 
-    const u32 imageBase = texUnit.texImage3.image_base << 5;
+    const u32 imageBase = texImage3.image_base << 5;
     image_src = memory.GetSpanForAddress(imageBase);
   }
 
@@ -202,7 +200,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageSPlus1, tm0.wrap_s, image_width_minus_1 + 1);
     WrapCoord(&imageTPlus1, tm0.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texImage1.cache_manually_managed))
     {
       TexDecoder_DecodeTexel(sampledTex, image_src, imageS, imageT, image_width_minus_1, texfmt,
                              tlut, tlutfmt);
@@ -254,7 +252,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageS, tm0.wrap_s, image_width_minus_1 + 1);
     WrapCoord(&imageT, tm0.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texImage1.cache_manually_managed))
     {
       TexDecoder_DecodeTexel(sample, image_src, imageS, imageT, image_width_minus_1, texfmt, tlut,
                              tlutfmt);

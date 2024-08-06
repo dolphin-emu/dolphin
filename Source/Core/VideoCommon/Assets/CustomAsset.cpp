@@ -13,14 +13,14 @@ CustomAsset::CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
 
 bool CustomAsset::Load()
 {
-  const auto load_information = LoadImpl(m_asset_id);
-  if (load_information.m_bytes_loaded > 0)
+  const auto [m_information_bytes_loaded, m_load_time] = LoadImpl(m_asset_id);
+  if (m_bytes_loaded > 0)
   {
     std::lock_guard lk(m_info_lock);
-    m_bytes_loaded = load_information.m_bytes_loaded;
-    m_last_loaded_time = load_information.m_load_time;
+    m_bytes_loaded = m_information_bytes_loaded;
+    m_last_loaded_time = m_load_time;
   }
-  return load_information.m_bytes_loaded != 0;
+  return m_information_bytes_loaded != 0;
 }
 
 CustomAssetLibrary::TimeType CustomAsset::GetLastWriteTime() const

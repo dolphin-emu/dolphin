@@ -326,12 +326,12 @@ void CustomPipeline::UpdatePixelData(
             return;
           }
 
-          auto& first_slice = texture_data->m_texture.m_slices[0];
+          auto& [m_levels] = texture_data->m_texture.m_slices[0];
           const TextureConfig texture_config(
-              first_slice.m_levels[0].width, first_slice.m_levels[0].height,
-              static_cast<u32>(first_slice.m_levels.size()),
+              m_levels[0].width, m_levels[0].height,
+              static_cast<u32>(m_levels.size()),
               static_cast<u32>(texture_data->m_texture.m_slices.size()), 1,
-              first_slice.m_levels[0].format, 0, texture_type);
+              m_levels[0].format, 0, texture_type);
           texture_asset->m_texture = g_gfx->CreateTexture(
               texture_config, fmt::format("Custom shader texture '{}'", property.m_code_name));
           if (texture_asset->m_texture)
@@ -339,14 +339,14 @@ void CustomPipeline::UpdatePixelData(
             for (std::size_t slice_index = 0; slice_index < texture_data->m_texture.m_slices.size();
                  slice_index++)
             {
-              auto& slice = texture_data->m_texture.m_slices[slice_index];
-              for (u32 level_index = 0; level_index < static_cast<u32>(slice.m_levels.size());
+              auto& [m_levels] = texture_data->m_texture.m_slices[slice_index];
+              for (u32 level_index = 0; level_index < static_cast<u32>(m_levels.size());
                    ++level_index)
               {
-                auto& level = slice.m_levels[level_index];
-                texture_asset->m_texture->Load(level_index, level.width, level.height,
-                                               level.row_length, level.data.data(),
-                                               level.data.size(), static_cast<u32>(slice_index));
+                auto& [data, _format, width, height, row_length] = m_levels[level_index];
+                texture_asset->m_texture->Load(level_index, width, height,
+                                               row_length, data.data(),
+                                               data.size(), static_cast<u32>(slice_index));
               }
             }
           }

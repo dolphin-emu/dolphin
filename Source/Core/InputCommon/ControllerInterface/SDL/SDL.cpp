@@ -667,10 +667,10 @@ GameController::GameController(SDL_GameController* const gamecontroller,
                                    const SDLMotionAxisList& axes) {
       if (SDL_GameControllerSetSensorEnabled(m_gamecontroller, type, SDL_TRUE) == 0)
       {
-        for (const SDLMotionAxis& axis : axes)
+        for (const auto& [name, index, scale] : axes)
         {
-          AddInput(new MotionInput(fmt::format("{} {}", sensor_name, axis.name), m_gamecontroller,
-                                   type, axis.index, axis.scale));
+          AddInput(new MotionInput(fmt::format("{} {}", sensor_name, name), m_gamecontroller,
+                                   type, index, scale));
         }
       }
     };
@@ -857,14 +857,14 @@ bool GameController::Button::IsMatchingName(const std::string_view name) const
     return GetName() == "Button N";
 
   // Match legacy names.
-  const auto bind = SDL_GameControllerGetBindForButton(m_gc, m_button);
-  switch (bind.bindType)
+  const auto [bindType, value] = SDL_GameControllerGetBindForButton(m_gc, m_button);
+  switch (bindType)
   {
   case SDL_CONTROLLER_BINDTYPE_BUTTON:
-    return name == GetLegacyButtonName(bind.value.button);
+    return name == GetLegacyButtonName(value.button);
   case SDL_CONTROLLER_BINDTYPE_HAT:
-    return name == GetLegacyHatName(bind.value.hat.hat,
-                                    GetDirectionFromHatMask(static_cast<u8>(bind.value.hat.hat_mask)));
+    return name == GetLegacyHatName(value.hat.hat,
+                                    GetDirectionFromHatMask(static_cast<u8>(value.hat.hat_mask)));
   default:
     return false;
   }

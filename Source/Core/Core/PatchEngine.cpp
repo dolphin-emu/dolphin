@@ -139,8 +139,8 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
 
     if (ini == &globalIni)
     {
-      for (Patch& patch : *patches)
-        patch.default_enabled = patch.enabled;
+      for (auto& [_name, _entries, enabled, default_enabled, _user_defined] : *patches)
+        default_enabled = enabled;
     }
   }
 }
@@ -151,17 +151,17 @@ void SavePatchSection(Common::IniFile* local_ini, const std::vector<Patch>& patc
   std::vector<std::string> lines_enabled;
   std::vector<std::string> lines_disabled;
 
-  for (const auto& patch : patches)
+  for (const auto& [name, entries, enabled, default_enabled, user_defined] : patches)
   {
-    if (patch.enabled != patch.default_enabled)
-      (patch.enabled ? lines_enabled : lines_disabled).emplace_back('$' + patch.name);
+    if (enabled != default_enabled)
+      (enabled ? lines_enabled : lines_disabled).emplace_back('$' + name);
 
-    if (!patch.user_defined)
+    if (!user_defined)
       continue;
 
-    lines.emplace_back('$' + patch.name);
+    lines.emplace_back('$' + name);
 
-    for (const PatchEntry& entry : patch.entries)
+    for (const PatchEntry& entry : entries)
       lines.emplace_back(SerializeLine(entry));
   }
 
@@ -201,11 +201,11 @@ void LoadPatches()
 
 static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
-  for (const Patch& patch : patches)
+  for (const auto& [_name, entries, enabled, _default_enabled, _user_defined] : patches)
   {
-    if (patch.enabled)
+    if (enabled)
     {
-      for (const PatchEntry& entry : patch.entries)
+      for (const PatchEntry& entry : entries)
       {
         const u32 addr = entry.address;
         const u32 value = entry.value;
@@ -257,12 +257,16 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackValid(const Core::CPUThreadGuard& guard)
 {
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = guard.GetSystem().GetPPCState();
 
-  DEBUG_ASSERT(ppc_state.msr.DR && ppc_state.msr.IR);
+  DEBUG_ASSERT(msr.DR && msr.IR);
 
   // Check the stack pointer
-  const u32 SP = ppc_state.gpr[1];
+  const u32 SP = gpr[1];
   if (!PowerPC::MMU::HostIsRAMAddress(guard, SP))
     return false;
 
@@ -294,7 +298,11 @@ void RemoveMemoryPatch(const std::size_t index)
 
 bool ApplyFramePatches(Core::System& system)
 {
-  const auto& ppc_state = system.GetPPCState();
+  const auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   ASSERT(Core::IsCPUThread());
   const Core::CPUThreadGuard guard(system);
@@ -303,12 +311,12 @@ bool ApplyFramePatches(Core::System& system)
   // callback hook we can end up catching the game in an exception vector.
   // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
-  if (!ppc_state.msr.DR || !ppc_state.msr.IR || !IsStackValid(guard))
+  if (!msr.DR || !msr.IR || !IsStackValid(guard))
   {
     DEBUG_LOG_FMT(ACTIONREPLAY,
                   "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
                   "MSR = {:#010x}",
-                  ppc_state.pc, ppc_state.msr.Hex);
+                  pc, msr.Hex);
     return false;
   }
 

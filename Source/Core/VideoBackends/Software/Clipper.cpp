@@ -76,24 +76,24 @@ enum
 static inline int CalcClipMask(const OutputVertexData* v)
 {
   int cmask = 0;
-  const Vec4 pos = v->projectedPosition;
+  const auto [x, y, z, w] = v->projectedPosition;
 
-  if (pos.w - pos.x < 0)
+  if (w - x < 0)
     cmask |= CLIP_POS_X_BIT;
 
-  if (pos.x + pos.w < 0)
+  if (x + w < 0)
     cmask |= CLIP_NEG_X_BIT;
 
-  if (pos.w - pos.y < 0)
+  if (w - y < 0)
     cmask |= CLIP_POS_Y_BIT;
 
-  if (pos.y + pos.w < 0)
+  if (y + w < 0)
     cmask |= CLIP_NEG_Y_BIT;
 
-  if (pos.w * pos.z > 0)
+  if (w * z > 0)
     cmask |= CLIP_POS_Z_BIT;
 
-  if (pos.z + pos.w < 0)
+  if (z + w < 0)
     cmask |= CLIP_NEG_Z_BIT;
 
   return cmask;
@@ -482,13 +482,13 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
   {
     for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
     {
-      const auto coord_info = bpmem.texcoords[coord_num];
-      if (coord_info.s.point_offset)
+      const auto [s, t] = bpmem.texcoords[coord_num];
+      if (s.point_offset)
       {
         if (px)
-          dst->texCoords[coord_num].x += (coord_info.s.scale_minus_1 + 1) * point_offset;
+          dst->texCoords[coord_num].x += (s.scale_minus_1 + 1) * point_offset;
         if (py)
-          dst->texCoords[coord_num].y += (coord_info.t.scale_minus_1 + 1) * point_offset;
+          dst->texCoords[coord_num].y += (t.scale_minus_1 + 1) * point_offset;
       }
     }
   }
@@ -546,12 +546,12 @@ bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const Ou
 
 void PerspectiveDivide(OutputVertexData* vertex)
 {
-  const Vec4& projected = vertex->projectedPosition;
+  const auto& [x, y, z, w] = vertex->projectedPosition;
   Vec3& screen = vertex->screenPosition;
 
-  const float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
-  screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
+  const float wInverse = 1.0f / w;
+  screen.x = x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
+  screen.y = y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
+  screen.z = z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper

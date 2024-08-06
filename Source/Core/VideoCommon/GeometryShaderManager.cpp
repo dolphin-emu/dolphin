@@ -112,12 +112,12 @@ void GeometryShaderManager::SetLinePtWidthChanged()
 
 void GeometryShaderManager::SetTexCoordChanged(const u8 texmapid)
 {
-  const TCoordInfo& tc = bpmem.texcoords[texmapid];
+  const auto& [s, t] = bpmem.texcoords[texmapid];
   const int bitmask = 1 << texmapid;
   constants.texoffset[0] &= ~bitmask;
-  constants.texoffset[0] |= tc.s.line_offset << texmapid;
+  constants.texoffset[0] |= s.line_offset << texmapid;
   constants.texoffset[1] &= ~bitmask;
-  constants.texoffset[1] |= tc.s.point_offset << texmapid;
+  constants.texoffset[1] |= s.point_offset << texmapid;
   dirty = true;
 }
 

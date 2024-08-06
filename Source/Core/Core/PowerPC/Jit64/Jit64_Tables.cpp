@@ -341,10 +341,10 @@ constexpr std::array<Jit64::Instruction, 64> s_dyna_op_table = []() consteval
   std::array<Jit64::Instruction, 64> table{};
   Fill(table, &Jit64::FallBackToInterpreter);
 
-  for (auto& tpl : s_primary_table)
+  for (const auto& [opcode, fn] : s_primary_table)
   {
-    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == &Jit64::FallBackToInterpreter);
+    table[opcode] = fn;
   }
 
   return table;
@@ -359,30 +359,29 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table4 = []() consteval
   for (u32 i = 0; i < 32; i++)
   {
     const u32 fill = i << 5;
-    for (const auto& tpl : s_table4_2)
+    for (const auto& [opcode, fn] : s_table4_2)
     {
-      const u32 op = fill + tpl.opcode;
+      const u32 op = fill + opcode;
       ASSERT(table[op] == &Jit64::FallBackToInterpreter);
-      table[op] = tpl.fn;
+      table[op] = fn;
     }
   }
 
   for (u32 i = 0; i < 16; i++)
   {
     const u32 fill = i << 6;
-    for (const auto& tpl : s_table4_3)
+    for (const auto& [opcode, fn] : s_table4_3)
     {
-      const u32 op = fill + tpl.opcode;
+      const u32 op = fill + opcode;
       ASSERT(table[op] == &Jit64::FallBackToInterpreter);
-      table[op] = tpl.fn;
+      table[op] = fn;
     }
   }
 
-  for (const auto& tpl : s_table4)
+  for (const auto& [op, fn] : s_table4)
   {
-    const u32 op = tpl.opcode;
     ASSERT(table[op] == &Jit64::FallBackToInterpreter);
-    table[op] = tpl.fn;
+    table[op] = fn;
   }
 
   return table;
@@ -394,10 +393,10 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table19 = []() consteva
   std::array<Jit64::Instruction, 1024> table{};
   Fill(table, &Jit64::FallBackToInterpreter);
 
-  for (const auto& tpl : s_table19)
+  for (const auto& [opcode, fn] : s_table19)
   {
-    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == &Jit64::FallBackToInterpreter);
+    table[opcode] = fn;
   }
 
   return table;
@@ -409,10 +408,10 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table31 = []() consteva
   std::array<Jit64::Instruction, 1024> table{};
   Fill(table, &Jit64::FallBackToInterpreter);
 
-  for (const auto& tpl : s_table31)
+  for (const auto& [opcode, fn] : s_table31)
   {
-    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == &Jit64::FallBackToInterpreter);
+    table[opcode] = fn;
   }
 
   return table;
@@ -424,10 +423,10 @@ constexpr std::array<Jit64::Instruction, 32> s_dyna_op_table59 = []() consteval
   std::array<Jit64::Instruction, 32> table{};
   Fill(table, &Jit64::FallBackToInterpreter);
 
-  for (const auto& tpl : s_table59)
+  for (const auto& [opcode, fn] : s_table59)
   {
-    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == &Jit64::FallBackToInterpreter);
+    table[opcode] = fn;
   }
 
   return table;
@@ -439,20 +438,20 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = []() consteva
   std::array<Jit64::Instruction, 1024> table{};
   Fill(table, &Jit64::FallBackToInterpreter);
 
-  for (const auto& tpl : s_table63)
+  for (const auto& [opcode, fn] : s_table63)
   {
-    ASSERT(table[tpl.opcode] == &Jit64::FallBackToInterpreter);
-    table[tpl.opcode] = tpl.fn;
+    ASSERT(table[opcode] == &Jit64::FallBackToInterpreter);
+    table[opcode] = fn;
   }
 
   for (u32 i = 0; i < 32; i++)
   {
     const u32 fill = i << 5;
-    for (const auto& tpl : s_table63_2)
+    for (const auto& [opcode, fn] : s_table63_2)
     {
-      const u32 op = fill + tpl.opcode;
+      const u32 op = fill + opcode;
       ASSERT(table[op] == &Jit64::FallBackToInterpreter);
-      table[op] = tpl.fn;
+      table[op] = fn;
     }
   }
 

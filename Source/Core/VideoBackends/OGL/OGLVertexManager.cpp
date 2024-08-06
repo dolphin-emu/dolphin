@@ -83,10 +83,10 @@ bool VertexManager::Initialize()
         }};
     glGenTextures(static_cast<GLsizei>(m_texel_buffer_views.size()), m_texel_buffer_views.data());
     glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);
-    for (const auto& it : format_mapping)
+    for (const auto& [fst, snd] : format_mapping)
     {
-      glBindTexture(GL_TEXTURE_BUFFER, m_texel_buffer_views[it.first]);
-      glTexBuffer(GL_TEXTURE_BUFFER, it.second, m_texel_buffer->GetGLBufferId());
+      glBindTexture(GL_TEXTURE_BUFFER, m_texel_buffer_views[fst]);
+      glTexBuffer(GL_TEXTURE_BUFFER, snd, m_texel_buffer->GetGLBufferId());
     }
   }
 
@@ -106,10 +106,10 @@ bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, con
     return false;
 
   const u32 elem_size = GetTexelBufferElementSize(format);
-  const auto dst = m_texel_buffer->Map(data_size, elem_size);
-  std::memcpy(dst.first, data, data_size);
+  const auto [fst, snd] = m_texel_buffer->Map(data_size, elem_size);
+  std::memcpy(fst, data, data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
-  *out_offset = dst.second / elem_size;
+  *out_offset = snd / elem_size;
   m_texel_buffer->Unmap(data_size);
 
   // Bind the correct view to the texel buffer slot.
@@ -129,13 +129,13 @@ bool VertexManager::UploadTexelBuffer(const void* data, const u32 data_size, con
   if (reserve_size > m_texel_buffer->GetSize())
     return false;
 
-  const auto dst = m_texel_buffer->Map(reserve_size, elem_size);
+  const auto [fst, snd] = m_texel_buffer->Map(reserve_size, elem_size);
   const u32 palette_byte_offset = Common::AlignUp(data_size, palette_elem_size);
-  std::memcpy(dst.first, data, data_size);
-  std::memcpy(dst.first + palette_byte_offset, palette_data, palette_size);
+  std::memcpy(fst, data, data_size);
+  std::memcpy(fst + palette_byte_offset, palette_data, palette_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, palette_byte_offset + palette_size);
-  *out_offset = dst.second / elem_size;
-  *out_palette_offset = (dst.second + palette_byte_offset) / palette_elem_size;
+  *out_offset = snd / elem_size;
+  *out_palette_offset = (snd + palette_byte_offset) / palette_elem_size;
   m_texel_buffer->Unmap(palette_byte_offset + palette_size);
 
   glActiveTexture(GL_TEXTURE0);

@@ -283,14 +283,16 @@ void RestoreWiiSettings(const RestoreReason reason)
 static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_source_path,
                                  const std::string& nand_target_path)
 {
-  const auto entries = File::ScanDirectoryTree(host_source_path, false);
-  for (const File::FSTEntry& entry : entries.children)
+  const auto [_entries_isDirectory, _entries_size, _entries_physicalName, _entries_virtualName,
+    entries_children] = File::ScanDirectoryTree(host_source_path, false);
+  for (const auto& [entry_isDirectory, _entry_size, _entry_physicalName, _entry_virtualName,
+         _entry_children] : entries_children)
   {
-    const std::string host_path = host_source_path + '/' + entry.virtualName;
-    const std::string nand_path = nand_target_path + '/' + entry.virtualName;
+    const std::string host_path = host_source_path + '/' + _entry_virtualName;
+    const std::string nand_path = nand_target_path + '/' + _entry_virtualName;
     constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
 
-    if (entry.isDirectory)
+    if (entry_isDirectory)
     {
       fs->CreateDirectory(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path, 0, public_modes);
       if (!CopySysmenuFilesToFS(fs, host_path, nand_path))
@@ -390,10 +392,10 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
   INFO_LOG_FMT(CORE, "Wii FS Cleanup: Copying from temporary FS to configured_fs.");
 
   // copy back the temp nand redirected files to where they should normally be redirected to
-  for (const auto& redirect : s_temp_nand_redirects)
+  for (const auto& [real_path, temp_path] : s_temp_nand_redirects)
   {
-    File::CreateFullPath(redirect.real_path);
-    File::MoveWithOverwrite(redirect.temp_path, redirect.real_path);
+    File::CreateFullPath(real_path);
+    File::MoveWithOverwrite(temp_path, real_path);
   }
 
   IOS::HLE::EmulationKernel* ios = System::GetInstance().GetIOS();

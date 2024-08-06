@@ -470,16 +470,16 @@ void InfinityBase::GetFigureIdentifier(const u8 fig_num, const u8 sequence, std:
 {
   std::lock_guard lock(m_infinity_mutex);
 
-  const InfinityFigure& figure = GetFigureByOrder(fig_num);
+  const auto& [_inf_file, data, present, _order_added] = GetFigureByOrder(fig_num);
 
   reply_buf[0] = 0xaa;
   reply_buf[1] = 0x09;
   reply_buf[2] = sequence;
   reply_buf[3] = 0x00;
 
-  if (figure.present)
+  if (present)
   {
-    memcpy(&reply_buf[4], figure.data.data(), 7);
+    memcpy(&reply_buf[4], data.data(), 7);
   }
   reply_buf[11] = GenerateChecksum(reply_buf, 11);
 }
@@ -488,7 +488,7 @@ void InfinityBase::QueryBlock(const u8 fig_num, const u8 block, std::array<u8, 3
 {
   std::lock_guard lock(m_infinity_mutex);
 
-  const InfinityFigure& figure = GetFigureByOrder(fig_num);
+  const auto& [_inf_file, data, present, _order_added] = GetFigureByOrder(fig_num);
 
   reply_buf[0] = 0xaa;
   reply_buf[1] = 0x12;
@@ -503,9 +503,9 @@ void InfinityBase::QueryBlock(const u8 fig_num, const u8 block, std::array<u8, 3
   {
     file_block = block * 4;
   }
-  if (figure.present && file_block < 20)
+  if (present && file_block < 20)
   {
-    memcpy(&reply_buf[4], figure.data.data() + (16 * file_block), 16);
+    memcpy(&reply_buf[4], data.data() + (16 * file_block), 16);
   }
   reply_buf[20] = GenerateChecksum(reply_buf, 20);
 }
@@ -613,17 +613,17 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
                      static_cast<u32>(infinity_decrypted_block[3]);
   DEBUG_LOG_FMT(IOS_USB, "Toy Number: {}", number);
 
-  InfinityFigure& figure = m_figures[static_cast<u8>(position)];
+  auto& [inf_file, data, present, figure_order_added] = m_figures[static_cast<u8>(position)];
 
-  figure.inf_file = std::move(in_file);
-  memcpy(figure.data.data(), buf.data(), figure.data.size());
-  figure.present = true;
-  if (figure.order_added == 255)
+  inf_file = std::move(in_file);
+  memcpy(data.data(), buf.data(), data.size());
+  present = true;
+  if (figure_order_added == 255)
   {
-    figure.order_added = m_figure_order;
+    figure_order_added = m_figure_order;
     m_figure_order++;
   }
-  order_added = figure.order_added;
+  order_added = figure_order_added;
 
   FigureBasePosition derived_position = DeriveFigurePosition(position);
   if (derived_position == FigureBasePosition::Unknown)

@@ -1408,7 +1408,8 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
     emit->Write8(0x66);
 
   int immToWrite = 0;
-  const NormalOpDef& op_def = normalops[static_cast<int>(op)];
+  const auto& [_toRm8, toRm32, fromRm8, fromRm32, imm8, imm32, simm8, eaximm8, eaximm32, ext] =
+    normalops[static_cast<int>(op)];
 
   if (operand.IsImm())
   {
@@ -1422,9 +1423,9 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
     if (operand.scale == SCALE_IMM8 && bits == 8)
     {
       // op al, imm8
-      if (!scale && offsetOrBaseReg == AL && op_def.eaximm8 != 0xCC)
+      if (!scale && offsetOrBaseReg == AL && eaximm8 != 0xCC)
       {
-        emit->Write8(op_def.eaximm8);
+        emit->Write8(eaximm8);
         emit->Write8(static_cast<u8>(operand.offset));
         return;
       }
@@ -1436,7 +1437,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
         return;
       }
       // op r/m8, imm8
-      emit->Write8(op_def.imm8);
+      emit->Write8(imm8);
       immToWrite = 8;
     }
     else if ((operand.scale == SCALE_IMM16 && bits == 16) ||
@@ -1446,11 +1447,11 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
       // Try to save immediate size if we can, but first check to see
       // if the instruction supports simm8.
       // op r/m, imm8
-      if (op_def.simm8 != 0xCC &&
+      if (simm8 != 0xCC &&
           ((operand.scale == SCALE_IMM16 && static_cast<s16>(operand.offset) == static_cast<s8>(operand.offset)) ||
            (operand.scale == SCALE_IMM32 && static_cast<s32>(operand.offset) == static_cast<s8>(operand.offset))))
       {
-        emit->Write8(op_def.simm8);
+        emit->Write8(simm8);
         immToWrite = 8;
       }
       else
@@ -1466,9 +1467,9 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
           return;
         }
         // op eax, imm
-        if (!scale && offsetOrBaseReg == EAX && op_def.eaximm32 != 0xCC)
+        if (!scale && offsetOrBaseReg == EAX && eaximm32 != 0xCC)
         {
-          emit->Write8(op_def.eaximm32);
+          emit->Write8(eaximm32);
           if (bits == 16)
             emit->Write16(static_cast<u16>(operand.offset));
           else
@@ -1476,7 +1477,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
           return;
         }
         // op r/m, imm
-        emit->Write8(op_def.imm32);
+        emit->Write8(imm32);
         immToWrite = bits == 16 ? 16 : 32;
       }
     }
@@ -1485,7 +1486,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
              (operand.scale == SCALE_IMM8 && bits == 64))
     {
       // op r/m, imm8
-      emit->Write8(op_def.simm8);
+      emit->Write8(simm8);
       immToWrite = 8;
     }
     else if (operand.scale == SCALE_IMM64 && bits == 64)
@@ -1506,7 +1507,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
           return;
         }
         // mov reg64, simm32 (7 bytes)
-        emit->Write8(op_def.imm32);
+        emit->Write8(imm32);
         immToWrite = 32;
       }
       else
@@ -1520,7 +1521,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
     }
 
     // pass extension in REG of ModRM
-    _operandReg = static_cast<X64Reg>(op_def.ext);
+    _operandReg = static_cast<X64Reg>(ext);
   }
   else
   {
@@ -1529,12 +1530,12 @@ void OpArg::WriteNormalOp(XEmitter* emit, const bool toRM, NormalOp op, const Op
     // op r/m, reg
     if (toRM)
     {
-      emit->Write8(bits == 8 ? op_def.toRm8 : op_def.toRm32);
+      emit->Write8(bits == 8 ? _toRm8 : toRm32);
     }
     // op reg, r/m
     else
     {
-      emit->Write8(bits == 8 ? op_def.fromRm8 : op_def.fromRm32);
+      emit->Write8(bits == 8 ? fromRm8 : fromRm32);
     }
   }
   WriteRest(emit, immToWrite >> 3, _operandReg);

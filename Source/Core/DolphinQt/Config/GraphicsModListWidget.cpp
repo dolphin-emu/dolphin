@@ -127,10 +127,11 @@ void GraphicsModListWidget::RefreshModList()
 
   std::set<std::string> groups;
 
-  for (const GraphicsModConfig& mod : m_mod_group.GetMods())
+  for (const auto& [_m_title, _m_author, _m_description, _m_enabled, _m_weight, _m_relative_path,
+         _m_source, m_groups, _m_features, _m_assets] : m_mod_group.GetMods())
   {
-    for (const GraphicsTargetGroupConfig& group : mod.m_groups)
-      groups.insert(group.m_name);
+    for (const auto& [m_name, _m_targets] : m_groups)
+      groups.insert(m_name);
   }
 
   for (const GraphicsModConfig& mod : m_mod_group.GetMods())

@@ -91,33 +91,35 @@ int SSLRecv(void* ctx, unsigned char* buf, const size_t len)
 NetSSLDevice::NetSSLDevice(EmulationKernel& ios, const std::string& device_name)
     : EmulationDevice(ios, device_name)
 {
-  for (WII_SSL& ssl : _SSL)
+  for (auto& [_ctx, _config, _session, _entropy, _ctr_drbg, _cacert, _clicert, _pk, _sockfd,
+         _hostfd, _hostname, active] : _SSL)
   {
-    ssl.active = false;
+    active = false;
   }
 }
 
 NetSSLDevice::~NetSSLDevice()
 {
   // Cleanup sessions
-  for (WII_SSL& ssl : _SSL)
+  for (auto& [ctx, config, session, entropy, ctr_drbg, cacert, clicert, _pk, _sockfd, _hostfd,
+         hostname, active] : _SSL)
   {
-    if (ssl.active)
+    if (active)
     {
-      mbedtls_ssl_close_notify(&ssl.ctx);
+      mbedtls_ssl_close_notify(&ctx);
 
-      mbedtls_x509_crt_free(&ssl.cacert);
-      mbedtls_x509_crt_free(&ssl.clicert);
+      mbedtls_x509_crt_free(&cacert);
+      mbedtls_x509_crt_free(&clicert);
 
-      mbedtls_ssl_session_free(&ssl.session);
-      mbedtls_ssl_free(&ssl.ctx);
-      mbedtls_ssl_config_free(&ssl.config);
-      mbedtls_ctr_drbg_free(&ssl.ctr_drbg);
-      mbedtls_entropy_free(&ssl.entropy);
+      mbedtls_ssl_session_free(&session);
+      mbedtls_ssl_free(&ctx);
+      mbedtls_ssl_config_free(&config);
+      mbedtls_ctr_drbg_free(&ctr_drbg);
+      mbedtls_entropy_free(&entropy);
 
-      ssl.hostname.clear();
+      hostname.clear();
 
-      ssl.active = false;
+      active = false;
     }
   }
 }

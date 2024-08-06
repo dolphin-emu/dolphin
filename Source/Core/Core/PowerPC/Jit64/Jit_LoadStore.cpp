@@ -323,9 +323,14 @@ void Jit64::dcbx(UGeckoInstruction inst)
       // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
       // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
       MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
-      const PPCAnalyst::CodeOp& op = js.op[2];
-      MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{op.address, op.branchTo}));
-      MOV(32, R(ABI_PARAM3), Imm32(op.inst.hex));
+      const auto& [inst, _opinfo, address, branchTo, _regsIn, _regsOut, _fregsIn, _fregOut, _crIn,
+            _crOut, _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA,
+            _wantsCAInFlags, _outputCR, _outputFPRF, _outputCA, _canEndBlock, _canCauseException,
+            _skipLRStack, _skip, _crInUse, _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable,
+            _fprDiscardable, _fprInXmm, _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst,
+            _fprIsStoreSafeAfterInst] = js.op[2];
+      MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{address, branchTo}));
+      MOV(32, R(ABI_PARAM3), Imm32(inst.hex));
       ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
                                             &Core::BranchWatch::HitPhysicalTrue_fk_n);
       ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);

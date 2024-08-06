@@ -180,54 +180,54 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
     }
   }
 
-  for (const auto& it : option_strings)
+  for (const auto& [m_type, it_options] : option_strings)
   {
     ConfigurationOption option;
     option.m_dirty = true;
 
-    if (it.m_type == "OptionBool")
+    if (m_type == "OptionBool")
       option.m_type = ConfigurationOption::OptionType::Bool;
-    else if (it.m_type == "OptionRangeFloat")
+    else if (m_type == "OptionRangeFloat")
       option.m_type = ConfigurationOption::OptionType::Float;
-    else if (it.m_type == "OptionRangeInteger")
+    else if (m_type == "OptionRangeInteger")
       option.m_type = ConfigurationOption::OptionType::Integer;
 
-    for (const auto& string_option : it.m_options)
+    for (const auto& [fst, snd] : it_options)
     {
-      if (string_option.first == "GUIName")
+      if (fst == "GUIName")
       {
-        option.m_gui_name = string_option.second;
+        option.m_gui_name = snd;
       }
-      else if (string_option.first == "OptionName")
+      else if (fst == "OptionName")
       {
-        option.m_option_name = string_option.second;
+        option.m_option_name = snd;
       }
-      else if (string_option.first == "DependentOption")
+      else if (fst == "DependentOption")
       {
-        option.m_dependent_option = string_option.second;
+        option.m_dependent_option = snd;
       }
-      else if (string_option.first == "MinValue" || string_option.first == "MaxValue" ||
-               string_option.first == "DefaultValue" || string_option.first == "StepAmount")
+      else if (fst == "MinValue" || fst == "MaxValue" ||
+               fst == "DefaultValue" || fst == "StepAmount")
       {
         std::vector<s32>* output_integer = nullptr;
         std::vector<float>* output_float = nullptr;
 
-        if (string_option.first == "MinValue")
+        if (fst == "MinValue")
         {
           output_integer = &option.m_integer_min_values;
           output_float = &option.m_float_min_values;
         }
-        else if (string_option.first == "MaxValue")
+        else if (fst == "MaxValue")
         {
           output_integer = &option.m_integer_max_values;
           output_float = &option.m_float_max_values;
         }
-        else if (string_option.first == "DefaultValue")
+        else if (fst == "DefaultValue")
         {
           output_integer = &option.m_integer_values;
           output_float = &option.m_float_values;
         }
-        else if (string_option.first == "StepAmount")
+        else if (fst == "StepAmount")
         {
           output_integer = &option.m_integer_step_values;
           output_float = &option.m_float_step_values;
@@ -235,17 +235,17 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
 
         if (option.m_type == ConfigurationOption::OptionType::Bool)
         {
-          TryParse(string_option.second, &option.m_bool_value);
+          TryParse(snd, &option.m_bool_value);
         }
         else if (option.m_type == ConfigurationOption::OptionType::Integer)
         {
-          TryParseVector(string_option.second, output_integer);
+          TryParseVector(snd, output_integer);
           if (output_integer->size() > 4)
             output_integer->erase(output_integer->begin() + 4, output_integer->end());
         }
         else if (option.m_type == ConfigurationOption::OptionType::Float)
         {
-          TryParseVector(string_option.second, output_float);
+          TryParseVector(snd, output_float);
           if (output_float->size() > 4)
             output_float->erase(output_float->begin() + 4, output_float->end());
         }
@@ -262,23 +262,26 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
   const std::string section = m_current_shader + "-options";
 
   // We already expect all the options to be marked as "dirty" when we reach here
-  for (auto& val : m_options | std::views::values)
+  for (auto& [m_bool_value, m_float_values, m_integer_values, _m_float_min_values,
+         _m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+         _m_integer_step_values, m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty]
+       : m_options | std::views::values)
   {
-    switch (val.m_type)
+    switch (m_type)
     {
     case ConfigurationOption::OptionType::Bool:
-      ini.GetOrCreateSection(section)->Get(val.m_option_name, &val.m_bool_value, val.m_bool_value);
+      ini.GetOrCreateSection(section)->Get(m_option_name, &m_bool_value, m_bool_value);
       break;
     case ConfigurationOption::OptionType::Integer:
     {
       std::string value;
-      ini.GetOrCreateSection(section)->Get(val.m_option_name, &value);
+      ini.GetOrCreateSection(section)->Get(m_option_name, &value);
       if (!value.empty())
       {
-        auto integer_values = val.m_integer_values;
+        auto integer_values = m_integer_values;
         if (TryParseVector(value, &integer_values))
         {
-          val.m_integer_values = integer_values;
+          m_integer_values = integer_values;
         }
       }
     }
@@ -286,13 +289,13 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
     case ConfigurationOption::OptionType::Float:
     {
       std::string value;
-      ini.GetOrCreateSection(section)->Get(val.m_option_name, &value);
+      ini.GetOrCreateSection(section)->Get(m_option_name, &value);
       if (!value.empty())
       {
-        auto float_values = val.m_float_values;
+        auto float_values = m_float_values;
         if (TryParseVector(value, &float_values))
         {
-          val.m_float_values = float_values;
+          m_float_values = float_values;
         }
       }
     }
@@ -307,24 +310,27 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   const std::string section = m_current_shader + "-options";
 
-  for (auto& val : m_options | std::views::values)
+  for (auto& [m_bool_value, m_float_values, m_integer_values, _m_float_min_values,
+         _m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+         _m_integer_step_values, m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty] :
+       m_options | std::views::values)
   {
-    switch (val.m_type)
+    switch (m_type)
     {
     case ConfigurationOption::OptionType::Bool:
     {
-      ini.GetOrCreateSection(section)->Set(val.m_option_name, val.m_bool_value);
+      ini.GetOrCreateSection(section)->Set(m_option_name, m_bool_value);
     }
     break;
     case ConfigurationOption::OptionType::Integer:
     {
       std::string value;
-      for (size_t i = 0; i < val.m_integer_values.size(); ++i)
+      for (size_t i = 0; i < m_integer_values.size(); ++i)
       {
-        value += fmt::format("{}{}", val.m_integer_values[i],
-                             i == (val.m_integer_values.size() - 1) ? "" : ", ");
+        value += fmt::format("{}{}", m_integer_values[i],
+                             i == (m_integer_values.size() - 1) ? "" : ", ");
       }
-      ini.GetOrCreateSection(section)->Set(val.m_option_name, value);
+      ini.GetOrCreateSection(section)->Set(m_option_name, value);
     }
     break;
     case ConfigurationOption::OptionType::Float:
@@ -332,13 +338,13 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
       std::ostringstream value;
       value.imbue(std::locale("C"));
 
-      for (size_t i = 0; i < val.m_float_values.size(); ++i)
+      for (size_t i = 0; i < m_float_values.size(); ++i)
       {
-        value << val.m_float_values[i];
-        if (i != (val.m_float_values.size() - 1))
+        value << m_float_values[i];
+        if (i != (m_float_values.size() - 1))
           value << ", ";
       }
-      ini.GetOrCreateSection(section)->Set(val.m_option_name, value.str());
+      ini.GetOrCreateSection(section)->Set(m_option_name, value.str());
     }
     break;
     }
@@ -642,34 +648,34 @@ std::string PostProcessing::GetUniformBufferHeader(const bool user_post_process)
   {
     ss << "\n";
     // Custom options/uniforms
-    for (const auto& it : m_config.GetOptions())
+    for (const auto& [fst, snd] : m_config.GetOptions())
     {
-      if (it.second.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
+      if (snd.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
       {
-        ss << fmt::format("  int {};\n", it.first);
+        ss << fmt::format("  int {};\n", fst);
         for (u32 i = 0; i < 3; i++)
           ss << "  int ubo_align_" << unused_counter++ << "_;\n";
       }
-      else if (it.second.m_type ==
+      else if (snd.m_type ==
                PostProcessingConfiguration::ConfigurationOption::OptionType::Integer)
       {
-        u32 count = static_cast<u32>(it.second.m_integer_values.size());
+        u32 count = static_cast<u32>(snd.m_integer_values.size());
         if (count == 1)
-          ss << fmt::format("  int {};\n", it.first);
+          ss << fmt::format("  int {};\n", fst);
         else
-          ss << fmt::format("  int{} {};\n", count, it.first);
+          ss << fmt::format("  int{} {};\n", count, fst);
 
         for (u32 i = count; i < 4; i++)
           ss << "  int ubo_align_" << unused_counter++ << "_;\n";
       }
-      else if (it.second.m_type ==
+      else if (snd.m_type ==
                PostProcessingConfiguration::ConfigurationOption::OptionType::Float)
       {
-        u32 count = static_cast<u32>(it.second.m_float_values.size());
+        u32 count = static_cast<u32>(snd.m_float_values.size());
         if (count == 1)
-          ss << fmt::format("  float {};\n", it.first);
+          ss << fmt::format("  float {};\n", fst);
         else
-          ss << fmt::format("  float{} {};\n", count, it.first);
+          ss << fmt::format("  float{} {};\n", count, fst);
 
         for (u32 i = count; i < 4; i++)
           ss << "  float ubo_align_" << unused_counter++ << "_;\n";
@@ -921,7 +927,10 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   if (!user_post_process)
     return;
 
-  for (auto& val : m_config.GetOptions() | std::views::values)
+  for (auto& [m_bool_value, m_float_values, m_integer_values, _m_float_min_values,
+         _m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+         _m_integer_step_values, m_type, _m_gui_name, _m_option_name, _m_dependent_option, m_dirty] :
+       m_config.GetOptions() | std::views::values)
   {
     union
     {
@@ -930,26 +939,24 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       float as_float[4];
     } value = {};
 
-    switch (val.m_type)
+    switch (m_type)
     {
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Bool:
-      value.as_bool[0] = val.m_bool_value ? 1 : 0;
+      value.as_bool[0] = m_bool_value ? 1 : 0;
       break;
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Integer:
-      ASSERT(it.second.m_integer_values.size() <= 4)val;
-      std::copy_n(val.m_integer_values.begin(), val.m_integer_values.size(),
-                  value.as_int);
+      ASSERT(m_integer_values.size() <= 4);
+      std::copy_n(m_integer_values.begin(), m_integer_values.size(), value.as_int);
       break;
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Float:
-      ASSERT(it.second.m_float_values.size() <= 4)val;
-      std::copy_n(val.m_float_values.begin(), val.m_float_values.size(),
-                  value.as_float);
+      ASSERT(m_float_values.size() <= 4);
+      std::copy_n(m_float_values.begin(), m_float_values.size(), value.as_float);
       break;
     }
 
-    val.m_dirty = false;
+    m_dirty = false;
 
     std::memcpy(buffer, &value, sizeof(value));
     buffer += sizeof(value);

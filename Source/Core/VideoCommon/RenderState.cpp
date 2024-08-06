@@ -231,15 +231,16 @@ void BlendingState::ApproximateLogicOpWithBlending()
 
   logicopenable = false;
   usedualsrc = false;
-  const LogicOpApproximation& approximation = approximations[static_cast<u32>(logicmode.Value())];
-  if (approximation.blendEnable)
+  const auto& [blendEnable, subtract_approximation, srcfactor_approximation,
+    dstfactor_approximation] = approximations[static_cast<u32>(logicmode.Value())];
+  if (blendEnable)
   {
     blendenable = true;
-    subtract = approximation.subtract;
-    srcfactor = approximation.srcfactor;
-    srcfactoralpha = approximation.srcfactor;
-    dstfactor = approximation.dstfactor;
-    dstfactoralpha = approximation.dstfactor;
+    subtract = subtract_approximation;
+    srcfactor = srcfactor_approximation;
+    srcfactoralpha = srcfactor_approximation;
+    dstfactor = dstfactor_approximation;
+    dstfactoralpha = dstfactor_approximation;
   }
 }
 
@@ -276,9 +277,9 @@ bool BlendingState::LogicOpApproximationWantsShaderHelp() const
 
 void SamplerState::Generate(const BPMemory& bp, const u32 index)
 {
-  const auto tex = bp.tex.GetUnit(index);
-  const TexMode0& bp_tm0 = tex.texMode0;
-  const TexMode1& bp_tm1 = tex.texMode1;
+  const auto [texMode0, texMode1, _texImage0, _texImage1, _texImage2, _texImage3, _texTlut, _unknown] = bp.tex.GetUnit(index);
+  const TexMode0& bp_tm0 = texMode0;
+  const TexMode1& bp_tm1 = texMode1;
 
   // GX can configure the mip filter to none. However, D3D and Vulkan can't express this in their
   // sampler states. Therefore, we set the min/max LOD to zero if this option is used.

@@ -41,10 +41,11 @@ void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
                     DIEDFL_ATTACHEDONLY);
 
   const std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
-  for (DIDEVICEINSTANCE& joystick : joysticks)
+  for (auto& [_dwSize, guidInstance, guidProduct, _dwDevType, _tszInstanceName, _tszProductName,
+         _guidFFDriver, _wUsagePage, _wUsage] : joysticks)
   {
     // Skip XInput Devices
-    if (xinput_guids.contains(joystick.guidProduct.Data1))
+    if (xinput_guids.contains(guidProduct.Data1))
     {
       continue;
     }
@@ -52,7 +53,7 @@ void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
     // Skip devices we are already using.
     {
       std::lock_guard lk(s_guids_mutex);
-      if (s_guids_in_use.contains(joystick.guidInstance))
+      if (s_guids_in_use.contains(guidInstance))
       {
         continue;
       }
@@ -60,7 +61,7 @@ void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
 
     LPDIRECTINPUTDEVICE8 js_device;
     // Don't print any warnings on failure
-    if (SUCCEEDED(idi8->CreateDevice(joystick.guidInstance, &js_device, nullptr)))
+    if (SUCCEEDED(idi8->CreateDevice(guidInstance, &js_device, nullptr)))
     {
       if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
       {
@@ -91,7 +92,7 @@ void InitJoystick(IDirectInput8* const idi8, const HWND hwnd)
           if (g_controller_interface.AddDevice(std::move(js)))
           {
             std::lock_guard lk(s_guids_mutex);
-            s_guids_in_use.insert(joystick.guidInstance);
+            s_guids_in_use.insert(guidInstance);
           }
         }
       }

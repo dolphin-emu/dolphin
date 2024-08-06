@@ -426,7 +426,10 @@ double Expression::Evaluate(const Core::System& system) const
 
 void Expression::SynchronizeBindings(const Core::System& system, const SynchronizeDirection dir) const
 {
-  auto& ppc_state = system.GetPPCState();
+  auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, msr, _fpscr,_feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,_above_fits_in_first_0x100, ps,
+    _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve,_reserve_address] = system.GetPPCState();
   auto bind = m_binds.begin();
   for (auto* v = m_vars->head; v != nullptr; v = v->next, ++bind)
   {
@@ -438,31 +441,31 @@ void Expression::SynchronizeBindings(const Core::System& system, const Synchroni
       break;
     case VarBindingType::GPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(ppc_state.gpr[bind->index]);
+        v->value = static_cast<double>(gpr[bind->index]);
       else
-        ppc_state.gpr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
+        gpr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::FPR:
       if (dir == SynchronizeDirection::From)
-        v->value = ppc_state.ps[bind->index].PS0AsDouble();
+        v->value = ps[bind->index].PS0AsDouble();
       else
-        ppc_state.ps[bind->index].SetPS0(v->value);
+        ps[bind->index].SetPS0(v->value);
       break;
     case VarBindingType::SPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(ppc_state.spr[bind->index]);
+        v->value = static_cast<double>(spr[bind->index]);
       else
-        ppc_state.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
+        spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(ppc_state.pc);
+        v->value = static_cast<double>(pc);
       break;
     case VarBindingType::MSR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(ppc_state.msr.Hex);
+        v->value = static_cast<double>(msr.Hex);
       else
-        ppc_state.msr.Hex = static_cast<u32>(static_cast<s64>(v->value));
+        msr.Hex = static_cast<u32>(static_cast<s64>(v->value));
       break;
     }
   }

@@ -140,16 +140,20 @@ bool Jit64::HandleFault(const uintptr_t access_address, SContext* ctx)
 
   if (memory.IsAddressInFastmemArea(reinterpret_cast<u8*>(access_address)))
   {
-    const auto& ppc_state = m_system.GetPPCState();
+    const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+      _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+      _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+      _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+      _reserve_address] = m_system.GetPPCState();
     const uintptr_t memory_base = reinterpret_cast<uintptr_t>(
-        ppc_state.msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
+        msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
 
     if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
     {
       WARN_LOG_FMT(DYNA_REC,
                    "Jit64 address calculation overflowed! Please report if this happens a lot. "
                    "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
-                   ctx->CTX_PC, access_address, memory_base, ppc_state.msr.DR);
+                   ctx->CTX_PC, access_address, memory_base, msr.DR);
     }
 
     return BackPatch(ctx);
@@ -749,10 +753,10 @@ void Jit64::Jit(const u32 em_address, const bool clear_cache_and_retry_on_failur
 
   // Check if any code blocks have been freed in the block cache and transfer this information to
   // the local rangesets to allow overwriting them with new code.
-  for (const auto range : blocks.GetRangesToFreeNear())
-    m_free_ranges_near.insert(range.first, range.second);
-  for (const auto range : blocks.GetRangesToFreeFar())
-    m_free_ranges_far.insert(range.first, range.second);
+  for (const auto [fst, snd] : blocks.GetRangesToFreeNear())
+    m_free_ranges_near.insert(fst, snd);
+  for (const auto [fst, snd] : blocks.GetRangesToFreeFar())
+    m_free_ranges_far.insert(fst, snd);
   blocks.ClearRangesToFree();
 
   std::size_t block_size = m_code_buffer.size();
@@ -1283,9 +1287,14 @@ void LogGeneratedX86(const size_t size, const PPCAnalyst::CodeBuffer& code_buffe
 {
   for (size_t i = 0; i < size; i++)
   {
-    const PPCAnalyst::CodeOp& op = code_buffer[i];
-    const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 PPC: {:08x} {}\n", op.address, disasm);
+    const auto& [inst, _opinfo, address, _branchTo, _regsIn, _regsOut, _fregsIn, _fregOut, _crIn,
+      _crOut, _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA,
+      _wantsCAInFlags, _outputCR, _outputFPRF, _outputCA, _canEndBlock, _canCauseException,
+      _skipLRStack, _skip, _crInUse, _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable,
+      _fprDiscardable, _fprInXmm, _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst,
+      _fprIsStoreSafeAfterInst] = code_buffer[i];
+    const std::string disasm = Common::GekkoDisassembler::Disassemble(inst.hex, address);
+    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 PPC: {:08x} {}\n", address, disasm);
   }
 
   disassembler x64disasm;

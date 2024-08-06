@@ -139,8 +139,8 @@ NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& d
   if (iter == s_native_vertex_map.end())
   {
     std::unique_ptr<NativeVertexFormat> fmt = g_gfx->CreateNativeVertexFormat(decl);
-    const auto ipair = s_native_vertex_map.emplace(decl, std::move(fmt));
-    iter = ipair.first;
+    const auto [fst, _snd] = s_native_vertex_map.emplace(decl, std::move(fmt));
+    iter = fst;
   }
 
   return iter->second.get();

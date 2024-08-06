@@ -264,9 +264,9 @@ void ConvertDialog::OnCompressionChanged() const
   const auto compression_type =
       static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
 
-  const std::pair<int, int> range = GetAllowedCompressionLevels(compression_type, true);
+  const auto [fst, snd] = GetAllowedCompressionLevels(compression_type, true);
 
-  for (int i = range.first; i <= range.second; ++i)
+  for (int i = fst; i <= snd; ++i)
   {
     AddToCompressionLevelComboBox(i);
     if (i == 5)

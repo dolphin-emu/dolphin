@@ -110,41 +110,41 @@ void MemoryManager::Init()
   const bool fake_vmem = !wii && !mmu;
 
   u32 mem_size = 0;
-  for (PhysicalMemoryRegion& region : m_physical_regions)
+  for (auto& [_out_pointer, _physical_address, size, flags, shm_position, active] : m_physical_regions)
   {
-    if (!wii && (region.flags & PhysicalMemoryRegion::WII_ONLY))
+    if (!wii && (flags & PhysicalMemoryRegion::WII_ONLY))
       continue;
-    if (!fake_vmem && (region.flags & PhysicalMemoryRegion::FAKE_VMEM))
+    if (!fake_vmem && (flags & PhysicalMemoryRegion::FAKE_VMEM))
       continue;
 
-    region.shm_position = mem_size;
-    region.active = true;
-    mem_size += region.size;
+    shm_position = mem_size;
+    active = true;
+    mem_size += size;
   }
   m_arena.GrabSHMSegment(mem_size, "dolphin-emu");
 
   m_physical_page_mappings.fill(nullptr);
 
   // Create an anonymous view of the physical memory
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [out_pointer, physical_address, size, _flags, shm_position, active] : m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    *region.out_pointer = static_cast<u8*>(m_arena.CreateView(region.shm_position, region.size));
+    *out_pointer = static_cast<u8*>(m_arena.CreateView(shm_position, size));
 
-    if (!*region.out_pointer)
+    if (!*out_pointer)
     {
       PanicAlertFmt(
           "Memory::Init(): Failed to create view for physical region at 0x{:08X} (size 0x{:08X}).",
-          region.physical_address, region.size);
+          physical_address, size);
       exit(0);
     }
 
-    for (u32 i = 0; i < region.size; i += PowerPC::BAT_PAGE_SIZE)
+    for (u32 i = 0; i < size; i += PowerPC::BAT_PAGE_SIZE)
     {
-      const size_t index = (i + region.physical_address) >> PowerPC::BAT_INDEX_SHIFT;
-      m_physical_page_mappings[index] = *region.out_pointer + i;
+      const size_t index = (i + physical_address) >> PowerPC::BAT_INDEX_SHIFT;
+      m_physical_page_mappings[index] = *out_pointer + i;
     }
   }
 
@@ -211,19 +211,20 @@ bool MemoryManager::InitFastmemArena()
   m_physical_base = m_fastmem_arena + guard_size;
   m_logical_base = m_fastmem_arena + ppc_view_size + guard_size * 2;
 
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [_out_pointer, physical_address, size, _flags, shm_position, active] :
+       m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    u8* base = m_physical_base + region.physical_address;
-    const u8* view = static_cast<u8*>(m_arena.MapInMemoryRegion(region.shm_position, region.size, base));
+    u8* base = m_physical_base + physical_address;
+    const u8* view = static_cast<u8*>(m_arena.MapInMemoryRegion(shm_position, size, base));
 
     if (base != view)
     {
       PanicAlertFmt("Memory::InitFastmemArena(): Failed to map memory region at 0x{:08X} "
                     "(size 0x{:08X}) into physical fastmem region.",
-                    region.physical_address, region.size);
+                    physical_address, size);
       return false;
     }
   }
@@ -235,9 +236,9 @@ bool MemoryManager::InitFastmemArena()
 
 void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
-  for (const auto& entry : m_logical_mapped_entries)
+  for (const auto& [mapped_pointer, mapped_size] : m_logical_mapped_entries)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(mapped_pointer, mapped_size);
   }
   m_logical_mapped_entries.clear();
 
@@ -251,13 +252,13 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
       // TODO: Merge adjacent mappings to make this faster.
       constexpr u32 logical_size = PowerPC::BAT_PAGE_SIZE;
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
-      for (const auto& physical_region : m_physical_regions)
+      for (const auto& [out_pointer, mapping_address, size, _flags, shm_position, active] :
+           m_physical_regions)
       {
-        if (!physical_region.active)
+        if (!active)
           continue;
 
-        u32 mapping_address = physical_region.physical_address;
-        u32 mapping_end = mapping_address + physical_region.size;
+        u32 mapping_end = mapping_address + size;
         const u32 intersection_start = std::max(mapping_address, translated_address);
         const u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
         if (intersection_start < intersection_end)
@@ -266,7 +267,7 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 
           if (m_is_fastmem_arena_initialized)
           {
-            const u32 position = physical_region.shm_position + intersection_start - mapping_address;
+            const u32 position = shm_position + intersection_start - mapping_address;
             u8* base = m_logical_base + logical_address + intersection_start - translated_address;
             const u32 mapped_size = intersection_end - intersection_start;
 
@@ -283,7 +284,7 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
           }
 
           m_logical_page_mappings[i] =
-              *physical_region.out_pointer + intersection_start - mapping_address;
+              *out_pointer + intersection_start - mapping_address;
         }
       }
     }
@@ -344,13 +345,14 @@ void MemoryManager::Shutdown()
   ShutdownFastmemArena();
 
   m_is_initialized = false;
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [out_pointer, _physical_address, size, _flags, _shm_position, active] :
+       m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    m_arena.ReleaseView(*region.out_pointer, region.size);
-    *region.out_pointer = nullptr;
+    m_arena.ReleaseView(*out_pointer, size);
+    *out_pointer = nullptr;
   }
   m_arena.ReleaseSHMSegment();
   m_mmio_mapping.reset();
@@ -362,18 +364,18 @@ void MemoryManager::ShutdownFastmemArena()
   if (!m_is_fastmem_arena_initialized)
     return;
 
-  for (const PhysicalMemoryRegion& region : m_physical_regions)
+  for (const auto& [_out_pointer, physical_address, size, _flags, _shm_position, active] : m_physical_regions)
   {
-    if (!region.active)
+    if (!active)
       continue;
 
-    u8* base = m_physical_base + region.physical_address;
-    m_arena.UnmapFromMemoryRegion(base, region.size);
+    u8* base = m_physical_base + physical_address;
+    m_arena.UnmapFromMemoryRegion(base, size);
   }
 
-  for (const auto& entry : m_logical_mapped_entries)
+  for (const auto& [mapped_pointer, mapped_size] : m_logical_mapped_entries)
   {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    m_arena.UnmapFromMemoryRegion(mapped_pointer, mapped_size);
   }
   m_logical_mapped_entries.clear();
 

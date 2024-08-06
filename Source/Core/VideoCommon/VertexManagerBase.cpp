@@ -506,7 +506,8 @@ void VertexManagerBase::Flush()
   {
     const bool is_perspective = xfmem.projection.type == ProjectionType::Perspective;
 
-    auto& counts =
+    auto& [normal_flush_count, anamorphic_flush_count, other_flush_count, normal_vertex_count,
+      anamorphic_vertex_count, other_vertex_count, average_ratio] =
         is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;
 
     const auto& projection = xfmem.projection.rawProjection;
@@ -516,22 +517,22 @@ void VertexManagerBase::Flush()
 
     // FYI: This average is based on flushes.
     // It doesn't look at vertex counts like the heuristic does.
-    counts.average_ratio.Push(CalculateProjectionViewportRatio(projection, viewport));
+    average_ratio.Push(CalculateProjectionViewportRatio(projection, viewport));
 
     if (IsAnamorphicProjection(projection, viewport, g_ActiveConfig))
     {
-      ++counts.anamorphic_flush_count;
-      counts.anamorphic_vertex_count += m_index_generator.GetIndexLen();
+      ++anamorphic_flush_count;
+      anamorphic_vertex_count += m_index_generator.GetIndexLen();
     }
     else if (IsNormalProjection(projection, viewport, g_ActiveConfig))
     {
-      ++counts.normal_flush_count;
-      counts.normal_vertex_count += m_index_generator.GetIndexLen();
+      ++normal_flush_count;
+      normal_vertex_count += m_index_generator.GetIndexLen();
     }
     else
     {
-      ++counts.other_flush_count;
-      counts.other_vertex_count += m_index_generator.GetIndexLen();
+      ++other_flush_count;
+      other_vertex_count += m_index_generator.GetIndexLen();
     }
   }
 

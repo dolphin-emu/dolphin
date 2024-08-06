@@ -238,19 +238,19 @@ bool NANDImporter::ExtractCertificates() const
       {"/rootca.pem", {{0x30, 0x82, 0x03, 0x7D}}},
   }};
 
-  for (const PEMCertificate& certificate : certificates)
+  for (const auto& [filename, search_bytes] : certificates)
   {
     const auto search_result =
-        std::ranges::search(content_bytes, certificate.search_bytes).begin();
+        std::ranges::search(content_bytes, search_bytes).begin();
 
     if (search_result == content_bytes.end())
     {
       ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not find offset for certficate '{}'",
-                    certificate.filename);
+                    filename);
       return false;
     }
 
-    const std::string pem_file_path = m_nand_root + std::string(certificate.filename);
+    const std::string pem_file_path = m_nand_root + std::string(filename);
     const ptrdiff_t certificate_offset = std::distance(content_bytes.begin(), search_result);
     constexpr int min_offset = 2;
     if (certificate_offset < min_offset)
@@ -272,7 +272,7 @@ bool NANDImporter::ExtractCertificates() const
       return false;
     }
     INFO_LOG_FMT(DISCIO, "ExtractCertificates: '{}' offset: {:#x} size: {:#x}",
-                 certificate.filename, certificate_offset, certificate_size);
+                 filename, certificate_offset, certificate_size);
 
     File::IOFile pem_file(pem_file_path, "wb");
     if (!pem_file.WriteBytes(&content_bytes[certificate_offset], certificate_size))

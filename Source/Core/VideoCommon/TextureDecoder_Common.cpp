@@ -565,10 +565,10 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
 
     u32 offset = (base + blkOff) << 3;
 
-    DXTBlock dxtBlock = Common::SafeSpanRead<DXTBlock>(src, offset);
+    auto [color1, color2, lines] = Common::SafeSpanRead<DXTBlock>(src, offset);
 
-    u16 c1 = Common::swap16(dxtBlock.color1);
-    u16 c2 = Common::swap16(dxtBlock.color2);
+    u16 c1 = Common::swap16(color1);
+    u16 c2 = Common::swap16(color2);
     int blue1 = Convert5To8(c1 & 0x1F);
     int blue2 = Convert5To8(c2 & 0x1F);
     int green1 = Convert6To8((c1 >> 5) & 0x3F);
@@ -579,7 +579,7 @@ void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int 
     u16 ss = s & 3;
     u16 tt = t & 3;
 
-    int colorSel = dxtBlock.lines[tt];
+    int colorSel = lines[tt];
     int rs = 6 - (ss << 1);
     colorSel = (colorSel >> rs) & 3;
     colorSel |= c1 > c2 ? 0 : 4;

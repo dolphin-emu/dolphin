@@ -583,38 +583,40 @@ bool MeshData::ToDolphinMesh(File::IOFile* file_data, const MeshData& data)
 {
   const std::size_t chunk_size = data.m_mesh_chunks.size();
   file_data->WriteBytes(&chunk_size, sizeof(std::size_t));
-  for (const auto& chunk : data.m_mesh_chunks)
+  for (const auto& [vertex_data, vertex_stride, num_vertices, indices, num_indices,
+         vertex_declaration, primitive_type, components_available, minimum_position,
+         maximum_position, transform, material_name] : data.m_mesh_chunks)
   {
-    if (!file_data->WriteBytes(&chunk.num_vertices, sizeof(u32)))
+    if (!file_data->WriteBytes(&num_vertices, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(&chunk.vertex_stride, sizeof(u32)))
+    if (!file_data->WriteBytes(&vertex_stride, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(chunk.vertex_data.get(), chunk.num_vertices * chunk.vertex_stride))
+    if (!file_data->WriteBytes(vertex_data.get(), num_vertices * vertex_stride))
       return false;
-    if (!file_data->WriteBytes(&chunk.num_indices, sizeof(u32)))
+    if (!file_data->WriteBytes(&num_indices, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(chunk.indices.get(), chunk.num_indices * sizeof(u16)))
+    if (!file_data->WriteBytes(indices.get(), num_indices * sizeof(u16)))
       return false;
-    if (!file_data->WriteBytes(&chunk.vertex_declaration, sizeof(PortableVertexDeclaration)))
+    if (!file_data->WriteBytes(&vertex_declaration, sizeof(PortableVertexDeclaration)))
       return false;
-    if (!file_data->WriteBytes(&chunk.primitive_type, sizeof(PrimitiveType)))
+    if (!file_data->WriteBytes(&primitive_type, sizeof(PrimitiveType)))
       return false;
-    if (!file_data->WriteBytes(&chunk.components_available, sizeof(u32)))
+    if (!file_data->WriteBytes(&components_available, sizeof(u32)))
       return false;
-    if (!file_data->WriteBytes(&chunk.minimum_position, sizeof(Common::Vec3)))
+    if (!file_data->WriteBytes(&minimum_position, sizeof(Common::Vec3)))
       return false;
-    if (!file_data->WriteBytes(&chunk.maximum_position, sizeof(Common::Vec3)))
+    if (!file_data->WriteBytes(&maximum_position, sizeof(Common::Vec3)))
       return false;
-    if (!file_data->WriteBytes(&chunk.transform.data[0],
-                               chunk.transform.data.size() * sizeof(float)))
+    if (!file_data->WriteBytes(&transform.data[0],
+                               transform.data.size() * sizeof(float)))
     {
       return false;
     }
 
-    const std::size_t material_name_size = chunk.material_name.size();
+    const std::size_t material_name_size = material_name.size();
     if (!file_data->WriteBytes(&material_name_size, sizeof(std::size_t)))
       return false;
-    if (!file_data->WriteBytes(&chunk.material_name[0], chunk.material_name.size() * sizeof(char)))
+    if (!file_data->WriteBytes(&material_name[0], material_name.size() * sizeof(char)))
       return false;
   }
   return true;

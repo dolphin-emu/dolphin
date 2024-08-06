@@ -115,8 +115,9 @@ private:
 
 bool BranchWatchProxyModel::filterAcceptsRow(const int source_row, const QModelIndex&) const
 {
-  const Core::BranchWatch::Selection::value_type& value = m_branch_watch.GetSelection()[source_row];
-  if (value.condition)
+  const auto& [collection_ptr, _is_virtual, condition, _inspection] =
+    m_branch_watch.GetSelection()[source_row];
+  if (condition)
   {
     if (!m_cond_true)
       return false;
@@ -124,7 +125,7 @@ bool BranchWatchProxyModel::filterAcceptsRow(const int source_row, const QModelI
   else if (!m_cond_false)
     return false;
 
-  const Core::BranchWatchCollectionKey& k = value.collection_ptr->first;
+  const Core::BranchWatchCollectionKey& k = collection_ptr->first;
   if (!IsBranchTypeAllowed(k.original_inst))
     return false;
 

@@ -64,10 +64,10 @@ void PostProcessingConfigWindow::PopulateGroups()
       m_post_processor->GetOptions();
 
   auto config_groups = std::vector<std::unique_ptr<ConfigGroup>>();
-  for (const auto& it : config_map)
+  for (const auto& [fst, snd] : config_map)
   {
-    auto config_group = std::make_unique<ConfigGroup>(&it.second);
-    m_config_map[it.first] = config_group.get();
+    auto config_group = std::make_unique<ConfigGroup>(&snd);
+    m_config_map[fst] = config_group.get();
     config_groups.push_back(std::move(config_group));
   }
 
@@ -156,34 +156,38 @@ void PostProcessingConfigWindow::UpdateBool(const ConfigGroup* const config_grou
 
 void PostProcessingConfigWindow::UpdateInteger(const ConfigGroup* const config_group, const int value) const
 {
-  const ConfigurationOption& config_option =
+  const auto& [_m_bool_value, _m_float_values, m_integer_values, _m_float_min_values,
+        m_integer_min_values, _m_float_max_values, _m_integer_max_values, _m_float_step_values,
+        m_integer_step_values, _m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty] =
       m_post_processor->GetOption(config_group->GetOptionName());
 
-  const size_t vector_size = config_option.m_integer_values.size();
+  const size_t vector_size = m_integer_values.size();
 
   for (size_t i = 0; i < vector_size; ++i)
   {
     const int current_step = config_group->GetSliderValue(i);
-    const s32 current_value = config_option.m_integer_step_values[i] * current_step +
-                              config_option.m_integer_min_values[i];
-    m_post_processor->SetOptioni(config_option.m_option_name, static_cast<int>(i), current_value);
+    const s32 current_value = m_integer_step_values[i] * current_step +
+                              m_integer_min_values[i];
+    m_post_processor->SetOptioni(m_option_name, static_cast<int>(i), current_value);
     config_group->SetSliderText(i, QString::number(current_value));
   }
 }
 
 void PostProcessingConfigWindow::UpdateFloat(const ConfigGroup* const config_group, const int value) const
 {
-  const ConfigurationOption& config_option =
-      m_post_processor->GetOption(config_group->GetOptionName());
+  const auto& [_m_bool_value, m_float_values, _m_integer_values, m_float_min_values,
+        _m_integer_min_values, _m_float_max_values, _m_integer_max_values, m_float_step_values,
+        _m_integer_step_values, _m_type, _m_gui_name, m_option_name, _m_dependent_option, _m_dirty]
+      = m_post_processor->GetOption(config_group->GetOptionName());
 
-  const size_t vector_size = config_option.m_float_values.size();
+  const size_t vector_size = m_float_values.size();
 
   for (size_t i = 0; i < vector_size; ++i)
   {
     const int current_step = config_group->GetSliderValue(static_cast<unsigned int>(i));
     const float current_value =
-        config_option.m_float_step_values[i] * current_step + config_option.m_float_min_values[i];
-    m_post_processor->SetOptionf(config_option.m_option_name, static_cast<int>(i), current_value);
+        m_float_step_values[i] * current_step + m_float_min_values[i];
+    m_post_processor->SetOptionf(m_option_name, static_cast<int>(i), current_value);
     config_group->SetSliderText(i, QString::asprintf("%f", current_value));
   }
 }

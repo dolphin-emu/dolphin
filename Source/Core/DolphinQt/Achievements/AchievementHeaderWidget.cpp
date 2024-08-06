@@ -77,18 +77,20 @@ void AchievementHeaderWidget::UpdateData() const
 
   const QString user_name = QtUtils::FromStdString(instance.GetPlayerDisplayName());
   const QString game_name = QtUtils::FromStdString(instance.GetGameDisplayName());
-  const AchievementManager::Badge& player_badge = instance.GetPlayerBadge();
-  const AchievementManager::Badge& game_badge = instance.GetGameBadge();
+  const auto& [player_badge_data, _player_badge_format, player_badge_width, player_badge_height,
+    _player_badge_row_length] = instance.GetPlayerBadge();
+  const auto& [game_badge_data, _game_badge_format, game_badge_width, game_badge_height,
+    _game_badge_row_length] = instance.GetGameBadge();
 
   m_user_icon->setVisible(false);
   m_user_icon->clear();
   m_user_icon->setText({});
-  if (!player_badge.data.empty())
+  if (!player_badge_data.empty())
   {
-    const QImage i_user_icon(player_badge.data.data(), player_badge.width, player_badge.height,
+    const QImage i_user_icon(player_badge_data.data(), player_badge_width, player_badge_height,
                              QImage::Format_RGBA8888);
     m_user_icon->setPixmap(QPixmap::fromImage(i_user_icon)
-                               .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+      .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   }
   m_user_icon->adjustSize();
   m_user_icon->setStyleSheet(QStringLiteral("border: 4px solid transparent"));
@@ -102,9 +104,9 @@ void AchievementHeaderWidget::UpdateData() const
   {
     rc_client_user_game_summary_t game_summary;
     rc_client_get_user_game_summary(instance.GetClient(), &game_summary);
-    if (game_badge.data.empty())
+    if (game_badge_data.empty())
     {
-      const QImage i_game_icon(game_badge.data.data(), game_badge.width, game_badge.height,
+      const QImage i_game_icon(game_badge_data.data(), game_badge_width, game_badge_height,
                                QImage::Format_RGBA8888);
       m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
                                  .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));

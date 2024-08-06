@@ -534,9 +534,9 @@ FrameState FFMpegFrameDump::FetchState(const u64 ticks, const int frame_number) 
   state.frame_number = frame_number;
   state.savestate_index = m_savestate_index;
 
-  const auto time_base = GetTimeBaseForCurrentRefreshRate();
-  state.refresh_rate_num = time_base.den;
-  state.refresh_rate_den = time_base.num;
+  const auto [num, den] = GetTimeBaseForCurrentRefreshRate();
+  state.refresh_rate_num = den;
+  state.refresh_rate_den = num;
   return state;
 }
 

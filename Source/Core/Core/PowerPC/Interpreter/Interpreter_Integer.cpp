@@ -38,11 +38,14 @@ u32 Interpreter::Helper_Carry(const u32 value1, const u32 value2)
 
 void Interpreter::addi(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
   if (inst.RA)
-    ppc_state.gpr[inst.RD] = ppc_state.gpr[inst.RA] + static_cast<u32>(inst.SIMM_16);
+    gpr[inst.RD] = gpr[inst.RA] + static_cast<u32>(inst.SIMM_16);
   else
-    ppc_state.gpr[inst.RD] = static_cast<u32>(inst.SIMM_16);
+    gpr[inst.RD] = static_cast<u32>(inst.SIMM_16);
 }
 
 void Interpreter::addic(Interpreter& interpreter, UGeckoInstruction inst)
@@ -64,11 +67,14 @@ void Interpreter::addic_rc(Interpreter& interpreter, UGeckoInstruction inst)
 
 void Interpreter::addis(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
   if (inst.RA)
-    ppc_state.gpr[inst.RD] = ppc_state.gpr[inst.RA] + static_cast<u32>(inst.SIMM_16 << 16);
+    gpr[inst.RD] = gpr[inst.RA] + static_cast<u32>(inst.SIMM_16 << 16);
   else
-    ppc_state.gpr[inst.RD] = static_cast<u32>(inst.SIMM_16 << 16);
+    gpr[inst.RD] = static_cast<u32>(inst.SIMM_16 << 16);
 }
 
 void Interpreter::andi_rc(Interpreter& interpreter, UGeckoInstruction inst)
@@ -122,21 +128,29 @@ void Interpreter::cmpli(Interpreter& interpreter, UGeckoInstruction inst)
 
 void Interpreter::mulli(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RD] = static_cast<u32>(
-    static_cast<s32>(ppc_state.gpr[inst.RA]) * inst.SIMM_16);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve,_reserve_address] = interpreter.m_ppc_state;
+  gpr[inst.RD] = static_cast<u32>(static_cast<s32>(gpr[inst.RA]) * inst.SIMM_16);
 }
 
 void Interpreter::ori(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] | inst.UIMM;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve,_reserve_address] = interpreter.m_ppc_state;
+  gpr[inst.RA] = gpr[inst.RS] | inst.UIMM;
 }
 
 void Interpreter::oris(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] | (u32{inst.UIMM} << 16);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,_pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve,_reserve_address] = interpreter.m_ppc_state;
+  gpr[inst.RA] = gpr[inst.RS] | (u32{inst.UIMM} << 16);
 }
 
 void Interpreter::subfic(Interpreter& interpreter, UGeckoInstruction inst)
@@ -168,14 +182,20 @@ void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
 
 void Interpreter::xori(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] ^ inst.UIMM;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  gpr[inst.RA] = gpr[inst.RS] ^ inst.UIMM;
 }
 
 void Interpreter::xoris(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
-  ppc_state.gpr[inst.RA] = ppc_state.gpr[inst.RS] ^ (u32{inst.UIMM} << 16);
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = interpreter.m_ppc_state;
+  gpr[inst.RA] = gpr[inst.RS] ^ (u32{inst.UIMM} << 16);
 }
 
 void Interpreter::rlwimix(Interpreter& interpreter, UGeckoInstruction inst)

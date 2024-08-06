@@ -688,17 +688,17 @@ void PrintInstructionRunCounts()
   std::array<OpInfo, TOTAL_INSTRUCTION_COUNT> temp;
   for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; i++)
   {
-    const GekkoOPInfo& info = s_tables.all_instructions[i];
-    temp[i] = std::make_pair(info.opname, info.stats->run_count);
+    const auto& [opname, _type, _num_cycles, _flags, stats] = s_tables.all_instructions[i];
+    temp[i] = std::make_pair(opname, stats->run_count);
   }
   std::ranges::sort(temp, [](const OpInfo& a, const OpInfo& b) { return a.second > b.second; });
 
-  for (auto& inst : temp)
+  for (auto& [fst, snd] : temp)
   {
-    if (inst.second == 0)
+    if (snd == 0)
       break;
 
-    INFO_LOG_FMT(POWERPC, "{} : {}", inst.first, inst.second);
+    INFO_LOG_FMT(POWERPC, "{} : {}", fst, snd);
   }
 }
 
@@ -709,22 +709,22 @@ void LogCompiledInstructions()
   File::IOFile f(fmt::format("{}inst_log{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; i++)
   {
-    const GekkoOPInfo& info = s_tables.all_instructions[i];
-    if (info.stats->compile_count > 0)
+    const auto& [opname, _type, _num_cycles, _flags, stats] = s_tables.all_instructions[i];
+    if (stats->compile_count > 0)
     {
-      f.WriteString(fmt::format("{0}\t{1}\t{2}\t{3:08x}\n", info.opname, info.stats->compile_count,
-                                info.stats->run_count, info.stats->last_use));
+      f.WriteString(fmt::format("{0}\t{1}\t{2}\t{3:08x}\n", opname, stats->compile_count,
+                                stats->run_count, stats->last_use));
     }
   }
 
   f.Open(fmt::format("{}inst_not{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; i++)
   {
-    const GekkoOPInfo& info = s_tables.all_instructions[i];
-    if (info.stats->compile_count == 0)
+    const auto& [opname, _type, _num_cycles, _flags, stats] = s_tables.all_instructions[i];
+    if (stats->compile_count == 0)
     {
-      f.WriteString(fmt::format("{0}\t{1}\t{2}\n", info.opname, info.stats->compile_count,
-                                info.stats->run_count));
+      f.WriteString(fmt::format("{0}\t{1}\t{2}\n", opname, stats->compile_count,
+                                stats->run_count));
     }
   }
 

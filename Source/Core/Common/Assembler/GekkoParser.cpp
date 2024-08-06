@@ -839,22 +839,22 @@ void ParseState::ParseToken(const TokenType tp)
 
 void ParseState::EmitErrorHere(std::string&& message)
 {
-  const AssemblerToken cur_token = lexer.Lookahead();
-  if (cur_token.token_type == TokenType::Invalid)
+  const auto [token_type, token_val, invalid_reason, invalid_region] = lexer.Lookahead();
+  if (token_type == TokenType::Invalid)
   {
     error = AssemblerError{
-        std::string(cur_token.invalid_reason),
+        std::string(invalid_reason),
         lexer.CurrentLine(),
         lexer.LineNumber(),
-        lexer.ColNumber() + cur_token.invalid_region.begin,
-        cur_token.invalid_region.len,
+        lexer.ColNumber() + invalid_region.begin,
+        invalid_region.len,
     };
   }
   else
   {
     error = AssemblerError{
         std::move(message), lexer.CurrentLine(),        lexer.LineNumber(),
-        lexer.ColNumber(),  cur_token.token_val.size(),
+        lexer.ColNumber(),  token_val.size(),
     };
   }
 }

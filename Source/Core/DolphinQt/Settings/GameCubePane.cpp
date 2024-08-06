@@ -79,11 +79,11 @@ void GameCubePane::CreateWidgets()
   ipl_language_layout->addRow(tr("System Language:"), m_language_combo);
 
   // Add languages
-  for (const auto& entry : {std::make_pair(tr("English"), 0), std::make_pair(tr("German"), 1),
-                            std::make_pair(tr("French"), 2), std::make_pair(tr("Spanish"), 3),
-                            std::make_pair(tr("Italian"), 4), std::make_pair(tr("Dutch"), 5)})
+  for (const auto& [fst, snd] : {std::make_pair(tr("English"), 0), std::make_pair(tr("German"), 1),
+                                 std::make_pair(tr("French"), 2), std::make_pair(tr("Spanish"), 3),
+                                 std::make_pair(tr("Italian"), 4), std::make_pair(tr("Dutch"), 5)})
   {
-    m_language_combo->addItem(entry.first, entry.second);
+    m_language_combo->addItem(fst, snd);
   }
 
   // Device Settings

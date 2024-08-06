@@ -89,17 +89,17 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
 {
   for (int i = BLU_C; i <= RED_C; i++)
   {
-    const InputRegType& InputReg = inputs[i];
+    const auto& [input_reg_a, input_reg_b, input_reg_c, input_reg_d] = inputs[i];
 
-    const u16 c = InputReg.c + (InputReg.c >> 7);
+    const u16 c = input_reg_c + (input_reg_c >> 7);
 
-    s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
+    s32 temp = input_reg_a * (256 - c) + (input_reg_b * c);
     temp <<= s_ScaleLShiftLUT[cc.scale];
     temp += (cc.scale == TevScale::Divide2) ? 0 : (cc.op == TevOp::Sub) ? 127 : 128;
     temp >>= 8;
     temp = cc.op == TevOp::Sub ? -temp : temp;
 
-    s32 result = ((InputReg.d + s_BiasLUT[cc.bias]) << s_ScaleLShiftLUT[cc.scale]) + temp;
+    s32 result = ((input_reg_d + s_BiasLUT[cc.bias]) << s_ScaleLShiftLUT[cc.scale]) + temp;
     result = result >> s_ScaleRShiftLUT[cc.scale];
 
     Reg[cc.dest][i] = result;
@@ -147,16 +147,16 @@ void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const Inpu
 
 void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
 {
-  const InputRegType& InputReg = inputs[ALP_C];
+  const auto& [a, b, InputReg_c, d] = inputs[ALP_C];
 
-  const u16 c = InputReg.c + (InputReg.c >> 7);
+  const u16 c = InputReg_c + (InputReg_c >> 7);
 
-  s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
+  s32 temp = a * (256 - c) + (b * c);
   temp <<= s_ScaleLShiftLUT[ac.scale];
   temp += (ac.scale == TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
   temp = ac.op == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
-  s32 result = ((InputReg.d + s_BiasLUT[ac.bias]) << s_ScaleLShiftLUT[ac.scale]) + temp;
+  s32 result = ((d + s_BiasLUT[ac.bias]) << s_ScaleLShiftLUT[ac.scale]) + temp;
   result = result >> s_ScaleRShiftLUT[ac.scale];
 
   Reg[ac.dest].a = result;

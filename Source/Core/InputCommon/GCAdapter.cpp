@@ -754,16 +754,16 @@ GCPadStatus Input(const int chan)
 
   std::lock_guard lk(s_read_mutex);
 
-  auto& pad_state = s_port_states[chan];
+  auto& [origin, status, _controller_type, is_new_connection] = s_port_states[chan];
 
   // Return the "origin" state for the first input on a new connection.
-  if (pad_state.is_new_connection)
+  if (is_new_connection)
   {
-    pad_state.is_new_connection = false;
-    return pad_state.origin;
+    is_new_connection = false;
+    return origin;
   }
 
-  return pad_state.status;
+  return status;
 }
 
 // Get ControllerType from first byte in input payload.
@@ -803,7 +803,7 @@ void ProcessInputPayload(const u8* data, const std::size_t size)
 
       const auto type = IdentifyControllerType(channel_data[0]);
 
-      auto& pad_state = s_port_states[chan];
+      auto& [origin, status, controller_type, is_new_connection] = s_port_states[chan];
 
       GCPadStatus pad = {};
 
@@ -854,18 +854,18 @@ void ProcessInputPayload(const u8* data, const std::size_t size)
         pad.button = PAD_ERR_STATUS;
       }
 
-      if (type != ControllerType::None && pad_state.controller_type == ControllerType::None)
+      if (type != ControllerType::None && controller_type == ControllerType::None)
       {
         NOTICE_LOG_FMT(CONTROLLERINTERFACE, "New device connected to Port {} of Type: {:02x}",
                        chan + 1, channel_data[0]);
 
         pad.button |= PAD_GET_ORIGIN;
-        pad_state.origin = pad;
-        pad_state.is_new_connection = true;
+        origin = pad;
+        is_new_connection = true;
       }
 
-      pad_state.controller_type = type;
-      pad_state.status = pad;
+      controller_type = type;
+      status = pad;
     }
   }
 }

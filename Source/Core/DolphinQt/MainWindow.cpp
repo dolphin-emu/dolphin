@@ -2053,9 +2053,10 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
   if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
     return;
 
-  const auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
-  RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
-                          disc.volume->GetDiscNumber(), game.GetFilePath(), this);
+  const auto& [_path, volume, _auto_disc_change_paths] =
+    std::get<BootParameters::Disc>(boot_params->parameters);
+  RiivolutionBootWidget w(volume->GetGameID(), volume->GetRevision(),
+                          volume->GetDiscNumber(), game.GetFilePath(), this);
   SetQWidgetWindowDecorations(&w);
 
 #ifdef USE_RETRO_ACHIEVEMENTS

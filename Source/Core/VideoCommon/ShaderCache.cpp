@@ -417,15 +417,15 @@ void ShaderCache::ClearCaches()
 void ShaderCache::CompileMissingPipelines()
 {
   // Queue all uids with a null pipeline for compilation.
-  for (auto& it : m_gx_pipeline_cache)
+  for (auto& [fst, snd] : m_gx_pipeline_cache)
   {
-    if (!it.second.first)
-      QueuePipelineCompile(it.first, COMPILE_PRIORITY_SHADERCACHE_PIPELINE);
+    if (!snd.first)
+      QueuePipelineCompile(fst, COMPILE_PRIORITY_SHADERCACHE_PIPELINE);
   }
-  for (auto& it : m_gx_uber_pipeline_cache)
+  for (auto& [fst, snd] : m_gx_uber_pipeline_cache)
   {
-    if (!it.second.first)
-      QueueUberPipelineCompile(it.first, COMPILE_PRIORITY_UBERSHADER_PIPELINE);
+    if (!snd.first)
+      QueueUberPipelineCompile(fst, COMPILE_PRIORITY_UBERSHADER_PIPELINE);
   }
 }
 
@@ -464,10 +464,10 @@ ShaderCache::CompilePixelUberShader(const UberShader::PixelShaderUid& uid) const
 const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid,
                                                       std::unique_ptr<AbstractShader> shader)
 {
-  auto& entry = m_vs_cache.shader_map[uid];
-  entry.pending = false;
+  auto& [entry_shader, pending] = m_vs_cache.shader_map[uid];
+  pending = false;
 
-  if (shader && !entry.shader)
+  if (shader && !entry_shader)
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
@@ -477,19 +477,19 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
     }
     INCSTAT(g_stats.num_vertex_shaders_created);
     INCSTAT(g_stats.num_vertex_shaders_alive);
-    entry.shader = std::move(shader);
+    entry_shader = std::move(shader);
   }
 
-  return entry.shader.get();
+  return entry_shader.get();
 }
 
 const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::VertexShaderUid& uid,
                                                           std::unique_ptr<AbstractShader> shader)
 {
-  auto& entry = m_uber_vs_cache.shader_map[uid];
-  entry.pending = false;
+  auto& [entry_shader, pending] = m_uber_vs_cache.shader_map[uid];
+  pending = false;
 
-  if (shader && !entry.shader)
+  if (shader && !entry_shader)
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
@@ -499,19 +499,19 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
     }
     INCSTAT(g_stats.num_vertex_shaders_created);
     INCSTAT(g_stats.num_vertex_shaders_alive);
-    entry.shader = std::move(shader);
+    entry_shader = std::move(shader);
   }
 
-  return entry.shader.get();
+  return entry_shader.get();
 }
 
 const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
                                                      std::unique_ptr<AbstractShader> shader)
 {
-  auto& entry = m_ps_cache.shader_map[uid];
-  entry.pending = false;
+  auto& [entry_shader, pending] = m_ps_cache.shader_map[uid];
+  pending = false;
 
-  if (shader && !entry.shader)
+  if (shader && !entry_shader)
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
@@ -521,19 +521,19 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
     }
     INCSTAT(g_stats.num_pixel_shaders_created);
     INCSTAT(g_stats.num_pixel_shaders_alive);
-    entry.shader = std::move(shader);
+    entry_shader = std::move(shader);
   }
 
-  return entry.shader.get();
+  return entry_shader.get();
 }
 
 const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::PixelShaderUid& uid,
                                                          std::unique_ptr<AbstractShader> shader)
 {
-  auto& entry = m_uber_ps_cache.shader_map[uid];
-  entry.pending = false;
+  auto& [entry_shader, pending] = m_uber_ps_cache.shader_map[uid];
+  pending = false;
 
-  if (shader && !entry.shader)
+  if (shader && !entry_shader)
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
@@ -543,10 +543,10 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
     }
     INCSTAT(g_stats.num_pixel_shaders_created);
     INCSTAT(g_stats.num_pixel_shaders_alive);
-    entry.shader = std::move(shader);
+    entry_shader = std::move(shader);
   }
 
-  return entry.shader.get();
+  return entry_shader.get();
 }
 
 const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid& uid)
@@ -557,10 +557,10 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
       g_gfx->CreateShaderFromSource(ShaderStage::Geometry, source_code.GetBuffer(),
                                     fmt::format("Geometry shader: {}", *uid.GetUidData()));
 
-  auto& entry = m_gs_cache.shader_map[uid];
-  entry.pending = false;
+  auto& [entry_shader, pending] = m_gs_cache.shader_map[uid];
+  pending = false;
 
-  if (shader && !entry.shader)
+  if (shader && !entry_shader)
   {
     if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
@@ -568,10 +568,10 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
       if (!binary.empty())
         m_gs_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
-    entry.shader = std::move(shader);
+    entry_shader = std::move(shader);
   }
 
-  return entry.shader.get();
+  return entry_shader.get();
 }
 
 bool ShaderCache::NeedsGeometryShader(const GeometryShaderUid& uid) const
@@ -871,15 +871,15 @@ ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
 const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& config,
                                                       std::unique_ptr<AbstractPipeline> pipeline)
 {
-  auto& entry = m_gx_pipeline_cache[config];
-  entry.second = false;
-  if (!entry.first && pipeline)
+  auto& [fst, snd] = m_gx_pipeline_cache[config];
+  snd = false;
+  if (!fst && pipeline)
   {
-    entry.first = std::move(pipeline);
+    fst = std::move(pipeline);
 
     if (g_ActiveConfig.bShaderCache)
     {
-      const auto cache_data = entry.first->GetCacheData();
+      const auto cache_data = fst->GetCacheData();
       if (!cache_data.empty())
       {
         SerializedGXPipelineUid disk_uid;
@@ -890,22 +890,22 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
     }
   }
 
-  return entry.first.get();
+  return fst.get();
 }
 
 const AbstractPipeline*
 ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
                                   std::unique_ptr<AbstractPipeline> pipeline)
 {
-  auto& entry = m_gx_uber_pipeline_cache[config];
-  entry.second = false;
-  if (!entry.first && pipeline)
+  auto& [fst, snd] = m_gx_uber_pipeline_cache[config];
+  snd = false;
+  if (!fst && pipeline)
   {
-    entry.first = std::move(pipeline);
+    fst = std::move(pipeline);
 
     if (g_ActiveConfig.bShaderCache)
     {
-      const auto cache_data = entry.first->GetCacheData();
+      const auto cache_data = fst->GetCacheData();
       if (!cache_data.empty())
       {
         SerializedGXUberPipelineUid disk_uid;
@@ -916,7 +916,7 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
     }
   }
 
-  return entry.first.get();
+  return fst.get();
 }
 
 void ShaderCache::LoadPipelineUIDCache()
@@ -984,8 +984,8 @@ void ShaderCache::LoadPipelineUIDCache()
       // Write any current UIDs out to the file.
       // This way, if we load a UID cache where the data was incomplete (e.g. Dolphin crashed),
       // we don't lose the existing UIDs which were previously at the beginning.
-      for (const auto& it : m_gx_pipeline_cache)
-        AppendGXPipelineUID(it.first);
+      for (const auto& [fst, _snd] : m_gx_pipeline_cache)
+        AppendGXPipelineUID(fst);
     }
   }
 
@@ -1008,8 +1008,8 @@ void ShaderCache::AddSerializedGXPipelineUID(const SerializedGXPipelineUid& uid)
     return;
 
   // Flag it as empty with a null pipeline object, for later compilation.
-  auto& entry = m_gx_pipeline_cache[real_uid];
-  entry.second = false;
+  auto& [_fst, snd] = m_gx_pipeline_cache[real_uid];
+  snd = false;
 }
 
 void ShaderCache::AppendGXPipelineUID(const GXPipelineUid& config)
@@ -1323,8 +1323,8 @@ void ShaderCache::QueueUberShaderPipelines()
         if (iter != m_gx_uber_pipeline_cache.end())
           return;
 
-        auto& entry = m_gx_uber_pipeline_cache[config];
-        entry.second = false;
+        auto& [_fst, snd] = m_gx_uber_pipeline_cache[config];
+        snd = false;
       };
 
   // Populate the pipeline configs with empty entries, these will be compiled afterwards.
@@ -1414,8 +1414,8 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  const auto iiter = m_efb_copy_to_vram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
-  return iiter.first->second.get();
+  const auto [fst, _snd] = m_efb_copy_to_vram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
+  return fst->second.get();
 }
 
 const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams& uid)
@@ -1442,8 +1442,8 @@ const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetColorFramebufferState(AbstractTextureFormat::BGRA8);
   config.usage = AbstractPipelineUsage::Utility;
-  const auto iiter = m_efb_copy_to_ram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
-  return iiter.first->second.get();
+  const auto [fst, _snd] = m_efb_copy_to_ram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
+  return fst->second.get();
 }
 
 bool ShaderCache::CompileSharedPipelines()
@@ -1568,8 +1568,9 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  const auto iiter = m_texture_reinterpret_pipelines.emplace(key, g_gfx->CreatePipeline(config));
-  return iiter.first->second.get();
+  const auto [fst, _snd] =
+    m_texture_reinterpret_pipelines.emplace(key, g_gfx->CreatePipeline(config));
+  return fst->second.get();
 }
 
 const AbstractShader*

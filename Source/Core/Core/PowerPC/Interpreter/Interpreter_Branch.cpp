@@ -171,9 +171,13 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
 // We do it anyway, though :P
 void Interpreter::sc(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  auto& ppc_state = interpreter.m_ppc_state;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = interpreter.m_ppc_state;
 
-  ppc_state.Exceptions |= EXCEPTION_SYSCALL;
+  Exceptions |= EXCEPTION_SYSCALL;
   interpreter.m_system.GetPowerPC().CheckExceptions();
   interpreter.m_end_block = true;
 }

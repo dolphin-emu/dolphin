@@ -16,15 +16,15 @@ int TASControlState::GetValue() const
 
 bool TASControlState::OnControllerValueChanged(const int new_value)
 {
-  const State cpu_thread_state = m_cpu_thread_state.load(std::memory_order_relaxed);
+  const auto [version, value] = m_cpu_thread_state.load(std::memory_order_relaxed);
 
-  if (cpu_thread_state.value == new_value)
+  if (value == new_value)
   {
     // The CPU thread state is already up to date with the controller. No need to do anything
     return false;
   }
 
-  const State new_state{(cpu_thread_state.version + 1), new_value};
+  const State new_state{(version + 1), new_value};
   m_cpu_thread_state.store(new_state, std::memory_order_relaxed);
 
   return true;
@@ -32,21 +32,21 @@ bool TASControlState::OnControllerValueChanged(const int new_value)
 
 void TASControlState::OnUIValueChanged(const int new_value)
 {
-  const State ui_thread_state = m_ui_thread_state.load(std::memory_order_relaxed);
+  const auto [version, _value] = m_ui_thread_state.load(std::memory_order_relaxed);
 
-  const State new_state{ui_thread_state.version, new_value};
+  const State new_state{version, new_value};
   m_ui_thread_state.store(new_state, std::memory_order_relaxed);
 }
 
 int TASControlState::ApplyControllerValueChange()
 {
-  const State ui_thread_state = m_ui_thread_state.load(std::memory_order_relaxed);
+  const auto [version, value] = m_ui_thread_state.load(std::memory_order_relaxed);
   const State cpu_thread_state = m_cpu_thread_state.load(std::memory_order_relaxed);
 
-  if (ui_thread_state.version == cpu_thread_state.version)
+  if (version == cpu_thread_state.version)
   {
     // The UI thread state is already up to date with the CPU thread. No need to do anything
-    return ui_thread_state.value;
+    return value;
   }
   m_ui_thread_state.store(cpu_thread_state, std::memory_order_relaxed);
   return cpu_thread_state.value;

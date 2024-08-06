@@ -44,8 +44,9 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, const int request_length)
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
 
-  const GCPadStatus pad_status = GetPadStatus();
-  if (!pad_status.isConnected)
+  const auto [_button, _stickX, _stickY, _substickX, _substickY, _triggerLeft, _triggerRight,
+    _analogA, _analogB, isConnected] = GetPadStatus();
+  if (!isConnected)
     return -1;
 
   // Read the command

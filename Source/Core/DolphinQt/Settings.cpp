@@ -147,9 +147,9 @@ void Settings::UpdateSystemDark()
   {
     using namespace winrt::Windows::UI::ViewManagement;
     const UISettings settings;
-    const auto& color = settings.GetColorValue(UIColorType::Foreground);
+    const auto& [_A, R, G, B] = settings.GetColorValue(UIColorType::Foreground);
 
-    const bool is_system_dark = 5 * color.G + 2 * color.R + color.B > 8 * 128;
+    const bool is_system_dark = 5 * G + 2 * R + B > 8 * 128;
     Instance().SetSystemDark(is_system_dark);
   }
 #endif

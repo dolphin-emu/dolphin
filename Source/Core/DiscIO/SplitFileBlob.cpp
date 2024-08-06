@@ -20,8 +20,8 @@ SplitPlainFileReader::SplitPlainFileReader(std::vector<SingleFile> files)
     : m_files(std::move(files))
 {
   m_size = 0;
-  for (const auto& f : m_files)
-    m_size += f.size;
+  for (const auto& [_file, _offset, size] : m_files)
+    m_size += size;
 }
 
 std::unique_ptr<SplitPlainFileReader> SplitPlainFileReader::Create(const std::string_view first_file_path)
@@ -58,10 +58,10 @@ std::unique_ptr<SplitPlainFileReader> SplitPlainFileReader::Create(const std::st
 std::unique_ptr<BlobReader> SplitPlainFileReader::CopyReader() const
 {
   std::vector<SingleFile> new_files{};
-  for (const SingleFile& file : m_files)
+  for (const auto& [file, offset, size] : m_files)
   {
     new_files.push_back(
-        {.file = file.file.Duplicate("rb"), .offset = file.offset, .size = file.size});
+        {.file = file.Duplicate("rb"), .offset = offset, .size = size});
   }
   return std::unique_ptr<SplitPlainFileReader>(new SplitPlainFileReader(std::move(new_files)));
 }
@@ -74,13 +74,13 @@ bool SplitPlainFileReader::Read(const u64 offset, const u64 nbytes, u8* out_ptr)
   u64 current_offset = offset;
   u64 rest = nbytes;
   u8* out = out_ptr;
-  for (auto& file : m_files)
+  for (auto& [file, offset, size] : m_files)
   {
-    if (current_offset >= file.offset && current_offset < file.offset + file.size)
+    if (current_offset >= offset && current_offset < offset + size)
     {
-      auto& f = file.file;
-      const u64 seek_offset = current_offset - file.offset;
-      const u64 current_read = std::min(file.size - seek_offset, rest);
+      auto& f = file;
+      const u64 seek_offset = current_offset - offset;
+      const u64 current_read = std::min(size - seek_offset, rest);
       if (!f.Seek(seek_offset, File::SeekOrigin::Begin) || !f.ReadBytes(out, current_read))
       {
         f.ClearError();

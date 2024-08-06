@@ -198,35 +198,37 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
 
   for (size_t section_index = 0; section_index < disc.disc.m_sections.size(); ++section_index)
   {
-    const auto& section = disc.disc.m_sections[section_index];
-    auto* group_box = new QGroupBox(QString::fromStdString(section.m_name));
+    const auto& [m_name, m_options] = disc.disc.m_sections[section_index];
+    auto* group_box = new QGroupBox(QString::fromStdString(m_name));
     auto* grid_layout = new QGridLayout();
     group_box->setLayout(grid_layout);
 
     int row = 0;
-    for (size_t option_index = 0; option_index < section.m_options.size(); ++option_index)
+    for (size_t option_index = 0; option_index < m_options.size(); ++option_index)
     {
-      const auto& option = section.m_options[option_index];
-      auto* label = new QLabel(QString::fromStdString(option.m_name));
+      const auto& [m_name, _m_id, m_choices, m_selected_choice] = m_options[option_index];
+      auto* label = new QLabel(QString::fromStdString(m_name));
       auto* selection = new QComboBox();
       const GuiRiivolutionPatchIndex gui_disabled_index{disc_index, section_index, option_index, 0};
       selection->addItem(tr("Disabled"), QVariant::fromValue(gui_disabled_index));
-      for (size_t choice_index = 0; choice_index < option.m_choices.size(); ++choice_index)
+      for (size_t choice_index = 0; choice_index < m_choices.size(); ++choice_index)
       {
-        const auto& choice = option.m_choices[choice_index];
+        const auto& [m_name, _m_patch_references] = m_choices[choice_index];
         const GuiRiivolutionPatchIndex gui_index{disc_index, section_index, option_index,
                                                  choice_index + 1};
-        selection->addItem(QString::fromStdString(choice.m_name), QVariant::fromValue(gui_index));
+        selection->addItem(QString::fromStdString(m_name), QVariant::fromValue(gui_index));
       }
-      if (option.m_selected_choice <= option.m_choices.size())
-        selection->setCurrentIndex(static_cast<int>(option.m_selected_choice));
+      if (m_selected_choice <= m_choices.size())
+        selection->setCurrentIndex(static_cast<int>(m_selected_choice));
 
       connect(selection, &QComboBox::currentIndexChanged, this, [this, selection](int idx) {
-        const auto gui_index = selection->currentData().value<GuiRiivolutionPatchIndex>();
-        auto& selected_disc = m_discs[gui_index.m_disc_index].disc;
-        auto& selected_section = selected_disc.m_sections[gui_index.m_section_index];
-        auto& selected_option = selected_section.m_options[gui_index.m_option_index];
-        selected_option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
+        const auto [m_disc_index, m_section_index, m_option_index, m_choice_index] =
+          selection->currentData().value<GuiRiivolutionPatchIndex>();
+        auto& [_m_version, _m_game_filter, m_sections, _m_patches, _m_xml_path] =
+          m_discs[m_disc_index].disc;
+        auto& [section_name, m_options] = m_sections[m_section_index];
+        auto& [_option_name, _m_id, _m_choices, m_selected_choice] = m_options[m_option_index];
+        m_selected_choice = static_cast<u32>(m_choice_index);
       });
 
       grid_layout->addWidget(label, row, 0, 1, 1);
@@ -257,26 +259,24 @@ void RiivolutionBootWidget::SaveConfigXMLs() const
     return;
 
   std::unordered_map<std::string, DiscIO::Riivolution::Config> map;
-  for (const auto& disc : m_discs)
+  for (const auto& [disc, root, _path] : m_discs)
   {
-    const auto config = map.try_emplace(disc.root);
-    auto& config_options = config.first->second.m_options;
-    for (const auto& section : disc.disc.m_sections)
+    const auto [fst, _snd] = map.try_emplace(root);
+    auto& config_options = fst->second.m_options;
+    for (const auto& [section_name, m_options] : disc.m_sections)
     {
-      for (const auto& option : section.m_options)
+      for (const auto& [option_name, m_id, _m_choices, m_selected_choice] : m_options)
       {
-        std::string id = option.m_id.empty() ? (section.m_name + option.m_name) : option.m_id;
+        std::string id = m_id.empty() ? (section_name + option_name) : m_id;
         config_options.emplace_back(
-            DiscIO::Riivolution::ConfigOption{std::move(id), option.m_selected_choice});
+            DiscIO::Riivolution::ConfigOption{std::move(id), m_selected_choice});
       }
     }
   }
 
-  for (const auto& config : map)
+  for (const auto& [fst, snd] : map)
   {
-    WriteConfigFile(
-        fmt::format("{}/riivolution/config/{}.xml", config.first, m_game_id.substr(0, 4)),
-        config.second);
+    WriteConfigFile(fmt::format("{}/riivolution/config/{}.xml", fst, m_game_id.substr(0, 4)), snd);
   }
 }
 
@@ -285,15 +285,17 @@ void RiivolutionBootWidget::BootGame()
   SaveConfigXMLs();
 
   m_patches.clear();
-  for (const auto& disc : m_discs)
+  for (const auto& [disc, root, _path] : m_discs)
   {
-    auto patches = disc.disc.GeneratePatches(m_game_id);
+    auto patches = disc.GeneratePatches(m_game_id);
 
     // set the file loader for each patch
-    for (auto& patch : patches)
+    for (auto& [_m_id, m_root, m_file_data_loader, _m_file_patches, _m_folder_patches,
+           _m_sys_file_patches, _m_sys_folder_patches, _m_savegame_patches, _m_memory_patches] :
+         patches)
     {
-      patch.m_file_data_loader = std::make_shared<DiscIO::Riivolution::FileDataLoaderHostFS>(
-          disc.root, disc.disc.m_xml_path, patch.m_root);
+      m_file_data_loader = std::make_shared<DiscIO::Riivolution::FileDataLoaderHostFS>(
+          root, disc.m_xml_path, m_root);
     }
 
     m_patches.insert(m_patches.end(), patches.begin(), patches.end());
@@ -309,27 +311,28 @@ void RiivolutionBootWidget::SaveAsPreset()
   descriptor.base_file = m_base_game_path;
 
   DiscIO::GameModDescriptorRiivolution riivolution_descriptor;
-  for (const auto& disc : m_discs)
+  for (const auto& [disc, disc_root, path] : m_discs)
   {
     // filter out XMLs that don't actually contribute to the preset
-    auto patches = disc.disc.GeneratePatches(m_game_id);
+    auto patches = disc.GeneratePatches(m_game_id);
     if (patches.empty())
       continue;
 
-    auto& descriptor_patch = riivolution_descriptor.patches.emplace_back();
-    descriptor_patch.xml = disc.path;
-    descriptor_patch.root = disc.root;
-    for (const auto& section : disc.disc.m_sections)
+    auto& [xml, patch_root, options] = riivolution_descriptor.patches.emplace_back();
+    xml = path;
+    patch_root = disc_root;
+    for (const auto& [m_name, m_options] : disc.m_sections)
     {
-      for (const auto& option : section.m_options)
+      for (const auto& [m_name, m_id, _m_choices, m_selected_choice] : m_options)
       {
-        auto& descriptor_option = descriptor_patch.options.emplace_back();
-        descriptor_option.section_name = section.m_name;
-        if (!option.m_id.empty())
-          descriptor_option.option_id = option.m_id;
+        auto& [section_name, option_id, option_name, choice] =
+          options.emplace_back();
+        section_name = m_name;
+        if (!m_id.empty())
+          option_id = m_id;
         else
-          descriptor_option.option_name = option.m_name;
-        descriptor_option.choice = option.m_selected_choice;
+          option_name = m_name;
+        choice = m_selected_choice;
       }
     }
   }

@@ -53,8 +53,8 @@ void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
 
   m_code_edit->clear();
 
-  for (const auto& c : code->codes)
-    m_code_edit->append(QString::fromStdString(c.original_line));
+  for (const auto& [_address, _data, original_line] : code->codes)
+    m_code_edit->append(QString::fromStdString(original_line));
 
   QString notes_string;
   for (const auto& line : code->notes)

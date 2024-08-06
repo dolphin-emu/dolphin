@@ -87,21 +87,20 @@ constexpr SystemTimers::TimeBaseTick GetESBootTicks(const u32 ios_version)
 
 ESCore::ESCore(Kernel& ios) : m_ios(ios)
 {
-  for (const auto& directory : s_directories_to_create)
+  for (const auto& [path, attribute, modes, uid, gid] : s_directories_to_create)
   {
     // Note: ES sets its own UID and GID to 0/0 at boot, so all filesystem accesses in ES are done
     // as UID 0 even though its PID is 1.
-    const auto result = m_ios.GetFS()->CreateDirectory(PID_KERNEL, PID_KERNEL, directory.path,
-                                                       directory.attribute, directory.modes);
+    const auto result =
+      m_ios.GetFS()->CreateDirectory(PID_KERNEL, PID_KERNEL, path, attribute, modes);
     if (result != FS::ResultCode::Success && result != FS::ResultCode::AlreadyExists)
     {
-      ERROR_LOG_FMT(IOS_ES, "Failed to create {}: error {}", directory.path,
+      ERROR_LOG_FMT(IOS_ES, "Failed to create {}: error {}", path,
                     Common::ToUnderlying(FS::ConvertResult(result)));
     }
 
     // Now update the UID/GID and other attributes.
-    m_ios.GetFS()->SetMetadata(0, directory.path, directory.uid, directory.gid, directory.attribute,
-                               directory.modes);
+    m_ios.GetFS()->SetMetadata(0, path, uid, gid, attribute, modes);
   }
 
   FinishAllStaleImports();
@@ -508,13 +507,13 @@ void ESDevice::DoState(PointerWrap& p)
 {
   Device::DoState(p);
 
-  for (auto& entry : m_core.m_content_table)
+  for (auto& [m_opened, m_fd, m_title_id, m_content, m_uid] : m_core.m_content_table)
   {
-    p.Do(entry.m_opened);
-    p.Do(entry.m_title_id);
-    p.Do(entry.m_content);
-    p.Do(entry.m_fd);
-    p.Do(entry.m_uid);
+    p.Do(m_opened);
+    p.Do(m_title_id);
+    p.Do(m_content);
+    p.Do(m_fd);
+    p.Do(m_uid);
   }
 
   m_core.m_title_context.DoState(p);

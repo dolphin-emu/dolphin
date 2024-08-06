@@ -76,14 +76,14 @@ void AchievementBox::UpdateData() const
     if (!AchievementManager::GetInstance().IsGameLoaded())
       return;
 
-    const auto& badge = AchievementManager::GetInstance().GetAchievementBadge(
-        m_achievement->id, !m_achievement->unlocked);
+    const auto& [data, _format, width, height, _row_length] = AchievementManager::GetInstance().
+        GetAchievementBadge(m_achievement->id, !m_achievement->unlocked);
     std::string_view color = AchievementManager::GRAY;
     if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_HARDCORE)
       color = AchievementManager::GOLD;
     else if (m_achievement->unlocked & RC_CLIENT_ACHIEVEMENT_UNLOCKED_SOFTCORE)
       color = AchievementManager::BLUE;
-    const QImage i_badge(&badge.data.front(), badge.width, badge.height, QImage::Format_RGBA8888);
+    const QImage i_badge(&data.front(), width, height, QImage::Format_RGBA8888);
     m_badge->setPixmap(
         QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     m_badge->adjustSize();

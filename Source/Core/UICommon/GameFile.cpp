@@ -432,17 +432,17 @@ bool GameFile::ReadPNGBanner(const std::string& path)
   if (!file.ReadBytes(png_data.data(), png_data.size()))
     return false;
 
-  GameBanner& banner = m_pending.custom_banner;
+  auto& [buffer, width, height] = m_pending.custom_banner;
   std::vector<u8> data_out;
-  if (!Common::LoadPNG(png_data, &data_out, &banner.width, &banner.height))
+  if (!Common::LoadPNG(png_data, &data_out, &width, &height))
     return false;
 
   // Make an ARGB copy of the RGBA data
-  banner.buffer.resize(data_out.size() / sizeof(u32));
-  for (size_t i = 0; i < banner.buffer.size(); i++)
+  buffer.resize(data_out.size() / sizeof(u32));
+  for (size_t i = 0; i < buffer.size(); i++)
   {
     const size_t j = i * sizeof(u32);
-    banner.buffer[i] = (Common::swap32(data_out.data() + j) >> 8) + (data_out[j] << 24);
+    buffer[i] = (Common::swap32(data_out.data() + j) >> 8) + (data_out[j] << 24);
   }
 
   return true;
@@ -541,8 +541,8 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
 {
   std::vector<DiscIO::Language> languages;
   // TODO: What if some languages don't have long names but have other strings?
-  for (const auto& name : m_long_names)
-    languages.push_back(name.first);
+  for (const auto& [fst, _snd] : m_long_names)
+    languages.push_back(fst);
   return languages;
 }
 
@@ -697,15 +697,15 @@ Common::SHA1::Digest GameFile::GetSyncHash() const
       // add patches to hash if they're enabled
       if (descriptor->riivolution)
       {
-        for (const auto& patch : descriptor->riivolution->patches)
+        for (const auto& [xml, _root, options] : descriptor->riivolution->patches)
         {
-          hash = MixHash(hash, GetFileHash(patch.xml));
-          for (const auto& option : patch.options)
+          hash = MixHash(hash, GetFileHash(xml));
+          for (const auto& [section_name, option_id, option_name, choice] : options)
           {
-            hash = MixHash(hash, GetHash(option.section_name));
-            hash = MixHash(hash, GetHash(option.option_id));
-            hash = MixHash(hash, GetHash(option.option_name));
-            hash = MixHash(hash, GetHash(option.choice));
+            hash = MixHash(hash, GetHash(section_name));
+            hash = MixHash(hash, GetHash(option_id));
+            hash = MixHash(hash, GetHash(option_name));
+            hash = MixHash(hash, GetHash(choice));
           }
         }
       }

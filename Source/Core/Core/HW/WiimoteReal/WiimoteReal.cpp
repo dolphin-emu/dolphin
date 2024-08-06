@@ -118,8 +118,8 @@ void ProcessWiimotePool()
 
   if (Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
   {
-    for (auto& entry : s_wiimote_pool)
-      ciface::WiimoteController::AddDevice(std::move(entry.wiimote));
+    for (auto& [wiimote, _entry_time] : s_wiimote_pool)
+      ciface::WiimoteController::AddDevice(std::move(wiimote));
 
     s_wiimote_pool.clear();
   }
@@ -274,11 +274,11 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
   // It makes Wiimote connection status confusing.
   if (rpt[1] == static_cast<u8>(OutputReportID::LED))
   {
-    auto& leds_rpt = *reinterpret_cast<OutputReportLeds*>(&rpt[2]);
-    if (0 == leds_rpt.leds)
+    auto& [_rumble, _ack, leds] = *reinterpret_cast<OutputReportLeds*>(&rpt[2]);
+    if (0 == leds)
     {
       // Turn on ALL of the LEDs.
-      leds_rpt.leds = 0xf;
+      leds = 0xf;
     }
   }
   else if (rpt[1] == static_cast<u8>(OutputReportID::SpeakerData) &&
@@ -658,11 +658,11 @@ void WiimoteScanner::PoolThreadFunc() const
     }
 
     // Make wiimote pool LEDs dance.
-    for (const auto& wiimote : s_wiimote_pool)
+    for (const auto& [wiimote, _entry_time] : s_wiimote_pool)
     {
       OutputReportLeds leds = {};
       leds.leds = led_value;
-      wiimote.wiimote->QueueReport(leds);
+      wiimote->QueueReport(leds);
     }
 
     led_value ^= 0b1111;

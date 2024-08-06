@@ -442,7 +442,8 @@ bool FramebufferManager::IsUsingTiledEFBCache() const
 
 bool FramebufferManager::IsEFBCacheTilePresent(const bool depth, const u32 x, const u32 y, u32* tile_index) const
 {
-  const EFBCacheData& data = depth ? m_efb_depth_cache : m_efb_color_cache;
+  const auto& [texture, _framebuffer, _readback_texture, _copy_pipeline, tiles, _out_of_date,
+    _has_active_tiles, _needs_refresh, needs_flush] = depth ? m_efb_depth_cache : m_efb_color_cache;
   if (!IsUsingTiledEFBCache())
   {
     *tile_index = 0;
@@ -453,7 +454,7 @@ bool FramebufferManager::IsEFBCacheTilePresent(const bool depth, const u32 x, co
     const u32 tile_y = y / m_efb_cache_tile_size;
     *tile_index = (tile_y * m_efb_cache_tile_row_stride) + tile_x;
   }
-  return data.tiles[*tile_index].present;
+  return tiles[*tile_index].present;
 }
 
 MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(const u32 tile_index) const
@@ -793,7 +794,8 @@ void FramebufferManager::PopulateEFBCache(const bool depth, const u32 tile_index
                                                           GetEFBDepthCopyFormat()));
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
-  EFBCacheData& data = depth ? m_efb_depth_cache : m_efb_color_cache;
+  auto& [texture, framebuffer, readback_texture, copy_pipeline, tiles, out_of_date,
+    has_active_tiles, _needs_refresh, needs_flush] = depth ? m_efb_depth_cache : m_efb_color_cache;
   const MathUtil::Rectangle<int> rect = GetEFBCacheTileRect(tile_index);
   const MathUtil::Rectangle<int> native_rect = ConvertEFBRectangle(rect);
   AbstractTexture* src_texture =
@@ -815,9 +817,9 @@ void FramebufferManager::PopulateEFBCache(const bool depth, const u32 tile_index
 
     // Viewport will not be TILE_SIZExTILE_SIZE for the last row of tiles, assuming a tile size of
     // 64, because 528 is not evenly divisible by 64.
-    g_gfx->SetAndDiscardFramebuffer(data.framebuffer.get());
+    g_gfx->SetAndDiscardFramebuffer(framebuffer.get());
     g_gfx->SetViewportAndScissor(MathUtil::Rectangle(0, 0, rect.GetWidth(), rect.GetHeight()));
-    g_gfx->SetPipeline(data.copy_pipeline.get());
+    g_gfx->SetPipeline(copy_pipeline.get());
     g_gfx->SetTexture(0, src_texture);
     g_gfx->SetSamplerState(0, depth ? RenderState::GetPointSamplerState() :
                                       RenderState::GetLinearSamplerState());
@@ -825,30 +827,30 @@ void FramebufferManager::PopulateEFBCache(const bool depth, const u32 tile_index
 
     // Copy from EFB or copy texture to staging texture.
     // No need to call FinishedRendering() here because CopyFromTexture() transitions.
-    data.readback_texture->CopyFromTexture(
-        data.texture.get(), MathUtil::Rectangle(0, 0, rect.GetWidth(), rect.GetHeight()), 0, 0,
+    readback_texture->CopyFromTexture(
+        texture.get(), MathUtil::Rectangle(0, 0, rect.GetWidth(), rect.GetHeight()), 0, 0,
         rect);
 
     g_gfx->EndUtilityDrawing();
   }
   else
   {
-    data.readback_texture->CopyFromTexture(src_texture, rect, 0, 0, rect);
+    readback_texture->CopyFromTexture(src_texture, rect, 0, 0, rect);
   }
 
   // Wait until the copy is complete.
   if (!async)
   {
-    data.readback_texture->Flush();
-    data.needs_flush = false;
+    readback_texture->Flush();
+    needs_flush = false;
   }
   else
   {
-    data.needs_flush = true;
+    needs_flush = true;
   }
-  data.has_active_tiles = true;
-  data.out_of_date = false;
-  data.tiles[tile_index].present = true;
+  has_active_tiles = true;
+  out_of_date = false;
+  tiles[tile_index].present = true;
 }
 
 void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, const bool color_enable,

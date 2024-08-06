@@ -61,19 +61,19 @@ const TBreakPoint* BreakPoints::GetRegularBreakpoint(u32 address) const
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
   TBreakPointsStr bp_strings;
-  for (const TBreakPoint& bp : m_breakpoints)
+  for (const auto& [address, is_enabled, log_on_hit, break_on_hit, condition] : m_breakpoints)
   {
     std::ostringstream ss;
     ss.imbue(std::locale::classic());
-    ss << fmt::format("${:08x} ", bp.address);
-    if (bp.is_enabled)
+    ss << fmt::format("${:08x} ", address);
+    if (is_enabled)
       ss << "n";
-    if (bp.log_on_hit)
+    if (log_on_hit)
       ss << "l";
-    if (bp.break_on_hit)
+    if (break_on_hit)
       ss << "b";
-    if (bp.condition)
-      ss << "c " << bp.condition->GetText();
+    if (condition)
+      ss << "c " << condition->GetText();
     bp_strings.emplace_back(ss.str());
   }
 
@@ -205,9 +205,9 @@ bool BreakPoints::Remove(u32 address)
 
 void BreakPoints::Clear()
 {
-  for (const TBreakPoint& bp : m_breakpoints)
+  for (const auto& [address, _is_enabled, _log_on_hit, _break_on_hit, _condition] : m_breakpoints)
   {
-    m_system.GetJitInterface().InvalidateICache(bp.address, 4, true);
+    m_system.GetJitInterface().InvalidateICache(address, 4, true);
   }
 
   m_breakpoints.clear();
@@ -232,23 +232,24 @@ MemChecks::~MemChecks() = default;
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
   TMemChecksStr mc_strings;
-  for (const TMemCheck& mc : m_mem_checks)
+  for (const auto& [start_address, end_address, is_enabled, _is_ranged, is_break_on_read,
+         is_break_on_write, log_on_hit, break_on_hit, _num_hits, condition] : m_mem_checks)
   {
     std::ostringstream ss;
     ss.imbue(std::locale::classic());
-    ss << fmt::format("${:08x} {:08x} ", mc.start_address, mc.end_address);
-    if (mc.is_enabled)
+    ss << fmt::format("${:08x} {:08x} ", start_address, end_address);
+    if (is_enabled)
       ss << 'n';
-    if (mc.is_break_on_read)
+    if (is_break_on_read)
       ss << 'r';
-    if (mc.is_break_on_write)
+    if (is_break_on_write)
       ss << 'w';
-    if (mc.log_on_hit)
+    if (log_on_hit)
       ss << 'l';
-    if (mc.break_on_hit)
+    if (break_on_hit)
       ss << 'b';
-    if (mc.condition)
-      ss << "c " << mc.condition->GetText();
+    if (condition)
+      ss << "c " << condition->GetText();
 
     mc_strings.emplace_back(ss.str());
   }

@@ -345,13 +345,15 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
     m_challenge_texture_map.clear();
     for (const auto& name : challenges)
     {
-      const auto& icon = instance.GetAchievementBadge(name, false);
-      const u32 width = icon.width;
-      const u32 height = icon.height;
+      const auto& [data, _format, icon_width, icon_height, _row_length] =
+        instance.GetAchievementBadge(name, false);
+      const u32 width = icon_width;
+      const u32 height = icon_height;
       TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
                                AbstractTextureType::Texture_2DArray);
-      const auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
-      res.first->second->Load(0, width, height, width, icon.data.data(),
+      const auto [fst, _snd] =
+        m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
+      fst->second->Load(0, width, height, width, data.data(),
                               sizeof(u32) * width * height);
     }
   }

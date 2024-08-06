@@ -29,16 +29,16 @@ LabelMap::~LabelMap() = default;
 
 void LabelMap::RegisterDefaults()
 {
-  for (const auto& reg_name_label : regnames)
+  for (const auto& [addr, name, _description] : regnames)
   {
-    if (reg_name_label.name != nullptr)
-      RegisterLabel(reg_name_label.name, reg_name_label.addr);
+    if (name != nullptr)
+      RegisterLabel(name, addr);
   }
 
-  for (const auto& predefined_label : pdlabels)
+  for (const auto& [addr, name, _description] : pdlabels)
   {
-    if (predefined_label.name != nullptr)
-      RegisterLabel(predefined_label.name, predefined_label.addr);
+    if (name != nullptr)
+      RegisterLabel(name, addr);
   }
 }
 

@@ -102,8 +102,8 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
       return true;
     }
 
-    const libusb_interface& interface = config_descriptor->interface[INTERFACE];
-    const libusb_interface_descriptor& descriptor = interface.altsetting[0];
+    const auto& [altsetting, _num_altsetting] = config_descriptor->interface[INTERFACE];
+    const libusb_interface_descriptor& descriptor = altsetting[0];
     if (IsBluetoothDevice(descriptor) && IsWantedDevice(device_descriptor) && OpenDevice(device))
     {
       unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
@@ -480,12 +480,12 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand() const
   //   u8 key[16];
   // where the two last items are repeated num_keys times.
   auto iterator = packet.begin() + sizeof(hci_cmd_hdr_t) + sizeof(hci_write_stored_link_key_cp);
-  for (const auto& entry : m_link_keys)
+  for (const auto& [fst, snd] : m_link_keys)
   {
-    std::ranges::copy(entry.first, iterator);
-    iterator += entry.first.size();
-    std::ranges::copy(entry.second, iterator);
-    iterator += entry.second.size();
+    std::ranges::copy(fst, iterator);
+    iterator += fst.size();
+    std::ranges::copy(snd, iterator);
+    iterator += snd.size();
   }
 
   const int ret = libusb_control_transfer(m_handle, REQUEST_TYPE, 0, 0, 0, packet.data(),
@@ -617,15 +617,15 @@ void BluetoothRealDevice::LoadLinkKeys()
 void BluetoothRealDevice::SaveLinkKeys() const
 {
   std::ostringstream oss;
-  for (const auto& entry : m_link_keys)
+  for (const auto& [fst, snd] : m_link_keys)
   {
     bdaddr_t address;
     // Reverse the address so that it is stored in the correct order in the config file
-    std::ranges::reverse_copy(entry.first, address.begin());
+    std::ranges::reverse_copy(fst, address.begin());
     oss << Common::MacAddressToString(address);
     oss << '=';
     oss << std::hex;
-    for (const u8 data : entry.second)
+    for (const u8 data : snd)
     {
       // We cast to u16 here in order to have it displayed as two nibbles.
       oss << std::setfill('0') << std::setw(2) << static_cast<u16>(data);

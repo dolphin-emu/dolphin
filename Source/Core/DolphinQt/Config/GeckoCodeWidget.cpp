@@ -190,8 +190,8 @@ void GeckoCodeWidget::OnSelectionChanged() const
 
   m_code_view->clear();
 
-  for (const auto& c : code.codes)
-    m_code_view->append(QString::fromStdString(c.original_line));
+  for (const auto& [_address, _data, original_line] : code.codes)
+    m_code_view->append(QString::fromStdString(original_line));
 }
 
 void GeckoCodeWidget::OnItemChanged(const QListWidgetItem* item)

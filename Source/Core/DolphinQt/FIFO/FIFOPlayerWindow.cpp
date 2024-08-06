@@ -303,8 +303,8 @@ void FIFOPlayerWindow::UpdateInfo() const
     for (u32 i = 0; i < file->GetFrameCount(); ++i)
     {
       fifo_bytes += file->GetFrame(i).fifoData.size();
-      for (const auto& mem_update : file->GetFrame(i).memoryUpdates)
-        mem_bytes += mem_update.data.size();
+      for (const auto& [_fifoPosition, _address, data, _type] : file->GetFrame(i).memoryUpdates)
+        mem_bytes += data.size();
     }
 
     m_info_label->setText(tr("%1 FIFO bytes\n%2 memory bytes\n%3 frames")

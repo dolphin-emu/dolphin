@@ -741,22 +741,22 @@ void SkylanderPortalWindow::RefreshList() const
   }
   else
   {
-    for (const auto& entry : IOS::HLE::USB::list_skylanders)
+    for (const auto& [fst, snd] : IOS::HLE::USB::list_skylanders)
     {
-      const int id = entry.first.first;
-      const int var = entry.first.second;
-      if (PassesFilter(tr(entry.second.name), id, var))
+      const int id = fst.first;
+      const int var = fst.second;
+      if (PassesFilter(tr(snd.name), id, var))
       {
-        const uint qvar = (entry.first.first << 16) | entry.first.second;
-        auto skylander = new QListWidgetItem(tr(entry.second.name));
+        const uint qvar = (fst.first << 16) | fst.second;
+        auto skylander = new QListWidgetItem(tr(snd.name));
         if (is_dark_theme)
         {
-          skylander->setBackground(GetBaseColor(entry.first, true));
+          skylander->setBackground(GetBaseColor(fst, true));
           skylander->setForeground(QBrush(QColor(220, 220, 220)));
         }
         else
         {
-          skylander->setBackground(GetBaseColor(entry.first, false));
+          skylander->setBackground(GetBaseColor(fst, false));
           skylander->setForeground(QBrush(QColor(0, 0, 0)));
         }
         skylander->setData(1, qvar);
@@ -821,7 +821,7 @@ void SkylanderPortalWindow::LoadSkyfilePath(const u8 slot, const QString& path)
   ClearSlot(slot);
 
   const auto& system = Core::System::GetInstance();
-  const std::pair<u16, u16> id_var = system.GetSkylanderPortal().CalculateIDs(file_data);
+  const auto [fst, snd] = system.GetSkylanderPortal().CalculateIDs(file_data);
   const u8 portal_slot = system.GetSkylanderPortal().LoadSkylander(
       std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file)));
   if (portal_slot == 0xFF)
@@ -830,7 +830,7 @@ void SkylanderPortalWindow::LoadSkyfilePath(const u8 slot, const QString& path)
                          tr("Failed to load the Skylander file:\n%1").arg(path), QMessageBox::Ok);
     return;
   }
-  m_sky_slots[slot] = {portal_slot, id_var.first, id_var.second};
+  m_sky_slots[slot] = {portal_slot, fst, snd};
   RefreshList();
   UpdateSlotNames();
 }
@@ -920,8 +920,8 @@ QString SkylanderPortalWindow::GetFilePath(const u16 id, const u16 var) const
     {
       continue;
     }
-    const auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
-    if (ids.first == id && ids.second == var)
+    const auto [fst, snd] = system.GetSkylanderPortal().CalculateIDs(file_data);
+    if (fst == id && snd == var)
     {
       return file.filePath();
     }

@@ -130,24 +130,24 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, const 
 
 std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ID3D12Resource* resource)
 {
-  const D3D12_RESOURCE_DESC desc = resource->GetDesc();
-  const AbstractTextureFormat format = D3DCommon::GetAbstractFormatForDXGIFormat(desc.Format);
-  if (desc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D ||
+  const auto [Dimension, _Alignment, Width, Height, DepthOrArraySize, MipLevels, Format, SampleDesc,
+    _Layout, Flags] = resource->GetDesc();
+  const AbstractTextureFormat format = D3DCommon::GetAbstractFormatForDXGIFormat(Format);
+  if (Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D ||
       format == AbstractTextureFormat::Undefined)
   {
     PanicAlertFmt("Unknown format for adopted texture");
     return nullptr;
   }
 
-  TextureConfig config(static_cast<u32>(desc.Width), desc.Height, desc.MipLevels,
-                       desc.DepthOrArraySize, desc.SampleDesc.Count, format, 0,
+  TextureConfig config(static_cast<u32>(Width), Height, MipLevels,
+                       DepthOrArraySize, SampleDesc.Count, format, 0,
                        AbstractTextureType::Texture_2DArray);
-  if (desc.Flags &
-      (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
+  if (Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
   {
     config.flags |= AbstractTextureFlag_RenderTarget;
   }
-  if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
+  if (Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
     config.flags |= AbstractTextureFlag_ComputeImage;
 
   auto tex =
@@ -447,10 +447,9 @@ DXFramebuffer::~DXFramebuffer()
                                                m_int_rtv_descriptor.index);
     }
   }
-  for (const auto render_target : m_render_targets)
+  for (const auto [_cpu_handle, _gpu_handle, index] : m_render_targets)
   {
-    g_dx_context->DeferDescriptorDestruction(g_dx_context->GetRTVHeapManager(),
-                                             render_target.index);
+    g_dx_context->DeferDescriptorDestruction(g_dx_context->GetRTVHeapManager(), index);
   }
 }
 

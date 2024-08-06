@@ -723,9 +723,10 @@ void AddRiivolutionPatches(BootParameters* boot_params,
   if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
     return;
 
-  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
-  disc.volume = CreateDisc(DiscIO::DirectoryBlobReader::Create(
-      std::move(disc.volume),
+  auto& [_path, volume, _auto_disc_change_paths] =
+    std::get<BootParameters::Disc>(boot_params->parameters);
+  volume = CreateDisc(DiscIO::DirectoryBlobReader::Create(
+      std::move(volume),
       [&](std::vector<DiscIO::FSTBuilderNode>* fst) {
         ApplyPatchesToFiles(
             riivolution_patches, DiscIO::Riivolution::PatchIndex::DolphinSysFiles, fst, nullptr);

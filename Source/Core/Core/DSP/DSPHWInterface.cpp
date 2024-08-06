@@ -177,11 +177,11 @@ void SDSP::WriteIFX(const u32 address, const u16 value)
     if ((address & 0xff) >= 0xa0)
     {
       const u32 index = (address & 0xFF) - 0xa0;
-      const auto& label = pdlabels[index];
+      const auto& [_addr, name, description] = pdlabels[index];
 
-      if (label.name && label.description)
+      if (name && description)
       {
-        DEBUG_LOG_FMT(DSPLLE, "{:04x} MW {} ({:04x})", pc, label.name, value);
+        DEBUG_LOG_FMT(DSPLLE, "{:04x} MW {} ({:04x})", pc, name, value);
       }
       else
       {
@@ -248,11 +248,11 @@ u16 SDSP::ReadIFXImpl(const u16 address)
     if ((address & 0xff) >= 0xa0)
     {
       const u32 index = (address & 0xFF) - 0xa0;
-      const auto& label = pdlabels[index];
+      const auto& [_addr, name, description] = pdlabels[index];
 
-      if (label.name && label.description)
+      if (name && description)
       {
-        DEBUG_LOG_FMT(DSPLLE, "{:04x} MR {} ({:04x})", pc, label.name, ifx_reg);
+        DEBUG_LOG_FMT(DSPLLE, "{:04x} MR {} ({:04x})", pc, name, ifx_reg);
       }
       else
       {

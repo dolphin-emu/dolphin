@@ -196,14 +196,14 @@ void ARCodeWidget::UpdateList() const
 
   for (size_t i = 0; i < m_ar_codes.size(); i++)
   {
-    const auto& ar = m_ar_codes[i];
-    auto* item = new QListWidgetItem(QString::fromStdString(ar.name)
+    const auto& [name, _ops, enabled, _default_enabled, _user_defined] = m_ar_codes[i];
+    auto* item = new QListWidgetItem(QString::fromStdString(name)
                                          .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
                                          .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>')));
 
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |
                    Qt::ItemIsDragEnabled);
-    item->setCheckState(ar.enabled ? Qt::Checked : Qt::Unchecked);
+    item->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
 
     m_code_list->addItem(item);

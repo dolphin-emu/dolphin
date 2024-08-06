@@ -168,12 +168,12 @@ void PatchesWidget::Update() const
 {
   m_list->clear();
 
-  for (const auto& patch : m_patches)
+  for (const auto& [name, _entries, enabled, _default_enabled, user_defined] : m_patches)
   {
-    auto* item = new QListWidgetItem(QString::fromStdString(patch.name));
+    auto* item = new QListWidgetItem(QString::fromStdString(name));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(patch.enabled ? Qt::Checked : Qt::Unchecked);
-    item->setData(Qt::UserRole, patch.user_defined);
+    item->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
+    item->setData(Qt::UserRole, user_defined);
 
     m_list->addItem(item);
   }

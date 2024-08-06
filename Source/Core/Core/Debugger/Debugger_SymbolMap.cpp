@@ -30,11 +30,15 @@ static bool IsStackBottom(const Core::CPUThreadGuard& guard, const u32 addr)
 static void WalkTheStack(const Core::CPUThreadGuard& guard,
                          const std::function<void(u32)>& stack_step)
 {
-  const auto& ppc_state = guard.GetSystem().GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = guard.GetSystem().GetPPCState();
 
-  if (!IsStackBottom(guard, ppc_state.gpr[1]))
+  if (!IsStackBottom(guard, gpr[1]))
   {
-    u32 addr = PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[1]);  // SP
+    u32 addr = PowerPC::MMU::HostRead_U32(guard, gpr[1]);  // SP
 
     // Walk the stack chain
     for (int count = 0; !IsStackBottom(guard, addr + 4) && (count < 20); ++count)

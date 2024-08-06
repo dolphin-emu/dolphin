@@ -233,10 +233,9 @@ void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
   }};
 
   // Declare all the boilerplate direct MMIOs.
-  for (const auto& mapped_var : directly_mapped_vars)
+  for (const auto& [addr, ptr] : directly_mapped_vars)
   {
-    mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::DirectWrite<u16>(mapped_var.ptr));
+    mmio->Register(base | addr, MMIO::DirectRead<u16>(ptr), MMIO::DirectWrite<u16>(ptr));
   }
 
   std::array<MappedVar, 8> update_params_on_read_vars{{

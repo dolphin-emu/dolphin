@@ -337,8 +337,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   WriteCustomShaderStructDef(&out, numTexgen);
   for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
   {
-    const auto& shader_details = custom_details.shaders[i];
-    out.Write(fmt::runtime(shader_details.custom_shader), i);
+    const auto& [custom_shader, _material_uniform_block] = custom_details.shaders[i];
+    out.Write(fmt::runtime(custom_shader), i);
   }
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -1509,9 +1509,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
   {
-    const auto& shader_details = custom_details.shaders[i];
+    const auto& [custom_shader, _material_uniform_block] = custom_details.shaders[i];
 
-    if (!shader_details.custom_shader.empty())
+    if (!custom_shader.empty())
     {
       out.Write("\t{{\n");
       out.Write("\t\tcustom_data.final_color = float4(TevResult.r / 255.0, TevResult.g / 255.0, "

@@ -240,11 +240,10 @@ private:
 
           const auto* ini_section = profile_ini.GetOrCreateSection("Profile");
           const auto& section_map = ini_section->GetValues();
-          for (const auto& value : section_map)
+          for (const auto& [fst, snd] : section_map)
           {
-            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num,
-                                      value.first};
-            layer->Set(location, value.second);
+            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num, fst};
+            layer->Set(location, snd);
           }
         }
       }
@@ -258,9 +257,9 @@ private:
     // Regular key,value pairs
     const auto& section_map = section.GetValues();
 
-    for (const auto& value : section_map)
+    for (const auto& [fst, snd] : section_map)
     {
-      const auto location = MapINIToRealLocation(section_name, value.first);
+      const auto location = MapINIToRealLocation(section_name, fst);
 
       if (location.section.empty() && location.key.empty())
         continue;
@@ -268,7 +267,7 @@ private:
       if (location.system == Config::System::Session)
         continue;
 
-      layer->Set(location, value.second);
+      layer->Set(location, snd);
     }
   }
 
@@ -285,26 +284,23 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
   for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
     ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
 
-  for (const auto& config : layer->GetLayerMap())
+  for (const auto& [location, value] : layer->GetLayerMap())
   {
-    const Config::Location& location = config.first;
-    const std::optional<std::string>& value = config.second;
-
     if (!IsSettingSaveable(location) || location.system == Config::System::Session)
       continue;
 
-    const auto ini_location = GetINILocationFromConfig(location);
-    if (ini_location.first.empty() && ini_location.second.empty())
+    const auto [fst, snd] = GetINILocationFromConfig(location);
+    if (fst.empty() && snd.empty())
       continue;
 
     if (value)
     {
-      auto* ini_section = ini.GetOrCreateSection(ini_location.first);
-      ini_section->Set(ini_location.second, *value);
+      auto* ini_section = ini.GetOrCreateSection(fst);
+      ini_section->Set(snd, *value);
     }
     else
     {
-      ini.DeleteKey(ini_location.first, ini_location.second);
+      ini.DeleteKey(fst, snd);
     }
   }
 

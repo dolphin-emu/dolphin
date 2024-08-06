@@ -56,9 +56,9 @@ void ScaleAction::OnProjection(GraphicsModActionData::Projection* projection)
   if (!projection->matrix) [[unlikely]]
     return;
 
-  auto& matrix = *projection->matrix;
-  matrix.data[0] = matrix.data[0] * m_scale.x;
-  matrix.data[5] = matrix.data[5] * m_scale.y;
+  auto& [data] = *projection->matrix;
+  data[0] = data[0] * m_scale.x;
+  data[5] = data[5] * m_scale.y;
 }
 
 void ScaleAction::OnProjectionAndTexture(GraphicsModActionData::Projection* projection)
@@ -69,7 +69,7 @@ void ScaleAction::OnProjectionAndTexture(GraphicsModActionData::Projection* proj
   if (!projection->matrix) [[unlikely]]
     return;
 
-  auto& matrix = *projection->matrix;
-  matrix.data[0] = matrix.data[0] * m_scale.x;
-  matrix.data[5] = matrix.data[5] * m_scale.y;
+  auto& [data] = *projection->matrix;
+  data[0] = data[0] * m_scale.x;
+  data[5] = data[5] * m_scale.y;
 }

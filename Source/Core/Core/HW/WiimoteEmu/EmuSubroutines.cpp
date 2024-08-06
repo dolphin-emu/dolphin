@@ -134,11 +134,11 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
 void Wiimote::SendAck(const OutputReportID rpt_id, const ErrorCode error_code) const
 {
   TypedInputData<InputReportAck> rpt(InputReportID::Ack);
-  auto& ack = rpt.payload;
+  auto& [ack_buttons, ack_rpt_id, ack_error_code] = rpt.payload;
 
-  ack.buttons = m_status.buttons;
-  ack.rpt_id = rpt_id;
-  ack.error_code = error_code;
+  ack_buttons = m_status.buttons;
+  ack_rpt_id = rpt_id;
+  ack_error_code = error_code;
 
   InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 }
@@ -446,13 +446,13 @@ bool Wiimote::ProcessReadDataRequest()
   }
 
   TypedInputData<InputReportReadDataReply> rpt(InputReportID::ReadDataReply);
-  auto& reply = rpt.payload;
+  auto& [buttons, error, size_minus_one, address, data] = rpt.payload;
 
-  reply.buttons = m_status.buttons;
-  reply.address = Common::swap16(m_read_request.address);
+  buttons = m_status.buttons;
+  address = Common::swap16(m_read_request.address);
 
   // Pre-fill with zeros in case of read-error or read < 16-bytes:
-  std::ranges::fill(reply.data, 0x00);
+  std::ranges::fill(data, 0x00);
 
   ErrorCode error_code = ErrorCode::Success;
 
@@ -473,8 +473,8 @@ bool Wiimote::ProcessReadDataRequest()
     else
     {
       // Read memory to be sent to Wii
-      std::copy_n(m_eeprom.data.data() + m_read_request.address, bytes_to_read, reply.data);
-      reply.size_minus_one = bytes_to_read - 1;
+      std::copy_n(m_eeprom.data.data() + m_read_request.address, bytes_to_read, data);
+      size_minus_one = bytes_to_read - 1;
     }
   }
   break;
@@ -505,7 +505,7 @@ bool Wiimote::ProcessReadDataRequest()
 
     // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
     auto const bytes_read = m_i2c_bus.BusRead(
-        m_read_request.slave_address, static_cast<u8>(m_read_request.address), bytes_to_read, reply.data);
+        m_read_request.slave_address, static_cast<u8>(m_read_request.address), bytes_to_read, data);
 
     if (bytes_read != bytes_to_read)
     {
@@ -515,7 +515,7 @@ bool Wiimote::ProcessReadDataRequest()
       break;
     }
 
-    reply.size_minus_one = bytes_read - 1;
+    size_minus_one = bytes_read - 1;
   }
   break;
 
@@ -531,7 +531,7 @@ bool Wiimote::ProcessReadDataRequest()
     // Stop processing request on read error:
     m_read_request.size = 0;
     // Real wiimote seems to set size to max value on read errors:
-    reply.size_minus_one = 0xf;
+    size_minus_one = 0xf;
   }
   else
   {
@@ -540,7 +540,7 @@ bool Wiimote::ProcessReadDataRequest()
     m_read_request.size -= bytes_to_read;
   }
 
-  reply.error = static_cast<u8>(error_code);
+  error = static_cast<u8>(error_code);
 
   InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 

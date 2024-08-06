@@ -68,17 +68,17 @@ private:
 
     constexpr u32 x_offset_in_branch_for_vertical_line = 10;
     const u32 addr = m_parent->AddressForRow(index.row());
-    for (const CodeViewBranch& branch : m_parent->m_branches)
+    for (const auto& [src_addr, dst_addr, indentation, is_link] : m_parent->m_branches)
     {
       const int y_center = option.rect.top() + option.rect.height() / 2;
-      const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * branch.indentation;
+      const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * indentation;
       const int x_right = x_left + x_offset_in_branch_for_vertical_line;
 
-      if (branch.is_link)
+      if (is_link)
       {
         // just draw an arrow pointing right from the branch instruction for link branches, they
         // rarely are close enough to actually see the target and are just visual noise otherwise
-        if (addr == branch.src_addr)
+        if (addr == src_addr)
         {
           painter->drawLine(x_left, y_center, x_right, y_center);
           painter->drawLine(x_right, y_center, x_right - 6, y_center - 3);
@@ -87,8 +87,8 @@ private:
       }
       else
       {
-        const u32 addr_lower = std::min(branch.src_addr, branch.dst_addr);
-        const u32 addr_higher = std::max(branch.src_addr, branch.dst_addr);
+        const u32 addr_lower = std::min(src_addr, dst_addr);
+        const u32 addr_higher = std::max(src_addr, dst_addr);
         const bool in_range = addr >= addr_lower && addr <= addr_higher;
 
         if (in_range)
@@ -107,7 +107,7 @@ private:
             painter->drawLine(x_left, y_center, x_right, y_center);
           }
 
-          if (addr == branch.dst_addr)
+          if (addr == dst_addr)
           {
             // draw arrow if this is the destination address
             painter->drawLine(x_left, y_center, x_left + 6, y_center - 3);
@@ -366,10 +366,10 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     if (guard && hex_str.length() == VALID_BRANCH_LENGTH && desc != "---")
     {
       u32 branch_addr = GetBranchFromAddress(*guard, addr);
-      CodeViewBranch& branch = m_branches.emplace_back();
-      branch.src_addr = addr;
-      branch.dst_addr = branch_addr;
-      branch.is_link = IsBranchInstructionWithLink(ins);
+      auto& [src_addr, dst_addr, _indentation, is_link] = m_branches.emplace_back();
+      src_addr = addr;
+      dst_addr = branch_addr;
+      is_link = IsBranchInstructionWithLink(ins);
 
       description_item->setText(
           tr("--> %1").arg(QtUtils::FromStdString(debug_interface.GetDescription(branch_addr))));
@@ -682,26 +682,27 @@ void CodeViewWidget::AutoStep(const CodeTrace::AutoStop option)
   do
   {
     // Run autostep then update codeview
-    const AutoStepResults results = code_trace.AutoStepping(guard, repeat, option);
+    const auto [reg_tracked, mem_tracked, count, timed_out, _trackers_empty] =
+      code_trace.AutoStepping(guard, repeat, option);
     emit Host::GetInstance()->UpdateDisasmDialog();
     repeat = true;
 
     // Invalid instruction, 0 means no step executed.
-    if (results.count == 0)
+    if (count == 0)
       return;
 
     // Status report
-    if (results.reg_tracked.empty() && results.mem_tracked.empty())
+    if (reg_tracked.empty() && mem_tracked.empty())
     {
       QMessageBox::warning(
           this, tr("Overwritten"),
           tr("Target value was overwritten by current instruction.\nInstructions executed:   %1")
-              .arg(QString::number(results.count)),
+              .arg(QString::number(count)),
           QMessageBox::Cancel);
       return;
     }
 
-    if (results.timed_out)
+    if (timed_out)
     {
       // Can keep running and try again after a time out.
       msgbox.setText(
@@ -716,16 +717,16 @@ void CodeViewWidget::AutoStep(const CodeTrace::AutoStop option)
     // four entries. The displayed memory list needs to be shortened so it's not a huge list of
     // bytes. Assumes adjacent bytes represent a word or half-word and removes the redundant bytes.
     std::set<u32> mem_out;
-    auto iter = results.mem_tracked.begin();
+    auto iter = mem_tracked.begin();
 
-    while (iter != results.mem_tracked.end())
+    while (iter != mem_tracked.end())
     {
       const u32 address = *iter;
       mem_out.insert(address);
 
       for (u32 i = 1; i <= 3; i++)
       {
-        if (results.mem_tracked.contains(address + i))
+        if (mem_tracked.contains(address + i))
           iter++;
         else
           break;
@@ -736,8 +737,8 @@ void CodeViewWidget::AutoStep(const CodeTrace::AutoStop option)
 
     const QString msgtext =
         tr("Instructions executed:   %1\nValue contained in:\nRegisters:   %2\nMemory:   %3")
-            .arg(QString::number(results.count))
-            .arg(QString::fromStdString(fmt::format("{}", fmt::join(results.reg_tracked, ", "))))
+            .arg(QString::number(count))
+            .arg(QString::fromStdString(fmt::format("{}", fmt::join(reg_tracked, ", "))))
             .arg(QString::fromStdString(fmt::format("{:#x}", fmt::join(mem_out, ", "))));
 
     msgbox.setInformativeText(msgtext);
@@ -1019,9 +1020,9 @@ void CodeViewWidget::DoPatchInstruction(const bool assemble)
   if (!PowerPC::MMU::HostIsInstructionRAMAddress(guard, addr))
     return;
 
-  const PowerPC::TryReadInstResult read_result =
+  const auto [valid, _from_bat, _hex, _physical_address] =
       guard.GetSystem().GetMMU().TryReadInstruction(addr);
-  if (!read_result.valid)
+  if (!valid)
     return;
 
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();

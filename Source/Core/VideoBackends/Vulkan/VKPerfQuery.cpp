@@ -57,10 +57,10 @@ void PerfQuery::EnableQuery(const PerfQueryGroup group)
 
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
-    DEBUG_ASSERT(!entry.has_value);
-    entry.has_value = true;
-    entry.query_group = group;
+    auto& [_fence_counter, query_group, has_value] = m_query_buffer[m_query_next_pos];
+    DEBUG_ASSERT(!has_value);
+    has_value = true;
+    query_group = group;
 
     // Use precise queries if supported, otherwise boolean (which will be incorrect).
     const VkQueryControlFlags flags =
@@ -78,8 +78,8 @@ void PerfQuery::DisableQuery(const PerfQueryGroup group)
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     vkCmdEndQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos);
-    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
-    entry.fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+    auto& [fence_counter, _query_group, _has_value] = m_query_buffer[m_query_next_pos];
+    fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
 
     m_query_next_pos = (m_query_next_pos + 1) % PERF_QUERY_BUFFER_SIZE;
     m_query_count.fetch_add(1, std::memory_order_relaxed);
@@ -170,8 +170,8 @@ void PerfQuery::ReadbackQueries()
   for (u32 i = 0; i < outstanding_queries; i++)
   {
     const u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
-    const ActiveQuery& entry = m_query_buffer[index];
-    if (entry.fence_counter > completed_fence_counter)
+    const auto& [fence_counter, _query_group, _has_value] = m_query_buffer[index];
+    if (fence_counter > completed_fence_counter)
       break;
 
     // If this wrapped around, we need to flush the entries before the end of the buffer.
@@ -211,12 +211,12 @@ void PerfQuery::ReadbackQueries(const u32 query_count)
   for (u32 i = 0; i < query_count; i++)
   {
     const u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
-    ActiveQuery& entry = m_query_buffer[index];
+    auto& [fence_counter, query_group, has_value] = m_query_buffer[index];
 
     // Should have a fence associated with it (waiting for a result).
-    DEBUG_ASSERT(entry.fence_counter != 0);
-    entry.fence_counter = 0;
-    entry.has_value = false;
+    DEBUG_ASSERT(fence_counter != 0);
+    fence_counter = 0;
+    has_value = false;
 
     // NOTE: Reported pixel metrics should be referenced to native resolution
     u64 native_res_result = static_cast<u64>(m_query_result_buffer[i]) * EFB_WIDTH /
@@ -224,7 +224,7 @@ void PerfQuery::ReadbackQueries(const u32 query_count)
                             g_framebuffer_manager->GetEFBHeight();
     if (g_ActiveConfig.iMultisamples > 1)
       native_res_result /= g_ActiveConfig.iMultisamples;
-    m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+    m_results[query_group].fetch_add(static_cast<u32>(native_res_result),
                                            std::memory_order_relaxed);
   }
 

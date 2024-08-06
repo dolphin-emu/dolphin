@@ -75,10 +75,10 @@ void VerifyWidget::CreateWidgets()
   std::tie(m_md5_checkbox, m_md5_line_edit) = AddHashLine(m_hash_layout, tr("MD5:"));
   std::tie(m_sha1_checkbox, m_sha1_line_edit) = AddHashLine(m_hash_layout, tr("SHA-1:"));
 
-  const auto default_to_calculate = DiscIO::VolumeVerifier::GetDefaultHashesToCalculate();
-  m_crc32_checkbox->setChecked(default_to_calculate.crc32);
-  m_md5_checkbox->setChecked(default_to_calculate.md5);
-  m_sha1_checkbox->setChecked(default_to_calculate.sha1);
+  const auto [crc32, md5, sha1] = DiscIO::VolumeVerifier::GetDefaultHashesToCalculate();
+  m_crc32_checkbox->setChecked(crc32);
+  m_md5_checkbox->setChecked(md5);
+  m_sha1_checkbox->setChecked(sha1);
 
   m_redump_layout = new QFormLayout;
   if (IsDisc(m_volume->GetVolumeType()))
@@ -193,10 +193,10 @@ void VerifyWidget::Verify()
   m_problems->setRowCount(static_cast<int>(result->problems.size()));
   for (int i = 0; i < m_problems->rowCount(); ++i)
   {
-    const DiscIO::VolumeVerifier::Problem problem = result->problems[i];
+    const auto [problem_severity, text] = result->problems[i];
 
     QString severity;
-    switch (problem.severity)
+    switch (problem_severity)
     {
     case DiscIO::VolumeVerifier::Severity::Low:
       severity = tr("Low");
@@ -211,7 +211,7 @@ void VerifyWidget::Verify()
       break;
     }
 
-    SetProblemCellText(i, 0, QString::fromStdString(problem.text));
+    SetProblemCellText(i, 0, QString::fromStdString(text));
     SetProblemCellText(i, 1, severity);
   }
 

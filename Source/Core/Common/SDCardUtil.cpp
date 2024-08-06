@@ -74,10 +74,11 @@ static void WriteData(u8* out, T data)
 static unsigned int get_serial_id()
 {
   const time_t now = std::time(nullptr);
-  const struct tm tm = std::gmtime(&now)[0];
+  const auto [tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, _tm_wday, _tm_yday, _tm_isdst] =
+    std::gmtime(&now)[0];
 
-  const u16 lo = static_cast<u16>(tm.tm_mday + ((tm.tm_mon + 1) << 8) + (tm.tm_sec << 8));
-  const u16 hi = static_cast<u16>(tm.tm_min + (tm.tm_hour << 8) + (tm.tm_year + 1900));
+  const u16 lo = static_cast<u16>(tm_mday + ((tm_mon + 1) << 8) + (tm_sec << 8));
+  const u16 hi = static_cast<u16>(tm_min + (tm_hour << 8) + (tm_year + 1900));
 
   return lo + (hi << 16);
 }

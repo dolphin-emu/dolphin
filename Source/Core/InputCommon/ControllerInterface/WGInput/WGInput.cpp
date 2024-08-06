@@ -93,19 +93,19 @@ public:
     if (m_gamepad)
     {
       // Axes:
-      for (auto& axis : gamepad_axis_names)
+      for (const auto& [ptr, name] : gamepad_axis_names)
       {
-        AddInput(new NamedAxis(&(m_gamepad_reading.*axis.ptr), 0.0, -1.0, axis.name));
-        AddInput(new NamedAxis(&(m_gamepad_reading.*axis.ptr), 0.0, +1.0, axis.name));
+        AddInput(new NamedAxis(&(m_gamepad_reading.*ptr), 0.0, -1.0, name));
+        AddInput(new NamedAxis(&(m_gamepad_reading.*ptr), 0.0, +1.0, name));
       }
 
       // Triggers:
-      for (auto& trigger : gamepad_trigger_names)
-        AddInput(new NamedTrigger(&(m_gamepad_reading.*trigger.ptr), trigger.name));
+      for (const auto& [ptr, name] : gamepad_trigger_names)
+        AddInput(new NamedTrigger(&(m_gamepad_reading.*ptr), name));
 
       // Motors:
-      for (auto& motor : gamepad_motor_names)
-        AddOutput(new NamedMotor(&(m_state_out.*motor.ptr), motor.name, this));
+      for (const auto& [ptr, name] : gamepad_motor_names)
+        AddOutput(new NamedMotor(&(m_state_out.*ptr), name, this));
     }
 
     // Add IRawGameController's axes if IGamepad is not available.

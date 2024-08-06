@@ -141,9 +141,12 @@ void SystemTimersManager::VICallback(const Core::System& system, u64 userdata, c
 
 void SystemTimersManager::DecrementerCallback(const Core::System& system, u64 userdata, s64 cycles_late)
 {
-  auto& ppc_state = system.GetPPCState();
-  ppc_state.spr[SPR_DEC] = 0xFFFFFFFF;
-  ppc_state.Exceptions |= EXCEPTION_DECREMENTER;
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
+  spr[SPR_DEC] = 0xFFFFFFFF;
+  Exceptions |= EXCEPTION_DECREMENTER;
 }
 
 void SystemTimersManager::PatchEngineCallback(Core::System& system, const u64 userdata, const s64 cycles_late)
@@ -186,9 +189,13 @@ u32 SystemTimersManager::GetTicksPerSecond() const
 void SystemTimersManager::DecrementerSet() const
 {
   auto& core_timing = m_system.GetCoreTiming();
-  const auto& ppc_state = m_system.GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = m_system.GetPPCState();
 
-  const u32 decValue = ppc_state.spr[SPR_DEC];
+  const u32 decValue = spr[SPR_DEC];
 
   core_timing.RemoveEvent(m_event_type_decrementer);
   if ((decValue & 0x80000000) == 0)

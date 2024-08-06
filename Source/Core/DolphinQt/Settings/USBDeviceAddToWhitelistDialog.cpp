@@ -107,11 +107,11 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
   const auto selection_string = usb_inserted_devices_list->currentItem();
   usb_inserted_devices_list->clear();
   const auto whitelist = Config::GetUSBDeviceWhitelist();
-  for (const auto& device : current_devices)
+  for (const auto& [fst, snd] : current_devices)
   {
-    if (whitelist.contains({device.first.first, device.first.second}))
+    if (whitelist.contains({fst.first, fst.second}))
       continue;
-    usb_inserted_devices_list->addItem(QString::fromStdString(device.second));
+    usb_inserted_devices_list->addItem(QString::fromStdString(snd));
   }
 
   usb_inserted_devices_list->setCurrentItem(selection_string);
@@ -142,8 +142,8 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
 
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  const auto it = whitelist.emplace(vid, pid);
-  if (!it.second)
+  const auto [_fst, snd] = whitelist.emplace(vid, pid);
+  if (!snd)
   {
     ModalMessageBox::critical(this, tr("USB Whitelist Error"),
                               tr("This USB device is already whitelisted."));

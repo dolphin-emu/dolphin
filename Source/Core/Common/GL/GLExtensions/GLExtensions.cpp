@@ -2500,9 +2500,9 @@ static bool HasFeatures(const std::string& extensions)
 bool InitFunctionPointers(GLContext* context)
 {
   bool result = true;
-  for (const auto& it : gl_function_array)
-    if (HasFeatures(it.requirements))
-      result &= !!GetFuncAddress(context, it.function_name, it.function_ptr);
+  for (const auto& [function_ptr, function_name, requirements] : gl_function_array)
+    if (HasFeatures(requirements))
+      result &= !!GetFuncAddress(context, function_name, function_ptr);
   return result;
 }
 }  // namespace GLExtensions

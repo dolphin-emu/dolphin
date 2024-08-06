@@ -110,11 +110,10 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
   auto& loader = Core::System::GetInstance().GetCustomAssetLoader();
 
   // For now assume a single pass
-  const auto& pass_config = m_passes_config[0];
+  const auto& [m_pixel_material_asset] = m_passes_config[0];
   auto& pass = m_pipeline_passes[0];
 
-  pass.UpdatePixelData(loader, m_library, draw_started->texture_units,
-                       pass_config.m_pixel_material_asset);
+  pass.UpdatePixelData(loader, m_library, draw_started->texture_units, m_pixel_material_asset);
   CustomPixelShader custom_pixel_shader;
   custom_pixel_shader.custom_shader = pass.m_last_generated_shader_code.GetBuffer();
   custom_pixel_shader.material_uniform_block = pass.m_last_generated_material_code.GetBuffer();

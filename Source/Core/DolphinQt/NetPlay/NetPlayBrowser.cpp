@@ -71,11 +71,11 @@ void NetPlayBrowser::CreateWidgets()
 
   m_region_combo->addItem(tr("Any Region"));
 
-  for (const auto& region : NetPlayIndex::GetRegions())
+  for (const auto& [fst, snd] : NetPlayIndex::GetRegions())
   {
     m_region_combo->addItem(
-        tr("%1 (%2)").arg(tr(region.second.c_str())).arg(QString::fromStdString(region.first)),
-        QString::fromStdString(region.first));
+        tr("%1 (%2)").arg(tr(snd.c_str())).arg(QString::fromStdString(fst)),
+        QString::fromStdString(fst));
   }
 
   m_region_combo->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
@@ -233,17 +233,18 @@ void NetPlayBrowser::UpdateList() const
 
   for (int i = 0; i < session_count; i++)
   {
-    const auto& entry = m_sessions[i];
+    const auto& [entry_name, entry_region, _method, _server_id, entry_game_id, entry_version,
+      entry_player_count, _port, has_password, entry_in_game] = m_sessions[i];
 
-    auto* region = new QTableWidgetItem(QString::fromStdString(entry.region));
-    auto* name = new QTableWidgetItem(QString::fromStdString(entry.name));
-    auto* password = new QTableWidgetItem(entry.has_password ? tr("Yes") : tr("No"));
-    auto* in_game = new QTableWidgetItem(entry.in_game ? tr("Yes") : tr("No"));
-    auto* game_id = new QTableWidgetItem(QString::fromStdString(entry.game_id));
-    auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry.player_count));
-    auto* version = new QTableWidgetItem(QString::fromStdString(entry.version));
+    auto* region = new QTableWidgetItem(QString::fromStdString(entry_region));
+    auto* name = new QTableWidgetItem(QString::fromStdString(entry_name));
+    auto* password = new QTableWidgetItem(has_password ? tr("Yes") : tr("No"));
+    auto* in_game = new QTableWidgetItem(entry_in_game ? tr("Yes") : tr("No"));
+    auto* game_id = new QTableWidgetItem(QString::fromStdString(entry_game_id));
+    auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry_player_count));
+    auto* version = new QTableWidgetItem(QString::fromStdString(entry_version));
 
-    const bool enabled = Common::GetScmDescStr() == entry.version;
+    const bool enabled = Common::GetScmDescStr() == entry_version;
 
     for (const auto& item : {region, name, password, in_game, game_id, player_count, version})
       item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);

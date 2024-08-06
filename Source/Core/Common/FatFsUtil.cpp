@@ -340,11 +340,12 @@ static u64 GetSize(const File::FSTEntry& entry)
     return AlignUp(entry.size, MAX_CLUSTER_SIZE);
 
   u64 size = 0;
-  for (const File::FSTEntry& child : entry.children)
+  for (const auto& [_isDirectory, child_size, _physicalName, virtualName, _children]
+    : entry.children)
   {
     size += 32;
     // For simplicity, assume that all names are LFN.
-    const u64 num_lfn_entries = (UTF8ToUTF16(child.virtualName).size() + 13 - 1) / 13;
+    const u64 num_lfn_entries = (UTF8ToUTF16(virtualName).size() + 13 - 1) / 13;
     size += num_lfn_entries * 32;
   }
   size = AlignUp(size, MAX_CLUSTER_SIZE);

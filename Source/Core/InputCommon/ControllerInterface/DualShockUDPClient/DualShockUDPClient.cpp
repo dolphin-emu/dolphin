@@ -499,8 +499,9 @@ void InputBackend::PopulateDevices()
   {
     for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
     {
-      const Proto::MessageType::PortInfo& port_info = server.m_port_info[port_index];
-      if (port_info.pad_state != Proto::DsState::Connected)
+      const auto& [_header, _message_type, _pad_id, pad_state, _model, _connection_type,
+        _pad_mac_address, _battery_status, _padding] = server.m_port_info[port_index];
+      if (pad_state != Proto::DsState::Connected)
         continue;
 
       GetControllerInterface().AddDevice(

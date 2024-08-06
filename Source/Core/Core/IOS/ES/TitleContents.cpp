@@ -24,8 +24,8 @@ s32 ESCore::OpenContent(const ES::TMDReader& tmd, const u16 content_index, const
 
   for (size_t i = 0; i < m_content_table.size(); ++i)
   {
-    OpenedContent& entry = m_content_table[i];
-    if (entry.m_opened)
+    auto& [m_opened, m_fd, entry_title_id, entry_content, entry_uid] = m_content_table[i];
+    if (m_opened)
       continue;
 
     const std::string path = GetContentPath(title_id, content, ticks);
@@ -33,11 +33,11 @@ s32 ESCore::OpenContent(const ES::TMDReader& tmd, const u16 content_index, const
     if (fd.Get() < 0)
       return fd.Get();
 
-    entry.m_opened = true;
-    entry.m_fd = fd.Release();
-    entry.m_content = content;
-    entry.m_title_id = title_id;
-    entry.m_uid = uid;
+    m_opened = true;
+    m_fd = fd.Release();
+    entry_content = content;
+    entry_title_id = title_id;
+    entry_uid = uid;
     INFO_LOG_FMT(IOS_ES,
                  "OpenContent: title ID {:016x}, UID {:#x}, content {:08x} (index {}) -> CFD {}",
                  title_id, uid, content.id, content_index, i);
@@ -98,14 +98,14 @@ s32 ESCore::ReadContent(const u32 cfd, u8* buffer, const u32 size, const u32 uid
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
-  const OpenedContent& entry = m_content_table[cfd];
+  const auto& [m_opened, m_fd, _m_title_id, _m_content, entry_uid] = m_content_table[cfd];
 
-  if (entry.m_uid != uid)
+  if (entry_uid != uid)
     return ES_EACCES;
-  if (!entry.m_opened)
+  if (!m_opened)
     return IPC_EINVAL;
 
-  return m_ios.GetFSCore().Read(entry.m_fd, buffer, size, {}, ticks);
+  return m_ios.GetFSCore().Read(m_fd, buffer, size, {}, ticks);
 }
 
 IPCReply ESDevice::ReadContent(const u32 uid, const IOCtlVRequest& request) const
@@ -161,13 +161,13 @@ s32 ESCore::SeekContent(const u32 cfd, const u32 offset, SeekMode mode, const u3
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
 
-  const OpenedContent& entry = m_content_table[cfd];
-  if (entry.m_uid != uid)
+  const auto& [m_opened, m_fd, _m_title_id, _m_content, entry_uid] = m_content_table[cfd];
+  if (entry_uid != uid)
     return ES_EACCES;
-  if (!entry.m_opened)
+  if (!m_opened)
     return IPC_EINVAL;
 
-  return m_ios.GetFSCore().Seek(entry.m_fd, offset, static_cast<FS::SeekMode>(mode), ticks);
+  return m_ios.GetFSCore().Seek(m_fd, offset, static_cast<FS::SeekMode>(mode), ticks);
 }
 
 IPCReply ESDevice::SeekContent(const u32 uid, const IOCtlVRequest& request) const

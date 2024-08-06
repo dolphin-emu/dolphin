@@ -1388,10 +1388,10 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   const auto matches = future.get();
 
   QStringList items;
-  for (const auto& match : matches)
+  for (const auto& [fst, snd] : matches)
   {
     const QString item = QLatin1String("%1 %2");
-    items << item.arg(QString::number(match.first, 16), QString::fromStdString(match.second));
+    items << item.arg(QString::number(fst, 16), QString::fromStdString(snd));
   }
 
   if (items.empty())

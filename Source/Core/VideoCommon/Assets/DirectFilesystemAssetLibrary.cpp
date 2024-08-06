@@ -41,11 +41,11 @@ std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_ti
 std::size_t GetAssetSize(const CustomTextureData& data)
 {
   std::size_t total = 0;
-  for (const auto& slice : data.m_slices)
+  for (const auto& [m_levels] : data.m_slices)
   {
-    for (const auto& level : slice.m_levels)
+    for (const auto& [data, _format, _width, _height, _row_length] : m_levels)
     {
-      total += level.data.size();
+      total += data.size();
     }
   }
   return total;

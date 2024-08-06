@@ -121,10 +121,10 @@ const std::vector<u8>& VolumeWAD::GetCertificateChain(const Partition& partition
 std::vector<u8> VolumeWAD::GetContent(const u16 index) const
 {
   u64 offset = m_data_offset;
-  for (const IOS::ES::Content& content : m_tmd.GetContents())
+  for (const auto& [_id, content_index, _type, size, _sha1] : m_tmd.GetContents())
   {
-    const u64 aligned_size = Common::AlignUp(content.size, 0x40);
-    if (content.index == index)
+    const u64 aligned_size = Common::AlignUp(size, 0x40);
+    if (content_index == index)
     {
       std::vector<u8> data(aligned_size);
       if (!m_reader->Read(offset, aligned_size, data.data()))
@@ -142,10 +142,10 @@ std::vector<u64> VolumeWAD::GetContentOffsets() const
   std::vector<u64> content_offsets;
   content_offsets.reserve(contents.size());
   u64 offset = m_data_offset;
-  for (const IOS::ES::Content& content : contents)
+  for (const auto& [_id, _index, _type, size, _sha1] : contents)
   {
     content_offsets.emplace_back(offset);
-    offset += Common::AlignUp(content.size, 0x40);
+    offset += Common::AlignUp(size, 0x40);
   }
 
   return content_offsets;

@@ -249,11 +249,11 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, const Met
   if (!multiform.empty())
   {
     form = curl_mime_init(m_curl.get());
-    for (const auto& value : multiform)
+    for (const auto& [name, data] : multiform)
     {
       curl_mimepart* part = curl_mime_addpart(form);
-      curl_mime_name(part, value.name.c_str());
-      curl_mime_data(part, value.data.c_str(), value.data.size());
+      curl_mime_name(part, name.c_str());
+      curl_mime_data(part, data.c_str(), data.size());
     }
 
     curl_easy_setopt(m_curl.get(), CURLOPT_MIMEPOST, form);

@@ -1075,11 +1075,11 @@ void MovieManager::LoadInput(const std::string& movie_path)
       std::vector<u8> movInput(m_current_byte);
       t_record.ReadArray(movInput.data(), movInput.size());
 
-      const auto result = std::mismatch(movInput.begin(), movInput.end(), m_temp_input.begin());
+      const auto [fst, _snd] = std::mismatch(movInput.begin(), movInput.end(), m_temp_input.begin());
 
-      if (result.first != movInput.end())
+      if (fst != movInput.end())
       {
-        const ptrdiff_t mismatch_index = std::distance(movInput.begin(), result.first);
+        const ptrdiff_t mismatch_index = std::distance(movInput.begin(), fst);
 
         // this is a "you did something wrong" alert for the user's benefit.
         // we'll try to say what's going on in excruciating detail, otherwise the user might not

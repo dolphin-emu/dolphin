@@ -331,8 +331,8 @@ bool ESCore::FinishImport(const ES::TMDReader& tmd) const
 
   // Remove everything not listed in the TMD.
   std::unordered_set<std::string> expected_entries = {"title.tmd"};
-  for (const auto& content_info : tmd.GetContents())
-    expected_entries.insert(fmt::format("{:08x}.app", content_info.id));
+  for (const auto& [id, _index, _type, _size, _sha1] : tmd.GetContents())
+    expected_entries.insert(fmt::format("{:08x}.app", id));
   const auto entries = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, import_content_dir);
   if (!entries)
     return false;

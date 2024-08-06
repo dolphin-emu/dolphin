@@ -233,9 +233,9 @@ Signature Sign(const u8* key, const u8* hash)
     m[0] &= 1;
   } while (bn_compare(m, ec_N, sizeof(m)) >= 0);
 
-  Elt r = (m * ec_G).X();
-  if (bn_compare(r.data.data(), ec_N, 30) >= 0)
-    bn_sub_modulus(r.data.data(), ec_N, 30);
+  auto [data] = (m * ec_G).X();
+  if (bn_compare(data.data(), ec_N, 30) >= 0)
+    bn_sub_modulus(data.data(), ec_N, 30);
 
   //	S = m**-1*(e + Rk) (mod N)
 
@@ -244,14 +244,14 @@ Signature Sign(const u8* key, const u8* hash)
   if (bn_compare(kk, ec_N, sizeof(kk)) >= 0)
     bn_sub_modulus(kk, ec_N, sizeof(kk));
   Elt s;
-  bn_mul(s.data.data(), r.data.data(), kk, ec_N, 30);
+  bn_mul(s.data.data(), data.data(), kk, ec_N, 30);
   bn_add(kk, s.data.data(), e, ec_N, sizeof(kk));
   u8 minv[30];
   bn_inv(minv, m, ec_N, sizeof(minv));
   bn_mul(s.data.data(), minv, kk, ec_N, 30);
 
   Signature signature;
-  std::ranges::copy(std::as_const(r.data), signature.begin());
+  std::ranges::copy(std::as_const(data), signature.begin());
   std::ranges::copy(std::as_const(s.data), signature.begin() + 30);
   return signature;
 }

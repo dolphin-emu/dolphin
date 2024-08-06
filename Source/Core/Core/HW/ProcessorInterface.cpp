@@ -145,11 +145,14 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base
 
 void ProcessorInterfaceManager::UpdateException() const
 {
-  auto& ppc_state = m_system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
   if ((m_interrupt_cause & m_interrupt_mask) != 0)
-    ppc_state.Exceptions |= EXCEPTION_EXTERNAL_INT;
+    Exceptions |= EXCEPTION_EXTERNAL_INT;
   else
-    ppc_state.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
+    Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
 static const char* Debug_GetInterruptName(const u32 cause_mask)

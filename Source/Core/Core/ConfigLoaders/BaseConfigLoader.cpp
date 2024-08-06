@@ -38,7 +38,7 @@ void SaveToSYSCONF(Config::LayerType layer, std::function<bool(const Config::Loc
   IOS::HLE::Kernel ios;
   SysConf sysconf{ios.GetFS()};
 
-  for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
+  for (const auto& [config_info, type] : Config::SYSCONF_SETTINGS)
   {
     std::visit(
         [&](auto* info) {
@@ -47,25 +47,25 @@ void SaveToSYSCONF(Config::LayerType layer, std::function<bool(const Config::Loc
 
           const std::string key = info->GetLocation().section + "." + info->GetLocation().key;
 
-          if (setting.type == SysConf::Entry::Type::Long)
+          if (type == SysConf::Entry::Type::Long)
           {
-            sysconf.SetData<u32>(key, setting.type, Config::Get(layer, *info));
+            sysconf.SetData<u32>(key, type, Config::Get(layer, *info));
           }
-          else if (setting.type == SysConf::Entry::Type::Byte)
+          else if (type == SysConf::Entry::Type::Byte)
           {
-            sysconf.SetData<u8>(key, setting.type, static_cast<u8>(Config::Get(layer, *info)));
+            sysconf.SetData<u8>(key, type, static_cast<u8>(Config::Get(layer, *info)));
           }
-          else if (setting.type == SysConf::Entry::Type::BigArray)
+          else if (type == SysConf::Entry::Type::BigArray)
           {
             // Somewhat hacky support for IPL.SADR. The setting only stores the
             // first 4 bytes even thought the SYSCONF entry is much bigger.
-            SysConf::Entry* entry = sysconf.GetOrAddEntry(key, setting.type);
+            SysConf::Entry* entry = sysconf.GetOrAddEntry(key, type);
             if (entry->bytes.size() < 0x1007 + 1)
               entry->bytes.resize(0x1007 + 1);
             *reinterpret_cast<u32*>(entry->bytes.data()) = Config::Get(layer, *info);
           }
         },
-        setting.config_info);
+        config_info);
   }
 
   sysconf.SetData<u32>("IPL.CB", SysConf::Entry::Type::Long, 0);
@@ -99,10 +99,10 @@ public:
     };
 
     LoadFromSYSCONF(layer);
-    for (const auto& system : system_to_ini)
+    for (const auto& [system_fst, system_snd] : system_to_ini)
     {
       Common::IniFile ini;
-      ini.Load(File::GetUserPath(system.second));
+      ini.Load(File::GetUserPath(system_snd));
       const auto& system_sections = ini.GetSections();
 
       for (const auto& section : system_sections)
@@ -110,9 +110,9 @@ public:
         const std::string section_name = section.GetName();
         const auto& section_map = section.GetValues();
 
-        for (const auto& value : section_map)
+        for (const auto& [value_fst, value_snd] : section_map)
         {
-          const Config::Location location{system.first, section_name, value.first};
+          const Config::Location location{system_fst, section_name, value_fst};
           const bool load_disallowed =
               std::ranges::any_of(
                   s_setting_disallowed,
@@ -122,7 +122,7 @@ public:
           if (load_disallowed)
             continue;
 
-          layer->Set(location, value.second);
+          layer->Set(location, value_snd);
         }
       }
     }
@@ -134,16 +134,13 @@ public:
 
     std::map<Config::System, Common::IniFile> inis;
 
-    for (const auto& system : system_to_ini)
+    for (const auto& [fst, snd] : system_to_ini)
     {
-      inis[system.first].Load(File::GetUserPath(system.second));
+      inis[fst].Load(File::GetUserPath(snd));
     }
 
-    for (const auto& config : layer->GetLayerMap())
+    for (const auto& [location, value] : layer->GetLayerMap())
     {
-      const Config::Location& location = config.first;
-      const std::optional<std::string>& value = config.second;
-
       // Done by SaveToSYSCONF
       if (location.system == Config::System::SYSCONF)
         continue;
@@ -176,9 +173,9 @@ public:
       }
     }
 
-    for (const auto& system : system_to_ini)
+    for (const auto& [fst, snd] : system_to_ini)
     {
-      inis[system.first].Save(File::GetUserPath(system.second));
+      inis[fst].Save(File::GetUserPath(snd));
     }
   }
 
@@ -190,21 +187,21 @@ private:
 
     IOS::HLE::Kernel ios;
     SysConf sysconf{ios.GetFS()};
-    for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
+    for (const auto& [config_info, type] : Config::SYSCONF_SETTINGS)
     {
       std::visit(
           [&](auto* info) {
             const Config::Location location = info->GetLocation();
             const std::string key = location.section + "." + location.key;
-            if (setting.type == SysConf::Entry::Type::Long)
+            if (type == SysConf::Entry::Type::Long)
             {
               layer->Set(location, sysconf.GetData<u32>(key, info->GetDefaultValue()));
             }
-            else if (setting.type == SysConf::Entry::Type::Byte)
+            else if (type == SysConf::Entry::Type::Byte)
             {
               layer->Set(location, sysconf.GetData<u8>(key, info->GetDefaultValue()));
             }
-            else if (setting.type == SysConf::Entry::Type::BigArray)
+            else if (type == SysConf::Entry::Type::BigArray)
             {
               // Somewhat hacky support for IPL.SADR. The setting only stores the
               // first 4 bytes even thought the SYSCONF entry is much bigger.
@@ -218,7 +215,7 @@ private:
               layer->Set(location, value);
             }
           },
-          setting.config_info);
+          config_info);
     }
   }
 };

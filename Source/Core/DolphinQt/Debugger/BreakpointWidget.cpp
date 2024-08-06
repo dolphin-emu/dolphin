@@ -307,15 +307,16 @@ void BreakpointWidget::Update() const
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
 
   // Breakpoints
-  for (const auto& bp : breakpoints.GetBreakPoints())
+  for (const auto& [address, is_enabled, log_on_hit, break_on_hit, condition] :
+    breakpoints.GetBreakPoints())
   {
     m_table->setRowCount(i + 1);
 
     auto* active = create_item();
 
-    active->setData(ADDRESS_ROLE, bp.address);
+    active->setData(ADDRESS_ROLE, address);
     active->setData(IS_MEMCHECK_ROLE, false);
-    if (bp.is_enabled)
+    if (is_enabled)
       active->setData(Qt::DecorationRole, enabled_icon);
 
     m_table->setItem(i, ENABLED_COLUMN, active);
@@ -323,18 +324,18 @@ void BreakpointWidget::Update() const
 
     auto* symbol_item = create_item();
 
-    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(bp.address))
+    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(address))
       symbol_item->setText(
           QString::fromStdString(symbol->name).simplified().remove(QStringLiteral("  ")));
 
     m_table->setItem(i, SYMBOL_COLUMN, symbol_item);
 
-    auto* address_item = create_item(QStringLiteral("%1").arg(bp.address, 8, 16, QLatin1Char('0')));
+    auto* address_item = create_item(QStringLiteral("%1").arg(address, 8, 16, QLatin1Char('0')));
     address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 
     m_table->setItem(i, ADDRESS_COLUMN, address_item);
-    m_table->setItem(i, BREAK_COLUMN, bp.break_on_hit ? icon_item.clone() : empty_item.clone());
-    m_table->setItem(i, LOG_COLUMN, bp.log_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, BREAK_COLUMN, break_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, LOG_COLUMN, log_on_hit ? icon_item.clone() : empty_item.clone());
 
     m_table->setItem(i, END_ADDRESS_COLUMN, disabled_item.clone());
     m_table->setItem(i, READ_COLUMN, disabled_item.clone());
@@ -342,10 +343,10 @@ void BreakpointWidget::Update() const
 
     m_table->setItem(
         i, CONDITION_COLUMN,
-        create_item(bp.condition ? QString::fromStdString(bp.condition->GetText()) : QString()));
+        create_item(condition ? QString::fromStdString(condition->GetText()) : QString()));
 
     // Color rows that are effectively disabled.
-    if (!bp.is_enabled || (!bp.log_on_hit && !bp.break_on_hit))
+    if (!is_enabled || (!log_on_hit && !break_on_hit))
     {
       for (int col = 0; col < m_table->columnCount(); col++)
         m_table->item(i, col)->setBackground(disabled_color);
@@ -357,13 +358,15 @@ void BreakpointWidget::Update() const
   m_table->sortItems(ADDRESS_COLUMN);
 
   // Memory Breakpoints
-  for (const auto& mbp : memchecks.GetMemChecks())
+  for (const auto& [start_address, end_address, is_enabled, _is_ranged, is_break_on_read,
+         is_break_on_write, log_on_hit, break_on_hit, _num_hits, condition] :
+         memchecks.GetMemChecks())
   {
     m_table->setRowCount(i + 1);
     auto* active = create_item();
-    active->setData(ADDRESS_ROLE, mbp.start_address);
+    active->setData(ADDRESS_ROLE, start_address);
     active->setData(IS_MEMCHECK_ROLE, true);
-    if (mbp.is_enabled)
+    if (is_enabled)
       active->setData(Qt::DecorationRole, enabled_icon);
 
     m_table->setItem(i, ENABLED_COLUMN, active);
@@ -371,7 +374,7 @@ void BreakpointWidget::Update() const
 
     auto* symbol_item = create_item();
 
-    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(mbp.start_address))
+    if (const Common::Symbol* const symbol = ppc_symbol_db.GetSymbolFromAddr(start_address))
     {
       symbol_item->setText(
           QString::fromStdString(symbol->name).simplified().remove(QStringLiteral("  ")));
@@ -380,31 +383,31 @@ void BreakpointWidget::Update() const
     m_table->setItem(i, SYMBOL_COLUMN, symbol_item);
 
     auto* start_address_item =
-        create_item(QStringLiteral("%1").arg(mbp.start_address, 8, 16, QLatin1Char('0')));
+        create_item(QStringLiteral("%1").arg(start_address, 8, 16, QLatin1Char('0')));
     start_address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 
     m_table->setItem(i, ADDRESS_COLUMN, start_address_item);
 
     auto* end_address_item =
-        create_item(QStringLiteral("%1").arg(mbp.end_address, 8, 16, QLatin1Char('0')));
+        create_item(QStringLiteral("%1").arg(end_address, 8, 16, QLatin1Char('0')));
     end_address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
-    end_address_item->setData(ADDRESS_ROLE, mbp.end_address);
+    end_address_item->setData(ADDRESS_ROLE, end_address);
 
     m_table->setItem(i, END_ADDRESS_COLUMN, end_address_item);
 
-    m_table->setItem(i, BREAK_COLUMN, mbp.break_on_hit ? icon_item.clone() : empty_item.clone());
-    m_table->setItem(i, LOG_COLUMN, mbp.log_on_hit ? icon_item.clone() : empty_item.clone());
-    m_table->setItem(i, READ_COLUMN, mbp.is_break_on_read ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, BREAK_COLUMN, break_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, LOG_COLUMN, log_on_hit ? icon_item.clone() : empty_item.clone());
+    m_table->setItem(i, READ_COLUMN, is_break_on_read ? icon_item.clone() : empty_item.clone());
     m_table->setItem(i, WRITE_COLUMN,
-                     mbp.is_break_on_write ? icon_item.clone() : empty_item.clone());
+                     is_break_on_write ? icon_item.clone() : empty_item.clone());
 
     m_table->setItem(
         i, CONDITION_COLUMN,
-        create_item(mbp.condition ? QString::fromStdString(mbp.condition->GetText()) : QString()));
+        create_item(condition ? QString::fromStdString(condition->GetText()) : QString()));
 
     // Color rows that are effectively disabled.
-    if (!mbp.is_enabled || (!mbp.is_break_on_write && !mbp.is_break_on_read) ||
-        (!mbp.break_on_hit && !mbp.log_on_hit))
+    if (!is_enabled || (!is_break_on_write && !is_break_on_read) ||
+        (!break_on_hit && !log_on_hit))
     {
       for (int col = 0; col < m_table->columnCount(); col++)
         m_table->item(i, col)->setBackground(disabled_color);

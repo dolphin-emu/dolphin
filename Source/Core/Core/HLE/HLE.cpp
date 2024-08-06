@@ -65,7 +65,10 @@ constexpr std::array<Hook, 23> os_patches{{
 
 void Patch(const Core::System& system, const u32 addr, const std::string_view func_name)
 {
-  auto& ppc_state = system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps
+    , _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, iCache
+    , _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
   const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
   for (u32 i = 1; i < os_patches.size(); ++i)
@@ -73,7 +76,7 @@ void Patch(const Core::System& system, const u32 addr, const std::string_view fu
     if (os_patches[i].name == func_name)
     {
       s_hooked_addresses[addr] = i;
-      ppc_state.iCache.Invalidate(memory, jit_interface, addr);
+      iCache.Invalidate(memory, jit_interface, addr);
       return;
     }
   }
@@ -109,7 +112,10 @@ void PatchFixedFunctions(const Core::System& system)
 void PatchFunctions(const Core::System& system)
 {
   auto& power_pc = system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps
+    , _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, iCache
+    , _m_enable_dcache, _dCache, _reserve, _reserve_address] = power_pc.GetPPCState();
   const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
@@ -119,7 +125,7 @@ void PatchFunctions(const Core::System& system)
   {
     if (os_patches[i->second].flags != HookFlag::Fixed)
     {
-      ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
+      iCache.Invalidate(memory, jit_interface, i->first);
       i = s_hooked_addresses.erase(i);
     }
     else
@@ -139,7 +145,7 @@ void PatchFunctions(const Core::System& system)
       for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
       {
         s_hooked_addresses[addr] = i;
-        ppc_state.iCache.Invalidate(memory, jit_interface, addr);
+        iCache.Invalidate(memory, jit_interface, addr);
       }
       INFO_LOG_FMT(OSHLE, "Patching {} {:08x}", os_patches[i].name, symbol->address);
     }
@@ -238,7 +244,10 @@ u32 UnPatch(const Core::System& system, const std::string_view patch_name)
     return 0;
 
   auto& power_pc = system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps
+    , _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, iCache
+    , _m_enable_dcache, _dCache, _reserve, _reserve_address] = power_pc.GetPPCState();
   const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
 
@@ -252,7 +261,7 @@ u32 UnPatch(const Core::System& system, const std::string_view patch_name)
       if (i->second == patch_idx)
       {
         addr = i->first;
-        ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
+        iCache.Invalidate(memory, jit_interface, i->first);
         i = s_hooked_addresses.erase(i);
       }
       else
@@ -270,7 +279,7 @@ u32 UnPatch(const Core::System& system, const std::string_view patch_name)
     for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
     {
       s_hooked_addresses.erase(addr);
-      ppc_state.iCache.Invalidate(memory, jit_interface, addr);
+      iCache.Invalidate(memory, jit_interface, addr);
     }
     return symbol->address;
   }
@@ -280,7 +289,10 @@ u32 UnPatch(const Core::System& system, const std::string_view patch_name)
 
 u32 UnpatchRange(const Core::System& system, const u32 start_addr, const u32 end_addr)
 {
-  auto& ppc_state = system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags
+    , _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps
+    , _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, iCache
+    , _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
   const auto& memory = system.GetMemory();
   auto& jit_interface = system.GetJitInterface();
 
@@ -291,7 +303,7 @@ u32 UnpatchRange(const Core::System& system, const u32 start_addr, const u32 end
   {
     INFO_LOG_FMT(OSHLE, "Unpatch HLE hooks [{:08x};{:08x}): {} at {:08x}", start_addr, end_addr,
                  os_patches[i->second].name, i->first);
-    ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
+    iCache.Invalidate(memory, jit_interface, i->first);
     i = s_hooked_addresses.erase(i);
     count += 1;
   }

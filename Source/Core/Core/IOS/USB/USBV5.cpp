@@ -210,9 +210,11 @@ void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
   const u64 host_device_id = device->GetId();
   if (event == ChangeEvent::Inserted)
   {
-    for (const auto& interface : device->GetInterfaces(0))
+    for (const auto& [_bLength, _bDescriptorType, bInterfaceNumber, bAlternateSetting,
+      _bNumEndpoints, _bInterfaceClass, _bInterfaceSubClass, _bInterfaceProtocol, _iInterface] :
+      device->GetInterfaces(0))
     {
-      if (interface.bAlternateSetting != 0)
+      if (bAlternateSetting != 0)
         continue;
 
       auto it = std::find_if(m_usbv5_devices.rbegin(), m_usbv5_devices.rend(),
@@ -221,17 +223,17 @@ void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
         return;
 
       it->in_use = true;
-      it->interface_number = interface.bInterfaceNumber;
+      it->interface_number = bInterfaceNumber;
       it->number = m_current_device_number;
       it->host_id = host_device_id;
     }
   }
   else if (event == ChangeEvent::Removed)
   {
-    for (USBV5Device& entry : m_usbv5_devices)
+    for (auto& [in_use, _interface_number, _number, host_id] : m_usbv5_devices)
     {
-      if (entry.host_id == host_device_id)
-        entry.in_use = false;
+      if (host_id == host_device_id)
+        in_use = false;
     }
   }
 }
@@ -259,18 +261,18 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
   u8 num_devices = 0;
   for (auto it = m_usbv5_devices.crbegin(); it != m_usbv5_devices.crend(); ++it)
   {
-    const USBV5Device& usbv5_device = *it;
-    if (!usbv5_device.in_use)
+    const auto& [in_use, interface_number, number, host_id] = *it;
+    if (!in_use)
       continue;
 
-    const auto device = GetDeviceById(usbv5_device.host_id);
+    const auto device = GetDeviceById(host_id);
     if (!device)
       continue;
 
     DeviceEntry entry;
     if (HasInterfaceNumberInIDs())
     {
-      entry.id.reserved = usbv5_device.interface_number;
+      entry.id.reserved = interface_number;
     }
     else
     {
@@ -280,11 +282,11 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
       entry.id.reserved = 0xe7;
     }
     entry.id.index = static_cast<u8>(std::distance(m_usbv5_devices.cbegin(), it.base()) - 1);
-    entry.id.number = Common::swap16(usbv5_device.number);
+    entry.id.number = Common::swap16(number);
     entry.vid = Common::swap16(device->GetVid());
     entry.pid = Common::swap16(device->GetPid());
-    entry.number = Common::swap16(usbv5_device.number);
-    entry.interface_number = usbv5_device.interface_number;
+    entry.number = Common::swap16(number);
+    entry.interface_number = interface_number;
     entry.num_altsettings = device->GetNumberOfAltSettings(entry.interface_number);
 
     memory.CopyToEmu(m_devicechange_hook_request->buffer_out + sizeof(entry) * num_devices, &entry,

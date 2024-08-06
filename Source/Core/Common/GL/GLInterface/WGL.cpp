@@ -376,7 +376,7 @@ HGLRC GLContextWGL::CreateCoreContext(const HDC dc, const HGLRC share_context)
     return nullptr;
   }
 
-  for (const auto& version : s_desktop_opengl_versions)
+  for (const auto& [fst, snd] : s_desktop_opengl_versions)
   {
     // Construct list of attributes. Prefer a forward-compatible, core context.
     std::array attribs = {WGL_CONTEXT_PROFILE_MASK_ARB,
@@ -390,9 +390,9 @@ HGLRC GLContextWGL::CreateCoreContext(const HDC dc, const HGLRC share_context)
                                       WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 #endif
                                       WGL_CONTEXT_MAJOR_VERSION_ARB,
-                                      version.first,
+                                      fst,
                                       WGL_CONTEXT_MINOR_VERSION_ARB,
-                                      version.second,
+                                      snd,
                                       0,
                                       0};
 
@@ -400,7 +400,7 @@ HGLRC GLContextWGL::CreateCoreContext(const HDC dc, const HGLRC share_context)
     const HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
     if (core_context)
     {
-      INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", version.first, version.second);
+      INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", fst, snd);
       return core_context;
     }
   }

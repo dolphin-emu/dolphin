@@ -237,10 +237,11 @@ void AchievementManager::FetchGameBadges()
   }
   for (u32 bx = 0; bx < achievement_list->num_buckets; bx++)
   {
-    const auto& bucket = achievement_list->buckets[bx];
-    for (u32 achievement = 0; achievement < bucket.num_achievements; achievement++)
+    const auto& [achievements, num_achievements, _label, _subset_id, _bucket_type] =
+      achievement_list->buckets[bx];
+    for (u32 achievement = 0; achievement < num_achievements; achievement++)
     {
-      u32 achievement_id = bucket.achievements[achievement]->id;
+      u32 achievement_id = achievements[achievement]->id;
 
       FetchBadge(
           &m_unlocked_badges[achievement_id], RC_IMAGE_TYPE_ACHIEVEMENT,
@@ -790,17 +791,17 @@ void AchievementManager::LeaderboardEntriesCallback(const int result, const char
     return;
   }
 
-  auto& leaderboard = GetInstance().m_leaderboard_map[*leaderboard_id];
+  auto& [_name, _description, player_index, entries] = GetInstance().m_leaderboard_map[*leaderboard_id];
   for (size_t ix = 0; ix < list->num_entries; ix++)
   {
     std::lock_guard lg{GetInstance().GetLock()};
-    const auto& response_entry = list->entries[ix];
-    auto& map_entry = leaderboard.entries[response_entry.index];
-    map_entry.username.assign(response_entry.user);
-    memcpy(map_entry.score.data(), response_entry.display, FORMAT_SIZE);
-    map_entry.rank = response_entry.rank;
+    const auto& [user, display, _submitted, response_rank, index] = list->entries[ix];
+    auto& [username, score, map_rank] = entries[index];
+    username.assign(user);
+    memcpy(score.data(), display, FORMAT_SIZE);
+    map_rank = response_rank;
     if (ix == list->user_index)
-      leaderboard.player_index = response_entry.rank;
+      player_index = response_rank;
   }
   GetInstance().m_update_callback({.leaderboards = {*leaderboard_id}});
 }
@@ -841,10 +842,10 @@ void AchievementManager::LoadGameCallback(const int result, const char* error_me
       rc_client_create_leaderboard_list(client, RC_CLIENT_LEADERBOARD_LIST_GROUPING_NONE);
   for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; bucket++)
   {
-    const auto& leaderboard_bucket = leaderboard_list->buckets[bucket];
-    for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; board++)
+    const auto& [leaderboards, num_leaderboards, _label, _subset_id, _bucket_type] = leaderboard_list->buckets[bucket];
+    for (u32 board = 0; board < num_leaderboards; board++)
     {
-      const auto& leaderboard = leaderboard_bucket.leaderboards[board];
+      const auto& leaderboard = leaderboards[board];
       instance.m_leaderboard_map.insert(
           std::pair(leaderboard->id, LeaderboardStatus{.name = leaderboard->title,
                                                        .description = leaderboard->description}));
@@ -952,11 +953,11 @@ void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t
 void AchievementManager::HandleLeaderboardTrackerUpdateEvent(const rc_client_event_t* client_event)
 {
   auto& active_leaderboards = GetInstance().m_active_leaderboards;
-  for (auto& leaderboard : active_leaderboards)
+  for (auto& [display, id] : active_leaderboards)
   {
-    if (leaderboard.id == client_event->leaderboard_tracker->id)
+    if (id == client_event->leaderboard_tracker->id)
     {
-      strncpy(leaderboard.display, client_event->leaderboard_tracker->display,
+      strncpy(display, client_event->leaderboard_tracker->display,
               RC_CLIENT_LEADERBOARD_DISPLAY_SIZE);
     }
   }

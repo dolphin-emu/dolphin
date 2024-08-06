@@ -272,10 +272,10 @@ void DolphinAnalytics::MakeBaseBuilder()
 #if defined(_WIN32)
   builder.AddData("os-type", "windows");
 
-  const auto winver = WindowsRegistry::GetOSVersion();
-  builder.AddData("win-ver-major", static_cast<u32>(winver.dwMajorVersion));
-  builder.AddData("win-ver-minor", static_cast<u32>(winver.dwMinorVersion));
-  builder.AddData("win-ver-build", static_cast<u32>(winver.dwBuildNumber));
+  const auto [_dwOSVersionInfoSize, dwMajorVersion, dwMinorVersion, dwBuildNumber, _dwPlatformId, _szCSDVersion] = WindowsRegistry::GetOSVersion();
+  builder.AddData("win-ver-major", static_cast<u32>(dwMajorVersion));
+  builder.AddData("win-ver-minor", static_cast<u32>(dwMinorVersion));
+  builder.AddData("win-ver-build", static_cast<u32>(dwBuildNumber));
 #elif defined(ANDROID)
   builder.AddData("os-type", "android");
   builder.AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));

@@ -136,10 +136,10 @@ TEST(Skylanders, Keygen)
                    {{0x94, 0xB0, 0xEE, 0x2D}, 1, 0x278e4DA896B5},
                    {{0xF7, 0xDB, 0xFD, 0x5F}, 2, 0x75B9B1F4B9EB}};
 
-  for (auto& test : inputs)
+  for (const auto& [nuid, sector, expected] : inputs)
   {
-    auto actual = CalculateKeyA(test.sector, test.nuid);
-    EXPECT_EQ(test.expected, actual);
+    auto actual = CalculateKeyA(sector, nuid);
+    EXPECT_EQ(expected, actual);
   }
 }
 

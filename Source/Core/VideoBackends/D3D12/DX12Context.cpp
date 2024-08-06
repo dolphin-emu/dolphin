@@ -443,15 +443,16 @@ bool DXContext::CreateCommandLists()
 
   for (u32 i = 0; i < NUM_COMMAND_LISTS; i++)
   {
-    CommandListResources& res = m_command_lists[i];
+    auto& [command_allocator, command_list, descriptor_allocator, sampler_allocator,
+      _pending_resources, _pending_descriptors, _ready_fence_value] = m_command_lists[i];
     HRESULT hr = m_device->CreateCommandAllocator(
-        D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(res.command_allocator.GetAddressOf()));
+        D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(command_allocator.GetAddressOf()));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command allocator: {}", DX12HRWrap(hr));
     if (FAILED(hr))
       return false;
 
-    hr = m_device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, res.command_allocator.Get(),
-                                     nullptr, IID_PPV_ARGS(res.command_list.GetAddressOf()));
+    hr = m_device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator.Get(),
+                                     nullptr, IID_PPV_ARGS(command_list.GetAddressOf()));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command list: {}", DX12HRWrap(hr));
     if (FAILED(hr))
     {
@@ -459,14 +460,14 @@ bool DXContext::CreateCommandLists()
     }
 
     // Close the command list, since the first thing we do is reset them.
-    hr = res.command_list->Close();
+    hr = command_list->Close();
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Closing new command list failed: {}", DX12HRWrap(hr));
     if (FAILED(hr))
       return false;
 
-    if (!res.descriptor_allocator.Create(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+    if (!descriptor_allocator.Create(m_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
                                          TEMPORARY_SLOTS) ||
-        !res.sampler_allocator.Create(m_device.Get()))
+        !sampler_allocator.Create(m_device.Get()))
     {
       return false;
     }
@@ -482,28 +483,32 @@ void DXContext::MoveToNextCommandList()
   m_current_fence_value++;
 
   // We may have to wait if this command list hasn't finished on the GPU.
-  CommandListResources& res = m_command_lists[m_current_command_list];
-  WaitForFence(res.ready_fence_value);
+  auto& [command_allocator, command_list, descriptor_allocator, sampler_allocator,
+    _pending_resources, _pending_descriptors, ready_fence_value] = m_command_lists[
+    m_current_command_list];
+  WaitForFence(ready_fence_value);
 
   // Begin command list.
-  res.command_allocator->Reset();
-  res.command_list->Reset(res.command_allocator.Get(), nullptr);
-  res.descriptor_allocator.Reset();
-  if (res.sampler_allocator.ShouldReset())
-    res.sampler_allocator.Reset();
-  m_gpu_descriptor_heaps[0] = res.descriptor_allocator.GetDescriptorHeap();
-  m_gpu_descriptor_heaps[1] = res.sampler_allocator.GetDescriptorHeap();
-  res.ready_fence_value = m_current_fence_value;
+  command_allocator->Reset();
+  command_list->Reset(command_allocator.Get(), nullptr);
+  descriptor_allocator.Reset();
+  if (sampler_allocator.ShouldReset())
+    sampler_allocator.Reset();
+  m_gpu_descriptor_heaps[0] = descriptor_allocator.GetDescriptorHeap();
+  m_gpu_descriptor_heaps[1] = sampler_allocator.GetDescriptorHeap();
+  ready_fence_value = m_current_fence_value;
 }
 
 void DXContext::ExecuteCommandList(const bool wait_for_completion)
 {
-  const CommandListResources& res = m_command_lists[m_current_command_list];
+  const auto& [_command_allocator, command_list, _descriptor_allocator, _sampler_allocator,
+        _pending_resources, _pending_descriptors, ready_fence_value] =
+      m_command_lists[m_current_command_list];
 
   // Close and queue command list.
-  HRESULT hr = res.command_list->Close();
+  HRESULT hr = command_list->Close();
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to close command list: {}", DX12HRWrap(hr));
-  const std::array<ID3D12CommandList*, 1> execute_lists{res.command_list.Get()};
+  const std::array<ID3D12CommandList*, 1> execute_lists{command_list.Get()};
   m_command_queue->ExecuteCommandLists(execute_lists.size(),
                                        execute_lists.data());
 
@@ -514,7 +519,7 @@ void DXContext::ExecuteCommandList(const bool wait_for_completion)
 
   MoveToNextCommandList();
   if (wait_for_completion)
-    WaitForFence(res.ready_fence_value);
+    WaitForFence(ready_fence_value);
 }
 
 void DXContext::DeferResourceDestruction(ID3D12Resource* resource)
@@ -530,8 +535,9 @@ void DXContext::DeferDescriptorDestruction(DescriptorHeapManager& manager, u32 i
 
 void DXContext::ResetSamplerAllocators()
 {
-  for (CommandListResources& res : m_command_lists)
-    res.sampler_allocator.Reset();
+  for (auto& [_command_allocator, _command_list, _descriptor_allocator, sampler_allocator,
+         _pending_resources, _pending_descriptors, _ready_fence_value] : m_command_lists)
+    sampler_allocator.Reset();
 }
 
 void DXContext::RecreateGXRootSignature()
@@ -543,8 +549,8 @@ void DXContext::RecreateGXRootSignature()
 
 void DXContext::DestroyPendingResources(CommandListResources& cmdlist)
 {
-  for (const auto& dd : cmdlist.pending_descriptors)
-    dd.first.Free(dd.second);
+  for (const auto& [fst, snd] : cmdlist.pending_descriptors)
+    fst.Free(snd);
   cmdlist.pending_descriptors.clear();
 
   for (ID3D12Resource* res : cmdlist.pending_resources)

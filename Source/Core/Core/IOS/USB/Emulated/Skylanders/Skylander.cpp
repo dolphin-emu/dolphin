@@ -1039,12 +1039,12 @@ void SkylanderPortal::Activate()
   }
 
   // If not we need to advertise change to all the figures present on the portal
-  for (auto& s : skylanders)
+  for (auto& [_figure, status, queued_status, _last_id] : skylanders)
   {
-    if (s.status & 1)
+    if (status & 1)
     {
-      s.queued_status.push(Skylander::ADDED);
-      s.queued_status.push(Skylander::READY);
+      queued_status.push(Skylander::ADDED);
+      queued_status.push(Skylander::READY);
     }
   }
 
@@ -1055,16 +1055,16 @@ void SkylanderPortal::Deactivate()
 {
   std::lock_guard lock(sky_mutex);
 
-  for (auto& s : skylanders)
+  for (auto& [_figure, status, queued_status, _last_id] : skylanders)
   {
     // check if at the end of the updates there would be a figure on the portal
-    if (!s.queued_status.empty())
+    if (!queued_status.empty())
     {
-      s.status = s.queued_status.back();
-      s.queued_status = std::queue<u8>();
+      status = queued_status.back();
+      queued_status = std::queue<u8>();
     }
 
-    s.status &= 1;
+    status &= 1;
   }
 
   m_activated = false;
@@ -1083,13 +1083,13 @@ void SkylanderPortal::UpdateStatus()
 
   if (!m_status_updated)
   {
-    for (auto& s : skylanders)
+    for (auto& [_figure, status, queued_status, _last_id] : skylanders)
     {
-      if (s.status & 1)
+      if (status & 1)
       {
-        s.queued_status.push(Skylander::REMOVED);
-        s.queued_status.push(Skylander::ADDED);
-        s.queued_status.push(Skylander::READY);
+        queued_status.push(Skylander::REMOVED);
+        queued_status.push(Skylander::ADDED);
+        queued_status.push(Skylander::READY);
       }
     }
     m_status_updated = true;
@@ -1148,15 +1148,15 @@ std::array<u8, 64> SkylanderPortal::GetStatus()
 
   for (int i = MAX_SKYLANDERS - 1; i >= 0; i--)
   {
-    auto& s = skylanders[i];
+    auto& [_figure, status, queued_status, _last_id] = skylanders[i];
 
-    if (!s.queued_status.empty())
+    if (!queued_status.empty())
     {
-      s.status = s.queued_status.front();
-      s.queued_status.pop();
+      status = queued_status.front();
+      queued_status.pop();
     }
     status <<= 2;
-    status |= s.status;
+    status |= status;
   }
 
   std::array<u8, 64> interrupt_response = {0x53,   0x00, 0x00, 0x00, 0x00, m_interrupt_counter++,
@@ -1176,14 +1176,14 @@ void SkylanderPortal::QueryBlock(const u8 sky_num, const u8 block, u8* reply_buf
 
   std::lock_guard lock(sky_mutex);
 
-  const auto& skylander = skylanders[sky_num];
+  const auto& [figure, status, _queued_status, _last_id] = skylanders[sky_num];
 
   reply_buf[0] = 'Q';
   reply_buf[2] = block;
-  if (skylander.status & Skylander::READY)
+  if (status & Skylander::READY)
   {
     reply_buf[1] = (0x10 | sky_num);
-    skylander.figure->GetBlock(block, reply_buf + 3);
+    figure->GetBlock(block, reply_buf + 3);
   }
   else
   {
@@ -1198,16 +1198,16 @@ void SkylanderPortal::WriteBlock(const u8 sky_num, const u8 block, const u8* to_
 
   std::lock_guard lock(sky_mutex);
 
-  const auto& skylander = skylanders[sky_num];
+  const auto& [figure, status, _queued_status, _last_id] = skylanders[sky_num];
 
   reply_buf[0] = 'W';
   reply_buf[2] = block;
 
-  if (skylander.status & 1)
+  if (status & 1)
   {
     reply_buf[1] = (0x10 | sky_num);
-    skylander.figure->SetBlock(block, to_write_buf);
-    skylander.figure->Save();
+    figure->SetBlock(block, to_write_buf);
+    figure->Save();
   }
   else
   {
@@ -1222,19 +1222,19 @@ bool SkylanderPortal::RemoveSkylander(const u8 sky_num)
 
   DEBUG_LOG_FMT(IOS_USB, "Cleared Skylander from slot {}", sky_num);
   std::lock_guard lock(sky_mutex);
-  auto& skylander = skylanders[sky_num];
+  auto& [figure, status, queued_status, _last_id] = skylanders[sky_num];
 
-  if (skylander.figure->FileIsOpen())
+  if (figure->FileIsOpen())
   {
-    skylander.figure->Save();
-    skylander.figure->Close();
+    figure->Save();
+    figure->Close();
   }
 
-  if (skylander.status & Skylander::READY)
+  if (status & Skylander::READY)
   {
-    skylander.status = Skylander::REMOVING;
-    skylander.queued_status.push(Skylander::REMOVING);
-    skylander.queued_status.push(Skylander::REMOVED);
+    status = Skylander::REMOVING;
+    queued_status.push(Skylander::REMOVING);
+    queued_status.push(Skylander::REMOVED);
     return true;
   }
 
@@ -1278,12 +1278,12 @@ u8 SkylanderPortal::LoadSkylander(std::unique_ptr<SkylanderFigure> figure)
 
   if (found_slot != 0xFF)
   {
-    auto& skylander = skylanders[found_slot];
-    skylander.figure = std::move(figure);
-    skylander.status = Skylander::ADDED;
-    skylander.queued_status.push(Skylander::ADDED);
-    skylander.queued_status.push(Skylander::READY);
-    skylander.last_id = sky_serial;
+    auto& [figure, status, queued_status, last_id] = skylanders[found_slot];
+    figure = std::move(figure);
+    status = Skylander::ADDED;
+    queued_status.push(Skylander::ADDED);
+    queued_status.push(Skylander::READY);
+    last_id = sky_serial;
   }
   return found_slot;
 }

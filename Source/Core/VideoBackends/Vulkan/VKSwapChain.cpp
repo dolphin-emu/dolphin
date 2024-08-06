@@ -471,11 +471,11 @@ bool SwapChain::SetupSwapChainImages()
 
 void SwapChain::DestroySwapChainImages()
 {
-  for (auto& it : m_swap_chain_images)
+  for (auto& [_image, texture, framebuffer] : m_swap_chain_images)
   {
     // Images themselves are cleaned up by the swap chain object
-    it.framebuffer.reset();
-    it.texture.reset();
+    framebuffer.reset();
+    texture.reset();
   }
   m_swap_chain_images.clear();
 }

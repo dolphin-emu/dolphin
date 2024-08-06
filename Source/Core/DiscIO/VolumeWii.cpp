@@ -170,9 +170,10 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
   const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
-  const PartitionDetails& partition_details = it->second;
+  const auto& [key, _ticket, _tmd, _cert_chain, _h3_table, _file_system, data_offset, _type] =
+    it->second;
 
-  const u64 partition_data_offset = partition.offset + *partition_details.data_offset;
+  const u64 partition_data_offset = partition.offset + *data_offset;
   if (m_has_hashes && m_has_encryption &&
       m_reader->SupportsReadWiiDecrypted(offset, length, partition_data_offset))
   {
@@ -188,7 +189,7 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
   std::unique_ptr<u8[]> read_buffer = nullptr;
   if (m_has_encryption)
   {
-    aes_context = partition_details.key->get();
+    aes_context = key->get();
     if (!aes_context)
       return false;
 
@@ -251,8 +252,8 @@ bool VolumeWii::HasWiiEncryption() const
 std::vector<Partition> VolumeWii::GetPartitions() const
 {
   std::vector<Partition> partitions;
-  for (const auto& pair : m_partitions)
-    partitions.push_back(pair.first);
+  for (const auto& [fst, _snd] : m_partitions)
+    partitions.push_back(fst);
   return partitions;
 }
 
@@ -415,13 +416,14 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
   const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
-  const PartitionDetails& partition_details = it->second;
+  const auto& [key, ticket, partition_tmd, cert_chain, partition_h3_table, file_system, data_offset,
+    type] = it->second;
 
-  const std::vector<u8>& h3_table = *partition_details.h3_table;
+  const std::vector<u8>& h3_table = *partition_h3_table;
   if (h3_table.size() != WII_PARTITION_H3_SIZE)
     return false;
 
-  const IOS::ES::TMDReader& tmd = *partition_details.tmd;
+  const IOS::ES::TMDReader& tmd = *partition_tmd;
   if (!tmd.IsValid())
     return false;
 
@@ -438,10 +440,10 @@ bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_d
   const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
-  const PartitionDetails& partition_details = it->second;
+  const auto& [key, _ticket, _tmd, _cert_chain, h3_table, _file_system, _data_offset, _type] =
+      it->second;
 
-  if (block_index / BLOCKS_PER_GROUP * Common::SHA1::DIGEST_LEN >=
-      partition_details.h3_table->size())
+  if (block_index / BLOCKS_PER_GROUP * Common::SHA1::DIGEST_LEN >= h3_table->size())
   {
     return false;
   }
@@ -452,7 +454,7 @@ bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_d
 
   if (m_has_encryption)
   {
-    const Common::AES::Context* aes_context = partition_details.key->get();
+    const Common::AES::Context* aes_context = key->get();
     if (!aes_context)
       return false;
 
@@ -483,7 +485,7 @@ bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const u8* encrypted_d
 
   Common::SHA1::Digest h3_digest;
   const auto h3_digest_ptr =
-      partition_details.h3_table->data() + block_index / 64 * Common::SHA1::DIGEST_LEN;
+      h3_table->data() + block_index / 64 * Common::SHA1::DIGEST_LEN;
   memcpy(h3_digest.data(), h3_digest_ptr, sizeof(h3_digest));
   if (Common::SHA1::CalculateDigest(hashes.h2) != h3_digest)
     return false;
@@ -496,9 +498,9 @@ bool VolumeWii::CheckBlockIntegrity(const u64 block_index, const Partition& part
   const auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
-  const PartitionDetails& partition_details = it->second;
-  const u64 cluster_offset =
-      partition.offset + *partition_details.data_offset + block_index * BLOCK_TOTAL_SIZE;
+  const auto& [_key, _ticket, _tmd, _cert_chain, _h3_table, _file_system, data_offset, _type] =
+    it->second;
+  const u64 cluster_offset = partition.offset + *data_offset + block_index * BLOCK_TOTAL_SIZE;
 
   std::vector<u8> cluster(BLOCK_TOTAL_SIZE);
   if (!m_reader->Read(cluster_offset, cluster.size(), cluster.data()))

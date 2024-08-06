@@ -55,13 +55,19 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // load/store, the trampoline generator will have stashed the exception
   // handler (that we previously generated after the fastmem instruction) in
   // trampolineExceptionHandler.
-  auto& js = m_jit.js;
-  if (js.generatingTrampoline)
+  auto& [_compilerPC, _blockStart, _instructionsLeft, _downcountAmount, _numLoadStoreInst,
+    _numFloatingPointInst, fastmemLoadStore, fixupExceptionHandler, exceptionHandler,
+    _assumeNoPairedQuantize, _constantGqrValid, _constantGqr, _firstFPInstructionFound,
+    _isLastInstruction, _skipInstructions, _carryFlag, generatingTrampoline,
+    trampolineExceptionHandler, _mustCheckFifo, _fifoBytesSinceCheck, _st, _gpa, _fpa, _op,
+    _fpr_is_store_safe, _curBlock, _fifoWriteAddresses, _pairedQuantizeAddresses,
+    _noSpeculativeConstantsAddresses] = m_jit.js;
+  if (generatingTrampoline)
   {
-    if (js.trampolineExceptionHandler)
+    if (trampolineExceptionHandler)
     {
       TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-      J_CC(CC_NZ, js.trampolineExceptionHandler);
+      J_CC(CC_NZ, trampolineExceptionHandler);
     }
     return;
   }
@@ -69,11 +75,11 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // If memcheck (ie: MMU) mode is enabled and we haven't generated an
   // exception handler for this instruction yet, we will generate an
   // exception check.
-  if (m_jit.jo.memcheck && !js.fastmemLoadStore && !js.fixupExceptionHandler)
+  if (m_jit.jo.memcheck && !fastmemLoadStore && !fixupExceptionHandler)
   {
     TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-    js.exceptionHandler = J_CC(CC_NZ, Jump::Near);
-    js.fixupExceptionHandler = true;
+    exceptionHandler = J_CC(CC_NZ, Jump::Near);
+    fixupExceptionHandler = true;
   }
 }
 
@@ -321,7 +327,13 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
 {
   const bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
-  auto& js = m_jit.js;
+  auto& [compilerPC, _blockStart, _instructionsLeft, _downcountAmount, _numLoadStoreInst,
+    _numFloatingPointInst, fastmemLoadStore, _fixupExceptionHandler, _exceptionHandler,
+    _assumeNoPairedQuantize, _constantGqrValid, _constantGqr, _firstFPInstructionFound,
+    _isLastInstruction, _skipInstructions, _carryFlag, _generatingTrampoline,
+    _trampolineExceptionHandler, _mustCheckFifo, _fifoBytesSinceCheck, _st, _gpa, _fpa, _op,
+    _fpr_is_store_safe, _curBlock, _fifoWriteAddresses, _pairedQuantizeAddresses,
+    _noSpeculativeConstantsAddresses] = m_jit.js;
   registersInUse[reg_value] = false;
   if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
       !force_slow_access)
@@ -330,27 +342,27 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
     MovInfo mov;
     const bool offsetAddedToAddress =
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
-    TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = js.compilerPC;
-    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
-    info.start = backpatchStart;
-    info.read = true;
-    info.op_reg = reg_value;
-    info.op_arg = opAddress;
-    info.offsetAddedToAddress = offsetAddedToAddress;
-    info.accessSize = accessSize >> 3;
-    info.offset = offset;
-    info.registersInUse = registersInUse;
-    info.flags = flags;
-    info.signExtend = signExtend;
+    auto& [start, len, pc, info_registersInUse, nonAtomicSwapStoreSrc, info_offset, op_reg, op_arg, info_flags, info_accessSize, read, info_signExtend, info_offsetAddedToAddress] = m_back_patch_info[mov.address];
+    pc = compilerPC;
+    nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
+    start = backpatchStart;
+    read = true;
+    op_reg = reg_value;
+    op_arg = opAddress;
+    info_offsetAddedToAddress = offsetAddedToAddress;
+    info_accessSize = accessSize >> 3;
+    info_offset = offset;
+    info_registersInUse = registersInUse;
+    info_flags = flags;
+    info_signExtend = signExtend;
     const ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
     if (padding > 0)
     {
       NOP(padding);
     }
-    info.len = static_cast<u32>(GetCodePtr() - info.start);
+    len = static_cast<u32>(GetCodePtr() - start);
 
-    js.fastmemLoadStore = mov.address;
+    fastmemLoadStore = mov.address;
     return;
   }
 
@@ -393,7 +405,7 @@ void EmuCodeBlock::SafeLoadToReg(const X64Reg reg_value, const OpArg& opAddress,
   // so the caller has to store the PC themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(compilerPC));
   }
 
   const size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -500,33 +512,41 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, const int
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
 
-  auto& js = m_jit.js;
+  auto& [compilerPC, _blockStart, _instructionsLeft, _downcountAmount, _numLoadStoreInst,
+    _numFloatingPointInst, fastmemLoadStore, _fixupExceptionHandler, _exceptionHandler,
+    _assumeNoPairedQuantize, _constantGqrValid, _constantGqr, _firstFPInstructionFound,
+    _isLastInstruction, _skipInstructions, _carryFlag, _generatingTrampoline,
+    _trampolineExceptionHandler, _mustCheckFifo, _fifoBytesSinceCheck, _st, _gpa, _fpa, _op,
+    _fpr_is_store_safe, _curBlock, _fifoWriteAddresses, _pairedQuantizeAddresses,
+    _noSpeculativeConstantsAddresses] = m_jit.js;
   if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
       !force_slow_access)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
-    TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = js.compilerPC;
-    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
-    info.start = backpatchStart;
-    info.read = false;
-    info.op_arg = reg_value;
-    info.op_reg = reg_addr;
-    info.offsetAddedToAddress = false;
-    info.accessSize = accessSize >> 3;
-    info.offset = offset;
-    info.registersInUse = registersInUse;
-    info.flags = flags;
+    auto& [start, len, pc, info_registersInUse, nonAtomicSwapStoreSrc, info_offset, op_reg, op_arg,
+          info_flags, info_accessSize, read, _signExtend, offsetAddedToAddress] =
+        m_back_patch_info[mov.address];
+    pc = compilerPC;
+    nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
+    start = backpatchStart;
+    read = false;
+    op_arg = reg_value;
+    op_reg = reg_addr;
+    offsetAddedToAddress = false;
+    info_accessSize = accessSize >> 3;
+    info_offset = offset;
+    info_registersInUse = registersInUse;
+    info_flags = flags;
     const ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
     if (padding > 0)
     {
       NOP(padding);
     }
-    info.len = static_cast<u32>(GetCodePtr() - info.start);
+    len = static_cast<u32>(GetCodePtr() - start);
 
-    js.fastmemLoadStore = mov.address;
+    fastmemLoadStore = mov.address;
 
     return;
   }
@@ -567,7 +587,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, const int
   // so the caller has to store the PC themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(compilerPC));
   }
 
   const size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;

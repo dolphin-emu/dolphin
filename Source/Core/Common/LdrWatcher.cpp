@@ -65,9 +65,9 @@ static VOID DllNotificationCallback(const ULONG NotificationReason,
 {
   if (NotificationReason != LDR_DLL_NOTIFICATION_REASON_LOADED)
     return;
-  auto& data = NotificationData->Loaded;
+  const auto& [_Flags, _FullDllName, BaseDllName, DllBase, _SizeOfImage] = NotificationData->Loaded;
   const auto observer = static_cast<const LdrObserver*>(Context);
-  LdrObserverRun(*observer, data.BaseDllName, reinterpret_cast<uintptr_t>(data.DllBase));
+  LdrObserverRun(*observer, BaseDllName, reinterpret_cast<uintptr_t>(DllBase));
 }
 
 // This only works on Vista+. On lower platforms, it will be a no-op.

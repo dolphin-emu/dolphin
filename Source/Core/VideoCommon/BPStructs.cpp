@@ -582,16 +582,17 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       // NOTE: libogc's implementation of GX_PreloadEntireTexture seems flawed, so it's not
       // necessarily a good reference for RE'ing this feature.
 
-      const BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
-      const u32 src_addr = tmem_cfg.preload_addr << 5;  // TODO: Should we add mask here on GC?
+      const auto& [preload_addr, preload_tmem_even, preload_tmem_odd, preload_tile_info, _tlut_src,
+        _tlut_dest, _texinvalidate] = bpmem.tmem_config;
+      const u32 src_addr = preload_addr << 5;  // TODO: Should we add mask here on GC?
       u32 bytes_read = 0;
-      u32 tmem_addr_even = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
+      u32 tmem_addr_even = preload_tmem_even * TMEM_LINE_SIZE;
 
-      if (tmem_cfg.preload_tile_info.type != 3)
+      if (preload_tile_info.type != 3)
       {
         if (tmem_addr_even < TMEM_SIZE)
         {
-          bytes_read = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+          bytes_read = preload_tile_info.count * TMEM_LINE_SIZE;
           if (tmem_addr_even + bytes_read > TMEM_SIZE)
             bytes_read = TMEM_SIZE - tmem_addr_even;
 
@@ -607,9 +608,9 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 
         // AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for
         // everything
-        u32 tmem_addr_odd = tmem_cfg.preload_tmem_odd * TMEM_LINE_SIZE;
+        u32 tmem_addr_odd = preload_tmem_odd * TMEM_LINE_SIZE;
 
-        for (u32 i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
+        for (u32 i = 0; i < preload_tile_info.count; ++i)
         {
           if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
               tmem_addr_odd + TMEM_LINE_SIZE > TMEM_SIZE)

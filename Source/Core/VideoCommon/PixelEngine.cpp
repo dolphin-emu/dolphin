@@ -88,10 +88,10 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
       {PE_ALPHAMODE, &m_alpha_mode_conf.hex},
       {PE_ALPHAREAD, &m_alpha_read.hex},
   };
-  for (const auto& mapped_var : directly_mapped_vars)
+  for (const auto& [addr, ptr] : directly_mapped_vars)
   {
-    mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::DirectWrite<u16>(mapped_var.ptr));
+    mmio->Register(base | addr, MMIO::DirectRead<u16>(ptr),
+                   MMIO::DirectWrite<u16>(ptr));
   }
 
   // Performance queries registers: read only, need to call the video backend

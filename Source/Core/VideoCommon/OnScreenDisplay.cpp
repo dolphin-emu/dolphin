@@ -138,8 +138,8 @@ void AddTypedMessage(MessageType type, std::string message, const u32 ms, const 
   // A message may hold a reference to a texture that can only be destroyed on the video thread, so
   // only mark the old typed message (if any) for removal. It will be discarded on the next call to
   // DrawMessages().
-  const auto range = s_messages.equal_range(type);
-  for (auto it = range.first; it != range.second; ++it)
+  const auto [fst, snd] = s_messages.equal_range(type);
+  for (auto it = fst; it != snd; ++it)
     it->second.should_discard = true;
 
   s_messages.emplace(type, Message(std::move(message), ms, argb, std::move(icon)));

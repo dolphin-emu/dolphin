@@ -349,12 +349,13 @@ static void CompressBufferToFile(const u8* raw_buffer, const u64 size, File::IOF
 
 static void CreateExtendedHeader(StateExtendedHeader& extended_header, const size_t uncompressed_size)
 {
-  StateExtendedBaseHeader& base_header = extended_header.base_header;
-  base_header.header_version = EXTENDED_HEADER_VERSION;
-  base_header.compression_type =
+  auto& [header_version, compression_type, payload_offset, base_header_uncompressed_size] =
+    extended_header.base_header;
+  header_version = EXTENDED_HEADER_VERSION;
+  compression_type =
       s_use_compression ? LZ4 : Uncompressed;
-  base_header.payload_offset = COMPRESSED_DATA_OFFSET;
-  base_header.uncompressed_size = uncompressed_size;
+  payload_offset = COMPRESSED_DATA_OFFSET;
+  base_header_uncompressed_size = uncompressed_size;
 
   // If more fields are added to StateExtendedHeader, set them here.
 }
@@ -744,9 +745,7 @@ static bool ValidateHeaders(const StateHeader& header)
     // This is a REALLY old version, before we started writing the version string to file
     success = false;
 
-    const std::pair<std::string, std::string> version_range = s_old_versions.find(loaded_version)->second;
-    const std::string oldest_version = version_range.first;
-    const std::string newest_version = version_range.second;
+    const auto [oldest_version, newest_version] = s_old_versions.find(loaded_version)->second;
 
     loaded_str = "Dolphin " + oldest_version + " - " + newest_version;
   }

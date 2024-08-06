@@ -203,8 +203,8 @@ void NetKDRequestDevice::Update()
     std::lock_guard lg(m_async_reply_lock);
     while (!m_async_replies.empty())
     {
-      const auto& reply = m_async_replies.front();
-      GetEmulationKernel().EnqueueIPCReply(reply.request, reply.return_value);
+      const auto& [request, return_value] = m_async_replies.front();
+      GetEmulationKernel().EnqueueIPCReply(request, return_value);
       m_async_replies.pop();
     }
   }

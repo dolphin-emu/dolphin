@@ -164,11 +164,11 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_host_server_password->setToolTip(tr("Password for joining your game (leave empty for none)"));
   m_host_server_password->setPlaceholderText(tr("Password"));
 
-  for (const auto& region : NetPlayIndex::GetRegions())
+  for (const auto& [fst, snd] : NetPlayIndex::GetRegions())
   {
     m_host_server_region->addItem(
-        tr("%1 (%2)").arg(tr(region.second.c_str())).arg(QString::fromStdString(region.first)),
-        QString::fromStdString(region.first));
+        tr("%1 (%2)").arg(tr(snd.c_str())).arg(QString::fromStdString(fst)),
+        QString::fromStdString(fst));
   }
 
   host_layout->addWidget(m_host_port_label, 0, 0);

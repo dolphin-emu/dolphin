@@ -110,10 +110,9 @@ bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 startAddr
 
 void HashSignatureDB::List() const
 {
-  for (const auto& entry : m_database)
+  for (const auto& [fst, snd] : m_database)
   {
-    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes, hash = {:08x}", entry.second.name, entry.second.size,
-                  entry.first);
+    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes, hash = {:08x}", snd.name, snd.size, fst);
   }
   INFO_LOG_FMT(SYMBOLS, "{} functions known in current database.", m_database.size());
 }
@@ -125,21 +124,21 @@ void HashSignatureDB::Clear()
 
 void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
-  for (const auto& entry : m_database)
+  for (const auto& [fst, snd] : m_database)
   {
-    for (const auto& function : symbol_db->GetSymbolsFromHash(entry.first))
+    for (const auto& function : symbol_db->GetSymbolsFromHash(fst))
     {
       // Found the function. Let's rename it according to the symbol file.
-      function->Rename(entry.second.name);
-      if (entry.second.size == function->size)
+      function->Rename(snd.name);
+      if (snd.size == function->size)
       {
-        INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", entry.second.name,
-                     function->address, function->size);
+        INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", snd.name, function->address,
+                     function->size);
       }
       else
       {
         ERROR_LOG_FMT(SYMBOLS, "Wrong size! Found {} at {:08x} (size: {:08x} instead of {:08x})!",
-                      entry.second.name, function->address, function->size, entry.second.size);
+                      snd.name, function->address, function->size, snd.size);
       }
     }
   }

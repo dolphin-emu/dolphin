@@ -504,9 +504,9 @@ void NetPlayClient::OnPlayerLeave(sf::Packet& packet)
     if (it == m_players.end())
       return;
 
-    const auto& player = it->second;
-    INFO_LOG_FMT(NETPLAY, "Player {} ({}) left", player.name, pid);
-    m_dialog->OnPlayerDisconnect(player.name);
+    const auto& [pid, name, _revision, _ping, _game_status] = it->second;
+    INFO_LOG_FMT(NETPLAY, "Player {} ({}) left", name, pid);
+    m_dialog->OnPlayerDisconnect(name);
     m_players.erase(m_players.find(pid));
   }
 
@@ -521,12 +521,12 @@ void NetPlayClient::OnChatMessage(sf::Packet& packet)
   packet >> msg;
 
   // don't need lock to read in this thread
-  const Player& player = m_players[pid];
+  const auto& [id, name, _revision, _ping, _game_status] = m_players[pid];
 
-  INFO_LOG_FMT(NETPLAY, "Player {} ({}) wrote: {}", player.name, player.pid, msg);
+  INFO_LOG_FMT(NETPLAY, "Player {} ({}) wrote: {}", name, id, msg);
 
   // add to gui
-  m_dialog->AppendChat(fmt::format("{}[{}]: {}", player.name, pid, msg));
+  m_dialog->AppendChat(fmt::format("{}[{}]: {}", name, pid, msg));
 }
 
 void NetPlayClient::OnChunkedDataStart(sf::Packet& packet)
@@ -643,14 +643,14 @@ void NetPlayClient::OnGBAConfig(sf::Packet& packet)
   for (size_t i = 0; i < m_gba_config.size(); ++i)
   {
     auto& config = m_gba_config[i];
-    const auto old_config = config;
+    const auto [_enabled, has_rom, title, hash] = config;
 
     packet >> config.enabled >> config.has_rom >> config.title;
     for (auto& data : config.hash)
       packet >> data;
 
     if (std::tie(config.has_rom, config.title, config.hash) !=
-        std::tie(old_config.has_rom, old_config.title, old_config.hash))
+        std::tie(has_rom, title, hash))
     {
       m_dialog->OnMsgChangeGBARom(static_cast<int>(i), config);
       m_net_settings.gba_rom_paths[i] =
@@ -963,8 +963,8 @@ void NetPlayClient::OnPlayerPingData(sf::Packet& packet)
 
   {
     std::lock_guard lkp(m_crit.players);
-    Player& player = m_players[pid];
-    packet >> player.ping;
+    auto& [_pid, _name, _revision, ping, _game_status] = m_players[pid];
+    packet >> ping;
   }
 
   DisplayPlayersPing();
@@ -1603,8 +1603,8 @@ void NetPlayClient::ThreadFunc()
     {
       INFO_LOG_FMT(NETPLAY, "Processing async queue event.");
       {
-        auto& e = m_async_queue.Front();
-        Send(e.packet, e.channel_id);
+        auto& [packet, channel_id] = m_async_queue.Front();
+        Send(packet, channel_id);
       }
       INFO_LOG_FMT(NETPLAY, "Processing async queue event done.");
       m_async_queue.Pop();
@@ -2128,24 +2128,24 @@ u64 NetPlayClient::GetInitialRTCValue() const
 // called from ---CPU--- thread
 bool NetPlayClient::WiimoteUpdate(const std::span<WiimoteDataBatchEntry>& entries)
 {
-  for (const WiimoteDataBatchEntry& entry : entries)
+  for (const auto& [wiimote, state] : entries)
   {
-    const int local_wiimote = InGameWiimoteToLocalWiimote(entry.wiimote);
+    const int local_wiimote = InGameWiimoteToLocalWiimote(wiimote);
     DEBUG_LOG_FMT(NETPLAY,
                   "Entering WiimoteUpdate() with wiimote {}, local_wiimote {}, state [{:02x}]",
-                  entry.wiimote, local_wiimote,
-                  fmt::join(std::span(entry.state->data.data(), entry.state->length), ", "));
+                  wiimote, local_wiimote,
+                  fmt::join(std::span(state->data.data(), state->length), ", "));
     if (local_wiimote < 4)
     {
       sf::Packet packet;
       packet << MessageID::WiimoteData;
-      if (AddLocalWiimoteToBuffer(local_wiimote, *entry.state, packet))
+      if (AddLocalWiimoteToBuffer(local_wiimote, *state, packet))
         SendAsync(std::move(packet));
     }
 
     // Now, we either use the data pushed earlier, or wait for the
     // other clients to send it to us
-    while (m_wiimote_buffer[entry.wiimote].Size() == 0)
+    while (m_wiimote_buffer[wiimote].Size() == 0)
     {
       if (!m_is_running.IsSet())
       {
@@ -2155,10 +2155,10 @@ bool NetPlayClient::WiimoteUpdate(const std::span<WiimoteDataBatchEntry>& entrie
       m_wii_pad_event.Wait();
     }
 
-    m_wiimote_buffer[entry.wiimote].Pop(*entry.state);
+    m_wiimote_buffer[wiimote].Pop(*state);
 
-    DEBUG_LOG_FMT(NETPLAY, "Exiting WiimoteUpdate() with wiimote {}, state [{:02x}]", entry.wiimote,
-                  fmt::join(std::span(entry.state->data.data(), entry.state->length), ", "));
+    DEBUG_LOG_FMT(NETPLAY, "Exiting WiimoteUpdate() with wiimote {}, state [{:02x}]", wiimote,
+                  fmt::join(std::span(state->data.data(), state->length), ", "));
   }
 
   return true;

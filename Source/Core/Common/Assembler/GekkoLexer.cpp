@@ -496,13 +496,13 @@ std::optional<std::string_view> Lexer::RunDfa(const std::vector<DfaNode>& dfa) c
       break;
     }
 
-    const DfaNode& n = dfa[dfa_index];
-    for (auto&& edge : n.edges)
+    const auto& [edges, _match_failure_reason] = dfa[dfa_index];
+    for (const auto& [fst, snd] : edges)
     {
-      if (edge.first(Peek()))
+      if (fst(Peek()))
       {
         transition_found = true;
-        dfa_index = edge.second;
+        dfa_index = snd;
         break;
       }
     }

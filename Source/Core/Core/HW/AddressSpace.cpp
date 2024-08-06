@@ -309,18 +309,17 @@ struct CompositeAddressSpaceAccessors : Accessors
                             const u8* needle_start, const std::size_t needle_size,
                             const bool forward) const override
   {
-    for (const AccessorMapping& mapping : m_accessor_mappings)
+    for (const auto& [base, accessors] : m_accessor_mappings)
     {
-      const u32 mapping_offset = haystack_offset - mapping.base;
-      if (!mapping.accessors->IsValidAddress(guard, mapping_offset))
+      const u32 mapping_offset = haystack_offset - base;
+      if (!accessors->IsValidAddress(guard, mapping_offset))
       {
         continue;
       }
-      auto result =
-          mapping.accessors->Search(guard, mapping_offset, needle_start, needle_size, forward);
+      auto result = accessors->Search(guard, mapping_offset, needle_start, needle_size, forward);
       if (result.has_value())
       {
-        return std::optional(*result + mapping.base);
+        return std::optional(*result + base);
       }
     }
     return std::nullopt;

@@ -350,15 +350,15 @@ void CodeWidget::UpdateCallstack() const
 
   const QString filter = m_search_callstack->text();
 
-  for (const auto& frame : stack)
+  for (const auto& [Name, vAddress] : stack)
   {
-    const QString name = QString::fromStdString(frame.Name.substr(0, frame.Name.length() - 1));
+    const QString name = QString::fromStdString(Name.substr(0, Name.length() - 1));
 
     if (!name.contains(filter, Qt::CaseInsensitive))
       continue;
 
     auto* item = new QListWidgetItem(name);
-    item->setData(Qt::UserRole, frame.vAddress);
+    item->setData(Qt::UserRole, vAddress);
     m_callstack_list->addItem(item);
   }
 }
@@ -514,7 +514,10 @@ void CodeWidget::StepOut() const
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   auto& power_pc = m_system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
+  auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags,
+    _exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr , _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache
+    , _m_enable_dcache, _dCache, _reserve, _reserve_address] = power_pc.GetPPCState();
   {
     Core::CPUThreadGuard guard(m_system);
 
@@ -524,7 +527,7 @@ void CodeWidget::StepOut() const
     // Loop until either the current instruction is a return instruction with no Link flag
     // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
     // on a breakpoint, skip it.
-    UGeckoInstruction inst = PowerPC::MMU::HostRead_Instruction(guard, ppc_state.pc);
+    UGeckoInstruction inst = PowerPC::MMU::HostRead_Instruction(guard, pc);
     do
     {
       if (WillInstructionReturn(m_system, inst))
@@ -536,18 +539,18 @@ void CodeWidget::StepOut() const
       if (inst.LK)
       {
         // Step over branches
-        u32 next_pc = ppc_state.pc + 4;
+        u32 next_pc = pc + 4;
         do
         {
           power_pc.SingleStep();
-        } while (ppc_state.pc != next_pc && clock::now() < timeout && !power_pc.CheckBreakPoints());
+        } while (pc != next_pc && clock::now() < timeout && !power_pc.CheckBreakPoints());
       }
       else
       {
         power_pc.SingleStep();
       }
 
-      inst = PowerPC::MMU::HostRead_Instruction(guard, ppc_state.pc);
+      inst = PowerPC::MMU::HostRead_Instruction(guard, pc);
     } while (clock::now() < timeout && !power_pc.CheckBreakPoints());
 
     power_pc.SetMode(old_mode);

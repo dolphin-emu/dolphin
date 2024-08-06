@@ -161,10 +161,10 @@ LogManager::LogManager()
   EnableListener(LogListener::CONSOLE_LISTENER, Get(LOGGER_WRITE_TO_CONSOLE));
   EnableListener(LogListener::LOG_WINDOW_LISTENER, Get(LOGGER_WRITE_TO_WINDOW));
 
-  for (auto& container : m_log)
+  for (auto& [m_short_name, _m_full_name, m_enable] : m_log)
   {
-    container.m_enable = Get(
-        Config::Info{{Config::System::Logger, "Logs", container.m_short_name}, false});
+    m_enable =
+      Get(Config::Info{{Config::System::Logger, "Logs", m_short_name}, false});
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
@@ -188,10 +188,10 @@ void LogManager::SaveSettings()
                            IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
   SetBaseOrCurrent(LOGGER_VERBOSITY, GetLogLevel());
 
-  for (const auto& container : m_log)
+  for (const auto& [m_short_name, _m_full_name, m_enable] : m_log)
   {
-    const Config::Info info{{Config::System::Logger, "Logs", container.m_short_name}, false};
-    SetBaseOrCurrent(info, container.m_enable);
+    const Config::Info info{{Config::System::Logger, "Logs", m_short_name}, false};
+    SetBaseOrCurrent(info, m_enable);
   }
 
   Config::Save();
@@ -255,8 +255,8 @@ std::map<std::string, std::string> LogManager::GetLogTypes()
 {
   std::map<std::string, std::string> log_types;
 
-  for (const auto& container : m_log)
-    log_types.emplace(container.m_short_name, container.m_full_name);
+  for (const auto& [m_short_name, m_full_name, _m_enable] : m_log)
+    log_types.emplace(m_short_name, m_full_name);
 
   return log_types;
 }

@@ -77,9 +77,9 @@ EventType* CoreTimingManager::RegisterEvent(const std::string& name, const Timed
              "during Init to avoid breaking save states.",
              name);
 
-  const auto info = m_event_types.emplace(name, EventType{callback, nullptr});
-  EventType* event_type = &info.first->second;
-  event_type->name = &info.first->first;
+  const auto [fst, _snd] = m_event_types.emplace(name, EventType{callback, nullptr});
+  EventType* event_type = &fst->second;
+  event_type->name = &fst->first;
   return event_type;
 }
 
@@ -300,13 +300,17 @@ void CoreTimingManager::RemoveAllEvents(const EventType* event_type)
 void CoreTimingManager::ForceExceptionCheck(s64 cycles)
 {
   cycles = std::max<s64>(0, cycles);
-  auto& ppc_state = m_system.GetPPCState();
-  if (DowncountToCycles(ppc_state.downcount) > cycles)
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = m_system.GetPPCState();
+  if (DowncountToCycles(downcount) > cycles)
   {
     // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int here.
     // Account for cycles already executed by adjusting the m_globals.slice_length
-    m_globals.slice_length -= DowncountToCycles(ppc_state.downcount) - static_cast<int>(cycles);
-    ppc_state.downcount = CyclesToDowncount(static_cast<int>(cycles));
+    m_globals.slice_length -= DowncountToCycles(downcount) - static_cast<int>(cycles);
+    downcount = CyclesToDowncount(static_cast<int>(cycles));
   }
 }
 
@@ -327,9 +331,13 @@ void CoreTimingManager::Advance()
   MoveEvents();
 
   auto& power_pc = m_system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = power_pc.GetPPCState();
 
-  const int cyclesExecuted = m_globals.slice_length - DowncountToCycles(ppc_state.downcount);
+  const int cyclesExecuted = m_globals.slice_length - DowncountToCycles(downcount);
   m_globals.global_timer += cyclesExecuted;
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
@@ -339,12 +347,12 @@ void CoreTimingManager::Advance()
 
   while (!m_event_queue.empty() && m_event_queue.front().time <= m_globals.global_timer)
   {
-    const Event evt = std::move(m_event_queue.front());
+    const auto [time, _fifo_order, userdata, type] = std::move(m_event_queue.front());
     std::ranges::pop_heap(m_event_queue, std::greater<Event>());
     m_event_queue.pop_back();
 
-    Throttle(evt.time);
-    evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
+    Throttle(time);
+    type->callback(m_system, userdata, m_globals.global_timer - time);
   }
 
   m_is_global_timer_sane = false;
@@ -356,7 +364,7 @@ void CoreTimingManager::Advance()
         std::min<s64>(m_event_queue.front().time - m_globals.global_timer, MAX_SLICE_LENGTH));
   }
 
-  ppc_state.downcount = CyclesToDowncount(m_globals.slice_length);
+  downcount = CyclesToDowncount(m_globals.slice_length);
 
   // Check for any external exceptions.
   // It's important to do this after processing events otherwise any exceptions will be delayed
@@ -440,10 +448,10 @@ void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;
   std::sort(clone.begin(), clone.end());
-  for (const Event& ev : clone)
+  for (const auto& [time, _fifo_order, _userdata, type] : clone)
   {
-    INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", m_globals.global_timer, ev.time,
-                 *ev.type->name);
+    INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", m_globals.global_timer, time,
+                 *type->name);
   }
 }
 
@@ -453,10 +461,10 @@ void CoreTimingManager::AdjustEventQueueTimes(const u32 new_ppc_clock, const u32
   m_throttle_clock_per_sec = new_ppc_clock;
   m_throttle_min_clock_per_sleep = new_ppc_clock / 1200;
 
-  for (Event& ev : m_event_queue)
+  for (auto& [time, _fifo_order, _userdata, _type] : m_event_queue)
   {
-    const s64 ticks = (ev.time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;
-    ev.time = m_globals.global_timer + ticks;
+    const s64 ticks = (time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;
+    time = m_globals.global_timer + ticks;
   }
 }
 
@@ -483,9 +491,9 @@ std::string CoreTimingManager::GetScheduledEventsSummary() const
 
   auto clone = m_event_queue;
   std::sort(clone.begin(), clone.end());
-  for (const Event& ev : clone)
+  for (const auto& [time, _fifo_order, userdata, type] : clone)
   {
-    text += fmt::format("{} : {} {:016x}\n", *ev.type->name, ev.time, ev.userdata);
+    text += fmt::format("{} : {} {:016x}\n", *type->name, time, userdata);
   }
   return text;
 }

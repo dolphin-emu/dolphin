@@ -277,15 +277,15 @@ void NetPlayServer::ThreadFunc()
       {
         std::lock_guard lkp(m_crit.players);
         INFO_LOG_FMT(NETPLAY, "Locked player mutex.");
-        auto& e = m_async_queue.Front();
-        if (e.target_mode == TargetMode::Only)
+        auto& [packet, target_pid, target_mode, channel_id] = m_async_queue.Front();
+        if (target_mode == TargetMode::Only)
         {
-          if (m_players.contains(e.target_pid))
-            Send(m_players.at(e.target_pid).socket, e.packet, e.channel_id);
+          if (m_players.contains(target_pid))
+            Send(m_players.at(target_pid).socket, packet, channel_id);
         }
         else
         {
-          SendToClients(e.packet, e.target_pid, e.channel_id);
+          SendToClients(packet, target_pid, channel_id);
         }
       }
       INFO_LOG_FMT(NETPLAY, "Processing async queue event done.");
@@ -405,10 +405,11 @@ void NetPlayServer::ThreadFunc()
   INFO_LOG_FMT(NETPLAY, "NetPlayServer shutting down.");
 
   // close listening socket and client sockets
-  for (const auto& val : m_players | std::views::values)
+  for (const auto& [_pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma, socket,
+    _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    ClearPeerPlayerId(val.socket);
-    enet_peer_disconnect(val.socket, 0);
+    ClearPeerPlayerId(socket);
+    enet_peer_disconnect(socket, 0);
   }
   m_players.clear();
 }
@@ -482,13 +483,12 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
 
   SendResponseToPlayer(new_player, MessageID::HostInputAuthority, m_host_input_authority);
 
-  for (const auto& val : m_players | std::views::values)
+  for (const auto& [pid, name, revision, game_status, _has_ipl_dump, _has_hardware_fma, _socket,
+    _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    SendResponseToPlayer(new_player, MessageID::PlayerJoin, val.pid,
-                         val.name, val.revision);
+    SendResponseToPlayer(new_player, MessageID::PlayerJoin, pid, name, revision);
 
-    SendResponseToPlayer(new_player, MessageID::GameStatus, val.pid,
-                         static_cast<u8>(val.game_status));
+    SendResponseToPlayer(new_player, MessageID::GameStatus, pid, static_cast<u8>(game_status));
   }
 
   if (Get(Config::NETPLAY_ENABLE_QOS))
@@ -606,11 +606,11 @@ void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, const bool upda
   {
     for (size_t i = 0; i < m_gba_config.size(); ++i)
     {
-      auto& config = m_gba_config[i];
-      if (!config.enabled)
+      auto& [enabled, has_rom, title, hash] = m_gba_config[i];
+      if (!enabled)
         continue;
       std::string rom_path = Get(Config::MAIN_GBA_ROM_PATHS[i]);
-      config.has_rom = HW::GBA::Core::GetRomInfo(rom_path.c_str(), config.hash, config.title);
+      has_rom = HW::GBA::Core::GetRomInfo(rom_path.c_str(), hash, title);
     }
   }
 #endif
@@ -641,10 +641,10 @@ void NetPlayServer::UpdateGBAConfig()
 {
   sf::Packet spac;
   spac << MessageID::GBAConfig;
-  for (const auto& config : m_gba_config)
+  for (const auto& [enabled, has_rom, title, hash] : m_gba_config)
   {
-    spac << config.enabled << config.has_rom << config.title;
-    for (auto& data : config.hash)
+    spac << enabled << has_rom << title;
+    for (auto& data : hash)
       spac << data;
   }
   SendToClients(spac);
@@ -1060,14 +1060,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
           }))
       {
         int pid_to_blame = 0;
-        for (auto pair : timebases)
+        for (auto [fst, snd] : timebases)
         {
           if (std::ranges::all_of(timebases, [&](const std::pair<PlayerId, u64> other) {
-                return other.first == pair.first || other.second != pair.second;
+                return other.first == fst || other.second != snd;
               }))
           {
             // we are the only outlier
-            pid_to_blame = pair.first;
+            pid_to_blame = fst;
             break;
           }
         }
@@ -1772,8 +1772,8 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
 
   for (size_t i = 0; i < m_gba_config.size(); ++i)
   {
-    const auto& config = m_gba_config[i];
-    if (config.enabled && config.has_rom)
+    const auto& [enabled, has_rom, _title, _hash] = m_gba_config[i];
+    if (enabled && has_rom)
     {
       INFO_LOG_FMT(NETPLAY, "Adding GBA save in slot {}.", i);
       ++sync_info.save_count;
@@ -1950,16 +1950,16 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
           pac << byte;
 
         // Files
-        for (const WiiSave::Storage::SaveFile& file : *files)
+        for (const auto& [mode, attributes, type, path, file_data] : *files)
         {
           INFO_LOG_FMT(NETPLAY, "Sending Wii save data of type {} at {}",
-                       static_cast<u8>(file.type), file.path);
+                       static_cast<u8>(type), path);
 
-          pac << file.mode << file.attributes << file.type << file.path;
+          pac << mode << attributes << type << path;
 
-          if (file.type == WiiSave::Storage::SaveFile::Type::File)
+          if (type == WiiSave::Storage::SaveFile::Type::File)
           {
-            const std::optional<std::vector<u8>>& data = *file.data;
+            const std::optional<std::vector<u8>>& data = *file_data;
             if (!data || !CompressBufferIntoPacket(*data, pac))
               return false;
           }
@@ -2070,9 +2070,9 @@ bool NetPlayServer::SyncCodes()
     for (const Gecko::GeckoCode& active_code : s_active_codes)
     {
       INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
-      for (const Gecko::GeckoCode::Code& code : active_code.codes)
+      for (const auto& [address, data, _original_line] : active_code.codes)
       {
-        INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", code.address, code.data);
+        INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", address, data);
         codelines++;
       }
     }
@@ -2098,11 +2098,11 @@ bool NetPlayServer::SyncCodes()
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
-        for (const Gecko::GeckoCode::Code& code : active_code.codes)
+        for (const auto& [address, data, _original_line] : active_code.codes)
         {
-          INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", code.address, code.data);
-          pac << code.address;
-          pac << code.data;
+          INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", address, data);
+          pac << address;
+          pac << data;
         }
       }
       SendAsyncToClients(std::move(pac));
@@ -2117,10 +2117,10 @@ bool NetPlayServer::SyncCodes()
 
     // Determine Codelist Size
     u16 codelines = 0;
-    for (const ActionReplay::ARCode& active_code : s_active_codes)
+    for (const auto& [name, ops, _enabled, _default_enabled, _user_defined] : s_active_codes)
     {
-      INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
-      for (const ActionReplay::AREntry& op : active_code.ops)
+      INFO_LOG_FMT(NETPLAY, "Indexing {}", name);
+      for (const ActionReplay::AREntry& op : ops)
       {
         INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
         codelines++;
@@ -2145,10 +2145,10 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
-      for (const ActionReplay::ARCode& active_code : s_active_codes)
+      for (const auto& [name, ops, _enabled, _default_enabled, _user_defined] : s_active_codes)
       {
-        INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
-        for (const ActionReplay::AREntry& op : active_code.ops)
+        INFO_LOG_FMT(NETPLAY, "Sending {}", name);
+        for (const ActionReplay::AREntry& op : ops)
         {
           INFO_LOG_FMT(NETPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
           pac << op.cmd_addr;
@@ -2187,11 +2187,12 @@ u64 NetPlayServer::GetInitialNetPlayRTC()
 void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid,
                                   const u8 channel_id)
 {
-  for (const auto& val : m_players | std::views::values)
+  for (const auto& [pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma, socket,
+         _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    if (val.pid && val.pid != skip_pid)
+    if (pid && pid != skip_pid)
     {
-      Send(val.socket, packet, channel_id);
+      Send(socket, packet, channel_id);
     }
   }
 }
@@ -2203,11 +2204,12 @@ void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 ch
 
 void NetPlayServer::KickPlayer(const PlayerId player) const
 {
-  for (const auto& val : m_players | std::views::values)
+  for (const auto& [pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma, socket,
+         _ping, _current_game, _qos_session] : m_players | std::views::values)
   {
-    if (val.pid == player)
+    if (pid == player)
     {
-      enet_peer_disconnect(val.socket, 0);
+      enet_peer_disconnect(socket, 0);
       return;
     }
   }
@@ -2281,8 +2283,8 @@ u16 NetPlayServer::GetPort() const
 std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
 {
   std::unordered_set<std::string> result;
-  for (const auto& list_entry : GetInterfaceListInternal())
-    result.emplace(list_entry.first);
+  for (const auto& [fst, _snd] : GetInterfaceListInternal())
+    result.emplace(fst);
   return result;
 }
 
@@ -2293,11 +2295,11 @@ std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
   fmt::format_to_n(buf, sizeof(buf) - 1, ":{}", GetPort());
 
   const auto lst = GetInterfaceListInternal();
-  for (const auto& list_entry : lst)
+  for (const auto& [fst, snd] : lst)
   {
-    if (list_entry.first == inter)
+    if (fst == inter)
     {
-      return list_entry.second + buf;
+      return snd + buf;
     }
   }
   return "?";
@@ -2365,23 +2367,24 @@ void NetPlayServer::ChunkedDataThreadFunc()
         return;
       if (m_abort_chunked_data)
         break;
-      auto& e = m_chunked_data_queue.Front();
+      auto& [packet, target_pid, target_mode, title] = m_chunked_data_queue.Front();
       const u32 id = m_next_chunked_data_id++;
 
       m_chunked_data_complete_count[id] = 0;
       size_t player_count;
       {
         std::vector<int> players;
-        if (e.target_mode == TargetMode::Only)
+        if (target_mode == TargetMode::Only)
         {
-          players.push_back(e.target_pid);
+          players.push_back(target_pid);
         }
         else
         {
-          for (const auto& val : m_players | std::views::values)
+          for (const auto& [pid, _name, _revision, _game_status, _has_ipl_dump, _has_hardware_fma,
+                 _socket, _ping, _current_game, _qos_session] : m_players | std::views::values)
           {
-            if (val.pid != target_pid)
-              players.push_back(val.pid);
+            if (pid != target_pid)
+              players.push_back(pid);
           }
         }
         player_count = players.size();
@@ -2391,12 +2394,12 @@ void NetPlayServer::ChunkedDataThreadFunc()
 
         sf::Packet pac;
         pac << MessageID::ChunkedDataStart;
-        pac << id << e.title << sf::Uint64{e.packet.getDataSize()};
+        pac << id << title << sf::Uint64{packet.getDataSize()};
 
-        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+        ChunkedDataSend(std::move(pac), target_pid, target_mode);
 
-        if (e.target_mode == TargetMode::AllExcept && e.target_pid == 1)
-          m_dialog->ShowChunkedProgressDialog(e.title, e.packet.getDataSize(), players);
+        if (target_mode == TargetMode::AllExcept && target_pid == 1)
+          m_dialog->ShowChunkedProgressDialog(title, packet.getDataSize(), players);
       }
 
       const bool enable_limit = Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
@@ -2416,12 +2419,12 @@ void NetPlayServer::ChunkedDataThreadFunc()
           sf::Packet pac;
           pac << MessageID::ChunkedDataAbort;
           pac << id;
-          ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+          ChunkedDataSend(std::move(pac), target_pid, target_mode);
           break;
         }
-        if (e.target_mode == TargetMode::Only)
+        if (target_mode == TargetMode::Only)
         {
-          if (!m_players.contains(e.target_pid))
+          if (!m_players.contains(target_pid))
           {
             skip_wait = true;
             break;
@@ -2433,13 +2436,13 @@ void NetPlayServer::ChunkedDataThreadFunc()
         sf::Packet pac;
         pac << MessageID::ChunkedDataPayload;
         pac << id;
-        size_t len = std::min(CHUNKED_DATA_UNIT_SIZE, e.packet.getDataSize() - index);
-        pac.append(static_cast<const u8*>(e.packet.getData()) + index, len);
+        size_t len = std::min(CHUNKED_DATA_UNIT_SIZE, packet.getDataSize() - index);
+        pac.append(static_cast<const u8*>(packet.getData()) + index, len);
 
         INFO_LOG_FMT(NETPLAY, "Sending data chunk of {} ({} bytes at {}/{}).", id, len, index,
-                     e.packet.getDataSize());
+                     packet.getDataSize());
 
-        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+        ChunkedDataSend(std::move(pac), target_pid, target_mode);
         index += CHUNKED_DATA_UNIT_SIZE;
 
         if (enable_limit)
@@ -2447,7 +2450,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
           std::chrono::duration<double> delta = std::chrono::steady_clock::now() - start;
           std::this_thread::sleep_for(send_interval - delta);
         }
-      } while (index < e.packet.getDataSize());
+      } while (index < packet.getDataSize());
 
       if (!m_abort_chunked_data)
       {
@@ -2456,7 +2459,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         sf::Packet pac;
         pac << MessageID::ChunkedDataEnd;
         pac << id;
-        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+        ChunkedDataSend(std::move(pac), target_pid, target_mode);
       }
 
       while (m_chunked_data_complete_count[id] < player_count && m_do_loop &&

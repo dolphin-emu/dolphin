@@ -289,31 +289,32 @@ void DVDThread::FinishRead(const u64 id, const s64 cycles_late)
   }
   // We have now obtained the right ReadResult.
 
-  const ReadRequest& request = result.first;
+  const auto& [copy_to_ram, output_address, dvd_offset, length, _partition, reply_type, _id,
+    time_started_ticks, realtime_started_us, realtime_done_us] = result.first;
   const std::vector<u8>& buffer = result.second;
 
   DEBUG_LOG_FMT(DVDINTERFACE,
                 "Disc has been read. Real time: {} us. "
                 "Real time including delay: {} us. "
                 "Emulated time including delay: {} us.",
-                request.realtime_done_us - request.realtime_started_us,
-                Common::Timer::NowUs() - request.realtime_started_us,
-                (m_system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
+                realtime_done_us - realtime_started_us,
+                Common::Timer::NowUs() - realtime_started_us,
+                (m_system.GetCoreTiming().GetTicks() - time_started_ticks) /
                     (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
 
   auto& dvd_interface = m_system.GetDVDInterface();
   DIInterruptType interrupt;
-  if (buffer.size() != request.length)
+  if (buffer.size() != length)
   {
-    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
-                   request.dvd_offset + request.length);
+    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", dvd_offset,
+                   dvd_offset + length);
 
     dvd_interface.SetDriveError(DriveError::ReadError);
     interrupt = DIInterruptType::DEINT;
   }
   else
   {
-    if (request.copy_to_ram)
+    if (copy_to_ram)
     {
       const auto& memory = m_system.GetMemory();
       memory.CopyToEmu(request.output_address, buffer.data(), request.length);
@@ -323,7 +324,7 @@ void DVDThread::FinishRead(const u64 id, const s64 cycles_late)
   }
 
   // Notify the emulated software that the command has been executed
-  dvd_interface.FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
+  dvd_interface.FinishExecutingCommand(reply_type, interrupt, cycles_late, buffer);
 }
 
 void DVDThread::DVDThreadMain()

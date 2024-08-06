@@ -14,10 +14,10 @@ namespace DX11
 {
 PerfQuery::PerfQuery() : m_query_read_pos()
 {
-  for (ActiveQuery& entry : m_query_buffer)
+  for (auto& [query, _query_group] : m_query_buffer)
   {
     D3D11_QUERY_DESC qdesc = CD3D11_QUERY_DESC(D3D11_QUERY_OCCLUSION, 0);
-    D3D::device->CreateQuery(&qdesc, &entry.query);
+    D3D::device->CreateQuery(&qdesc, &query);
   }
 
   ResetQuery();
@@ -47,10 +47,11 @@ void PerfQuery::EnableQuery(const PerfQueryGroup group)
   // start query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    auto& entry = m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
+    auto& [query, query_group] =
+      m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
 
-    D3D::context->Begin(entry.query.Get());
-    entry.query_group = group;
+    D3D::context->Begin(query.Get());
+    query_group = group;
 
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
@@ -61,10 +62,10 @@ void PerfQuery::DisableQuery(const PerfQueryGroup group)
   // stop query
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    const auto& entry = m_query_buffer[(m_query_read_pos + m_query_count.load(std::memory_order_relaxed) +
-                                        m_query_buffer.size() - 1) %
-                                       m_query_buffer.size()];
-    D3D::context->End(entry.query.Get());
+    const auto& [query, _query_group] = m_query_buffer[
+      (m_query_read_pos + m_query_count.load(std::memory_order_relaxed) + m_query_buffer.size() - 1)
+      % m_query_buffer.size()];
+    D3D::context->End(query.Get());
   }
 }
 
@@ -102,14 +103,14 @@ u32 PerfQuery::GetQueryResult(const PerfQueryType type)
 
 void PerfQuery::FlushOne()
 {
-  const auto& entry = m_query_buffer[m_query_read_pos];
+  const auto& [query, query_group] = m_query_buffer[m_query_read_pos];
 
   UINT64 result = 0;
   HRESULT hr = S_FALSE;
   while (hr != S_OK)
   {
     // TODO: Might cause us to be stuck in an infinite loop!
-    hr = D3D::context->GetData(entry.query.Get(), &result, sizeof(result), 0);
+    hr = D3D::context->GetData(query.Get(), &result, sizeof(result), 0);
   }
 
   // NOTE: Reported pixel metrics should be referenced to native resolution
@@ -119,7 +120,7 @@ void PerfQuery::FlushOne()
                           g_framebuffer_manager->GetEFBHeight();
   if (g_ActiveConfig.iMultisamples > 1)
     native_res_result /= g_ActiveConfig.iMultisamples;
-  m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+  m_results[query_group].fetch_add(static_cast<u32>(native_res_result),
                                          std::memory_order_relaxed);
 
   m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
@@ -137,10 +138,10 @@ void PerfQuery::WeakFlush()
 {
   while (!IsFlushed())
   {
-    auto& entry = m_query_buffer[m_query_read_pos];
+    auto& [query, query_group] = m_query_buffer[m_query_read_pos];
 
     UINT64 result = 0;
-    const HRESULT hr = D3D::context->GetData(entry.query.Get(), &result, sizeof(result),
+    const HRESULT hr = D3D::context->GetData(query.Get(), &result, sizeof(result),
                                              D3D11_ASYNC_GETDATA_DONOTFLUSH);
 
     if (hr == S_OK)
@@ -148,7 +149,7 @@ void PerfQuery::WeakFlush()
       // NOTE: Reported pixel metrics should be referenced to native resolution
       const u64 native_res_result = result * EFB_WIDTH / g_framebuffer_manager->GetEFBWidth() *
                                     EFB_HEIGHT / g_framebuffer_manager->GetEFBHeight();
-      m_results[entry.query_group].store(static_cast<u32>(native_res_result),
+      m_results[query_group].store(static_cast<u32>(native_res_result),
                                          std::memory_order_relaxed);
 
       m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();

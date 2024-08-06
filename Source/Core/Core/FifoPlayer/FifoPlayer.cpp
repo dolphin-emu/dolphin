@@ -84,7 +84,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
 
   for (u32 frame_no = 0; frame_no < file->GetFrameCount(); frame_no++)
   {
-    const FifoFrameInfo& frame = file->GetFrame(frame_no);
+    const auto& [fifoData, _fifoStart, _fifoEnd, _memoryUpdates] = file->GetFrame(frame_no);
     AnalyzedFrameInfo& analyzed = frame_info[frame_no];
 
     u32 offset = 0;
@@ -92,10 +92,10 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
     u32 part_start = 0;
     CPState cpmem;
 
-    while (offset < frame.fifoData.size())
+    while (offset < fifoData.size())
     {
-      const u32 cmd_size = RunCommand(&frame.fifoData[offset],
-                                                     static_cast<u32>(frame.fifoData.size()) - offset, analyzer);
+      const u32 cmd_size = RunCommand(&fifoData[offset],
+                                                     static_cast<u32>(fifoData.size()) - offset, analyzer);
 
       if (analyzer.m_start_of_primitives)
       {
@@ -126,8 +126,8 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
     }
 
     // The frame should end with an EFB copy, so part_start should have been updated to the end.
-    ASSERT(part_start == frame.fifoData.size());
-    ASSERT(offset == frame.fifoData.size());
+    ASSERT(part_start == fifoData.size());
+    ASSERT(offset == fifoData.size());
   }
 }
 
@@ -343,9 +343,9 @@ bool FifoPlayer::IsRunningWithFakeVideoInterfaceUpdates() const
 u32 FifoPlayer::GetMaxObjectCount() const
 {
   u32 result = 0;
-  for (auto& frame : m_FrameInfo)
+  for (const auto& [_parts, part_type_counts] : m_FrameInfo)
   {
-    const u32 count = frame.part_type_counts[FramePartType::PrimitiveData];
+    const u32 count = part_type_counts[FramePartType::PrimitiveData];
     if (count > result)
       result = count;
   }
@@ -484,8 +484,8 @@ void FifoPlayer::WriteAllMemoryUpdates() const
 
   for (u32 frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
   {
-    const FifoFrameInfo& frame = m_File->GetFrame(frameNum);
-    for (auto& update : frame.memoryUpdates)
+    const auto& [_fifoData, _fifoStart, _fifoEnd, memoryUpdates] = m_File->GetFrame(frameNum);
+    for (auto& update : memoryUpdates)
     {
       WriteMemory(update);
     }
@@ -513,7 +513,10 @@ void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
   const auto& cpu = m_system.GetCPU();
   auto& core_timing = m_system.GetCoreTiming();
   auto& gpfifo = m_system.GetGPFifo();
-  auto& ppc_state = m_system.GetPPCState();
+  auto& [_pc, _npc, gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = m_system.GetPPCState();
 
   // Write up to 256 bytes at a time
   while (written < end)
@@ -528,8 +531,8 @@ void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
 
     const u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
-    std::copy(data + written, data + burstEnd, ppc_state.gather_pipe_ptr);
-    ppc_state.gather_pipe_ptr += burstEnd - written;
+    std::copy(data + written, data + burstEnd, gather_pipe_ptr);
+    gather_pipe_ptr += burstEnd - written;
     written = burstEnd;
 
     gpfifo.Write8(data[written++]);
@@ -539,7 +542,7 @@ void FifoPlayer::WriteFifo(const u8* data, const u32 start, const u32 end)
     const u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
     m_ElapsedCycles = elapsedCycles;
 
-    ppc_state.downcount -= cyclesUsed;
+    downcount -= cyclesUsed;
     core_timing.Advance();
   }
 }
@@ -549,16 +552,16 @@ void FifoPlayer::SetupFifo() const
   WriteCP(CommandProcessor::CTRL_REGISTER, 0);   // disable read, BP, interrupts
   WriteCP(CommandProcessor::CLEAR_REGISTER, 7);  // clear overflow, underflow, metrics
 
-  const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
+  const auto& [_fifoData, fifoStart, fifoEnd, _memoryUpdates] = m_File->GetFrame(m_CurrentFrame);
 
   // Set fifo bounds
-  WriteCP(CommandProcessor::FIFO_BASE_LO, frame.fifoStart);
-  WriteCP(CommandProcessor::FIFO_BASE_HI, frame.fifoStart >> 16);
-  WriteCP(CommandProcessor::FIFO_END_LO, frame.fifoEnd);
-  WriteCP(CommandProcessor::FIFO_END_HI, frame.fifoEnd >> 16);
+  WriteCP(CommandProcessor::FIFO_BASE_LO, fifoStart);
+  WriteCP(CommandProcessor::FIFO_BASE_HI, fifoStart >> 16);
+  WriteCP(CommandProcessor::FIFO_END_LO, fifoEnd);
+  WriteCP(CommandProcessor::FIFO_END_HI, fifoEnd >> 16);
 
   // Set watermarks, high at 75%, low at 0%
-  const u32 hi_watermark = (frame.fifoEnd - frame.fifoStart) * 3 / 4;
+  const u32 hi_watermark = (fifoEnd - fifoStart) * 3 / 4;
   WriteCP(CommandProcessor::FIFO_HI_WATERMARK_LO, hi_watermark);
   WriteCP(CommandProcessor::FIFO_HI_WATERMARK_HI, hi_watermark >> 16);
   WriteCP(CommandProcessor::FIFO_LO_WATERMARK_LO, 0);
@@ -567,19 +570,19 @@ void FifoPlayer::SetupFifo() const
   // Set R/W pointers to fifo start
   WriteCP(CommandProcessor::FIFO_RW_DISTANCE_LO, 0);
   WriteCP(CommandProcessor::FIFO_RW_DISTANCE_HI, 0);
-  WriteCP(CommandProcessor::FIFO_WRITE_POINTER_LO, frame.fifoStart);
-  WriteCP(CommandProcessor::FIFO_WRITE_POINTER_HI, frame.fifoStart >> 16);
-  WriteCP(CommandProcessor::FIFO_READ_POINTER_LO, frame.fifoStart);
-  WriteCP(CommandProcessor::FIFO_READ_POINTER_HI, frame.fifoStart >> 16);
+  WriteCP(CommandProcessor::FIFO_WRITE_POINTER_LO, fifoStart);
+  WriteCP(CommandProcessor::FIFO_WRITE_POINTER_HI, fifoStart >> 16);
+  WriteCP(CommandProcessor::FIFO_READ_POINTER_LO, fifoStart);
+  WriteCP(CommandProcessor::FIFO_READ_POINTER_HI, fifoStart >> 16);
 
   // Set fifo bounds
-  WritePI(ProcessorInterface::PI_FIFO_BASE, frame.fifoStart);
-  WritePI(ProcessorInterface::PI_FIFO_END, frame.fifoEnd);
+  WritePI(ProcessorInterface::PI_FIFO_BASE, fifoStart);
+  WritePI(ProcessorInterface::PI_FIFO_END, fifoEnd);
 
   // Set write pointer
-  WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
+  WritePI(ProcessorInterface::PI_FIFO_WPTR, fifoStart);
   FlushWGP();
-  WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
+  WritePI(ProcessorInterface::PI_FIFO_WPTR, fifoStart);
 
   WriteCP(CommandProcessor::CTRL_REGISTER, 17);  // enable read & GP link
 }

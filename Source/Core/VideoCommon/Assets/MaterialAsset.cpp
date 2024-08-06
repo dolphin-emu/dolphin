@@ -327,10 +327,10 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
   auto& json_obj = *obj;
 
   picojson::array json_properties;
-  for (const auto& property : data.properties)
+  for (const auto& [m_code_name, m_value] : data.properties)
   {
     picojson::object json_property;
-    json_property["code_name"] = picojson::value{property.m_code_name};
+    json_property["code_name"] = picojson::value{m_code_name};
 
     std::visit(overloaded{[&](const CustomAssetLibrary::AssetID& value) {
                             json_property["type"] = picojson::value{"texture_asset"};
@@ -372,7 +372,7 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
                             json_property["type"] = picojson::value{"bool"};
                             json_property["value"] = picojson::value{value};
                           }},
-               property.m_value);
+               m_value);
 
     json_properties.emplace_back(std::move(json_property));
   }

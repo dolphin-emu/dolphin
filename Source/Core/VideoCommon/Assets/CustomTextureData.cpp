@@ -510,7 +510,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
 
   for (u32 arr_i = 0; arr_i < info.array_size; arr_i++)
   {
-    auto& slice = texture->m_slices.emplace_back();
+    auto& [m_levels] = texture->m_slices.emplace_back();
     // Read first mip level, as it may have a custom pitch.
     CustomTextureData::ArraySlice::Level first_level;
     if (!ReadMipLevel(&first_level, file, filename, 0, info, info.width, info.height,
@@ -519,7 +519,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
       return false;
     }
 
-    slice.m_levels.push_back(std::move(first_level));
+    m_levels.push_back(std::move(first_level));
 
     // Read in any remaining mip levels in the file.
     // If the .dds file does not contain a full mip chain, we'll fall back to the old path.
@@ -540,7 +540,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
                         mip_size))
         break;
 
-      slice.m_levels.push_back(std::move(level));
+      m_levels.push_back(std::move(level));
     }
   }
 

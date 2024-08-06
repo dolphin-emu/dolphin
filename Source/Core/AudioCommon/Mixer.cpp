@@ -278,9 +278,8 @@ void Mixer::PushSamples(const short* samples, const unsigned int num_samples)
   if (m_log_dsp_audio)
   {
     const int sample_rate_divisor = m_dma_mixer.GetInputSampleRateDivisor();
-    const auto volume = m_dma_mixer.GetVolume();
-    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
-                                         volume.second);
+    const auto [fst, snd] = m_dma_mixer.GetVolume();
+    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, fst, snd);
   }
 }
 
@@ -290,9 +289,8 @@ void Mixer::PushStreamingSamples(const short* samples, const unsigned int num_sa
   if (m_log_dtk_audio)
   {
     const int sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
-    const auto volume = m_streaming_mixer.GetVolume();
-    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
-                                         volume.second);
+    const auto [fst, snd] = m_streaming_mixer.GetVolume();
+    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, fst, snd);
   }
 }
 

@@ -588,8 +588,8 @@ std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
 {
   std::vector<std::array<u8, 20>> hashes;
   hashes.reserve(m_entries.size());
-  for (const auto& content_entry : m_entries)
-    hashes.emplace_back(content_entry.sha1);
+  for (const auto& [_id, sha1] : m_entries)
+    hashes.emplace_back(sha1);
 
   return hashes;
 }

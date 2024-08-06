@@ -226,9 +226,9 @@ static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcod
   lines.push_back(MakeGeckoCodeTitle(gcode));
 
   // save all the code lines
-  for (const GeckoCode::Code& code : gcode.codes)
+  for (const auto& [_address, _data, original_line] : gcode.codes)
   {
-    lines.push_back(code.original_line);
+    lines.push_back(original_line);
   }
 
   // save the notes

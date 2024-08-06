@@ -30,25 +30,25 @@ VertexShaderUid GetVertexShaderUid()
   // transform texcoords
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
-    auto& texinfo = uid_data->texMtxInfo[i];
+    auto& [inputform, texgentype, sourcerow, embosssourceshift, embosslightshift] = uid_data->texMtxInfo[i];
 
-    texinfo.sourcerow = xfmem.texMtxInfo[i].sourcerow;
-    texinfo.texgentype = xfmem.texMtxInfo[i].texgentype;
-    texinfo.inputform = xfmem.texMtxInfo[i].inputform;
+    sourcerow = xfmem.texMtxInfo[i].sourcerow;
+    texgentype = xfmem.texMtxInfo[i].texgentype;
+    inputform = xfmem.texMtxInfo[i].inputform;
 
     // first transformation
-    switch (texinfo.texgentype)
+    switch (texgentype)
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
       if ((uid_data->components & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
       {
         // transform the light dir into tangent space
-        texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+        embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
+        embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       }
       else
       {
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+        embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       }
       break;
     case TexGenType::Color0:
@@ -63,11 +63,11 @@ VertexShaderUid GetVertexShaderUid()
 
     uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
+    if (uid_data->dualTexTrans_enabled && texgentype == TexGenType::Regular)
     {
-      auto& postInfo = uid_data->postMtxInfo[i];
-      postInfo.index = xfmem.postMtxInfo[i].index;
-      postInfo.normalize = xfmem.postMtxInfo[i].normalize;
+      auto& [index, normalize, _pad] = uid_data->postMtxInfo[i];
+      index = xfmem.postMtxInfo[i].index;
+      normalize = xfmem.postMtxInfo[i].normalize;
     }
   }
 
@@ -376,11 +376,12 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
   out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
-    auto& texinfo = uid_data->texMtxInfo[i];
+    const auto& [inputform, texgentype, sourcerow, embosssourceshift, embosslightshift] =
+      uid_data->texMtxInfo[i];
 
     out.Write("{{\n");
     out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
-    switch (texinfo.sourcerow)
+    switch (sourcerow)
     {
     case SourceRow::Geom:
       out.Write("coord.xyz = rawpos.xyz;\n");
@@ -392,7 +393,7 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
       }
       break;
     case SourceRow::Colors:
-      ASSERT(texinfo.texgentype == TexGenType::Color0 || texinfo.texgentype == TexGenType::Color1);
+      ASSERT(texgentype == TexGenType::Color0 || texgentype == TexGenType::Color1);
       break;
     case SourceRow::BinormalT:
       if ((uid_data->components & VB_HAS_TANGENT) != 0)
@@ -407,8 +408,8 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
       }
       break;
     default:
-      ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
-      u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
+      ASSERT(sourcerow >= SourceRow::Tex0 && sourcerow <= SourceRow::Tex7);
+      u32 texnum = static_cast<u32>(sourcerow) - static_cast<u32>(SourceRow::Tex0);
       if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
       {
         out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
@@ -417,7 +418,7 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
     }
     // Input form of AB11 sets z element to 1.0
 
-    if (texinfo.inputform == TexInputForm::AB11)
+    if (inputform == TexInputForm::AB11)
       out.Write("coord.z = 1.0;\n");
 
     // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
@@ -428,16 +429,16 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
     out.Write("if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
     // first transformation
-    switch (texinfo.texgentype)
+    switch (texgentype)
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
       // transform the light dir into tangent space
       out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+                LIGHT_POS_PARAMS(embosslightshift));
       out.Write(
           "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
-          i, texinfo.embosssourceshift);
+          i, embosssourceshift);
 
       break;
     case TexGenType::Color0:
@@ -485,16 +486,16 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
     }
 
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
+    if (uid_data->dualTexTrans_enabled && texgentype == TexGenType::Regular)
     {
-      auto& postInfo = uid_data->postMtxInfo[i];
+      const auto& [index, normalize, _pad] = uid_data->postMtxInfo[i];
 
       out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                 "float4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                 "float4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
-                postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
+                index & 0x3f, (index + 1) & 0x3f, (index + 2) & 0x3f);
 
-      if (postInfo.normalize)
+      if (normalize)
         out.Write("o.tex{}.xyz = normalize(o.tex{}.xyz);\n", i, i);
 
       // multiply by postmatrix
@@ -508,7 +509,7 @@ ShaderCode GenerateVertexShaderCode(const APIType api_type, const ShaderHostConf
     // This can be seen in devkitPro's neheGX Lesson08 example for Wii
     // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
     // TODO: check if this only affects XF_TEXGEN_REGULAR
-    if (texinfo.texgentype == TexGenType::Regular)
+    if (texgentype == TexGenType::Regular)
     {
       out.Write(
           "if(o.tex{0}.z == 0.0f)\n"

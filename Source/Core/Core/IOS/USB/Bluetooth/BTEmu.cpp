@@ -410,20 +410,16 @@ void BluetoothEmuDevice::ACLPool::Store(const u8* data, const u16 size, const u1
   DEBUG_ASSERT_MSG(IOS_WIIMOTE, size < ACL_PKT_SIZE, "ACL packet too large for pool");
 
   m_queue.push_back(Packet());
-  auto& packet = m_queue.back();
+  auto& [packet_data, packet_size, packet_conn_handle] = m_queue.back();
 
-  std::copy(data, data + size, packet.data);
-  packet.size = size;
-  packet.conn_handle = conn_handle;
+  std::copy(data, data + size, packet_data);
+  packet_size = size;
+  packet_conn_handle = conn_handle;
 }
 
 void BluetoothEmuDevice::ACLPool::WriteToEndpoint(const USB::V0BulkMessage& endpoint)
 {
-  const auto& packet = m_queue.front();
-
-  const u8* const data = packet.data;
-  const u16 size = packet.size;
-  const u16 conn_handle = packet.conn_handle;
+  const auto& [data, size, conn_handle] = m_queue.front();
 
   DEBUG_LOG_FMT(IOS_WIIMOTE, "ACL packet being written from queue to {:08x}",
                 endpoint.ios_request.address);

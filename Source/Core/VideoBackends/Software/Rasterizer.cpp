@@ -164,7 +164,7 @@ static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT_ZCOMPLOC);
   }
 
-  const RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
+  const auto& [_InvW, Uv] = rasterBlock.Pixel[xi][yi];
 
   tev.Position[0] = x;
   tev.Position[1] = y;
@@ -188,8 +188,8 @@ static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
   for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
   {
     // multiply by 128 because TEV stores UVs as s17.7
-    tev.Uv[i].s = static_cast<s32>(pixel.Uv[i][0] * 128);
-    tev.Uv[i].t = static_cast<s32>(pixel.Uv[i][1] * 128);
+    tev.Uv[i].s = static_cast<s32>(Uv[i][0] * 128);
+    tev.Uv[i].t = static_cast<s32>(Uv[i][1] * 128);
   }
 
   for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
@@ -207,14 +207,12 @@ static void Draw(const s32 x, const s32 y, const s32 xi, const s32 yi)
   tev.Draw();
 }
 
+// LOD calculation requires data from the texture mode for bias, etc.
+// it does not seem to use the actual texture size
 static inline void CalculateLOD(s32* lodp, bool* linear, const u32 texmap, const u32 texcoord)
 {
-  const auto texUnit = bpmem.tex.GetUnit(texmap);
-
-  // LOD calculation requires data from the texture mode for bias, etc.
-  // it does not seem to use the actual texture size
-  const TexMode0& tm0 = texUnit.texMode0;
-  const TexMode1& tm1 = texUnit.texMode1;
+  const auto [tm0, tm1, texImage0, texImage1, texImage2, texImage3, texTlut, unknown] =
+    bpmem.tex.GetUnit(texmap);
 
   float sDelta, tDelta;
 
@@ -264,13 +262,13 @@ static void BuildBlock(const s32 blockX, const s32 blockY)
   {
     for (s32 xi = 0; xi < BLOCK_SIZE; xi++)
     {
-      RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
+      auto& [InvW, Uv] = rasterBlock.Pixel[xi][yi];
 
       const s32 x = xi + blockX;
       const s32 y = yi + blockY;
 
       const float invW = 1.0f / WSlope.GetValue(x, y);
-      pixel.InvW = invW;
+      InvW = invW;
 
       // tex coords
       for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
@@ -280,8 +278,8 @@ static void BuildBlock(const s32 blockX, const s32 blockY)
         if (q != 0.0f)
           projection = invW / q;
 
-        pixel.Uv[i][0] = TexSlopes[i][0].GetValue(x, y) * projection;
-        pixel.Uv[i][1] = TexSlopes[i][1].GetValue(x, y) * projection;
+        Uv[i][0] = TexSlopes[i][0].GetValue(x, y) * projection;
+        Uv[i][1] = TexSlopes[i][1].GetValue(x, y) * projection;
       }
     }
   }

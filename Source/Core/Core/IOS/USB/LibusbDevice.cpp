@@ -95,11 +95,11 @@ std::vector<InterfaceDescriptor> LibusbDevice::GetInterfaces(const u8 config) co
   }
   for (u8 i = 0; i < m_config_descriptors[config]->bNumInterfaces; ++i)
   {
-    const libusb_interface& interface = m_config_descriptors[config]->interface[i];
-    for (u8 a = 0; a < interface.num_altsetting; ++a)
+    const auto& [altsetting, num_altsetting] = m_config_descriptors[config]->interface[i];
+    for (u8 a = 0; a < num_altsetting; ++a)
     {
       InterfaceDescriptor descriptor;
-      std::memcpy(&descriptor, &interface.altsetting[a], sizeof(descriptor));
+      std::memcpy(&descriptor, &altsetting[a], sizeof(descriptor));
       descriptors.push_back(descriptor);
     }
   }
@@ -116,13 +116,15 @@ LibusbDevice::GetEndpoints(const u8 config, const u8 interface_number, const u8 
     return descriptors;
   }
   ASSERT(interface_number < m_config_descriptors[config]->bNumInterfaces);
-  const auto& interface = m_config_descriptors[config]->interface[interface_number];
-  ASSERT(alt_setting < interface.num_altsetting);
-  const libusb_interface_descriptor& interface_descriptor = interface.altsetting[alt_setting];
-  for (u8 i = 0; i < interface_descriptor.bNumEndpoints; ++i)
+  const auto& [altsetting, num_altsetting] = m_config_descriptors[config]->interface[interface_number];
+  ASSERT(alt_setting < num_altsetting);
+  const auto& [_bLength, _bDescriptorType, _bInterfaceNumber, _bAlternateSetting, bNumEndpoints,
+    _bInterfaceClass, _bInterfaceSubClass, _bInterfaceProtocol, _iInterface, endpoint, _extra,
+    _extra_length] = altsetting[alt_setting];
+  for (u8 i = 0; i < bNumEndpoints; ++i)
   {
     EndpointDescriptor descriptor;
-    std::memcpy(&descriptor, &interface_descriptor.endpoint[i], sizeof(descriptor));
+    std::memcpy(&descriptor, &endpoint[i], sizeof(descriptor));
     descriptors.push_back(descriptor);
   }
   return descriptors;
@@ -412,8 +414,8 @@ void LibusbDevice::TransferEndpoint::CancelTransfers()
   if (m_transfers.empty())
     return;
   INFO_LOG_FMT(IOS_USB, "Cancelling {} transfer(s)", m_transfers.size());
-  for (const auto& pending_transfer : m_transfers)
-    libusb_cancel_transfer(pending_transfer.first);
+  for (const auto& [fst, _snd] : m_transfers)
+    libusb_cancel_transfer(fst);
 }
 
 int LibusbDevice::GetNumberOfAltSettings(const u8 interface_number)

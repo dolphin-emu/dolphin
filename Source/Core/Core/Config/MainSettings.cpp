@@ -546,8 +546,8 @@ static std::set<std::pair<u16, u16>> LoadUSBWhitelistFromString(const std::strin
 static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>& devices)
 {
   std::ostringstream oss;
-  for (const auto& device : devices)
-    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
+  for (const auto& [fst, snd] : devices)
+    oss << fmt::format("{:04x}:{:04x}", fst, snd) << ',';
   std::string devices_string = oss.str();
   if (!devices_string.empty())
     devices_string.pop_back();

@@ -49,9 +49,9 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
   if (!filters.empty())
   {
     list_url += '?';
-    for (const auto& filter : filters)
+    for (const auto& [fst, snd] : filters)
     {
-      list_url += filter.first + '=' + request.EscapeComponent(filter.second) + '&';
+      list_url += fst + '=' + request.EscapeComponent(snd) + '&';
     }
     list_url.pop_back();
   }

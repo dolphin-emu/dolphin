@@ -190,7 +190,7 @@ static void RestoreSYSCONF()
   // Use a separate loader so the temp layer doesn't automatically save
   ConfigLoaders::GenerateBaseConfigLoader()->Load(&temp_layer);
 
-  for (const auto& setting : Config::SYSCONF_SETTINGS)
+  for (const auto& [config_info, _type] : Config::SYSCONF_SETTINGS)
   {
     std::visit(
         [&](auto* info) {
@@ -199,7 +199,7 @@ static void RestoreSYSCONF()
           if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
             Config::SetBase(*info, temp_layer.Get(*info));
         },
-        setting.config_info);
+        config_info);
   }
   ConfigLoaders::SaveToSYSCONF(Config::LayerType::Base);
 }

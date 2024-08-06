@@ -69,9 +69,9 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
 
   cmdline += " ";
 
-  for (const auto& pair : flags)
+  for (const auto& [fst, snd] : flags)
   {
-    std::string value = "--" + pair.first + "=" + pair.second;
+    std::string value = "--" + fst + "=" + snd;
     value = ReplaceAll(value, "\"", "\\\"");  // Escape double quotes.
     value = "\"" + value + "\" ";
     cmdline += value;

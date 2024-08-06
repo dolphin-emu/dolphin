@@ -58,7 +58,7 @@ namespace WiimoteEmu
 Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationBlocks& blocks) const
 {
   // Each axis may be using either slow or fast calibration.
-  const auto calibration = blocks.GetRelevantCalibration(is_slow);
+  const auto [value, degrees] = blocks.GetRelevantCalibration(is_slow);
 
   // It seems M+ calibration data does not follow the "right-hand rule".
   constexpr auto sign_fix = Common::Vec3(-1, +1, -1);
@@ -66,8 +66,7 @@ Common::Vec3 MotionPlus::DataFormat::Data::GetAngularVelocity(const CalibrationB
   // Adjust deg/s to rad/s.
   constexpr auto scalar = static_cast<float>(MathUtil::TAU / 360);
 
-  return gyro.GetNormalizedValue(calibration.value) * sign_fix * Common::Vec3(calibration.degrees) *
-         scalar;
+  return gyro.GetNormalizedValue(value) * sign_fix * Common::Vec3(degrees) * scalar;
 }
 
 auto MotionPlus::CalibrationBlocks::GetRelevantCalibration(const SlowType is_slow) const
@@ -75,17 +74,20 @@ auto MotionPlus::CalibrationBlocks::GetRelevantCalibration(const SlowType is_slo
 {
   RelevantCalibration result;
 
-  const auto& pitch_block = is_slow.x ? slow : fast;
-  const auto& roll_block = is_slow.y ? slow : fast;
-  const auto& yaw_block = is_slow.z ? slow : fast;
+  const auto& [_pitch_yaw_zero, _pitch_roll_zero, pitch_zero, _pitch_yaw_scale, _pitch_roll_scale,
+    pitch_scale, pitch_degrees_div_6] = is_slow.x ? slow : fast;
+  const auto& [_roll_yaw_zero, roll_zero, _roll_pitch_zero, _roll_yaw_scale, roll_scale,
+    _roll_pitch_scale, roll_degrees_div_6] = is_slow.y ? slow : fast;
+  const auto& [yaw_zero, _yaw_roll_zero, _yaw_pitch_zero, yaw_scale, _yaw_roll_scale,
+    _yaw_pitch_scale, yaw_degrees_div_6] = is_slow.z ? slow : fast;
 
-  result.value.max = {pitch_block.pitch_scale, roll_block.roll_scale, yaw_block.yaw_scale};
+  result.value.max = {pitch_scale, roll_scale, yaw_scale};
 
-  result.value.zero = {pitch_block.pitch_zero, roll_block.roll_zero, yaw_block.yaw_zero};
+  result.value.zero = {pitch_zero, roll_zero, yaw_zero};
 
-  result.degrees.x = pitch_block.degrees_div_6 * 6;
-  result.degrees.y = roll_block.degrees_div_6 * 6;
-  result.degrees.z = yaw_block.degrees_div_6 * 6;
+  result.degrees.x = pitch_degrees_div_6 * 6;
+  result.degrees.y = roll_degrees_div_6 * 6;
+  result.degrees.z = yaw_degrees_div_6 * 6;
 
   return result;
 }

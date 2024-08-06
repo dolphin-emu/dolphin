@@ -535,11 +535,11 @@ void GCMemcardManager::ImportFiles(const Slot slot,
         tr("At least two of the selected save files have the same internal filename."));
   }
 
-  for (const Memcard::Savefile& savefile : savefiles)
+  for (const auto& [dir_entry, _blocks] : savefiles)
   {
-    if (card->TitlePresent(savefile.dir_entry))
+    if (card->TitlePresent(dir_entry))
     {
-      const std::string filename = GenerateFilename(savefile.dir_entry);
+      const std::string filename = GenerateFilename(dir_entry);
       error_messages.push_back(tr("The target memory card already contains a file \"%1\".")
                                    .arg(QString::fromStdString(filename)));
     }
@@ -732,21 +732,21 @@ void GCMemcardManager::DrawIcons()
       if (it == m_slot_active_icons[slot].end())
         continue;
 
-      const auto& icon = it->second;
+      const auto& [m_frames, m_frame_timing] = it->second;
 
       // this icon doesn't have an animation
-      if (icon.m_frames.size() <= 1)
+      if (m_frames.size() <= 1)
         continue;
 
-      const u64 prev_time_in_animation = (m_current_frame - 1) % icon.m_frame_timing.size();
-      const u8 prev_frame = icon.m_frame_timing[prev_time_in_animation];
-      const u64 current_time_in_animation = m_current_frame % icon.m_frame_timing.size();
-      const u8 current_frame = icon.m_frame_timing[current_time_in_animation];
+      const u64 prev_time_in_animation = (m_current_frame - 1) % m_frame_timing.size();
+      const u8 prev_frame = m_frame_timing[prev_time_in_animation];
+      const u64 current_time_in_animation = m_current_frame % m_frame_timing.size();
+      const u8 current_frame = m_frame_timing[current_time_in_animation];
 
       if (prev_frame == current_frame)
         continue;
 
-      item->setData(Qt::DecorationRole, icon.m_frames[current_frame]);
+      item->setData(Qt::DecorationRole, m_frames[current_frame]);
     }
   }
 

@@ -80,13 +80,17 @@ static void AdvanceAndCheck(const Core::System& system, const u32 idx, const int
   s_expected_callback = CB_IDS[idx];
   s_lateness = expected_lateness;
 
-  auto& ppc_state = system.GetPPCState();
-  ppc_state.downcount = cpu_downcount;  // Pretend we executed X cycles of instructions.
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, ppc_state_downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, y_m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
+  ppc_state_downcount = cpu_downcount;  // Pretend we executed X cycles of instructions.
   auto& core_timing = system.GetCoreTiming();
   core_timing.Advance();
 
   EXPECT_EQ(decltype(s_callbacks_ran_flags)().set(idx), s_callbacks_ran_flags);
-  EXPECT_EQ(downcount, ppc_state.downcount);
+  EXPECT_EQ(downcount, ppc_state_downcount);
 }
 
 TEST(CoreTiming, BasicOrder)
@@ -97,7 +101,11 @@ TEST(CoreTiming, BasicOrder)
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  const auto& ppc_state = system.GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -110,15 +118,15 @@ TEST(CoreTiming, BasicOrder)
 
   // D -> B -> C -> A -> E
   core_timing.ScheduleEvent(1000, cb_a, CB_IDS[0]);
-  EXPECT_EQ(1000, ppc_state.downcount);
+  EXPECT_EQ(1000, downcount);
   core_timing.ScheduleEvent(500, cb_b, CB_IDS[1]);
-  EXPECT_EQ(500, ppc_state.downcount);
+  EXPECT_EQ(500, downcount);
   core_timing.ScheduleEvent(800, cb_c, CB_IDS[2]);
-  EXPECT_EQ(500, ppc_state.downcount);
+  EXPECT_EQ(500, downcount);
   core_timing.ScheduleEvent(100, cb_d, CB_IDS[3]);
-  EXPECT_EQ(100, ppc_state.downcount);
+  EXPECT_EQ(100, downcount);
   core_timing.ScheduleEvent(1200, cb_e, CB_IDS[4]);
-  EXPECT_EQ(100, ppc_state.downcount);
+  EXPECT_EQ(100, downcount);
 
   AdvanceAndCheck(system, 3, 400);
   AdvanceAndCheck(system, 1, 300);
@@ -153,7 +161,11 @@ TEST(CoreTiming, SharedSlot)
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  auto& ppc_state = system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", FifoCallback<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", FifoCallback<1>);
@@ -169,14 +181,14 @@ TEST(CoreTiming, SharedSlot)
 
   // Enter slice 0
   core_timing.Advance();
-  EXPECT_EQ(1000, ppc_state.downcount);
+  EXPECT_EQ(1000, downcount);
 
   s_callbacks_ran_flags = 0;
   s_counter = 0;
   s_lateness = 0;
-  ppc_state.downcount = 0;
+  downcount = 0;
   core_timing.Advance();
-  EXPECT_EQ(MAX_SLICE_LENGTH, ppc_state.downcount);
+  EXPECT_EQ(MAX_SLICE_LENGTH, downcount);
   EXPECT_EQ(0x1FULL, s_callbacks_ran_flags.to_ullong());
 }
 
@@ -230,7 +242,11 @@ TEST(CoreTiming, ChainScheduling)
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  auto& ppc_state = system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+   _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+     _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+     _reserve_address] = system.GetPPCState();
 
   CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -245,24 +261,24 @@ TEST(CoreTiming, ChainScheduling)
   core_timing.ScheduleEvent(1000, cb_b, CB_IDS[1]);
   core_timing.ScheduleEvent(2200, cb_c, CB_IDS[2]);
   core_timing.ScheduleEvent(1000, cb_rs, reinterpret_cast<u64>(cb_rs));
-  EXPECT_EQ(800, ppc_state.downcount);
+  EXPECT_EQ(800, downcount);
 
   s_reschedules = 3;
   AdvanceAndCheck(system, 0, 200);   // cb_a
   AdvanceAndCheck(system, 1, 1000);  // cb_b, cb_rs
   EXPECT_EQ(2, s_reschedules);
 
-  ppc_state.downcount = 0;
+  downcount = 0;
   core_timing.Advance();  // cb_rs
   EXPECT_EQ(1, s_reschedules);
-  EXPECT_EQ(200, ppc_state.downcount);
+  EXPECT_EQ(200, downcount);
 
   AdvanceAndCheck(system, 2, 800);  // cb_c
 
-  ppc_state.downcount = 0;
+  downcount = 0;
   core_timing.Advance();  // cb_rs
   EXPECT_EQ(0, s_reschedules);
-  EXPECT_EQ(MAX_SLICE_LENGTH, ppc_state.downcount);
+  EXPECT_EQ(MAX_SLICE_LENGTH, downcount);
 }
 
 namespace ScheduleIntoPastTest
@@ -291,7 +307,11 @@ TEST(CoreTiming, ScheduleIntoPast)
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  const auto& ppc_state = system.GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   s_cb_next = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -301,7 +321,7 @@ TEST(CoreTiming, ScheduleIntoPast)
   core_timing.Advance();
 
   core_timing.ScheduleEvent(1000, cb_chain, CB_IDS[0] + 1);
-  EXPECT_EQ(1000, ppc_state.downcount);
+  EXPECT_EQ(1000, downcount);
 
   AdvanceAndCheck(system, 0, MAX_SLICE_LENGTH, 1000);  // Run cb_chain into late cb_a
 
@@ -312,10 +332,11 @@ TEST(CoreTiming, ScheduleIntoPast)
   // the stale value, i.e. effectively half-way through the previous slice.
   // NOTE: We're only testing that the scheduler doesn't break, not whether this makes sense.
   Core::UndeclareAsCPUThread();
-  auto& core_timing_globals = core_timing.GetGlobals();
-  core_timing_globals.global_timer -= 1000;
+  auto& [global_timer, _slice_length, _fake_TB_start_value, _fake_TB_start_ticks,
+    _last_OC_factor_inverted] = core_timing.GetGlobals();
+  global_timer -= 1000;
   core_timing.ScheduleEvent(0, cb_b, CB_IDS[1], CoreTiming::FromThread::NON_CPU);
-  core_timing_globals.global_timer += 1000;
+  global_timer += 1000;
   Core::DeclareAsCPUThread();
   AdvanceAndCheck(system, 1, MAX_SLICE_LENGTH, MAX_SLICE_LENGTH + 1000);
 
@@ -323,7 +344,7 @@ TEST(CoreTiming, ScheduleIntoPast)
   // This shouldn't happen in practice, but it's best if we don't mess up the slice length and
   // downcount if we do.
   core_timing.ScheduleEvent(-1000, s_cb_next, CB_IDS[0]);
-  EXPECT_EQ(0, ppc_state.downcount);
+  EXPECT_EQ(0, downcount);
   AdvanceAndCheck(system, 0, MAX_SLICE_LENGTH, 1000);
 }
 
@@ -335,7 +356,11 @@ TEST(CoreTiming, Overclocking)
   ASSERT_TRUE(guard.UserDirectoryExists());
 
   auto& core_timing = system.GetCoreTiming();
-  const auto& ppc_state = system.GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -356,7 +381,7 @@ TEST(CoreTiming, Overclocking)
   core_timing.ScheduleEvent(400, cb_c, CB_IDS[2]);
   core_timing.ScheduleEvent(800, cb_d, CB_IDS[3]);
   core_timing.ScheduleEvent(1600, cb_e, CB_IDS[4]);
-  EXPECT_EQ(200, ppc_state.downcount);
+  EXPECT_EQ(200, downcount);
 
   AdvanceAndCheck(system, 0, 200);   // (200 - 100) * 2
   AdvanceAndCheck(system, 1, 400);   // (400 - 200) * 2
@@ -373,7 +398,7 @@ TEST(CoreTiming, Overclocking)
   core_timing.ScheduleEvent(400, cb_c, CB_IDS[2]);
   core_timing.ScheduleEvent(800, cb_d, CB_IDS[3]);
   core_timing.ScheduleEvent(1600, cb_e, CB_IDS[4]);
-  EXPECT_EQ(50, ppc_state.downcount);
+  EXPECT_EQ(50, downcount);
 
   AdvanceAndCheck(system, 0, 50);   // (200 - 100) / 2
   AdvanceAndCheck(system, 1, 100);  // (400 - 200) / 2
@@ -390,7 +415,7 @@ TEST(CoreTiming, Overclocking)
   core_timing.ScheduleEvent(400, cb_c, CB_IDS[2]);
   core_timing.ScheduleEvent(800, cb_d, CB_IDS[3]);
   core_timing.ScheduleEvent(1600, cb_e, CB_IDS[4]);
-  EXPECT_EQ(100, ppc_state.downcount);
+  EXPECT_EQ(100, downcount);
 
   AdvanceAndCheck(system, 0, 100);  // (200 - 100)
   SetCurrent(Config::MAIN_OVERCLOCK, 2.0f);

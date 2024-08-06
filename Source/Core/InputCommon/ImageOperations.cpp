@@ -80,11 +80,11 @@ bool WriteImage(const std::string& path, const ImagePixelData& image)
     for (u32 x = 0; x < image.width; ++x)
     {
       const auto index = x + y * image.width;
-      const auto pixel = image.pixels[index];
-      buffer.push_back(pixel.r);
-      buffer.push_back(pixel.g);
-      buffer.push_back(pixel.b);
-      buffer.push_back(pixel.a);
+      const auto [r, g, b, a] = image.pixels[index];
+      buffer.push_back(r);
+      buffer.push_back(g);
+      buffer.push_back(b);
+      buffer.push_back(a);
     }
   }
 

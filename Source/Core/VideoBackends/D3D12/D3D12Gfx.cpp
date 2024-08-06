@@ -276,11 +276,10 @@ void Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read,
 
 void Gfx::UnbindTexture(const AbstractTexture* texture)
 {
-  const auto srv_shadow_descriptor =
-      static_cast<const DXTexture*>(texture)->GetSRVDescriptor().cpu_handle;
+  const auto [ptr] = static_cast<const DXTexture*>(texture)->GetSRVDescriptor().cpu_handle;
   for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
   {
-    if (m_state.textures[i].ptr == srv_shadow_descriptor.ptr)
+    if (m_state.textures[i].ptr == ptr)
     {
       m_state.textures[i].ptr = g_dx_context->GetNullSRVDescriptor().cpu_handle.ptr;
       m_dirty_bits |= DirtyState_Textures;

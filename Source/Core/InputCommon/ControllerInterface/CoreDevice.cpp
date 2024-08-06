@@ -437,11 +437,11 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
 
     Common::SleepCurrentThread(10);
 
-    for (auto& device_state : device_states)
+    for (auto& [device, input_states] : device_states)
     {
-      for (std::size_t i = 0; i != device_state.input_states.size(); ++i)
+      for (std::size_t i = 0; i != input_states.size(); ++i)
       {
-        auto& input_state = device_state.input_states[i];
+        auto& input_state = input_states[i];
         input_state.Update();
 
         if (input_state.IsPressed())
@@ -454,7 +454,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
               1 / std::sqrt(input_state.stats.Variance() / input_state.stats.Mean());
 
           InputDetection new_detection;
-          new_detection.device = device_state.device;
+          new_detection.device = device;
           new_detection.input = input_state.input;
           new_detection.press_time = Clock::now();
           new_detection.smoothness = smoothness;
@@ -466,10 +466,10 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
     }
 
     // Check for any releases of our detected inputs.
-    for (auto& d : detections)
+    for (auto& [_device, input, _press_time, release_time, _smoothness] : detections)
     {
-      if (!d.release_time.has_value() && d.input->GetState() < (1 - INPUT_DETECT_THRESHOLD))
-        d.release_time = Clock::now();
+      if (!release_time.has_value() && input->GetState() < (1 - INPUT_DETECT_THRESHOLD))
+        release_time = Clock::now();
     }
   }
 

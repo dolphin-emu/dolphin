@@ -135,15 +135,16 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
     {
       if (std::holds_alternative<InstChunk>(chunk))
       {
-        for (const GekkoInstruction& parsed_inst : std::get<InstChunk>(chunk))
+        for (const auto& [mnemonic_index, op_interval, raw_text, line_number, is_extended]
+          : std::get<InstChunk>(chunk))
         {
           OperandList adjusted_ops;
-          ASSERT(parsed_inst.op_interval.len <= MAX_OPERANDS);
-          adjusted_ops.Copy(operands.begin() + parsed_inst.op_interval.begin,
-                            operands.begin() + parsed_inst.op_interval.End());
+          ASSERT(op_interval.len <= MAX_OPERANDS);
+          adjusted_ops.Copy(operands.begin() + op_interval.begin,
+                            operands.begin() + op_interval.End());
 
-          size_t idx = parsed_inst.mnemonic_index;
-          if (parsed_inst.is_extended)
+          size_t idx = mnemonic_index;
+          if (is_extended)
           {
             extended_mnemonics[idx].transform_operands(adjusted_ops);
             idx = extended_mnemonics[idx].mnemonic_index;
@@ -151,11 +152,11 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
 
           AdjustOperandsForGas(static_cast<GekkoMnemonic>(idx >> 2), adjusted_ops);
 
-          FailureOr<u32> inst = FillInstruction(mnemonics[idx], adjusted_ops, parsed_inst.raw_text);
+          FailureOr<u32> inst = FillInstruction(mnemonics[idx], adjusted_ops, raw_text);
           if (IsFailure(inst))
           {
-            GetFailure(inst).error_line = parsed_inst.raw_text;
-            GetFailure(inst).line = parsed_inst.line_number;
+            GetFailure(inst).error_line = raw_text;
+            GetFailure(inst).line = line_number;
             return GetFailure(inst);
           }
 

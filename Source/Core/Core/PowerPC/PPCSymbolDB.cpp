@@ -41,8 +41,8 @@ Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 
   if (!PPCAnalyst::AnalyzeFunction(guard, start_addr, symbol))
     return nullptr;
 
-  const auto insert = m_functions.emplace(start_addr, std::move(symbol));
-  Common::Symbol* ptr = &insert.first->second;
+  const auto [fst, _snd] = m_functions.emplace(start_addr, std::move(symbol));
+  Common::Symbol* ptr = &fst->second;
   ptr->type = Common::Symbol::Type::Function;
   m_checksum_to_function[ptr->hash].insert(ptr);
   return ptr;
@@ -122,12 +122,11 @@ void PPCSymbolDB::FillInCallers()
     val.callers.clear();
   }
 
-  for (auto& entry : m_functions)
+  for (auto& [fst, f] : m_functions)
   {
-    Common::Symbol& f = entry.second;
     for (const Common::SCall& call : f.calls)
     {
-      const Common::SCall new_call(entry.first, call.call_address);
+      const Common::SCall new_call(fst, call.call_address);
       const u32 function_address = call.function;
 
       auto func_iter = m_functions.find(function_address);

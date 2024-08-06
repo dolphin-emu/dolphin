@@ -138,11 +138,11 @@ std::optional<std::string> GetNetworkPatchByPayload(std::string_view source)
       const std::string_view domain =
           source.substr(pos + 6, end_of_line == std::string_view::npos ? std::string_view::npos :
                                                                          (end_of_line - pos - 6));
-      for (const NetworkPatch& patch : s_patches)
+      for (const auto& [_name, source, replacement, enabled, is_kd] : s_patches)
       {
-        if (patch.is_kd != IsKD{true} && domain == patch.source && patch.enabled)
+        if (is_kd != IsKD{true} && domain == source && enabled)
         {
-          return fmt::format("{}Host: {}{}", source.substr(0, pos), patch.replacement,
+          return fmt::format("{}Host: {}{}", source.substr(0, pos), replacement,
                              end_of_line == std::string_view::npos ? "" :
                                                                      source.substr(end_of_line));
         }

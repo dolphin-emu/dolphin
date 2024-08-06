@@ -460,13 +460,13 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
 
 u32 MMU::Read_Opcode(const u32 address)
 {
-  const TryReadInstResult result = TryReadInstruction(address);
-  if (!result.valid)
+  const auto [valid, _from_bat, hex, _physical_address] = TryReadInstruction(address);
+  if (!valid)
   {
     GenerateISIException(address);
     return 0;
   }
-  return result.hex;
+  return hex;
 }
 
 TryReadInstResult MMU::TryReadInstruction(u32 address)
@@ -1345,11 +1345,12 @@ static TLBLookupResult LookupTLBPageAddress(PowerPCState& ppc_state,
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   const size_t tlb_index = IsOpcodeFlag(flag) ? INST_TLB_INDEX : DATA_TLB_INDEX;
-  TLBEntry& tlbe = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
+  auto& [tlbe_tag, paddr, tlbe_vsid, pte, recent] =
+      ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
 
-  if (tlbe.tag[0] == tag && tlbe.vsid[0] == vsid)
+  if (tlbe_tag[0] == tag && tlbe_vsid[0] == vsid)
   {
-    UPTE_Hi pte2(tlbe.pte[0]);
+    UPTE_Hi pte2(pte[0]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1357,22 +1358,22 @@ static TLBLookupResult LookupTLBPageAddress(PowerPCState& ppc_state,
       if (pte2.C == 0)
       {
         pte2.C = 1;
-        tlbe.pte[0] = pte2.Hex;
+        pte[0] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe.recent = 0;
+      recent = 0;
 
-    *paddr = tlbe.paddr[0] | (vpa & 0xfff);
+    *paddr = paddr[0] | (vpa & 0xfff);
     *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
-  if (tlbe.tag[1] == tag && tlbe.vsid[1] == vsid)
+  if (tlbe_tag[1] == tag && tlbe_vsid[1] == vsid)
   {
-    UPTE_Hi pte2(tlbe.pte[1]);
+    UPTE_Hi pte2(pte[1]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1380,15 +1381,15 @@ static TLBLookupResult LookupTLBPageAddress(PowerPCState& ppc_state,
       if (pte2.C == 0)
       {
         pte2.C = 1;
-        tlbe.pte[1] = pte2.Hex;
+        pte[1] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe.recent = 1;
+      recent = 1;
 
-    *paddr = tlbe.paddr[1] | (vpa & 0xfff);
+    *paddr = paddr[1] | (vpa & 0xfff);
     *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
@@ -1404,13 +1405,13 @@ static void UpdateTLBEntry(PowerPCState& ppc_state, const XCheckTLBFlag flag, co
 
   const u32 tag = address >> HW_PAGE_INDEX_SHIFT;
   const size_t tlb_index = IsOpcodeFlag(flag) ? INST_TLB_INDEX : DATA_TLB_INDEX;
-  TLBEntry& tlbe = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
-  const u32 index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
-  tlbe.recent = index;
-  tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
-  tlbe.pte[index] = pte2.Hex;
-  tlbe.tag[index] = tag;
-  tlbe.vsid[index] = vsid;
+  auto& [tlbe_tag, paddr, tlbe_vsid, pte, recent] = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
+  const u32 index = recent == 0 && tlbe_tag[0] != TLBEntry::INVALID_TAG;
+  recent = index;
+  paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
+  pte[index] = pte2.Hex;
+  tlbe_tag[index] = tag;
+  tlbe_vsid[index] = vsid;
 }
 
 void MMU::InvalidateTLBEntry(const u32 address) const

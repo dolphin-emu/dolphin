@@ -87,7 +87,7 @@ std::optional<bool> WidescreenManager::GetWidescreenOverride()
 void WidescreenManager::UpdateWidescreenHeuristic()
 {
   // Reset to baseline state before the update
-  const auto flush_statistics = g_vertex_manager->ResetFlushAspectRatioCount();
+  const auto [perspective, orthographic] = g_vertex_manager->ResetFlushAspectRatioCount();
   const bool was_orthographically_anamorphic = m_was_orthographically_anamorphic;
   m_heuristic_state = HeuristicState::Inactive;
   m_was_orthographically_anamorphic = false;
@@ -115,8 +115,8 @@ void WidescreenManager::UpdateWidescreenHeuristic()
       return counts.anamorphic_vertex_count > counts.normal_vertex_count * transition_threshold;
     };
 
-    const auto& persp = flush_statistics.perspective;
-    const auto& ortho = flush_statistics.orthographic;
+    const auto& persp = perspective;
+    const auto& ortho = orthographic;
 
     g_stats.avg_persp_proj_viewport_ratio = persp.average_ratio.Mean();
     g_stats.avg_ortho_proj_viewport_ratio = ortho.average_ratio.Mean();

@@ -49,12 +49,12 @@ void AchievementLeaderboardWidget::UpdateData(const bool clean_all)
     u32 row = 0;
     for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; bucket++)
     {
-      const auto& leaderboard_bucket = leaderboard_list->buckets[bucket];
-      m_common_layout->addWidget(new QLabel(tr(leaderboard_bucket.label)), row, 0);
+      const auto& [leaderboards, num_leaderboards, label, _subset_id, _bucket_type] = leaderboard_list->buckets[bucket];
+      m_common_layout->addWidget(new QLabel(tr(label)), row, 0);
       row += 2;
-      for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; board++)
+      for (u32 board = 0; board < num_leaderboards; board++)
       {
-        const auto* leaderboard = leaderboard_bucket.leaderboards[board];
+        const auto* leaderboard = leaderboards[board];
         m_leaderboard_order[leaderboard->id] = row;
         auto a_title = new QLabel(QString::fromUtf8(leaderboard->title));
         a_title->setWordWrap(true);
@@ -84,20 +84,20 @@ void AchievementLeaderboardWidget::UpdateData(const bool clean_all)
     }
     rc_client_destroy_leaderboard_list(leaderboard_list);
   }
-  for (const auto row : m_leaderboard_order)
+  for (const auto [fst, _snd] : m_leaderboard_order)
   {
-    UpdateRow(row.first);
+    UpdateRow(fst);
   }
 }
 
 void AchievementLeaderboardWidget::UpdateData(
     const std::set<AchievementManager::AchievementId>& update_ids)
 {
-  for (auto row : m_leaderboard_order)
+  for (auto [fst, _snd] : m_leaderboard_order)
   {
-    if (update_ids.contains(row.first))
+    if (update_ids.contains(fst))
     {
-      UpdateRow(row.first);
+      UpdateRow(fst);
     }
   }
 }

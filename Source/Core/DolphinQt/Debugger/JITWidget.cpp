@@ -147,11 +147,12 @@ void JITWidget::Update()
   // TODO: Actually do something with the table (Wx doesn't)
 
   // Get host side code disassembly
-  auto host_instructions_disasm = DisassembleBlock(m_disassembler.get(), m_address);
-  m_address = host_instructions_disasm.entry_address;
+  auto [text, entry_address, instruction_count, code_size] =
+    DisassembleBlock(m_disassembler.get(), m_address);
+  m_address = entry_address;
 
   m_host_asm_widget->setHtml(
-      QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(host_instructions_disasm.text)));
+      QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(text)));
 
   // == Fill in ppc box
   const u32 ppc_addr = m_address;
@@ -178,29 +179,34 @@ void JITWidget::Update()
     const auto ppc_disasm = std::back_inserter(ppc_disasm_str);
     for (u32 i = 0; i < code_block.m_num_instructions; i++)
     {
-      const PPCAnalyst::CodeOp& op = code_buffer[i];
-      const std::string opcode = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-      fmt::format_to(ppc_disasm, "{:08x} {}\n", op.address, opcode);
+      const auto& [inst, _opinfo, address, _branchTo, _regsIn, _regsOut, _fregsIn, _fregOut, _crIn,
+            _crOut, _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA,
+            _wantsCAInFlags, _outputCR, _outputFPRF, _outputCA, _canEndBlock, _canCauseException,
+            _skipLRStack, _skip, _crInUse, _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable,
+            _fprDiscardable, _fprInXmm, _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst,
+            _fprIsStoreSafeAfterInst] = code_buffer[i];
+      const std::string opcode = Common::GekkoDisassembler::Disassemble(inst.hex, address);
+      fmt::format_to(ppc_disasm, "{:08x} {}\n", address, opcode);
     }
 
     // Add stats to the end of the ppc box since it's generally the shortest.
     fmt::format_to(ppc_disasm, "\n{} estimated cycles", st.numCycles);
     fmt::format_to(ppc_disasm, "\nNum instr: PPC: {} Host: {}", code_block.m_num_instructions,
-                   host_instructions_disasm.instruction_count);
-    if (code_block.m_num_instructions != 0 && host_instructions_disasm.instruction_count != 0)
+                   instruction_count);
+    if (code_block.m_num_instructions != 0 && instruction_count != 0)
     {
       fmt::format_to(
           ppc_disasm, " (blowup: {}%)",
-          100 * host_instructions_disasm.instruction_count / code_block.m_num_instructions - 100);
+          100 * instruction_count / code_block.m_num_instructions - 100);
     }
 
     fmt::format_to(ppc_disasm, "\nNum bytes: PPC: {} Host: {}", code_block.m_num_instructions * 4,
-                   host_instructions_disasm.code_size);
-    if (code_block.m_num_instructions != 0 && host_instructions_disasm.code_size != 0)
+                   code_size);
+    if (code_block.m_num_instructions != 0 && code_size != 0)
     {
       fmt::format_to(
           ppc_disasm, " (blowup: {}%)",
-          100 * host_instructions_disasm.code_size / (4 * code_block.m_num_instructions) - 100);
+          100 * code_size / (4 * code_block.m_num_instructions) - 100);
     }
 
     m_ppc_asm_widget->setHtml(

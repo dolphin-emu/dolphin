@@ -132,8 +132,8 @@ double ApproximateReciprocalSquareRoot(const double val)
   integral = sign | exponent;
 
   const int i = static_cast<int>((exponent_lsb | mantissa) >> 37);
-  const auto& entry = frsqrte_expected[i / 2048];
-  integral |= static_cast<s64>(entry.m_base + entry.m_dec * (i % 2048)) << 26;
+  const auto& [m_base, m_dec] = frsqrte_expected[i / 2048];
+  integral |= static_cast<s64>(m_base + m_dec * (i % 2048)) << 26;
 
   return std::bit_cast<double>(integral);
 }
@@ -179,9 +179,9 @@ double ApproximateReciprocal(const double val)
   exponent = (0x7FDLL << 52) - exponent;
 
   const int i = static_cast<int>(mantissa >> 37);
-  const auto& entry = fres_expected[i / 1024];
+  const auto& [m_base, m_dec] = fres_expected[i / 1024];
   integral = sign | exponent;
-  integral |= static_cast<s64>(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
+  integral |= static_cast<s64>(m_base - (m_dec * (i % 1024) + 1) / 2) << 29;
 
   return std::bit_cast<double>(integral);
 }

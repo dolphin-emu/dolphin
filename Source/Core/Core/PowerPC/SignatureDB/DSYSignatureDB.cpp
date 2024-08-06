@@ -58,13 +58,13 @@ bool DSYSignatureDB::Save(const std::string& file_path) const
   }
   const u32 fcount = static_cast<u32>(m_database.size());
   f.WriteArray(&fcount, 1);
-  for (const auto& entry : m_database)
+  for (const auto& [fst, snd] : m_database)
   {
     FuncDesc temp;
     memset(&temp, 0, sizeof(temp));
-    temp.checksum = entry.first;
-    temp.size = entry.second.size;
-    strncpy(temp.name, entry.second.name.c_str(), 127);
+    temp.checksum = fst;
+    temp.size = snd.size;
+    strncpy(temp.name, snd.name.c_str(), 127);
     f.WriteArray(&temp, 1);
   }
 

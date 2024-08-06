@@ -262,20 +262,20 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 
 bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
 {
-  for (const auto& cached_asset : entry.linked_game_texture_assets)
+  for (const auto& [m_asset, m_cached_write_time] : entry.linked_game_texture_assets)
   {
-    if (cached_asset.m_asset)
+    if (m_asset)
     {
-      if (cached_asset.m_asset->GetLastLoadedTime() > cached_asset.m_cached_write_time)
+      if (m_asset->GetLastLoadedTime() > m_cached_write_time)
         return true;
     }
   }
 
-  for (const auto& cached_asset : entry.linked_asset_dependencies)
+  for (const auto& [m_asset, m_cached_write_time] : entry.linked_asset_dependencies)
   {
-    if (cached_asset.m_asset)
+    if (m_asset)
     {
-      if (cached_asset.m_asset->GetLastLoadedTime() > cached_asset.m_cached_write_time)
+      if (m_asset->GetLastLoadedTime() > m_cached_write_time)
         return true;
     }
   }
@@ -609,20 +609,20 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   std::vector<std::pair<u32, u32>> bound_textures_list;
   if (Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE))
   {
-    for (const auto& it : m_textures_by_address)
+    for (const auto& [fst, snd] : m_textures_by_address)
     {
-      if (ShouldSaveEntry(it.second))
+      if (ShouldSaveEntry(snd))
       {
-        const u32 id = AddCacheEntryToMap(it.second);
-        textures_by_address_list.emplace_back(it.first, id);
+        const u32 id = AddCacheEntryToMap(snd);
+        textures_by_address_list.emplace_back(fst, id);
       }
     }
-    for (const auto& it : m_textures_by_hash)
+    for (const auto& [fst, snd] : m_textures_by_hash)
     {
-      if (ShouldSaveEntry(it.second))
+      if (ShouldSaveEntry(snd))
       {
-        const u32 id = AddCacheEntryToMap(it.second);
-        textures_by_hash_list.emplace_back(it.first, id);
+        const u32 id = AddCacheEntryToMap(snd);
+        textures_by_hash_list.emplace_back(fst, id);
       }
     }
     for (u32 i = 0; i < m_bound_textures.size(); i++)
@@ -649,9 +649,9 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   // Save references for each cache entry.
   // As references are circular, we need to have everything created before linking entries.
   std::set<std::pair<u32, u32>> reference_pairs;
-  for (const auto& it : entry_map)
+  for (const auto& [fst, _snd] : entry_map)
   {
-    const TCacheEntry* entry = it.first;
+    const TCacheEntry* entry = fst;
     auto id1 = GetCacheEntryId(entry);
     if (!id1)
       continue;
@@ -848,10 +848,10 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
 
   const u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
-  auto iter = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
-  while (iter.first != iter.second)
+  auto [fst, snd] = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
+  while (fst != snd)
   {
-    auto& entry = iter.first->second;
+    auto& entry = fst->second;
     if (entry != entry_to_update && entry->IsCopy() &&
         !entry->references.contains(entry_to_update.get()) &&
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
@@ -864,7 +864,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
         {
           if (!CanReinterpretTextureOnGPU(entry_to_update->format.texfmt, entry->format.texfmt))
           {
-            ++iter.first;
+            ++fst;
             continue;
           }
 
@@ -887,7 +887,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
           }
           else
           {
-            ++iter.first;
+            ++fst;
             continue;
           }
         }
@@ -949,7 +949,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
             dst_x + copy_width > entry_to_update->GetWidth() ||
             dst_y + copy_height > entry_to_update->GetHeight())
         {
-          ++iter.first;
+          ++fst;
           continue;
         }
 
@@ -975,7 +975,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
         {
           // Remove the temporary converted texture, it won't be used anywhere else
           // TODO: It would be nice to convert and copy in one step, but this code path isn't common
-          iter.first = InvalidateTexture(iter.first);
+          fst = InvalidateTexture(fst);
           continue;
         }
         // Link the two textures together, so we won't apply this partial update again
@@ -986,11 +986,11 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
       else
       {
         // If the hash does not match, this EFB copy will not be used for anything, so remove it
-        iter.first = InvalidateTexture(iter.first);
+        fst = InvalidateTexture(fst);
         continue;
       }
     }
-    ++iter.first;
+    ++fst;
   }
 
   return entry_to_update;
@@ -1129,11 +1129,11 @@ public:
 
     for (std::size_t i = 0; i < levels.size() - 1; ++i)
     {
-      const auto& level = levels[i];
+      const auto& [shape, pixels] = levels[i];
       const auto& mip = levels[i + 1];
 
-      u64 level_pixel_count = level.shape.width;
-      level_pixel_count *= level.shape.height;
+      u64 level_pixel_count = shape.width;
+      level_pixel_count *= shape.height;
 
       // AverageDiff stores the difference sum in a u64, so make sure we can't overflow
       ASSERT(level_pixel_count < (std::numeric_limits<u64>::max() / (255 * 255 * 4)));
@@ -1141,7 +1141,7 @@ public:
       // Manually downsample the past downsample with a simple box blur
       // This is not necessarily close to whatever the original artists used, however
       // It should still be closer than a thing that's not a downscale at all
-      Level::Downsample(i ? src : level.pixels, level.shape, dst, mip.shape);
+      Level::Downsample(i ? src : pixels, shape, dst, mip.shape);
 
       // Find the average difference between pixels in this level but downsampled
       // and the next level
@@ -1389,14 +1389,14 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   //
   // For efb copies, the entry created in CopyRenderTargetToTexture always has to be used, or else
   // it was done in vain.
-  auto iter_range = m_textures_by_address.equal_range(texture_info.GetRawAddress());
-  TexAddrCache::iterator iter = iter_range.first;
+  auto [fst, snd] = m_textures_by_address.equal_range(texture_info.GetRawAddress());
+  TexAddrCache::iterator iter = fst;
   TexAddrCache::iterator oldest_entry = iter;
   int temp_frameCount = 0x7fffffff;
   TexAddrCache::iterator unconverted_copy = m_textures_by_address.end();
   TexAddrCache::iterator unreinterpreted_copy = m_textures_by_address.end();
 
-  while (iter != iter_range.second)
+  while (iter != snd)
   {
     RcTcacheEntry& entry = iter->second;
 
@@ -1531,9 +1531,9 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       std::max(texture_info.GetTextureSize(), palette_size) <=
           static_cast<u32>(textureCacheSafetyColorSampleSize) * 8)
   {
-    auto hash_range = m_textures_by_hash.equal_range(full_hash);
-    TexHashCache::iterator hash_iter = hash_range.first;
-    while (hash_iter != hash_range.second)
+    auto [fst, snd] = m_textures_by_hash.equal_range(full_hash);
+    TexHashCache::iterator hash_iter = fst;
+    while (hash_iter != snd)
     {
       RcTcacheEntry& entry = hash_iter->second;
       // All parameters, except the address, need to match here
@@ -1616,12 +1616,12 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   }
 
   data_for_assets.reserve(cached_game_assets.size());
-  for (auto& cached_asset : cached_game_assets)
+  for (auto& [m_asset, _m_cached_write_time] : cached_game_assets)
   {
-    auto data = cached_asset.m_asset->GetData();
+    auto data = m_asset->GetData();
     if (data)
     {
-      if (cached_asset.m_asset->Validate(texture_info.GetRawWidth(), texture_info.GetRawHeight()))
+      if (m_asset->Validate(texture_info.GetRawWidth(), texture_info.GetRawHeight()))
       {
         data_for_assets.push_back(data);
       }
@@ -1667,9 +1667,10 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
       return (*max_element)->m_texture.m_slices[0].m_levels.size();
     };
     const u32 texLevels = no_mips ? 1 : static_cast<u32>(calculate_max_levels());
-    const auto& first_level = assets_data[0]->m_texture.m_slices[0].m_levels[0];
-    const TextureConfig config(first_level.width, first_level.height, texLevels,
-                               static_cast<u32>(assets_data.size()), 1, first_level.format, 0,
+    const auto& [_data, format, width, height, _row_length] =
+      assets_data[0]->m_texture.m_slices[0].m_levels[0];
+    const TextureConfig config(width, height, texLevels,
+                               static_cast<u32>(assets_data.size()), 1, format, 0,
                                AbstractTextureType::Texture_2DArray);
     entry = AllocateCacheEntry(config);
     if (!entry) [[unlikely]]
@@ -1677,14 +1678,14 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     for (u32 data_index = 0; data_index < static_cast<u32>(assets_data.size()); data_index++)
     {
       const auto& asset = assets_data[data_index];
-      const auto& slice = asset->m_texture.m_slices[0];
+      const auto& [m_levels] = asset->m_texture.m_slices[0];
       for (u32 level_index = 0;
-           level_index < std::min(texLevels, static_cast<u32>(slice.m_levels.size()));
+           level_index < std::min(texLevels, static_cast<u32>(m_levels.size()));
            ++level_index)
       {
-        const auto& level = slice.m_levels[level_index];
-        entry->texture->Load(level_index, level.width, level.height, level.row_length,
-                             level.data.data(), level.data.size(), data_index);
+        const auto& [data, _format, width, height, row_length] = m_levels[level_index];
+        entry->texture->Load(level_index, width, height, row_length,
+                             data.data(), data.size(), data_index);
       }
     }
 
@@ -1943,10 +1944,10 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(const u32 address, u32 width, u32 
 
 RcTcacheEntry TextureCacheBase::GetXFBFromCache(const u32 address, const u32 width, const u32 height, const u32 stride)
 {
-  const auto iter_range = m_textures_by_address.equal_range(address);
-  TexAddrCache::iterator iter = iter_range.first;
+  const auto [fst, snd] = m_textures_by_address.equal_range(address);
+  TexAddrCache::iterator iter = fst;
 
-  while (iter != iter_range.second)
+  while (iter != snd)
   {
     auto& entry = iter->second;
 
@@ -1983,15 +1984,15 @@ void TextureCacheBase::StitchXFBCopy(const RcTcacheEntry& stitched_entry)
   std::vector<TCacheEntry*> candidates;
   bool create_upscaled_copy = false;
 
-  auto iter = FindOverlappingTextures(stitched_entry->addr, stitched_entry->size_in_bytes);
-  while (iter.first != iter.second)
+  auto [fst, snd] = FindOverlappingTextures(stitched_entry->addr, stitched_entry->size_in_bytes);
+  while (fst != snd)
   {
     // Currently, this checks the stride of the VRAM copy against the VI request. Therefore, for
     // interlaced modes, VRAM copies won't be considered candidates. This is okay for now, because
     // our force progressive hack means that an XFB copy should always have a matching stride. If
     // the hack is disabled, XFB2RAM should also be enabled. Should we wish to implement interlaced
     // stitching in the future, this would require a shader which grabs every second line.
-    auto& entry = iter.first->second;
+    auto& entry = fst->second;
     if (entry != stitched_entry && entry->IsCopy() &&
         entry->OverlapsMemoryRange(stitched_entry->addr, stitched_entry->size_in_bytes) &&
         entry->memory_stride == stitched_entry->memory_stride)
@@ -2007,11 +2008,11 @@ void TextureCacheBase::StitchXFBCopy(const RcTcacheEntry& stitched_entry)
       else
       {
         // If the hash does not match, this EFB copy will not be used for anything, so remove it
-        iter.first = InvalidateTexture(iter.first);
+        fst = InvalidateTexture(fst);
         continue;
       }
     }
-    ++iter.first;
+    ++fst;
   }
 
   if (candidates.empty())
@@ -2452,10 +2453,10 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   // as our efb copy are marked to check them for partial texture updates.
   // TODO: The logic to detect overlapping strided efb copies is not 100% accurate.
   bool strided_efb_copy = dstStride != bytes_per_row;
-  auto iter = FindOverlappingTextures(dstAddr, covered_range);
-  while (iter.first != iter.second)
+  auto [fst, snd] = FindOverlappingTextures(dstAddr, covered_range);
+  while (fst != snd)
   {
-    RcTcacheEntry& overlapping_entry = iter.first->second;
+    RcTcacheEntry& overlapping_entry = fst->second;
 
     if (overlapping_entry->addr == dstAddr && overlapping_entry->is_xfb_copy)
     {
@@ -2477,7 +2478,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       {
         // Pending EFB copies which are completely covered by this new copy can simply be tossed,
         // instead of having to flush them later on, since this copy will write over everything.
-        iter.first = InvalidateTexture(iter.first, true);
+        fst = InvalidateTexture(fst, true);
         continue;
       }
 
@@ -2507,7 +2508,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
         overlapping_entry->textures_by_hash_iter = m_textures_by_hash.end();
       }
     }
-    ++iter.first;
+    ++fst;
   }
 
   if (OpcodeDecoder::g_record_fifo_data)
@@ -2584,8 +2585,8 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
   // See the comment above regarding Rogue Squadron 2.
   if (entry->is_xfb_copy)
   {
-    const auto range = FindOverlappingTextures(entry->addr, covered_range);
-    for (auto iter = range.first; iter != range.second; ++iter)
+    const auto [fst, snd] = FindOverlappingTextures(entry->addr, covered_range);
+    for (auto iter = fst; iter != snd; ++iter)
     {
       const auto& overlapping_entry = iter->second;
       if (overlapping_entry->may_have_overlapping_textures && overlapping_entry->is_xfb_copy &&
@@ -2733,18 +2734,18 @@ TextureCacheBase::FindMatchingTextureFromPool(const TextureConfig& config)
   // which potentially means that a driver has to maintain two copies of the texture anyway.
   // Render-target textures are fine through, as they have to be generated in a seperated pass.
   // As non-render-target textures are usually static, this should not matter much.
-  const auto range = m_texture_pool.equal_range(config);
-  auto matching_iter = std::find_if(range.first, range.second, [](const auto& iter) {
+  const auto [fst, snd] = m_texture_pool.equal_range(config);
+  auto matching_iter = std::find_if(fst, snd, [](const auto& iter) {
     return iter.first.IsRenderTarget() || iter.second.frameCount != FRAMECOUNT_INVALID;
   });
-  return matching_iter != range.second ? matching_iter : m_texture_pool.end();
+  return matching_iter != snd ? matching_iter : m_texture_pool.end();
 }
 
 TextureCacheBase::TexAddrCache::iterator TextureCacheBase::GetTexCacheIter(const TCacheEntry* entry)
 {
-  const auto iter_range = m_textures_by_address.equal_range(entry->addr);
-  TexAddrCache::iterator iter = iter_range.first;
-  while (iter != iter_range.second)
+  const auto [fst, snd] = m_textures_by_address.equal_range(entry->addr);
+  TexAddrCache::iterator iter = fst;
+  while (iter != snd)
   {
     if (iter->second.get() == entry)
     {
@@ -3060,10 +3061,9 @@ bool TextureCacheBase::DecodeTextureOnGPU(const RcTcacheEntry& entry, const u32 
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
   g_gfx->SetComputeImageTexture(0, m_decoding_texture.get(), false, true);
 
-  const auto dispatch_groups =
+  const auto [fst, snd] =
       GetDispatchCount(info, aligned_width, aligned_height);
-  g_gfx->DispatchComputeShader(shader, info->group_size_x, info->group_size_y, 1,
-                               dispatch_groups.first, dispatch_groups.second, 1);
+  g_gfx->DispatchComputeShader(shader, info->group_size_x, info->group_size_y, 1, fst, snd, 1);
 
   // Copy from decoding texture -> final texture
   // This is because we don't want to have to create compute view for every layer

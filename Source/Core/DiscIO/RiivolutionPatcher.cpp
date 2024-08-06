@@ -129,13 +129,14 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(const std::string_view external_r
         result.erase(result.size() - element.size(), element.size());
 
         // Re-attach an element that actually matches the capitalization in the host filesystem.
-        auto possible_files = ::File::ScanDirectoryTree(result, false);
+        auto [_isDirectory, _size, _physicalName, _virtualName, children] =
+          ::File::ScanDirectoryTree(result, false);
         bool found = false;
-        for (auto& f : possible_files.children)
+        for (auto& [_isDirectory, _size, _physicalName, virtualName, _children] : children)
         {
-          if (Common::CaseInsensitiveEquals(element, f.virtualName))
+          if (Common::CaseInsensitiveEquals(element, virtualName))
           {
-            result += f.virtualName;
+            result += virtualName;
             found = true;
             break;
           }
@@ -195,11 +196,13 @@ FileDataLoaderHostFS::GetFolderContents(const std::string_view external_relative
   const auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
     return {};
-  ::File::FSTEntry external_files = ::File::ScanDirectoryTree(*path, false);
+  auto [_external_files_isDirectory, _external_files_size, _external_files_physicalName,
+    _external_files_virtualName, external_files_children] = ::File::ScanDirectoryTree(*path, false);
   std::vector<Node> nodes;
-  nodes.reserve(external_files.children.size());
-  for (auto& file : external_files.children)
-    nodes.emplace_back(Node{std::move(file.virtualName), file.isDirectory});
+  nodes.reserve(external_files_children.size());
+  for (auto& [file_isDirectory, _file_size, _file_physicalName, file_virtualName, _file_children] :
+       external_files_children)
+    nodes.emplace_back(Node{std::move(file_virtualName), file_isDirectory});
   return nodes;
 }
 
@@ -380,10 +383,10 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
           FSTBuilderNode{std::string(name), 0, std::vector<BuilderContentSource>()});
     }
 
-    auto& new_folder = fst->emplace_back(
+    auto& [_m_filename, _m_size, m_content, _m_user_data] = fst->emplace_back(
         FSTBuilderNode{std::string(name), 0, std::vector<FSTBuilderNode>()});
     return FindFileNodeInFST(path.substr(path_separator + 1),
-                             &std::get<std::vector<FSTBuilderNode>>(new_folder.m_content), true);
+                             &std::get<std::vector<FSTBuilderNode>>(m_content), true);
   }
 
   const bool is_existing_node_file = it->IsFile();
@@ -449,7 +452,7 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
                                   const std::string_view external_path)
 {
   const auto external_files = patch.m_file_data_loader->GetFolderContents(external_path);
-  for (const auto& child : external_files)
+  for (const auto& [m_filename, m_is_directory] : external_files)
   {
     const auto combine_paths = [](std::string_view a, std::string_view b) {
       if (a.empty())
@@ -462,10 +465,10 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
         b.remove_prefix(1);
       return fmt::format("{}/{}", a, b);
     };
-    std::string child_disc_path = combine_paths(disc_path, child.m_filename);
-    std::string child_external_path = combine_paths(external_path, child.m_filename);
+    std::string child_disc_path = combine_paths(disc_path, m_filename);
+    std::string child_external_path = combine_paths(external_path, m_filename);
 
-    if (child.m_is_directory)
+    if (m_is_directory)
     {
       if (folder.m_recursive)
         ApplyFolderPatchToFST(patch, folder, fst, dol_node, child_disc_path, child_external_path);
@@ -660,14 +663,16 @@ void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard, const std::s
 
 std::optional<SavegameRedirect> ExtractSavegameRedirect(const std::span<const Patch> riivolution_patches)
 {
-  for (const auto& patch : riivolution_patches)
+  for (const auto& [_m_id, _m_root, m_file_data_loader, _m_file_patches, _m_folder_patches,
+         _m_sys_file_patches, _m_sys_folder_patches, m_savegame_patches, _m_memory_patches] :
+       riivolution_patches)
   {
-    if (!patch.m_savegame_patches.empty())
+    if (!m_savegame_patches.empty())
     {
-      const auto& save_patch = patch.m_savegame_patches[0];
-      const auto resolved = patch.m_file_data_loader->ResolveSavegameRedirectPath(save_patch.m_external);
+      const auto& [m_external, m_clone] = m_savegame_patches[0];
+      const auto resolved = m_file_data_loader->ResolveSavegameRedirectPath(m_external);
       if (resolved)
-        return SavegameRedirect{std::move(*resolved), save_patch.m_clone};
+        return SavegameRedirect{std::move(*resolved), m_clone};
       return std::nullopt;
     }
   }

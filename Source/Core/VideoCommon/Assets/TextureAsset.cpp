@@ -297,8 +297,8 @@ bool GameTextureAsset::Validate(const u32 native_width, const u32 native_height)
     return false;
   }
 
-  const auto& slice = m_data->m_texture.m_slices[0];
-  if (slice.m_levels.empty())
+  const auto& [m_levels] = m_data->m_texture.m_slices[0];
+  if (m_levels.empty())
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -309,8 +309,8 @@ bool GameTextureAsset::Validate(const u32 native_width, const u32 native_height)
 
   // Verify that the aspect ratio of the texture hasn't changed, as this could have
   // side-effects.
-  const CustomTextureData::ArraySlice::Level& first_mip = slice.m_levels[0];
-  if (first_mip.width * native_height != first_mip.height * native_width)
+  const auto& [_data, _format, width, height, _row_length] = m_levels[0];
+  if (width * native_height != height * native_width)
   {
     // Note: this feels like this should return an error but
     // for legacy reasons this is only a notice that something *could*
@@ -319,12 +319,12 @@ bool GameTextureAsset::Validate(const u32 native_width, const u32 native_height)
         VIDEO,
         "Invalid custom texture size {}x{} for game texture asset '{}'. The aspect differs "
         "from the native size {}x{}.",
-        first_mip.width, first_mip.height, GetAssetId(), native_width, native_height);
+        width, height, GetAssetId(), native_width, native_height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
   if (native_width != 0 && native_height != 0 &&
-      (first_mip.width % native_width || first_mip.height % native_height))
+      (width % native_width || height % native_height))
   {
     // Note: this feels like this should return an error but
     // for legacy reasons this is only a notice that something *could*
@@ -333,7 +333,7 @@ bool GameTextureAsset::Validate(const u32 native_width, const u32 native_height)
         VIDEO,
         "Invalid custom texture size {}x{} for game texture asset '{}'. Please use an integer "
         "upscaling factor based on the native size {}x{}.",
-        first_mip.width, first_mip.height, GetAssetId(), native_width, native_height);
+        width, height, GetAssetId(), native_width, native_height);
   }
 
   return true;

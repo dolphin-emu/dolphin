@@ -109,10 +109,10 @@ static OpArg GetRegisterPointer(const size_t reg)
 
 DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter) : m_emitter(emitter), m_is_temporary(false)
 {
-  for (X64CachedReg& xreg : m_xregs)
+  for (auto& [guest_reg, pushed] : m_xregs)
   {
-    xreg.guest_reg = DSP_REG_STATIC;
-    xreg.pushed = false;
+    guest_reg = DSP_REG_STATIC;
+    pushed = false;
   }
 
   m_xregs[RAX].guest_reg = DSP_REG_STATIC;  // reserved for MUL/DIV
@@ -258,10 +258,12 @@ void DSPJitRegCache::FlushRegs(DSPJitRegCache& cache, const bool emit)
   // free all host regs that are not used for the same guest reg
   for (size_t i = 0; i < m_regs.size(); i++)
   {
-    const auto& reg = m_regs[i];
-    const auto& cached_reg = cache.m_regs[i];
+    const auto& [reg_loc, _reg_mem, _reg_size, _reg_dirty, _reg_used, _reg_last_use_ctr,
+      _reg_parentReg, _reg_shift, _reg_host_reg] = m_regs[i];
+    const auto& [cached_loc, _cached_mem, _cached_size, _cached_dirty, _cached_used,
+      _cached_last_use_ctr, _cached_parentReg, _cached_shift, _cached_host_reg] = cache.m_regs[i];
 
-    if (cached_reg.loc.GetSimpleReg() != reg.loc.GetSimpleReg() && reg.loc.IsSimpleReg())
+    if (cached_loc.GetSimpleReg() != reg_loc.GetSimpleReg() && reg_loc.IsSimpleReg())
     {
       MovToMemory(i);
     }
@@ -444,9 +446,9 @@ void DSPJitRegCache::PushRegs()
   }
 
   int push_count = 0;
-  for (const X64CachedReg& xreg : m_xregs)
+  for (const auto& [guest_reg, _pushed] : m_xregs)
   {
-    if (xreg.guest_reg == DSP_REG_USED)
+    if (guest_reg == DSP_REG_USED)
       push_count++;
   }
 

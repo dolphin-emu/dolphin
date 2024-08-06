@@ -103,11 +103,11 @@ bool VertexManager::Initialize()
           {TEXEL_BUFFER_FORMAT_RGBA8_UINT, DXGI_FORMAT_R8G8B8A8_UINT},
           {TEXEL_BUFFER_FORMAT_R32G32_UINT, DXGI_FORMAT_R32G32_UINT},
       }};
-  for (const auto& it : format_mapping)
+  for (const auto& [fst, snd] : format_mapping)
   {
-    m_texel_buffer_views[it.first] =
-        CreateTexelBufferView(m_texel_buffer.Get(), it.first, it.second);
-    if (!m_texel_buffer_views[it.first])
+    m_texel_buffer_views[fst] =
+        CreateTexelBufferView(m_texel_buffer.Get(), fst, snd);
+    if (!m_texel_buffer_views[fst])
       return false;
   }
 

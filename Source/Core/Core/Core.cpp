@@ -1005,10 +1005,10 @@ void HostDispatchJobs(System& system)
   std::unique_lock guard(s_host_jobs_lock);
   while (!s_host_jobs_queue.empty())
   {
-    HostJob job = std::move(s_host_jobs_queue.front());
+    auto [job, run_after_stop] = std::move(s_host_jobs_queue.front());
     s_host_jobs_queue.pop();
 
-    if (!job.run_after_stop)
+    if (!run_after_stop)
     {
       const State state = s_state.load();
       if (state == State::Stopping || state == State::Uninitialized)
@@ -1016,7 +1016,7 @@ void HostDispatchJobs(System& system)
     }
 
     guard.unlock();
-    job.job(system);
+    job(system);
     guard.lock();
   }
 }

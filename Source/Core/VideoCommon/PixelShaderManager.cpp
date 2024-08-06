@@ -380,9 +380,9 @@ void PixelShaderManager::SetZTextureOpChanged()
 
 void PixelShaderManager::SetTexCoordChanged(const u8 texmapid)
 {
-  const TCoordInfo& tc = bpmem.texcoords[texmapid];
-  constants.texdims[texmapid][2] = tc.s.scale_minus_1 + 1;
-  constants.texdims[texmapid][3] = tc.t.scale_minus_1 + 1;
+  const auto& [s, t] = bpmem.texcoords[texmapid];
+  constants.texdims[texmapid][2] = s.scale_minus_1 + 1;
+  constants.texdims[texmapid][3] = t.scale_minus_1 + 1;
   dirty = true;
 }
 

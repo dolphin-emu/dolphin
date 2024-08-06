@@ -366,14 +366,15 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
-    D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];
+    auto& [_BlendEnable, LogicOpEnable, _SrcBlend, _DestBlend, _BlendOp, _SrcBlendAlpha,
+      _DestBlendAlpha, _BlendOpAlpha, LogicOp, RenderTargetWriteMask] = desc.RenderTarget[0];
     if (state.colorupdate)
-      tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
+      RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                     D3D11_COLOR_WRITE_ENABLE_BLUE;
     else
-      tdesc.RenderTargetWriteMask = 0;
+      RenderTargetWriteMask = 0;
     if (state.alphaupdate)
-      tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+      RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
     static constexpr std::array<D3D11_LOGIC_OP, 16> logic_ops = {
         {D3D11_LOGIC_OP_CLEAR, D3D11_LOGIC_OP_AND, D3D11_LOGIC_OP_AND_REVERSE, D3D11_LOGIC_OP_COPY,
@@ -381,8 +382,8 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
          D3D11_LOGIC_OP_NOR, D3D11_LOGIC_OP_EQUIV, D3D11_LOGIC_OP_INVERT, D3D11_LOGIC_OP_OR_REVERSE,
          D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
          D3D11_LOGIC_OP_SET}};
-    tdesc.LogicOpEnable = TRUE;
-    tdesc.LogicOp = logic_ops[static_cast<u32>(state.logicmode.Value())];
+    LogicOpEnable = TRUE;
+    LogicOp = logic_ops[static_cast<u32>(state.logicmode.Value())];
 
     ComPtr<ID3D11BlendState1> res;
     const HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
@@ -397,16 +398,17 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   desc.AlphaToCoverageEnable = FALSE;
   desc.IndependentBlendEnable = FALSE;
 
-  D3D11_RENDER_TARGET_BLEND_DESC& tdesc = desc.RenderTarget[0];
-  tdesc.BlendEnable = state.blendenable;
+  auto& [BlendEnable, SrcBlend, DestBlend, BlendOp, SrcBlendAlpha, DestBlendAlpha, BlendOpAlpha,
+    RenderTargetWriteMask] = desc.RenderTarget[0];
+  BlendEnable = state.blendenable;
 
   if (state.colorupdate)
-    tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
+    RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                   D3D11_COLOR_WRITE_ENABLE_BLUE;
   else
-    tdesc.RenderTargetWriteMask = 0;
+    RenderTargetWriteMask = 0;
   if (state.alphaupdate)
-    tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+    RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
   const bool use_dual_source = state.usedualsrc;
   const std::array<D3D11_BLEND, 8> src_factors = {
@@ -420,12 +422,12 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
        use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
        D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
-  tdesc.SrcBlend = src_factors[static_cast<u32>(state.srcfactor.Value())];
-  tdesc.SrcBlendAlpha = src_factors[static_cast<u32>(state.srcfactoralpha.Value())];
-  tdesc.DestBlend = dst_factors[static_cast<u32>(state.dstfactor.Value())];
-  tdesc.DestBlendAlpha = dst_factors[static_cast<u32>(state.dstfactoralpha.Value())];
-  tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
-  tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  SrcBlend = src_factors[static_cast<u32>(state.srcfactor.Value())];
+  SrcBlendAlpha = src_factors[static_cast<u32>(state.srcfactoralpha.Value())];
+  DestBlend = dst_factors[static_cast<u32>(state.dstfactor.Value())];
+  DestBlendAlpha = dst_factors[static_cast<u32>(state.dstfactoralpha.Value())];
+  BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
   ComPtr<ID3D11BlendState> res;
   const HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());

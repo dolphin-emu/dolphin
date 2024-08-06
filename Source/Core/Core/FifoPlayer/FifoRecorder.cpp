@@ -81,38 +81,38 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
                                                           const u8 vat, const u32 vertex_size, const u16 num_vertices,
                                                           const u8* vertex_data)
 {
-  const auto& vtx_desc = m_cpmem.vtx_desc;
+  const auto& [low, high] = m_cpmem.vtx_desc;
   const auto& vtx_attr = m_cpmem.vtx_attr[vat];
 
   u32 offset = 0;
 
-  if (vtx_desc.low.PosMatIdx)
+  if (low.PosMatIdx)
     offset++;
-  for (auto texmtxidx : vtx_desc.low.TexMatIdx)
+  for (auto texmtxidx : low.TexMatIdx)
   {
     if (texmtxidx)
       offset++;
   }
-  const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
+  const u32 pos_size = VertexLoader_Position::GetSize(low.Position, vtx_attr.g0.PosFormat,
                                                       vtx_attr.g0.PosElements);
   const u32 pos_direct_size = VertexLoader_Position::GetSize(
       VertexComponentFormat::Direct, vtx_attr.g0.PosFormat, vtx_attr.g0.PosElements);
-  ProcessVertexComponent(CPArray::Position, vtx_desc.low.Position, offset, pos_direct_size,
+  ProcessVertexComponent(CPArray::Position, low.Position, offset, pos_direct_size,
                          vertex_size, num_vertices, vertex_data);
   offset += pos_size;
 
   const u32 norm_size =
-      VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
+      VertexLoader_Normal::GetSize(low.Normal, vtx_attr.g0.NormalFormat,
                                    vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
   const u32 norm_direct_size =
       VertexLoader_Normal::GetSize(VertexComponentFormat::Direct, vtx_attr.g0.NormalFormat,
                                    vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
-  if (vtx_attr.g0.NormalIndex3 && IsIndexed(vtx_desc.low.Normal) &&
+  if (vtx_attr.g0.NormalIndex3 && IsIndexed(low.Normal) &&
       vtx_attr.g0.NormalElements == NormalComponentCount::NTB)
   {
     // We're in 3-index mode, and we're using an indexed format and have the
     // normal/tangent/binormal, so we actually need to deal with 3-index mode.
-    const u32 index_size = vtx_desc.low.Normal == VertexComponentFormat::Index16 ? 2 : 1;
+    const u32 index_size = low.Normal == VertexComponentFormat::Index16 ? 2 : 1;
     ASSERT(norm_size == index_size * 3);
     // 3-index mode uses one index each for the normal, tangent and binormal;
     // the tangent and binormal are internally offset.
@@ -124,37 +124,37 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
     // results if the normal array's stride was something other than 12, for instance if vertices
     // were contiguous in main memory instead of individual components being used).
     const u32 element_size = GetElementSize(vtx_attr.g0.NormalFormat) * 3;
-    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset, element_size, vertex_size,
+    ProcessVertexComponent(CPArray::Normal, low.Normal, offset, element_size, vertex_size,
                            num_vertices, vertex_data);
-    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset + index_size, element_size,
+    ProcessVertexComponent(CPArray::Normal, low.Normal, offset + index_size, element_size,
                            vertex_size, num_vertices, vertex_data, element_size);
-    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset + 2 * index_size,
+    ProcessVertexComponent(CPArray::Normal, low.Normal, offset + 2 * index_size,
                            element_size, vertex_size, num_vertices, vertex_data, 2 * element_size);
   }
   else
   {
-    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset, norm_direct_size,
+    ProcessVertexComponent(CPArray::Normal, low.Normal, offset, norm_direct_size,
                            vertex_size, num_vertices, vertex_data);
   }
   offset += norm_size;
 
-  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  for (u32 i = 0; i < low.Color.Size(); i++)
   {
     const u32 color_size =
-        VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
+        VertexLoader_Color::GetSize(low.Color[i], vtx_attr.GetColorFormat(i));
     const u32 color_direct_size =
         VertexLoader_Color::GetSize(VertexComponentFormat::Direct, vtx_attr.GetColorFormat(i));
-    ProcessVertexComponent(CPArray::Color0 + i, vtx_desc.low.Color[i], offset, color_direct_size,
+    ProcessVertexComponent(CPArray::Color0 + i, low.Color[i], offset, color_direct_size,
                            vertex_size, num_vertices, vertex_data);
     offset += color_size;
   }
-  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  for (u32 i = 0; i < high.TexCoord.Size(); i++)
   {
     const u32 tc_size = VertexLoader_TextCoord::GetSize(
-        vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
+        high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
     const u32 tc_direct_size = VertexLoader_TextCoord::GetSize(
         VertexComponentFormat::Direct, vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
-    ProcessVertexComponent(CPArray::TexCoord0 + i, vtx_desc.high.TexCoord[i], offset,
+    ProcessVertexComponent(CPArray::TexCoord0 + i, high.TexCoord[i], offset,
                            tc_direct_size, vertex_size, num_vertices, vertex_data);
     offset += tc_size;
   }
@@ -271,9 +271,12 @@ void FifoRecorder::StartRecording(const s32 numFrames, CallbackFunc finishedCb)
           RecordInitialVideoMemory();
         }
 
-        const auto& fifo = system.GetCommandProcessor().GetFifo();
-        EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
-                 fifo.CPEnd.load(std::memory_order_relaxed));
+        const auto& [CPBase, CPEnd, _CPHiWatermark, _CPLoWatermark, _CPReadWriteDistance,
+              _CPWritePointer, _CPReadPointer, _CPBreakpoint, _SafeCPReadPointer, _bFF_GPLinkEnable,
+              _bFF_GPReadEnable, _bFF_BPEnable, _bFF_BPInt, _bFF_Breakpoint, _bFF_LoWatermarkInt,
+              _bFF_HiWatermarkInt, _bFF_LoWatermark, _bFF_HiWatermark] =
+                system.GetCommandProcessor().GetFifo();
+        EndFrame(CPBase.load(std::memory_order_relaxed), CPEnd.load(std::memory_order_relaxed));
       },
       "FifoRecorder::EndFrame");
 }

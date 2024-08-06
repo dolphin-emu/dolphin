@@ -65,8 +65,8 @@ static bool VerifyRoms(const SDSP& dsp)
 
   for (size_t i = 0; i < known_roms.size(); ++i)
   {
-    const DspRomHashes& rom = known_roms[i];
-    if (hash_irom == rom.hash_irom && hash_drom == rom.hash_drom)
+    const auto& [rom_hash_irom, rom_hash_drom] = known_roms[i];
+    if (hash_irom == rom_hash_irom && hash_drom == rom_hash_drom)
       rom_idx = static_cast<int>(i);
   }
 

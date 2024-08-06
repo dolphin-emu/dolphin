@@ -60,14 +60,14 @@ static std::string GenerateDefaultGCIFilename(const Memcard::DEntry& entry,
 bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
 {
   // check if any already loaded file has the same internal name as the new file
-  for (const Memcard::GCIFile& already_loaded_gci : m_saves)
+  for (const auto& [m_gci_header, _m_save_data, _m_used_blocks, _m_dirty, m_filename] : m_saves)
   {
-    if (HasSameIdentity(gci.m_gci_header, already_loaded_gci.m_gci_header))
+    if (HasSameIdentity(gci.m_gci_header, m_gci_header))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE,
                     "{}\nwas not loaded because it has the same internal filename as previously "
                     "loaded save\n{}",
-                    gci.m_filename, already_loaded_gci.m_filename);
+                    gci.m_filename, m_filename);
       return false;
     }
   }
@@ -617,14 +617,14 @@ void GCMemcardDirectory::FlushToFile()
 {
   std::unique_lock l(m_write_mutex);
   Memcard::DEntry invalid;
-  for (Memcard::GCIFile& save : m_saves)
+  for (auto& [m_gci_header, m_save_data, m_used_blocks, m_dirty, m_filename] : m_saves)
   {
-    if (save.m_dirty)
+    if (m_dirty)
     {
-      if (save.m_gci_header.m_gamecode != Memcard::DEntry::UNINITIALIZED_GAMECODE)
+      if (m_gci_header.m_gamecode != Memcard::DEntry::UNINITIALIZED_GAMECODE)
       {
-        save.m_dirty = false;
-        if (save.m_save_data.empty())
+        m_dirty = false;
+        if (m_save_data.empty())
         {
           // The save's header has been changed but the actual save blocks haven't been read/written
           // to
@@ -633,10 +633,10 @@ void GCMemcardDirectory::FlushToFile()
                         "GCI header modified without corresponding save data changes");
           continue;
         }
-        if (save.m_filename.empty())
+        if (m_filename.empty())
         {
           std::string default_save_name =
-              m_save_directory + GenerateDefaultGCIFilename(save.m_gci_header, m_hdr.IsShiftJIS());
+              m_save_directory + GenerateDefaultGCIFilename(m_gci_header, m_hdr.IsShiftJIS());
 
           // Check to see if another file is using the same name
           // This seems unlikely except in the case of file corruption
@@ -650,13 +650,13 @@ void GCMemcardDirectory::FlushToFile()
             PanicAlertFmtT("Failed to find new filename.\n{0}\n will be overwritten",
                            default_save_name);
           }
-          save.m_filename = default_save_name;
+          m_filename = default_save_name;
         }
-        File::IOFile gci(save.m_filename, "wb");
+        File::IOFile gci(m_filename, "wb");
         if (gci)
         {
-          gci.WriteBytes(&save.m_gci_header, Memcard::DENTRY_SIZE);
-          for (const Memcard::GCMBlock& block : save.m_save_data)
+          gci.WriteBytes(&m_gci_header, Memcard::DENTRY_SIZE);
+          for (const Memcard::GCMBlock& block : m_save_data)
             gci.WriteBytes(block.m_block.data(), Memcard::BLOCK_SIZE);
 
           if (gci.IsGood())
@@ -666,29 +666,29 @@ void GCMemcardDirectory::FlushToFile()
           else
           {
             Core::DisplayMessage(
-                fmt::format("Failed to write save contents to {}", save.m_filename), 10000);
-            ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to save data to {}", save.m_filename);
+                fmt::format("Failed to write save contents to {}", m_filename), 10000);
+            ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to save data to {}", m_filename);
           }
         }
         else
         {
           Core::DisplayMessage(
-              fmt::format("Failed to open file at {} for writing", save.m_filename), 10000);
+              fmt::format("Failed to open file at {} for writing", m_filename), 10000);
           ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to open file at {} for writing",
-                        save.m_filename);
+                        m_filename);
         }
       }
-      else if (save.m_filename.length() != 0)
+      else if (m_filename.length() != 0)
       {
-        save.m_dirty = false;
-        std::string& old_name = save.m_filename;
+        m_dirty = false;
+        std::string& old_name = m_filename;
         std::string deleted_name = old_name + ".deleted";
         if (File::Exists(deleted_name))
           File::Delete(deleted_name);
         File::Rename(old_name, deleted_name);
-        save.m_filename.clear();
-        save.m_save_data.clear();
-        save.m_used_blocks.clear();
+        m_filename.clear();
+        m_save_data.clear();
+        m_used_blocks.clear();
       }
     }
 
@@ -697,11 +697,11 @@ void GCMemcardDirectory::FlushToFile()
     // simultaneously
     // this ensures that the save data for all of the current games gci files are stored in the
     // savestate
-    const u32 gamecode = Common::swap32(save.m_gci_header.m_gamecode.data());
-    if (gamecode != m_game_id && gamecode != 0xFFFFFFFF && !save.m_save_data.empty())
+    const u32 gamecode = Common::swap32(m_gci_header.m_gamecode.data());
+    if (gamecode != m_game_id && gamecode != 0xFFFFFFFF && !m_save_data.empty())
     {
-      INFO_LOG_FMT(EXPANSIONINTERFACE, "Flushing savedata to disk for {}", save.m_filename);
-      save.m_save_data.clear();
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "Flushing savedata to disk for {}", m_filename);
+      m_save_data.clear();
     }
   }
 #if _WRITE_MC_HEADER

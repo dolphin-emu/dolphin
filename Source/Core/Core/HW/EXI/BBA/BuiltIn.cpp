@@ -34,8 +34,8 @@ std::vector<u8> BuildFINFrame(StackRef* ref)
   const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
                                  ref->ack_num, TCP_FLAG_FIN | TCP_FLAG_ACK | TCP_FLAG_RST);
 
-  for (auto& tcp_buf : ref->tcp_buffers)
-    tcp_buf.used = false;
+  for (auto& [used, _tick, _seq_id, _data] : ref->tcp_buffers)
+    used = false;
   return result.Build();
 }
 
@@ -147,16 +147,16 @@ void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
     // Check for sleeping TCP data
     if (net_ref.type == IPPROTO_TCP)
     {
-      for (auto& tcp_buf : net_ref.tcp_buffers)
+      for (auto& [used, tick, _seq_id, data] : net_ref.tcp_buffers)
       {
         if (WillQueueOverrun())
           break;
-        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
+        if (!used || (GetTickCountStd() - tick) <= 1000)
           continue;
 
         // Timed out packet, resend
-        tcp_buf.tick = GetTickCountStd();
-        WriteToQueue(tcp_buf.data);
+        tick = GetTickCountStd();
+        WriteToQueue(data);
       }
     }
 
@@ -382,8 +382,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->seq_num = 0x1000000;
     ref->window_size = ntohs(tcp_header.window_size);
     ref->type = IPPROTO_TCP;
-    for (auto& tcp_buf : ref->tcp_buffers)
-      tcp_buf.used = false;
+    for (auto& [used, _tick, _seq_id, _data] : ref->tcp_buffers)
+      used = false;
     const u32 destination_ip = std::bit_cast<u32>(ip_header.destination_addr);
     ref->from.sin_addr.s_addr = destination_ip;
     ref->from.sin_port = tcp_header.destination_port;
@@ -428,31 +428,31 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     if (ntohs(tcp_header.properties) & TCP_FLAG_ACK)
     {
       const u32 ack_num = ntohl(tcp_header.acknowledgement_number);
-      for (auto& tcp_buf : ref->tcp_buffers)
+      for (auto& [used, _tick, seq_id, data] : ref->tcp_buffers)
       {
-        if (!tcp_buf.used || tcp_buf.seq_id >= ack_num)
+        if (!used || seq_id >= ack_num)
           continue;
 
-        Common::PacketView view(tcp_buf.data.data(), tcp_buf.data.size());
+        Common::PacketView view(data.data(), data.size());
         auto tcp_packet = view.GetTCPPacket();  // This is always a tcp packet
         if (!tcp_packet.has_value())            // should never happen but just in case
           continue;
 
-        const u32 seq_end = static_cast<u32>(tcp_buf.seq_id + tcp_packet->data.size());
+        const u32 seq_end = static_cast<u32>(seq_id + tcp_packet->data.size());
         if (seq_end <= ack_num)
         {
-          tcp_buf.used = false;  // confirmed data received
+          used = false;  // confirmed data received
           if (!ref->ready && !ref->tcp_buffers[0].used)
             ref->ready = true;
           continue;
         }
         // partial data, adjust the packet for next ack
-        const u16 ack_size = ack_num - tcp_buf.seq_id;
+        const u16 ack_size = ack_num - seq_id;
         tcp_packet->data.erase(tcp_packet->data.begin(), tcp_packet->data.begin() + ack_size);
 
-        tcp_buf.seq_id += ack_size;
-        tcp_packet->tcp_header.sequence_number = htonl(tcp_buf.seq_id);
-        tcp_buf.data = tcp_packet->Build();
+        seq_id += ack_size;
+        tcp_packet->tcp_header.sequence_number = htonl(seq_id);
+        data = tcp_packet->Build();
       }
     }
   }
@@ -564,8 +564,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
   ref->seq_num = 0x1000000;
   ref->window_size = 8192;
   ref->type = IPPROTO_TCP;
-  for (auto& tcp_buf : ref->tcp_buffers)
-    tcp_buf.used = false;
+  for (auto& [used, _tick, _seq_id, _data] : ref->tcp_buffers)
+    used = false;
   ref->bba_mac = m_current_mac;
   ref->my_mac = ResolveAddress(ref->from.sin_addr.s_addr);
   ref->tcp_socket.setBlocking(false);
@@ -1010,12 +1010,14 @@ StackRef* NetworkRef::GetTCPSlot(const u16 src_port, const u16 dst_port, const u
 
 void NetworkRef::Clear()
 {
-  for (auto& ref : m_stacks)
+  for (auto& [ip, _local, _remote, type, _target, _seq_num, _ack_num, _ack_base, _window_size,
+         _delay, _tcp_buffers, _ready, _from, _to, _bba_mac, _my_mac, udp_socket, tcp_socket,
+         _poke_time] : m_stacks)
   {
-    if (ref.ip != 0)
+    if (ip != 0)
     {
-      ref.type == IPPROTO_TCP ? ref.tcp_socket.disconnect() : ref.udp_socket.unbind();
+      type == IPPROTO_TCP ? tcp_socket.disconnect() : udp_socket.unbind();
     }
-    ref.ip = 0;
+    ip = 0;
   }
 }

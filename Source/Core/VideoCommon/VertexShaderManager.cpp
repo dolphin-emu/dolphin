@@ -128,8 +128,8 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
   if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty())
   {
     xf_state_manager.ResetProjection();
-    const auto corrected_matrix = LoadProjectionMatrix();
-    memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
+    const auto [data] = LoadProjectionMatrix();
+    memcpy(constants.projection.data(), data.data(), 4 * sizeof(float4));
   }
 }
 
@@ -217,34 +217,34 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     for (int i = istart; i < iend; ++i)
     {
       const Light& light = xfmem.lights[i];
-      VertexShaderConstants::Light& dstlight = constants.lights[i];
+      auto& [color, cosatt, distatt, pos, dir] = constants.lights[i];
 
       // xfmem.light.color is packed as abgr in u8[4], so we have to swap the order
-      dstlight.color[0] = light.color[3];
-      dstlight.color[1] = light.color[2];
-      dstlight.color[2] = light.color[1];
-      dstlight.color[3] = light.color[0];
+      color[0] = light.color[3];
+      color[1] = light.color[2];
+      color[2] = light.color[1];
+      color[3] = light.color[0];
 
-      dstlight.cosatt[0] = light.cosatt[0];
-      dstlight.cosatt[1] = light.cosatt[1];
-      dstlight.cosatt[2] = light.cosatt[2];
+      cosatt[0] = light.cosatt[0];
+      cosatt[1] = light.cosatt[1];
+      cosatt[2] = light.cosatt[2];
 
       if (fabs(light.distatt[0]) < 0.00001f && fabs(light.distatt[1]) < 0.00001f &&
           fabs(light.distatt[2]) < 0.00001f)
       {
         // dist attenuation, make sure not equal to 0!!!
-        dstlight.distatt[0] = .00001f;
+        distatt[0] = .00001f;
       }
       else
       {
-        dstlight.distatt[0] = light.distatt[0];
+        distatt[0] = light.distatt[0];
       }
-      dstlight.distatt[1] = light.distatt[1];
-      dstlight.distatt[2] = light.distatt[2];
+      distatt[1] = light.distatt[1];
+      distatt[2] = light.distatt[2];
 
-      dstlight.pos[0] = light.dpos[0];
-      dstlight.pos[1] = light.dpos[1];
-      dstlight.pos[2] = light.dpos[2];
+      pos[0] = light.dpos[0];
+      pos[1] = light.dpos[1];
+      pos[2] = light.dpos[2];
 
       // TODO: Hardware testing is needed to confirm that this normalization is correct
       auto sanitize = [](const float f) {
@@ -258,9 +258,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
                     static_cast<double>(light.ddir[1]) * static_cast<double>(light.ddir[1]) +
                     static_cast<double>(light.ddir[2]) * static_cast<double>(light.ddir[2]);
       norm = 1.0 / sqrt(norm);
-      dstlight.dir[0] = sanitize(static_cast<float>(light.ddir[0] * norm));
-      dstlight.dir[1] = sanitize(static_cast<float>(light.ddir[1] * norm));
-      dstlight.dir[2] = sanitize(static_cast<float>(light.ddir[2] * norm));
+      dir[0] = sanitize(static_cast<float>(light.ddir[0] * norm));
+      dir[1] = sanitize(static_cast<float>(light.ddir[1] * norm));
+      dir[2] = sanitize(static_cast<float>(light.ddir[2] * norm));
     }
     dirty = true;
 

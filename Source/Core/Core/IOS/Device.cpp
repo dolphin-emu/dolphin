@@ -135,15 +135,15 @@ void IOCtlVRequest::Dump(const Core::System& system, const std::string_view desc
                   request, in_vectors.size(), io_vectors.size());
 
   size_t i = 0;
-  for (const auto& vector : in_vectors)
+  for (const auto& [address, size] : in_vectors)
   {
-    GENERIC_LOG_FMT(type, level, "in[{}] (size={:#x}):\n{}", i++, vector.size,
-                    HexDump(memory.GetPointerForRange(vector.address, vector.size), vector.size));
+    GENERIC_LOG_FMT(type, level, "in[{}] (size={:#x}):\n{}", i++, size,
+                    HexDump(memory.GetPointerForRange(address, size), size));
   }
 
   i = 0;
-  for (const auto& vector : io_vectors)
-    GENERIC_LOG_FMT(type, level, "io[{}] (size={:#x})", i++, vector.size);
+  for (const auto& [_address, size] : io_vectors)
+    GENERIC_LOG_FMT(type, level, "io[{}] (size={:#x})", i++, size);
 }
 
 void IOCtlVRequest::DumpUnknown(const Core::System& system, const std::string& description,

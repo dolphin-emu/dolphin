@@ -82,14 +82,14 @@ public:
     if (banner_delete_result != FS::ResultCode::Success)
       return false;
 
-    for (const SaveFile& file : m_files_list)
+    for (const auto& [_mode, _attributes, _type, path, _data] : m_files_list)
     {
       // files in subdirs are deleted automatically when the subdir is deleted
-      if (file.path.find('/') != std::string::npos)
+      if (path.find('/') != std::string::npos)
         continue;
 
       const auto result =
-          m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/" + file.path);
+          m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/" + path);
       if (result != FS::ResultCode::Success)
         return false;
     }
@@ -164,18 +164,18 @@ public:
     if (!m_uid || !m_gid)
       return false;
 
-    for (const SaveFile& file : files)
+    for (const auto& [mode, _attributes, type, file_path, file_data] : files)
     {
-      const FS::Modes modes = GetFsMode(file.mode);
-      const std::string path = m_data_dir + '/' + file.path;
-      if (file.type == SaveFile::Type::File)
+      const FS::Modes modes = GetFsMode(mode);
+      const std::string path = m_data_dir + '/' + file_path;
+      if (type == SaveFile::Type::File)
       {
         const auto raw_file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, path, modes);
-        const std::optional<std::vector<u8>>& data = *file.data;
+        const std::optional<std::vector<u8>>& data = *file_data;
         if (!data || !raw_file || !raw_file->Write(data->data(), data->size()))
           return false;
       }
-      else if (file.type == SaveFile::Type::Directory)
+      else if (type == SaveFile::Type::Directory)
       {
         const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, path);
         if (meta && meta->is_file)
@@ -396,21 +396,21 @@ public:
     if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return false;
 
-    for (const SaveFile& save_file : files)
+    for (const auto& [mode, attributes, type, path, save_file_data] : files)
     {
       FileHDR file_hdr{};
       file_hdr.magic = FILE_HDR_MAGIC;
-      file_hdr.permissions = save_file.mode;
-      file_hdr.attrib = save_file.attributes;
-      file_hdr.type = static_cast<u8>(save_file.type);
-      if (save_file.path.length() > file_hdr.name.size())
+      file_hdr.permissions = mode;
+      file_hdr.attrib = attributes;
+      file_hdr.type = static_cast<u8>(type);
+      if (path.length() > file_hdr.name.size())
         return false;
-      std::strncpy(file_hdr.name.data(), save_file.path.data(), file_hdr.name.size());
+      std::strncpy(file_hdr.name.data(), path.data(), file_hdr.name.size());
 
       std::optional<std::vector<u8>> data;
       if (file_hdr.type == 1)
       {
-        data = *save_file.data;
+        data = *save_file_data;
         if (!data)
           return false;
         file_hdr.size = static_cast<u32>(data->size());

@@ -460,9 +460,9 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 
   auto calc_dir_size = [](FSTEntry* dir) {
     dir->size += dir->children.size();
-    for (const auto& child : dir->children)
-      if (child.isDirectory)
-        dir->size += child.size;
+    for (const auto& [isDirectory, size, _physicalName, _virtualName, _children] : dir->children)
+      if (isDirectory)
+        dir->size += size;
   };
 
   const auto directory_path = StringToPath(directory);

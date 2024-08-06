@@ -175,8 +175,8 @@ void BranchWatch::IsolateNotExecuted(const CPUThreadGuard&)
   case Phase::Blacklist:
   {
     const auto routine = [&](Collection& collection) {
-      for (auto& val : collection | std::views::values)
-        val.hits_snapshot = val.total_hits;
+      for (auto& [total_hits, hits_snapshot] : collection | std::views::values)
+        hits_snapshot = total_hits;
     };
     routine(m_collection_vt);
     routine(m_collection_vf);
@@ -212,16 +212,16 @@ void BranchWatch::IsolateWasOverwritten(const CPUThreadGuard& guard)
     // hits_snapshot is non-zero while in the blacklist phase, that means it has been marked
     // for exclusion from the transition to the reduction phase.
     const auto routine = [&](Collection& collection, const PowerPC::RequestedAddressSpace address_space) {
-      for (Collection::value_type& kv : collection)
+      for (auto& [fst, snd] : collection)
       {
-        if (kv.second.hits_snapshot == 0)
+        if (snd.hits_snapshot == 0)
         {
           const std::optional read_result =
-              PowerPC::MMU::HostTryReadInstruction(guard, kv.first.origin_addr, address_space);
+              PowerPC::MMU::HostTryReadInstruction(guard, fst.origin_addr, address_space);
           if (!read_result.has_value())
             continue;
-          if (kv.first.original_inst.hex == read_result->value)
-            kv.second.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
+          if (fst.original_inst.hex == read_result->value)
+            snd.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
         }
       }
     };
@@ -258,15 +258,15 @@ void BranchWatch::IsolateNotOverwritten(const CPUThreadGuard& guard)
   {
     // Same dirty hack with != rather than ==, see above for details
     const auto routine = [&](Collection& collection, const PowerPC::RequestedAddressSpace address_space) {
-      for (Collection::value_type& kv : collection)
-        if (kv.second.hits_snapshot == 0)
+      for (auto& [fst, snd] : collection)
+        if (snd.hits_snapshot == 0)
         {
           const std::optional read_result =
-              PowerPC::MMU::HostTryReadInstruction(guard, kv.first.origin_addr, address_space);
+              PowerPC::MMU::HostTryReadInstruction(guard, fst.origin_addr, address_space);
           if (!read_result.has_value())
             continue;
-          if (kv.first.original_inst.hex != read_result->value)
-            kv.second.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
+          if (fst.original_inst.hex != read_result->value)
+            snd.hits_snapshot = ++m_blacklist_size;  // Any non-zero number will work.
         }
     };
     routine(m_collection_vt, PowerPC::RequestedAddressSpace::Virtual);
@@ -294,8 +294,8 @@ void BranchWatch::UpdateHitsSnapshot() const
   switch (m_recording_phase)
   {
   case Phase::Reduction:
-    for (const Selection::value_type& value : m_selection)
-      value.collection_ptr->second.hits_snapshot = value.collection_ptr->second.total_hits;
+    for (const auto& [collection_ptr, _is_virtual, _condition, _inspection] : m_selection)
+      collection_ptr->second.hits_snapshot = collection_ptr->second.total_hits;
     return;
   case Phase::Blacklist:
     return;

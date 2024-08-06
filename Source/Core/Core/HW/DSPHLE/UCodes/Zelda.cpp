@@ -1101,12 +1101,12 @@ void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
       if (rpb.enabled & 1)
         ApplyFilter();
 
-      for (const auto& dest : rpb.dest)
+      for (const auto& [buffer_id, volume] : rpb.dest)
       {
-        if (dest.buffer_id == 0)
+        if (buffer_id == 0)
           continue;
 
-        MixingBuffer* dest_buffer = BufferForID(dest.buffer_id);
+        MixingBuffer* dest_buffer = BufferForID(buffer_id);
         if (!dest_buffer)
         {
 #ifdef STRICT_ZELDA_HLE
@@ -1114,7 +1114,7 @@ void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
 #endif
           continue;
         }
-        AddBuffersWithVolume(dest_buffer->data(), buffer.data(), 0x50, dest.volume);
+        AddBuffersWithVolume(dest_buffer->data(), buffer.data(), 0x50, volume);
       }
 
       // LSB not set, bit 1 set -> post-filtering.
@@ -1247,10 +1247,10 @@ void ZeldaAudioRenderer::AddVoice(const u16 voice_id)
         {&m_buf_front_right_reverb, reverb_volumes[2], reverb_volume_deltas[2]},
         {&m_buf_back_right_reverb, reverb_volumes[3], reverb_volume_deltas[3]},
     };
-    for (const auto& buffer : buffers)
+    for (const auto& [buffer, volume, volume_delta] : buffers)
     {
-      AddBuffersWithVolumeRamp(buffer.buffer, input_samples, buffer.volume << 16,
-                               (buffer.volume_delta << 16) / static_cast<s32>(buffer.buffer->size()));
+      AddBuffersWithVolumeRamp(buffer, input_samples, volume << 16,
+                               (volume_delta << 16) / static_cast<s32>(buffer->size()));
     }
 
     vpb.dolby_volume_current = vpb.dolby_volume_target;
@@ -1448,8 +1448,8 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
         {VPB::SRC_CONST_PATTERN_1, {1, false}}, {VPB::SRC_CONST_PATTERN_2, {2, false}},
         {VPB::SRC_CONST_PATTERN_3, {3, false}},
     };
-    const auto& pattern_info = samples_source_to_pattern[vpb->samples_source_type];
-    const u16 pattern_offset = pattern_info.idx * PATTERN_SIZE;
+    const auto& [idx, variable_step] = samples_source_to_pattern[vpb->samples_source_type];
+    const u16 pattern_offset = idx * PATTERN_SIZE;
     const s16* pattern = m_const_patterns.data() + pattern_offset;
 
     u32 pos = vpb->current_pos_frac << 6;        // log2(PATTERN_SIZE)
@@ -1459,7 +1459,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     {
       (*buffer)[i] = pattern[pos >> 16];
       pos = (pos + step) % (PATTERN_SIZE << 16);
-      if (pattern_info.variable_step)
+      if (variable_step)
         pos = ((pos << 10) + m_buf_back_right[i] * vpb->resampling_ratio) >> 10;
     }
 

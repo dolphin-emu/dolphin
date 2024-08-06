@@ -187,10 +187,10 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
       continue;
     }
 
-    for (const GeckoCode::Code& code : active_code.codes)
+    for (const auto& [address, data, _original_line] : active_code.codes)
     {
-      PowerPC::MMU::HostWrite_U32(guard, code.address, next_address);
-      PowerPC::MMU::HostWrite_U32(guard, code.data, next_address + 4);
+      PowerPC::MMU::HostWrite_U32(guard, address, next_address);
+      PowerPC::MMU::HostWrite_U32(guard, data, next_address + 4);
       next_address += CODE_SIZE;
     }
   }
@@ -207,12 +207,16 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   PowerPC::MMU::HostWrite_U8(guard, 1, INSTALLER_BASE_ADDRESS + 7);
 
   // Invalidate the icache and any asm codes
-  auto& ppc_state = guard.GetSystem().GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = guard.GetSystem().GetPPCState();
   const auto& memory = guard.GetSystem().GetMemory();
   auto& jit_interface = guard.GetSystem().GetJitInterface();
   for (u32 j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
   {
-    ppc_state.iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
+    iCache.Invalidate(memory, jit_interface, INSTALLER_BASE_ADDRESS + j);
   }
   return Installation::Installed;
 }

@@ -355,8 +355,8 @@ std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::span<const 
 size_t GetBlockCount(const std::span<const Savefile> savefiles)
 {
   size_t block_count = 0;
-  for (const Savefile& savefile : savefiles)
-    block_count += savefile.blocks.size();
+  for (const auto& [_dir_entry, blocks] : savefiles)
+    block_count += blocks.size();
   return block_count;
 }
 }  // namespace Memcard

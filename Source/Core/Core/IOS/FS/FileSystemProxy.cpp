@@ -203,8 +203,9 @@ FSCore::ScopedFd FSCore::Open(const Uid uid, const Gid gid, const std::string& p
   if (!backend_fd)
     return {this, ConvertResult(backend_fd.Error()), ticks};
 
-  auto& handle = m_fd_map[fd] = {gid, uid, backend_fd->Release()};
-  std::strncpy(handle.name.data(), path.c_str(), handle.name.size());
+  auto& [_gid, _uid, _fs_fd, name, _superblock_flush_needed] =
+    m_fd_map[fd] = {gid, uid, backend_fd->Release()};
+  std::strncpy(name.data(), path.c_str(), name.size());
   return {this, static_cast<s64>(fd), ticks};
 }
 
@@ -217,8 +218,8 @@ s32 FSCore::Close(const u64 fd, const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
-  const auto& handle = m_fd_map[fd];
-  if (handle.fs_fd != INVALID_FD)
+  const auto& [_gid, _uid, fs_fd, name, superblock_flush_needed] = m_fd_map[fd];
+  if (fs_fd != INVALID_FD)
   {
     if (fd == m_cache_fd)
     {
@@ -226,11 +227,11 @@ s32 FSCore::Close(const u64 fd, const Ticks ticks)
       m_cache_fd.reset();
     }
 
-    if (handle.superblock_flush_needed)
+    if (superblock_flush_needed)
       ticks.Add(GetSuperblockWriteTbTicks(m_ios.GetVersion()));
 
-    const ResultCode result = m_ios.GetFS()->Close(handle.fs_fd);
-    LogResult(result, "Close({})", handle.name.data());
+    const ResultCode result = m_ios.GetFS()->Close(fs_fd);
+    LogResult(result, "Close({})", name.data());
     m_fd_map.erase(fd);
     if (result != ResultCode::Success)
       return ConvertResult(result);
@@ -395,12 +396,12 @@ s32 FSCore::Seek(const u64 fd, u32 offset, FS::SeekMode mode, const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
-  const Handle& handle = m_fd_map[fd];
-  if (handle.fs_fd == INVALID_FD)
+  const auto& [_gid, _uid, fs_fd, name, _superblock_flush_needed] = m_fd_map[fd];
+  if (fs_fd == INVALID_FD)
     return ConvertResult(ResultCode::Invalid);
 
-  const Result<u32> result = m_ios.GetFS()->SeekFile(handle.fs_fd, offset, mode);
-  LogResult(result, "Seek({}, 0x{:08x}, {})", handle.name.data(), offset, static_cast<int>(mode));
+  const Result<u32> result = m_ios.GetFS()->SeekFile(fs_fd, offset, mode);
+  LogResult(result, "Seek({}, 0x{:08x}, {})", name.data(), offset, static_cast<int>(mode));
   if (!result)
     return ConvertResult(result.Error());
   return *result;
@@ -747,12 +748,12 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
 Result<FileStatus> FSCore::GetFileStatus(const u64 fd, const Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
-  const auto& handle = m_fd_map[fd];
-  if (handle.fs_fd == INVALID_FD)
+  const auto& [_gid, _uid, fs_fd, name, _superblock_flush_needed] = m_fd_map[fd];
+  if (fs_fd == INVALID_FD)
     return ResultCode::Invalid;
 
-  const auto status = m_ios.GetFS()->GetFileStatus(handle.fs_fd);
-  LogResult(status, "GetFileStatus({})", handle.name.data());
+  const auto status = m_ios.GetFS()->GetFileStatus(fs_fd);
+  LogResult(status, "GetFileStatus({})", name.data());
   return status;
 }
 

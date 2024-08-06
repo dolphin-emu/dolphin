@@ -282,9 +282,10 @@ void NetworkWidget::Update() const
     s32 host_fd = -1;
     if (IOS::HLE::IsSSLIDValid(ssl_id))
     {
-      const auto& ssl = IOS::HLE::NetSSLDevice::_SSL[ssl_id];
-      host_fd = ssl.hostfd;
-      m_ssl_table->setItem(ssl_id, 5, new QTableWidgetItem(QString::fromStdString(ssl.hostname)));
+      const auto& [_ctx, _config, _session, _entropy, _ctr_drbg, _cacert, _clicert, _pk, _sockfd,
+        hostfd, hostname, _active] = IOS::HLE::NetSSLDevice::_SSL[ssl_id];
+      host_fd = hostfd;
+      m_ssl_table->setItem(ssl_id, 5, new QTableWidgetItem(QString::fromStdString(hostname)));
     }
     m_ssl_table->setItem(ssl_id, 0, new QTableWidgetItem(QString::number(ssl_id)));
     m_ssl_table->setItem(ssl_id, 1, GetSocketDomain(host_fd));

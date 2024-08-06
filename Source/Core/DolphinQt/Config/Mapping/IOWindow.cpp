@@ -681,9 +681,9 @@ void IOWindow::UpdateExpression(std::string new_expression, const UpdateMode mod
   {
     m_variables_combo->removeItem(m_variables_combo->count() - 1);
   }
-  for (const auto& expression : m_controller->GetExpressionVariables())
+  for (const auto& [fst, _snd] : m_controller->GetExpressionVariables())
   {
-    m_variables_combo->addItem(QString::fromStdString(expression.first));
+    m_variables_combo->addItem(QString::fromStdString(fst));
   }
 
   if (error)

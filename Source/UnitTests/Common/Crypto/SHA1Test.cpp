@@ -22,9 +22,9 @@ TEST(SHA1, Vectors)
        {0xa4, 0x9b, 0x24, 0x46, 0xa0, 0x2c, 0x64, 0x5b, 0xf4, 0x19,
         0xf9, 0x95, 0xb6, 0x70, 0x91, 0x25, 0x3a, 0x04, 0xa2, 0x59}},
   };
-  for (auto& test : vectors)
+  for (const auto& [msg, expected] : vectors)
   {
-    auto actual = Common::SHA1::CalculateDigest(test.msg);
-    EXPECT_EQ(test.expected, actual);
+    auto actual = Common::SHA1::CalculateDigest(msg);
+    EXPECT_EQ(expected, actual);
   }
 }

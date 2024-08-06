@@ -112,9 +112,9 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
         func.flags |= Common::FFLAG_STRAIGHT;
       return true;
     }
-    const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
-    if (read_result.valid && PPCTables::IsValidInstruction(instr, addr))
+    const auto [valid, _from_bat, hex, _physical_address] = mmu.TryReadInstruction(addr);
+    const UGeckoInstruction instr = hex;
+    if (valid && PPCTables::IsValidInstruction(instr, addr))
     {
       // BLR or RFI
       // 4e800021 is blrl, not the end of a function
@@ -284,10 +284,10 @@ static void FindFunctionsFromBranches(const Core::CPUThreadGuard& guard, u32 sta
   auto& mmu = guard.GetSystem().GetMMU();
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
-    const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
+    const auto [valid, _from_bat, hex, _physical_address] = mmu.TryReadInstruction(addr);
+    const UGeckoInstruction instr = hex;
 
-    if (read_result.valid && PPCTables::IsValidInstruction(instr, addr))
+    if (valid && PPCTables::IsValidInstruction(instr, addr))
     {
       switch (instr.OPCD)
       {
@@ -333,16 +333,16 @@ static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymb
       {0x80001700, "thermal_management_interrupt_exception_handler"}};
 
   auto& mmu = guard.GetSystem().GetMMU();
-  for (const auto& entry : handlers)
+  for (const auto& [fst, snd] : handlers)
   {
-    const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(entry.first);
-    if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, entry.first))
+    const auto [valid, _from_bat, hex, _physical_address] = mmu.TryReadInstruction(fst);
+    if (valid && PPCTables::IsValidInstruction(hex, fst))
     {
       // Check if this function is already mapped
-      Common::Symbol* f = func_db->AddFunction(guard, entry.first);
+      Common::Symbol* f = func_db->AddFunction(guard, fst);
       if (!f)
         continue;
-      f->Rename(entry.second);
+      f->Rename(snd);
     }
   }
 }
@@ -826,8 +826,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   auto& mmu = system.GetMMU();
   for (std::size_t i = 0; i < block_size; ++i)
   {
-    auto result = mmu.TryReadInstruction(address);
-    if (!result.valid)
+    auto [valid, _from_bat, hex, physical_address] = mmu.TryReadInstruction(address);
+    if (!valid)
     {
       if (i == 0)
         block->m_memory_exception = true;
@@ -836,7 +836,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     num_inst++;
 
-    const UGeckoInstruction inst = result.hex;
+    const UGeckoInstruction inst = hex;
     const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst, address);
     code[i] = {};
     code[i].opinfo = opinfo;
@@ -844,7 +844,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     code[i].inst = inst;
     code[i].skip = false;
     block->m_stats->numCycles += opinfo->num_cycles;
-    block->m_physical_addresses.insert(result.physical_address);
+    block->m_physical_addresses.insert(physical_address);
 
     SetInstructionStats(block, &code[i], opinfo);
 
@@ -1060,52 +1060,53 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   BitSet8 gqrUsed, gqrModified;
   for (u32 i = 0; i < block->m_num_instructions; i++)
   {
-    CodeOp& op = code[i];
+    auto& [inst, opinfo, _address, _branchTo, _regsIn, _regsOut, _fregsIn, fregOut, _crIn, _crOut,
+      _branchUsesCtr, _branchIsIdleLoop, _wantsCR, _wantsFPRF, _wantsCA, _wantsCAInFlags, _outputCR,
+      _outputFPRF, _outputCA, _canEndBlock, _canCauseException, _skipLRStack, _skip, _crInUse,
+      _crDiscardable, _fprInUse, _gprInUse, _gprDiscardable, _fprDiscardable, _fprInXmm,
+      _fprIsSingle, _fprIsDuplicated, _fprIsStoreSafeBeforeInst, fprIsStoreSafeAfterInst] = code[i];
 
-    op.fprIsSingle = fprIsSingle;
-    op.fprIsDuplicated = fprIsDuplicated;
-    op.fprIsStoreSafeBeforeInst = fprIsStoreSafe;
-    if (op.fregOut >= 0)
+    if (fregOut >= 0)
     {
       BitSet32 bitexact_inputs;
-      if (op.opinfo->flags &
+      if (opinfo->flags &
           (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
       {
-        if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
-          bitexact_inputs[op.inst.FA] = true;
-        if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
-          bitexact_inputs[op.inst.FB] = true;
-        if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
-          bitexact_inputs[op.inst.FC] = true;
+        if (opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
+          bitexact_inputs[inst.FA] = true;
+        if (opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
+          bitexact_inputs[inst.FB] = true;
+        if (opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
+          bitexact_inputs[inst.FC] = true;
       }
 
-      if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
+      if (opinfo->type == OpType::SingleFP || !strncmp(opinfo->opname, "frsp", 4))
       {
-        fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = true;
+        fprIsSingle[fregOut] = true;
+        fprIsDuplicated[fregOut] = true;
       }
-      else if (!strncmp(op.opinfo->opname, "lfs", 3))
+      else if (!strncmp(opinfo->opname, "lfs", 3))
       {
-        fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = true;
+        fprIsSingle[fregOut] = true;
+        fprIsDuplicated[fregOut] = true;
       }
       else if (bitexact_inputs)
       {
-        fprIsSingle[op.fregOut] = (fprIsSingle & bitexact_inputs) == bitexact_inputs;
-        fprIsDuplicated[op.fregOut] = false;
+        fprIsSingle[fregOut] = (fprIsSingle & bitexact_inputs) == bitexact_inputs;
+        fprIsDuplicated[fregOut] = false;
       }
-      else if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
+      else if (opinfo->type == OpType::PS || opinfo->type == OpType::LoadPS)
       {
-        fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = false;
+        fprIsSingle[fregOut] = true;
+        fprIsDuplicated[fregOut] = false;
       }
       else
       {
-        fprIsSingle[op.fregOut] = false;
-        fprIsDuplicated[op.fregOut] = false;
+        fprIsSingle[fregOut] = false;
+        fprIsDuplicated[fregOut] = false;
       }
 
-      if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      if (!strncmp(opinfo->opname, "mtfs", 4))
       {
         // Careful: changing the float mode in a block breaks the store-safe optimization,
         // since a previous float op might have had FTZ off while the later store has FTZ on.
@@ -1116,7 +1117,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       {
         // If the instruction copies bits between registers (without flushing denormals to zero
         // or turning SNaN into QNaN), the output is store-safe if the inputs are.
-        fprIsStoreSafe[op.fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
+        fprIsStoreSafe[fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
       }
       else
       {
@@ -1127,22 +1128,22 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
         // TODO: if we go directly from a load to a float instruction, and the value isn't used
         // for anything else, we can use fast single -> double conversion after the load.
 
-        fprIsStoreSafe[op.fregOut] = op.opinfo->type == OpType::SingleFP ||
-                                     op.opinfo->type == OpType::PS ||
-                                     !strncmp(op.opinfo->opname, "frsp", 4);
+        fprIsStoreSafe[fregOut] = opinfo->type == OpType::SingleFP ||
+                                     opinfo->type == OpType::PS ||
+                                     !strncmp(opinfo->opname, "frsp", 4);
       }
     }
-    op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
+    fprIsStoreSafeAfterInst = fprIsStoreSafe;
 
-    if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
+    if (opinfo->type == OpType::StorePS || opinfo->type == OpType::LoadPS)
     {
-      const int gqr = op.inst.OPCD == 4 ? op.inst.Ix : op.inst.I;
+      const int gqr = inst.OPCD == 4 ? inst.Ix : inst.I;
       gqrUsed[gqr] = true;
     }
 
-    if (op.inst.OPCD == 31 && op.inst.SUBOP10 == 467)  // mtspr
+    if (inst.OPCD == 31 && inst.SUBOP10 == 467)  // mtspr
     {
-      const int gqr = ((op.inst.SPRU << 5) | op.inst.SPRL) - SPR_GQR0;
+      const int gqr = ((inst.SPRU << 5) | inst.SPRL) - SPR_GQR0;
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }

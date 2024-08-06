@@ -241,8 +241,8 @@ std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::I
 
     if (ini == &global_ini)
     {
-      for (ARCode& code : codes)
-        code.default_enabled = code.enabled;
+      for (auto& [name, ops, enabled, default_enabled, user_defined] : codes)
+        default_enabled = enabled;
     }
   }
 
@@ -255,15 +255,15 @@ void SaveCodes(Common::IniFile* local_ini, const std::span<const ARCode> codes)
   std::vector<std::string> enabled_lines;
   std::vector<std::string> disabled_lines;
 
-  for (const ARCode& code : codes)
+  for (const auto& [name, ops, enabled, default_enabled, user_defined] : codes)
   {
-    if (code.enabled != code.default_enabled)
-      (code.enabled ? enabled_lines : disabled_lines).emplace_back('$' + code.name);
+    if (enabled != default_enabled)
+      (enabled ? enabled_lines : disabled_lines).emplace_back('$' + name);
 
-    if (code.user_defined)
+    if (user_defined)
     {
-      lines.emplace_back('$' + code.name);
-      for (const AREntry& op : code.ops)
+      lines.emplace_back('$' + name);
+      for (const AREntry& op : ops)
       {
         lines.emplace_back(SerializeLine(op));
       }

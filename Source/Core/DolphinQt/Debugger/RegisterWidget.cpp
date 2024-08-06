@@ -298,14 +298,14 @@ void RegisterWidget::AutoStep(const std::string& reg) const
 
   while (true)
   {
-    const AutoStepResults results = [this, &trace] {
+    const auto [_reg_tracked, _mem_tracked, _count, timed_out, _trackers_empty] = [this, &trace] {
       const Core::CPUThreadGuard guard(m_system);
       return trace.AutoStepping(guard, true);
     }();
 
     emit Host::GetInstance()->UpdateDisasmDialog();
 
-    if (!results.timed_out)
+    if (!timed_out)
       break;
 
     // Can keep running and try again after a time out.
@@ -346,17 +346,23 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 5, RegisterType::ibat, "IBAT" + std::to_string(i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_IBAT0U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_IBAT0L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+            _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+            _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+            _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+            _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_IBAT0U + i * 2]) << 32) + spr[SPR_IBAT0L + i * 2];
         },
         nullptr);
     AddRegister(
         i + 4, 5, RegisterType::ibat, "IBAT" + std::to_string(4 + i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_IBAT4U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_IBAT4L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+            _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+            _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+            _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+            _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_IBAT4U + i * 2]) << 32) + spr[SPR_IBAT4L + i * 2];
         },
         nullptr);
 
@@ -364,17 +370,23 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i + 8, 5, RegisterType::dbat, "DBAT" + std::to_string(i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_DBAT0U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_DBAT0L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+                      _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+                      _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+                      _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+                      _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_DBAT0U + i * 2]) << 32) + spr[SPR_DBAT0L + i * 2];
         },
         nullptr);
     AddRegister(
         i + 12, 5, RegisterType::dbat, "DBAT" + std::to_string(4 + i),
         [this, i] {
-          const auto& ppc_state = m_system.GetPPCState();
-          return (static_cast<u64>(ppc_state.spr[SPR_DBAT4U + i * 2]) << 32) +
-                 ppc_state.spr[SPR_DBAT4L + i * 2];
+          const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+            _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+            _above_fits_in_first_0x100, _ps, _sr, spr, _stored_stack_pointer, _mem_ptr, _tlb,
+            _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+            _reserve_address] = m_system.GetPPCState();
+          return (static_cast<u64>(spr[SPR_DBAT4U + i * 2]) << 32) + spr[SPR_DBAT4L + i * 2];
         },
         nullptr);
   }
@@ -491,8 +503,12 @@ void RegisterWidget::PopulateTable()
   AddRegister(
       31, 5, RegisterType::pt_hashmask, "Hash Mask",
       [this] {
-        const auto& ppc_state = m_system.GetPPCState();
-        return (ppc_state.pagetable_hashmask << 6) | ppc_state.pagetable_base;
+        const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+              _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+              _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+              pagetable_base, pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+               _reserve_address] = m_system.GetPPCState();
+        return (pagetable_hashmask << 6) | pagetable_base;
       },
       nullptr);
 

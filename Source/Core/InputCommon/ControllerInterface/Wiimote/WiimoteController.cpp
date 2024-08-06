@@ -152,8 +152,8 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
       {EmuWiimote::BUTTON_HOME, "HOME"},
   };
 
-  for (auto& button : button_masks)
-    AddInput(new Button(&m_core_data.hex, button.first, button.second));
+  for (const auto& [fst, snd] : button_masks)
+    AddInput(new Button(&m_core_data.hex, fst, snd));
 
   static constexpr u16 dpad_masks[] = {
       EmuWiimote::PAD_UP,

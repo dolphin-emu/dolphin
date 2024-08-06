@@ -582,7 +582,11 @@ static void ReadRegister()
 static void ReadRegisters()
 {
   const auto& system = Core::System::GetInstance();
-  const auto& ppc_state = system.GetPPCState();
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   static u8 bfr[GDB_BFR_MAX - 4];
   u8* bufptr = bfr;
@@ -592,7 +596,7 @@ static void ReadRegisters()
 
   for (i = 0; i < 32; i++)
   {
-    wbe32hex(bufptr + i * 8, ppc_state.gpr[i]);
+    wbe32hex(bufptr + i * 8, gpr[i]);
   }
   bufptr += 32 * 8;
 
@@ -602,14 +606,17 @@ static void ReadRegisters()
 static void WriteRegisters()
 {
   const auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr, _feature_flags,
+    _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl, _above_fits_in_first_0x100, _ps,
+    _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb, _pagetable_base, _pagetable_hashmask, _iCache,
+    _m_enable_dcache, _dCache, _reserve, _reserve_address] = system.GetPPCState();
 
   u32 i;
   const u8* bufptr = s_cmd_bfr;
 
   for (i = 0; i < 32; i++)
   {
-    ppc_state.gpr[i] = re32hex(bufptr + i * 8);
+    gpr[i] = re32hex(bufptr + i * 8);
   }
   bufptr += 32 * 8;
 
@@ -1011,9 +1018,13 @@ void ProcessCommands(const bool loop_until_continue)
       Core::CPUThreadGuard guard(system);
 
       WriteMemory(guard);
-      auto& ppc_state = system.GetPPCState();
+      auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, _msr, _fpscr,
+        _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+        _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+        _pagetable_base, _pagetable_hashmask, iCache, _m_enable_dcache, _dCache, _reserve,
+        _reserve_address] = system.GetPPCState();
       auto& jit_interface = system.GetJitInterface();
-      ppc_state.iCache.Reset(jit_interface);
+      iCache.Reset(jit_interface);
       Host_UpdateDisasmDialog();
       break;
     }
@@ -1154,11 +1165,15 @@ bool JustConnected()
 void SendSignal(Signal signal)
 {
   const auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& [pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, gpr, _cr, _msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
 
   char bfr[128] = {};
-  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64,
-                 ppc_state.pc, 1, ppc_state.gpr[1]);
+  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64, pc, 1,
+                 gpr[1]);
   SendReply(bfr);
 }
 }  // namespace GDBStub

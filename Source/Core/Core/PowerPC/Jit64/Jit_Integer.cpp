@@ -1472,22 +1472,22 @@ void Jit64::divwux(UGeckoInstruction inst)
       }
       else
       {
-        UnsignedMagic m = UnsignedDivisionConstants(divisor);
+        auto [multiplier, shift, fast] = UnsignedDivisionConstants(divisor);
 
         // Test for failure in round-up method
-        if (!m.fast)
+        if (!fast)
         {
           // If failed, use slower round-down method
           RCOpArg Ra = gpr.Use(a, RCMode::Read);
           RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
           RegCache::Realize(Ra, Rd);
 
-          MOV(32, R(RSCRATCH), Imm32(m.multiplier));
+          MOV(32, R(RSCRATCH), Imm32(multiplier));
           if (d != a)
             MOV(32, Rd, Ra);
           IMUL(64, Rd, R(RSCRATCH));
           ADD(64, Rd, R(RSCRATCH));
-          SHR(64, Rd, Imm8(m.shift + 32));
+          SHR(64, Rd, Imm8(shift + 32));
         }
         else
         {
@@ -1498,21 +1498,21 @@ void Jit64::divwux(UGeckoInstruction inst)
 
           // Three-operand IMUL sign extends the immediate to 64 bits, so we may only
           // use it when the magic number has its most significant bit set to 0
-          if ((m.multiplier & 0x80000000) == 0)
+          if ((multiplier & 0x80000000) == 0)
           {
-            IMUL(64, Rd, Ra, Imm32(m.multiplier));
+            IMUL(64, Rd, Ra, Imm32(multiplier));
           }
           else if (d == a)
           {
-            MOV(32, R(RSCRATCH), Imm32(m.multiplier));
+            MOV(32, R(RSCRATCH), Imm32(multiplier));
             IMUL(64, Rd, R(RSCRATCH));
           }
           else
           {
-            MOV(32, Rd, Imm32(m.multiplier));
+            MOV(32, Rd, Imm32(multiplier));
             IMUL(64, Rd, Ra);
           }
-          SHR(64, Rd, Imm8(m.shift + 32));
+          SHR(64, Rd, Imm8(shift + 32));
         }
       }
       if (inst.OE)
@@ -1785,39 +1785,39 @@ void Jit64::divwx(UGeckoInstruction inst)
     else
     {
       // Optimize signed 32-bit integer division by a constant
-      SignedMagic m = SignedDivisionConstants(divisor);
+      auto [multiplier, shift] = SignedDivisionConstants(divisor);
 
       MOVSX(64, 32, RSCRATCH, Ra);
 
-      if (divisor > 0 && m.multiplier < 0)
+      if (divisor > 0 && multiplier < 0)
       {
-        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, Rd, R(RSCRATCH), Imm32(multiplier));
         SHR(64, Rd, Imm8(32));
         ADD(32, Rd, R(RSCRATCH));
         SHR(32, R(RSCRATCH), Imm8(31));
-        SAR(32, Rd, Imm8(m.shift));
+        SAR(32, Rd, Imm8(shift));
       }
-      else if (divisor < 0 && m.multiplier > 0)
+      else if (divisor < 0 && multiplier > 0)
       {
-        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, Rd, R(RSCRATCH), Imm32(multiplier));
         SHR(64, R(RSCRATCH), Imm8(32));
         SUB(32, R(RSCRATCH), Rd);
         MOV(32, Rd, R(RSCRATCH));
         SHR(32, Rd, Imm8(31));
-        SAR(32, R(RSCRATCH), Imm8(m.shift));
+        SAR(32, R(RSCRATCH), Imm8(shift));
       }
-      else if (m.multiplier > 0)
+      else if (multiplier > 0)
       {
-        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, Rd, R(RSCRATCH), Imm32(multiplier));
         SHR(32, R(RSCRATCH), Imm8(31));
-        SAR(64, R(Rd), Imm8(32 + m.shift));
+        SAR(64, R(Rd), Imm8(32 + shift));
       }
       else
       {
-        IMUL(64, RSCRATCH, R(RSCRATCH), Imm32(m.multiplier));
+        IMUL(64, RSCRATCH, R(RSCRATCH), Imm32(multiplier));
         MOV(64, Rd, R(RSCRATCH));
         SHR(64, R(RSCRATCH), Imm8(63));
-        SAR(64, R(Rd), Imm8(32 + m.shift));
+        SAR(64, R(Rd), Imm8(32 + shift));
       }
 
       ADD(32, Rd, R(RSCRATCH));

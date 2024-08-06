@@ -215,8 +215,12 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
     return SearchErrorCode::NoEmulationActive;
 
-  const auto& ppc_state = system.GetPPCState();
-  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
+  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !msr.DR)
     return SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
   for (const MemoryRange& range : memory_ranges)
@@ -268,8 +272,12 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
     return SearchErrorCode::NoEmulationActive;
 
-  const auto& ppc_state = system.GetPPCState();
-  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
+  const auto& [_pc, _npc, _gather_pipe_ptr, _gather_pipe_base_ptr, _gpr, _cr, msr, _fpscr,
+    _feature_flags, _Exceptions, _downcount, _xer_ca, _xer_so_ov, _xer_stringctrl,
+    _above_fits_in_first_0x100, _ps, _sr, _spr, _stored_stack_pointer, _mem_ptr, _tlb,
+    _pagetable_base, _pagetable_hashmask, _iCache, _m_enable_dcache, _dCache, _reserve,
+    _reserve_address] = system.GetPPCState();
+  if (address_space == PowerPC::RequestedAddressSpace::Virtual && !msr.DR)
     return SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
   for (const auto& previous_result : previous_results)

@@ -202,12 +202,12 @@ void DSPManager::RegisterMMIO(MMIO::Mapping* mmio, const u32 base)
       // AUDIO_DMA_START_HI requires a complex write handler
       {AUDIO_DMA_START_LO, MMIO::Utils::LowPart(&m_audio_dma.SourceAddress), WMASK_LO_ALIGN_32BIT},
   };
-  for (const auto& mapped_var : directly_mapped_vars)
+  for (const auto& [addr, ptr, wmask] : directly_mapped_vars)
   {
-    mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   mapped_var.wmask != WMASK_NONE ?
-                       MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask) :
-                       MMIO::InvalidWrite<u16>());
+    mmio->Register(base | addr, MMIO::DirectRead<u16>(ptr),
+                   wmask != WMASK_NONE ?
+                     MMIO::DirectWrite<u16>(ptr, wmask) :
+                     MMIO::InvalidWrite<u16>());
   }
 
   // DSP mail MMIOs call DSP emulator functions to get results or write data.

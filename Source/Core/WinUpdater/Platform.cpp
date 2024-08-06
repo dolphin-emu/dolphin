@@ -225,8 +225,9 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
 
 static BuildVersion CurrentOSVersion()
 {
-  const OSVERSIONINFOW info = WindowsRegistry::GetOSVersion();
-  return {.major = info.dwMajorVersion, .minor = info.dwMinorVersion, .build = info.dwBuildNumber};
+  const auto [_dwOSVersionInfoSize, dwMajorVersion, dwMinorVersion, dwBuildNumber, _dwPlatformId,
+    _szCSDVersion] = WindowsRegistry::GetOSVersion();
+  return {.major = dwMajorVersion, .minor = dwMinorVersion, .build = dwBuildNumber};
 }
 
 static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
@@ -256,12 +257,12 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
   if (op_it == to_update.cend())
     return {};
 
-  const auto op = *op_it;
+  const auto [_filename, old_hash, new_hash] = *op_it;
   std::string build_info_path =
-      temp_dir + DIR_SEP + HexEncode(op.new_hash.data(), op.new_hash.size());
+      temp_dir + DIR_SEP + HexEncode(new_hash.data(), new_hash.size());
   std::string build_info_content;
   if (!File::ReadFileToString(build_info_path, build_info_content) ||
-      op.new_hash != ComputeHash(build_info_content))
+      new_hash != ComputeHash(build_info_content))
   {
     LogToFile("Failed to read %s\n.", build_info_path.c_str());
     return {};
@@ -273,7 +274,7 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
   build_infos.current = BuildInfo();
   if (File::ReadFileToString(build_info_path, build_info_content))
   {
-    if (op.old_hash != ComputeHash(build_info_content))
+    if (old_hash != ComputeHash(build_info_content))
       LogToFile("Using modified existing BuildInfo %s.\n", build_info_path.c_str());
     build_infos.current = BuildInfo(build_info_content);
   }
@@ -285,8 +286,8 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
   // The existing BuildInfo may have been modified. Be careful not to overly trust its contents!
 
   // If the binary requires more recent OS, inform the user.
-  const auto os_check = OSVersionCheck(build_infos.next);
-  if (os_check.status == VersionCheckStatus::UpdateRequired)
+  const auto [status, _current_version, _target_version] = OSVersionCheck(build_infos.next);
+  if (status == VersionCheckStatus::UpdateRequired)
   {
     UI::Error("Please update Windows in order to update Dolphin.");
     return false;

@@ -170,12 +170,11 @@ void USBHost::DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceC
 
 void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 {
-  for (const auto& hook : hooks)
+  for (const auto& [fst, snd] : hooks)
   {
     INFO_LOG_FMT(IOS_USB, "{} - {} device: {:04x}:{:04x}", GetDeviceName(),
-                 hook.second == ChangeEvent::Inserted ? "New" : "Removed", hook.first->GetVid(),
-                 hook.first->GetPid());
-    OnDeviceChange(hook.second, hook.first);
+                 snd == ChangeEvent::Inserted ? "New" : "Removed", fst->GetVid(), fst->GetPid());
+    OnDeviceChange(snd, fst);
   }
   if (!hooks.empty())
     OnDeviceChangeEnd();

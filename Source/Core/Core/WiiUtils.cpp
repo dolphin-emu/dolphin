@@ -84,15 +84,15 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
 
   const bool contents_imported = [&]() {
     const u64 title_id = tmd.GetTitleId();
-    for (const IOS::ES::Content& content : tmd.GetContents())
+    for (const auto& [id, index, _type, _size, _sha1] : tmd.GetContents())
     {
-      const std::vector<u8> data = wad.GetContent(content.index);
+      const std::vector<u8> data = wad.GetContent(index);
 
-      if (es.ImportContentBegin(context, title_id, content.id) < 0 ||
+      if (es.ImportContentBegin(context, title_id, id) < 0 ||
           es.ImportContentData(context, 0, data.data(), static_cast<u32>(data.size())) < 0 ||
           es.ImportContentEnd(context, 0) < 0)
       {
-        PanicAlertFmtT("WAD installation failed: Could not import content {0:08x}.", content.id);
+        PanicAlertFmtT("WAD installation failed: Could not import content {0:08x}.", id);
         return false;
       }
     }
@@ -490,8 +490,8 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles() const
 
 UpdateResult OnlineSystemUpdater::DoOnlineUpdate()
 {
-  const Response info = GetSystemTitles();
-  if (info.titles.empty())
+  const auto [content_prefix_url, titles] = GetSystemTitles();
+  if (titles.empty())
     return UpdateResult::ServerFailed;
 
   // Download and install any title that is older than the NUS version.
@@ -499,19 +499,19 @@ UpdateResult OnlineSystemUpdater::DoOnlineUpdate()
   // As we install any IOS required by titles, the real order is boot2, SM IOS, SM, IOSes, channels.
   std::unordered_set<u64> updated_titles;
   size_t processed = 0;
-  for (const TitleInfo& title : info.titles)
+  for (const TitleInfo& title : titles)
   {
-    if (!m_update_callback(processed++, info.titles.size(), title.id))
+    if (!m_update_callback(processed++, titles.size(), title.id))
       return UpdateResult::Cancelled;
 
-    const UpdateResult res = InstallTitleFromNUS(info.content_prefix_url, title, &updated_titles);
+    const UpdateResult res = InstallTitleFromNUS(content_prefix_url, title, &updated_titles);
     if (res != UpdateResult::Succeeded)
     {
       ERROR_LOG_FMT(CORE, "Failed to update {:016x} -- aborting update", title.id);
       return res;
     }
 
-    m_update_callback(processed, info.titles.size(), title.id);
+    m_update_callback(processed, titles.size(), title.id);
   }
 
   if (updated_titles.empty())
@@ -537,8 +537,8 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   NOTICE_LOG_FMT(CORE, "Updating title {:016x}", title.id);
 
   // Download the ticket and certificates.
-  const auto ticket = DownloadTicket(prefix_url, title);
-  if (ticket.first.empty() || ticket.second.empty())
+  const auto [ticket_fst, ticket_snd] = DownloadTicket(prefix_url, title);
+  if (ticket_fst.empty() || ticket_snd.empty())
   {
     ERROR_LOG_FMT(CORE, "Failed to download ticket and certs");
     return UpdateResult::DownloadFailed;
@@ -547,22 +547,22 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   // Import the ticket.
   IOS::HLE::ReturnCode ret = IOS::HLE::IPC_SUCCESS;
   auto& es = m_ios.GetESCore();
-  if ((ret = es.ImportTicket(ticket.first, ticket.second)) < 0)
+  if ((ret = es.ImportTicket(ticket_fst, ticket_snd)) < 0)
   {
     ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", Common::ToUnderlying(ret));
     return UpdateResult::ImportFailed;
   }
 
   // Download the TMD.
-  const auto tmd = DownloadTMD(prefix_url, title);
-  if (!tmd.first.IsValid())
+  const auto [tmd_fst, tmd_snd] = DownloadTMD(prefix_url, title);
+  if (!tmd_fst.IsValid())
   {
     ERROR_LOG_FMT(CORE, "Failed to download TMD");
     return UpdateResult::DownloadFailed;
   }
 
   // Download and import any required system title first.
-  const u64 ios_id = tmd.first.GetIOSId();
+  const u64 ios_id = tmd_fst.GetIOSId();
   if (ios_id != 0 && IsTitleType(ios_id, IOS::ES::TitleType::System))
   {
     if (!es.FindInstalledTMD(ios_id).IsValid())
@@ -579,16 +579,16 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 
   // Initialise the title import.
   IOS::HLE::ESCore::Context context;
-  if ((ret = es.ImportTitleInit(context, tmd.first.GetBytes(), tmd.second)) < 0)
+  if ((ret = es.ImportTitleInit(context, tmd_fst.GetBytes(), tmd_snd)) < 0)
   {
     ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", Common::ToUnderlying(ret));
     return UpdateResult::ImportFailed;
   }
 
   // Now download and install contents listed in the TMD.
-  const std::vector<IOS::ES::Content> stored_contents = es.GetStoredContentsFromTMD(tmd.first);
+  const std::vector<IOS::ES::Content> stored_contents = es.GetStoredContentsFromTMD(tmd_fst);
   const UpdateResult import_result = [&]() {
-    for (const IOS::ES::Content& content : tmd.first.GetContents())
+    for (const IOS::ES::Content& content : tmd_fst.GetContents())
     {
       const bool is_already_installed =
           std::ranges::find_if(

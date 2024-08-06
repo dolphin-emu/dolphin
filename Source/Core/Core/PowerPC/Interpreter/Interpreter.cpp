@@ -199,7 +199,8 @@ int Interpreter::SingleStepInner()
 void Interpreter::SingleStep()
 {
   auto& core_timing = m_system.GetCoreTiming();
-  auto& core_timing_globals = core_timing.GetGlobals();
+  auto& [_global_timer, slice_length, _fake_TB_start_value, _fake_TB_start_ticks,
+    _last_OC_factor_inverted] = core_timing.GetGlobals();
 
   // Declare start of new slice
   core_timing.Advance();
@@ -207,7 +208,7 @@ void Interpreter::SingleStep()
   SingleStepInner();
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
-  core_timing_globals.slice_length = 1;
+  slice_length = 1;
   m_ppc_state.downcount = 0;
 
   if (m_ppc_state.Exceptions != 0)

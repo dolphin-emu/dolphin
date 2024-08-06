@@ -188,8 +188,8 @@ FigureData SkylanderFigure::GetData() const
   Type type = Type::Item;
   if (list_skylanders.contains(filter))
   {
-    const auto found = list_skylanders.at(filter);
-    type = found.type;
+    const auto [_name, _game, _element, found_type] = list_skylanders.at(filter);
+    type = found_type;
   }
 
   figure_data.normalized_type = NormalizeSkylanderType(type);

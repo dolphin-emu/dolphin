@@ -1057,11 +1057,11 @@ void WiiSockMan::UpdatePollCommands()
   const auto elapsed = elapsed_d.count();
   last_time = now;
 
-  for (PollCommand& pcmd : pending_polls)
+  for (auto& [_request_addr, _buffer_out, _wii_fds, timeout] : pending_polls)
   {
     // Don't touch negative timeouts
-    if (pcmd.timeout > 0)
-      pcmd.timeout = std::max<s64>(0, pcmd.timeout - elapsed);
+    if (timeout > 0)
+      timeout = std::max<s64>(0, timeout - elapsed);
   }
 
   auto& system = m_ios.GetSystem();
@@ -1151,20 +1151,20 @@ s32 WiiSockMan::ConvertEvents(const s32 events, const ConvertDirection dir)
 
   if (dir == ConvertDirection::NativeToWii)
   {
-    for (const auto& map : mapping)
+    for (const auto& [native, wii] : mapping)
     {
-      if (events & map.native)
-        converted_events |= map.wii;
+      if (events & native)
+        converted_events |= wii;
     }
   }
   else
   {
     unhandled_events = events;
-    for (const auto& map : mapping)
+    for (const auto& [native, wii] : mapping)
     {
-      if (events & map.wii)
-        converted_events |= map.native;
-      unhandled_events &= ~map.wii;
+      if (events & wii)
+        converted_events |= native;
+      unhandled_events &= ~wii;
     }
   }
   if (unhandled_events)
@@ -1191,19 +1191,19 @@ void WiiSockMan::DoState(PointerWrap& p)
   p.Do(size);
   if (!saving)
     pending_polls.resize(size);
-  for (auto& pcmd : pending_polls)
+  for (auto& [request_addr, buffer_out, wii_fds, _timeout] : pending_polls)
   {
-    p.Do(pcmd.request_addr);
-    p.Do(pcmd.buffer_out);
-    p.Do(pcmd.wii_fds);
+    p.Do(request_addr);
+    p.Do(buffer_out);
+    p.Do(wii_fds);
   }
 
   if (saving)
     return;
-  for (auto& pcmd : pending_polls)
+  for (auto& [_request_addr, _buffer_out, wii_fds, _timeout] : pending_polls)
   {
-    for (auto& wfd : pcmd.wii_fds)
-      wfd.revents = (POLLHUP | POLLERR);
+    for (auto& [_fd, _events, revents] : wii_fds)
+      revents = (POLLHUP | POLLERR);
   }
 }
 
