@@ -23,48 +23,81 @@ class HapticsProvider(
 
     /**
      * Perform haptic feedback by composing primitives if supported,
-     * with a fallback to a waveform or a deprecated vibration.
+     * with a fallback to a waveform or a legacy vibration.
      *
      * @param effect The desired [HapticEffect] of the feedback.
      * @param intensity The desired intensity of the feedback.
      * This should be an integer between [MIN_INTENSITY] and [MAX_INTENSITY].
      */
     fun provideFeedback(effect: HapticEffect, @IntRange(from = 1, to = 5) intensity: Int) {
-        val scale = intensity / MAX_INTENSITY.toFloat()
         if (primitiveSupport) {
             vibrator.vibrate(
-                VibrationEffect.startComposition().addPrimitive(getPrimitive(effect), scale)
+                VibrationEffect.startComposition()
+                    .addPrimitive(getPrimitive(effect), intensity / MAX_INTENSITY.toFloat())
                     .compose()
             )
         } else {
-            val duration = (getMaxDuration(effect) * scale).toLong()
+            val timings = getTimings(effect, intensity)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // TODO: Define amplitudes for each effect for devices with amplitude control.
-                vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0L, duration), -1))
+                if (vibrator.hasAmplitudeControl()) {
+                    vibrator.vibrate(
+                        VibrationEffect.createWaveform(
+                            timings, getAmplitudes(effect, intensity), -1
+                        )
+                    )
+                } else {
+                    vibrator.vibrate(VibrationEffect.createWaveform(timings, -1))
+                }
             } else {
-                vibrator.vibrate(duration)
+                vibrator.vibrate(timings.sum())
             }
         }
     }
 
     /**
-     * Get the maximum duration value for a fallback vibration based on the [effect].
-     *
-     * Most of these durations are about 5 times longer than those recommended by the Android
-     * source docs, which specifies them in `frameworks/base/core/res/res/values/config.xml`.
-     * That is because lower-end devices are unable to vibrate for relatively short durations.
+     * Get the timings for a waveform vibration based on the [effect] and the [intensity].
      *
      * @param effect The [HapticEffect] of the vibration.
-     * @return The maximum duration in milliseconds of the specified [effect].
+     * @param intensity The intensity of the vibration (from [MIN_INTENSITY] and [MAX_INTENSITY]).
+     * @return The LongArray of timings for the specified [effect].
      */
-    private fun getMaxDuration(effect: HapticEffect): Long {
+    private fun getTimings(
+        effect: HapticEffect, @IntRange(from = 1, to = 5) intensity: Int
+    ): LongArray {
         // Note: It is recommended that these values differ by a ratio of 1.4 or more,
         // so the difference in the duration of the vibration can be easily perceived.
+        // The base duration of some effects has been taken
+        // from `frameworks/base/core/res/res/values/config.xml`.
         return when (effect) {
-            HapticEffect.CLICK -> 100L
-            HapticEffect.TICK -> 70L
-            HapticEffect.LOW_TICK -> 50L
-            HapticEffect.SPIN -> 35L // TODO: Replace this with a "spinning" pattern?
+            HapticEffect.CLICK -> longArrayOf(0L, 20L * intensity)
+            HapticEffect.TICK -> longArrayOf(0L, 14L * intensity)
+            HapticEffect.LOW_TICK -> longArrayOf(0L, 10L * intensity)
+            HapticEffect.SPIN -> SPIN_TIMINGS //TODO: Make this scalable?
+        }
+    }
+
+    /**
+     * Get the amplitudes for a waveform vibration based on the [effect] and the [intensity].
+     *
+     * @param effect The [HapticEffect] of the vibration.
+     * @param intensity The intensity of the vibration (from [MIN_INTENSITY] and [MAX_INTENSITY]).
+     * @return The IntArray of amplitudes for the specified [effect].
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getAmplitudes(
+        effect: HapticEffect, @IntRange(from = 1, to = 5) intensity: Int
+    ): IntArray {
+        return when (effect) {
+            //TODO: Make amplitudes of these effects scalable?
+            HapticEffect.CLICK, HapticEffect.TICK, HapticEffect.LOW_TICK -> intArrayOf(
+                0,
+                VibrationEffect.DEFAULT_AMPLITUDE
+            )
+
+            HapticEffect.SPIN -> {
+                val scale = intensity / MAX_INTENSITY.toFloat()
+                IntArray(SPIN_AMPLITUDES.size) { (SPIN_AMPLITUDES[it] * scale).toInt() }
+            }
         }
     }
 
@@ -87,6 +120,8 @@ class HapticsProvider(
     companion object {
         const val MIN_INTENSITY = 1
         const val MAX_INTENSITY = 5
+        private val SPIN_TIMINGS = longArrayOf(15L, 15L, 10L, 15L, 10L, 15L, 10L, 10L)
+        private val SPIN_AMPLITUDES = intArrayOf(0, 128, 255, 100, 200, 32, 64, 0)
     }
 }
 
