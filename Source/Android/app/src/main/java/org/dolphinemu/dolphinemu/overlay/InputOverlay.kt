@@ -27,6 +27,7 @@ import org.dolphinemu.dolphinemu.features.input.model.InputOverrider
 import org.dolphinemu.dolphinemu.features.input.model.InputOverrider.ControlId
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForSIDevice
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForWiimoteSource
@@ -144,7 +145,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         val firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
                 action != MotionEvent.ACTION_POINTER_UP
         val pointerIndex = if (firstPointer) 0 else event.actionIndex
-        val hapticsIntensity = IntSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.int
+        val hapticsIntensity = FloatSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.float
         val pressFeedback = BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean
         val releaseFeedback = BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean
         // Tracks if any button/joystick is pressed down

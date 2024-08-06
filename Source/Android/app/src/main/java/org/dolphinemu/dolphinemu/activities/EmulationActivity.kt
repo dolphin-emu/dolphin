@@ -40,6 +40,7 @@ import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener
 import org.dolphinemu.dolphinemu.features.input.model.DolphinVibratorManagerFactory
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
@@ -701,17 +702,17 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 }
             }
             hapticsIntensitySlider.apply {
-                stepSize = 1.0f
-                valueFrom = HapticsProvider.MIN_INTENSITY.toFloat()
-                valueTo = HapticsProvider.MAX_INTENSITY.toFloat()
-                IntSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.int.apply {
-                    value = this.toFloat()
-                    hapticsIntensityValue.text = this.toString()
+                val setValueText = { value: Float ->
+                    hapticsIntensityValue.text =
+                        getString(R.string.slider_setting_value, value * 100f, '%')
                 }
+                stepSize = 0.1f
+                valueFrom = 0.1f
+                valueTo = 1.0f
+                value = FloatSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.float.also { setValueText(it) }
                 addOnChangeListener { _: Slider, value: Float, _: Boolean ->
-                    val intensity = value.toInt()
-                    hapticsIntensityValue.text = intensity.toString()
-                    hapticsProvider.provideFeedback(HapticEffect.TICK, intensity)
+                    setValueText(value)
+                    hapticsProvider.provideFeedback(HapticEffect.LOW_TICK, value)
                 }
             }
         }
@@ -727,8 +728,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.setBoolean(
                     settings, dialogBinding.hapticsJoystickCheckbox.isChecked
                 )
-                IntSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.setInt(
-                    settings, dialogBinding.hapticsIntensitySlider.value.toInt()
+                FloatSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.setFloat(
+                    settings, dialogBinding.hapticsIntensitySlider.value
                 )
             }
             .show()

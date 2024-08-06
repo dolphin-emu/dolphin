@@ -102,7 +102,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/haptics_intensity_slider"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="5" />
+            tools:text="50%" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

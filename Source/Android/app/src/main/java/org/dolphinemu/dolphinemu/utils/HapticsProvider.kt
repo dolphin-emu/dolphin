@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.annotation.FloatRange
-import androidx.annotation.IntRange
 import androidx.annotation.RequiresApi
 import org.dolphinemu.dolphinemu.features.input.model.DolphinVibratorManagerFactory
 
@@ -23,15 +22,13 @@ class HapticsProvider(
     private val primitiveSupport: Boolean = areAllPrimitivesSupported()
 
     /**
-     * Perform haptic feedback by composing primitives if supported,
+     * Perform haptic feedback by composing primitives (if supported),
      * with a fallback to a waveform or a legacy vibration.
      *
-     * @param effect The desired [HapticEffect] of the feedback.
-     * @param intensity The desired intensity of the feedback.
-     * This should be an integer between [MIN_INTENSITY] and [MAX_INTENSITY].
+     * @param effect The [HapticEffect] of the feedback.
+     * @param scale The intensity scale of the feedback.
      */
-    fun provideFeedback(effect: HapticEffect, @IntRange(from = 1, to = 5) intensity: Int) {
-        val scale = intensity / MAX_INTENSITY.toFloat()
+    fun provideFeedback(effect: HapticEffect, @FloatRange(from = 0.0, to = 1.0) scale: Float) {
         if (primitiveSupport) {
             vibrator.vibrate(
                 VibrationEffect
@@ -69,8 +66,7 @@ class HapticsProvider(
     ): LongArray {
         // Note: It is recommended that these values differ by a ratio of 1.4 or more,
         // so the difference in the duration of the vibration can be easily perceived.
-        // The max duration of some of the effects is 5 times longer than the one specified
-        // in `frameworks/base/core/res/res/values/config.xml`.
+        // Lower-end vibrators can't vibrate at all if the duration is too short.
         return when (effect) {
             HapticEffect.CLICK -> longArrayOf(0L, (100f * scale).toLong())
             HapticEffect.TICK -> longArrayOf(0L, (70f * scale).toLong())
@@ -115,9 +111,6 @@ class HapticsProvider(
     }
 
     companion object {
-        const val MIN_INTENSITY = 1
-        const val MID_INTENSITY = 3
-        const val MAX_INTENSITY = 5
         private val SPIN_TIMINGS = longArrayOf(15L, 20L, 15L, 20L, 15L, 20L, 15L, 10L)
         private val SPIN_AMPLITUDES = intArrayOf(0, 128, 255, 100, 200, 32, 64, 0)
     }
