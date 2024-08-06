@@ -425,6 +425,7 @@ void GeneralPane::AddDescriptions()
   static constexpr char TR_FALLBACK_REGION_DESCRIPTION[] =
       QT_TR_NOOP("Sets the region used for titles whose region cannot be determined automatically."
                  "<br><br>This setting cannot be changed while emulation is active.");
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   static constexpr char TR_ENABLE_ANALYTICS_DESCRIPTION[] = QT_TR_NOOP(
       "If selected, Dolphin can collect data on its performance, feature usage, emulated games, "
       "and configuration, as well as data on your system's hardware and operating system."
@@ -434,6 +435,7 @@ void GeneralPane::AddDescriptions()
   static constexpr char TR_GENERATE_NEW_IDENTITY_DESCRIPTION[] =
       QT_TR_NOOP("Generate a new anonymous ID for your usage statistics. This will cause any "
                  "future statistics to be unassociated with your previous statistics.");
+#endif
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
 
@@ -459,8 +461,10 @@ void GeneralPane::AddDescriptions()
   m_combobox_fallback_region->SetTitle(tr("Fallback Region"));
   m_combobox_fallback_region->SetDescription(tr(TR_FALLBACK_REGION_DESCRIPTION));
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_checkbox_enable_analytics->SetDescription(tr(TR_ENABLE_ANALYTICS_DESCRIPTION));
 
   m_button_generate_new_identity->SetTitle(tr("Generate a New Statistics Identity"));
   m_button_generate_new_identity->SetDescription(tr(TR_GENERATE_NEW_IDENTITY_DESCRIPTION));
+#endif
 }
