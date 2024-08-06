@@ -51,52 +51,6 @@ CheatsManager::~CheatsManager()
 void CheatsManager::OnStateChanged(Core::State state)
 {
   RefreshCodeTabs(state, false);
-  if (state == Core::State::Paused)
-    UpdateAllCheatSearchWidgetCurrentValues();
-}
-
-void CheatsManager::OnFrameEnd()
-{
-  if (!isVisible())
-    return;
-
-  auto* const selected_cheat_search_widget =
-      qobject_cast<CheatSearchWidget*>(m_tab_widget->currentWidget());
-  if (selected_cheat_search_widget != nullptr)
-  {
-    selected_cheat_search_widget->UpdateTableVisibleCurrentValues(
-        CheatSearchWidget::UpdateSource::Auto);
-  }
-}
-
-void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
-{
-  for (int i = 0; i < m_tab_widget->count(); ++i)
-  {
-    auto* const cheat_search_widget = qobject_cast<CheatSearchWidget*>(m_tab_widget->widget(i));
-    if (cheat_search_widget != nullptr)
-      cheat_search_widget->UpdateTableAllCurrentValues(CheatSearchWidget::UpdateSource::Auto);
-  }
-}
-
-void CheatsManager::RegisterAfterFrameEventCallback()
-{
-  m_VI_end_field_event = VIEndFieldEvent::Register([this] { OnFrameEnd(); }, "CheatsManager");
-}
-
-void CheatsManager::RemoveAfterFrameEventCallback()
-{
-  m_VI_end_field_event.reset();
-}
-
-void CheatsManager::hideEvent(QHideEvent* event)
-{
-  RemoveAfterFrameEventCallback();
-}
-
-void CheatsManager::showEvent(QShowEvent* event)
-{
-  RegisterAfterFrameEventCallback();
 }
 
 void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
