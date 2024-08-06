@@ -63,6 +63,8 @@ enum class BranchWatchSelectionInspection : u8
   SetDestinBLR = 1u << 1,
   SetOriginSymbolBLR = 1u << 2,
   SetDestinSymbolBLR = 1u << 3,
+  InvertBranchOption = 1u << 4,  // Used for both conditions and decrement checks.
+  MakeUnconditional = 1u << 5,
   EndOfEnumeration,
 };
 

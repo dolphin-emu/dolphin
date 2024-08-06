@@ -38,14 +38,14 @@ union USnapshotMetadata
   using Inspection = BranchWatch::SelectionInspection;
   using StorageType = unsigned long long;
 
-  static_assert(Inspection::EndOfEnumeration == Inspection{(1u << 3) + 1});
+  static_assert(Inspection::EndOfEnumeration == Inspection{(1u << 5) + 1});
 
   StorageType hex;
 
   BitField<0, 1, bool, StorageType> is_virtual;
   BitField<1, 1, bool, StorageType> condition;
   BitField<2, 1, bool, StorageType> is_selected;
-  BitField<3, 4, Inspection, StorageType> inspection;
+  BitField<3, 6, Inspection, StorageType> inspection;
 
   USnapshotMetadata() : hex(0) {}
   explicit USnapshotMetadata(bool is_virtual_, bool condition_, bool is_selected_,

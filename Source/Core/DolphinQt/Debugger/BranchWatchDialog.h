@@ -93,6 +93,9 @@ private:
   void OnTableDeleteKeypress() const;
   void OnTableSetBLR() const;
   void OnTableSetNOP() const;
+  void OnTableInvertCondition() const;
+  void OnTableInvertDecrementCheck() const;
+  void OnTableMakeUnconditional() const;
   void OnTableCopyAddress() const;
   void OnTableSetBreakpointBreak() const;
   void OnTableSetBreakpointLog() const;
@@ -116,10 +119,13 @@ private:
   void Load(const Core::CPUThreadGuard& guard, const std::string& filepath);
   void AutoSave(const Core::CPUThreadGuard& guard);
   void SetStubPatches(u32 value) const;
+  void SetEditPatches(u32 (*transform)(u32)) const;
   void SetBreakpoints(bool break_on_hit, bool log_on_hit) const;
 
   void SetBreakpointMenuActionsIcons() const;
   QMenu* GetTableContextMenu(const QModelIndex& index) const;
+  QMenu* GetTableContextMenu_Instruction(bool core_initialized) const;
+  QMenu* GetTableContextMenu_Condition(bool core_initialized) const;
   QMenu* GetTableContextMenu_Origin(bool core_initialized) const;
   QMenu* GetTableContextMenu_Destin(bool core_initialized) const;
   QMenu* GetTableContextMenu_Symbol(bool core_initialized) const;
@@ -131,6 +137,9 @@ private:
   QPushButton *m_btn_start_pause, *m_btn_clear_watch, *m_btn_path_was_taken, *m_btn_path_not_taken,
       *m_btn_was_overwritten, *m_btn_not_overwritten, *m_btn_wipe_recent_hits;
   QAction* m_act_autosave;
+  QAction* m_act_invert_condition;
+  QAction* m_act_invert_decrement_check;
+  QAction* m_act_make_unconditional;
   QAction* m_act_insert_nop;
   QAction* m_act_insert_blr;
   QAction* m_act_copy_address;
@@ -138,7 +147,8 @@ private:
   QAction* m_act_break_on_hit;
   QAction* m_act_log_on_hit;
   QAction* m_act_both_on_hit;
-  QMenu *m_mnu_table_context_origin, *m_mnu_table_context_destin_or_symbol,
+  QMenu *m_mnu_table_context_instruction, *m_mnu_table_context_condition,
+      *m_mnu_table_context_origin, *m_mnu_table_context_destin_or_symbol,
       *m_mnu_table_context_other;
   QMenu* m_mnu_column_visibility;
 

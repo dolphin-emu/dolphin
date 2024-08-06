@@ -105,6 +105,8 @@ public:
 
   bool IsBranchTypeAllowed(UGeckoInstruction inst) const;
   void SetInspected(const QModelIndex& index) const;
+  const Core::BranchWatchSelectionValueType&
+  GetBranchWatchSelection(const QModelIndex& index) const;
 
 private:
   const Core::BranchWatch& m_branch_watch;
@@ -157,34 +159,25 @@ bool BranchWatchProxyModel::filterAcceptsRow(int source_row, const QModelIndex&)
   return true;
 }
 
-static constexpr bool BranchSavesLR(UGeckoInstruction inst)
-{
-  DEBUG_ASSERT(inst.OPCD == 18 || inst.OPCD == 16 ||
-               (inst.OPCD == 19 && (inst.SUBOP10 == 16 || inst.SUBOP10 == 528)));
-  // Every branch instruction uses the same LK field.
-  return inst.LK;
-}
-
 bool BranchWatchProxyModel::IsBranchTypeAllowed(UGeckoInstruction inst) const
 {
-  const bool lr_saved = BranchSavesLR(inst);
   switch (inst.OPCD)
   {
   case 18:
-    return lr_saved ? m_bl : m_b;
+    return inst.LK ? m_bl : m_b;
   case 16:
-    return lr_saved ? m_bcl : m_bc;
+    return inst.LK ? m_bcl : m_bc;
   case 19:
     switch (inst.SUBOP10)
     {
     case 16:
       if ((inst.BO & 0b10100) == 0b10100)  // 1z1zz - Branch always
-        return lr_saved ? m_blrl : m_blr;
-      return lr_saved ? m_bclrl : m_bclr;
+        return inst.LK ? m_blrl : m_blr;
+      return inst.LK ? m_bclrl : m_bclr;
     case 528:
       if ((inst.BO & 0b10100) == 0b10100)  // 1z1zz - Branch always
-        return lr_saved ? m_bctrl : m_bctr;
-      return lr_saved ? m_bcctrl : m_bcctr;
+        return inst.LK ? m_bctrl : m_bctr;
+      return inst.LK ? m_bcctrl : m_bcctr;
     }
   }
   return false;
@@ -193,6 +186,12 @@ bool BranchWatchProxyModel::IsBranchTypeAllowed(UGeckoInstruction inst) const
 void BranchWatchProxyModel::SetInspected(const QModelIndex& index) const
 {
   sourceModel()->SetInspected(mapToSource(index));
+}
+
+const Core::BranchWatchSelectionValueType&
+BranchWatchProxyModel::GetBranchWatchSelection(const QModelIndex& index) const
+{
+  return sourceModel()->GetBranchWatchSelection(mapToSource(index));
 }
 
 BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& branch_watch,
@@ -419,6 +418,18 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   auto* const delete_action = new QAction(tr("&Delete"), this);
   connect(delete_action, &QAction::triggered, this, &BranchWatchDialog::OnTableDelete);
 
+  m_act_invert_condition = new QAction(tr("Invert &Condition"), this);
+  connect(m_act_invert_condition, &QAction::triggered, this,
+          &BranchWatchDialog::OnTableInvertCondition);
+
+  m_act_invert_decrement_check = new QAction(tr("Invert &Decrement Check"), this);
+  connect(m_act_invert_decrement_check, &QAction::triggered, this,
+          &BranchWatchDialog::OnTableInvertDecrementCheck);
+
+  m_act_make_unconditional = new QAction(tr("Make &Unconditional"), this);
+  connect(m_act_make_unconditional, &QAction::triggered, this,
+          &BranchWatchDialog::OnTableMakeUnconditional);
+
   m_act_copy_address = new QAction(tr("&Copy Address"), this);
   connect(m_act_copy_address, &QAction::triggered, this, &BranchWatchDialog::OnTableCopyAddress);
 
@@ -435,6 +446,13 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
                                                      &BranchWatchDialog::OnTableSetBreakpointLog);
   m_act_both_on_hit = m_mnu_set_breakpoint->addAction(tr("Break &and Log on Hit"), this,
                                                       &BranchWatchDialog::OnTableSetBreakpointBoth);
+
+  m_mnu_table_context_instruction = new QMenu(this);
+  m_mnu_table_context_instruction->addActions(
+      {delete_action, m_act_invert_condition, m_act_invert_decrement_check});
+
+  m_mnu_table_context_condition = new QMenu(this);
+  m_mnu_table_context_condition->addActions({delete_action, m_act_make_unconditional});
 
   m_mnu_table_context_origin = new QMenu(this);
   m_mnu_table_context_origin->addActions(
@@ -734,6 +752,15 @@ void BranchWatchDialog::OnHelp()
          "destination symbol columns, these actions will only be enabled if every row in the "
          "selection has a symbol."
          "\n\n"
+         "If the instruction column of a row selection is right-clicked, an action to invert the "
+         "branch instruction's condition and an action to invert the branch instruction's "
+         "decrement check will be available, but only if the branch instruction is a conditional "
+         "one."
+         "\n\n"
+         "If the condition column of a row selection is right-clicked, an action to make the "
+         "branch instruction unconditional will be available, but only if the branch instruction "
+         "is a conditional one."
+         "\n\n"
          "If the origin column of a row selection is right-clicked, an action to replace the "
          "branch instruction at the origin(s) with a NOP instruction (No Operation) will be "
          "available."
@@ -849,6 +876,33 @@ void BranchWatchDialog::OnTableSetBLR() const
 void BranchWatchDialog::OnTableSetNOP() const
 {
   SetStubPatches(0x60000000);
+}
+
+void BranchWatchDialog::OnTableInvertCondition() const
+{
+  SetEditPatches([](u32 hex) {
+    UGeckoInstruction inst = hex;
+    inst.BO ^= 0b01000;
+    return inst.hex;
+  });
+}
+
+void BranchWatchDialog::OnTableInvertDecrementCheck() const
+{
+  SetEditPatches([](u32 hex) {
+    UGeckoInstruction inst = hex;
+    inst.BO ^= 0b00010;
+    return inst.hex;
+  });
+}
+
+void BranchWatchDialog::OnTableMakeUnconditional() const
+{
+  SetEditPatches([](u32 hex) {
+    UGeckoInstruction inst = hex;
+    inst.BO = 0b10100;  // 1z1zz - Branch always
+    return inst.hex;
+  });
 }
 
 void BranchWatchDialog::OnTableCopyAddress() const
@@ -1047,6 +1101,21 @@ void BranchWatchDialog::SetStubPatches(u32 value) const
   m_code_widget->Update();
 }
 
+void BranchWatchDialog::SetEditPatches(u32 (*transform)(u32)) const
+{
+  auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
+  for (const Core::CPUThreadGuard guard(m_system); const QModelIndex& index : m_index_list_temp)
+  {
+    const Core::BranchWatchCollectionKey& k =
+        m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first;
+    // This function assumes patches apply to the origin address, unlike SetStubPatches.
+    debug_interface.SetPatch(guard, k.origin_addr, transform(k.original_inst.hex));
+    m_table_proxy->SetInspected(index);
+  }
+  // TODO: Same issue as SetStubPatches.
+  m_code_widget->Update();
+}
+
 void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
 {
   auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
@@ -1092,8 +1161,9 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index) const
   switch (index.column())
   {
   case Column::Instruction:
+    return GetTableContextMenu_Instruction(core_initialized);
   case Column::Condition:
-    return m_mnu_table_context_other;
+    return GetTableContextMenu_Condition(core_initialized);
   case Column::Origin:
     return GetTableContextMenu_Origin(core_initialized);
   case Column::Destination:
@@ -1107,6 +1177,29 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index) const
   }
   static_assert(Column::NumberOfColumns == 8);
   Common::Unreachable();
+}
+
+QMenu* BranchWatchDialog::GetTableContextMenu_Instruction(bool core_initialized) const
+{
+  const bool all_branches_conditional =  // Taking advantage of short-circuit evaluation here.
+      core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        return BranchIsConditional(
+            m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first.original_inst);
+      });
+  m_act_invert_condition->setEnabled(all_branches_conditional);
+  m_act_invert_decrement_check->setEnabled(all_branches_conditional);
+  return m_mnu_table_context_instruction;
+}
+
+QMenu* BranchWatchDialog::GetTableContextMenu_Condition(bool core_initialized) const
+{
+  const bool all_branches_conditional =  // Taking advantage of short-circuit evaluation here.
+      core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
+        return BranchIsConditional(
+            m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first.original_inst);
+      });
+  m_act_make_unconditional->setEnabled(all_branches_conditional);
+  return m_mnu_table_context_condition;
 }
 
 QMenu* BranchWatchDialog::GetTableContextMenu_Origin(bool core_initialized) const
@@ -1123,8 +1216,7 @@ QMenu* BranchWatchDialog::GetTableContextMenu_Destin(bool core_initialized) cons
   SetBreakpointMenuActionsIcons();
   const bool all_branches_save_lr =  // Taking advantage of short-circuit evaluation here.
       core_initialized && std::ranges::all_of(m_index_list_temp, [this](const QModelIndex& index) {
-        const QModelIndex sibling = index.siblingAtColumn(Column::Instruction);
-        return BranchSavesLR(m_table_proxy->data(sibling, UserRole::ClickRole).value<u32>());
+        return m_table_proxy->GetBranchWatchSelection(index).collection_ptr->first.original_inst.LK;
       });
   m_act_insert_blr->setEnabled(all_branches_save_lr);
   m_act_copy_address->setEnabled(true);
