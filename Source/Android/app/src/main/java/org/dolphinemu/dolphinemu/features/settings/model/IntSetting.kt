@@ -86,7 +86,7 @@ enum class IntSetting(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
         "OverlayHapticsIntensity",
-        HapticsProvider.MAX_INTENSITY
+        HapticsProvider.MID_INTENSITY
     ),
     SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
     SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),

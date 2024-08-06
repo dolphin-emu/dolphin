@@ -116,7 +116,7 @@ object ControllerInterface {
     @JvmStatic
     private fun vibrate(vibrator: Vibrator) {
         // TODO: Add a slider to the Rumble options that allows adjusting the vibration intensity.
-        HapticsProvider(vibrator).provideFeedback(HapticEffect.SPIN, HapticsProvider.MAX_INTENSITY)
+        HapticsProvider(vibrator).provideFeedback(HapticEffect.SPIN, HapticsProvider.MID_INTENSITY)
     }
 
     private class InputDeviceListener : InputManager.InputDeviceListener {
