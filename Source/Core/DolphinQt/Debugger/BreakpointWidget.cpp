@@ -207,8 +207,11 @@ void BreakpointWidget::OnClicked(QTableWidgetItem* item)
   if (!item)
     return;
 
-  if (item->column() == ADDRESS_COLUMN || item->column() == END_ADDRESS_COLUMN)
+  if (item->column() == SYMBOL_COLUMN || item->column() == ADDRESS_COLUMN ||
+      item->column() == END_ADDRESS_COLUMN)
+  {
     return;
+  }
 
   const u32 address = static_cast<u32>(m_table->item(item->row(), 0)->data(ADDRESS_ROLE).toUInt());
 
@@ -350,6 +353,8 @@ void BreakpointWidget::Update()
 
     i++;
   }
+
+  m_table->sortItems(ADDRESS_COLUMN);
 
   // Memory Breakpoints
   for (const auto& mbp : memchecks.GetMemChecks())
