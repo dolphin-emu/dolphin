@@ -22,7 +22,6 @@ import org.dolphinemu.dolphinemu.databinding.FragmentIngameMenuBinding
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
-import org.dolphinemu.dolphinemu.utils.ListenerWrapper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 
 class MenuFragment : Fragment(), View.OnClickListener {
@@ -76,7 +75,7 @@ class MenuFragment : Fragment(), View.OnClickListener {
             button.setOnClickListener(this)
         }
 
-        binding.menuExit.setOnClickListener(ListenerWrapper.wrapOnClickListener(this))
+        binding.menuExit.setOnClickListener(this)
 
         val title = requireArguments().getString(KEY_TITLE, null)
         if (title != null) {

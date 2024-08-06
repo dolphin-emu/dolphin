@@ -18,7 +18,6 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -63,7 +62,6 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.HapticEffect
 import org.dolphinemu.dolphinemu.utils.HapticsProvider
-import org.dolphinemu.dolphinemu.utils.ListenerWrapper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -467,17 +465,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_PAUSE_EMULATION -> {
                 hasUserPausedEmulation = true
                 NativeLibrary.PauseEmulation()
-                ViewCompat.performHapticFeedback(
-                    binding.frameMenu, HapticFeedbackConstantsCompat.CLOCK_TICK
-                )
             }
 
             MENU_ACTION_UNPAUSE_EMULATION -> {
                 hasUserPausedEmulation = false
                 NativeLibrary.UnPauseEmulation()
-                ViewCompat.performHapticFeedback(
-                    binding.frameMenu, HapticFeedbackConstantsCompat.CONTEXT_CLICK
-                )
             }
 
             MENU_ACTION_TAKE_SCREENSHOT -> NativeLibrary.SaveScreenShot()
@@ -704,11 +696,9 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 toggleIntensity(false)
             }
             checkboxes.forEach { checkbox ->
-                checkbox.setOnCheckedChangeListener(
-                    ListenerWrapper.wrapOnCheckedChangeListener { _, _ ->
-                        toggleIntensity(checkboxes.any { it.isChecked })
-                    }
-                )
+                checkbox.setOnCheckedChangeListener { _, _ ->
+                    toggleIntensity(checkboxes.any { it.isChecked })
+                }
             }
             hapticsIntensitySlider.apply {
                 stepSize = 1.0f
@@ -779,8 +769,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 150f
                 value = IntSetting.MAIN_CONTROL_SCALE.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(
-                    ListenerWrapper.wrapOnChangeListener { _: Slider, progress: Float, _: Boolean ->
+                addOnChangeListener(Slider.OnChangeListener { _: Slider?, progress: Float, _: Boolean ->
                     dialogBinding.inputScaleValue.text = "${(progress.toInt() + 50)}%"
                 })
             }
@@ -791,8 +780,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 100f
                 value = IntSetting.MAIN_CONTROL_OPACITY.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(
-                    ListenerWrapper.wrapOnChangeListener { _: Slider, progress: Float, _: Boolean ->
+                addOnChangeListener(Slider.OnChangeListener { _: Slider?, progress: Float, _: Boolean ->
                     inputOpacityValue.text = progress.toInt().toString() + "%"
                 })
             }

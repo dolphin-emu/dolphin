@@ -35,7 +35,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.*
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.*
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
-import org.dolphinemu.dolphinemu.utils.ListenerWrapper
 import org.dolphinemu.dolphinemu.utils.Log
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import java.io.File
@@ -262,7 +261,7 @@ class SettingsAdapter(
             }
         }
         slider.value = (seekbarProgress / slider.stepSize).roundToInt() * slider.stepSize
-        slider.addOnChangeListener(ListenerWrapper.wrapOnChangeListener(this))
+        slider.addOnChangeListener(this)
 
         dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
             .setTitle(item.name)
