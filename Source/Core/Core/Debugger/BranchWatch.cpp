@@ -69,18 +69,22 @@ void BranchWatch::Save(const CPUThreadGuard& guard, std::FILE* file) const
   if (file == nullptr)
     return;
 
+  const bool is_reduction_phase = GetRecordingPhase() == Phase::Reduction;
+
   const auto routine = [&](const Collection& collection, bool is_virtual, bool condition) {
     for (const Collection::value_type& kv : collection)
     {
-      const auto iter = std::find_if(
-          m_selection.begin(), m_selection.end(),
-          [&](const Selection::value_type& value) { return value.collection_ptr == &kv; });
+      const auto iter = std::ranges::find_if(m_selection, [&](const Selection::value_type& value) {
+        return value.collection_ptr == &kv;
+      });
+      const bool selected = iter != m_selection.end();
+      if (is_reduction_phase && !selected)
+        continue;  // Unselected hits are irrelevant to the reduction phase.
+      const auto inspection = selected ? iter->inspection : SelectionInspection{};
       fmt::println(file, "{:08x} {:08x} {:08x} {} {} {:x}", kv.first.origin_addr,
                    kv.first.destin_addr, kv.first.original_inst.hex, kv.second.total_hits,
                    kv.second.hits_snapshot,
-                   iter == m_selection.end() ?
-                       USnapshotMetadata(is_virtual, condition, false, {}).hex :
-                       USnapshotMetadata(is_virtual, condition, true, iter->inspection).hex);
+                   USnapshotMetadata(is_virtual, condition, selected, inspection).hex);
     }
   };
   routine(m_collection_vt, true, true);
