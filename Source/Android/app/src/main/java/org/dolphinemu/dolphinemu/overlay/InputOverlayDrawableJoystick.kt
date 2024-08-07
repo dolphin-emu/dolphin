@@ -124,7 +124,7 @@ class InputOverlayDrawableJoystick(
                     pressed = true
                     pressedState = true
                     if (BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean) {
-                        hapticsProvider.provideFeedback(HapticEffect.CLICK, hapticsIntensity)
+                        hapticsProvider.provideFeedback(HapticEffect.QUICK_FALL, hapticsIntensity)
                     }
                     outerBitmap.alpha = 0
                     boundsBoxBitmap.alpha = opacity
@@ -145,7 +145,7 @@ class InputOverlayDrawableJoystick(
                     pressed = true
                     pressedState = false
                     if (BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean) {
-                        hapticsProvider.provideFeedback(HapticEffect.CLICK, hapticsIntensity)
+                        hapticsProvider.provideFeedback(HapticEffect.QUICK_RISE, hapticsIntensity)
                     }
                     y = 0f
                     x = y

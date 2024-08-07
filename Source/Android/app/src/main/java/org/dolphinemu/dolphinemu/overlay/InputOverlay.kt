@@ -165,12 +165,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         if (button.latching && button.getPressedState()) {
                             button.setPressedState(false)
                             if (releaseFeedback) hapticsProvider.provideFeedback(
-                                HapticEffect.TICK, hapticsIntensity
+                                HapticEffect.QUICK_RISE, hapticsIntensity
                             )
                         } else {
                             button.setPressedState(true)
                             if (pressFeedback) hapticsProvider.provideFeedback(
-                                HapticEffect.CLICK, hapticsIntensity
+                                HapticEffect.QUICK_FALL, hapticsIntensity
                             )
                         }
                         button.trackId = event.getPointerId(pointerIndex)
@@ -194,7 +194,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         if (!button.latching) {
                             button.setPressedState(false)
                             if (releaseFeedback) hapticsProvider.provideFeedback(
-                                HapticEffect.TICK, hapticsIntensity
+                                HapticEffect.QUICK_RISE, hapticsIntensity
                             )
                         }
                         InputOverrider.setControlState(controllerIndex, button.control, if (button.getPressedState()) 1.0 else 0.0)
@@ -228,7 +228,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         dpad.trackId = event.getPointerId(pointerIndex)
                         pressed = true
                         if (pressFeedback) hapticsProvider.provideFeedback(
-                            HapticEffect.CLICK, hapticsIntensity
+                            HapticEffect.QUICK_FALL, hapticsIntensity
                         )
                     }
                 }
@@ -254,7 +254,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             if (!dpadPressed[i]) {
                                 if (dpadPreviouslyPressed[i] && releaseFeedback) {
                                     hapticsProvider.provideFeedback(
-                                        HapticEffect.TICK, hapticsIntensity
+                                        HapticEffect.QUICK_RISE, hapticsIntensity
                                     )
                                 }
                                 InputOverrider.setControlState(
@@ -265,7 +265,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             } else {
                                 if (!dpadPreviouslyPressed[i] && pressFeedback) {
                                     hapticsProvider.provideFeedback(
-                                        HapticEffect.CLICK, hapticsIntensity
+                                        HapticEffect.QUICK_FALL, hapticsIntensity
                                     )
                                 }
                                 InputOverrider.setControlState(
@@ -295,7 +295,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             if (dpadPreviouslyPressed[i]) {
                                 dpadPreviouslyPressed[i] = false
                                 if (releaseFeedback) hapticsProvider.provideFeedback(
-                                    HapticEffect.TICK, hapticsIntensity
+                                    HapticEffect.QUICK_RISE, hapticsIntensity
                                 )
                             }
                             InputOverrider.setControlState(

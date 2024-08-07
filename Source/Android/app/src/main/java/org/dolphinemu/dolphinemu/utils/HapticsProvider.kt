@@ -68,8 +68,8 @@ class HapticsProvider(
         // so the difference in the duration of the vibration can be easily perceived.
         // Lower-end vibrators can't vibrate at all if the duration is too short.
         return when (effect) {
-            HapticEffect.CLICK -> longArrayOf(0L, (100f * scale).toLong())
-            HapticEffect.TICK -> longArrayOf(0L, (70f * scale).toLong())
+            HapticEffect.QUICK_FALL -> longArrayOf(0L, (100f * scale).toLong())
+            HapticEffect.QUICK_RISE -> longArrayOf(0L, (70f * scale).toLong())
             HapticEffect.LOW_TICK -> longArrayOf(0L, (50f * scale).toLong())
             HapticEffect.SPIN -> LongArray(SPIN_TIMINGS.size) { (SPIN_TIMINGS[it] * scale).toLong() }
         }
@@ -86,10 +86,12 @@ class HapticsProvider(
     private fun getAmplitudes(
         effect: HapticEffect, @FloatRange(from = 0.0, to = 1.0) scale: Float
     ): IntArray {
+        // Note: It is recommended that these values differ by a ratio of 1.4 or more,
+        // so the difference in the amplitude of the vibration can be easily perceived.
         return when (effect) {
-            HapticEffect.CLICK -> intArrayOf(0, (255 * scale).toInt())
-            HapticEffect.TICK -> intArrayOf(0, (180 * scale).toInt())
-            HapticEffect.LOW_TICK -> intArrayOf(0, (128 * scale).toInt())
+            HapticEffect.QUICK_FALL -> intArrayOf(0, (180 * scale).toInt())
+            HapticEffect.QUICK_RISE -> intArrayOf(0, (128 * scale).toInt())
+            HapticEffect.LOW_TICK -> intArrayOf(0, (90 * scale).toInt())
             HapticEffect.SPIN -> IntArray(SPIN_AMPLITUDES.size) { (SPIN_AMPLITUDES[it] * scale).toInt() }
         }
     }
@@ -97,8 +99,8 @@ class HapticsProvider(
     @RequiresApi(Build.VERSION_CODES.S)
     private fun getPrimitive(effect: HapticEffect): Int {
         return when (effect) {
-            HapticEffect.CLICK -> VibrationEffect.Composition.PRIMITIVE_CLICK
-            HapticEffect.TICK -> VibrationEffect.Composition.PRIMITIVE_TICK
+            HapticEffect.QUICK_FALL -> VibrationEffect.Composition.PRIMITIVE_QUICK_FALL
+            HapticEffect.QUICK_RISE -> VibrationEffect.Composition.PRIMITIVE_QUICK_RISE
             HapticEffect.LOW_TICK -> VibrationEffect.Composition.PRIMITIVE_LOW_TICK
             HapticEffect.SPIN -> VibrationEffect.Composition.PRIMITIVE_SPIN
         }
@@ -117,8 +119,8 @@ class HapticsProvider(
 }
 
 enum class HapticEffect {
-    CLICK,
-    TICK,
+    QUICK_FALL,
+    QUICK_RISE,
     LOW_TICK,
     SPIN
 }
