@@ -151,7 +151,7 @@ void JitBase::InitFastmemArena()
 void JitBase::InitBLROptimization()
 {
   m_enable_blr_optimization =
-      jo.enableBlocklink && !m_enable_debugging && EMM::IsExceptionHandlerSupported();
+      jo.enableBlocklink && !IsDebuggingEnabled() && EMM::IsExceptionHandlerSupported();
   m_cleanup_after_stackfault = false;
 }
 
@@ -267,7 +267,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
   {
-    if (m_enable_debugging &&
+    if (IsDebuggingEnabled() &&
         m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(js.op[i].address))
     {
       return false;

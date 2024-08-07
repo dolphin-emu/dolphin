@@ -943,7 +943,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   auto& cpu = m_system.GetCPU();
 
-  if (m_enable_debugging)
+  if (IsDebuggingEnabled())
   {
     // We can link blocks as long as we are not single stepping
     SetBlockLinkingEnabled(true);
@@ -1237,7 +1237,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
     else
     {
-      if (m_enable_debugging && !cpu.IsStepping() &&
+      if (IsDebuggingEnabled() && !cpu.IsStepping() &&
           m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
       {
         FlushCarry();

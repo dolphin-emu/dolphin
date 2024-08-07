@@ -757,7 +757,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   std::size_t block_size = m_code_buffer.size();
 
-  if (m_enable_debugging)
+  if (IsDebuggingEnabled())
   {
     // We can link blocks as long as we are not single stepping
     EnableBlockLink();
@@ -1035,7 +1035,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       auto& cpu = m_system.GetCPU();
       auto& power_pc = m_system.GetPowerPC();
-      if (m_enable_debugging && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
+      if (IsDebuggingEnabled() && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
           !cpu.IsStepping())
       {
         gpr.Flush();
