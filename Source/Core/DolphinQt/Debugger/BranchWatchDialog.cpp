@@ -516,7 +516,6 @@ BranchWatchDialog::~BranchWatchDialog()
 }
 
 static constexpr int BRANCH_WATCH_TOOL_TIMER_DELAY_MS = 100;
-static constexpr int BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS = 200;
 
 static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State state)
 {
@@ -537,23 +536,18 @@ void BranchWatchDialog::showEvent(QShowEvent* event)
 
 void BranchWatchDialog::OnStartPause(bool checked) const
 {
+  m_branch_watch.SetRecordingActive(Core::CPUThreadGuard{m_system}, checked);
   if (checked)
   {
-    m_branch_watch.Start();
     m_btn_start_pause->setText(tr("Pause Branch Watch"));
-    // Restart the timer if the situation calls for it, but always turn off single-shot.
-    m_timer->setSingleShot(false);
     if (Core::GetState(m_system) > Core::State::Paused)
       m_timer->start(BRANCH_WATCH_TOOL_TIMER_DELAY_MS);
   }
   else
   {
-    m_branch_watch.Pause();
     m_btn_start_pause->setText(tr("Start Branch Watch"));
-    // Schedule one last update in the future in case Branch Watch is in the middle of a hit.
-    if (Core::GetState(m_system) > Core::State::Paused)
-      m_timer->setInterval(BRANCH_WATCH_TOOL_TIMER_PAUSE_ONESHOT_MS);
-    m_timer->setSingleShot(true);
+    if (m_timer->isActive())
+      m_timer->stop();
   }
   Update();
 }
