@@ -213,8 +213,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
 
 QString FilesystemWidget::SelectFolder()
 {
-  return DolphinFileDialog::getExistingDirectory(this,
-                                                 QObject::tr("Choose the folder to extract to"));
+  return DolphinFileDialog::getExistingDirectory(this, QObject::tr("Choose Folder to Extract To"));
 }
 
 void FilesystemWidget::ShowContextMenu(const QPoint&)
@@ -300,7 +299,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   case EntryType::File:
     menu->addAction(tr("Extract File..."), this, [this, partition, path] {
       auto dest =
-          DolphinFileDialog::getSaveFileName(this, tr("Save File to"), QFileInfo(path).fileName());
+          DolphinFileDialog::getSaveFileName(this, tr("Save File To"), QFileInfo(path).fileName());
 
       if (!dest.isEmpty())
         ExtractFile(partition, path, dest);

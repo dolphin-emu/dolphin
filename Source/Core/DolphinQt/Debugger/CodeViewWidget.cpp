@@ -156,6 +156,7 @@ CodeViewWidget::CodeViewWidget()
   horizontalHeader()->setStretchLastSection(true);
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_BREAKPOINT, new QTableWidgetItem());
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_ADDRESS, new QTableWidgetItem(tr("Address")));
+  // i18n: Short for "Instruction"
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_INSTRUCTION, new QTableWidgetItem(tr("Instr.")));
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_PARAMETERS, new QTableWidgetItem(tr("Parameters")));
   setHorizontalHeaderItem(CODE_VIEW_COLUMN_DESCRIPTION, new QTableWidgetItem(tr("Symbols")));
@@ -569,44 +570,44 @@ void CodeViewWidget::OnContextMenu()
   const bool has_symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
 
   auto* follow_branch_action =
-      menu->addAction(tr("Follow &branch"), this, &CodeViewWidget::OnFollowBranch);
+      menu->addAction(tr("Follow &Branch"), this, &CodeViewWidget::OnFollowBranch);
 
   menu->addSeparator();
 
-  menu->addAction(tr("&Copy address"), this, &CodeViewWidget::OnCopyAddress);
+  menu->addAction(tr("&Copy Address"), this, &CodeViewWidget::OnCopyAddress);
   auto* copy_address_action =
-      menu->addAction(tr("Copy &function"), this, &CodeViewWidget::OnCopyFunction);
+      menu->addAction(tr("Copy &Function"), this, &CodeViewWidget::OnCopyFunction);
   auto* copy_line_action =
-      menu->addAction(tr("Copy code &line"), this, &CodeViewWidget::OnCopyCode);
-  auto* copy_hex_action = menu->addAction(tr("Copy &hex"), this, &CodeViewWidget::OnCopyHex);
+      menu->addAction(tr("Copy Code &Line"), this, &CodeViewWidget::OnCopyCode);
+  auto* copy_hex_action = menu->addAction(tr("Copy &Hex"), this, &CodeViewWidget::OnCopyHex);
 
-  menu->addAction(tr("Show in &memory"), this, &CodeViewWidget::OnShowInMemory);
+  menu->addAction(tr("Show in &Memory"), this, &CodeViewWidget::OnShowInMemory);
   auto* show_target_memory =
-      menu->addAction(tr("Show target in memor&y"), this, &CodeViewWidget::OnShowTargetInMemory);
+      menu->addAction(tr("Show Target in Memor&y"), this, &CodeViewWidget::OnShowTargetInMemory);
   auto* copy_target_memory =
-      menu->addAction(tr("Copy tar&get address"), this, &CodeViewWidget::OnCopyTargetAddress);
+      menu->addAction(tr("Copy Tar&get Sddress"), this, &CodeViewWidget::OnCopyTargetAddress);
   menu->addSeparator();
 
   auto* symbol_rename_action =
-      menu->addAction(tr("&Rename symbol"), this, &CodeViewWidget::OnRenameSymbol);
+      menu->addAction(tr("&Rename Symbol"), this, &CodeViewWidget::OnRenameSymbol);
   auto* symbol_size_action =
-      menu->addAction(tr("Set symbol &size"), this, &CodeViewWidget::OnSetSymbolSize);
+      menu->addAction(tr("Set Symbol &Size"), this, &CodeViewWidget::OnSetSymbolSize);
   auto* symbol_end_action =
-      menu->addAction(tr("Set symbol &end address"), this, &CodeViewWidget::OnSetSymbolEndAddress);
+      menu->addAction(tr("Set Symbol &End Address"), this, &CodeViewWidget::OnSetSymbolEndAddress);
   menu->addSeparator();
 
-  auto* run_to_action = menu->addAction(tr("Run &To Here"), this, &CodeViewWidget::OnRunToHere);
+  auto* run_to_action = menu->addAction(tr("Run &to Here"), this, &CodeViewWidget::OnRunToHere);
   auto* function_action =
-      menu->addAction(tr("&Add function"), this, &CodeViewWidget::OnAddFunction);
+      menu->addAction(tr("&Add Function"), this, &CodeViewWidget::OnAddFunction);
   auto* ppc_action = menu->addAction(tr("PPC vs Host"), this, &CodeViewWidget::OnPPCComparison);
-  auto* insert_blr_action = menu->addAction(tr("&Insert blr"), this, &CodeViewWidget::OnInsertBLR);
-  auto* insert_nop_action = menu->addAction(tr("Insert &nop"), this, &CodeViewWidget::OnInsertNOP);
+  auto* insert_blr_action = menu->addAction(tr("&Insert BLR"), this, &CodeViewWidget::OnInsertBLR);
+  auto* insert_nop_action = menu->addAction(tr("Insert &NOP"), this, &CodeViewWidget::OnInsertNOP);
   auto* replace_action =
-      menu->addAction(tr("Re&place instruction"), this, &CodeViewWidget::OnReplaceInstruction);
+      menu->addAction(tr("Re&place Instruction"), this, &CodeViewWidget::OnReplaceInstruction);
   auto* assemble_action =
-      menu->addAction(tr("Assemble instruction"), this, &CodeViewWidget::OnAssembleInstruction);
+      menu->addAction(tr("Assemble Instruction"), this, &CodeViewWidget::OnAssembleInstruction);
   auto* restore_action =
-      menu->addAction(tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
+      menu->addAction(tr("Restore Instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
   QString target;
   bool valid_load_store = false;
@@ -631,14 +632,14 @@ void CodeViewWidget::OnContextMenu()
     follow_branch_enabled = GetBranchFromAddress(guard, addr);
   }
 
-  auto* run_until_menu = menu->addMenu(tr("Run until (ignoring breakpoints)"));
-  // i18n: One of the options shown below "Run until (ignoring breakpoints)"
+  auto* run_until_menu = menu->addMenu(tr("Run Until (Ignoring Breakpoints)"));
+  // i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
   run_until_menu->addAction(tr("%1's value is hit").arg(target), this,
                             [this] { AutoStep(CodeTrace::AutoStop::Always); });
-  // i18n: One of the options shown below "Run until (ignoring breakpoints)"
+  // i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
   run_until_menu->addAction(tr("%1's value is used").arg(target), this,
                             [this] { AutoStep(CodeTrace::AutoStop::Used); });
-  // i18n: One of the options shown below "Run until (ignoring breakpoints)"
+  // i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
   run_until_menu->addAction(tr("%1's value is changed").arg(target),
                             [this] { AutoStep(CodeTrace::AutoStop::Changed); });
 
@@ -677,7 +678,7 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
   CodeTrace code_trace;
   bool repeat = false;
 
-  QMessageBox msgbox(QMessageBox::NoIcon, tr("Run until"), {}, QMessageBox::Cancel);
+  QMessageBox msgbox(QMessageBox::NoIcon, tr("Run Until"), {}, QMessageBox::Cancel);
   QPushButton* run_button = msgbox.addButton(tr("Keep Running"), QMessageBox::AcceptRole);
   // Not sure if we want default to be cancel. Spacebar can let you quickly continue autostepping if
   // Yes.
@@ -930,7 +931,7 @@ void CodeViewWidget::OnRenameSymbol()
 
   bool good;
   const QString name =
-      QInputDialog::getText(this, tr("Rename symbol"), tr("Symbol name:"), QLineEdit::Normal,
+      QInputDialog::getText(this, tr("Rename Symbol"), tr("Symbol Name:"), QLineEdit::Normal,
                             QString::fromStdString(symbol->name), &good, Qt::WindowCloseButtonHint);
 
   if (good && !name.isEmpty())
@@ -963,10 +964,9 @@ void CodeViewWidget::OnSetSymbolSize()
     return;
 
   bool good;
-  const int size =
-      QInputDialog::getInt(this, tr("Rename symbol"),
-                           tr("Set symbol size (%1):").arg(QString::fromStdString(symbol->name)),
-                           symbol->size, 1, 0xFFFF, 1, &good, Qt::WindowCloseButtonHint);
+  const int size = QInputDialog::getInt(
+      this, tr("Rename Symbol"), tr("Symbol Size (%1):").arg(QString::fromStdString(symbol->name)),
+      symbol->size, 1, 0xFFFF, 1, &good, Qt::WindowCloseButtonHint);
 
   if (!good)
     return;
@@ -988,8 +988,8 @@ void CodeViewWidget::OnSetSymbolEndAddress()
 
   bool good;
   const QString name = QInputDialog::getText(
-      this, tr("Set symbol end address"),
-      tr("Symbol (%1) end address:").arg(QString::fromStdString(symbol->name)), QLineEdit::Normal,
+      this, tr("Set Symbol End Address"),
+      tr("Symbol End Address (%1):").arg(QString::fromStdString(symbol->name)), QLineEdit::Normal,
       QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good,
       Qt::WindowCloseButtonHint);
 

@@ -262,7 +262,7 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
 
   static constexpr char TR_SHOW_DEBUGGING_UI_DESCRIPTION[] = QT_TR_NOOP(
-      "Shows Dolphin's debugging User Interface. This lets you view and modify a game's code and "
+      "Shows Dolphin's debugging user interface. This lets you view and modify a game's code and "
       "memory contents, set debugging breakpoints, examine network requests, and more."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_DISABLED_IN_HARDCORE_DESCRIPTION[] =
@@ -317,7 +317,7 @@ void InterfacePane::OnLanguageChanged()
 void InterfacePane::AddDescriptions()
 {
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
-      "Uses Dolphin's database of properly formatted names in the Game List Title column."
+      "Uses Dolphin's database of properly formatted names in the game list's Title column."
       "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static constexpr char TR_THEME_DESCRIPTION[] =
       QT_TR_NOOP("Changes the appearance and color of Dolphin's buttons."
@@ -326,16 +326,16 @@ void InterfacePane::AddDescriptions()
       QT_TR_NOOP("Forces the render window to stay on top of other windows and applications."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_LANGUAGE_DESCRIPTION[] = QT_TR_NOOP(
-      "Sets the language displayed by Dolphin's User Interface."
+      "Sets the language displayed by Dolphin's user interface."
       "<br><br>Changes to this setting only take effect once Dolphin is restarted."
       "<br><br><dolphin_emphasis>If unsure, select &lt;System Language&gt;.</dolphin_emphasis>");
   static constexpr char TR_FOCUSED_HOTKEYS_DESCRIPTION[] =
       QT_TR_NOOP("Requires the render window to be focused for hotkeys to take effect."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static constexpr char TR_USE_COVERS_DESCRIPTION[] =
-      QT_TR_NOOP("Downloads full game covers from GameTDB.com to display in the Game List's Grid "
-                 "View. If this setting is unchecked the Game List displays a banner generated "
-                 "from the game's save files, and if the game has no save file displays a generic "
+      QT_TR_NOOP("Downloads full game covers from GameTDB.com to display in the game list's Grid "
+                 "View. If this setting is unchecked, the game list displays a banner from the "
+                 "game's save data, and if the game has no save file, displays a generic "
                  "banner instead."
                  "<br><br>List View will always use the save file banners."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
@@ -361,22 +361,22 @@ void InterfacePane::AddDescriptions()
       QT_TR_NOOP("Pauses the game whenever the render window isn't focused."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_LOCK_MOUSE_DESCRIPTION[] =
-      QT_TR_NOOP("Locks the Mouse Cursor to the Render Widget as long as it has focus. You can "
+      QT_TR_NOOP("Locks the mouse cursor to the Render Widget as long as it has focus. You can "
                  "set a hotkey to unlock it."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_CURSOR_VISIBLE_MOVEMENT_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the Mouse Cursor briefly whenever it has recently moved, then hides it."
+      QT_TR_NOOP("Shows the mouse cursor briefly whenever it has recently moved, then hides it."
                  "<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>");
   static constexpr char TR_CURSOR_VISIBLE_NEVER_DESCRIPTION[] = QT_TR_NOOP(
-      "Hides the Mouse Cursor whenever it is inside the render window and the render window is "
+      "Hides the mouse cursor whenever it is inside the render window and the render window is "
       "focused."
       "<br><br><dolphin_emphasis>If unsure, select &quot;On Movement&quot;.</dolphin_emphasis>");
   static constexpr char TR_CURSOR_VISIBLE_ALWAYS_DESCRIPTION[] = QT_TR_NOOP(
-      "Shows the Mouse Cursor at all times."
+      "Shows the mouse cursor at all times."
       "<br><br><dolphin_emphasis>If unsure, select &quot;On Movement&quot;.</dolphin_emphasis>");
   static constexpr char TR_USER_STYLE_DESCRIPTION[] =
-      QT_TR_NOOP("Sets the style of Dolphin's User Interface. Any Custom User Styles that you have "
-                 "loaded will be presented here, allowing you to switch to them."
+      QT_TR_NOOP("Sets the style of Dolphin's user interface. Any custom styles that you have "
+                 "added will be presented here, allowing you to switch to them."
                  "<br><br><dolphin_emphasis>If unsure, select (System).</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));

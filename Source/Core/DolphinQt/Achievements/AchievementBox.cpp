@@ -97,6 +97,7 @@ void AchievementBox::UpdateData()
       if (m_achievement->unlock_time != 0)
       {
         m_status->setText(
+            // i18n: %1 is a date/time.
             tr("Unlocked at %1")
                 .arg(QDateTime::fromSecsSinceEpoch(m_achievement->unlock_time).toString()));
       }

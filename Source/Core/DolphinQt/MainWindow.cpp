@@ -1820,7 +1820,7 @@ void MainWindow::OnImportNANDBackup()
     return;
 
   QString file =
-      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+      DolphinFileDialog::getOpenFileName(this, tr("Select NAND Backup"), QDir::currentPath(),
                                          tr("BootMii NAND backup file (*.bin);;"
                                             "All Files (*)"));
 
@@ -1846,7 +1846,7 @@ void MainWindow::OnImportNANDBackup()
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
             return DolphinFileDialog::getOpenFileName(
-                       this, tr("Select the keys file (OTP/SEEPROM dump)"), QDir::currentPath(),
+                       this, tr("Select Keys File (OTP/SEEPROM Dump)"), QDir::currentPath(),
                        tr("BootMii keys file (*.bin);;"
                           "All Files (*)"))
                 .toStdString();

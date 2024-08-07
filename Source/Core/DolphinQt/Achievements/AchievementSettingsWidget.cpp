@@ -114,11 +114,13 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_login_button);
   m_common_layout->addWidget(m_common_logout_button);
   m_common_layout->addWidget(m_common_login_failed);
+  // i18n: Settings that affect the functionality of unlocking achievements.
   m_common_layout->addWidget(new QLabel(tr("Function Settings")));
   m_common_layout->addWidget(m_common_hardcore_enabled_input);
   m_common_layout->addWidget(m_common_unofficial_enabled_input);
   m_common_layout->addWidget(m_common_encore_enabled_input);
   m_common_layout->addWidget(m_common_spectator_enabled_input);
+  // i18n: Settings that affect how achievements are displayed while playing.
   m_common_layout->addWidget(new QLabel(tr("Display Settings")));
 #ifdef USE_DISCORD_PRESENCE
   m_common_layout->addWidget(m_common_discord_presence_enabled_input);
