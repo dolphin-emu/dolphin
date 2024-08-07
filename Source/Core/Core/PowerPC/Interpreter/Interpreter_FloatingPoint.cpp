@@ -42,6 +42,23 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
   u32 value;
   bool exception_occurred = false;
 
+  double rounded;
+  switch (rounding_mode)
+  {
+    case RoundingMode::Nearest:
+      rounded = roundeven(b);
+      break;
+    case RoundingMode::TowardsZero:
+      rounded = std::trunc(b);
+      break;
+    case RoundingMode::TowardsPositiveInfinity:
+      rounded = std::ceil(b);
+      break;
+    case RoundingMode::TowardsNegativeInfinity:
+      rounded = std::floor(b);
+      break;
+  }
+
   if (std::isnan(b))
   {
     if (Common::IsSNAN(b))
@@ -51,14 +68,14 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
     SetFPException(ppc_state, FPSCR_VXCVI);
     exception_occurred = true;
   }
-  else if (b > static_cast<double>(0x7fffffff))
+  else if (rounded >= static_cast<double>(0x80000000))
   {
     // Positive large operand or +inf
     value = 0x7fffffff;
     SetFPException(ppc_state, FPSCR_VXCVI);
     exception_occurred = true;
   }
-  else if (b < -static_cast<double>(0x80000000))
+  else if (rounded < -static_cast<double>(0x80000000))
   {
     // Negative large operand or -inf
     value = 0x80000000;
@@ -67,41 +84,9 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
   }
   else
   {
-    s32 i = 0;
-    switch (rounding_mode)
-    {
-    case RoundingMode::Nearest:
-    {
-      const double t = b + 0.5;
-      i = static_cast<s32>(t);
-
-      // Ties to even
-      if (t - i < 0 || (t - i == 0 && (i & 1)))
-      {
-        i--;
-      }
-      break;
-    }
-    case RoundingMode::TowardsZero:
-      i = static_cast<s32>(b);
-      break;
-    case RoundingMode::TowardsPositiveInfinity:
-      i = static_cast<s32>(b);
-      if (b - i > 0)
-      {
-        i++;
-      }
-      break;
-    case RoundingMode::TowardsNegativeInfinity:
-      i = static_cast<s32>(b);
-      if (b - i < 0)
-      {
-        i--;
-      }
-      break;
-    }
-    value = static_cast<u32>(i);
-    const double di = i;
+    s32 signed_value = static_cast<s32>(rounded);
+    value = static_cast<u32>(signed_value);
+    const double di = static_cast<double>(signed_value);
     if (di == b)
     {
       ppc_state.fpscr.ClearFIFR();
