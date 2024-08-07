@@ -113,7 +113,7 @@ class HapticsProvider(
     }
 
     companion object {
-        private val SPIN_TIMINGS = longArrayOf(15L, 20L, 15L, 20L, 15L, 20L, 15L, 10L)
+        private val SPIN_TIMINGS = longArrayOf(15L, 30L, 20L, 30L, 20L, 30L, 20L, 10L)
         private val SPIN_AMPLITUDES = intArrayOf(0, 128, 255, 100, 200, 32, 64, 0)
     }
 }
