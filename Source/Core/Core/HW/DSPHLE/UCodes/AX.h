@@ -87,15 +87,15 @@ protected:
   static constexpr u32 MAIL_CMDLIST_MASK = 0xFFFF0000;
 
   // 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
-  int m_samples_main_left[32 * 5]{};
-  int m_samples_main_right[32 * 5]{};
-  int m_samples_main_surround[32 * 5]{};
-  int m_samples_auxA_left[32 * 5]{};
-  int m_samples_auxA_right[32 * 5]{};
-  int m_samples_auxA_surround[32 * 5]{};
-  int m_samples_auxB_left[32 * 5]{};
-  int m_samples_auxB_right[32 * 5]{};
-  int m_samples_auxB_surround[32 * 5]{};
+  alignas(32) int m_samples_main_left[32 * 5]{};
+  alignas(32) int m_samples_main_right[32 * 5]{};
+  alignas(32) int m_samples_main_surround[32 * 5]{};
+  alignas(32) int m_samples_auxA_left[32 * 5]{};
+  alignas(32) int m_samples_auxA_right[32 * 5]{};
+  alignas(32) int m_samples_auxA_surround[32 * 5]{};
+  alignas(32) int m_samples_auxB_left[32 * 5]{};
+  alignas(32) int m_samples_auxB_right[32 * 5]{};
+  alignas(32) int m_samples_auxB_surround[32 * 5]{};
 
   u16 m_cmdlist[512]{};
   u32 m_cmdlist_size = 0;
