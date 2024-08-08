@@ -36,20 +36,16 @@ void SetFI(PowerPC::PowerPCState& ppc_state, u32 FI)
 // without setting any CPU flags or being careful about NaNs
 double RoundToIntegerMode(double number)
 {
-  // Not every implementation of cmath includes roundeven, so this is a replacement
-  // Due to the below code checking if specifically b is NaN, NaNs entering this path
-  // isn't dangerous
-
-  // This value is 2^53 -- The first number in which double precision floating point
+  // This value is 2^52 -- The first number in which double precision floating point
   // numbers can only store subsequent integers, and no longer any decimals
   // This keeps the sign of the unrounded value because it needs to scale it
   // upwards when added
-  const double int_precision = std::copysign(9007199254740992.0, b);
+  const double int_precision = std::copysign(4503599627370496.0, number);
 
   // By adding this value to the original number, it will now have to choose how to
   // round, which will be towards at least the nearest integer
   // This rounding will be the same as the CPU rounding mode
-  return (b + int_precision) - int_precision;
+  return (number + int_precision) - int_precision;
 }
 
 // Note that the convert to integer operation is defined
