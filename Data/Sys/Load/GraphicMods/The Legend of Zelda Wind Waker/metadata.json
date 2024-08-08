@@ -1,0 +1,49 @@
+{
+	"meta":
+	{
+		"title": "Windwaker Performance Fixes",
+		"author": "iwubcode",
+		"description": "Automatically disables 'Store EFB Copies to Texture Only' during pictograph gameplay."
+	},
+	"groups":
+	[
+		{
+			"name": "PictographStart",
+			"targets": [
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_32x224_ccd5b94c8c1af275_14"
+				}
+			]
+		},
+		{
+			"name": "PictographEnd",
+			"targets": [
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_24x24_7e201aa9d5e4a597_598b8b532cc3e935_9"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "PictographStart",
+			"action": "set_settings",
+			"action_data":
+			{
+				"setting_name": "skip_efb_to_ram",
+				"setting_value": false
+			}
+		},
+		{
+			"group": "PictographEnd",
+			"action": "set_settings",
+			"action_data":
+			{
+				"setting_name": "skip_efb_to_ram"
+			}
+		}
+	]
+}

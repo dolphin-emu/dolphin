@@ -2305,20 +2305,32 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     info.m_width = tex_w;
     info.m_height = tex_h;
     info.m_texture_format = baseFormat;
+
+    bool force_copy_to_ram = false;
     if (is_xfb_copy)
     {
+      GraphicsModActionData::XFB xfb{&force_copy_to_ram};
       for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
       {
-        action->OnXFB();
+        action->OnXFB(&xfb);
+      }
+      if (force_copy_to_ram)
+      {
+        copy_to_ram = true;
       }
     }
     else
     {
       bool skip = false;
-      GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
+      GraphicsModActionData::EFB efb{tex_w,         tex_h,         &skip,
+                                     &scaled_tex_w, &scaled_tex_h, &force_copy_to_ram};
       for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
       {
         action->OnEFB(&efb);
+      }
+      if (force_copy_to_ram)
+      {
+        copy_to_ram = true;
       }
       if (skip == true)
       {
