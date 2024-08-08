@@ -135,7 +135,7 @@ void GameCubePane::CreateWidgets()
   // Add slot devices
   for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::MemoryCard,
                             EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko,
-                            EXIDeviceType::AGP, EXIDeviceType::Microphone})
+                            EXIDeviceType::AGP, EXIDeviceType::Microphone, EXIDeviceType::SD})
   {
     const QString name = tr(fmt::format("{:n}", device).c_str());
     const int value = static_cast<int>(device);
@@ -155,6 +155,14 @@ void GameCubePane::CreateWidgets()
        })
   {
     m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(tr(fmt::format("{:n}", device).c_str()),
+                                                          static_cast<int>(device));
+  }
+
+  // Add SP2 devices
+  for (const auto device :
+       {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::AD16, EXIDeviceType::SD})
+  {
+    m_slot_combos[ExpansionInterface::Slot::SP2]->addItem(tr(fmt::format("{:n}", device).c_str()),
                                                           static_cast<int>(device));
   }
 
@@ -191,6 +199,11 @@ void GameCubePane::CreateWidgets()
     device_layout->addWidget(new QLabel(tr("SP1:")), row, 0);
     device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP1], row, 1);
     device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP1], row, 2);
+
+    ++row;
+    device_layout->addWidget(new QLabel(tr("SP2:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP2], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP2], row, 2);
   }
 
 #ifdef HAS_LIBMGBA
@@ -329,7 +342,8 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
     has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
                   device == ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
                   device == ExpansionInterface::EXIDeviceType::AGP ||
-                  device == ExpansionInterface::EXIDeviceType::Microphone);
+                  device == ExpansionInterface::EXIDeviceType::Microphone ||
+                  device == ExpansionInterface::EXIDeviceType::SD);
     const bool hide_memory_card = device != ExpansionInterface::EXIDeviceType::MemoryCard ||
                                   Config::IsDefaultMemcardPathConfigured(slot);
     const bool hide_gci_path = device != ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
@@ -358,6 +372,9 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
                   device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn ||
                   device == ExpansionInterface::EXIDeviceType::ModemTapServer);
     break;
+  case ExpansionInterface::Slot::SP2:
+    has_config = (device == ExpansionInterface::EXIDeviceType::SD);
+    break;
   }
 
   m_slot_buttons[slot]->setEnabled(has_config);
@@ -378,6 +395,9 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
     return;
   case ExpansionInterface::EXIDeviceType::AGP:
     BrowseAGPRom(slot);
+    return;
+  case ExpansionInterface::EXIDeviceType::SD:
+    BrowseSDCard(slot);
     return;
   case ExpansionInterface::EXIDeviceType::Microphone:
   {
@@ -672,6 +692,70 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
   }
 
   LoadSettings();
+}
+
+void GameCubePane::BrowseSDCard(ExpansionInterface::Slot slot)
+{
+  ASSERT(slot != ExpansionInterface::Slot::SP1);
+
+  QString filename = DolphinFileDialog::getSaveFileName(
+      this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+      tr("SD Card Image (*.raw)"), 0, QFileDialog::DontConfirmOverwrite);
+
+  if (filename.isEmpty())
+    return;
+
+  QString path_abs = QFileInfo(filename).absoluteFilePath();
+
+  for (ExpansionInterface::Slot other_slot : ExpansionInterface::SLOTS)
+  {
+    if (other_slot == slot || other_slot == ExpansionInterface::Slot::SP1)
+      continue;
+
+    bool other_slot_sd = m_slot_combos[other_slot]->currentData().toInt() ==
+                         static_cast<int>(ExpansionInterface::EXIDeviceType::SD);
+    if (other_slot_sd)
+    {
+      QString path_other =
+          QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForSDCardPath(other_slot))))
+              .absoluteFilePath();
+
+      if (path_abs == path_other)
+      {
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            tr("The same file can't be used in multiple slots; it is already used by %1.")
+                .arg(QString::fromStdString(fmt::to_string(other_slot))));
+        return;
+      }
+    }
+  }
+
+  QString path_wii =
+      QFileInfo(QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)))
+          .absoluteFilePath();
+  if (path_abs == path_wii)
+  {
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("The same file can't be used in multiple slots; it is already "
+                                 "used by the Wii SD slot."));
+    return;
+  }
+
+  QString path_old =
+      QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForSDCardPath(slot))))
+          .absoluteFilePath();
+
+  Config::SetBase(Config::GetInfoForSDCardPath(slot), path_abs.toStdString());
+
+  if (Core::IsRunning() && path_abs != path_old)
+  {
+    // ChangeDevice unplugs the device for 1 second, which means that games should notice that
+    // the path has changed and thus the sd card contents have changed
+    // (not sure if anything actually checks for this)
+    Core::System::GetInstance().GetExpansionInterface().ChangeDevice(
+        slot, ExpansionInterface::EXIDeviceType::SD);
+  }
 }
 
 void GameCubePane::BrowseGBABios()
