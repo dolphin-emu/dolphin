@@ -709,7 +709,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 stepSize = 0.1f
                 valueFrom = 0.1f
                 valueTo = 1.0f
-                value = FloatSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.float.also { setValueText(it) }
+                value = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float.also { setValueText(it) }
                 addOnChangeListener { _: Slider, value: Float, _: Boolean ->
                     setValueText(value)
                     hapticsProvider.provideFeedback(HapticEffect.LOW_TICK, value)
@@ -728,7 +728,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 BooleanSetting.MAIN_OVERLAY_HAPTICS_JOYSTICK.setBoolean(
                     settings, dialogBinding.hapticsJoystickCheckbox.isChecked
                 )
-                FloatSetting.MAIN_OVERLAY_HAPTICS_INTENSITY.setFloat(
+                FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.setFloat(
                     settings, dialogBinding.hapticsIntensitySlider.value
                 )
             }
