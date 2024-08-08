@@ -32,6 +32,26 @@ void SetFI(PowerPC::PowerPCState& ppc_state, u32 FI)
   ppc_state.fpscr.FI = FI;
 }
 
+// Round a number to an integer in the same direction as the CPU rounding mode,
+// without setting any CPU flags or being careful about NaNs
+double RoundToIntegerMode(double number)
+{
+  // Not every implementation of cmath includes roundeven, so this is a replacement
+  // Due to the below code checking if specifically b is NaN, NaNs entering this path
+  // isn't dangerous
+
+  // This value is 2^53 -- The first number in which double precision floating point
+  // numbers can only store subsequent integers, and no longer any decimals
+  // This keeps the sign of the unrounded value because it needs to scale it
+  // upwards when added
+  const double int_precision = std::copysign(9007199254740992.0, b);
+
+  // By adding this value to the original number, it will now have to choose how to
+  // round, which will be towards at least the nearest integer
+  // This rounding will be the same as the CPU rounding mode
+  return (b + int_precision) - int_precision;
+}
+
 // Note that the convert to integer operation is defined
 // in Appendix C.4.2 in PowerPC Microprocessor Family:
 // The Programming Environments Manual for 32 and 64-bit Microprocessors
@@ -39,24 +59,29 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
                       RoundingMode rounding_mode)
 {
   const double b = ppc_state.ps[inst.FB].PS0AsDouble();
+  double rounded;
   u32 value;
   bool exception_occurred = false;
 
-  double rounded;
+  // To reduce complexity, this takes in a rounding mode in a switch case,
+  // rather than always judging based on the emulated CPU rounding mode
   switch (rounding_mode)
   {
-    case RoundingMode::Nearest:
-      rounded = roundeven(b);
-      break;
-    case RoundingMode::TowardsZero:
-      rounded = std::trunc(b);
-      break;
-    case RoundingMode::TowardsPositiveInfinity:
-      rounded = std::ceil(b);
-      break;
-    case RoundingMode::TowardsNegativeInfinity:
-      rounded = std::floor(b);
-      break;
+  case RoundingMode::Nearest:
+    // On generic platforms, the rounding should be assumed to be ties to even
+    // For targeted platforms this would work for any rounding mode,
+    // but it's mainly just kept in to replace roundeven
+    rounded = RoundToIntegerMode(b);
+    break;
+  case RoundingMode::TowardsZero:
+    rounded = std::trunc(b);
+    break;
+  case RoundingMode::TowardsPositiveInfinity:
+    rounded = std::ceil(b);
+    break;
+  case RoundingMode::TowardsNegativeInfinity:
+    rounded = std::floor(b);
+    break;
   }
 
   if (std::isnan(b))
