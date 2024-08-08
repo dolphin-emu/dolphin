@@ -227,7 +227,7 @@ void NetworkWidget::ConnectWidgets()
   connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
   });
-  connect(m_open_dump_folder, &QPushButton::pressed, [] {
+  connect(m_open_dump_folder, &QPushButton::clicked, [] {
     const std::string location = File::GetUserPath(D_DUMPSSL_IDX);
     const QUrl url = QUrl::fromLocalFile(QString::fromStdString(location));
     QDesktopServices::openUrl(url);

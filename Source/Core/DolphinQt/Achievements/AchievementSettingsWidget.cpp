@@ -135,8 +135,8 @@ void AchievementSettingsWidget::ConnectWidgets()
 {
   connect(m_common_integration_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleRAIntegration);
-  connect(m_common_login_button, &QPushButton::pressed, this, &AchievementSettingsWidget::Login);
-  connect(m_common_logout_button, &QPushButton::pressed, this, &AchievementSettingsWidget::Logout);
+  connect(m_common_login_button, &QPushButton::clicked, this, &AchievementSettingsWidget::Login);
+  connect(m_common_logout_button, &QPushButton::clicked, this, &AchievementSettingsWidget::Logout);
   connect(m_common_hardcore_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleHardcore);
   connect(m_common_unofficial_enabled_input, &QCheckBox::toggled, this,
