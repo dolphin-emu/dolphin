@@ -256,16 +256,16 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     m_btn_start_pause->setCheckable(true);
 
     m_btn_clear_watch = new QPushButton(tr("Clear Branch Watch"), nullptr);
-    connect(m_btn_clear_watch, &QPushButton::pressed, this, &BranchWatchDialog::OnClearBranchWatch);
+    connect(m_btn_clear_watch, &QPushButton::clicked, this, &BranchWatchDialog::OnClearBranchWatch);
     m_btn_clear_watch->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     m_btn_path_was_taken = new QPushButton(tr("Code Path Was Taken"), nullptr);
-    connect(m_btn_path_was_taken, &QPushButton::pressed, this,
+    connect(m_btn_path_was_taken, &QPushButton::clicked, this,
             &BranchWatchDialog::OnCodePathWasTaken);
     m_btn_path_was_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     m_btn_path_not_taken = new QPushButton(tr("Code Path Not Taken"), nullptr);
-    connect(m_btn_path_not_taken, &QPushButton::pressed, this,
+    connect(m_btn_path_not_taken, &QPushButton::clicked, this,
             &BranchWatchDialog::OnCodePathNotTaken);
     m_btn_path_not_taken->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
@@ -388,17 +388,17 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
   {
     // Misc. Controls
     m_btn_was_overwritten = new QPushButton(tr("Branch Was Overwritten"), nullptr);
-    connect(m_btn_was_overwritten, &QPushButton::pressed, this,
+    connect(m_btn_was_overwritten, &QPushButton::clicked, this,
             &BranchWatchDialog::OnBranchWasOverwritten);
     m_btn_was_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     m_btn_not_overwritten = new QPushButton(tr("Branch Not Overwritten"), nullptr);
-    connect(m_btn_not_overwritten, &QPushButton::pressed, this,
+    connect(m_btn_not_overwritten, &QPushButton::clicked, this,
             &BranchWatchDialog::OnBranchNotOverwritten);
     m_btn_not_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     m_btn_wipe_recent_hits = new QPushButton(tr("Wipe Recent Hits"), nullptr);
-    connect(m_btn_wipe_recent_hits, &QPushButton::pressed, this,
+    connect(m_btn_wipe_recent_hits, &QPushButton::clicked, this,
             &BranchWatchDialog::OnWipeRecentHits);
     m_btn_wipe_recent_hits->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     m_btn_wipe_recent_hits->setEnabled(false);
