@@ -333,8 +333,8 @@ void Jit64::Shutdown()
 
 void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
-  gpr.Flush();
-  fpr.Flush();
+  gpr.Flush(BitSet32(0xFFFFFFFF), RegCache::IgnoreDiscardedRegisters::Yes);
+  fpr.Flush(BitSet32(0xFFFFFFFF), RegCache::IgnoreDiscardedRegisters::Yes);
 
   if (js.op->canEndBlock)
   {
