@@ -122,7 +122,7 @@ s32 CachedInterpreter::InterpretAndCheckExceptions(
   }
   operands.func(operands.interpreter, operands.inst);
 
-  if ((ppc_state.Exceptions & (EXCEPTION_DSI | EXCEPTION_PROGRAM)) != 0)
+  if ((ppc_state.Exceptions & (ANY_LOADSTORE_EXCEPTION | EXCEPTION_PROGRAM)) != 0)
   {
     ppc_state.pc = operands.current_pc;
     ppc_state.downcount -= operands.downcount;
@@ -335,7 +335,7 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      // Instruction may cause a DSI Exception or Program Exception.
+      // Instruction may cause a DSI exception, alignment exception or program exception.
       if ((jo.memcheck && (op.opinfo->flags & FL_LOADSTORE) != 0) ||
           (!op.canEndBlock && ShouldHandleFPExceptionForInstruction(&op)))
       {

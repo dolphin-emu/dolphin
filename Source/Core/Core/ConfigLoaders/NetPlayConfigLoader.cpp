@@ -72,6 +72,7 @@ public:
     layer->Set(Config::GFX_PERF_QUERIES_ENABLE, m_settings.perf_queries_enable);
     layer->Set(Config::MAIN_FLOAT_EXCEPTIONS, m_settings.float_exceptions);
     layer->Set(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS, m_settings.divide_by_zero_exceptions);
+    layer->Set(Config::MAIN_ALIGNMENT_EXCEPTIONS, m_settings.alignment_exceptions);
     layer->Set(Config::MAIN_FPRF, m_settings.fprf);
     layer->Set(Config::MAIN_ACCURATE_NANS, m_settings.accurate_nans);
     layer->Set(Config::MAIN_DISABLE_ICACHE, m_settings.disable_icache);

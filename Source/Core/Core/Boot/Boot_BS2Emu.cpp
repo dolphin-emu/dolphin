@@ -172,9 +172,9 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   ppc_state.gpr[4] = iAppLoaderFuncAddr + 4;
   ppc_state.gpr[5] = iAppLoaderFuncAddr + 8;
   RunFunction(system, *entry);
-  const u32 iAppLoaderInit = mmu.Read_U32(iAppLoaderFuncAddr + 0);
-  const u32 iAppLoaderMain = mmu.Read_U32(iAppLoaderFuncAddr + 4);
-  const u32 iAppLoaderClose = mmu.Read_U32(iAppLoaderFuncAddr + 8);
+  const u32 iAppLoaderInit = mmu.Read_U32(iAppLoaderFuncAddr + 0, UGeckoInstruction{});
+  const u32 iAppLoaderMain = mmu.Read_U32(iAppLoaderFuncAddr + 4, UGeckoInstruction{});
+  const u32 iAppLoaderClose = mmu.Read_U32(iAppLoaderFuncAddr + 8, UGeckoInstruction{});
 
   // iAppLoaderInit
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderInit");
@@ -200,9 +200,9 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   // iAppLoaderMain returns 0 when there are no more sections to copy.
   while (ppc_state.gpr[3] != 0x00)
   {
-    const u32 ram_address = mmu.Read_U32(0x81300004);
-    const u32 length = mmu.Read_U32(0x81300008);
-    const u32 dvd_offset = mmu.Read_U32(0x8130000c) << (is_wii ? 2 : 0);
+    const u32 ram_address = mmu.Read_U32(0x81300004, UGeckoInstruction{});
+    const u32 length = mmu.Read_U32(0x81300008, UGeckoInstruction{});
+    const u32 dvd_offset = mmu.Read_U32(0x8130000c, UGeckoInstruction{}) << (is_wii ? 2 : 0);
 
     INFO_LOG_FMT(BOOT, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
                  ram_address, length);

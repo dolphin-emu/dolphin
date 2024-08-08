@@ -532,7 +532,7 @@ void PowerPCManager::CheckExceptions()
   }
   else if (exceptions & EXCEPTION_FAKE_MEMCHECK_HIT)
   {
-    m_ppc_state.Exceptions &= ~EXCEPTION_DSI & ~EXCEPTION_FAKE_MEMCHECK_HIT;
+    m_ppc_state.Exceptions &= ~EXCEPTION_FAKE_MEMCHECK_HIT;
   }
   else if (exceptions & EXCEPTION_DSI)
   {
@@ -553,8 +553,7 @@ void PowerPCManager::CheckExceptions()
     m_ppc_state.msr.LE = m_ppc_state.msr.ILE;
     m_ppc_state.msr.Hex &= ~0x04EF36;
     m_ppc_state.pc = m_ppc_state.npc = 0x00000600;
-
-    // TODO crazy amount of DSISR options to check out
+    // DSISR and DAR regs are changed in GenerateAlignmentException()
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ALIGNMENT");
     m_ppc_state.Exceptions &= ~EXCEPTION_ALIGNMENT;

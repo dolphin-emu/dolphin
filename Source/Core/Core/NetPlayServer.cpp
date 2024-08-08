@@ -1409,6 +1409,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.perf_queries_enable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
   settings.float_exceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
   settings.divide_by_zero_exceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
+  settings.alignment_exceptions = Config::Get(Config::MAIN_ALIGNMENT_EXCEPTIONS);
   settings.fprf = Config::Get(Config::MAIN_FPRF);
   settings.accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
   settings.disable_icache = Config::Get(Config::MAIN_DISABLE_ICACHE);
@@ -1617,6 +1618,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.perf_queries_enable;
   spac << m_settings.float_exceptions;
   spac << m_settings.divide_by_zero_exceptions;
+  spac << m_settings.alignment_exceptions;
   spac << m_settings.fprf;
   spac << m_settings.accurate_nans;
   spac << m_settings.disable_icache;
