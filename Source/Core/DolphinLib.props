@@ -664,6 +664,8 @@
     <ClInclude Include="VideoCommon\Assets\MeshAsset.h" />
     <ClInclude Include="VideoCommon\Assets\ShaderAsset.h" />
     <ClInclude Include="VideoCommon\Assets\TextureAsset.h" />
+    <ClInclude Include="VideoCommon\Assets\Types.h" />
+    <ClInclude Include="VideoCommon\Assets\WatchableFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
     <ClInclude Include="VideoCommon\BoundingBox.h" />
@@ -1310,6 +1312,7 @@
     <ClCompile Include="VideoCommon\Assets\MeshAsset.cpp" />
     <ClCompile Include="VideoCommon\Assets\ShaderAsset.cpp" />
     <ClCompile Include="VideoCommon\Assets\TextureAsset.cpp" />
+    <ClCompile Include="VideoCommon\Assets\WatchableFilesystemAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
     <ClCompile Include="VideoCommon\AsyncShaderCompiler.cpp" />
     <ClCompile Include="VideoCommon\BoundingBox.cpp" />
