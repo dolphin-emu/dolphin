@@ -23,6 +23,7 @@ import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
+import org.dolphinemu.dolphinemu.utils.HapticListener
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 
 class RiivolutionBootActivity : AppCompatActivity() {
@@ -48,10 +49,12 @@ class RiivolutionBootActivity : AppCompatActivity() {
         if (loadPath.isEmpty()) loadPath = DirectoryInitialization.getUserDirectory() + "/Load"
 
         binding.textSdRoot.text = getString(R.string.riivolution_sd_root, "$loadPath/Riivolution")
-        binding.buttonStart.setOnClickListener {
-            if (patches != null) patches!!.saveConfig()
-            EmulationActivity.launch(this, path!!, true)
-        }
+        binding.buttonStart.setOnClickListener(
+            HapticListener.wrapOnClickListener({
+                if (patches != null) patches!!.saveConfig()
+                EmulationActivity.launch(this, path!!, true)
+            })
+        )
 
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {

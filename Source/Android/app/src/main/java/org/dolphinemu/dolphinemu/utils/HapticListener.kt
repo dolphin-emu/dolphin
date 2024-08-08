@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.utils
 
+import android.view.View
 import android.widget.CompoundButton
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.core.view.ViewCompat
@@ -9,6 +10,24 @@ import com.google.android.material.slider.Slider
  * Wrapper class that enhances listeners with haptic feedback.
  */
 object HapticListener {
+
+    /**
+     * Wraps a [View.OnClickListener] with haptic feedback.
+     *
+     * @param listener The [View.OnClickListener] to be wrapped. Can be null.
+     * @param feedbackConstant The haptic feedback constant to be used for haptic feedback.
+     * Defaults to [HapticFeedbackConstantsCompat.CONTEXT_CLICK] if not specified.
+     * @return A new listener which wraps [listener] with haptic feedback.
+     */
+    fun wrapOnClickListener(
+        listener: View.OnClickListener?,
+        feedbackConstant: Int = HapticFeedbackConstantsCompat.CONTEXT_CLICK
+    ): View.OnClickListener {
+        return View.OnClickListener { view: View ->
+            listener?.onClick(view)
+            ViewCompat.performHapticFeedback(view, feedbackConstant)
+        }
+    }
 
     /**
      * Wraps a [Slider.OnChangeListener] with haptic feedback.

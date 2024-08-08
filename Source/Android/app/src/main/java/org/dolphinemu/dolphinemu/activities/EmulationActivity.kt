@@ -18,6 +18,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -456,11 +457,17 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_PAUSE_EMULATION -> {
                 hasUserPausedEmulation = true
                 NativeLibrary.PauseEmulation()
+                ViewCompat.performHapticFeedback(
+                    binding.frameMenu, HapticFeedbackConstantsCompat.CLOCK_TICK
+                )
             }
 
             MENU_ACTION_UNPAUSE_EMULATION -> {
                 hasUserPausedEmulation = false
                 NativeLibrary.UnPauseEmulation()
+                ViewCompat.performHapticFeedback(
+                    binding.frameMenu, HapticFeedbackConstantsCompat.CONTEXT_CLICK
+                )
             }
 
             MENU_ACTION_TAKE_SCREENSHOT -> NativeLibrary.SaveScreenShot()
