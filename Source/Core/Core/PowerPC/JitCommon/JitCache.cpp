@@ -142,7 +142,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 }
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
-                                      const PPCAnalyst::CodeBlock& code_block,
+                                      PPCAnalyst::CodeBlock& code_block,
                                       const PPCAnalyst::CodeBuffer& code_buffer)
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
@@ -157,7 +157,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   }
   block.fast_block_map_index = index;
 
-  block.physical_addresses = code_block.m_physical_addresses;
+  block.physical_addresses = std::move(code_block.m_physical_addresses);
 
   block.originalSize = code_block.m_num_instructions;
   if (m_jit.IsDebuggingEnabled())
