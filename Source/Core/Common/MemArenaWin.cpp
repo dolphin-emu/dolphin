@@ -34,6 +34,9 @@ using PMapViewOfFile3 = PVOID(WINAPI*)(HANDLE FileMapping, HANDLE Process, PVOID
 
 using PUnmapViewOfFileEx = BOOL(WINAPI*)(PVOID BaseAddress, ULONG UnmapFlags);
 
+using PVirtualProtect = BOOL(WINAPI*)(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect,
+                                      PDWORD lpflOldProtect);
+
 using PIsApiSetImplemented = BOOL(APIENTRY*)(PCSTR Contract);
 
 namespace Common
@@ -78,11 +81,14 @@ static bool InitWindowsMemoryFunctions(WindowsMemoryFunctions* functions)
       functions->m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("MapViewOfFile3FromApp");
   void* const address_UnmapViewOfFileEx =
       functions->m_kernel32_handle.GetSymbolAddress("UnmapViewOfFileEx");
+  void* const address_VirtualProtect =
+      functions->m_kernel32_handle.GetSymbolAddress("VirtualProtect");
   if (address_VirtualAlloc2 && address_MapViewOfFile3 && address_UnmapViewOfFileEx)
   {
     functions->m_address_VirtualAlloc2 = address_VirtualAlloc2;
     functions->m_address_MapViewOfFile3 = address_MapViewOfFile3;
     functions->m_address_UnmapViewOfFileEx = address_UnmapViewOfFileEx;
+    functions->m_address_VirtualProtect = address_VirtualProtect;
     return true;
   }
 
@@ -207,6 +213,13 @@ void MemArena::ReleaseMemoryRegion()
     m_reserved_region = nullptr;
     m_regions.clear();
   }
+}
+
+bool MemArena::VirtualProtectMemoryRegion(u8* data, size_t size, u64 flag)
+{
+  DWORD lpflOldProtect = 0;
+  return static_cast<PVirtualProtect>(m_memory_functions.m_address_VirtualProtect)(
+      data, size, flag, &lpflOldProtect);
 }
 
 WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, size_t size)
