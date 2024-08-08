@@ -55,7 +55,7 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
                       RoundingMode rounding_mode)
 {
   const double b = ppc_state.ps[inst.FB].PS0AsDouble();
-  double rounded;
+  double rounded = 0.0;
   u32 value;
   bool exception_occurred = false;
 
