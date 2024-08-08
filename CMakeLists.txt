@@ -138,7 +138,6 @@ if(APPLE)
   option(MACOS_CODE_SIGNING "Enable codesigning" ON)
   option(USE_BUNDLED_MOLTENVK "Build MoltenVK from Externals with Dolphin-specific patches" ON)
   set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
-  set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "-" CACHE STRING "The identity used for codesigning, for the updater.")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

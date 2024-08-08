@@ -9,11 +9,11 @@
 	<key>CFBundleIconFile</key>
 	<string>Dolphin.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.dolphinteam.dolphin-updater</string>
+	<string>org.dolphin-emu.updater</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Updater</string>
+	<string>Dolphin Updater</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
