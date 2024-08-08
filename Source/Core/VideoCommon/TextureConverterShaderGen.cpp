@@ -105,9 +105,19 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 
   out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
   out.Write("uint4 SampleEFB(float3 uv, float y_offset) {{\n"
-            "  float4 tex_sample = texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * "
-            "pixel_height), clamp_tb.x, clamp_tb.y), {}));\n",
+            "  float clamp_top = clamp_tb.x;\n"
+            "  float clamp_bottom = clamp_tb.y;\n");
+
+  if(api_type == APIType::OpenGL)
+  {
+    out.Write("  clamp_top = (1.0f - clamp_tb.y) + src_offset.y;\n"
+              "  clamp_bottom = (1.0f - clamp_tb.x) + src_offset.y;\n");
+  }
+
+  out.Write("  float clamp_y = clamp(uv.y + (y_offset * pixel_height), clamp_top, clamp_bottom);\n"
+            "  float4 tex_sample = texture(samp0, float3(uv.x, clamp_y, {}));\n",
             mono_depth ? "0.0" : "uv.z");
+
   if (uid_data->is_depth_copy)
   {
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
