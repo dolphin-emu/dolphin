@@ -19,18 +19,30 @@ class DolphinSensorEventListener : SensorEventListener {
     private class AxisSetDetails(val firstAxisOfSet: Int, val axisSetType: Int)
 
     private class SensorDetails(
+        val sensor: Sensor,
         val sensorType: Int,
         val axisNames: Array<String>,
         val axisSetDetails: Array<AxisSetDetails>
     ) {
         var isSuspended = true
+        var hasRegisteredListener = false
     }
 
     private val sensorManager: SensorManager?
 
-    private val sensorDetails = HashMap<Sensor, SensorDetails>()
+    private val sensorDetails = ArrayList<SensorDetails>()
 
     private val rotateCoordinatesForScreenOrientation: Boolean
+
+    /**
+     * AOSP has a bug in InputDeviceSensorManager where
+     * InputSensorEventListenerDelegate.removeSensor attempts to modify an ArrayList it's iterating
+     * through in a way that throws a ConcurrentModificationException. Because of this, we can't
+     * suspend individual sensors for InputDevices, but we can suspend all sensors at once.
+     */
+    private val canSuspendSensorsIndividually: Boolean
+
+    private var unsuspendedSensors = 0
 
     private var deviceQualifier = ""
 
@@ -39,25 +51,22 @@ class DolphinSensorEventListener : SensorEventListener {
         sensorManager = DolphinApplication.getAppContext()
             .getSystemService(Context.SENSOR_SERVICE) as SensorManager?
         rotateCoordinatesForScreenOrientation = true
+        canSuspendSensorsIndividually = true
         addSensors()
+        sortSensorDetails()
     }
 
     @Keep
     constructor(inputDevice: InputDevice) {
         rotateCoordinatesForScreenOrientation = false
-        sensorManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            inputDevice.sensorManager
-
-            // TODO: There is a bug where after suspending sensors, onSensorChanged can get called for
-            // a sensor that we never registered as a listener for. The way our code is currently written,
-            // this causes a NullPointerException, but if we checked for null we would instead have the
-            // problem of being spammed with onSensorChanged calls even though the sensor shouldn't be
-            // enabled. For now, let's comment out the ability to use InputDevice sensors.
-
-            //addSensors();
+        canSuspendSensorsIndividually = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            sensorManager = inputDevice.sensorManager
+            addSensors()
         } else {
-            null
+            sensorManager = null
         }
+        sortSensorDetails()
     }
 
     private fun addSensors() {
@@ -254,15 +263,22 @@ class DolphinSensorEventListener : SensorEventListener {
     ) {
         val sensor = sensorManager!!.getDefaultSensor(sensorType)
         if (sensor != null) {
-            sensorDetails[sensor] = SensorDetails(sensorType, axisNames, axisSetDetails)
+            sensorDetails.add(SensorDetails(sensor, sensorType, axisNames, axisSetDetails))
         }
     }
 
+    private fun sortSensorDetails() {
+        Collections.sort(
+            sensorDetails,
+            Comparator.comparingInt { s: SensorDetails -> s.sensorType }
+        )
+    }
+
     override fun onSensorChanged(sensorEvent: SensorEvent) {
-        val sensorDetails = sensorDetails[sensorEvent.sensor]
+        val sensorDetails = sensorDetails.first{s -> sensorsAreEqual(s.sensor, sensorEvent.sensor)}
 
         val values = sensorEvent.values
-        val axisNames = sensorDetails!!.axisNames
+        val axisNames = sensorDetails.axisNames
         val axisSetDetails = sensorDetails.axisSetDetails
 
         var eventAxisIndex = 0
@@ -356,7 +372,7 @@ class DolphinSensorEventListener : SensorEventListener {
             }
         }
         if (!keepSensorAlive) {
-            setSensorSuspended(sensorEvent.sensor, sensorDetails, true)
+            setSensorSuspended(sensorDetails, true)
         }
     }
 
@@ -381,18 +397,14 @@ class DolphinSensorEventListener : SensorEventListener {
      */
     @Keep
     fun requestUnsuspendSensor(axisName: String) {
-        for ((key, value) in sensorDetails) {
-            if (listOf(*value.axisNames).contains(axisName)) {
-                setSensorSuspended(key, value, false)
+        for (sd in sensorDetails) {
+            if (listOf(*sd.axisNames).contains(axisName)) {
+                setSensorSuspended(sd, false)
             }
         }
     }
 
-    private fun setSensorSuspended(
-        sensor: Sensor,
-        sensorDetails: SensorDetails,
-        suspend: Boolean
-    ) {
+    private fun setSensorSuspended(sensorDetails: SensorDetails, suspend: Boolean) {
         var changeOccurred = false
 
         synchronized(sensorDetails) {
@@ -403,10 +415,46 @@ class DolphinSensorEventListener : SensorEventListener {
                     suspend
                 )
 
-                if (suspend)
-                    sensorManager!!.unregisterListener(this, sensor)
-                else
-                    sensorManager!!.registerListener(this, sensor, SAMPLING_PERIOD_US)
+                if (suspend) {
+                    unsuspendedSensors -= 1
+                } else {
+                    unsuspendedSensors += 1
+                }
+
+                if (canSuspendSensorsIndividually) {
+                    if (suspend) {
+                        sensorManager!!.unregisterListener(this, sensorDetails.sensor)
+                    } else {
+                        sensorManager!!.registerListener(
+                            this,
+                            sensorDetails.sensor,
+                            SAMPLING_PERIOD_US
+                        )
+                    }
+                    sensorDetails.hasRegisteredListener = !suspend
+                } else {
+                    if (suspend) {
+                        // If there are no unsuspended sensors left, unregister them all.
+                        // Otherwise, leave unregistering for later. A possible alternative could be
+                        // to unregister everything and then re-register the sensors we still want,
+                        // but I fear this could lead to dropped inputs.
+                        if (unsuspendedSensors == 0) {
+                            sensorManager!!.unregisterListener(this)
+                            for (sd in this.sensorDetails) {
+                                sd.hasRegisteredListener = false
+                            }
+                        }
+                    } else {
+                        if (!sensorDetails.hasRegisteredListener) {
+                            sensorManager!!.registerListener(
+                                this,
+                                sensorDetails.sensor,
+                                SAMPLING_PERIOD_US
+                            )
+                            sensorDetails.hasRegisteredListener = true
+                        }
+                    }
+                }
 
                 sensorDetails.isSuspended = suspend
 
@@ -415,14 +463,14 @@ class DolphinSensorEventListener : SensorEventListener {
         }
 
         if (changeOccurred) {
-            Log.info((if (suspend) "Suspended sensor " else "Unsuspended sensor ") + sensor.name)
+            Log.info((if (suspend) "Suspended sensor " else "Unsuspended sensor ") + sensorDetails.sensor.name)
         }
     }
 
     @Keep
     fun getAxisNames(): Array<String> {
         val axisNames = ArrayList<String>()
-        for (sensorDetails in sensorDetailsSorted) {
+        for (sensorDetails in sensorDetails) {
             sensorDetails.axisNames.forEach { axisNames.add(it) }
         }
         return axisNames.toArray(arrayOf())
@@ -432,7 +480,7 @@ class DolphinSensorEventListener : SensorEventListener {
     fun getNegativeAxes(): BooleanArray {
         val negativeAxes = ArrayList<Boolean>()
 
-        for (sensorDetails in sensorDetailsSorted) {
+        for (sensorDetails in sensorDetails) {
             var eventAxisIndex = 0
             var detailsAxisIndex = 0
             var detailsAxisSetIndex = 0
@@ -467,22 +515,13 @@ class DolphinSensorEventListener : SensorEventListener {
         return result
     }
 
-    private val sensorDetailsSorted: List<SensorDetails>
-        get() {
-            val sensorDetails = ArrayList(sensorDetails.values)
-            Collections.sort(
-                sensorDetails,
-                Comparator.comparingInt { s: SensorDetails -> s.sensorType }
-            )
-            return sensorDetails
-        }
-
     companion object {
         // Set of three axes. Creates a negative companion to each axis, and corrects for device rotation.
         private const val AXIS_SET_TYPE_DEVICE_COORDINATES = 0
 
         // Set of three axes. Creates a negative companion to each axis.
         private const val AXIS_SET_TYPE_OTHER_COORDINATES = 1
+
         private var deviceRotation = Surface.ROTATION_0
 
         // The fastest sampling rate Android lets us use without declaring the HIGH_SAMPLING_RATE_SENSORS
@@ -499,6 +538,14 @@ class DolphinSensorEventListener : SensorEventListener {
          */
         fun setDeviceRotation(deviceRotation: Int) {
             this.deviceRotation = deviceRotation
+        }
+
+        private fun sensorsAreEqual(s1: Sensor, s2: Sensor): Boolean {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && s1.id > 0 && s2.id > 0) {
+                s1.type == s2.type && s1.id == s2.id
+            } else {
+                s1.type == s2.type && s1.name == s2.name
+            }
         }
     }
 }
