@@ -43,6 +43,7 @@
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
@@ -261,6 +262,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
           &MainWindow::ShowAchievementSettings);
   connect(m_game_list, &GameList::OpenAchievementSettings, this,
           &MainWindow::ShowAchievementSettings);
+  connect(&Settings::Instance(), &Settings::HardcoreStateChanged, this,
+          &MainWindow::ToggleHardcore);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   InitCoreCallbacks();
@@ -2031,6 +2034,20 @@ void MainWindow::ShowAchievementSettings()
 {
   ShowAchievementsWindow();
   m_achievements_window->ForceSettingsTab();
+}
+
+void MainWindow::ToggleHardcore()
+{
+  AchievementManager::GetInstance().SetHardcoreMode();
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
+    Settings::Instance().SetDebugModeEnabled(false);
+  }
+  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
 #endif  // USE_RETRO_ACHIEVEMENTS
 

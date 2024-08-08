@@ -21,6 +21,7 @@
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -36,7 +37,7 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
 
   // If hardcore is enabled when the emulator starts, make sure it turns off what it needs to
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
-    ToggleHardcore();
+    emit Settings::Instance().HardcoreStateChanged();
 }
 
 void AchievementSettingsWidget::UpdateData()
@@ -255,23 +256,30 @@ void AchievementSettingsWidget::Login()
 
 void AchievementSettingsWidget::Logout()
 {
-  AchievementManager::GetInstance().Logout();
-  SaveSettings();
+  auto confirm = ModalMessageBox::question(
+      this, tr("Confirm Logout"), tr("Are you sure you want to log out of RetroAchievements?"),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+  if (confirm == QMessageBox::Yes)
+  {
+    AchievementManager::GetInstance().Logout();
+    SaveSettings();
+  }
 }
 
 void AchievementSettingsWidget::ToggleHardcore()
 {
-  SaveSettings();
-  AchievementManager::GetInstance().SetHardcoreMode();
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
   {
-    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
-      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
-    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
-    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
-    Settings::Instance().SetDebugModeEnabled(false);
+    auto confirm = ModalMessageBox::question(
+        this, tr("Confirm Hardcore Off"), tr("Are you sure you want to turn hardcore mode off?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+    if (confirm != QMessageBox::Yes)
+    {
+      SignalBlocking(m_common_hardcore_enabled_input)->setChecked(true);
+      return;
+    }
   }
-  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  SaveSettings();
   emit Settings::Instance().HardcoreStateChanged();
 }
 
