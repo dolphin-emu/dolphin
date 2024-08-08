@@ -30,6 +30,7 @@ typedef SSIZE_T ssize_t;
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -67,6 +68,224 @@ constexpr int MACH_O_POWERPC = 18;
 constexpr int MACH_O_POWERPC_750 = 9;
 
 const s64 GDB_UPDATE_CYCLES = 100000;
+
+const char* QUERY_XFER_TARGET = "qXfer:features:read:target.xml:";
+const char* QUERY_XFER_MEMORY_MAP = "qXfer:memory-map:read::";
+
+const char* TARGET_MEMORY_MAP_XML_NO_MMU =
+    "<memory-map version=\"1.0\">"
+    "<memory type=\"ram\" start=\"0x7E000000\" length=\"0x2000000\"/>"
+    "<memory type=\"ram\" start=\"0x80000000\" length=\"0x1800000\"/>"
+    "<memory type=\"ram\" start=\"0x90000000\" length=\"0x4000000\"/>"
+    "</memory-map>";
+
+const char* TARGET_MEMORY_MAP_XML_WITH_MMU =
+    "<memory-map version=\"1.0\">"
+    "<memory type=\"ram\" start=\"0x0\" length=\"0x10000000\"/>"
+    "</memory-map>";
+
+const char* target_xml = "<target version=\"1.0\">"
+                         "<architecture>powerpc:750</architecture>"
+                         "<feature name=\"org.gnu.gdb.power.core\">"
+                         "<reg name=\"r0\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r1\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r2\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r3\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r4\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r5\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r6\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r7\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r8\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r9\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r10\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r11\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r12\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r13\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r14\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r15\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r16\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r17\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r18\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r19\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r20\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r21\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r22\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r23\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r24\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r25\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r26\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r27\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r28\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r29\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r30\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"r31\" bitsize=\"32\" type=\"uint32\"/>"
+
+                         "<reg name=\"pc\" bitsize=\"32\" type=\"code_ptr\" regnum=\"64\"/>"
+                         "<reg name=\"msr\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"cr\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"lr\" bitsize=\"32\" type=\"code_ptr\"/>"
+                         "<reg name=\"ctr\" bitsize=\"32\" type=\"uint32\"/>"
+                         "<reg name=\"xer\" bitsize=\"32\" type=\"uint32\"/>"
+                         "</feature>"
+                         "<feature name=\"org.gnu.gdb.power.fpu\">"
+                         "<struct id=\"ps\">"
+                         "<field name=\"ps0\" type=\"ieee_single\"/>"
+                         "<field name=\"ps1\" type=\"ieee_single\"/>"
+                         "</struct>"
+                         "<union id=\"fpr\">"
+                         "<field name=\"ps\" type=\"ps\"/>"
+                         "<field name=\"double\" type=\"ieee_double\"/>"
+                         "</union>"
+                         "<reg name=\"f0\" bitsize=\"64\" type=\"fpr\" regnum=\"32\"/>"
+                         "<reg name=\"f1\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f2\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f3\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f4\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f5\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f6\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f7\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f8\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f9\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f10\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f11\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f12\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f13\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f14\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f15\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f16\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f17\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f18\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f19\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f20\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f21\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f22\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f23\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f24\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f25\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f26\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f27\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f28\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f29\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f30\" bitsize=\"64\" type=\"fpr\"/>"
+                         "<reg name=\"f31\" bitsize=\"64\" type=\"fpr\"/>"
+
+                         "<reg name=\"fpscr\" bitsize=\"32\" group=\"float\" regnum=\"70\"/>"
+                         "</feature>"
+                         "<feature name=\"OEA\">"
+                         "<reg name=\"sr0\" bitsize=\"32\" regnum=\"71\"/>"
+                         "<reg name=\"sr1\" bitsize=\"32\"/>"
+                         "<reg name=\"sr2\" bitsize=\"32\"/>"
+                         "<reg name=\"sr3\" bitsize=\"32\"/>"
+                         "<reg name=\"sr4\" bitsize=\"32\"/>"
+                         "<reg name=\"sr5\" bitsize=\"32\"/>"
+                         "<reg name=\"sr6\" bitsize=\"32\"/>"
+                         "<reg name=\"sr7\" bitsize=\"32\"/>"
+                         "<reg name=\"sr8\" bitsize=\"32\"/>"
+                         "<reg name=\"sr9\" bitsize=\"32\"/>"
+                         "<reg name=\"sr10\" bitsize=\"32\"/>"
+                         "<reg name=\"sr11\" bitsize=\"32\"/>"
+                         "<reg name=\"sr12\" bitsize=\"32\"/>"
+                         "<reg name=\"sr13\" bitsize=\"32\"/>"
+                         "<reg name=\"sr14\" bitsize=\"32\"/>"
+                         "<reg name=\"sr15\" bitsize=\"32\"/>"
+
+                         "<reg name=\"pvr\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat0u\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat0l\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat1u\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat1l\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat2u\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat2l\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat3u\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat3l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat0u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat0l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat1u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat1l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat2u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat2l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat3u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat3l\" bitsize=\"32\"/>"
+                         "<reg name=\"sdr1\" bitsize=\"32\"/>"
+                         "<reg name=\"asr\" bitsize=\"64\"/>"
+                         "<reg name=\"dar\" bitsize=\"32\"/>"
+                         "<reg name=\"dsisr\" bitsize=\"32\"/>"
+                         "<reg name=\"sprg0\" bitsize=\"32\"/>"
+                         "<reg name=\"sprg1\" bitsize=\"32\"/>"
+                         "<reg name=\"sprg2\" bitsize=\"32\"/>"
+                         "<reg name=\"sprg3\" bitsize=\"32\"/>"
+                         "<reg name=\"srr0\" bitsize=\"32\"/>"
+                         "<reg name=\"srr1\" bitsize=\"32\"/>"
+                         "<reg name=\"tbl\" bitsize=\"32\"/>"
+                         "<reg name=\"tbu\" bitsize=\"32\"/>"
+                         "<reg name=\"dec\" bitsize=\"32\"/>"
+                         "<reg name=\"dabr\" bitsize=\"32\"/>"
+                         "<reg name=\"ear\" bitsize=\"32\"/>"
+                         "</feature>"
+                         "<feature name=\"750\">"
+                         "<reg name=\"hid0\" bitsize=\"32\" regnum=\"119\"/>"
+                         "<reg name=\"hid1\" bitsize=\"32\"/>"
+                         "<reg name=\"iabr\" bitsize=\"32\"/>"
+                         "<reg name=\"dabr\" bitsize=\"32\"/>"
+                         "<reg name=\"ummcr0\" bitsize=\"32\" regnum=\"124\"/>"
+                         "<reg name=\"upmc1\" bitsize=\"32\"/>"
+                         "<reg name=\"upmc2\" bitsize=\"32\"/>"
+                         "<reg name=\"usia\" bitsize=\"32\"/>"
+                         "<reg name=\"ummcr1\" bitsize=\"32\"/>"
+                         "<reg name=\"upmc3\" bitsize=\"32\"/>"
+                         "<reg name=\"upmc4\" bitsize=\"32\"/>"
+                         "<reg name=\"mmcr0\" bitsize=\"32\"/>"
+                         "<reg name=\"pmc1\" bitsize=\"32\"/>"
+                         "<reg name=\"pmc2\" bitsize=\"32\"/>"
+                         "<reg name=\"sia\" bitsize=\"32\"/>"
+                         "<reg name=\"mmcr1\" bitsize=\"32\"/>"
+                         "<reg name=\"pmc3\" bitsize=\"32\"/>"
+                         "<reg name=\"pmc4\" bitsize=\"32\"/>"
+                         "<reg name=\"l2cr\" bitsize=\"32\"/>"
+                         "<reg name=\"ictc\" bitsize=\"32\"/>"
+                         "<reg name=\"thrm1\" bitsize=\"32\"/>"
+                         "<reg name=\"thrm2\" bitsize=\"32\"/>"
+                         "<reg name=\"thrm3\" bitsize=\"32\"/>"
+                         "</feature>"
+                         "<feature name=\"750CL\">"
+                         "<reg name=\"ibat4u\" bitsize=\"32\" regnum=\"143\"/>"
+                         "<reg name=\"ibat4l\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat5u\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat5l\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat6u\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat6l\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat7u\" bitsize=\"32\"/>"
+                         "<reg name=\"ibat7l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat4u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat4l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat5u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat5l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat6u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat6l\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat7u\" bitsize=\"32\"/>"
+                         "<reg name=\"dbat7l\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr0\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr1\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr2\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr3\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr4\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr5\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr6\" bitsize=\"32\"/>"
+                         "<reg name=\"gqr7\" bitsize=\"32\"/>"
+                         "<reg name=\"hid2\" bitsize=\"32\"/>"
+                         "<reg name=\"wpar\" bitsize=\"32\"/>"
+                         "<reg name=\"dmau\" bitsize=\"32\"/>"
+                         "<reg name=\"dmal\" bitsize=\"32\"/>"
+                         "<reg name=\"ecidu\" bitsize=\"32\"/>"
+                         "<reg name=\"ecidm\" bitsize=\"32\"/>"
+                         "<reg name=\"ecidl\" bitsize=\"32\"/>"
+                         "<reg name=\"usda\" bitsize=\"32\"/>"
+                         "<reg name=\"sda\" bitsize=\"32\"/>"
+                         "<reg name=\"hid4\" bitsize=\"32\"/>"
+                         "<reg name=\"tdcl\" bitsize=\"32\"/>"
+                         "<reg name=\"tdch\" bitsize=\"32\"/>"
+                         "</feature>"
+                         "</target>";
 
 static bool s_has_control = false;
 static bool s_just_connected = false;
@@ -107,7 +326,7 @@ static u8 Nibble2hex(u8 n)
     return 'A' + n - 0xa;
 }
 
-static void Mem2hex(u8* dst, u8* src, u32 len)
+static void Mem2hex(u8* dst, const u8* src, u32 len)
 {
   while (len-- > 0)
   {
@@ -324,25 +543,91 @@ static void WriteHostInfo()
           .c_str());
 }
 
+static void ProcessXFerCommand(const char* data, size_t paramsIndex)
+{
+  size_t offset = 0;
+  size_t length = 0;
+
+  while (s_cmd_bfr[paramsIndex] != ',')
+  {
+    offset <<= 4;
+    offset |= Hex2char(s_cmd_bfr[paramsIndex]);
+    paramsIndex++;
+  }
+
+  paramsIndex++;
+  while (paramsIndex < s_cmd_len)
+  {
+    length <<= 4;
+    length |= Hex2char(s_cmd_bfr[paramsIndex]);
+    paramsIndex++;
+  }
+  static u8 reply[GDB_BFR_MAX];
+  memset(reply, 0, GDB_BFR_MAX);
+  if (length + 1 > GDB_BFR_MAX)
+    length = GDB_BFR_MAX - 1;
+
+  if (strlen(data) < static_cast<size_t>(length) + offset)
+  {
+    length = strlen(data) - offset;
+    reply[0] = 'l';
+  }
+  else
+  {
+    reply[0] = 'm';
+  }
+  memcpy(&reply[1], &data[offset], length);
+  return SendReply(reinterpret_cast<const char*>(reply));
+}
+
+static bool IsQuery(const char* query)
+{
+  return !strncmp((const char*)(s_cmd_bfr), query, strlen(query));
+}
+
 static void HandleQuery()
 {
   DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString());
 
-  if (!strncmp((const char*)(s_cmd_bfr), "qAttached", strlen("qAttached")))
+  if (IsQuery("qAttached"))
+  {
     return SendReply("1");
-  if (!strcmp((const char*)(s_cmd_bfr), "qC"))
+  }
+  else if (IsQuery("qC"))
+  {
     return SendReply("QC1");
-  if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
+  }
+  else if (IsQuery("qfThreadInfo"))
+  {
     return SendReply("m1");
-  else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+  }
+  else if (IsQuery("qsThreadInfo"))
+  {
     return SendReply("l");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+  }
+  else if (IsQuery("qThreadExtraInfo"))
+  {
     return SendReply("00");
-  else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+  }
+  else if (IsQuery("qHostInfo"))
+  {
     return WriteHostInfo();
-  else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
-    return SendReply("swbreak+;hwbreak+");
-
+  }
+  else if (IsQuery("qSupported"))
+  {
+    return SendReply("swbreak+;hwbreak+;qXfer:features:read+;qXfer:memory-map:read+");
+  }
+  else if (IsQuery(QUERY_XFER_TARGET))
+  {
+    return ProcessXFerCommand(target_xml, strlen(QUERY_XFER_TARGET));
+  }
+  else if (IsQuery(QUERY_XFER_MEMORY_MAP))
+  {
+    const char* memoryMapXml = TARGET_MEMORY_MAP_XML_NO_MMU;
+    if (Config::Get(Config::MAIN_MMU))
+      memoryMapXml = TARGET_MEMORY_MAP_XML_WITH_MMU;
+    return ProcessXFerCommand(memoryMapXml, strlen(QUERY_XFER_MEMORY_MAP));
+  }
   SendReply("");
 }
 
@@ -572,6 +857,114 @@ static void ReadRegister()
     case 142:
       wbe32hex(reply, ppc_state.spr[SPR_THRM3]);
       break;
+    case 143:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT4U]);
+      break;
+    case 144:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT4L]);
+      break;
+    case 145:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT5U]);
+      break;
+    case 146:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT5L]);
+      break;
+    case 147:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT6U]);
+      break;
+    case 148:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT6L]);
+      break;
+    case 149:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT7U]);
+      break;
+    case 150:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT7L]);
+      break;
+    case 151:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT4U]);
+      break;
+    case 152:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT4L]);
+      break;
+    case 153:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT5U]);
+      break;
+    case 154:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT5L]);
+      break;
+    case 155:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT6U]);
+      break;
+    case 156:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT6L]);
+      break;
+    case 157:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT7U]);
+      break;
+    case 158:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DBAT7L]);
+      break;
+    case 159:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0]);
+      break;
+    case 160:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0 + 1]);
+      break;
+    case 161:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0 + 2]);
+      break;
+    case 162:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0 + 3]);
+      break;
+    case 163:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0 + 4]);
+      break;
+    case 164:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0 + 5]);
+      break;
+    case 165:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0 + 6]);
+      break;
+    case 166:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_GQR0 + 7]);
+      break;
+    case 167:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_HID2]);
+      break;
+    case 168:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_WPAR]);
+      break;
+    case 169:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DMAU]);
+      break;
+    case 170:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DMAL]);
+      break;
+    case 171:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_ECID_U]);
+      break;
+    case 172:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_ECID_M]);
+      break;
+    case 173:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_ECID_L]);
+      break;
+    case 174:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_USDA]);
+      break;
+    case 175:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SDA]);
+      break;
+    case 176:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_HID4]);
+      break;
+    case 177:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_TDCL]);
+      break;
+    case 178:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_TDCH]);
+      break;
     default:
       return SendReply("E01");
       break;
@@ -795,6 +1188,114 @@ static void WriteRegister()
       break;
     case 142:
       ppc_state.spr[SPR_THRM3] = re32hex(bufptr);
+      break;
+    case 143:
+      PowerPC::ppcState.spr[SPR_IBAT4U] = re32hex(bufptr);
+      break;
+    case 144:
+      PowerPC::ppcState.spr[SPR_IBAT4L] = re32hex(bufptr);
+      break;
+    case 145:
+      PowerPC::ppcState.spr[SPR_IBAT5U] = re32hex(bufptr);
+      break;
+    case 146:
+      PowerPC::ppcState.spr[SPR_IBAT5L] = re32hex(bufptr);
+      break;
+    case 147:
+      PowerPC::ppcState.spr[SPR_IBAT6U] = re32hex(bufptr);
+      break;
+    case 148:
+      PowerPC::ppcState.spr[SPR_IBAT6L] = re32hex(bufptr);
+      break;
+    case 149:
+      PowerPC::ppcState.spr[SPR_IBAT7U] = re32hex(bufptr);
+      break;
+    case 150:
+      PowerPC::ppcState.spr[SPR_IBAT7L] = re32hex(bufptr);
+      break;
+    case 151:
+      PowerPC::ppcState.spr[SPR_DBAT4U] = re32hex(bufptr);
+      break;
+    case 152:
+      PowerPC::ppcState.spr[SPR_DBAT4L] = re32hex(bufptr);
+      break;
+    case 153:
+      PowerPC::ppcState.spr[SPR_DBAT5U] = re32hex(bufptr);
+      break;
+    case 154:
+      PowerPC::ppcState.spr[SPR_DBAT5L] = re32hex(bufptr);
+      break;
+    case 155:
+      PowerPC::ppcState.spr[SPR_DBAT6U] = re32hex(bufptr);
+      break;
+    case 156:
+      PowerPC::ppcState.spr[SPR_DBAT6L] = re32hex(bufptr);
+      break;
+    case 157:
+      PowerPC::ppcState.spr[SPR_DBAT7U] = re32hex(bufptr);
+      break;
+    case 158:
+      PowerPC::ppcState.spr[SPR_DBAT7L] = re32hex(bufptr);
+      break;
+    case 159:
+      PowerPC::ppcState.spr[SPR_GQR0] = re32hex(bufptr);
+      break;
+    case 160:
+      PowerPC::ppcState.spr[SPR_GQR0 + 1] = re32hex(bufptr);
+      break;
+    case 161:
+      PowerPC::ppcState.spr[SPR_GQR0 + 2] = re32hex(bufptr);
+      break;
+    case 162:
+      PowerPC::ppcState.spr[SPR_GQR0 + 3] = re32hex(bufptr);
+      break;
+    case 163:
+      PowerPC::ppcState.spr[SPR_GQR0 + 4] = re32hex(bufptr);
+      break;
+    case 164:
+      PowerPC::ppcState.spr[SPR_GQR0 + 5] = re32hex(bufptr);
+      break;
+    case 165:
+      PowerPC::ppcState.spr[SPR_GQR0 + 6] = re32hex(bufptr);
+      break;
+    case 166:
+      PowerPC::ppcState.spr[SPR_GQR0 + 7] = re32hex(bufptr);
+      break;
+    case 167:
+      PowerPC::ppcState.spr[SPR_HID2] = re32hex(bufptr);
+      break;
+    case 168:
+      PowerPC::ppcState.spr[SPR_WPAR] = re32hex(bufptr);
+      break;
+    case 169:
+      PowerPC::ppcState.spr[SPR_DMAU] = re32hex(bufptr);
+      break;
+    case 170:
+      PowerPC::ppcState.spr[SPR_DMAL] = re32hex(bufptr);
+      break;
+    case 171:
+      PowerPC::ppcState.spr[SPR_ECID_U] = re32hex(bufptr);
+      break;
+    case 172:
+      PowerPC::ppcState.spr[SPR_ECID_M] = re32hex(bufptr);
+      break;
+    case 173:
+      PowerPC::ppcState.spr[SPR_ECID_L] = re32hex(bufptr);
+      break;
+    case 174:
+      PowerPC::ppcState.spr[SPR_USDA] = re32hex(bufptr);
+      break;
+    case 175:
+      PowerPC::ppcState.spr[SPR_SDA] = re32hex(bufptr);
+      break;
+    case 176:
+      PowerPC::ppcState.spr[SPR_HID4] = re32hex(bufptr);
+      break;
+    case 177:
+      PowerPC::ppcState.spr[SPR_TDCL] = re32hex(bufptr);
+      break;
+    case 178:
+      PowerPC::ppcState.spr[SPR_TDCH] = re32hex(bufptr);
       break;
     default:
       return SendReply("E01");
