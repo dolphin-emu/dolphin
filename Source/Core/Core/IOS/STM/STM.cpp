@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
@@ -14,8 +15,6 @@
 
 namespace IOS::HLE
 {
-static std::unique_ptr<IOCtlRequest> s_event_hook_request;
-
 std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
 {
   auto& system = GetSystem();
@@ -31,15 +30,25 @@ std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_STM_RELEASE_EH:
-    if (!s_event_hook_request)
+  {
+    auto eventhook_device = std::static_pointer_cast<STMEventHookDevice>(
+        system.GetIOS()->GetDeviceByName("/dev/stm/eventhook"));
+    if (!eventhook_device || eventhook_device->m_event_hook_request.has_value())
     {
       return_value = IPC_ENOENT;
+      // Note: https://wiibrew.org/wiki/STM_Release_Exploit would instead continue execution,
+      // treating event_hook_request as if it were at physical address 0 (virtual 0x80000000
+      // usually), so it would use the contents of physical address 0x18 (virtual 0x80000018)
+      // as a location to write a zero to. We don't emulate this currently as without IOS LLE,
+      // there isn't much point in handling this.
       break;
     }
-    memory.Write_U32(0, s_event_hook_request->buffer_out);
-    GetEmulationKernel().EnqueueIPCReply(*s_event_hook_request, IPC_SUCCESS);
-    s_event_hook_request.reset();
+    IOCtlRequest event_hook_request{GetSystem(), eventhook_device->m_event_hook_request.value()};
+    memory.Write_U32(0, event_hook_request.buffer_out);
+    GetEmulationKernel().EnqueueIPCReply(event_hook_request, IPC_SUCCESS);
+    eventhook_device->m_event_hook_request.reset();
     break;
+  }
 
   case IOCTL_STM_HOTRESET:
     INFO_LOG_FMT(IOS_STM, "{} - IOCtl:", GetDeviceName());
@@ -78,64 +87,51 @@ std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
   return IPCReply(return_value);
 }
 
-STMEventHookDevice::~STMEventHookDevice()
-{
-  s_event_hook_request.reset();
-}
-
 std::optional<IPCReply> STMEventHookDevice::IOCtl(const IOCtlRequest& request)
 {
   if (request.request != IOCTL_STM_EVENTHOOK)
     return IPCReply(IPC_UNKNOWN);
 
-  if (s_event_hook_request)
+  if (m_event_hook_request.has_value())
     return IPCReply(IPC_EEXIST);
 
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button is pressed.
-  s_event_hook_request = std::make_unique<IOCtlRequest>(GetSystem(), request.address);
+  m_event_hook_request = request.address;
   return std::nullopt;
 }
 
 void STMEventHookDevice::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  u32 address = s_event_hook_request ? s_event_hook_request->address : 0;
-  p.Do(address);
-  if (address != 0)
-  {
-    s_event_hook_request = std::make_unique<IOCtlRequest>(GetSystem(), address);
-  }
-  else
-  {
-    s_event_hook_request.reset();
-  }
+  p.Do(m_event_hook_request);
 }
 
 bool STMEventHookDevice::HasHookInstalled() const
 {
-  return s_event_hook_request != nullptr;
+  return m_event_hook_request.has_value();
 }
 
-void STMEventHookDevice::TriggerEvent(const u32 event) const
+void STMEventHookDevice::TriggerEvent(const u32 event)
 {
   // If the device isn't open, ignore the button press.
-  if (!m_is_active || !s_event_hook_request)
+  if (!m_is_active || !m_event_hook_request.has_value())
     return;
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
-  memory.Write_U32(event, s_event_hook_request->buffer_out);
-  GetEmulationKernel().EnqueueIPCReply(*s_event_hook_request, IPC_SUCCESS);
-  s_event_hook_request.reset();
+  IOCtlRequest event_hook_request{GetSystem(), m_event_hook_request.value()};
+  memory.Write_U32(event, event_hook_request.buffer_out);
+  GetEmulationKernel().EnqueueIPCReply(event_hook_request, IPC_SUCCESS);
+  m_event_hook_request.reset();
 }
 
-void STMEventHookDevice::ResetButton() const
+void STMEventHookDevice::ResetButton()
 {
   // The reset button triggers STM_EVENT_RESET.
   TriggerEvent(STM_EVENT_RESET);
 }
 
-void STMEventHookDevice::PowerButton() const
+void STMEventHookDevice::PowerButton()
 {
   TriggerEvent(STM_EVENT_POWER);
 }
