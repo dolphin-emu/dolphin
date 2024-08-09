@@ -55,7 +55,7 @@ public:
   u32 AddressForRow(int row) const;
 
 signals:
-  void RequestPPCComparison(u32 addr);
+  void RequestPPCComparison(u32 address, bool effective);
   void ShowMemory(u32 address);
   void BreakpointsChanged();
   void UpdateCodeWidget();

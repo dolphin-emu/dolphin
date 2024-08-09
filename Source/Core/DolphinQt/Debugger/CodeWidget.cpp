@@ -212,6 +212,11 @@ void CodeWidget::OnBranchWatchDialog()
   m_branch_watch_dialog->activateWindow();
 }
 
+void CodeWidget::OnSetCodeAddress(u32 address)
+{
+  SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
+}
+
 void CodeWidget::OnPPCSymbolsChanged()
 {
   UpdateSymbols();

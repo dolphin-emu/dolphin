@@ -87,6 +87,7 @@
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 #include "DolphinQt/Debugger/CodeWidget.h"
 #include "DolphinQt/Debugger/JITWidget.h"
+#include "DolphinQt/Debugger/JitBlockTableModel.h"
 #include "DolphinQt/Debugger/MemoryWidget.h"
 #include "DolphinQt/Debugger/NetworkWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
@@ -443,6 +444,18 @@ static void InstallHotkeyFilter(QWidget* dialog)
                   [] { HotkeyManagerEmu::Enable(false); });
 }
 
+void JITWidget::ConnectDebugInterfaceToTableModel(BreakpointWidget* breakpoint_widget,
+                                                  CodeWidget* code_widget,
+                                                  MemoryWidget* memory_widget)
+{
+  connect(breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_table_model,
+          &JitBlockTableModel::OnBreakpointsChanged);
+  connect(code_widget, &CodeWidget::BreakpointsChanged, m_table_model,
+          &JitBlockTableModel::OnBreakpointsChanged);
+  connect(memory_widget, &MemoryWidget::BreakpointsChanged, m_table_model,
+          &JitBlockTableModel::OnBreakpointsChanged);
+}
+
 void MainWindow::CreateComponents()
 {
   m_menu_bar = new MenuBar(this);
@@ -459,7 +472,7 @@ void MainWindow::CreateComponents()
     m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
 
-  m_jit_widget = new JITWidget(this);
+  m_jit_widget = new JITWidget(Core::System::GetInstance(), this);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_memory_widget = new MemoryWidget(Core::System::GetInstance(), this);
@@ -484,6 +497,7 @@ void MainWindow::CreateComponents()
     m_code_widget->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   };
 
+  connect(m_jit_widget, &JITWidget::SetCodeAddress, m_code_widget, &CodeWidget::OnSetCodeAddress);
   connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
   connect(m_watch_widget, &WatchWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
   connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
@@ -498,10 +512,15 @@ void MainWindow::CreateComponents()
 
   connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
-  connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget, &JITWidget::Compare);
+  connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget,
+          &JITWidget::OnRequestPPCComparison);
+  connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_jit_widget,
+          &JITWidget::OnBreakpointsChanged);
   connect(m_code_widget, &CodeWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
+  connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_jit_widget,
+          &JITWidget::OnBreakpointsChanged);
   connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](u32 address) {
     m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
@@ -511,6 +530,8 @@ void MainWindow::CreateComponents()
           &CodeWidget::Update);
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
           &MemoryWidget::Update);
+  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_jit_widget,
+          &JITWidget::OnBreakpointsChanged);
   connect(m_breakpoint_widget, &BreakpointWidget::ShowCode, [this](u32 address) {
     if (Core::GetState(Core::System::GetInstance()) == Core::State::Paused)
       m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
@@ -519,6 +540,9 @@ void MainWindow::CreateComponents()
           &MemoryWidget::SetAddress);
   connect(m_cheats_manager, &CheatsManager::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
   connect(m_cheats_manager, &CheatsManager::RequestWatch, request_watch);
+
+  m_jit_widget->ConnectDebugInterfaceToTableModel(m_breakpoint_widget, m_code_widget,
+                                                  m_memory_widget);
 }
 
 void MainWindow::ConnectMenuBar()

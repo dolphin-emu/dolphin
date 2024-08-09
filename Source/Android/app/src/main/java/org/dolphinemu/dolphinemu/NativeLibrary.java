@@ -386,6 +386,11 @@ public final class NativeLibrary
   public static native boolean IsRunningAndUnpaused();
 
   /**
+   * Re-initialize software JitBlock profiling data
+   */
+  public static native void WipeJitBlockProfilingData();
+
+  /**
    * Writes out the JitBlock Cache log dump
    */
   public static native void WriteJitBlockLogDump();

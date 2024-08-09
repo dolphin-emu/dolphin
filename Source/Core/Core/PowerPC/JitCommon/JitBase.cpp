@@ -18,6 +18,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
+#include "Core/Host.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -108,6 +109,11 @@ JitBase::JitBase(Core::System& system)
 JitBase::~JitBase()
 {
   CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+}
+
+void JitBase::ClearCache()
+{
+  Host_JitCacheCleared();
 }
 
 bool JitBase::DoesConfigNeedRefresh()
