@@ -42,5 +42,6 @@ void UpdateDiscordPresence(int party_size = 0, SecretType type = SecretType::Emp
                            const bool reset_timer = false);
 std::string CreateSecretFromIPAddress(const std::string& ip_address, int port);
 void Shutdown();
-void SetDiscordPresenceEnabled(bool enabled);
+void EnableDiscordPresence();
+void DisableDiscordPresence();
 }  // namespace Discord

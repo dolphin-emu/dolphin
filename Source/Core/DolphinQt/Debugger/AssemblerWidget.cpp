@@ -285,7 +285,7 @@ AssemblerWidget::AssemblerWidget(QWidget* parent)
 
 void AssemblerWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetAssemblerVisible(false);
+  Settings::Instance().HideAssembler();
 }
 
 bool AssemblerWidget::ApplicationCloseRequest()

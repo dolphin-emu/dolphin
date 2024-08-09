@@ -177,9 +177,14 @@ void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_point
   }
 }
 
-void CameraLogic::SetEnabled(const bool is_enabled)
+void CameraLogic::Enable()
 {
-  m_is_enabled = is_enabled;
+  m_is_enabled = true;
+}
+
+void CameraLogic::Disable()
+{
+  m_is_enabled = false;
 }
 
 }  // namespace WiimoteEmu

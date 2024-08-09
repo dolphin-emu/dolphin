@@ -63,7 +63,8 @@ public:
   void OnPlayerConnect(const std::string& player) override;
   void OnPlayerDisconnect(const std::string& player) override;
   void OnPadBufferChanged(u32 buffer) override;
-  void OnHostInputAuthorityChanged(bool enabled) override;
+  void EnableOnHostInputAuthority() override;
+  void DisableHostInputAuthority() override;
   void OnDesync(u32 frame, const std::string& player) override;
   void OnConnectionLost() override;
   void OnConnectionError(const std::string& message) override;
@@ -114,7 +115,8 @@ private:
   void UpdateDiscordPresence();
   void UpdateGUI();
   void GameStatusChanged(bool running);
-  void SetOptionsEnabled(bool enabled) const;
+  void EnableOptions() const;
+  void DisableOptions() const;
 
   void SendMessage(const std::string& message) const;
 

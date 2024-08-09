@@ -29,7 +29,8 @@ public:
   void Reset();
   void DoState(PointerWrap& p);
 
-  void SetSpeakerEnabled(bool enabled);
+  void EnableSpeaker();
+  void DisableSpeaker();
 
 private:
   // Pan is -1.0 to +1.0

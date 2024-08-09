@@ -754,7 +754,9 @@ void NetPlayClient::OnPadBuffer(sf::Packet& packet)
 void NetPlayClient::OnHostInputAuthority(sf::Packet& packet)
 {
   packet >> m_host_input_authority;
-  m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
+  m_host_input_authority ?
+    m_dialog->EnableOnHostInputAuthority() :
+    m_dialog->DisableHostInputAuthority();
 }
 
 void NetPlayClient::OnGolfSwitch(sf::Packet& packet)

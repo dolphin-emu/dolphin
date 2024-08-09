@@ -42,7 +42,8 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
 
   connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, this, &ToolBar::setVisible);
-  connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::SetToolBarVisible);
+  connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::ShowToolBar);
+  connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::HideToolBar);
 
   connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
           [this](const bool locked) { setMovable(!locked); });
@@ -76,7 +77,7 @@ void ToolBar::OnEmulationStateChanged(const Core::State state)
 
 void ToolBar::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetToolBarVisible(false);
+  Settings::Instance().HideToolBar();
 }
 
 void ToolBar::OnDebugModeToggled(const bool enabled) const

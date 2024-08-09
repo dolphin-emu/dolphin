@@ -336,7 +336,7 @@ void MemoryWidget::ConnectWidgets()
 
 void MemoryWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetMemoryVisible(false);
+  Settings::Instance().HideMemory();
 }
 
 void MemoryWidget::showEvent(QShowEvent* event)
@@ -456,7 +456,9 @@ void MemoryWidget::OnDisplayChanged() const
 
 void MemoryWidget::OnBPLogChanged() const
 {
-  m_memory_view->SetBPLoggingEnabled(m_bp_log_check->isChecked());
+  m_bp_log_check->isChecked() ?
+    m_memory_view->EnableBPLogging() :
+    m_memory_view->DisableBPLogging();
   SaveSettings();
 }
 
@@ -506,7 +508,7 @@ void MemoryWidget::SetAddress(const u32 address)
   m_search_address->setCurrentText(target_addr);
 
   m_memory_view->SetAddress(address);
-  Settings::Instance().SetMemoryVisible(true);
+  Settings::Instance().ShowMemory();
   raise();
 
   m_memory_view->setFocus();

@@ -209,11 +209,11 @@ void LogConfigWidget::SaveSettings() const
     const bool was_enabled = log_manager->IsEnabled(type);
 
     if (enabled != was_enabled)
-      log_manager->SetEnable(type, enabled);
+      enabled ? log_manager->Enable(type) : log_manager->Disable(type);
   }
 }
 
 void LogConfigWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetLogConfigVisible(false);
+  Settings::Instance().HideLogConfig();
 }

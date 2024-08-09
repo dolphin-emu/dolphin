@@ -136,7 +136,8 @@ public:
   static std::array<CameraPoint, NUM_POINTS> GetCameraPoints(const Common::Matrix44& transform,
                                                              Common::Vec2 field_of_view);
   void Update(const std::array<CameraPoint, NUM_POINTS>& camera_points);
-  void SetEnabled(bool is_enabled);
+  void Enable();
+  void Disable();
 
   static constexpr u8 I2C_ADDR = 0x58;
   static constexpr int CAMERA_DATA_BYTES = 36;

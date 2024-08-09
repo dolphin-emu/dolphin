@@ -851,7 +851,9 @@ void Wiimote::SetRumble(const bool on) const
 
 void Wiimote::RefreshConfig()
 {
-  m_speaker_logic.SetSpeakerEnabled(Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
+  Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER) ?
+    m_speaker_logic.EnableSpeaker() :
+    m_speaker_logic.DisableSpeaker();
 }
 
 void Wiimote::StepDynamics()

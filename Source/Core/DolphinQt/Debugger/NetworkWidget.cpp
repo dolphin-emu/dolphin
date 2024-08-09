@@ -182,7 +182,7 @@ NetworkWidget::~NetworkWidget()
 
 void NetworkWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetNetworkVisible(false);
+  Settings::Instance().HideNetwork();
 }
 
 void NetworkWidget::showEvent(QShowEvent* event)

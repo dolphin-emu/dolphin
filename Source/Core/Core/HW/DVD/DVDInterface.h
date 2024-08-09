@@ -174,6 +174,8 @@ public:
 
   // Used by IOS HLE
   void SetInterruptEnabled(DIInterruptType interrupt, bool enabled);
+  void EnableInterrupt(const DIInterruptType interrupt);
+  void DisableInterrupt(const DIInterruptType interrupt);
   void ClearInterrupt(DIInterruptType interrupt);
 
 private:

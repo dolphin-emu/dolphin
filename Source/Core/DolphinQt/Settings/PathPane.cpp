@@ -159,7 +159,9 @@ QGroupBox* PathPane::MakeGameFolderBox()
   });
 
   connect(auto_checkbox, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetAutoRefreshEnabled);
+          &Settings::EnableAutoRefresh);
+  connect(auto_checkbox, &QCheckBox::toggled, &Settings::Instance(),
+        &Settings::DisableAutoRefresh);
 
   connect(add, &QPushButton::clicked, this, &PathPane::Browse);
   connect(m_remove_path, &QPushButton::clicked, this, &PathPane::RemovePath);

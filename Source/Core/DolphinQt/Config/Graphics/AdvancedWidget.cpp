@@ -237,7 +237,9 @@ void AdvancedWidget::SaveSettings() const
   SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
   m_dump_mip_textures->setEnabled(Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Get(Config::GFX_DUMP_TEXTURES));
-  Settings::Instance().SetGraphicModsEnabled(m_enable_graphics_mods->isChecked());
+  m_enable_graphics_mods->isChecked() ?
+    Settings::Instance().EnableGraphicMods() :
+    Settings::Instance().DisableGraphicMods();
 }
 
 void AdvancedWidget::OnBackendChanged() const

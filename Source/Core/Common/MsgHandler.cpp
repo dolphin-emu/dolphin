@@ -90,10 +90,14 @@ void RegisterStringTranslator(const StringTranslator translator)
   s_str_translator = translator;
 }
 
-// enable/disable the alert handler
-void SetEnableAlert(const bool enable)
+void EnableAlert()
 {
-  s_alert_enabled = enable;
+  s_alert_enabled = true;
+}
+
+void DisableAlert()
+{
+  s_alert_enabled = false;
 }
 
 void SetAbortOnPanicAlert(const bool should_abort)

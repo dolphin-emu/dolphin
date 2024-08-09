@@ -64,7 +64,8 @@ public:
   virtual void OnPlayerConnect(const std::string& player) = 0;
   virtual void OnPlayerDisconnect(const std::string& player) = 0;
   virtual void OnPadBufferChanged(u32 buffer) = 0;
-  virtual void OnHostInputAuthorityChanged(bool enabled) = 0;
+  virtual void EnableOnHostInputAuthority() = 0;
+  virtual void DisableHostInputAuthority() = 0;
   virtual void OnDesync(u32 frame, const std::string& player) = 0;
   virtual void OnConnectionLost() = 0;
   virtual void OnConnectionError(const std::string& message) = 0;

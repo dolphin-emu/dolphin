@@ -117,7 +117,7 @@ static void InitCustomPaths()
 
 static void RefreshConfig()
 {
-  Common::SetEnableAlert(Get(Config::MAIN_USE_PANIC_HANDLERS));
+  Get(Config::MAIN_USE_PANIC_HANDLERS) ? Common::EnableAlert() : Common::DisableAlert();
   Common::SetAbortOnPanicAlert(Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
 }
 

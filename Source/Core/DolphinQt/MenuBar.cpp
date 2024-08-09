@@ -427,20 +427,24 @@ void MenuBar::AddViewMenu()
   show_log->setCheckable(true);
   show_log->setChecked(Settings::Instance().IsLogVisible());
 
-  connect(show_log, &QAction::toggled, &Settings::Instance(), &Settings::SetLogVisible);
+  connect(show_log, &QAction::toggled, &Settings::Instance(), &Settings::ShowLog);
+  connect(show_log, &QAction::toggled, &Settings::Instance(), &Settings::HideLog);
 
   QAction* show_log_config = view_menu->addAction(tr("Show Log &Configuration"));
   show_log_config->setCheckable(true);
   show_log_config->setChecked(Settings::Instance().IsLogConfigVisible());
 
   connect(show_log_config, &QAction::toggled, &Settings::Instance(),
-          &Settings::SetLogConfigVisible);
+          &Settings::ShowLogConfig);
+  connect(show_log_config, &QAction::toggled, &Settings::Instance(),
+          &Settings::HideLogConfig);
 
   QAction* show_toolbar = view_menu->addAction(tr("Show &Toolbar"));
   show_toolbar->setCheckable(true);
   show_toolbar->setChecked(Settings::Instance().IsToolBarVisible());
 
-  connect(show_toolbar, &QAction::toggled, &Settings::Instance(), &Settings::SetToolBarVisible);
+  connect(show_toolbar, &QAction::toggled, &Settings::Instance(), &Settings::ShowToolBar);
+  connect(show_toolbar, &QAction::toggled, &Settings::Instance(), &Settings::HideToolBar);
 
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
@@ -452,7 +456,8 @@ void MenuBar::AddViewMenu()
   lock_widgets->setCheckable(true);
   lock_widgets->setChecked(Settings::Instance().AreWidgetsLocked());
 
-  connect(lock_widgets, &QAction::toggled, &Settings::Instance(), &Settings::SetWidgetsLocked);
+  connect(lock_widgets, &QAction::toggled, &Settings::Instance(), &Settings::LockWidgets);
+  connect(lock_widgets, &QAction::toggled, &Settings::Instance(), &Settings::UnlockWidgets);
 
   view_menu->addSeparator();
 
@@ -460,7 +465,8 @@ void MenuBar::AddViewMenu()
   m_show_code->setCheckable(true);
   m_show_code->setChecked(Settings::Instance().IsCodeVisible());
 
-  connect(m_show_code, &QAction::toggled, &Settings::Instance(), &Settings::SetCodeVisible);
+  connect(m_show_code, &QAction::toggled, &Settings::Instance(), &Settings::ShowCode);
+  connect(m_show_code, &QAction::toggled, &Settings::Instance(), &Settings::HideCode);
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged, m_show_code,
           &QAction::setChecked);
 
@@ -469,7 +475,9 @@ void MenuBar::AddViewMenu()
   m_show_registers->setChecked(Settings::Instance().IsRegistersVisible());
 
   connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
-          &Settings::SetRegistersVisible);
+          &Settings::ShowRegisters);
+  connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
+          &Settings::HideRegisters);
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
           &QAction::setChecked);
 
@@ -477,7 +485,8 @@ void MenuBar::AddViewMenu()
   m_show_threads->setCheckable(true);
   m_show_threads->setChecked(Settings::Instance().IsThreadsVisible());
 
-  connect(m_show_threads, &QAction::toggled, &Settings::Instance(), &Settings::SetThreadsVisible);
+  connect(m_show_threads, &QAction::toggled, &Settings::Instance(), &Settings::ShowThreads);
+  connect(m_show_threads, &QAction::toggled, &Settings::Instance(), &Settings::HideThreads);
   connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, m_show_threads,
           &QAction::setChecked);
 
@@ -487,7 +496,8 @@ void MenuBar::AddViewMenu()
   m_show_watch->setCheckable(true);
   m_show_watch->setChecked(Settings::Instance().IsWatchVisible());
 
-  connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::SetWatchVisible);
+  connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::ShowWatch);
+  connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::HideWatch);
   connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, m_show_watch,
           &QAction::setChecked);
 
@@ -496,7 +506,9 @@ void MenuBar::AddViewMenu()
   m_show_breakpoints->setChecked(Settings::Instance().IsBreakpointsVisible());
 
   connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
-          &Settings::SetBreakpointsVisible);
+          &Settings::ShowBreakpoints);
+  connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
+        &Settings::HideBreakpoints);
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
           &QAction::setChecked);
 
@@ -504,7 +516,8 @@ void MenuBar::AddViewMenu()
   m_show_memory->setCheckable(true);
   m_show_memory->setChecked(Settings::Instance().IsMemoryVisible());
 
-  connect(m_show_memory, &QAction::toggled, &Settings::Instance(), &Settings::SetMemoryVisible);
+  connect(m_show_memory, &QAction::toggled, &Settings::Instance(), &Settings::ShowMemory);
+  connect(m_show_memory, &QAction::toggled, &Settings::Instance(), &Settings::HideMemory);
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
           &QAction::setChecked);
 
@@ -512,21 +525,25 @@ void MenuBar::AddViewMenu()
   m_show_network->setCheckable(true);
   m_show_network->setChecked(Settings::Instance().IsNetworkVisible());
 
-  connect(m_show_network, &QAction::toggled, &Settings::Instance(), &Settings::SetNetworkVisible);
+  connect(m_show_network, &QAction::toggled, &Settings::Instance(), &Settings::ShowNetwork);
+  connect(m_show_network, &QAction::toggled, &Settings::Instance(), &Settings::HideNetwork);
   connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, m_show_network,
           &QAction::setChecked);
 
   m_show_jit = view_menu->addAction(tr("&JIT"));
   m_show_jit->setCheckable(true);
   m_show_jit->setChecked(Settings::Instance().IsJITVisible());
-  connect(m_show_jit, &QAction::toggled, &Settings::Instance(), &Settings::SetJITVisible);
+  connect(m_show_jit, &QAction::toggled, &Settings::Instance(), &Settings::ShowJIT);
+  connect(m_show_jit, &QAction::toggled, &Settings::Instance(), &Settings::HideJIT);
   connect(&Settings::Instance(), &Settings::JITVisibilityChanged, m_show_jit, &QAction::setChecked);
 
   m_show_assembler = view_menu->addAction(tr("&Assembler"));
   m_show_assembler->setCheckable(true);
   m_show_assembler->setChecked(Settings::Instance().IsAssemblerVisible());
   connect(m_show_assembler, &QAction::toggled, &Settings::Instance(),
-          &Settings::SetAssemblerVisible);
+        &Settings::ShowAssembler);
+  connect(m_show_assembler, &QAction::toggled, &Settings::Instance(),
+        &Settings::HideAssembler);
   connect(&Settings::Instance(), &Settings::AssemblerVisibilityChanged, m_show_assembler,
           &QAction::setChecked);
 

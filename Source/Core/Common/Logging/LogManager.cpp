@@ -241,9 +241,14 @@ void LogManager::SetLogLevel(const LogLevel level)
   m_level = std::clamp(level, LogLevel::LNOTICE, MAX_LOGLEVEL);
 }
 
-void LogManager::SetEnable(const LogType type, const bool enable)
+void LogManager::Enable(const LogType type)
 {
-  m_log[type].m_enable = enable;
+  m_log[type].m_enable = true;
+}
+
+void LogManager::Disable(const LogType type)
+{
+  m_log[type].m_enable = false;
 }
 
 bool LogManager::IsEnabled(const LogType type, const LogLevel level) const

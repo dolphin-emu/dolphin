@@ -246,7 +246,7 @@ void WatchWidget::SetEmptyRow(const int row) const
 
 void WatchWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetWatchVisible(false);
+  Settings::Instance().HideWatch();
 }
 
 void WatchWidget::showEvent(QShowEvent* event)

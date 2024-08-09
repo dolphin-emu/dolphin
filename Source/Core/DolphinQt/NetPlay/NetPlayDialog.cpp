@@ -487,7 +487,7 @@ void NetPlayDialog::OnStart()
   }
 
   if (Settings::Instance().GetNetPlayServer()->RequestStartGame())
-    SetOptionsEnabled(false);
+    DisableOptions();
 }
 
 void NetPlayDialog::reject()
@@ -542,7 +542,7 @@ void NetPlayDialog::show(const std::string& nickname, const bool use_traversal)
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
 
-  SetOptionsEnabled(true);
+  EnableOptions();
 
   QDialog::show();
   UpdateGUI();
@@ -840,28 +840,49 @@ void NetPlayDialog::OnMsgChangeGBARom(const int pad, const NetPlay::GBAConfig& c
 
 void NetPlayDialog::GameStatusChanged(bool running)
 {
-  QueueOnObject(this, [this, running] { SetOptionsEnabled(!running); });
+  QueueOnObject(this, [this, running] { running ? DisableOptions() : EnableOptions(); });
 }
 
-void NetPlayDialog::SetOptionsEnabled(const bool enabled) const
+void NetPlayDialog::EnableOptions() const
 {
   if (Settings::Instance().GetNetPlayServer())
   {
-    m_start_button->setEnabled(enabled);
-    m_game_button->setEnabled(enabled);
-    m_savedata_none_action->setEnabled(enabled);
-    m_savedata_load_only_action->setEnabled(enabled);
-    m_savedata_load_and_write_action->setEnabled(enabled);
-    m_savedata_all_wii_saves_action->setEnabled(enabled);
-    m_sync_codes_action->setEnabled(enabled);
-    m_assign_ports_button->setEnabled(enabled);
-    m_strict_settings_sync_action->setEnabled(enabled);
-    m_host_input_authority_action->setEnabled(enabled);
-    m_golf_mode_action->setEnabled(enabled);
-    m_fixed_delay_action->setEnabled(enabled);
+    m_start_button->setEnabled(true);
+    m_game_button->setEnabled(true);
+    m_savedata_none_action->setEnabled(true);
+    m_savedata_load_only_action->setEnabled(true);
+    m_savedata_load_and_write_action->setEnabled(true);
+    m_savedata_all_wii_saves_action->setEnabled(true);
+    m_sync_codes_action->setEnabled(true);
+    m_assign_ports_button->setEnabled(true);
+    m_strict_settings_sync_action->setEnabled(true);
+    m_host_input_authority_action->setEnabled(true);
+    m_golf_mode_action->setEnabled(true);
+    m_fixed_delay_action->setEnabled(true);
   }
 
-  m_record_input_action->setEnabled(enabled);
+  m_record_input_action->setEnabled(true);
+}
+
+void NetPlayDialog::DisableOptions() const
+{
+  if (Settings::Instance().GetNetPlayServer())
+  {
+    m_start_button->setEnabled(false);
+    m_game_button->setEnabled(false);
+    m_savedata_none_action->setEnabled(false);
+    m_savedata_load_only_action->setEnabled(false);
+    m_savedata_load_and_write_action->setEnabled(false);
+    m_savedata_all_wii_saves_action->setEnabled(false);
+    m_sync_codes_action->setEnabled(false);
+    m_assign_ports_button->setEnabled(false);
+    m_strict_settings_sync_action->setEnabled(false);
+    m_host_input_authority_action->setEnabled(false);
+    m_golf_mode_action->setEnabled(false);
+    m_fixed_delay_action->setEnabled(false);
+  }
+
+  m_record_input_action->setEnabled(false);
 }
 
 void NetPlayDialog::OnMsgStartGame()
@@ -927,20 +948,43 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
   m_buffer_size = static_cast<int>(buffer);
 }
 
-void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
+void NetPlayDialog::EnableOnHostInputAuthority()
 {
-  m_host_input_authority = enabled;
-  DisplayMessage(enabled ? tr("Host input authority enabled") : tr("Host input authority disabled"),
-                 "");
+  m_host_input_authority = true;
+  DisplayMessage(tr("Host input authority enabled"), "");
 
-  QueueOnObject(this, [this, enabled] {
-    const bool is_hosting = IsHosting();
-    const bool enable_buffer = is_hosting != enabled;
-
-    if (is_hosting)
+  QueueOnObject(this, [this] {
+    if (IsHosting())
     {
-      m_buffer_size_box->setEnabled(enable_buffer);
-      m_buffer_label->setEnabled(enable_buffer);
+      m_buffer_size_box->setEnabled(false);
+      m_buffer_label->setEnabled(false);
+      m_buffer_size_box->setHidden(true);
+      m_buffer_label->setHidden(true);
+    }
+    else
+    {
+      m_buffer_size_box->setEnabled(true);
+      m_buffer_label->setEnabled(true);
+      m_buffer_size_box->setHidden(false);
+      m_buffer_label->setHidden(false);
+    }
+
+    m_buffer_label->setText(tr("Max Buffer:"));
+    const QSignalBlocker blocker(m_buffer_size_box);
+    m_buffer_size_box->setValue(Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
+  });
+}
+
+void NetPlayDialog::DisableHostInputAuthority()
+{
+  m_host_input_authority = false;
+  DisplayMessage(tr("Host input authority disabled"), "");
+
+  QueueOnObject(this, [this] {
+    if (IsHosting())
+    {
+      m_buffer_size_box->setEnabled(true);
+      m_buffer_label->setEnabled(true);
       m_buffer_size_box->setHidden(false);
       m_buffer_label->setHidden(false);
     }
@@ -948,16 +992,11 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
     {
       m_buffer_size_box->setEnabled(true);
       m_buffer_label->setEnabled(true);
-      m_buffer_size_box->setHidden(!enable_buffer);
-      m_buffer_label->setHidden(!enable_buffer);
+      m_buffer_size_box->setHidden(true);
+      m_buffer_label->setHidden(true);
     }
 
-    m_buffer_label->setText(enabled ? tr("Max Buffer:") : tr("Buffer:"));
-    if (enabled)
-    {
-      const QSignalBlocker blocker(m_buffer_size_box);
-      m_buffer_size_box->setValue(Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
-    }
+    m_buffer_label->setText(tr("Buffer:"));
   });
 }
 
@@ -1019,7 +1058,7 @@ void NetPlayDialog::OnTraversalStateChanged(const Common::TraversalClient::State
 
 void NetPlayDialog::OnGameStartAborted()
 {
-  QueueOnObject(this, [this] { SetOptionsEnabled(true); });
+  QueueOnObject(this, [this] { EnableOptions(); });
 }
 
 void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& golfer_name)

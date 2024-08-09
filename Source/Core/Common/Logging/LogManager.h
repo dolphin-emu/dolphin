@@ -44,7 +44,8 @@ public:
   LogLevel GetLogLevel() const;
   void SetLogLevel(LogLevel level);
 
-  void SetEnable(LogType type, bool enable);
+  void Enable(const LogType type);
+  void Disable(const LogType type);
   bool IsEnabled(LogType type, LogLevel level = LogLevel::LNOTICE) const;
 
   std::map<std::string, std::string> GetLogTypes();

@@ -83,12 +83,16 @@ public:
                               const QPalette& high_contrast_palette);
 
   static bool IsLogVisible();
-  void SetLogVisible(bool visible);
+  void ShowLog();
+  void HideLog();
   static bool IsLogConfigVisible();
-  void SetLogConfigVisible(bool visible);
-  void SetToolBarVisible(bool visible);
+  void ShowLogConfig();
+  void HideLogConfig();
+  void ShowToolBar();
+  void HideToolBar();
   static bool IsToolBarVisible();
-  void SetWidgetsLocked(bool visible);
+  void LockWidgets();
+  void UnlockWidgets();
   static bool AreWidgetsLocked();
 
   void RefreshWidgetVisibility();
@@ -107,20 +111,25 @@ public:
   void NotifyMetadataRefreshComplete();
   void ReloadTitleDB();
   static bool IsAutoRefreshEnabled();
-  void SetAutoRefreshEnabled(bool enabled);
+  void EnableAutoRefresh();
+  void DisableAutoRefresh();
 
   // Emulation
   static int GetStateSlot();
   static void SetStateSlot(int);
   bool IsBatchModeEnabled() const;
-  void SetBatchModeEnabled(bool batch);
+  void DisableBatchMode();
+  void EnableBatchMode();
 
   static bool IsSDCardInserted();
-  void SetSDCardInserted(bool inserted);
+  void InsertSDCard();
+  void EjectSDCard();
   static bool IsUSBKeyboardConnected();
-  void SetUSBKeyboardConnected(bool connected);
+  void ConnectUSBKeyboard();
+  void DisconnectUSBKeyboard();
 
-  void SetIsContinuouslyFrameStepping(bool is_stepping);
+  void EnableContinuousFrameStepping();
+  void DisableContinuousFrameStepping();
   bool GetIsContinuouslyFrameStepping() const;
 
   // Graphics
@@ -129,7 +138,8 @@ public:
   void SetKeepWindowOnTop(bool top);
   static bool IsKeepWindowOnTopEnabled();
   static bool GetGraphicModsEnabled();
-  void SetGraphicModsEnabled(bool enabled);
+  void EnableGraphicMods();
+  void DisableGraphicMods();
 
   // Audio
   static int GetVolume();
@@ -147,25 +157,35 @@ public:
   static bool GetCheatsEnabled();
 
   // Debug
-  void SetDebugModeEnabled(bool enabled);
+  void EnableDebugMode();
+  void DisableDebugMode();
   static bool IsDebugModeEnabled();
-  void SetRegistersVisible(bool enabled);
+  void ShowRegisters();
+  void HideRegisters();
   static bool IsRegistersVisible();
-  void SetThreadsVisible(bool enabled);
+  void ShowThreads();
+  void HideThreads();
   static bool IsThreadsVisible();
-  void SetWatchVisible(bool enabled);
+  void ShowWatch();
+  void HideWatch();
   static bool IsWatchVisible();
-  void SetBreakpointsVisible(bool enabled);
+  void ShowBreakpoints();
+  void HideBreakpoints();
   static bool IsBreakpointsVisible();
-  void SetCodeVisible(bool enabled);
+  void ShowCode();
+  void HideCode();
   static bool IsCodeVisible();
-  void SetMemoryVisible(bool enabled);
+  void ShowMemory();
+  void HideMemory();
   static bool IsMemoryVisible();
-  void SetNetworkVisible(bool enabled);
+  void ShowNetwork();
+  void HideNetwork();
   static bool IsNetworkVisible();
-  void SetJITVisible(bool enabled);
+  void ShowJIT();
+  void HideJIT();
   static bool IsJITVisible();
-  void SetAssemblerVisible(bool enabled);
+  void ShowAssembler();
+  void HideAssembler();
   static bool IsAssemblerVisible();
   static QFont GetDebugFont();
   void SetDebugFont(const QFont& font);
@@ -180,7 +200,8 @@ public:
 
   // Analytics
   static bool IsAnalyticsEnabled();
-  void SetAnalyticsEnabled(bool enabled);
+  void EnableAnalytics();
+  void DisableAnalytics();
 
 signals:
   void ConfigChanged();

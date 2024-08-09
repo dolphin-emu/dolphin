@@ -336,11 +336,15 @@ void GeneralPane::OnSaveConfig() const
   }
 
 #ifdef USE_DISCORD_PRESENCE
-  Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
+  m_checkbox_discord_presence->isChecked() ?
+    Discord::EnableDiscordPresence() :
+    Discord::DisableDiscordPresence();
 #endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
+  m_checkbox_enable_analytics->isChecked() ?
+    Settings::Instance().EnableAnalytics() :
+    Settings::Instance().DisableAnalytics();
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
   Settings::Instance().SetFallbackRegion(

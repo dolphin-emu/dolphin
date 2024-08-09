@@ -193,7 +193,7 @@ void BreakpointWidget::UpdateIcons() const
 
 void BreakpointWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetBreakpointsVisible(false);
+  Settings::Instance().HideBreakpoints();
 }
 
 void BreakpointWidget::showEvent(QShowEvent* event)

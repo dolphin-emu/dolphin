@@ -793,9 +793,14 @@ void MemoryViewWidget::SetAddress(const u32 address)
   Update();
 }
 
-void MemoryViewWidget::SetBPLoggingEnabled(const bool enabled)
+void MemoryViewWidget::EnableBPLogging()
 {
-  m_do_log = enabled;
+  m_do_log = true;
+}
+
+void MemoryViewWidget::DisableBPLogging()
+{
+  m_do_log = false;
 }
 
 void MemoryViewWidget::ToggleBreakpoint(const u32 addr, const bool row)

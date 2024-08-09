@@ -88,7 +88,7 @@ CodeWidget::~CodeWidget()
 
 void CodeWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetCodeVisible(false);
+  Settings::Instance().HideCode();
 }
 
 void CodeWidget::showEvent(QShowEvent* event)
@@ -309,7 +309,7 @@ void CodeWidget::SetAddress(const u32 address, const CodeViewWidget::SetAddressU
   if (update == CodeViewWidget::SetAddressUpdate::WithUpdate ||
       update == CodeViewWidget::SetAddressUpdate::WithDetailedUpdate)
   {
-    Settings::Instance().SetCodeVisible(true);
+    Settings::Instance().ShowCode();
     raise();
     m_code_view->setFocus();
   }

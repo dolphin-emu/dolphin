@@ -169,7 +169,9 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
-  Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
+  options.is_set("batch") ?
+    Settings::Instance().DisableBatchMode() :
+    Settings::Instance().EnableBatchMode();
 
   // Hook up alerts from core
   RegisterMsgAlertHandler(QtMsgAlertHandler);
@@ -277,7 +279,9 @@ int main(int argc, char* argv[])
       const int answer = analytics_prompt.exec();
 
       SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
-      Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
+      answer == QMessageBox::Yes ?
+        Settings::Instance().EnableAnalytics() :
+        Settings::Instance().DisableAnalytics();
 
       DolphinAnalytics::Instance().ReloadConfig();
     }

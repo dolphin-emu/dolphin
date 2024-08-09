@@ -311,15 +311,26 @@ void Shutdown()
 #endif
 }
 
-void SetDiscordPresenceEnabled(const bool enabled)
+void EnableDiscordPresence()
 {
-  if (Get(Config::MAIN_USE_DISCORD_PRESENCE) == enabled)
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
     Shutdown();
 
-  SetBase(Config::MAIN_USE_DISCORD_PRESENCE, enabled);
+  SetBase(Config::MAIN_USE_DISCORD_PRESENCE, true);
+
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    Init();
+}
+
+void DisableDiscordPresence()
+{
+  if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    Shutdown();
+
+  SetBase(Config::MAIN_USE_DISCORD_PRESENCE, false);
 
   if (Get(Config::MAIN_USE_DISCORD_PRESENCE))
     Init();

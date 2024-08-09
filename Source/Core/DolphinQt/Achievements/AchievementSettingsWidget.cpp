@@ -269,7 +269,7 @@ void AchievementSettingsWidget::ToggleHardcore() const
       SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
     SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
     SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
-    Settings::Instance().SetDebugModeEnabled(false);
+    Settings::Instance().DisableDebugMode();
   }
   emit Settings::Instance().EmulationStateChanged(GetState(Core::System::GetInstance()));
   emit Settings::Instance().HardcoreStateChanged();

@@ -187,9 +187,14 @@ void SpeakerLogic::DoState(PointerWrap& p)
   p.Do(reg_data);
 }
 
-void SpeakerLogic::SetSpeakerEnabled(const bool enabled)
+void SpeakerLogic::EnableSpeaker()
 {
-  m_speaker_enabled = enabled;
+  m_speaker_enabled = true;
+}
+
+void SpeakerLogic::DisableSpeaker()
+{
+  m_speaker_enabled = false;
 }
 
 int SpeakerLogic::BusRead(const u8 slave_addr, const u8 addr, const int count, u8* data_out)

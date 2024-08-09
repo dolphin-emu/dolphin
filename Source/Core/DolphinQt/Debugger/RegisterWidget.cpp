@@ -64,7 +64,7 @@ RegisterWidget::~RegisterWidget()
 
 void RegisterWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetRegistersVisible(false);
+  Settings::Instance().HideRegisters();
 }
 
 void RegisterWidget::showEvent(QShowEvent* event)

@@ -176,10 +176,14 @@ public:
   void SetOption(const AnalystOption option) { m_options |= option; }
   void ClearOption(const AnalystOption option) { m_options &= ~(option); }
   bool HasOption(const AnalystOption option) const { return !!(m_options & option); }
-  void SetDebuggingEnabled(const bool enabled) { m_is_debugging_enabled = enabled; }
-  void SetBranchFollowingEnabled(const bool enabled) { m_enable_branch_following = enabled; }
-  void SetFloatExceptionsEnabled(const bool enabled) { m_enable_float_exceptions = enabled; }
-  void SetDivByZeroExceptionsEnabled(const bool enabled) { m_enable_div_by_zero_exceptions = enabled; }
+  void EnableDebugging() { m_is_debugging_enabled = true; }
+  void DisableDebugging() { m_is_debugging_enabled = false; }
+  void EnableBranchFollowing() { m_enable_branch_following = true; }
+  void DisableBranchFollowing() { m_enable_branch_following = false; }
+  void EnableFloatExceptions() { m_enable_float_exceptions = true; }
+  void DisableFloatExceptions() { m_enable_float_exceptions = false; }
+  void EnableDivByZeroExceptions() { m_enable_div_by_zero_exceptions = true; }
+  void DisableDivByZeroExceptions() { m_enable_div_by_zero_exceptions = false; }
   u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size) const;
 
 private:

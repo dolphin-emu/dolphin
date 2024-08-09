@@ -429,7 +429,9 @@ void WiiPane::OnSaveConfig() const
 
   SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
   SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
-  Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
+  m_connect_keyboard_checkbox->isChecked() ?
+    Settings::Instance().ConnectUSBKeyboard() :
+    Settings::Instance().DisconnectUSBKeyboard();
 
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
                        TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
@@ -441,7 +443,9 @@ void WiiPane::OnSaveConfig() const
   SetBase(Config::SYSCONF_WIIMOTE_MOTOR, m_wiimote_motor->isChecked());
   SetBase(Config::MAIN_WII_WIILINK_ENABLE, m_wiilink_checkbox->isChecked());
 
-  Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
+  m_sd_card_checkbox->isChecked() ?
+    Settings::Instance().InsertSDCard() :
+    Settings::Instance().EjectSDCard();
   SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
   SetBase(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
                   m_sync_sd_folder_checkbox->isChecked());

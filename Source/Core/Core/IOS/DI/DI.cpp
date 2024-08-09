@@ -256,7 +256,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   }
   case DIIoctl::DVDLowMaskCoverInterrupt:
     INFO_LOG_FMT(IOS_DI, "DVDLowMaskCoverInterrupt");
-    system.GetDVDInterface().SetInterruptEnabled(DVD::DIInterruptType::CVRINT, false);
+    system.GetDVDInterface().DisableInterrupt(DVD::DIInterruptType::CVRINT);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
     return DIResult::Success;
   case DIIoctl::DVDLowClearCoverInterrupt:
@@ -277,7 +277,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   }
   case DIIoctl::DVDLowUnmaskCoverInterrupt:
     INFO_LOG_FMT(IOS_DI, "DVDLowUnmaskCoverInterrupt");
-    system.GetDVDInterface().SetInterruptEnabled(DVD::DIInterruptType::CVRINT, true);
+    system.GetDVDInterface().EnableInterrupt(DVD::DIInterruptType::CVRINT);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
     return DIResult::Success;
   case DIIoctl::DVDLowReset:
@@ -812,9 +812,9 @@ void DIDevice::ResetDIRegisters()
   di.ClearInterrupt(DVD::DIInterruptType::TCINT);
   di.ClearInterrupt(DVD::DIInterruptType::DEINT);
   // Enable transfer complete and error interrupts, and disable cover interrupt
-  di.SetInterruptEnabled(DVD::DIInterruptType::TCINT, true);
-  di.SetInterruptEnabled(DVD::DIInterruptType::DEINT, true);
-  di.SetInterruptEnabled(DVD::DIInterruptType::CVRINT, false);
+  di.EnableInterrupt(DVD::DIInterruptType::TCINT);
+  di.EnableInterrupt(DVD::DIInterruptType::DEINT);
+  di.DisableInterrupt(DVD::DIInterruptType::CVRINT);
   // Close the current partition, if there is one
   ChangePartition(DiscIO::PARTITION_NONE);
 }

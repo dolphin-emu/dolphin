@@ -233,7 +233,9 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_covers, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::MetadataRefreshRequested);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetDebugModeEnabled);
+          &Settings::EnableDebugMode);
+  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
+        &Settings::DisableDebugMode);
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, &Settings::Instance(),
           &Settings::ThemeChanged);
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,

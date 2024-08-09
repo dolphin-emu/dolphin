@@ -69,7 +69,8 @@ public:
   void SetAddress(u32 address);
   void SetFocus() const;
 
-  void SetBPLoggingEnabled(bool enabled);
+  void EnableBPLogging();
+  void DisableBPLogging();
 
 signals:
   void BreakpointsChanged();

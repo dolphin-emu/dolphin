@@ -366,14 +366,22 @@ bool Settings::IsAutoRefreshEnabled()
   return GetQSettings().value(QStringLiteral("gamelist/autorefresh"), true).toBool();
 }
 
-void Settings::SetAutoRefreshEnabled(const bool enabled)
+void Settings::EnableAutoRefresh()
 {
-  if (IsAutoRefreshEnabled() == enabled)
+  if (IsAutoRefreshEnabled())
     return;
 
-  GetQSettings().setValue(QStringLiteral("gamelist/autorefresh"), enabled);
+  GetQSettings().setValue(QStringLiteral("gamelist/autorefresh"), true);
+  emit AutoRefreshToggled(true);
+}
 
-  emit AutoRefreshToggled(enabled);
+void Settings::DisableAutoRefresh()
+{
+  if (!IsAutoRefreshEnabled())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("gamelist/autorefresh"), false);
+  emit AutoRefreshToggled(false);
 }
 
 QString Settings::GetDefaultGame()
@@ -438,15 +446,22 @@ bool Settings::GetGraphicModsEnabled()
   return Get(Config::GFX_MODS_ENABLE);
 }
 
-void Settings::SetGraphicModsEnabled(const bool enabled)
+void Settings::EnableGraphicMods()
 {
-  if (GetGraphicModsEnabled() == enabled)
-  {
+  if (GetGraphicModsEnabled())
     return;
-  }
 
-  SetBaseOrCurrent(Config::GFX_MODS_ENABLE, enabled);
-  emit EnableGfxModsChanged(enabled);
+  SetBaseOrCurrent(Config::GFX_MODS_ENABLE, true);
+  emit EnableGfxModsChanged(true);
+}
+
+void Settings::DisableGraphicMods()
+{
+  if (!GetGraphicModsEnabled())
+    return;
+
+  SetBaseOrCurrent(Config::GFX_MODS_ENABLE, false);
+  emit EnableGfxModsChanged(false);
 }
 
 int Settings::GetVolume()
@@ -480,13 +495,22 @@ bool Settings::IsLogVisible()
   return GetQSettings().value(QStringLiteral("logging/logvisible")).toBool();
 }
 
-void Settings::SetLogVisible(const bool visible)
+void Settings::ShowLog()
 {
-  if (IsLogVisible() != visible)
-  {
-    GetQSettings().setValue(QStringLiteral("logging/logvisible"), visible);
-    emit LogVisibilityChanged(visible);
-  }
+  if (IsLogVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("logging/logvisible"), true);
+  emit LogVisibilityChanged(true);
+}
+
+void Settings::HideLog()
+{
+  if (!IsLogVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("logging/logvisible"), false);
+  emit LogVisibilityChanged(false);
 }
 
 bool Settings::IsLogConfigVisible()
@@ -494,13 +518,22 @@ bool Settings::IsLogConfigVisible()
   return GetQSettings().value(QStringLiteral("logging/logconfigvisible")).toBool();
 }
 
-void Settings::SetLogConfigVisible(const bool visible)
+void Settings::ShowLogConfig()
 {
-  if (IsLogConfigVisible() != visible)
-  {
-    GetQSettings().setValue(QStringLiteral("logging/logconfigvisible"), visible);
-    emit LogConfigVisibilityChanged(visible);
-  }
+  if (IsLogConfigVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("logging/logconfigvisible"), true);
+  emit LogConfigVisibilityChanged(true);
+}
+
+void Settings::HideLogConfig()
+{
+  if (!IsLogConfigVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("logging/logconfigvisible"), false);
+  emit LogConfigVisibilityChanged(false);
 }
 
 std::shared_ptr<NetPlay::NetPlayClient> Settings::GetNetPlayClient()
@@ -531,17 +564,26 @@ bool Settings::GetCheatsEnabled()
   return Get(Config::MAIN_ENABLE_CHEATS);
 }
 
-void Settings::SetDebugModeEnabled(bool enabled)
+void Settings::EnableDebugMode()
 {
-  if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    enabled = false;
-  if (IsDebugModeEnabled() != enabled)
-  {
-    SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
-    emit DebugModeToggled(enabled);
-    if (enabled)
-      SetCodeVisible(true);
-  }
+  const bool enabled = !AchievementManager::GetInstance().IsHardcoreModeActive();
+
+  if (IsDebugModeEnabled() == enabled)
+    return;
+
+  SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
+  emit DebugModeToggled(enabled);
+  if (enabled)
+    ShowCode();
+}
+
+void Settings::DisableDebugMode()
+{
+  if (IsDebugModeEnabled())
+    return;
+
+  SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, false);
+  emit DebugModeToggled(false);
 }
 
 bool Settings::IsDebugModeEnabled()
@@ -549,14 +591,22 @@ bool Settings::IsDebugModeEnabled()
   return Get(Config::MAIN_ENABLE_DEBUGGING);
 }
 
-void Settings::SetRegistersVisible(const bool enabled)
+void Settings::ShowRegisters()
 {
-  if (IsRegistersVisible() != enabled)
-  {
-    GetQSettings().setValue(QStringLiteral("debugger/showregisters"), enabled);
+  if (IsRegistersVisible())
+    return;
 
-    emit RegistersVisibilityChanged(enabled);
-  }
+  GetQSettings().setValue(QStringLiteral("debugger/showregisters"), true);
+  emit RegistersVisibilityChanged(true);
+}
+
+void Settings::HideRegisters()
+{
+  if (!IsRegistersVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showregisters"), false);
+  emit RegistersVisibilityChanged(false);
 }
 
 bool Settings::IsThreadsVisible()
@@ -564,13 +614,22 @@ bool Settings::IsThreadsVisible()
   return GetQSettings().value(QStringLiteral("debugger/showthreads")).toBool();
 }
 
-void Settings::SetThreadsVisible(const bool enabled)
+void Settings::ShowThreads()
 {
-  if (IsThreadsVisible() == enabled)
+  if (IsThreadsVisible())
     return;
 
-  GetQSettings().setValue(QStringLiteral("debugger/showthreads"), enabled);
-  emit ThreadsVisibilityChanged(enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/showthreads"), true);
+  emit ThreadsVisibilityChanged(true);
+}
+
+void Settings::HideThreads()
+{
+  if (!IsThreadsVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showthreads"), false);
+  emit ThreadsVisibilityChanged(false);
 }
 
 bool Settings::IsRegistersVisible()
@@ -578,14 +637,22 @@ bool Settings::IsRegistersVisible()
   return GetQSettings().value(QStringLiteral("debugger/showregisters")).toBool();
 }
 
-void Settings::SetWatchVisible(const bool enabled)
+void Settings::ShowWatch()
 {
-  if (IsWatchVisible() != enabled)
-  {
-    GetQSettings().setValue(QStringLiteral("debugger/showwatch"), enabled);
+  if (IsWatchVisible())
+    return;
 
-    emit WatchVisibilityChanged(enabled);
-  }
+  GetQSettings().setValue(QStringLiteral("debugger/showwatch"), true);
+  emit WatchVisibilityChanged(true);
+}
+
+void Settings::HideWatch()
+{
+  if (!IsWatchVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showwatch"), false);
+  emit WatchVisibilityChanged(false);
 }
 
 bool Settings::IsWatchVisible()
@@ -593,14 +660,22 @@ bool Settings::IsWatchVisible()
   return GetQSettings().value(QStringLiteral("debugger/showwatch")).toBool();
 }
 
-void Settings::SetBreakpointsVisible(const bool enabled)
+void Settings::ShowBreakpoints()
 {
-  if (IsBreakpointsVisible() != enabled)
-  {
-    GetQSettings().setValue(QStringLiteral("debugger/showbreakpoints"), enabled);
+  if (IsBreakpointsVisible())
+    return;
 
-    emit BreakpointsVisibilityChanged(enabled);
-  }
+  GetQSettings().setValue(QStringLiteral("debugger/showbreakpoints"), true);
+  emit BreakpointsVisibilityChanged(true);
+}
+
+void Settings::HideBreakpoints()
+{
+  if (!IsBreakpointsVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showbreakpoints"), false);
+  emit BreakpointsVisibilityChanged(false);
 }
 
 bool Settings::IsBreakpointsVisible()
@@ -608,14 +683,24 @@ bool Settings::IsBreakpointsVisible()
   return GetQSettings().value(QStringLiteral("debugger/showbreakpoints")).toBool();
 }
 
-void Settings::SetCodeVisible(const bool enabled)
+void Settings::ShowCode()
 {
-  if (IsCodeVisible() != enabled)
-  {
-    GetQSettings().setValue(QStringLiteral("debugger/showcode"), enabled);
+  if (IsCodeVisible())
+    return;
 
-    emit CodeVisibilityChanged(enabled);
-  }
+  GetQSettings().setValue(QStringLiteral("debugger/showcode"), true);
+
+  emit CodeVisibilityChanged(true);
+}
+
+void Settings::HideCode()
+{
+  if (!IsCodeVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showcode"), false);
+
+  emit CodeVisibilityChanged(false);
 }
 
 bool Settings::IsCodeVisible()
@@ -623,13 +708,22 @@ bool Settings::IsCodeVisible()
   return GetQSettings().value(QStringLiteral("debugger/showcode")).toBool();
 }
 
-void Settings::SetMemoryVisible(const bool enabled)
+void Settings::ShowMemory()
 {
-  if (IsMemoryVisible() == enabled)
+  if (IsMemoryVisible())
     return;
-  QSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
 
-  emit MemoryVisibilityChanged(enabled);
+  QSettings().setValue(QStringLiteral("debugger/showmemory"), true);
+  emit MemoryVisibilityChanged(true);
+}
+
+void Settings::HideMemory()
+{
+  if (!IsMemoryVisible())
+    return;
+
+  QSettings().setValue(QStringLiteral("debugger/showmemory"), false);
+  emit MemoryVisibilityChanged(false);
 }
 
 bool Settings::IsMemoryVisible()
@@ -637,13 +731,22 @@ bool Settings::IsMemoryVisible()
   return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
 }
 
-void Settings::SetNetworkVisible(const bool enabled)
+void Settings::ShowNetwork()
 {
-  if (IsNetworkVisible() == enabled)
+  if (IsNetworkVisible())
     return;
 
-  GetQSettings().setValue(QStringLiteral("debugger/shownetwork"), enabled);
-  emit NetworkVisibilityChanged(enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/shownetwork"), true);
+  emit NetworkVisibilityChanged(true);
+}
+
+void Settings::HideNetwork()
+{
+  if (!IsNetworkVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/shownetwork"), false);
+  emit NetworkVisibilityChanged(false);
 }
 
 bool Settings::IsNetworkVisible()
@@ -651,13 +754,22 @@ bool Settings::IsNetworkVisible()
   return GetQSettings().value(QStringLiteral("debugger/shownetwork")).toBool();
 }
 
-void Settings::SetJITVisible(const bool enabled)
+void Settings::ShowJIT()
 {
-  if (IsJITVisible() == enabled)
+  if (IsJITVisible())
     return;
-  QSettings().setValue(QStringLiteral("debugger/showjit"), enabled);
 
-  emit JITVisibilityChanged(enabled);
+  QSettings().setValue(QStringLiteral("debugger/showjit"), true);
+  emit JITVisibilityChanged(true);
+}
+
+void Settings::HideJIT()
+{
+  if (!IsJITVisible())
+    return;
+
+  QSettings().setValue(QStringLiteral("debugger/showjit"), false);
+  emit JITVisibilityChanged(false);
 }
 
 bool Settings::IsJITVisible()
@@ -665,13 +777,22 @@ bool Settings::IsJITVisible()
   return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
 
-void Settings::SetAssemblerVisible(const bool enabled)
+void Settings::ShowAssembler()
 {
-  if (IsAssemblerVisible() == enabled)
+  if (IsAssemblerVisible())
     return;
-  QSettings().setValue(QStringLiteral("debugger/showassembler"), enabled);
 
-  emit AssemblerVisibilityChanged(enabled);
+  QSettings().setValue(QStringLiteral("debugger/showassembler"), true);
+  emit AssemblerVisibilityChanged(true);
+}
+
+void Settings::HideAssembler()
+{
+  if (!IsAssemblerVisible())
+    return;
+
+  QSettings().setValue(QStringLiteral("debugger/showassembler"), false);
+  emit AssemblerVisibilityChanged(false);
 }
 
 bool Settings::IsAssemblerVisible()
@@ -691,7 +812,6 @@ void Settings::SetDebugFont(const QFont& font)
   if (GetDebugFont() != font)
   {
     GetQSettings().setValue(QStringLiteral("debugger/font"), font);
-
     emit DebugFontChanged(font);
   }
 }
@@ -734,14 +854,24 @@ DiscIO::Region Settings::GetFallbackRegion()
   return Get(Config::MAIN_FALLBACK_REGION);
 }
 
-void Settings::SetAnalyticsEnabled(const bool enabled)
+void Settings::EnableAnalytics()
 {
-  if (enabled == IsAnalyticsEnabled())
+  if (IsAnalyticsEnabled())
     return;
 
-  SetBase(Config::MAIN_ANALYTICS_ENABLED, enabled);
+  SetBase(Config::MAIN_ANALYTICS_ENABLED, true);
 
-  emit AnalyticsToggled(enabled);
+  emit AnalyticsToggled(true);
+}
+
+void Settings::DisableAnalytics()
+{
+  if (!IsAnalyticsEnabled())
+    return;
+
+  SetBase(Config::MAIN_ANALYTICS_ENABLED, false);
+
+  emit AnalyticsToggled(false);
 }
 
 bool Settings::IsAnalyticsEnabled()
@@ -749,14 +879,22 @@ bool Settings::IsAnalyticsEnabled()
   return Get(Config::MAIN_ANALYTICS_ENABLED);
 }
 
-void Settings::SetToolBarVisible(const bool visible)
+void Settings::ShowToolBar()
 {
-  if (IsToolBarVisible() == visible)
+  if (IsToolBarVisible())
     return;
 
-  GetQSettings().setValue(QStringLiteral("toolbar/visible"), visible);
+  GetQSettings().setValue(QStringLiteral("toolbar/visible"), true);
+  emit ToolBarVisibilityChanged(true);
+}
 
-  emit ToolBarVisibilityChanged(visible);
+void Settings::HideToolBar()
+{
+  if (!IsToolBarVisible())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("toolbar/visible"), false);
+  emit ToolBarVisibilityChanged(false);
 }
 
 bool Settings::IsToolBarVisible()
@@ -764,14 +902,22 @@ bool Settings::IsToolBarVisible()
   return GetQSettings().value(QStringLiteral("toolbar/visible"), true).toBool();
 }
 
-void Settings::SetWidgetsLocked(const bool locked)
+void Settings::LockWidgets()
 {
-  if (AreWidgetsLocked() == locked)
+  if (AreWidgetsLocked())
     return;
 
-  GetQSettings().setValue(QStringLiteral("widgets/locked"), locked);
+  GetQSettings().setValue(QStringLiteral("widgets/locked"), true);
+  emit WidgetLockChanged(true);
+}
 
-  emit WidgetLockChanged(locked);
+void Settings::UnlockWidgets()
+{
+  if (!AreWidgetsLocked())
+    return;
+
+  GetQSettings().setValue(QStringLiteral("widgets/locked"), false);
+  emit WidgetLockChanged(false);
 }
 
 bool Settings::AreWidgetsLocked()
@@ -783,9 +929,15 @@ bool Settings::IsBatchModeEnabled() const
 {
   return m_batch;
 }
-void Settings::SetBatchModeEnabled(const bool batch)
+
+void Settings::EnableBatchMode()
 {
-  m_batch = batch;
+  m_batch = true;
+}
+
+void Settings::DisableBatchMode()
+{
+  m_batch = false;
 }
 
 bool Settings::IsSDCardInserted()
@@ -793,13 +945,22 @@ bool Settings::IsSDCardInserted()
   return Get(Config::MAIN_WII_SD_CARD);
 }
 
-void Settings::SetSDCardInserted(const bool inserted)
+void Settings::InsertSDCard()
 {
-  if (IsSDCardInserted() != inserted)
-  {
-    SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, inserted);
-    emit SDCardInsertionChanged(inserted);
-  }
+  if (IsSDCardInserted())
+    return;
+
+  SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, true);
+  emit SDCardInsertionChanged(true);
+}
+
+void Settings::EjectSDCard()
+{
+  if (!IsSDCardInserted())
+    return;
+
+  SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, false);
+  emit SDCardInsertionChanged(false);
 }
 
 bool Settings::IsUSBKeyboardConnected()
@@ -807,18 +968,32 @@ bool Settings::IsUSBKeyboardConnected()
   return Get(Config::MAIN_WII_KEYBOARD);
 }
 
-void Settings::SetUSBKeyboardConnected(const bool connected)
+void Settings::ConnectUSBKeyboard()
 {
-  if (IsUSBKeyboardConnected() != connected)
-  {
-    SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
-    emit USBKeyboardConnectionChanged(connected);
-  }
+  if (IsUSBKeyboardConnected())
+    return;
+
+  SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, true);
+  emit USBKeyboardConnectionChanged(true);
 }
 
-void Settings::SetIsContinuouslyFrameStepping(const bool is_stepping)
+void Settings::DisconnectUSBKeyboard()
 {
-  m_continuously_frame_stepping = is_stepping;
+  if (!IsUSBKeyboardConnected())
+    return;
+
+  SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, false);
+  emit USBKeyboardConnectionChanged(false);
+}
+
+void Settings::EnableContinuousFrameStepping()
+{
+  m_continuously_frame_stepping = true;
+}
+
+void Settings::DisableContinuousFrameStepping()
+{
+  m_continuously_frame_stepping = false;
 }
 
 bool Settings::GetIsContinuouslyFrameStepping() const

@@ -127,10 +127,12 @@ void JitBase::RefreshConfig()
     m_low_dcbz_hack = false;
   }
 
-  analyzer.SetDebuggingEnabled(m_enable_debugging);
-  analyzer.SetBranchFollowingEnabled(m_enable_branch_following);
-  analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
-  analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
+  m_enable_debugging ? analyzer.EnableDebugging() : analyzer.DisableDebugging();
+  m_enable_branch_following ? analyzer.EnableBranchFollowing() : analyzer.DisableBranchFollowing();
+  m_enable_float_exceptions ? analyzer.EnableFloatExceptions() : analyzer.DisableFloatExceptions();
+  m_enable_div_by_zero_exceptions ?
+    analyzer.EnableDivByZeroExceptions() :
+    analyzer.DisableDivByZeroExceptions();
 
   const bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
   jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints) &&

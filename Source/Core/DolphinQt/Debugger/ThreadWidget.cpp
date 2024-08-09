@@ -61,7 +61,7 @@ ThreadWidget::~ThreadWidget()
 
 void ThreadWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetThreadsVisible(false);
+  Settings::Instance().HideThreads();
 }
 
 void ThreadWidget::showEvent(QShowEvent* event)

@@ -69,7 +69,8 @@ bool MsgAlertFmtT(bool yes_no, MsgType style, Log::LogType log_type, const char*
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, translated_format, arg_list);
 }
 
-void SetEnableAlert(bool enable);
+void EnableAlert();
+void DisableAlert();
 void SetAbortOnPanicAlert(bool should_abort);
 
 // Like fmt::format, except the string becomes translatable

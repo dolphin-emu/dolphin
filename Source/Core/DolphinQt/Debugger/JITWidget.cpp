@@ -125,7 +125,7 @@ void JITWidget::Compare(const u32 address)
 {
   m_address = address;
 
-  Settings::Instance().SetJITVisible(true);
+  Settings::Instance().ShowJIT();
   raise();
   m_host_asm_widget->setFocus();
 
@@ -162,10 +162,16 @@ void JITWidget::Update()
   PPCAnalyst::BlockRegStats fpa;
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::PPCAnalyzer analyzer;
-  analyzer.SetDebuggingEnabled(Config::IsDebuggingEnabled());
-  analyzer.SetBranchFollowingEnabled(Get(Config::MAIN_JIT_FOLLOW_BRANCH));
-  analyzer.SetFloatExceptionsEnabled(Get(Config::MAIN_FLOAT_EXCEPTIONS));
-  analyzer.SetDivByZeroExceptionsEnabled(Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS));
+  Config::IsDebuggingEnabled() ? analyzer.EnableDebugging() : analyzer.DisableDebugging();
+  Get(Config::MAIN_JIT_FOLLOW_BRANCH) ?
+    analyzer.EnableBranchFollowing() :
+    analyzer.DisableBranchFollowing();
+  Get(Config::MAIN_FLOAT_EXCEPTIONS) ?
+    analyzer.EnableFloatExceptions() :
+    analyzer.DisableFloatExceptions();
+  Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS) ?
+    analyzer.EnableDivByZeroExceptions() :
+    analyzer.DisableDivByZeroExceptions();
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
@@ -223,7 +229,7 @@ void JITWidget::Update()
 
 void JITWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetJITVisible(false);
+  Settings::Instance().HideJIT();
 }
 
 void JITWidget::showEvent(QShowEvent* event)

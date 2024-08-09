@@ -356,7 +356,7 @@ void Wiimote::HandleIRLogicEnable(const OutputReportEnableFeature& rpt)
 
   m_status.ir = rpt.enable;
 
-  m_camera_logic.SetEnabled(m_status.ir);
+  m_status.ir ? m_camera_logic.Enable() : m_camera_logic.Disable();
 
   if (rpt.ack)
     SendAck(OutputReportID::IRLogicEnable, ErrorCode::Success);

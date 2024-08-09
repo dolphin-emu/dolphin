@@ -219,5 +219,5 @@ void LogWidget::Log(Common::Log::LogLevel level, const char* text)
 
 void LogWidget::closeEvent(QCloseEvent*)
 {
-  Settings::Instance().SetLogVisible(false);
+  Settings::Instance().HideLog();
 }

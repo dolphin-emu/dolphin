@@ -633,21 +633,40 @@ void DVDInterface::GenerateDIInterrupt(const DIInterruptType dvd_interrupt)
   UpdateInterrupts();
 }
 
-void DVDInterface::SetInterruptEnabled(const DIInterruptType interrupt, const bool enabled)
+void DVDInterface::EnableInterrupt(const DIInterruptType interrupt)
 {
   switch (interrupt)
   {
   case DIInterruptType::DEINT:
-    m_DISR.DEINTMASK = enabled;
+    m_DISR.DEINTMASK = true;
     break;
   case DIInterruptType::TCINT:
-    m_DISR.TCINTMASK = enabled;
+    m_DISR.TCINTMASK = true;
     break;
   case DIInterruptType::BRKINT:
-    m_DISR.BRKINTMASK = enabled;
+    m_DISR.BRKINTMASK = true;
     break;
   case DIInterruptType::CVRINT:
-    m_DICVR.CVRINTMASK = enabled;
+    m_DICVR.CVRINTMASK = true;
+    break;
+  }
+}
+
+void DVDInterface::DisableInterrupt(const DIInterruptType interrupt)
+{
+  switch (interrupt)
+  {
+  case DIInterruptType::DEINT:
+    m_DISR.DEINTMASK = false;
+    break;
+  case DIInterruptType::TCINT:
+    m_DISR.TCINTMASK = false;
+    break;
+  case DIInterruptType::BRKINT:
+    m_DISR.BRKINTMASK = false;
+    break;
+  case DIInterruptType::CVRINT:
+    m_DICVR.CVRINTMASK = false;
     break;
   }
 }

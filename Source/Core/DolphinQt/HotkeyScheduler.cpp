@@ -108,7 +108,7 @@ static void HandleFrameStepHotkeys()
     if ((frame_step_count == 0 || frame_step_count == FRAME_STEP_DELAY) && !frame_step_hold)
     {
       if (frame_step_count > 0)
-        Settings::Instance().SetIsContinuouslyFrameStepping(true);
+        Settings::Instance().EnableContinuousFrameStepping();
       Core::QueueHostJob([](auto& system) { Core::DoFrameStep(system); });
       frame_step_hold = true;
     }
@@ -134,7 +134,7 @@ static void HandleFrameStepHotkeys()
     frame_step_count = 0;
     frame_step_hold = false;
     frame_step_delay_count = 0;
-    Settings::Instance().SetIsContinuouslyFrameStepping(false);
+    Settings::Instance().DisableContinuousFrameStepping();
     emit Settings::Instance().EmulationStateChanged(GetState(Core::System::GetInstance()));
   }
 }
@@ -287,13 +287,14 @@ void HotkeyScheduler::Run()
           emit ConnectWiiRemote(wiimote_id);
 
         if (IsHotkey(HK_TOGGLE_SD_CARD))
-          Settings::Instance().SetSDCardInserted(!Settings::Instance().IsSDCardInserted());
+          Settings::Instance().IsSDCardInserted() ?
+            Settings::Instance().EjectSDCard() :
+            Settings::Instance().InsertSDCard();
 
         if (IsHotkey(HK_TOGGLE_USB_KEYBOARD))
-        {
-          Settings::Instance().SetUSBKeyboardConnected(
-              !Settings::Instance().IsUSBKeyboardConnected());
-        }
+          Settings::Instance().IsUSBKeyboardConnected() ?
+            Settings::Instance().DisconnectUSBKeyboard() :
+            Settings::Instance().ConnectUSBKeyboard();
       }
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))
