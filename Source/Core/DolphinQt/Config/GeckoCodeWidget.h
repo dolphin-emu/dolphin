@@ -33,6 +33,8 @@ public:
                            bool restart_required = true);
   ~GeckoCodeWidget() override;
 
+  void ChangeGame(std::string game_id, std::string gametdb_id, u16 game_revision);
+
 signals:
   void OpenGeneralSettings();
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -52,6 +54,7 @@ private:
   void EditCode();
   void RemoveCode();
   void DownloadCodes();
+  void LoadCodes();
   void SaveCodes();
   void SortAlphabetically();
   void SortEnabledCodesFirst();

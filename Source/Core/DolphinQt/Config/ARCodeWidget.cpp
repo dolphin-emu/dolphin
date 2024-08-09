@@ -35,24 +35,21 @@ ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_
   CreateWidgets();
   ConnectWidgets();
 
-  if (!m_game_id.empty())
-  {
-    Common::IniFile game_ini_local;
-
-    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
-    // will always be stored in GS/${GAMEID}.ini
-    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-
-    const Common::IniFile game_ini_default =
-        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
-    m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
-  }
-
-  UpdateList();
-  OnSelectionChanged();
+  LoadCodes();
 }
 
 ARCodeWidget::~ARCodeWidget() = default;
+
+void ARCodeWidget::ChangeGame(std::string game_id, const u16 game_revision)
+{
+  m_game_id = std::move(game_id);
+  m_game_revision = game_revision;
+  m_restart_required = false;
+
+  m_ar_codes.clear();
+
+  LoadCodes();
+}
 
 void ARCodeWidget::CreateWidgets()
 {
@@ -64,11 +61,6 @@ void ARCodeWidget::CreateWidgets()
   m_code_add = new NonDefaultQPushButton(tr("&Add New Code..."));
   m_code_edit = new NonDefaultQPushButton(tr("&Edit Code..."));
   m_code_remove = new NonDefaultQPushButton(tr("&Remove Code"));
-
-  m_code_list->setEnabled(!m_game_id.empty());
-  m_code_add->setEnabled(!m_game_id.empty());
-  m_code_edit->setEnabled(!m_game_id.empty());
-  m_code_remove->setEnabled(!m_game_id.empty());
 
   m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -212,6 +204,30 @@ void ARCodeWidget::UpdateList()
   }
 
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
+}
+
+void ARCodeWidget::LoadCodes()
+{
+  if (!m_game_id.empty())
+  {
+    Common::IniFile game_ini_local;
+
+    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
+    // will always be stored in GS/${GAMEID}.ini
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+
+    const Common::IniFile game_ini_default =
+        SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
+    m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
+  }
+
+  m_code_list->setEnabled(!m_game_id.empty());
+  m_code_add->setEnabled(!m_game_id.empty());
+  m_code_edit->setEnabled(!m_game_id.empty());
+  m_code_remove->setEnabled(!m_game_id.empty());
+
+  UpdateList();
+  OnSelectionChanged();
 }
 
 void ARCodeWidget::SaveCodes()

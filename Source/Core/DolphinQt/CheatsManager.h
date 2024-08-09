@@ -58,7 +58,7 @@ private:
   void OnNewSessionCreated(const Cheats::CheatSearchSessionBase& session);
   void OnTabCloseRequested(int index);
 
-  void RefreshCodeTabs(Core::State state, bool force);
+  void RefreshCodeTabs(Core::State state);
   void UpdateAllCheatSearchWidgetCurrentValues();
 
   std::string m_game_id;

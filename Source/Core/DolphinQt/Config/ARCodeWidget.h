@@ -31,6 +31,7 @@ public:
   explicit ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required = true);
   ~ARCodeWidget() override;
 
+  void ChangeGame(std::string game_id, u16 game_revision);
   void AddCode(ActionReplay::ARCode code);
 
 signals:
@@ -47,6 +48,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateList();
+  void LoadCodes();
   void SaveCodes();
   void SortAlphabetically();
   void SortEnabledCodesFirst();
