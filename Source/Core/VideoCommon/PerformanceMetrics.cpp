@@ -19,11 +19,11 @@ void PerformanceMetrics::Reset()
 {
   m_fps_counter.Reset();
   m_vps_counter.Reset();
+  m_audio_speed_counter.Reset();
   m_speed_counter.Reset();
+  m_max_speed_counter.Reset();
 
-  m_time_sleeping = DT::zero();
-  m_real_times.fill(Clock::now());
-  m_cpu_times.fill(Core::System::GetInstance().GetCoreTiming().GetCPUTimePoint(0));
+  m_prev_adjusted_time = Clock::now() - m_time_sleeping;
 }
 
 void PerformanceMetrics::CountFrame()
@@ -36,6 +36,11 @@ void PerformanceMetrics::CountVBlank()
   m_vps_counter.Count();
 }
 
+void PerformanceMetrics::CountAudioLatency(DT latency)
+{
+  m_audio_latency_counter.Count(latency, false);
+}
+
 void PerformanceMetrics::CountThrottleSleep(DT sleep)
 {
   std::unique_lock lock(m_time_lock);
@@ -45,11 +50,13 @@ void PerformanceMetrics::CountThrottleSleep(DT sleep)
 void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
 {
   std::unique_lock lock(m_time_lock);
+  const TimePoint adjusted_time = Clock::now() - m_time_sleeping;
+
+  m_audio_speed_counter.Count();
   m_speed_counter.Count();
 
-  m_real_times[m_time_index] = Clock::now() - m_time_sleeping;
-  m_cpu_times[m_time_index] = system.GetCoreTiming().GetCPUTimePoint(cyclesLate);
-  m_time_index += 1;
+  m_max_speed_counter.Count(adjusted_time - m_prev_adjusted_time);
+  m_prev_adjusted_time = adjusted_time;
 }
 
 double PerformanceMetrics::GetFPS() const
@@ -67,11 +74,14 @@ double PerformanceMetrics::GetSpeed() const
   return m_speed_counter.GetHzAvg() / 100.0;
 }
 
+double PerformanceMetrics::GetAudioSpeed() const
+{
+  return m_audio_speed_counter.GetHzAvg() / 100.0;
+}
+
 double PerformanceMetrics::GetMaxSpeed() const
 {
-  std::shared_lock lock(m_time_lock);
-  return DT_s(m_cpu_times[u8(m_time_index - 1)] - m_cpu_times[m_time_index]) /
-         DT_s(m_real_times[u8(m_time_index - 1)] - m_real_times[m_time_index]);
+  return m_max_speed_counter.GetHzAvg() / 100.0;
 }
 
 double PerformanceMetrics::GetLastSpeedDenominator() const
@@ -145,9 +155,13 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
                                                                    1000.0,
                                                                    2000.0};
 
-      const DT vblank_time = m_vps_counter.GetDtAvg() + 2 * m_vps_counter.GetDtStd();
-      const DT frame_time = m_fps_counter.GetDtAvg() + 2 * m_fps_counter.GetDtStd();
-      const double target_max_time = DT_ms(vblank_time + frame_time).count();
+      const double vblank_time =
+          DT_ms(m_vps_counter.GetDtAvg() + 2 * m_vps_counter.GetDtStd()).count();
+      const double frame_time =
+          DT_ms(m_fps_counter.GetDtAvg() + 2 * m_fps_counter.GetDtStd()).count();
+      const double audio_latency = DT_ms(m_audio_latency_counter.GetDtAvg()).count();
+
+      const double target_max_time = 2.0 * std::max({vblank_time, frame_time, audio_latency});
       const double a =
           std::max(0.0, 1.0 - std::exp(-4.0 * (DT_s(m_fps_counter.GetLastRawDt()) /
                                                DT_s(m_fps_counter.GetSampleWindow()))));
@@ -176,6 +190,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
         ImPlot::SetupAxisTicks(ImAxis_Y1, tick_marks.data(), num_ticks);
         ImPlot::SetupAxesLimits(0, total_frame_time, 0, m_graph_max_time, ImGuiCond_Always);
         ImPlot::SetupLegend(ImPlotLocation_SouthEast, ImPlotLegendFlags_None);
+        m_audio_latency_counter.ImPlotPlotLines("Audio Latency (ms)");
         m_vps_counter.ImPlotPlotLines("V-Blank (ms)");
         m_fps_counter.ImPlotPlotLines("Frame (ms)");
         ImPlot::EndPlot();

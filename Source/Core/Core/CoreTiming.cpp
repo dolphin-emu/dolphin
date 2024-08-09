@@ -136,8 +136,6 @@ void CoreTimingManager::RefreshConfig()
   // too long or going full speed in an attempt to catch up to timings.
   m_max_fallback = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
 
-  m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
-
   if (AchievementManager::GetInstance().IsHardcoreModeActive() &&
       Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
       Config::Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
@@ -398,7 +396,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     m_throttle_deadline = min_deadline;
   }
 
-  const TimePoint vi_deadline = time - std::min(m_max_fallback, m_max_variance) / 2;
+  const TimePoint vi_deadline = time - m_max_fallback;
 
   // Skip the VI interrupt if the CPU is lagging by a certain amount.
   // It doesn't matter what amount of lag we skip VI at, as long as it's constant.

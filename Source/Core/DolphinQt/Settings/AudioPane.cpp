@@ -15,6 +15,7 @@
 #include <QSlider>
 #include <QSpacerItem>
 #include <QSpinBox>
+#include <QStackedWidget>
 #include <QVBoxLayout>
 
 #include "AudioCommon/AudioCommon.h"
@@ -138,32 +139,81 @@ void AudioPane::CreateWidgets()
   backend_layout->addRow(dolby_quality_layout);
   backend_layout->addRow(m_dolby_quality_latency_label);
 
-  auto* stretching_box = new QGroupBox(tr("Audio Stretching Settings"));
-  auto* stretching_layout = new QGridLayout;
-  m_stretching_enable = new QCheckBox(tr("Enable Audio Stretching"));
+  // Set up for new Audio Options Box with ComboBox and StackedWidget
+  m_audio_group = new QGroupBox(tr("Audio Options"));
+  auto* audio_options_layout = new QGridLayout(m_audio_group);
+
+  // Resampling Options
+  m_audio_resampling_box = new QComboBox;
+  m_audio_resampling_box->addItem(tr("Default (12 Samples)"));
+  m_audio_resampling_box->addItem(tr("High (32 Samples)"));
+  m_audio_resampling_box->addItem(tr("Very High (96 Samples)"));
+  m_audio_resampling_box->addItem(tr("Placebo (256 Samples)"));
+  m_audio_resampling_box->setToolTip(tr(
+      "Dolphin must resample audio from ~32000hz to the modern sample rates like 48000hz.<br><br>"
+      "Higher quality options will only result in lower distortion <i>at high frequencies "
+      "(~16000hz)</i>, at the cost of increased CPU usage. <b>The vast majority of people will be "
+      "unable to notice</b>. <br><br>"
+      "<b>WARNING: If your CPU is not fast enough audio will cutout.</b>"));
+  audio_options_layout->addWidget(new QLabel(tr("Resampling Quality:")), 0, 0);
+  audio_options_layout->addWidget(m_audio_resampling_box, 0, 1);
+
+  // Audio Playback Mode
+  m_audio_playback_mode_box = new QComboBox;
+  m_audio_playback_mode_box->addItem(tr("Direct Playback"));
+  m_audio_playback_mode_box->addItem(tr("Audio Stretching"));
+  m_audio_playback_mode_box->setToolTip(
+      tr("<b>Direct Playback:</b> Audio is played unaltered at a fixed latency.<br><br>"
+         "<b>Audio Stretching:</b> Audio is stretched without changing pitch to match emulation "
+         "speed."));
+  audio_options_layout->addWidget(new QLabel(tr("Playback Mode:")), 1, 0);
+  audio_options_layout->addWidget(m_audio_playback_mode_box, 1, 1);
+
+  // Audio Playback Mode Stack
+  m_audio_playback_mode_stack = new QStackedWidget;
+  audio_options_layout->addWidget(m_audio_playback_mode_stack, 2, 0, 1, 2);
+
+  // Direct Playback Settings
+  m_direct_playback_box = new QGroupBox(tr("Direct Playback Settings"));
+  auto* direct_playback_layout = new QHBoxLayout(m_direct_playback_box);
+  m_direct_playback_latency = new QSlider(Qt::Horizontal);
+  m_direct_playback_indicator = new QLabel();
+  m_direct_playback_latency->setRange(8, 64);
+  m_direct_playback_latency->setSingleStep(4);
+  m_direct_playback_latency->setTickInterval(4);
+  m_direct_playback_latency->setTickPosition(QSlider::TicksBelow);
+  direct_playback_layout->addWidget(new QLabel(tr("Buffer:")));
+  direct_playback_layout->addWidget(m_direct_playback_latency);
+  direct_playback_layout->addWidget(m_direct_playback_indicator);
+  m_audio_playback_mode_stack->addWidget(m_direct_playback_box);
+  m_direct_playback_latency->setToolTip(
+      tr("Sets the buffer size in milliseconds for direct playback.<br><br>"
+         "Higher values may hide small lag spikes at the expense of increased latency."));
+
+  // Audio Stretching Settings
+  m_stretching_box = new QGroupBox(tr("Audio Stretching Settings"));
+  auto* stretching_layout = new QHBoxLayout(m_stretching_box);
   m_stretching_buffer_slider = new QSlider(Qt::Horizontal);
   m_stretching_buffer_indicator = new QLabel();
-  m_stretching_buffer_label = new QLabel(tr("Buffer Size:"));
-  stretching_box->setLayout(stretching_layout);
+  m_stretching_buffer_slider->setRange(48, 256);
+  m_stretching_buffer_slider->setSingleStep(8);
+  m_stretching_buffer_slider->setTickInterval(16);
+  m_stretching_buffer_slider->setTickPosition(QSlider::TicksBelow);
+  stretching_layout->addWidget(new QLabel(tr("Buffer:")));
+  stretching_layout->addWidget(m_stretching_buffer_slider);
+  stretching_layout->addWidget(m_stretching_buffer_indicator);
+  m_audio_playback_mode_stack->addWidget(m_stretching_box);
 
-  m_stretching_buffer_slider->setMinimum(5);
-  m_stretching_buffer_slider->setMaximum(300);
-
-  m_stretching_enable->setToolTip(tr("Enables stretching of the audio to match emulation speed."));
-  m_stretching_buffer_slider->setToolTip(tr("Size of stretch buffer in milliseconds. "
-                                            "Values too low may cause audio crackling."));
-
-  stretching_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
-  stretching_layout->addWidget(m_stretching_buffer_label, 1, 0);
-  stretching_layout->addWidget(m_stretching_buffer_slider, 1, 1);
-  stretching_layout->addWidget(m_stretching_buffer_indicator, 1, 2);
+  m_stretching_buffer_slider->setToolTip(
+      tr("Sets the buffer size in milliseconds for audio stretching.<br><br>"
+         "Higher values may reduce audio crackling at the expense of increased latency."));
 
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   auto* const main_vbox_layout = new QVBoxLayout;
   main_vbox_layout->addWidget(dsp_box);
   main_vbox_layout->addWidget(backend_box);
-  main_vbox_layout->addWidget(stretching_box);
+  main_vbox_layout->addWidget(m_audio_group);
 
   m_main_layout = new QHBoxLayout;
   m_main_layout->addLayout(main_vbox_layout);
@@ -181,13 +231,18 @@ void AudioPane::ConnectWidgets()
   {
     connect(m_latency_spin, &QSpinBox::valueChanged, this, &AudioPane::SaveSettings);
   }
-  connect(m_stretching_buffer_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
+
   connect(m_dolby_pro_logic, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
   connect(m_dolby_quality_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
-  connect(m_stretching_enable, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_hle, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_lle, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
   connect(m_dsp_interpreter, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
+
+  connect(m_audio_resampling_box, &QComboBox::currentIndexChanged, this, &AudioPane::SaveSettings);
+  connect(m_audio_playback_mode_box, &QComboBox::currentIndexChanged, this,
+          &AudioPane::SaveSettings);
+  connect(m_direct_playback_latency, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
+  connect(m_stretching_buffer_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
 
 #ifdef _WIN32
   connect(m_wasapi_device_combo, &QComboBox::currentIndexChanged, this, &AudioPane::SaveSettings);
@@ -243,13 +298,36 @@ void AudioPane::LoadSettings()
   if (m_latency_control_supported)
     m_latency_spin->setValue(Config::Get(Config::MAIN_AUDIO_LATENCY));
 
-  // Stretch
-  m_stretching_enable->setChecked(Config::Get(Config::MAIN_AUDIO_STRETCH));
-  m_stretching_buffer_label->setEnabled(m_stretching_enable->isChecked());
+  // Resampling
+  switch (Config::Get(Config::MAIN_AUDIO_SINC_WINDOW_WIDTH))
+  {
+  default:
+  case 6:
+    m_audio_resampling_box->setCurrentIndex(0);
+    break;
+  case 16:
+    m_audio_resampling_box->setCurrentIndex(1);
+    break;
+  case 48:
+    m_audio_resampling_box->setCurrentIndex(2);
+    break;
+  case 128:
+    m_audio_resampling_box->setCurrentIndex(3);
+    break;
+  }
+
+  // Playback Mode
+  int playback_mode = Config::Get(Config::MAIN_AUDIO_STRETCH) ? 1 : 0;
+  m_audio_playback_mode_box->setCurrentIndex(playback_mode);
+  m_audio_playback_mode_stack->setCurrentIndex(playback_mode);
+
+  m_direct_playback_latency->setValue(Config::Get(Config::MAIN_AUDIO_DIRECT_LATENCY));
+  m_direct_playback_indicator->setText(
+      tr("%1 ms").arg(Config::Get(Config::MAIN_AUDIO_DIRECT_LATENCY)));
+
   m_stretching_buffer_slider->setValue(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY));
-  m_stretching_buffer_slider->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setText(tr("%1 ms").arg(m_stretching_buffer_slider->value()));
+  m_stretching_buffer_indicator->setText(
+      tr("%1 ms").arg(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY)));
 
 #ifdef _WIN32
   if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
@@ -311,12 +389,34 @@ void AudioPane::SaveSettings()
   if (m_latency_control_supported)
     Config::SetBaseOrCurrent(Config::MAIN_AUDIO_LATENCY, m_latency_spin->value());
 
+  // Resampling
+  switch (m_audio_resampling_box->currentIndex())
+  {
+  default:
+  case 0:
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_SINC_WINDOW_WIDTH, 6);
+    break;
+  case 1:
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_SINC_WINDOW_WIDTH, 16);
+    break;
+  case 2:
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_SINC_WINDOW_WIDTH, 48);
+    break;
+  case 3:
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_SINC_WINDOW_WIDTH, 128);
+    break;
+  }
+
   // Stretch
-  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_STRETCH, m_stretching_enable->isChecked());
+  int playback_mode = m_audio_playback_mode_box->currentIndex();
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_STRETCH, playback_mode == 1);
+  m_audio_playback_mode_stack->setCurrentIndex(playback_mode);
+
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_DIRECT_LATENCY, m_direct_playback_latency->value());
+  m_direct_playback_indicator->setText(
+      tr("%1 ms").arg(Config::Get(Config::MAIN_AUDIO_DIRECT_LATENCY)));
+
   Config::SetBaseOrCurrent(Config::MAIN_AUDIO_STRETCH_LATENCY, m_stretching_buffer_slider->value());
-  m_stretching_buffer_label->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_slider->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setEnabled(m_stretching_enable->isChecked());
   m_stretching_buffer_indicator->setText(
       tr("%1 ms").arg(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY)));
 
