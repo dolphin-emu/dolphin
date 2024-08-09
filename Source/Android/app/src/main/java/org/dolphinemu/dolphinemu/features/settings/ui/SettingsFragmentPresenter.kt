@@ -879,6 +879,22 @@ class SettingsFragmentPresenter(
                 0
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_EMULATE_WII_SPEAK,
+                R.string.emulate_wii_speak,
+                0
+            )
+        )
+        sl.add(
+            InvertedSwitchSetting(
+                context,
+                BooleanSetting.MAIN_WII_SPEAK_CONNECTED,
+                R.string.disconnect_wii_speak,
+                0
+            )
+        )
     }
 
     private fun addAdvancedSettings(sl: ArrayList<SettingsItem>) {
