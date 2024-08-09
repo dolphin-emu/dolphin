@@ -130,11 +130,17 @@
     <ClInclude Include="SDL\src\hidapi\hidapi\hidapi.h" />
     <ClInclude Include="SDL\src\hidapi\SDL_hidapi_c.h" />
     <ClInclude Include="SDL\src\joystick\controller_type.h" />
+    <ClInclude Include="SDL\src\joystick\hidapi\steam\controller_constants.h" />
+    <ClInclude Include="SDL\src\joystick\hidapi\steam\controller_structs.h" />
+    <ClInclude Include="SDL\src\joystick\hidapi\SDL_hidapi_nintendo.h" />
     <ClInclude Include="SDL\src\joystick\hidapi\SDL_hidapi_rumble.h" />
     <ClInclude Include="SDL\src\joystick\hidapi\SDL_hidapijoystick_c.h" />
+    <ClInclude Include="SDL\src\joystick\steam\SDL_steamcontroller.h" />
     <ClInclude Include="SDL\src\joystick\SDL_gamecontrollerdb.h" />
     <ClInclude Include="SDL\src\joystick\SDL_joystick_c.h" />
+    <ClInclude Include="SDL\src\joystick\SDL_steam_virtual_gamepad.h" />
     <ClInclude Include="SDL\src\joystick\SDL_sysjoystick.h" />
+    <ClInclude Include="SDL\src\joystick\controller_list.h" />
     <ClInclude Include="SDL\src\joystick\usb_ids.h" />
     <ClInclude Include="SDL\src\joystick\virtual\SDL_virtualjoystick_c.h" />
     <ClInclude Include="SDL\src\joystick\windows\SDL_dinputjoystick_c.h" />
@@ -185,6 +191,13 @@
     <ClInclude Include="SDL\src\video\dummy\SDL_nullevents_c.h" />
     <ClInclude Include="SDL\src\video\dummy\SDL_nullframebuffer_c.h" />
     <ClInclude Include="SDL\src\video\dummy\SDL_nullvideo.h" />
+    <ClInclude Include="SDL\src\video\khronos\vk_video\vulkan_video_codec_h264std.h" />
+    <ClInclude Include="SDL\src\video\khronos\vk_video\vulkan_video_codec_h264std_decode.h" />
+    <ClInclude Include="SDL\src\video\khronos\vk_video\vulkan_video_codec_h264std_encode.h" />
+    <ClInclude Include="SDL\src\video\khronos\vk_video\vulkan_video_codec_h265std.h" />
+    <ClInclude Include="SDL\src\video\khronos\vk_video\vulkan_video_codec_h265std_decode.h" />
+    <ClInclude Include="SDL\src\video\khronos\vk_video\vulkan_video_codec_h265std_encode.h" />
+    <ClInclude Include="SDL\src\video\khronos\vk_video\vulkan_video_codecs_common.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vk_icd.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vk_layer.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vk_platform.h" />
@@ -198,6 +211,7 @@
     <ClInclude Include="SDL\src\video\khronos\vulkan\vulkan_ios.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vulkan_macos.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vulkan_metal.h" />
+    <ClInclude Include="SDL\src\video\khronos\vulkan\vulkan_screen.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vulkan_vi.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vulkan_wayland.h" />
     <ClInclude Include="SDL\src\video\khronos\vulkan\vulkan_win32.h" />
@@ -230,14 +244,19 @@
     <ClInclude Include="SDL\src\video\windows\SDL_windowsopengl.h" />
     <ClInclude Include="SDL\src\video\windows\SDL_windowsopengles.h" />
     <ClInclude Include="SDL\src\video\windows\SDL_windowsshape.h" />
-    <ClInclude Include="SDL\src\video\windows\SDL_windowstaskdialog.h" />
     <ClInclude Include="SDL\src\video\windows\SDL_windowsvideo.h" />
     <ClInclude Include="SDL\src\video\windows\SDL_windowsvulkan.h" />
     <ClInclude Include="SDL\src\video\windows\SDL_windowswindow.h" />
     <ClInclude Include="SDL\src\video\windows\wmmsg.h" />
-    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_sse_func.h" />
-    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_std_func.h" />
     <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_common.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_internal.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_lsx.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_lsx_func.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_sse.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_sse_func.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_std.h" />
+    <ClInclude Include="SDL\src\video\yuv2rgb\yuv_rgb_std_func.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SDL\src\atomic\SDL_atomic.c" />
@@ -290,14 +309,17 @@
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_shield.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_stadia.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_steam.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_steamdeck.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_switch.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_wii.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_xbox360.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_xbox360w.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_xboxone.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapijoystick.c" />
+    <ClCompile Include="SDL\src\joystick\steam\SDL_steamcontroller.c" />
     <ClCompile Include="SDL\src\joystick\SDL_gamecontroller.c" />
     <ClCompile Include="SDL\src\joystick\SDL_joystick.c" />
+    <ClCompile Include="SDL\src\joystick\SDL_steam_virtual_gamepad.c" />
     <ClCompile Include="SDL\src\joystick\virtual\SDL_virtualjoystick.c" />
     <ClCompile Include="SDL\src\joystick\windows\SDL_dinputjoystick.c" />
     <ClCompile Include="SDL\src\joystick\windows\SDL_rawinputjoystick.c" />
@@ -400,7 +422,9 @@
     <ClCompile Include="SDL\src\video\windows\SDL_windowsvideo.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowsvulkan.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowswindow.c" />
-    <ClCompile Include="SDL\src\video\yuv2rgb\yuv_rgb.c" />
+    <ClCompile Include="SDL\src\video\yuv2rgb\yuv_rgb_lsx.c" />
+    <ClCompile Include="SDL\src\video\yuv2rgb\yuv_rgb_sse.c" />
+    <ClCompile Include="SDL\src\video\yuv2rgb\yuv_rgb_std.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
