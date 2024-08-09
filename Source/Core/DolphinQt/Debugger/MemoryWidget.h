@@ -9,6 +9,7 @@
 #include <QDockWidget>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/VideoEvents.h"
 
 class MemoryViewWidget;
 class QCheckBox;
@@ -77,7 +78,11 @@ private:
   void FindValue(bool next);
 
   void closeEvent(QCloseEvent*) override;
+  void hideEvent(QHideEvent* event) override;
   void showEvent(QShowEvent* event) override;
+  void RegisterAfterFrameEventCallback();
+  void RemoveAfterFrameEventCallback();
+  void AutoUpdateTable();
 
   Core::System& m_system;
 
@@ -110,4 +115,7 @@ private:
   QRadioButton* m_bp_read_only;
   QRadioButton* m_bp_write_only;
   QCheckBox* m_bp_log_check;
+  Common::EventHook m_VI_end_field_event;
+
+  bool m_auto_update_enabled = true;
 };
