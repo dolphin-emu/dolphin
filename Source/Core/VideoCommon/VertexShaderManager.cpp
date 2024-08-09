@@ -335,27 +335,14 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   {
     xf_state_manager.ResetViewportChange();
 
-    // The console GPU places the pixel center at 7/12 unless antialiasing
-    // is enabled, while D3D and OpenGL place it at 0.5. See the comment
-    // in VertexShaderGen.cpp for details.
     // NOTE: If we ever emulate antialiasing, the sample locations set by
     // BP registers 0x01-0x04 need to be considered here.
-    const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-    const bool bUseVertexRounding = g_ActiveConfig.UseVertexRounding();
-    const float viewport_width = bUseVertexRounding ?
-                                     (2.f * xfmem.viewport.wd) :
-                                     g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.wd);
-    const float viewport_height = bUseVertexRounding ?
-                                      (2.f * xfmem.viewport.ht) :
-                                      g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.ht);
-    const float pixel_size_x = 2.f / viewport_width;
-    const float pixel_size_y = 2.f / viewport_height;
-    constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
-    constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
+    constants.pixelpositioncorrection[0] = xfmem.viewport.wd >= 0 ? 1.0f : -1.0f;
+    constants.pixelpositioncorrection[1] = xfmem.viewport.ht >= 0 ? 1.0f : -1.0f;
 
     // By default we don't change the depth value at all in the vertex shader.
-    constants.pixelcentercorrection[2] = 1.0f;
-    constants.pixelcentercorrection[3] = 0.0f;
+    constants.pixelpositioncorrection[2] = 1.0f;
+    constants.pixelpositioncorrection[3] = 0.0f;
 
     constants.viewport[0] = (2.f * xfmem.viewport.wd);
     constants.viewport[1] = (2.f * xfmem.viewport.ht);
@@ -368,19 +355,19 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       {
         // Sometimes the console also tries to use the reversed-Z trick. We can only do
         // that with the expected accuracy if the backend can reverse the depth range.
-        constants.pixelcentercorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
+        constants.pixelpositioncorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
         if (xfmem.viewport.zRange < 0.0f)
-          constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
+          constants.pixelpositioncorrection[3] = xfmem.viewport.farZ / 16777215.0f;
         else
-          constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+          constants.pixelpositioncorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
       }
       else
       {
         // For backends that don't support reversing the depth range we can still render
         // cases where the console uses the reversed-Z trick. But we simply can't provide
         // the expected accuracy, which might result in z-fighting.
-        constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
-        constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+        constants.pixelpositioncorrection[2] = xfmem.viewport.zRange / 16777215.0f;
+        constants.pixelpositioncorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
       }
     }
 
