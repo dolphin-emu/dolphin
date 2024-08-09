@@ -887,6 +887,11 @@ set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")
 set(CPACK_SOURCE_IGNORE_FILES  "\\\\.#;/#;.*~;\\\\.swp;/\\\\.git")
 list(APPEND CPACK_SOURCE_IGNORE_FILES "${CMAKE_BINARY_DIR}")
 
+# Additional options generated at cpack generation time (like version)
+configure_file("${PROJECT_SOURCE_DIR}/CMake/CPackProjectConfig.cmake.in"
+	"${PROJECT_BINARY_DIR}/CMake/CPackProjectConfig.cmake" @ONLY)
+set(CPACK_PROJECT_CONFIG_FILE "${PROJECT_BINARY_DIR}/CMake/CPackProjectConfig.cmake")
+
 # CPack must be included after the CPACK_* variables are set in order for those
 # variables to take effect.
 Include(CPack)
