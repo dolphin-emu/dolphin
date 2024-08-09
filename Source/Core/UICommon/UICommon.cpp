@@ -424,7 +424,7 @@ void SetUserDirectory(std::string custom_path)
     //    -> Use GetExeDirectory()/User
     // 2. $DOLPHIN_EMU_USERPATH is set
     //    -> Use $DOLPHIN_EMU_USERPATH
-    // 3. ~/.dolphin-emu directory exists
+    // 3. ~/.dolphin-emu directory exists, and we're not in flatpak
     //    -> Use ~/.dolphin-emu
     // 4. Default
     //    -> Use XDG basedir, see
@@ -457,7 +457,7 @@ void SetUserDirectory(std::string custom_path)
     {
       user_path = home_path + "." NORMAL_USER_DIR DIR_SEP;
 
-      if (!File::Exists(user_path))
+      if (File::Exists("/.flatpak-info") || !File::Exists(user_path))
       {
         const char* data_home = getenv("XDG_DATA_HOME");
         std::string data_path =
