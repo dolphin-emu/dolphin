@@ -98,6 +98,7 @@ public:
     bool all_leaderboards = false;
     std::set<AchievementId> leaderboards{};
     bool rich_presence = false;
+    int failed_login_code = 0;
   };
   using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
