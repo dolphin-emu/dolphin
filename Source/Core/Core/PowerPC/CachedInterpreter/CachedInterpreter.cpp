@@ -89,12 +89,23 @@ void CachedInterpreter::SingleStep()
   ExecuteOneBlock();
 }
 
-s32 CachedInterpreter::EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlockOperands& operands)
+s32 CachedInterpreter::StartProfiledBlock(PowerPC::PowerPCState& ppc_state,
+                                          const StartProfiledBlockOperands& operands)
 {
-  const auto& [downcount, num_load_stores, num_fp_inst] = operands;
+  JitBlock::ProfileData::BeginProfiling(operands.profile_data);
+  return sizeof(AnyCallback) + sizeof(operands);
+}
+
+template <bool profiled>
+s32 CachedInterpreter::EndBlock(PowerPC::PowerPCState& ppc_state,
+                                const EndBlockOperands<profiled>& operands)
+{
   ppc_state.pc = ppc_state.npc;
-  ppc_state.downcount -= downcount;
-  PowerPC::UpdatePerformanceMonitor(downcount, num_load_stores, num_fp_inst, ppc_state);
+  ppc_state.downcount -= operands.downcount;
+  PowerPC::UpdatePerformanceMonitor(operands.downcount, operands.num_load_stores,
+                                    operands.num_fp_inst, ppc_state);
+  if constexpr (profiled)
+    JitBlock::ProfileData::EndProfiling(operands.profile_data, operands.downcount);
   return 0;
 }
 
@@ -200,8 +211,21 @@ bool CachedInterpreter::HandleFunctionHooking(u32 address)
     return false;
 
   js.downcountAmount += js.st.numCycles;
-  Write(EndBlock, {js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst});
+  WriteEndBlock();
   return true;
+}
+
+void CachedInterpreter::WriteEndBlock()
+{
+  if (IsProfilingEnabled())
+  {
+    Write(EndBlock<true>, {{js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst},
+                           js.curBlock->profile_data.get()});
+  }
+  else
+  {
+    Write(EndBlock<false>, {js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst});
+  }
 }
 
 bool CachedInterpreter::SetEmitterStateToFreeCodeRegion()
@@ -306,6 +330,9 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   auto& cpu = m_system.GetCPU();
   auto& breakpoints = power_pc.GetBreakPoints();
 
+  if (IsProfilingEnabled())
+    Write(StartProfiledBlock, {js.curBlock->profile_data.get()});
+
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
@@ -357,13 +384,13 @@ bool CachedInterpreter::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       if (op.branchIsIdleLoop)
         Write(CheckIdle, {m_system.GetCoreTiming(), js.blockStart});
       if (op.canEndBlock)
-        Write(EndBlock, {js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst});
+        WriteEndBlock();
     }
   }
   if (code_block.m_broken)
   {
     Write(WriteBrokenBlockNPC, {nextPC});
-    Write(EndBlock, {js.downcountAmount, js.numLoadStoreInst, js.numFloatingPointInst});
+    WriteEndBlock();
   }
 
   if (HasWriteFailed())

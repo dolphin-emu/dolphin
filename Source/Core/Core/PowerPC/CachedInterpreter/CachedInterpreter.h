@@ -54,6 +54,7 @@ private:
   void ExecuteOneBlock();
 
   bool HandleFunctionHooking(u32 address);
+  void WriteEndBlock();
 
   // Finds a free memory region and sets the code emitter to point at that region.
   // Returns false if no free memory region can be found.
@@ -62,6 +63,8 @@ private:
   void FreeRanges();
   void ResetFreeMemoryRanges();
 
+  struct StartProfiledBlockOperands;
+  template <bool profiled>
   struct EndBlockOperands;
   struct InterpretOperands;
   struct InterpretAndCheckExceptionsOperands;
@@ -70,7 +73,10 @@ private:
   struct CheckHaltOperands;
   struct CheckIdleOperands;
 
-  static s32 EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlockOperands& operands);
+  static s32 StartProfiledBlock(PowerPC::PowerPCState& ppc_state,
+                                const StartProfiledBlockOperands& profile_data);
+  template <bool profiled>
+  static s32 EndBlock(PowerPC::PowerPCState& ppc_state, const EndBlockOperands<profiled>& operands);
   template <bool write_pc>
   static s32 Interpret(PowerPC::PowerPCState& ppc_state, const InterpretOperands& operands);
   template <bool write_pc>
@@ -87,12 +93,24 @@ private:
   CachedInterpreterBlockCache m_block_cache;
 };
 
-struct CachedInterpreter::EndBlockOperands
+struct CachedInterpreter::StartProfiledBlockOperands
+{
+  JitBlock::ProfileData* profile_data;
+};
+
+template <>
+struct CachedInterpreter::EndBlockOperands<false>
 {
   u32 downcount;
   u32 num_load_stores;
   u32 num_fp_inst;
   u32 : 32;
+};
+
+template <>
+struct CachedInterpreter::EndBlockOperands<true> : CachedInterpreter::EndBlockOperands<false>
+{
+  JitBlock::ProfileData* profile_data;
 };
 
 struct CachedInterpreter::InterpretOperands
