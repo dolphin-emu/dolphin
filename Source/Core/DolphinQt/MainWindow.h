@@ -176,6 +176,7 @@ private:
 #ifdef USE_RETRO_ACHIEVEMENTS
   void ShowAchievementsWindow();
   void ShowAchievementSettings();
+  void ToggleHardcore();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   void NetPlayInit();

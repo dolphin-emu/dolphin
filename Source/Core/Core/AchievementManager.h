@@ -34,6 +34,10 @@
 #include "DiscIO/Volume.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include <rcheevos/include/rc_client_raintegration.h>
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
 namespace Core
 {
 class CPUThreadGuard;
@@ -102,7 +106,7 @@ public:
   using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
   static AchievementManager& GetInstance();
-  void Init();
+  void Init(void* hwnd);
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool HasAPIToken() const;
@@ -139,6 +143,17 @@ public:
   void ResetChallengesUpdated();
   const std::unordered_set<AchievementId>& GetActiveChallenges() const;
   std::vector<std::string> GetActiveLeaderboards() const;
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  const rc_client_raintegration_menu_t* GetDevelopmentMenu();
+  u32 ActivateDevMenuItem(u32 menu_item_id);
+  void SetDevMenuUpdateCallback(std::function<void(void)> callback)
+  {
+    m_dev_menu_callback = callback;
+  };
+  void SetHardcoreCallback(std::function<void(void)> callback) { m_hardcore_callback = callback; };
+  bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); };
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   void DoState(PointerWrap& p);
 
@@ -204,6 +219,15 @@ private:
                   const UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  static void LoadIntegrationCallback(int result, const char* error_message, rc_client_t* client,
+                                      void* userdata);
+  static void RAIntegrationEventHandler(const rc_client_raintegration_event_t* event,
+                                        rc_client_t* client);
+  static void MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
+  static void GameTitleEstimateHandler(char* buffer, u32 buffer_size, rc_client_t* client);
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
   rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
   std::atomic<Core::System*> m_system{};
@@ -235,6 +259,14 @@ private:
   bool m_challenges_updated = false;
   std::unordered_set<AchievementId> m_active_challenges;
   std::vector<rc_client_leaderboard_tracker_t> m_active_leaderboards;
+
+  bool m_dll_found = false;
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  std::function<void(void)> m_dev_menu_callback;
+  std::function<void(void)> m_hardcore_callback;
+  std::vector<u8> m_cloned_memory;
+  std::string m_title_estimate;
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
