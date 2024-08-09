@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <bit>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -166,50 +167,25 @@ inline auto BitCastPtr(PtrType* ptr) noexcept -> BitCastPtrType<T, PtrType>
 }
 
 // Similar to BitCastPtr, but specifically for aliasing structs to arrays.
-template <typename ArrayType, typename T,
-          typename Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
-inline auto BitCastToArray(const T& obj) noexcept -> Container
+template <typename ValueType, typename From,
+          typename Container = std::array<ValueType, sizeof(From) / sizeof(ValueType)>>
+[[nodiscard]] constexpr Container BitCastToArray(const From& obj) noexcept
 {
-  static_assert(sizeof(T) % sizeof(ArrayType) == 0,
-                "Size of array type must be a factor of size of source type.");
-  static_assert(std::is_trivially_copyable<T>(),
-                "BitCastToArray source type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<Container>(),
-                "BitCastToArray array type must be trivially copyable.");
-
-  Container result;
-  std::memcpy(result.data(), &obj, sizeof(T));
-  return result;
+  return std::bit_cast<Container>(obj);
 }
 
-template <typename ArrayType, typename T,
-          typename Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
-inline void BitCastFromArray(const Container& array, T& obj) noexcept
+template <typename ValueType, typename To,
+          typename Container = std::array<ValueType, sizeof(To) / sizeof(ValueType)>>
+constexpr void BitCastFromArray(const Container& array, To& obj) noexcept
 {
-  static_assert(sizeof(T) % sizeof(ArrayType) == 0,
-                "Size of array type must be a factor of size of destination type.");
-  static_assert(std::is_trivially_copyable<Container>(),
-                "BitCastFromArray array type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<T>(),
-                "BitCastFromArray destination type must be trivially copyable.");
-
-  std::memcpy(&obj, array.data(), sizeof(T));
+  obj = std::bit_cast<To>(array);
 }
 
-template <typename ArrayType, typename T,
-          typename Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
-inline auto BitCastFromArray(const Container& array) noexcept -> T
+template <typename ValueType, typename To,
+          typename Container = std::array<ValueType, sizeof(To) / sizeof(ValueType)>>
+[[nodiscard]] constexpr To BitCastFromArray(const Container& array) noexcept
 {
-  static_assert(sizeof(T) % sizeof(ArrayType) == 0,
-                "Size of array type must be a factor of size of destination type.");
-  static_assert(std::is_trivially_copyable<Container>(),
-                "BitCastFromArray array type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<T>(),
-                "BitCastFromArray destination type must be trivially copyable.");
-
-  T obj;
-  std::memcpy(&obj, array.data(), sizeof(T));
-  return obj;
+  return std::bit_cast<To>(array);
 }
 
 template <typename T>
