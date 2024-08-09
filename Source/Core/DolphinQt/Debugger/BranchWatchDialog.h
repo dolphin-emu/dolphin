@@ -93,12 +93,20 @@ private:
   void OnTableDeleteKeypress();
   void OnTableSetBLR();
   void OnTableSetNOP();
+  void OnTableInvertCondition() const;
+  void OnTableInvertDecrementCheck() const;
+  void OnTableMakeUnconditional() const;
   void OnTableCopyAddress();
   void OnTableSetBreakpointBreak();
   void OnTableSetBreakpointLog();
   void OnTableSetBreakpointBoth();
 
-  void SaveSettings();
+  void ConnectSlots();
+  void DisconnectSlots();
+  void Show();
+  void Hide();
+  void LoadQSettings();
+  void SaveQSettings() const;
 
 public:
   // TODO: Step doesn't cause EmulationStateChanged to be emitted, so it has to call this manually.
@@ -111,9 +119,16 @@ private:
   void Load(const Core::CPUThreadGuard& guard, const std::string& filepath);
   void AutoSave(const Core::CPUThreadGuard& guard);
   void SetStubPatches(u32 value) const;
+  void SetEditPatches(u32 (*transform)(u32)) const;
   void SetBreakpoints(bool break_on_hit, bool log_on_hit) const;
 
-  [[nodiscard]] QMenu* GetTableContextMenu(const QModelIndex& index);
+  void SetBreakpointMenuActionsIcons();
+  QMenu* GetTableContextMenu(const QModelIndex& index);
+  QMenu* GetTableContextMenu_Instruction(bool core_initialized);
+  QMenu* GetTableContextMenu_Condition(bool core_initialized);
+  QMenu* GetTableContextMenu_Origin(bool core_initialized);
+  QMenu* GetTableContextMenu_Destin(bool core_initialized);
+  QMenu* GetTableContextMenu_Symbol(bool core_initialized);
 
   Core::System& m_system;
   Core::BranchWatch& m_branch_watch;
@@ -122,6 +137,9 @@ private:
   QPushButton *m_btn_start_pause, *m_btn_clear_watch, *m_btn_path_was_taken, *m_btn_path_not_taken,
       *m_btn_was_overwritten, *m_btn_not_overwritten, *m_btn_wipe_recent_hits;
   QAction* m_act_autosave;
+  QAction* m_act_invert_condition;
+  QAction* m_act_invert_decrement_check;
+  QAction* m_act_make_unconditional;
   QAction* m_act_insert_nop;
   QAction* m_act_insert_blr;
   QAction* m_act_copy_address;
@@ -129,10 +147,14 @@ private:
   QAction* m_act_break_on_hit;
   QAction* m_act_log_on_hit;
   QAction* m_act_both_on_hit;
-  QMenu* m_mnu_table_context = nullptr;
-  QMenu* m_mnu_column_visibility;
+  QMenu *m_mnu_table_context_instruction, *m_mnu_table_context_condition,
+      *m_mnu_table_context_origin, *m_mnu_table_context_destin_or_symbol,
+      *m_mnu_table_context_other;
+  QMenu *m_mnu_column_visibility, *m_mnu_toolbar_visibility;
 
   QToolBar* m_control_toolbar;
+  QAction *m_act_branch_type_filters, *m_act_origin_destin_filters, *m_act_condition_filters,
+      *m_act_misc_controls;
   QTableView* m_table_view;
   BranchWatchProxyModel* m_table_proxy;
   BranchWatchTableModel* m_table_model;

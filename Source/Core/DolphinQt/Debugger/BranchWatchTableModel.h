@@ -15,6 +15,8 @@
 namespace Core
 {
 class BranchWatch;
+enum class BranchWatchSelectionInspection : u8;
+struct BranchWatchSelectionValueType;
 class CPUThreadGuard;
 class System;
 }  // namespace Core
@@ -104,9 +106,12 @@ public:
   void UpdateHits();
   void SetInspected(const QModelIndex& index);
 
+  const Core::BranchWatchSelectionValueType&
+  GetBranchWatchSelection(const QModelIndex& index) const;
   const SymbolList& GetSymbolList() const { return m_symbol_list; }
 
 private:
+  void SetInspected(const QModelIndex& index, Core::BranchWatchSelectionInspection inspection);
   void SetOriginInspected(u32 origin_addr);
   void SetDestinInspected(u32 destin_addr, bool nested);
   void SetSymbolInspected(u32 symbol_addr, bool nested);
