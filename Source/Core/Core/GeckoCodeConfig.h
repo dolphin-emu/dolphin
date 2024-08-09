@@ -16,7 +16,8 @@ class IniFile;
 
 namespace Gecko
 {
-std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni);
+std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni,
+                                 const std::string& game_id);
 std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded,
                                      bool use_https = true);
 void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes);

@@ -2068,7 +2068,7 @@ bool NetPlayServer::SyncCodes()
   {
     // Create a Gecko Code Vector with just the active codes
     std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni, game_id));
 
     // Determine Codelist Size
     u16 codelines = 0;

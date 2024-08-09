@@ -25,6 +25,7 @@
 #include "Common/WorkQueueThread.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PatchEngine.h"
@@ -357,8 +358,9 @@ bool AchievementManager::IsHardcoreModeActive() const
   return rc_client_is_processing_required(m_client);
 }
 
-void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
-                                               const std::string& game_ini_id) const
+template <typename T>
+void AchievementManager::FilterApprovedIni(std::vector<T>& patches,
+                                           const std::string& game_ini_id) const
 {
   if (patches.empty())
   {
@@ -382,17 +384,7 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
 
     if (known_id)
     {
-      auto context = Common::SHA1::CreateContext();
-      context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch_itr->entries.size())));
-      for (const auto& entry : patch_itr->entries)
-      {
-        context->Update(Common::BitCastToArray<u8>(entry.type));
-        context->Update(Common::BitCastToArray<u8>(entry.address));
-        context->Update(Common::BitCastToArray<u8>(entry.value));
-        context->Update(Common::BitCastToArray<u8>(entry.comparand));
-        context->Update(Common::BitCastToArray<u8>(entry.conditional));
-      }
-      auto digest = context->Finish();
+      auto digest = GetPatchHash(*patch_itr);
 
       verified = m_ini_root->get(game_ini_id).contains(Common::SHA1::DigestToString(digest));
     }
@@ -401,7 +393,7 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
     {
       patch_itr = patches.erase(patch_itr);
       OSD::AddMessage(
-          fmt::format("Failed to verify patch {} from file {}.", patch_itr->name, game_ini_id),
+          fmt::format("Failed to verify code {} from file {}.", patch_itr->name, game_ini_id),
           OSD::Duration::VERY_LONG, OSD::Color::RED);
       OSD::AddMessage("Disable hardcore mode to enable this patch.", OSD::Duration::VERY_LONG,
                       OSD::Color::RED);
@@ -411,6 +403,45 @@ void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& 
       patch_itr++;
     }
   }
+}
+
+Common::SHA1::Digest AchievementManager::GetPatchHash(const PatchEngine::Patch& patch) const
+{
+  auto context = Common::SHA1::CreateContext();
+  context->Update(Common::BitCastToArray<u8>(static_cast<u64>(patch.entries.size())));
+  for (const auto& entry : patch.entries)
+  {
+    context->Update(Common::BitCastToArray<u8>(entry.type));
+    context->Update(Common::BitCastToArray<u8>(entry.address));
+    context->Update(Common::BitCastToArray<u8>(entry.value));
+    context->Update(Common::BitCastToArray<u8>(entry.comparand));
+    context->Update(Common::BitCastToArray<u8>(entry.conditional));
+  }
+  return context->Finish();
+}
+
+Common::SHA1::Digest AchievementManager::GetPatchHash(const Gecko::GeckoCode& code) const
+{
+  auto context = Common::SHA1::CreateContext();
+  context->Update(Common::BitCastToArray<u8>(static_cast<u64>(code.codes.size())));
+  for (const auto& entry : code.codes)
+  {
+    context->Update(Common::BitCastToArray<u8>(entry.address));
+    context->Update(Common::BitCastToArray<u8>(entry.data));
+  }
+  return context->Finish();
+}
+
+void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
+                                               const std::string& game_ini_id) const
+{
+  FilterApprovedIni(patches, game_ini_id);
+}
+
+void AchievementManager::FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
+                                                  const std::string& game_ini_id) const
+{
+  FilterApprovedIni(codes, game_ini_id);
 }
 
 void AchievementManager::SetSpectatorMode()

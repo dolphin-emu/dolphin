@@ -153,7 +153,8 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_loadCodes(JNIEnv
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini");
   const Common::IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, revision);
 
-  const std::vector<Gecko::GeckoCode> codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+  const std::vector<Gecko::GeckoCode> codes =
+      Gecko::LoadCodes(game_ini_default, game_ini_local, game_id);
 
   return VectorToJObjectArray(env, codes, IDCache::GetGeckoCheatClass(), GeckoCheatToJava);
 }

@@ -13,6 +13,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/AchievementManager.h"
 #include "Core/CheatCodes.h"
 
 namespace Gecko
@@ -127,7 +128,8 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
   return gcodes;
 }
 
-std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni)
+std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common::IniFile& localIni,
+                                 const std::string& game_id)
 {
   std::vector<GeckoCode> gcodes;
 
@@ -202,6 +204,13 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
         code.default_enabled = code.enabled;
     }
   }
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  {
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+    AchievementManager::GetInstance().FilterApprovedGeckoCodes(gcodes, game_id);
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   return gcodes;
 }
