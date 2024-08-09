@@ -9,10 +9,13 @@
 #include <picojson.h>
 
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureCache.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
 
 namespace GraphicsModActionFactory
 {
-std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data,
-                                          std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+std::unique_ptr<GraphicsModAction>
+Create(std::string_view name, const picojson::value& json_data,
+       std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+       std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache);
 }

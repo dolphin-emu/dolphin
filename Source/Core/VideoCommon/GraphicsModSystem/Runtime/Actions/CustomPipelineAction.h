@@ -14,6 +14,11 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/CustomPipeline.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
 
+namespace VideoCommon
+{
+class CustomTextureCache;
+}
+
 class CustomPipelineAction final : public GraphicsModAction
 {
 public:
@@ -24,17 +29,25 @@ public:
 
   static constexpr std::string_view factory_name = "custom_pipeline";
   static std::unique_ptr<CustomPipelineAction>
-  Create(const picojson::value& json_data,
-         std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  Create(const picojson::value& json_data, std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+         std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache);
   static std::unique_ptr<CustomPipelineAction>
-  Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
-  explicit CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+         std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache);
   CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                       std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache);
+  CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                       std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache,
                        std::vector<PipelinePassPassDescription> pass_descriptions);
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
 
+  void DrawImGui() override;
+  void SerializeToConfig(picojson::object* obj) override;
+  std::string GetFactoryName() const override;
+
 private:
   std::shared_ptr<VideoCommon::CustomAssetLibrary> m_library;
+  std::shared_ptr<VideoCommon::CustomTextureCache> m_texture_cache;
   std::vector<PipelinePassPassDescription> m_passes_config;
   std::vector<CustomPipeline> m_pipeline_passes;
 };

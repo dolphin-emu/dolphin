@@ -3,16 +3,20 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomMeshAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/ScaleAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/SkipAction.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/TransformAction.h"
 
 namespace GraphicsModActionFactory
 {
-std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data,
-                                          std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+std::unique_ptr<GraphicsModAction>
+Create(std::string_view name, const picojson::value& json_data,
+       std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+       std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache)
 {
   if (name == PrintAction::factory_name)
   {
@@ -32,7 +36,15 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   }
   else if (name == CustomPipelineAction::factory_name)
   {
-    return CustomPipelineAction::Create(json_data, std::move(library));
+    return CustomPipelineAction::Create(json_data, std::move(library), std::move(texture_cache));
+  }
+  else if (name == TransformAction::factory_name)
+  {
+    return TransformAction::Create(json_data);
+  }
+  else if (name == CustomMeshAction::factory_name)
+  {
+    return CustomMeshAction::Create(json_data, std::move(library), std::move(texture_cache));
   }
 
   return nullptr;

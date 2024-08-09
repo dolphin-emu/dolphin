@@ -11,6 +11,7 @@
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/Assets/TextureSamplerValue.h"
 
 namespace VideoCommon
 {
@@ -140,8 +141,17 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     if (json_value.is<std::string>())
     {
       ShaderProperty::Sampler2D sampler2d;
-      sampler2d.value = json_value.get<std::string>();
-      *value = std::move(sampler2d);
+      sampler2d.value.asset = json_value.get<std::string>();
+      *value = sampler2d;
+      return true;
+    }
+    else if (json_value.is<picojson::object>())
+    {
+      ShaderProperty::Sampler2D sampler2d;
+      auto texture_asset_obj = json_value.get<picojson::object>();
+      if (!TextureSamplerValue::FromJson(texture_asset_obj, &sampler2d.value))
+        return false;
+      *value = sampler2d;
       return true;
     }
   }
@@ -150,8 +160,17 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     if (json_value.is<std::string>())
     {
       ShaderProperty::Sampler2DArray sampler2darray;
-      sampler2darray.value = json_value.get<std::string>();
-      *value = std::move(sampler2darray);
+      sampler2darray.value.asset = json_value.get<std::string>();
+      *value = sampler2darray;
+      return true;
+    }
+    else if (json_value.is<picojson::object>())
+    {
+      ShaderProperty::Sampler2DArray sampler2darray;
+      auto texture_asset_obj = json_value.get<picojson::object>();
+      if (!TextureSamplerValue::FromJson(texture_asset_obj, &sampler2darray.value))
+        return false;
+      *value = sampler2darray;
       return true;
     }
   }
@@ -160,8 +179,17 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
     if (json_value.is<std::string>())
     {
       ShaderProperty::SamplerCube samplercube;
-      samplercube.value = json_value.get<std::string>();
-      *value = std::move(samplercube);
+      samplercube.value.asset = json_value.get<std::string>();
+      *value = samplercube;
+      return true;
+    }
+    else if (json_value.is<picojson::object>())
+    {
+      ShaderProperty::SamplerCube samplercube;
+      auto texture_asset_obj = json_value.get<picojson::object>();
+      if (!TextureSamplerValue::FromJson(texture_asset_obj, &samplercube.value))
+        return false;
+      *value = samplercube;
       return true;
     }
   }
@@ -251,6 +279,10 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
         return false;
       }
     }
+    else
+    {
+      property.m_default = ShaderProperty::GetDefaultValueFromTypeName(type);
+    }
 
     shader_properties->try_emplace(std::move(code_name), std::move(property));
   }
@@ -304,15 +336,21 @@ void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
 
     std::visit(overloaded{[&](const ShaderProperty::Sampler2D& default_value) {
                             json_property.emplace("type", "sampler2d");
-                            json_property.emplace("default", default_value.value);
+                            picojson::object texture_sampler_obj;
+                            TextureSamplerValue::ToJson(&texture_sampler_obj, default_value.value);
+                            json_property.emplace("default", picojson::value{texture_sampler_obj});
                           },
                           [&](const ShaderProperty::Sampler2DArray& default_value) {
                             json_property.emplace("type", "sampler2darray");
-                            json_property.emplace("default", default_value.value);
+                            picojson::object texture_sampler_obj;
+                            TextureSamplerValue::ToJson(&texture_sampler_obj, default_value.value);
+                            json_property.emplace("default", picojson::value{texture_sampler_obj});
                           },
                           [&](const ShaderProperty::SamplerCube& default_value) {
                             json_property.emplace("type", "samplercube");
-                            json_property.emplace("default", default_value.value);
+                            picojson::object texture_sampler_obj;
+                            TextureSamplerValue::ToJson(&texture_sampler_obj, default_value.value);
+                            json_property.emplace("default", picojson::value{texture_sampler_obj});
                           },
                           [&](s32 default_value) {
                             json_property.emplace("type", "int");

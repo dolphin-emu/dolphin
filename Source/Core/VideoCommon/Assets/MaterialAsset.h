@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/Assets/TextureSamplerValue.h"
 
 class ShaderCode;
 
@@ -23,9 +24,9 @@ struct MaterialProperty
   static void WriteToMemory(u8*& buffer, const MaterialProperty& property);
   static std::size_t GetMemorySize(const MaterialProperty& property);
   static void WriteAsShaderCode(ShaderCode& shader_source, const MaterialProperty& property);
-  using Value = std::variant<CustomAssetLibrary::AssetID, s32, std::array<s32, 2>,
-                             std::array<s32, 3>, std::array<s32, 4>, float, std::array<float, 2>,
-                             std::array<float, 3>, std::array<float, 4>, bool>;
+  using Value = std::variant<TextureSamplerValue, s32, std::array<s32, 2>, std::array<s32, 3>,
+                             std::array<s32, 4>, float, std::array<float, 2>, std::array<float, 3>,
+                             std::array<float, 4>, bool>;
   std::string m_code_name;
   Value m_value;
 };

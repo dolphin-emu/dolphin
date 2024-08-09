@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <picojson.h>
+
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 
 class GraphicsModAction
@@ -22,5 +24,16 @@ public:
   virtual void OnProjectionAndTexture(GraphicsModActionData::Projection*) {}
   virtual void OnTextureLoad(GraphicsModActionData::TextureLoad*) {}
   virtual void OnTextureCreate(GraphicsModActionData::TextureCreate*) {}
+  virtual void OnLight(GraphicsModActionData::Light*) {}
   virtual void OnFrameEnd() {}
+
+  void SetID(u64 id) { m_id = id; }
+  u64 GetID() const { return m_id; }
+
+  virtual void DrawImGui() {}
+  virtual void SerializeToConfig(picojson::object* obj) {}
+  virtual std::string GetFactoryName() const { return ""; }
+
+private:
+  u64 m_id = 0;
 };

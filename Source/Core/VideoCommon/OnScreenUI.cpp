@@ -17,6 +17,7 @@
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/FramebufferShaderGen.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -102,11 +103,19 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
   m_ready = true;
   BeginImGuiFrameUnlocked(width, height);  // lock is already held
 
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Initialize();
+
   return true;
 }
 
 OnScreenUI::~OnScreenUI()
 {
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Shutdown();
+
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
 
   ImGui::EndFrame();
@@ -311,6 +320,13 @@ void OnScreenUI::DrawDebugText()
     ImGui::End();
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  if (graphics_mod_editor.IsEnabled())
+  {
+    graphics_mod_editor.DrawImGui();
+  }
+
   if (g_ActiveConfig.bOverlayStats)
     g_stats.Display();
 
@@ -436,8 +452,8 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
       ImGuiKey_DownArrow, ImGuiKey_PageUp,    ImGuiKey_PageDown,   ImGuiKey_Home,
       ImGuiKey_End,       ImGuiKey_Insert,    ImGuiKey_Delete,     ImGuiKey_Backspace,
       ImGuiKey_Space,     ImGuiKey_Enter,     ImGuiKey_Escape,     ImGuiKey_KeypadEnter,
-      ImGuiKey_A,         ImGuiKey_C,         ImGuiKey_V,          ImGuiKey_X,
-      ImGuiKey_Y,         ImGuiKey_Z,
+      ImGuiMod_Ctrl,      ImGuiMod_Shift,     ImGuiKey_A,          ImGuiKey_C,
+      ImGuiKey_V,         ImGuiKey_X,         ImGuiKey_Y,          ImGuiKey_Z,
   };
 
   auto lock = GetImGuiLock();

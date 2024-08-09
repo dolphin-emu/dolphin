@@ -1,20 +1,42 @@
 {
-	"meta":
-	{
-		"title": "Native Resolution DOF",
-		"author": "Dolphin Team",
-		"description": "Scales DOF effects to draw at their native resolution, regardless of internal resolution.  Results in DOF looking much more natural at higher resolutions but may cause shimmering."
-	},
-	"features":
-	[
-		{
-			"group": "DOF",
-			"action": "scale",
-			"action_data": {
-				"X": 1.0,
-				"Y": 1.0,
-				"Z": 1.0
-			}
-		}
-	]
+  "actions": [
+    {
+      "data": {
+        "active": true,
+        "passes": [
+          {
+            "pixel_material_asset": "dof_material"
+          }
+        ]
+      },
+      "factory_name": "custom_pipeline"
+    }
+  ],
+  "assets": [
+    {
+      "data": {
+        "metadata": "dof.shader",
+        "shader": "dof.glsl"
+      },
+      "id": "dof_shader"
+    },
+    {
+      "data": {
+        "metadata": "dof.material"
+      },
+      "id": "dof_material"
+    }
+  ],
+  "meta": {
+    "author": "Dolphin Team",
+    "description": "Scales depth of field (dof) effects to draw at their native resolution, regardless of internal resolution.  Results for dof looking much more natural at higher resolutions.",
+    "mod_version": "1.0.0",
+    "schema_version": 1,
+    "title": "Native Resolution DOF"
+  },
+  "tag_to_actions": {
+    "Depth of Field": [
+      0
+    ]
+  }
 }

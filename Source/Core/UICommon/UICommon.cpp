@@ -77,6 +77,7 @@ static void CreateDumpPath(std::string path)
   File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_BRANCHWATCH_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDEBUG_JITBLOCKS_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPMESHES_IDX));
 }
 
 static void CreateLoadPath(std::string path)

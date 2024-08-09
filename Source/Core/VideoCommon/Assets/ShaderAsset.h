@@ -13,6 +13,7 @@
 #include <picojson.h>
 
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/Assets/TextureSamplerValue.h"
 
 namespace VideoCommon
 {
@@ -30,17 +31,17 @@ struct ShaderProperty
 
   struct Sampler2D
   {
-    CustomAssetLibrary::AssetID value;
+    TextureSamplerValue value;
   };
 
   struct Sampler2DArray
   {
-    CustomAssetLibrary::AssetID value;
+    TextureSamplerValue value;
   };
 
   struct SamplerCube
   {
-    CustomAssetLibrary::AssetID value;
+    TextureSamplerValue value;
   };
 
   using Value = std::variant<s32, std::array<s32, 2>, std::array<s32, 3>, std::array<s32, 4>, float,

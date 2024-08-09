@@ -12,6 +12,7 @@
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace
 {
@@ -175,12 +176,19 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
 
 void CustomPipeline::UpdatePixelData(
     VideoCommon::CustomAssetLoader& loader,
-    std::shared_ptr<VideoCommon::CustomAssetLibrary> library, std::span<const u32> texture_units,
+    std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+    std::shared_ptr<VideoCommon::CustomTextureCache> texture_cache,
+    Common::SmallVector<GraphicsModSystem::TextureView, 8> textures,
+    std::array<SamplerState, 8> samplers,
     const VideoCommon::CustomAssetLibrary::AssetID& material_to_load)
 {
   if (!m_pixel_material.m_asset || material_to_load != m_pixel_material.m_asset->GetAssetId())
   {
     m_pixel_material.m_asset = loader.LoadMaterial(material_to_load, library);
+  }
+  else
+  {
+    loader.AssetReferenced(m_pixel_material.m_asset->GetSessionId());
   }
 
   const auto material_data = m_pixel_material.m_asset->GetData();
@@ -199,7 +207,7 @@ void CustomPipeline::UpdatePixelData(
     {
       max_material_data_size += VideoCommon::MaterialProperty::GetMemorySize(property);
       VideoCommon::MaterialProperty::WriteAsShaderCode(m_last_generated_material_code, property);
-      if (std::holds_alternative<VideoCommon::CustomAssetLibrary::AssetID>(property.m_value))
+      if (std::holds_alternative<VideoCommon::TextureSamplerValue>(property.m_value))
       {
         texture_count++;
       }
@@ -216,6 +224,10 @@ void CustomPipeline::UpdatePixelData(
     m_pixel_shader.m_cached_write_time = m_pixel_shader.m_asset->GetLastLoadedTime();
 
     m_last_generated_shader_code = ShaderCode{};
+  }
+  else
+  {
+    loader.AssetReferenced(m_pixel_shader.m_asset->GetSessionId());
   }
 
   const auto shader_data = m_pixel_shader.m_asset->GetData();
@@ -245,113 +257,91 @@ void CustomPipeline::UpdatePixelData(
       return;
     }
 
-    if (auto* texture_asset_id =
-            std::get_if<VideoCommon::CustomAssetLibrary::AssetID>(&property.m_value))
+    if (auto* texture_sampler_value =
+            std::get_if<VideoCommon::TextureSamplerValue>(&property.m_value))
     {
-      if (*texture_asset_id != "")
+      if (texture_sampler_value->asset != "")
       {
-        auto asset = loader.LoadGameTexture(*texture_asset_id, library);
-        if (!asset)
+        AbstractTextureType texture_type = AbstractTextureType::Texture_2DArray;
+        if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
+                shader_it->second.m_default))
         {
-          return;
+          texture_type = AbstractTextureType::Texture_CubeMap;
         }
-
-        auto& texture_asset = m_game_textures[index];
-        if (!texture_asset ||
-            texture_asset->m_cached_asset.m_asset->GetLastLoadedTime() >
-                texture_asset->m_cached_asset.m_cached_write_time ||
-            *texture_asset_id != texture_asset->m_cached_asset.m_asset->GetAssetId())
+        else if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2D>(
+                     shader_it->second.m_default))
         {
-          if (!texture_asset)
-          {
-            texture_asset = CachedTextureAsset{};
-          }
-          const auto loaded_time = asset->GetLastLoadedTime();
-          texture_asset->m_cached_asset = VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{
-              std::move(asset), loaded_time};
-          texture_asset->m_texture.reset();
-
+          texture_type = AbstractTextureType::Texture_2D;
+        }
+        auto& texture_data = m_game_textures[index];
+        if (!texture_data)
+        {
+          texture_data = CustomPipeline::TextureData{};
           if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2D>(
                   shader_it->second.m_default))
           {
-            texture_asset->m_sampler_code =
+            texture_data->m_sampler_code =
                 fmt::format("SAMPLER_BINDING({}) uniform sampler2D samp_{};\n", sampler_index,
                             property.m_code_name);
-            texture_asset->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
+            texture_data->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
           }
           else if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2DArray>(
                        shader_it->second.m_default))
           {
-            texture_asset->m_sampler_code =
+            texture_data->m_sampler_code =
                 fmt::format("SAMPLER_BINDING({}) uniform sampler2DArray samp_{};\n", sampler_index,
                             property.m_code_name);
-            texture_asset->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
+            texture_data->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
           }
           else if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
                        shader_it->second.m_default))
           {
-            texture_asset->m_sampler_code =
+            texture_data->m_sampler_code =
                 fmt::format("SAMPLER_BINDING({}) uniform samplerCube samp_{};\n", sampler_index,
                             property.m_code_name);
-            texture_asset->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
+            texture_data->m_define_code = fmt::format("#define HAS_{} 1\n", property.m_code_name);
           }
         }
+        const auto texture_result = texture_cache->GetTextureAsset(
+            loader, library, texture_sampler_value->asset, texture_type);
 
-        const auto texture_data = texture_asset->m_cached_asset.m_asset->GetData();
-        if (!texture_data)
+        if (texture_result)
         {
-          return;
-        }
-
-        if (texture_asset->m_texture)
-        {
-          g_gfx->SetTexture(sampler_index, texture_asset->m_texture.get());
-          g_gfx->SetSamplerState(sampler_index, texture_data->m_sampler);
-        }
-        else
-        {
-          AbstractTextureType texture_type = AbstractTextureType::Texture_2DArray;
-          if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
-                  shader_it->second.m_default))
+          SamplerState state;
+          if (texture_sampler_value->sampler_origin ==
+              VideoCommon::TextureSamplerValue::SamplerOrigin::Asset)
           {
-            texture_type = AbstractTextureType::Texture_CubeMap;
-          }
-          else if (std::holds_alternative<VideoCommon::ShaderProperty::Sampler2D>(
-                       shader_it->second.m_default))
-          {
-            texture_type = AbstractTextureType::Texture_2D;
-          }
-
-          if (texture_data->m_texture.m_slices.empty() ||
-              texture_data->m_texture.m_slices[0].m_levels.empty())
-          {
-            return;
-          }
-
-          auto& first_slice = texture_data->m_texture.m_slices[0];
-          const TextureConfig texture_config(
-              first_slice.m_levels[0].width, first_slice.m_levels[0].height,
-              static_cast<u32>(first_slice.m_levels.size()),
-              static_cast<u32>(texture_data->m_texture.m_slices.size()), 1,
-              first_slice.m_levels[0].format, 0, texture_type);
-          texture_asset->m_texture = g_gfx->CreateTexture(
-              texture_config, fmt::format("Custom shader texture '{}'", property.m_code_name));
-          if (texture_asset->m_texture)
-          {
-            for (std::size_t slice_index = 0; slice_index < texture_data->m_texture.m_slices.size();
-                 slice_index++)
+            state = texture_result->data->m_sampler;
+            if (g_ActiveConfig.iMaxAnisotropy != 0 && !(state.tm0.min_filter == FilterMode::Near &&
+                                                        state.tm0.mag_filter == FilterMode::Near))
             {
-              auto& slice = texture_data->m_texture.m_slices[slice_index];
-              for (u32 level_index = 0; level_index < static_cast<u32>(slice.m_levels.size());
-                   ++level_index)
+              state.tm0.min_filter = FilterMode::Linear;
+              state.tm0.mag_filter = FilterMode::Linear;
+              if (!texture_result->data->m_texture.m_slices.empty() &&
+                  !texture_result->data->m_texture.m_slices[0].m_levels.empty())
               {
-                auto& level = slice.m_levels[level_index];
-                texture_asset->m_texture->Load(level_index, level.width, level.height,
-                                               level.row_length, level.data.data(),
-                                               level.data.size(), static_cast<u32>(slice_index));
+                state.tm0.mipmap_filter = FilterMode::Linear;
+              }
+              state.tm0.anisotropic_filtering = true;
+            }
+            else
+            {
+              state.tm0.anisotropic_filtering = false;
+            }
+          }
+          else
+          {
+            for (const auto& texture : textures)
+            {
+              if (texture.hash_name == texture_sampler_value->texture_hash)
+              {
+                state = samplers[texture.unit];
+                break;
               }
             }
           }
+          g_gfx->SetTexture(sampler_index, texture_result->texture);
+          g_gfx->SetSamplerState(sampler_index, state);
         }
 
         sampler_index++;
@@ -398,12 +388,12 @@ void CustomPipeline::UpdatePixelData(
       m_last_generated_shader_code.Write("{}", game_texture->m_define_code);
     }
 
-    for (std::size_t i = 0; i < texture_units.size(); i++)
+    for (std::size_t i = 0; i < textures.size(); i++)
     {
-      const auto& texture_unit = texture_units[i];
+      const auto& texture = textures[i];
       m_last_generated_shader_code.Write(
           "#define TEX_COORD{} data.texcoord[data.texmap_to_texcoord_index[{}]].xy\n", i,
-          texture_unit);
+          texture.unit);
     }
     m_last_generated_shader_code.Write("{}", color_shader_data);
   }

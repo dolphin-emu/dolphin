@@ -131,7 +131,18 @@ bool ParsePropertyValue(const CustomAssetLibrary::AssetID& asset_id,
   {
     if (json_value.is<std::string>())
     {
-      *value = json_value.get<std::string>();
+      TextureSamplerValue texture_sampler_value;
+      texture_sampler_value.asset = json_value.get<std::string>();
+      *value = texture_sampler_value;
+      return true;
+    }
+    else if (json_value.is<picojson::object>())
+    {
+      auto texture_asset_obj = json_value.get<picojson::object>();
+      TextureSamplerValue texture_sampler_value;
+      if (!TextureSamplerValue::FromJson(texture_asset_obj, &texture_sampler_value))
+        return false;
+      *value = texture_sampler_value;
       return true;
     }
   }
@@ -219,8 +230,7 @@ void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& proper
   };
   std::visit(
       overloaded{
-          [&](const CustomAssetLibrary::AssetID&) {},
-          [&](s32 value) { write_memory(&value, sizeof(s32)); },
+          [&](const TextureSamplerValue&) {}, [&](s32 value) { write_memory(&value, sizeof(s32)); },
           [&](const std::array<s32, 2>& value) { write_memory(value.data(), sizeof(s32) * 2); },
           [&](const std::array<s32, 3>& value) { write_memory(value.data(), sizeof(s32) * 3); },
           [&](const std::array<s32, 4>& value) { write_memory(value.data(), sizeof(s32) * 4); },
@@ -235,8 +245,7 @@ void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& proper
 std::size_t MaterialProperty::GetMemorySize(const MaterialProperty& property)
 {
   std::size_t result = 0;
-  std::visit(overloaded{[&](const CustomAssetLibrary::AssetID&) {},
-                        [&](s32) { result = MemorySize; },
+  std::visit(overloaded{[&](const TextureSamplerValue&) {}, [&](s32) { result = MemorySize; },
                         [&](const std::array<s32, 2>&) { result = MemorySize; },
                         [&](const std::array<s32, 3>&) { result = MemorySize; },
                         [&](const std::array<s32, 4>&) { result = MemorySize; },
@@ -268,7 +277,7 @@ void MaterialProperty::WriteAsShaderCode(ShaderCode& shader_source,
       shader_source.Write("{} {}_padding_{};\n", type, property.m_code_name, i + 1);
     }
   };
-  std::visit(overloaded{[&](const CustomAssetLibrary::AssetID&) {},
+  std::visit(overloaded{[&](const TextureSamplerValue&) {},
                         [&](s32 value) { write_shader("int", 1); },
                         [&](const std::array<s32, 2>& value) { write_shader("int", 2); },
                         [&](const std::array<s32, 3>& value) { write_shader("int", 3); },
@@ -332,9 +341,11 @@ void MaterialData::ToJson(picojson::object* obj, const MaterialData& data)
     picojson::object json_property;
     json_property["code_name"] = picojson::value{property.m_code_name};
 
-    std::visit(overloaded{[&](const CustomAssetLibrary::AssetID& value) {
+    std::visit(overloaded{[&](const TextureSamplerValue& value) {
                             json_property["type"] = picojson::value{"texture_asset"};
-                            json_property["value"] = picojson::value{value};
+                            picojson::object value_json;
+                            TextureSamplerValue::ToJson(&value_json, value);
+                            json_property["value"] = picojson::value{value_json};
                           },
                           [&](s32 value) {
                             json_property["type"] = picojson::value{"int"};

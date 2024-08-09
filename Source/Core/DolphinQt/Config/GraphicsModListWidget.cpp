@@ -23,7 +23,6 @@
 #include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
 #include "DolphinQt/Settings.h"
 #include "UICommon/GameFile.h"
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/VideoConfig.h"
 
 GraphicsModListWidget::GraphicsModListWidget(const UICommon::GameFile& game)
@@ -38,7 +37,7 @@ GraphicsModListWidget::GraphicsModListWidget(const UICommon::GameFile& game)
   ConnectWidgets();
 
   RefreshModList();
-  OnModChanged(std::nullopt);
+  OnModChanged(0);
 }
 
 GraphicsModListWidget::~GraphicsModListWidget()
@@ -124,31 +123,17 @@ void GraphicsModListWidget::RefreshModList()
   m_mod_list->setCurrentItem(nullptr);
   m_mod_list->clear();
 
-  m_mod_group = GraphicsModGroupConfig(m_game_id);
+  m_mod_group = GraphicsModSystem::Config::GraphicsModGroup(m_game_id);
   m_mod_group.Load();
 
-  std::set<std::string> groups;
-
-  for (const GraphicsModConfig& mod : m_mod_group.GetMods())
+  for (const auto& mod : m_mod_group.GetMods())
   {
-    for (const GraphicsTargetGroupConfig& group : mod.m_groups)
-      groups.insert(group.m_name);
-  }
-
-  for (const GraphicsModConfig& mod : m_mod_group.GetMods())
-  {
-    // If no group matches the mod's features, or if the mod has no features, skip it
-    if (std::none_of(mod.m_features.begin(), mod.m_features.end(),
-                     [&groups](const GraphicsModFeatureConfig& feature) {
-                       return groups.count(feature.m_group) == 1;
-                     }))
-    {
+    if (mod.m_mod.m_actions.empty())
       continue;
-    }
 
-    QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(mod.m_title));
+    QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(mod.m_mod.m_title));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setData(Qt::UserRole, QString::fromStdString(mod.GetAbsolutePath()));
+    item->setData(Qt::UserRole, static_cast<qulonglong>(mod.m_id));
     item->setCheckState(mod.m_enabled ? Qt::Checked : Qt::Unchecked);
 
     m_mod_list->addItem(item);
@@ -161,14 +146,13 @@ void GraphicsModListWidget::ModSelectionChanged()
     return;
   if (m_mod_list->count() == 0)
     return;
-  const auto absolute_path = m_mod_list->currentItem()->data(Qt::UserRole).toString().toStdString();
-  OnModChanged(absolute_path);
+  OnModChanged(m_mod_list->currentItem()->data(Qt::UserRole).toULongLong());
 }
 
 void GraphicsModListWidget::ModItemChanged(QListWidgetItem* item)
 {
-  const auto absolute_path = item->data(Qt::UserRole).toString();
-  GraphicsModConfig* mod = m_mod_group.GetMod(absolute_path.toStdString());
+  const auto id = item->data(Qt::UserRole).toULongLong();
+  auto mod = m_mod_group.GetMod(id);
   if (!mod)
     return;
 
@@ -186,39 +170,39 @@ void GraphicsModListWidget::ModItemChanged(QListWidgetItem* item)
   m_needs_save = true;
 }
 
-void GraphicsModListWidget::OnModChanged(const std::optional<std::string>& absolute_path)
+void GraphicsModListWidget::OnModChanged(u64 id)
 {
   ClearLayoutRecursively(m_mod_meta_layout);
 
   adjustSize();
 
-  if (!absolute_path)
+  if (id == 0)
   {
     m_selected_mod_name->setText(tr("No graphics mod selected"));
     m_selected_mod_name->setAlignment(Qt::AlignCenter);
     return;
   }
 
-  const GraphicsModConfig* mod = m_mod_group.GetMod(*absolute_path);
+  const auto mod = m_mod_group.GetMod(id);
   if (!mod)
     return;
 
-  m_selected_mod_name->setText(QString::fromStdString(mod->m_title));
+  m_selected_mod_name->setText(QString::fromStdString(mod->m_mod.m_title));
   m_selected_mod_name->setAlignment(Qt::AlignLeft);
   QFont font = m_selected_mod_name->font();
   font.setWeight(QFont::Bold);
   m_selected_mod_name->setFont(font);
 
-  if (!mod->m_author.empty())
+  if (!mod->m_mod.m_author.empty())
   {
-    auto* author_label = new QLabel(tr("By: %1").arg(QString::fromStdString(mod->m_author)));
+    auto* author_label = new QLabel(tr("By: %1").arg(QString::fromStdString(mod->m_mod.m_author)));
     m_mod_meta_layout->addWidget(author_label);
   }
 
-  if (!mod->m_description.empty())
+  if (!mod->m_mod.m_description.empty())
   {
     auto* description_label =
-        new QLabel(tr("Description: %1").arg(QString::fromStdString(mod->m_description)));
+        new QLabel(tr("Description: %1").arg(QString::fromStdString(mod->m_mod.m_description)));
     description_label->setWordWrap(true);
     m_mod_meta_layout->addWidget(description_label);
   }
@@ -228,11 +212,9 @@ void GraphicsModListWidget::SaveModList()
 {
   for (int i = 0; i < m_mod_list->count(); i++)
   {
-    const auto absolute_path = m_mod_list->model()
-                                   ->data(m_mod_list->model()->index(i, 0), Qt::UserRole)
-                                   .toString()
-                                   .toStdString();
-    m_mod_group.GetMod(absolute_path)->m_weight = i;
+    const auto id =
+        m_mod_list->model()->data(m_mod_list->model()->index(i, 0), Qt::UserRole).toULongLong();
+    m_mod_group.GetMod(id)->m_weight = i;
   }
 
   if (m_loaded_game_is_running)
@@ -248,7 +230,8 @@ void GraphicsModListWidget::SaveToDisk()
   m_mod_group.Save();
 }
 
-const GraphicsModGroupConfig& GraphicsModListWidget::GetGraphicsModConfig() const
+const GraphicsModSystem::Config::GraphicsModGroup&
+GraphicsModListWidget::GetGraphicsModConfig() const
 {
   return m_mod_group;
 }
