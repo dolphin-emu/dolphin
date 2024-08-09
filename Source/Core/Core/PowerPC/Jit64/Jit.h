@@ -19,6 +19,7 @@
 
 #include <optional>
 
+#include <queue>
 #include <rangeset/rangesizeset.h>
 
 #include "Common/CommonTypes.h"
@@ -105,6 +106,13 @@ public:
                                       Gen::X64Reg reg_b, BitSet32 caller_save);
 
   bool Cleanup();
+
+  // Runs a function on the CPU during the next JIT compilation
+  void RegisterCPUFunction(std::function<void()> function) override
+  {
+    std::lock_guard lock(m_external_functions_mutex);
+    m_external_functions.push(function);
+  }
 
   void GenerateConstantOverflow(bool overflow);
   void GenerateConstantOverflow(s64 val);
@@ -284,6 +292,9 @@ private:
   const bool m_im_here_debug = false;
   const bool m_im_here_log = false;
   std::map<u32, int> m_been_here;
+
+  std::mutex m_external_functions_mutex;
+  std::queue<std::function<void()>> m_external_functions{};
 };
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
