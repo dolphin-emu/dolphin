@@ -18,6 +18,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -58,6 +59,7 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.utils.HapticListener
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -455,11 +457,17 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_PAUSE_EMULATION -> {
                 hasUserPausedEmulation = true
                 NativeLibrary.PauseEmulation()
+                ViewCompat.performHapticFeedback(
+                    binding.frameMenu, HapticFeedbackConstantsCompat.CLOCK_TICK
+                )
             }
 
             MENU_ACTION_UNPAUSE_EMULATION -> {
                 hasUserPausedEmulation = false
                 NativeLibrary.UnPauseEmulation()
+                ViewCompat.performHapticFeedback(
+                    binding.frameMenu, HapticFeedbackConstantsCompat.CONTEXT_CLICK
+                )
             }
 
             MENU_ACTION_TAKE_SCREENSHOT -> NativeLibrary.SaveScreenShot()
@@ -702,7 +710,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 150f
                 value = IntSetting.MAIN_CONTROL_SCALE.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(Slider.OnChangeListener { _: Slider?, progress: Float, _: Boolean ->
+                addOnChangeListener(
+                    HapticListener.wrapOnChangeListener { _: Slider, progress: Float, _: Boolean ->
                     dialogBinding.inputScaleValue.text = "${(progress.toInt() + 50)}%"
                 })
             }
@@ -713,7 +722,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 100f
                 value = IntSetting.MAIN_CONTROL_OPACITY.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(Slider.OnChangeListener { _: Slider?, progress: Float, _: Boolean ->
+                addOnChangeListener(
+                    HapticListener.wrapOnChangeListener { _: Slider, progress: Float, _: Boolean ->
                     inputOpacityValue.text = progress.toInt().toString() + "%"
                 })
             }
