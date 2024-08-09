@@ -21,10 +21,10 @@
 class ControllerInterface;
 class InputConfig;
 
-constexpr const char* DIRECTION_UP = _trans("Up");
-constexpr const char* DIRECTION_DOWN = _trans("Down");
-constexpr const char* DIRECTION_LEFT = _trans("Left");
-constexpr const char* DIRECTION_RIGHT = _trans("Right");
+constexpr auto DIRECTION_UP = _trans("Up");
+constexpr auto DIRECTION_DOWN = _trans("Down");
+constexpr auto DIRECTION_LEFT = _trans("Left");
+constexpr auto DIRECTION_RIGHT = _trans("Right");
 
 constexpr const char* named_directions[] = {DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT,
                                             DIRECTION_RIGHT};

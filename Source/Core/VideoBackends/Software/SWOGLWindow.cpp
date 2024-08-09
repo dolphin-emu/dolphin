@@ -17,7 +17,7 @@ SWOGLWindow::~SWOGLWindow() = default;
 
 std::unique_ptr<SWOGLWindow> SWOGLWindow::Create(const WindowSystemInfo& wsi)
 {
-  std::unique_ptr<SWOGLWindow> window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
+  auto window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
   if (!window->Initialize(wsi))
   {
     PanicAlertFmt("Failed to create OpenGL window");
@@ -87,7 +87,7 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
 void SWOGLWindow::ShowImage(const AbstractTexture* image,
                             const MathUtil::Rectangle<int>& xfb_region) const
 {
-  const SW::SWTexture* sw_image = static_cast<const SW::SWTexture*>(image);
+  auto sw_image = static_cast<const SW::SWTexture*>(image);
   m_gl_context->Update();  // just updates the render window position and the backbuffer size
 
   const GLsizei glWidth = static_cast<GLsizei>(m_gl_context->GetBackBufferWidth());

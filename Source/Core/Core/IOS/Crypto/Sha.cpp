@@ -78,7 +78,7 @@ ReturnCode ShaDevice::ProcessShaCommand(const ShaIoctlv command, const IOCtlVReq
 std::optional<IPCReply> ShaDevice::IOCtlV(const IOCtlVRequest& request)
 {
   ReturnCode return_code = IPC_EINVAL;
-  const ShaIoctlv command = static_cast<ShaIoctlv>(request.request);
+  const auto command = static_cast<ShaIoctlv>(request.request);
 
   switch (command)
   {

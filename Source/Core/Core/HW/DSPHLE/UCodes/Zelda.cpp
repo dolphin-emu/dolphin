@@ -898,7 +898,7 @@ struct ZeldaAudioRenderer::VPB
   // Transforms from an NTSC-IPL type 0x80-sized VPB to a full size VPB.
   void Uncompress()
   {
-    u16* words = (u16*)this;
+    auto words = (u16*)this;
     // RO part of the VPB is from 0x40-0x80 instead of 0x80-0xC0.
     for (int i = 0; i < 0x40; ++i)
     {
@@ -922,7 +922,7 @@ struct ZeldaAudioRenderer::VPB
   // Transforms from a full size VPB to an NTSC-IPL 0x80-sized VPB.
   void Compress()
   {
-    u16* words = (u16*)this;
+    auto words = (u16*)this;
     for (int i = 0; i < 0x18; ++i)
     {
       words[0x18 + i] = words[0x30 + i];
@@ -1059,7 +1059,7 @@ void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
   for (u16 rpb_idx = 0; rpb_idx < 4; ++rpb_idx)
   {
     ReverbPB rpb;
-    u16* rpb_raw_ptr = reinterpret_cast<u16*>(&rpb);
+    auto rpb_raw_ptr = reinterpret_cast<u16*>(&rpb);
     for (size_t i = 0; i < sizeof(ReverbPB) / 2; ++i)
       rpb_raw_ptr[i] = Common::swap16(rpb_base_ptr[rpb_idx * sizeof(ReverbPB) / 2 + i]);
 
@@ -1069,7 +1069,7 @@ void ZeldaAudioRenderer::ApplyReverb(const bool post_rendering)
     u16 mram_buffer_idx = m_reverb_pb_frames_count[rpb_idx];
 
     const u32 mram_addr = rpb.GetCircularBufferBase() + mram_buffer_idx * 0x50 * sizeof(s16);
-    s16* mram_ptr = static_cast<s16*>(HLEMemory_Get_Pointer(memory, mram_addr));
+    auto mram_ptr = static_cast<s16*>(HLEMemory_Get_Pointer(memory, mram_addr));
 
     if (!post_rendering)
     {
@@ -1325,8 +1325,8 @@ void ZeldaAudioRenderer::FinalizeFrame()
   ApplyVolumeInPlace_4_12(&m_buf_front_right, m_output_volume);
 
   auto& memory = m_system.GetMemory();
-  u16* ram_left_buffer = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_output_lbuf_addr));
-  u16* ram_right_buffer = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_output_rbuf_addr));
+  auto ram_left_buffer = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_output_lbuf_addr));
+  auto ram_right_buffer = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_output_rbuf_addr));
   for (size_t i = 0; i < m_buf_front_left.size(); ++i)
   {
     ram_left_buffer[i] = Common::swap16(m_buf_front_left[i]);
@@ -1345,7 +1345,7 @@ void ZeldaAudioRenderer::FinalizeFrame()
 void ZeldaAudioRenderer::FetchVPB(const u16 voice_id, VPB* vpb) const
 {
   auto& memory = m_system.GetMemory();
-  u16* vpb_words = (u16*)vpb;
+  auto vpb_words = (u16*)vpb;
   const u16* ram_vpbs = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_vpb_base_addr));
 
   // A few versions of the UCode have VPB of size 0x80 (vs. the standard
@@ -1365,7 +1365,7 @@ void ZeldaAudioRenderer::StoreVPB(const u16 voice_id, VPB* vpb) const
 {
   auto& memory = m_system.GetMemory();
   const u16* vpb_words = (u16*)vpb;
-  u16* ram_vpbs = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_vpb_base_addr));
+  auto ram_vpbs = static_cast<u16*>(HLEMemory_Get_Pointer(memory, m_vpb_base_addr));
 
   const size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
   const size_t base_idx = voice_id * vpb_size;

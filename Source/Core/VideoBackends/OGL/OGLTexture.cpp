@@ -225,7 +225,7 @@ void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                           const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                           const u32 dst_layer, const u32 dst_level)
 {
-  const OGLTexture* src_gltex = static_cast<const OGLTexture*>(src);
+  auto src_gltex = static_cast<const OGLTexture*>(src);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
   if (g_ogl_config.bSupportsCopySubImage)
@@ -268,7 +268,7 @@ void OGLTexture::BlitFramebuffer(const OGLTexture* srcentry, const MathUtil::Rec
 void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
                                     const MathUtil::Rectangle<int>& rect, const u32 layer, const u32 level)
 {
-  const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
+  auto srcentry = static_cast<const OGLTexture*>(src);
   DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
                m_config.height == srcentry->m_config.height && m_config.samples == 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
@@ -498,7 +498,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
   glBindBuffer(GL_PIXEL_PACK_BUFFER, m_buffer_name);
   glPixelStorei(GL_PACK_ROW_LENGTH, m_config.width);
 
-  const OGLTexture* gltex = static_cast<const OGLTexture*>(src);
+  auto gltex = static_cast<const OGLTexture*>(src);
   const size_t dst_offset = dst_rect.top * m_config.GetStride() + dst_rect.left * m_texel_size;
 
   // Prefer glGetTextureSubImage(), when available.
@@ -562,7 +562,7 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
          dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
 
-  const OGLTexture* gltex = static_cast<const OGLTexture*>(dst);
+  auto gltex = static_cast<const OGLTexture*>(dst);
   const size_t src_offset = src_rect.top * m_config.GetStride() + src_rect.left * m_texel_size;
   const size_t copy_size = src_rect.GetHeight() * m_config.GetStride();
 

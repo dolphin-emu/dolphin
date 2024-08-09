@@ -1509,7 +1509,7 @@ bool ShaderCache::CompileSharedPipelines()
 
     for (size_t i = 0; i < NUM_PALETTE_CONVERSION_SHADERS; i++)
     {
-      TLUTFormat format = static_cast<TLUTFormat>(i);
+      auto format = static_cast<TLUTFormat>(i);
       auto shader = g_gfx->CreateShaderFromSource(
           ShaderStage::Pixel,
           TextureConversionShaderTiled::GeneratePaletteConversionShader(format, m_api_type),

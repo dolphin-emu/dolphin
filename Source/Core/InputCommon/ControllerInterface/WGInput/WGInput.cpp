@@ -422,7 +422,7 @@ private:
       u32 i = 0;
       for (const auto& button : m_buttons)
       {
-        WGI::GameControllerButtonLabel lbl{WGI::GameControllerButtonLabel::None};
+        auto lbl{WGI::GameControllerButtonLabel::None};
         try
         {
           lbl = m_raw_controller.GetButtonLabel(i);

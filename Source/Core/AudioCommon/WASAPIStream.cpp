@@ -329,7 +329,7 @@ void WASAPIStream::SoundLoop() const
 
     m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
 
-    s16* audio_data = reinterpret_cast<s16*>(data);
+    auto audio_data = reinterpret_cast<s16*>(data);
     GetMixer()->Mix(audio_data, m_frames_in_buffer);
 
     const bool is_muted =

@@ -275,7 +275,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 {
   auto [format, elements_i] = GetParam();
-  CoordComponentCount elements = static_cast<CoordComponentCount>(elements_i);
+  auto elements = static_cast<CoordComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == CoordComponentCount::XY ? 2 : 3;
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;
@@ -290,7 +290,7 @@ TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 {
   auto [format, elements_i] = GetParam();
-  TexComponentCount elements = static_cast<TexComponentCount>(elements_i);
+  auto elements = static_cast<TexComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == TexComponentCount::S ? 1 : 2;
   m_vtx_desc.low.Position = VertexComponentFormat::Direct;

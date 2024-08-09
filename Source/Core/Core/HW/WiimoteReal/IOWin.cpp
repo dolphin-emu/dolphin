@@ -424,7 +424,7 @@ WinWriteMethod GetInitialWriteMethod(const bool IsUsingToshibaStack)
 
 int WriteToHandle(HANDLE& dev_handle, WinWriteMethod& method, const u8* buf, const size_t size)
 {
-  OVERLAPPED hid_overlap_write = OVERLAPPED();
+  auto hid_overlap_write = OVERLAPPED();
   hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
   if (!hid_overlap_write.hEvent)
   {
@@ -441,7 +441,7 @@ int WriteToHandle(HANDLE& dev_handle, WinWriteMethod& method, const u8* buf, con
 
 int ReadFromHandle(const HANDLE& dev_handle, u8* buf)
 {
-  OVERLAPPED hid_overlap_read = OVERLAPPED();
+  auto hid_overlap_read = OVERLAPPED();
   hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
   if (!hid_overlap_read.hEvent)
   {

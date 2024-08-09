@@ -17,7 +17,7 @@ namespace WiimoteEmu
 struct DesiredWiimoteState
 {
   // 1g in Z direction, which is the default returned by an unmoving emulated Wiimote.
-  static constexpr WiimoteCommon::AccelData DEFAULT_ACCELERATION = WiimoteCommon::AccelData(
+  static constexpr auto DEFAULT_ACCELERATION = WiimoteCommon::AccelData(
       {Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ONE_G << 2});
 
   // No light detected by the IR camera.

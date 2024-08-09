@@ -211,7 +211,7 @@ void MemArena::ReleaseMemoryRegion()
 
 WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, const size_t size)
 {
-  u8* const address = static_cast<u8*>(start_address);
+  const auto address = static_cast<u8*>(start_address);
   auto& regions = m_regions;
   if (regions.empty())
   {
@@ -350,7 +350,7 @@ void* MemArena::MapInMemoryRegion(const s64 offset, const size_t size, void* bas
 
 bool MemArena::JoinRegionsAfterUnmap(void* start_address, const size_t size)
 {
-  u8* const address = static_cast<u8*>(start_address);
+  const auto address = static_cast<u8*>(start_address);
   auto& regions = m_regions;
   if (regions.empty())
   {
@@ -462,7 +462,7 @@ void* LazyMemoryRegion::Create(const size_t size)
   // reserve block of memory
   const size_t memory_size = AlignUp(size, BLOCK_SIZE);
   const size_t block_count = memory_size / BLOCK_SIZE;
-  u8* memory =
+  auto memory =
       static_cast<u8*>(static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(
           nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
           nullptr, 0));
@@ -524,7 +524,7 @@ void* LazyMemoryRegion::Create(const size_t size)
 void LazyMemoryRegion::Clear()
 {
   ASSERT(m_memory);
-  u8* const memory = static_cast<u8*>(m_memory);
+  const auto memory = static_cast<u8*>(m_memory);
 
   // reset every writable block back to the zero block
   for (size_t i = 0; i < m_writable_block_handles.size(); ++i)
@@ -562,7 +562,7 @@ void LazyMemoryRegion::Release()
   if (m_memory)
   {
     // unmap all pages and release the not-zero block handles
-    u8* const memory = static_cast<u8*>(m_memory);
+    const auto memory = static_cast<u8*>(m_memory);
     for (size_t i = 0; i < m_writable_block_handles.size(); ++i)
     {
       static_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(
@@ -581,7 +581,7 @@ void LazyMemoryRegion::Release()
   }
   if (m_memory)
   {
-    u8* const memory = static_cast<u8*>(m_memory);
+    const auto memory = static_cast<u8*>(m_memory);
     const size_t block_count = m_size / BLOCK_SIZE;
     for (size_t i = 0; i < block_count; ++i)
       VirtualFree(memory + i * BLOCK_SIZE, 0, MEM_RELEASE);
@@ -592,7 +592,7 @@ void LazyMemoryRegion::Release()
 
 void LazyMemoryRegion::MakeMemoryBlockWritable(const size_t block_index)
 {
-  u8* const memory = static_cast<u8*>(m_memory);
+  const auto memory = static_cast<u8*>(m_memory);
 
   // unmap the zero block
   if (!static_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(

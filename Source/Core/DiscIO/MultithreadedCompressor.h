@@ -89,7 +89,7 @@ public:
     ASSERT(result != ConversionResultCode::Success);
 
     // If we already have an error, don't overwrite it
-    ConversionResultCode expected = ConversionResultCode::Success;
+    auto expected = ConversionResultCode::Success;
     m_result.compare_exchange_strong(expected, result);
   }
 

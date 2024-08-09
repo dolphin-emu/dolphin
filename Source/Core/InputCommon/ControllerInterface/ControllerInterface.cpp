@@ -43,7 +43,7 @@ ControllerInterface g_controller_interface;
 // update values in different threads by input channel. We start from InputChannel::Host on all
 // threads as hotkeys are updated from a worker thread, but UI can read from the main thread. This
 // will never interfere with game threads.
-static thread_local ciface::InputChannel tls_input_channel = ciface::InputChannel::Host;
+static thread_local auto tls_input_channel = ciface::InputChannel::Host;
 
 static thread_local bool tls_is_updating_devices = false;
 

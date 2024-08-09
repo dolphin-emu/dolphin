@@ -178,8 +178,8 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool 
 
   // Count is important for feedback on how much work was done.
 
-  HitType hit = HitType::SKIP;
-  HitType stop_condition = HitType::SAVELOAD;
+  auto hit = HitType::SKIP;
+  auto stop_condition = HitType::SAVELOAD;
 
   // Could use bit flags, but I organized it to have decreasing levels of verbosity, so the
   // less-than comparison ignores what is needed for the current usage.

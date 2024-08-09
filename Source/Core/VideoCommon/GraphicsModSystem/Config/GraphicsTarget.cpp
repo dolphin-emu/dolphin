@@ -124,7 +124,7 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
         "Failed to load mod configuration file, option 'texture_filename' is not a string type");
     return std::nullopt;
   }
-  std::string texture_info = texture_filename_iter->second.get<std::string>();
+  auto texture_info = texture_filename_iter->second.get<std::string>();
 
   const auto handle_fb_texture =
       [&texture_info](const std::string_view type) -> std::optional<std::string> {
@@ -182,7 +182,7 @@ void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetCon
                                                 static_cast<int>(the_target.m_texture_format)));
                  },
                  [&](const ProjectionTarget& the_target) {
-                   const char* type_name = "3d";
+                   auto type_name = "3d";
                    if (the_target.m_projection_type == ProjectionType::Orthographic)
                      type_name = "2d";
 

@@ -21,7 +21,7 @@ public:
 
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
-  static constexpr const char* NAME = "OGL";
+  static constexpr auto NAME = "OGL";
 
 private:
   static bool InitializeGLExtensions(GLContext* context);

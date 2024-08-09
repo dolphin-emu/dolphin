@@ -74,11 +74,11 @@ static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state st
 long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
                            void* /*output_buffer*/, const long nframes)
 {
-  CEXIMic* mic = static_cast<CEXIMic*>(user_data);
+  auto mic = static_cast<CEXIMic*>(user_data);
 
   std::lock_guard lk(mic->ring_lock);
 
-  const s16* buff_in = static_cast<const s16*>(input_buffer);
+  auto buff_in = static_cast<const s16*>(input_buffer);
   for (long i = 0; i < nframes; i++)
   {
     mic->stream_buffer[mic->stream_wpos] = buff_in[i];

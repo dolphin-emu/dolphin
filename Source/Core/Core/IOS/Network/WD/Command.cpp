@@ -346,12 +346,12 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
 
     const auto& system = GetSystem();
     const auto& memory = system.GetMemory();
-    u16* results = (u16*)memory.GetPointerForRange(request.io_vectors.at(0).address,
+    auto results = (u16*)memory.GetPointerForRange(request.io_vectors.at(0).address,
                                                    sizeof(u16) + sizeof(BSSInfo));
     // first u16 indicates number of BSSInfo following
     results[0] = Common::swap16(1);
 
-    BSSInfo* bss = (BSSInfo*)&results[1];
+    auto bss = (BSSInfo*)&results[1];
     memset(bss, 0, sizeof(BSSInfo));
 
     bss->length = Common::swap16(sizeof(BSSInfo));
@@ -360,7 +360,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
     for (int i = 0; i < BSSID_SIZE; ++i)
       bss->bssid[i] = i;
 
-    const char* ssid = "dolphin-emu";
+    auto ssid = "dolphin-emu";
     strcpy((char*)bss->ssid, ssid);
     bss->ssid_length = Common::swap16(static_cast<u16>(strlen(ssid)));
 

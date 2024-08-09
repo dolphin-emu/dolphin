@@ -144,7 +144,7 @@ void Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enab
 
 void Gfx::SetPipeline(const AbstractPipeline* pipeline)
 {
-  const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
+  auto dx_pipeline = static_cast<const DXPipeline*>(pipeline);
   if (m_current_pipeline == dx_pipeline)
     return;
 
@@ -217,7 +217,7 @@ void Gfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
                                  const float depth_value)
 {
-  DXFramebuffer* dxfb = static_cast<DXFramebuffer*>(framebuffer);
+  auto dxfb = static_cast<DXFramebuffer*>(framebuffer);
   BindFramebuffer(dxfb);
 
   dxfb->ClearRenderTargets(color_value, nullptr);
@@ -241,7 +241,7 @@ void Gfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 
 void Gfx::SetTexture(const u32 index, const AbstractTexture* texture)
 {
-  const DXTexture* dxtex = static_cast<const DXTexture*>(texture);
+  auto dxtex = static_cast<const DXTexture*>(texture);
   if (m_state.textures[index].ptr == dxtex->GetSRVDescriptor().cpu_handle.ptr)
     return;
 
@@ -263,7 +263,7 @@ void Gfx::SetSamplerState(const u32 index, const SamplerState& state)
 
 void Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  const DXTexture* dxtex = static_cast<const DXTexture*>(texture);
+  auto dxtex = static_cast<const DXTexture*>(texture);
   if (m_state.compute_image_texture == dxtex)
     return;
 

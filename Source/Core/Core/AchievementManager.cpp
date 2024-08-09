@@ -659,7 +659,7 @@ int64_t AchievementManager::FilereaderTell(void* file_handle)
 
 size_t AchievementManager::FilereaderRead(void* file_handle, void* buffer, const size_t requested_bytes)
 {
-  FilereaderState* filereader_state = static_cast<FilereaderState*>(file_handle);
+  auto filereader_state = static_cast<FilereaderState*>(file_handle);
   const bool success = (filereader_state->volume->Read(filereader_state->position, requested_bytes,
                                                        static_cast<u8*>(buffer), DiscIO::PARTITION_NONE));
   if (success)
@@ -770,8 +770,8 @@ void AchievementManager::LoginCallback(const int result, const char* error_messa
 
 void AchievementManager::FetchBoardInfo(const AchievementId leaderboard_id)
 {
-  u32* callback_data_1 = new u32(leaderboard_id);
-  u32* callback_data_2 = new u32(leaderboard_id);
+  auto callback_data_1 = new u32(leaderboard_id);
+  auto callback_data_2 = new u32(leaderboard_id);
   rc_client_begin_fetch_leaderboard_entries(m_client, leaderboard_id, 1, 4,
                                             LeaderboardEntriesCallback, callback_data_1);
   rc_client_begin_fetch_leaderboard_entries_around_user(
@@ -782,7 +782,7 @@ void AchievementManager::LeaderboardEntriesCallback(const int result, const char
                                                     const rc_client_leaderboard_entry_list_t* list,
                                                     rc_client_t* client, void* userdata)
 {
-  u32* leaderboard_id = static_cast<u32*>(userdata);
+  auto leaderboard_id = static_cast<u32*>(userdata);
   Common::ScopeGuard on_end_scope([&]() { delete leaderboard_id; });
 
   if (result != RC_OK)

@@ -102,7 +102,7 @@ void ReadPB(const Memory::MemoryManager& memory, const u32 addr, PB_TYPE& pb, co
 {
   if (HasLpf(crc))
   {
-    u16* dst = (u16*)&pb;
+    auto dst = (u16*)&pb;
     memory.CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
   }
   else
@@ -110,7 +110,7 @@ void ReadPB(const Memory::MemoryManager& memory, const u32 addr, PB_TYPE& pb, co
     // The below is a terrible hack in order to support two different AXPB layouts.
     // We skip lpf in this layout.
 
-    char* dst = (char*)&pb;
+    auto dst = (char*)&pb;
 
     constexpr size_t lpf_off = offsetof(AXPB, lpf);
     constexpr size_t lc_off = offsetof(AXPB, loop_counter);
@@ -126,7 +126,7 @@ void WritePB(Memory::MemoryManager& memory, const u32 addr, const PB_TYPE& pb, c
 {
   if (HasLpf(crc))
   {
-    const u16* src = (const u16*)&pb;
+    auto src = (const u16*)&pb;
     memory.CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
   }
   else
@@ -134,7 +134,7 @@ void WritePB(Memory::MemoryManager& memory, const u32 addr, const PB_TYPE& pb, c
     // The below is a terrible hack in order to support two different AXPB layouts.
     // We skip lpf in this layout.
 
-    const char* src = (const char*)&pb;
+    auto src = (const char*)&pb;
 
     constexpr size_t lpf_off = offsetof(AXPB, lpf);
     constexpr size_t lc_off = offsetof(AXPB, loop_counter);

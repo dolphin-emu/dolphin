@@ -522,7 +522,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     return false;
   }
 
-  Severity severity = Severity::Medium;
+  auto severity = Severity::Medium;
   if (*type == PARTITION_DATA || *type == PARTITION_INSTALL)
     severity = Severity::High;
   else if (*type == PARTITION_UPDATE)
@@ -1297,7 +1297,7 @@ void VolumeVerifier::Finish()
     {
       m_result.hashes.crc32 = std::vector<u8>(4);
       const u32 crc32_be = Common::swap32(m_crc32_context);
-      const u8* crc32_be_ptr = reinterpret_cast<const u8*>(&crc32_be);
+      auto crc32_be_ptr = reinterpret_cast<const u8*>(&crc32_be);
       std::copy(crc32_be_ptr, crc32_be_ptr + 4, m_result.hashes.crc32.begin());
     }
 

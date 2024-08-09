@@ -252,7 +252,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_init(&ssl->ctx);
       mbedtls_entropy_init(&ssl->entropy);
-      static constexpr const char* pers = "dolphin-emu";
+      static constexpr auto pers = "dolphin-emu";
       mbedtls_ctr_drbg_init(&ssl->ctr_drbg);
       int ret = mbedtls_ctr_drbg_seed(&ssl->ctr_drbg, mbedtls_entropy_func, &ssl->entropy,
                                       (const unsigned char*)pers, strlen(pers));

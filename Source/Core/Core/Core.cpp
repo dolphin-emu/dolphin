@@ -384,7 +384,7 @@ static void CpuThread(System& system, const std::optional<std::string>& savestat
 
   // If s_state is Starting, change it to Running. But if it's already been set to Stopping
   // by the host thread, don't change it.
-  State expected = State::Starting;
+  auto expected = State::Starting;
   s_state.compare_exchange_strong(expected, State::Running);
 
   {
@@ -446,7 +446,7 @@ static void FifoPlayerThread(const System& system, const std::optional<std::stri
 
     // If s_state is Starting, change it to Running. But if it's already been set to Stopping
     // by the host thread, don't change it.
-    State expected = State::Starting;
+    auto expected = State::Starting;
     s_state.compare_exchange_strong(expected, State::Running);
 
     CPUSetInitialExecutionState();

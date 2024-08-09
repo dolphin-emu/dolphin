@@ -300,9 +300,14 @@ void WaitForPID(const u32 pid)
   }
 }
 
-void SetVisible(const bool visible)
+void Show()
 {
-  ShowWindow(window_handle, visible ? SW_SHOW : SW_HIDE);
+  ShowWindow(window_handle, SW_SHOW);
+}
+
+void Hide()
+{
+  ShowWindow(window_handle, SW_HIDE);
 }
 
 };  // namespace UI

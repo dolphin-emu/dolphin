@@ -215,7 +215,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   to.sin_family = IPPROTO_UDP;
   to.sin_port = udp_header.source_port;
 
-  const u8* router_ip_ptr = reinterpret_cast<const u8*>(&m_router_ip);
+  auto router_ip_ptr = reinterpret_cast<const u8*>(&m_router_ip);
   const std::vector ip_part(router_ip_ptr, router_ip_ptr + sizeof(m_router_ip));
 
   const std::vector<u8> timeout_24h = {0, 1, 0x51, 0x80};

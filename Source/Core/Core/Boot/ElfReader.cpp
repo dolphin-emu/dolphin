@@ -186,7 +186,7 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_
   if (sec != -1)
   {
     const int stringSection = sections[sec].sh_link;
-    const char* stringBase = (const char*)GetSectionDataPtr(stringSection);
+    auto stringBase = (const char*)GetSectionDataPtr(stringSection);
 
     // We have a symbol table!
     const Elf32_Sym* symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));

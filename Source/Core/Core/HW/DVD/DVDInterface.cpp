@@ -763,7 +763,7 @@ bool DVDInterface::ExecuteReadCommand(const u64 dvd_offset, const u32 output_add
 // with the userdata set to the interrupt type.
 void DVDInterface::ExecuteCommand(const ReplyType reply_type)
 {
-  DIInterruptType interrupt_type = DIInterruptType::TCINT;
+  auto interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
 
   // DVDLowRequestError needs access to the error code set by the previous command
@@ -1202,7 +1202,7 @@ void DVDInterface::ExecuteCommand(const ReplyType reply_type)
 void DVDInterface::PerformDecryptingRead(const u32 position, const u32 length, const u32 output_address,
                                          const DiscIO::Partition& partition, const ReplyType reply_type)
 {
-  DIInterruptType interrupt_type = DIInterruptType::TCINT;
+  auto interrupt_type = DIInterruptType::TCINT;
 
   if (m_drive_state == DriveState::ReadyNoReadsMade)
     SetDriveState(DriveState::Ready);
@@ -1230,7 +1230,7 @@ void DVDInterface::ForceOutOfBoundsRead(const ReplyType reply_type)
   SetDriveError(DriveError::BlockOOB);
 
   // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
-  constexpr DIInterruptType interrupt_type = DIInterruptType::DEINT;
+  constexpr auto interrupt_type = DIInterruptType::DEINT;
   m_system.GetCoreTiming().ScheduleEvent(
       MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
       m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
@@ -1254,8 +1254,8 @@ static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptT
 void DVDInterface::FinishExecutingCommandCallback(const Core::System& system, const u64 userdata,
                                                   const s64 cycles_late)
 {
-  const ReplyType reply_type = static_cast<ReplyType>(userdata >> 32);
-  const DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
+  const auto reply_type = static_cast<ReplyType>(userdata >> 32);
+  const auto interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
   system.GetDVDInterface().FinishExecutingCommand(reply_type, interrupt_type, cycles_late);
 }
 

@@ -30,7 +30,7 @@ static bool s_using_custom_client = false;
 namespace
 {
 Handler* event_handler = nullptr;
-const char* username = "";
+auto username = "";
 static int64_t s_start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
                                        std::chrono::system_clock::now().time_since_epoch())
                                        .count();

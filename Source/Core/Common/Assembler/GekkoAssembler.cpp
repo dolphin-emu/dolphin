@@ -165,7 +165,7 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
       }
       else if (std::holds_alternative<ByteChunk>(chunk))
       {
-        ByteChunk byte_arr = std::get<ByteChunk>(chunk);
+        auto byte_arr = std::get<ByteChunk>(chunk);
         new_block.instructions.insert(new_block.instructions.end(), byte_arr.begin(),
                                       byte_arr.end());
       }

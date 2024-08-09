@@ -164,7 +164,7 @@ bool Jit64::HandleFault(const uintptr_t access_address, SContext* ctx)
 
 bool Jit64::BackPatch(SContext* ctx)
 {
-  u8* codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
+  auto codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
 
   if (!IsInSpace(codePtr))
     return false;  // this will become a regular crash real soon after this
@@ -690,7 +690,7 @@ void Jit64::Run()
   ProtectStack();
   m_system.GetJitInterface().UpdateMembase();
 
-  const CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
+  const auto pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
 
   UnprotectStack();
@@ -701,7 +701,7 @@ void Jit64::SingleStep()
   ProtectStack();
   m_system.GetJitInterface().UpdateMembase();
 
-  const CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
+  const auto pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
 
   UnprotectStack();

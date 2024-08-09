@@ -636,7 +636,7 @@ void OGLGfx::SetPipeline(const AbstractPipeline* pipeline)
 
 void OGLGfx::SetTexture(const u32 index, const AbstractTexture* texture)
 {
-  const OGLTexture* gl_texture = static_cast<const OGLTexture*>(texture);
+  auto gl_texture = static_cast<const OGLTexture*>(texture);
   if (m_bound_textures[index] == gl_texture)
     return;
 

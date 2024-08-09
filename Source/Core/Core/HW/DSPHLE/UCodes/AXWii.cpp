@@ -514,7 +514,7 @@ void AXWiiUCode::MixAUXSamples(const int aux_id, const u32 write_addr, const u32
   auto& memory = m_dsphle->GetSystem().GetMemory();
   if (write_addr)
   {
-    int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, write_addr));
+    auto ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, write_addr));
     for (const auto& buffer : buffers)
     {
       for (u32 j = 0; j < 3 * 32; ++j)
@@ -543,7 +543,7 @@ void AXWiiUCode::UploadAUXMixLRSC(const int aux_id, const u32* addresses, const 
   const int* auxc_buffer = aux_id ? m_samples_auxC_surround : m_samples_auxC_right;
 
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* upload_ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, addresses[0]));
+  auto upload_ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, addresses[0]));
   for (u32 i = 0; i < 96; ++i)
     *upload_ptr++ = Common::swap32(aux_left[i]);
   for (u32 i = 0; i < 96; ++i)
@@ -631,7 +631,7 @@ void AXWiiUCode::OutputWMSamples(const u32* addresses)
   for (u32 i = 0; i < 4; ++i)
   {
     const int* in = buffers[i];
-    u16* out = static_cast<u16*>(HLEMemory_Get_Pointer(memory, addresses[i]));
+    auto out = static_cast<u16*>(HLEMemory_Get_Pointer(memory, addresses[i]));
     for (u32 j = 0; j < 3 * 6; ++j)
     {
       const int sample = std::clamp(in[j], -32767, 32767);

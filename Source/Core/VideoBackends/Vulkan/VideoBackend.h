@@ -19,6 +19,6 @@ public:
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
   void PrepareWindow(WindowSystemInfo& wsi) override;
 
-  static constexpr const char* NAME = "Vulkan";
+  static constexpr auto NAME = "Vulkan";
 };
 }  // namespace Vulkan

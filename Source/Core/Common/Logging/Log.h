@@ -67,7 +67,7 @@ enum class LogType : int
   NUMBER_OF_LOGS  // Must be last
 };
 
-constexpr LogType LAST_LOG_TYPE =
+constexpr auto LAST_LOG_TYPE =
     static_cast<LogType>(static_cast<int>(LogType::NUMBER_OF_LOGS) - 1);
 
 enum class LogLevel : int

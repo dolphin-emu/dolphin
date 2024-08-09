@@ -70,7 +70,7 @@ void PCAPDSPCaptureLogger::LogDMA(const u16 control, const u32 gc_address, const
   // the construction of the packet.
   static u8 buffer[0x10000];
 
-  DMAPacket* pkt = reinterpret_cast<DMAPacket*>(&buffer[0]);
+  auto pkt = reinterpret_cast<DMAPacket*>(&buffer[0]);
   pkt->magic = DMA_PACKET_MAGIC;
   pkt->dma_control = control;
   pkt->gc_address = gc_address;

@@ -595,7 +595,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           u32 has_destaddr = memory.Read_U32(BufferIn2 + 0x08);
 
           // Not a string, Windows requires a const char* for sendto
-          const char* data = (const char*)memory.GetPointerForRange(BufferIn, BufferInSize);
+          auto data = (const char*)memory.GetPointerForRange(BufferIn, BufferInSize);
           const std::optional<std::string> patch =
               WC24PatchEngine::GetNetworkPatchByPayload(std::string_view{data, BufferInSize});
           if (patch)
@@ -649,7 +649,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           u32 flags = memory.Read_U32(BufferIn + 0x04);
           int data_len = BufferOutSize;
           // Not a string, Windows requires a char* for recvfrom
-          char* data = reinterpret_cast<char*>(memory.GetPointerForRange(BufferOut, BufferOutSize));
+          auto data = reinterpret_cast<char*>(memory.GetPointerForRange(BufferOut, BufferOutSize));
 
           sockaddr_in local_name;
           memset(&local_name, 0, sizeof(sockaddr_in));

@@ -629,7 +629,7 @@ void Device::RunTasks()
 
           WiimoteEmu::UpdateCalibrationDataChecksum(calibration_data, 2);
 
-          Checksum checksum = Checksum::Good;
+          auto checksum = Checksum::Good;
 
           if (read_checksum != std::pair(calibration_data[CALIBRATION_SIZE - 2],
                                          calibration_data[CALIBRATION_SIZE - 1]))

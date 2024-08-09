@@ -607,7 +607,7 @@ void WiimoteDevice::ReceiveConfigurationReq(const u8 ident, u8* data, const u32 
   u8 temp_buffer[1024];
   u32 resp_len = 0;
 
-  l2cap_cfg_rsp_cp* rsp = (l2cap_cfg_rsp_cp*)temp_buffer;
+  auto rsp = (l2cap_cfg_rsp_cp*)temp_buffer;
   rsp->scid = channel.remote_cid;
   rsp->flags = 0x00;
   rsp->result = L2CAP_SUCCESS;
@@ -722,7 +722,7 @@ void WiimoteDevice::SendConfigurationRequest(const u16 cid, const u16 mtu, const
   u8 buffer[1024];
   int offset = 0;
 
-  l2cap_cfg_req_cp* cr = (l2cap_cfg_req_cp*)&buffer[offset];
+  auto cr = (l2cap_cfg_req_cp*)&buffer[offset];
   cr->dcid = cid;
   cr->flags = 0;
   offset += sizeof(l2cap_cfg_req_cp);
@@ -783,7 +783,7 @@ void WiimoteDevice::SDPSendServiceSearchResponse(const u16 cid, const u16 transa
   const CBigEndianBuffer buffer(data_frame);
 
   int offset = 0;
-  l2cap_hdr_t* header = (l2cap_hdr_t*)&data_frame[offset];
+  auto header = (l2cap_hdr_t*)&data_frame[offset];
   offset += sizeof(l2cap_hdr_t);
   header->dcid = cid;
 
@@ -880,7 +880,7 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(const u16 cid, const u16 tra
   const CBigEndianBuffer buffer(data_frame);
 
   int offset = 0;
-  l2cap_hdr_t* header = (l2cap_hdr_t*)&data_frame[offset];
+  auto header = (l2cap_hdr_t*)&data_frame[offset];
   offset += sizeof(l2cap_hdr_t);
   header->dcid = cid;
 
@@ -954,12 +954,12 @@ void WiimoteDevice::SendCommandToACL(const u8 ident, const u8 code, const u8 com
   u8 data_frame[1024];
   u32 offset = 0;
 
-  l2cap_hdr_t* header = (l2cap_hdr_t*)&data_frame[offset];
+  auto header = (l2cap_hdr_t*)&data_frame[offset];
   offset += sizeof(l2cap_hdr_t);
   header->length = sizeof(l2cap_cmd_hdr_t) + command_length;
   header->dcid = L2CAP_SIGNAL_CID;
 
-  l2cap_cmd_hdr_t* command = (l2cap_cmd_hdr_t*)&data_frame[offset];
+  auto command = (l2cap_cmd_hdr_t*)&data_frame[offset];
   offset += sizeof(l2cap_cmd_hdr_t);
   command->code = code;
   command->ident = ident;

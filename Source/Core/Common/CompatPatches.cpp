@@ -139,7 +139,7 @@ bool ApplyUcrtPatch(const wchar_t* name, const UcrtPatchInfo& patch)
   const auto pe = (PIMAGE_NT_HEADERS)((uintptr_t)module + ((PIMAGE_DOS_HEADER)module)->e_lfanew);
   if (pe->OptionalHeader.CheckSum != patch.checksum)
     return false;
-  void* patch_addr = (void*)((uintptr_t)module + patch.rva);
+  auto patch_addr = (void*)((uintptr_t)module + patch.rva);
   const size_t patch_size = patch.length;
   ModifyProtectedRegion(patch_addr, patch_size, [=] { memset(patch_addr, 0x90, patch_size); });
   FlushInstructionCache(GetCurrentProcess(), patch_addr, patch_size);

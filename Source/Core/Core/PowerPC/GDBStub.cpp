@@ -299,7 +299,7 @@ static void SendReply(const char* reply)
 
   DEBUG_LOG_FMT(GDB_STUB, "gdb: reply (len: {}): {}", s_cmd_len, CommandBufferAsString());
 
-  const char* ptr = (const char*)s_cmd_bfr;
+  auto ptr = (const char*)s_cmd_bfr;
   u32 left = s_cmd_len + 4;
   while (left > 0)
   {

@@ -289,7 +289,7 @@ static void TexDecoder_DrawOverlay(u8* dst, const int width, const int height, c
     {
       for (int x = 0; x < xcnt; x++)
       {
-        int* dtp = (int*)dst;
+        auto dtp = (int*)dst;
         dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
       }
       ptr += 9;

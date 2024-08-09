@@ -284,7 +284,7 @@ void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
   const auto brightness = theme_window_hsv.value();
   const bool brightness_over_threshold = brightness > 128;
   const QColor emphasis_text_color_1 = Qt::yellow;
-  const QColor emphasis_text_color_2 = QColor(QStringLiteral("#0090ff"));  // ~light blue
+  const auto emphasis_text_color_2 = QColor(QStringLiteral("#0090ff"));  // ~light blue
   if (Get(Config::MAIN_USE_HIGH_CONTRAST_TOOLTIPS))
   {
     window_color = brightness_over_threshold ? QColor(72, 72, 72) : Qt::white;

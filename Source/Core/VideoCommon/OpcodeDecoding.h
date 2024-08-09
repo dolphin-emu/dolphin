@@ -124,7 +124,7 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, const u32 available, 
   if (available < 1)
     return 0;
 
-  const Opcode cmd = static_cast<Opcode>(data[0]);
+  const auto cmd = static_cast<Opcode>(data[0]);
 
   switch (cmd)
   {
@@ -227,7 +227,7 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, const u32 available, 
         return 0;
 
       const u8 cmdbyte = static_cast<u8>(cmd);
-      const Primitive primitive = static_cast<Primitive>(
+      const auto primitive = static_cast<Primitive>(
           (cmdbyte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT);
       const u8 vat = cmdbyte & GX_VAT_MASK;
 

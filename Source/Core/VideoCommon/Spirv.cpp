@@ -50,11 +50,11 @@ CompileShaderToSPV(EShLanguage stage, const APIType api_type,
   if (!InitializeGlslang())
     return std::nullopt;
 
-  const std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
+  const auto shader = std::make_unique<glslang::TShader>(stage);
   std::unique_ptr<glslang::TProgram> program;
   glslang::TShader::ForbidIncluder includer;
   constexpr EProfile profile = ECoreProfile;
-  EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
+  auto messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
   if (api_type == APIType::Vulkan || api_type == APIType::Metal)
     messages = static_cast<EShMessages>(messages | EShMsgVulkanRules);
   constexpr int default_version = 450;

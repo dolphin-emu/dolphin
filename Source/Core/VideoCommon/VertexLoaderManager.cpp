@@ -222,7 +222,7 @@ VertexLoaderBase* GetOrCreateLoader(const int vtx_attr_group)
 
   const VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
   std::lock_guard lk(s_vertex_loader_map_lock);
-  const VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
+  const auto iter = s_vertex_loader_map.find(uid);
   if (iter != s_vertex_loader_map.end())
   {
     loader = iter->second.get();

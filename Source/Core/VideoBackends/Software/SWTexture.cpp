@@ -53,8 +53,8 @@ void SWGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
                          const AbstractTexture* src_texture,
                          const MathUtil::Rectangle<int>& src_rect)
 {
-  const SWTexture* software_source_texture = static_cast<const SWTexture*>(src_texture);
-  SWTexture* software_dest_texture = static_cast<SWTexture*>(dst_framebuffer->GetColorAttachment());
+  auto software_source_texture = static_cast<const SWTexture*>(src_texture);
+  auto software_dest_texture = static_cast<SWTexture*>(dst_framebuffer->GetColorAttachment());
 
   CopyRegion(reinterpret_cast<const Pixel*>(software_source_texture->GetData(0, 0)), src_rect,
              src_texture->GetWidth(), src_texture->GetHeight(),

@@ -926,7 +926,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   for (int i = 0; i < 4; i++)
     out.Write("  s.Reg[{}] = " I_COLORS "[{}];\n", i, i);
 
-  const char* color_input_prefix = "";
+  auto color_input_prefix = "";
   if (per_pixel_lighting)
   {
     out.Write("  float4 lit_colors_0 = colors_0;\n"

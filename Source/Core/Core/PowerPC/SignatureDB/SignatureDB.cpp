@@ -99,7 +99,7 @@ bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, const u32 startAddr
   temp_dbfunc.size = size;
   temp_dbfunc.name = name;
 
-  const FuncDB::iterator iter = m_database.find(hash);
+  const auto iter = m_database.find(hash);
   if (iter == m_database.end())
   {
     m_database[hash] = temp_dbfunc;

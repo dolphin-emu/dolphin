@@ -21,7 +21,8 @@ void SetCurrentMarquee(bool marquee);
 void ResetCurrentProgress();
 void SetCurrentProgress(int current, int total);
 
-void SetVisible(bool visible);
+void Show();
+void Hide();
 
 void Stop();
 

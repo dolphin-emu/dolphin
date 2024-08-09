@@ -48,7 +48,7 @@ static void SetPixelAlphaOnly(const u32 offset, const u8 a)
   case PixelFormat::RGBA6_Z24:
   {
     const u32 a32 = a;
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xffffffc0;
     val |= (a32 >> 2) & 0x0000003f;
     *dst = val;
@@ -68,7 +68,7 @@ static void SetPixelColorOnly(const u32 offset, u8* rgb)
   case PixelFormat::Z24:
   {
     const u32 src = *(u32*)rgb;
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
     *dst = val;
@@ -77,7 +77,7 @@ static void SetPixelColorOnly(const u32 offset, u8* rgb)
   case PixelFormat::RGBA6_Z24:
   {
     const u32 src = *(u32*)rgb;
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff00003f;
     val |= (src >> 4) & 0x00000fc0;  // blue
     val |= (src >> 6) & 0x0003f000;  // green
@@ -89,7 +89,7 @@ static void SetPixelColorOnly(const u32 offset, u8* rgb)
   {
     // TODO: RGB565_Z16 is not supported correctly yet
     const u32 src = *(u32*)rgb;
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
     *dst = val;
@@ -109,7 +109,7 @@ static void SetPixelAlphaColor(const u32 offset, u8* color)
   case PixelFormat::Z24:
   {
     const u32 src = *(u32*)color;
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
     *dst = val;
@@ -118,7 +118,7 @@ static void SetPixelAlphaColor(const u32 offset, u8* color)
   case PixelFormat::RGBA6_Z24:
   {
     const u32 src = *(u32*)color;
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= (src >> 2) & 0x0000003f;  // alpha
     val |= (src >> 4) & 0x00000fc0;  // blue
@@ -131,7 +131,7 @@ static void SetPixelAlphaColor(const u32 offset, u8* color)
   {
     // TODO: RGB565_Z16 is not supported correctly yet
     const u32 src = *(u32*)color;
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= src >> 8;
     *dst = val;
@@ -178,7 +178,7 @@ static void SetPixelDepth(const u32 offset, const u32 depth)
   case PixelFormat::RGBA6_Z24:
   case PixelFormat::Z24:
   {
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= depth & 0x00ffffff;
     *dst = val;
@@ -187,7 +187,7 @@ static void SetPixelDepth(const u32 offset, const u32 depth)
   case PixelFormat::RGB565_Z16:
   {
     // TODO: RGB565_Z16 is not supported correctly yet
-    u32* dst = (u32*)&efb[offset];
+    auto dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= depth & 0x00ffffff;
     *dst = val;
@@ -413,7 +413,7 @@ void BlendTev(const u16 x, const u16 y, u8* color)
   const u32 offset = GetColorOffset(x, y);
   u32 dstClr = GetPixelColor(offset);
 
-  u8* dstClrPtr = (u8*)&dstClr;
+  auto dstClrPtr = (u8*)&dstClr;
 
   if (bpmem.blendmode.blendenable)
   {

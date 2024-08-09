@@ -147,7 +147,7 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
     INFO_LOG_FMT(DISCIO, "Entry: {} Path: {}", entry, path);
     m_update_callback();
 
-    const Type type = static_cast<Type>(entry.mode & 3);
+    const auto type = static_cast<Type>(entry.mode & 3);
     if (type == Type::File)
     {
       std::vector<u8> data = GetEntryData(entry);

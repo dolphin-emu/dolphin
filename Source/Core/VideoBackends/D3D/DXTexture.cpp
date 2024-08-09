@@ -152,7 +152,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                          const u32 dst_layer, const u32 dst_level)
 {
-  const DXTexture* srcentry = static_cast<const DXTexture*>(src);
+  auto srcentry = static_cast<const DXTexture*>(src);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
 
@@ -173,7 +173,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                                    const u32 layer, const u32 level)
 {
-  const DXTexture* srcentry = static_cast<const DXTexture*>(src);
+  auto srcentry = static_cast<const DXTexture*>(src);
   DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
                m_config.height == srcentry->m_config.height && m_config.samples == 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&

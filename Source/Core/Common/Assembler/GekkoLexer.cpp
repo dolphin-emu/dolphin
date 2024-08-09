@@ -618,7 +618,7 @@ TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invali
 {
   // The open quote has alread been matched
   const size_t string_start = m_scan_pos.index - 1;
-  TokenType token_type = TokenType::StringLit;
+  auto token_type = TokenType::StringLit;
 
   const std::optional<std::string_view> failure_reason = RunDfa(string_dfa);
 
@@ -706,7 +706,7 @@ AssemblerToken Lexer::LexSingle() const
 
   TokenType token_type;
   std::string_view invalid_reason = "";
-  Interval invalid_region = Interval{0, 0};
+  auto invalid_region = Interval{0, 0};
 
   Step();
 

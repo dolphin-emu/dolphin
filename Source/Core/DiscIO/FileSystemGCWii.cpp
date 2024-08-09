@@ -128,7 +128,7 @@ bool FileInfoGCWii::NameCaseInsensitiveEquals(const std::string_view other) cons
   // For speed, this function avoids allocating new strings, except when we are comparing
   // non-ASCII characters with non-ASCII characters, which is a rare case.
 
-  const char* this_ptr = reinterpret_cast<const char*>(m_fst + GetNameOffset());
+  auto this_ptr = reinterpret_cast<const char*>(m_fst + GetNameOffset());
   const char* other_ptr = other.data();
 
   for (size_t i = 0; i < other.size(); ++i, ++this_ptr, ++other_ptr)

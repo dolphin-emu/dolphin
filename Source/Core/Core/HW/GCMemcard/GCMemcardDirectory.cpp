@@ -33,7 +33,7 @@
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 #include "Core/NetPlayProto.h"
 
-static const char* MC_HDR = "MC_SYSTEM_AREA";
+static auto MC_HDR = "MC_SYSTEM_AREA";
 
 static std::string GenerateDefaultGCIFilename(const Memcard::DEntry& entry,
                                               const bool card_encoding_is_shift_jis)

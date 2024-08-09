@@ -70,7 +70,7 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
   const bool found = it != m_cached_files.cend();
   if (!found)
   {
-    std::shared_ptr<GameFile> game = std::make_shared<GameFile>(path);
+    auto game = std::make_shared<GameFile>(path);
     if (!game->IsValid())
       return nullptr;
     m_cached_files.emplace_back(std::move(game));
@@ -188,7 +188,7 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   // If a cached file needs an update, apply the updates to a copy and delete the original.
   // This makes the usage of cached files in other threads safe.
 
-  std::shared_ptr<GameFile> copy = std::make_shared<GameFile>(**game_file);
+  auto copy = std::make_shared<GameFile>(**game_file);
   if (xml_metadata_changed)
     copy->XMLMetadataCommit();
   if (wii_banner_changed)

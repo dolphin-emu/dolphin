@@ -35,7 +35,7 @@ static_assert(sizeof(OutputReportGeneric) == 2, "Wrong size");
 
 struct OutputReportRumble
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::Rumble;
+  static constexpr auto REPORT_ID = OutputReportID::Rumble;
 
   u8 rumble : 1;
 };
@@ -53,31 +53,31 @@ static_assert(sizeof(OutputReportEnableFeature) == 1, "Wrong size");
 
 struct OutputReportIRLogicEnable : OutputReportEnableFeature
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::IRLogicEnable;
+  static constexpr auto REPORT_ID = OutputReportID::IRLogicEnable;
 };
 static_assert(sizeof(OutputReportIRLogicEnable) == 1, "Wrong size");
 
 struct OutputReportIRLogicEnable2 : OutputReportEnableFeature
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::IRLogicEnable2;
+  static constexpr auto REPORT_ID = OutputReportID::IRLogicEnable2;
 };
 static_assert(sizeof(OutputReportIRLogicEnable2) == 1, "Wrong size");
 
 struct OutputReportSpeakerEnable : OutputReportEnableFeature
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::SpeakerEnable;
+  static constexpr auto REPORT_ID = OutputReportID::SpeakerEnable;
 };
 static_assert(sizeof(OutputReportSpeakerEnable) == 1, "Wrong size");
 
 struct OutputReportSpeakerMute : OutputReportEnableFeature
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::SpeakerMute;
+  static constexpr auto REPORT_ID = OutputReportID::SpeakerMute;
 };
 static_assert(sizeof(OutputReportSpeakerMute) == 1, "Wrong size");
 
 struct OutputReportLeds
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::LED;
+  static constexpr auto REPORT_ID = OutputReportID::LED;
 
   u8 rumble : 1;
   u8 ack : 1;
@@ -88,7 +88,7 @@ static_assert(sizeof(OutputReportLeds) == 1, "Wrong size");
 
 struct OutputReportMode
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::ReportMode;
+  static constexpr auto REPORT_ID = OutputReportID::ReportMode;
 
   u8 rumble : 1;
   u8 ack : 1;
@@ -100,7 +100,7 @@ static_assert(sizeof(OutputReportMode) == 2, "Wrong size");
 
 struct OutputReportRequestStatus
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::RequestStatus;
+  static constexpr auto REPORT_ID = OutputReportID::RequestStatus;
 
   u8 rumble : 1;
   u8 : 7;
@@ -109,7 +109,7 @@ static_assert(sizeof(OutputReportRequestStatus) == 1, "Wrong size");
 
 struct OutputReportWriteData
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::WriteData;
+  static constexpr auto REPORT_ID = OutputReportID::WriteData;
 
   u8 rumble : 1;
   u8 : 1;
@@ -128,7 +128,7 @@ static_assert(sizeof(OutputReportWriteData) == 21, "Wrong size");
 
 struct OutputReportReadData
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::ReadData;
+  static constexpr auto REPORT_ID = OutputReportID::ReadData;
 
   u8 rumble : 1;
   u8 : 1;
@@ -146,7 +146,7 @@ static_assert(sizeof(OutputReportReadData) == 6, "Wrong size");
 
 struct OutputReportSpeakerData
 {
-  static constexpr OutputReportID REPORT_ID = OutputReportID::SpeakerData;
+  static constexpr auto REPORT_ID = OutputReportID::SpeakerData;
 
   u8 rumble : 1;
   u8 : 2;
@@ -189,7 +189,7 @@ static_assert(sizeof(ButtonData) == 2, "Wrong size");
 
 struct InputReportStatus
 {
-  static constexpr InputReportID REPORT_ID = InputReportID::Status;
+  static constexpr auto REPORT_ID = InputReportID::Status;
 
   ButtonData buttons;
   u8 battery_low : 1;
@@ -220,7 +220,7 @@ static_assert(sizeof(InputReportStatus) == 6, "Wrong size");
 
 struct InputReportAck
 {
-  static constexpr InputReportID REPORT_ID = InputReportID::Ack;
+  static constexpr auto REPORT_ID = InputReportID::Ack;
 
   ButtonData buttons;
   OutputReportID rpt_id;
@@ -230,7 +230,7 @@ static_assert(sizeof(InputReportAck) == 4, "Wrong size");
 
 struct InputReportReadDataReply
 {
-  static constexpr InputReportID REPORT_ID = InputReportID::ReadDataReply;
+  static constexpr auto REPORT_ID = InputReportID::ReadDataReply;
 
   ButtonData buttons;
   u8 error : 4;

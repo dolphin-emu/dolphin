@@ -283,11 +283,11 @@ void FifoRecorder::StartRecording(const s32 numFrames, CallbackFunc finishedCb)
 
 void FifoRecorder::RecordInitialVideoMemory()
 {
-  const u32* bpmem_ptr = reinterpret_cast<const u32*>(&bpmem);
+  auto bpmem_ptr = reinterpret_cast<const u32*>(&bpmem);
   u32 cpmem[256] = {};
   // The FIFO recording format splits XF memory into xfmem and xfregs; follow
   // that split here.
-  const u32* xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
+  auto xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
   const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
   constexpr u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 

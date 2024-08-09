@@ -56,7 +56,7 @@ u16 cksum(const u16* buffer, int length)
 int icmp_echo_req(const u32 s, const sockaddr_in* addr, const u8* data, const u32 data_length)
 {
   memset(workspace, 0, sizeof(workspace));
-  icmp_hdr* header = (icmp_hdr*)workspace;
+  auto header = (icmp_hdr*)workspace;
   header->type = ICMP_ECHOREQ;
   header->code = 0;
   header->checksum = 0;

@@ -115,7 +115,7 @@ static u64 GetMurmurHash3(const u8* src, const u32 len, u32 samples)
   //----------
   // body
 
-  const u64* blocks = (const u64*)(data);
+  auto blocks = (const u64*)(data);
 
   for (int i = 0; i < nblocks; i += Step)
   {
@@ -324,7 +324,7 @@ static u64 GetHash64_SSE42_CRC32(const u8* src, const u32 len, u32 samples)
 {
   u64 h[4] = {len, 0, 0, 0};
   u32 Step = (len / 8);
-  const u64* data = (const u64*)src;
+  auto data = (const u64*)src;
   const u64* end = data + Step;
   if (samples == 0)
     samples = std::max(Step, 1u);

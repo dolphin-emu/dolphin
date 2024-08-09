@@ -87,7 +87,7 @@ void NWC24Config::ResetConfig()
 
 u32 NWC24Config::CalculateNwc24ConfigChecksum() const
 {
-  const u32* ptr = reinterpret_cast<const u32*>(&m_data);
+  auto ptr = reinterpret_cast<const u32*>(&m_data);
   u32 sum = 0;
 
   for (int i = 0; i < 0xFF; ++i)

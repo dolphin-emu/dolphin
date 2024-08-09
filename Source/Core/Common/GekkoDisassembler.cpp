@@ -856,7 +856,7 @@ void GekkoDisassembler::mtb(const u32 in)
   {
     m_operands += regnames[d];
 
-    const char* x = "";
+    auto x = "";
     switch (tbr)
     {
     case 268:

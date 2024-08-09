@@ -241,7 +241,7 @@ bool Disc::IsValidForGame(const std::string& game_id, const std::optional<u16> r
   if (game_id.size() != 6)
     return false;
 
-  const std::string_view game_id_full = std::string_view(game_id);
+  const auto game_id_full = std::string_view(game_id);
   const std::string_view game_region = game_id_full.substr(3, 1);
   const std::string_view game_developer = game_id_full.substr(4, 2);
   const int disc_number_int = std::optional<int>(disc_number).value_or(-1);
@@ -263,7 +263,7 @@ bool Disc::IsValidForGame(const std::string& game_id, const std::optional<u16> r
 
 std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
 {
-  const std::string_view game_id_full = std::string_view(game_id);
+  const auto game_id_full = std::string_view(game_id);
   const std::string_view game_id_no_region = game_id_full.substr(0, 3);
   const std::string_view game_region = game_id_full.substr(3, 1);
   const std::string_view game_developer = game_id_full.substr(4, 2);

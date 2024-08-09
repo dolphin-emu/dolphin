@@ -861,7 +861,7 @@ void ParseState::EmitErrorHere(std::string&& message)
 
 void ParseWithPlugin(ParsePlugin* plugin, const std::string_view input)
 {
-  ParseState parse_state = ParseState(input, *plugin);
+  auto parse_state = ParseState(input, *plugin);
   plugin->SetOwner(&parse_state);
   ParseProgram(&parse_state);
 

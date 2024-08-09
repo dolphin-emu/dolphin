@@ -692,7 +692,7 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
   CreateSystemMenuTitleDirs();
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_STATE;
   const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
-  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  constexpr auto rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   const auto file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
                                           {rw_mode, rw_mode, rw_mode});
   if (!file)

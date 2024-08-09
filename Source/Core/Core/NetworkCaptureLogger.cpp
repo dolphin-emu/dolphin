@@ -176,7 +176,7 @@ void PCAPSSLCaptureLogger::LogIPv4(const LogType log_type, const u8* data, const
 
   std::vector<u8> packet;
   auto insert = [&](const auto* new_data, const std::size_t size) {
-    const u8* begin = reinterpret_cast<const u8*>(new_data);
+    auto begin = reinterpret_cast<const u8*>(new_data);
     packet.insert(packet.end(), begin, begin + size);
   };
 

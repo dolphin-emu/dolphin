@@ -19,7 +19,7 @@ SwapChain::~SwapChain() = default;
 
 std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi)
 {
-  std::unique_ptr<SwapChain> swap_chain =
+  auto swap_chain =
       std::make_unique<SwapChain>(wsi, D3D::dxgi_factory.Get(), D3D::device.Get());
   if (!swap_chain->CreateSwapChain(WantsStereo(), WantsHDR()))
     return nullptr;

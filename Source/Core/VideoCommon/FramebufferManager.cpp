@@ -404,7 +404,7 @@ bool FramebufferManager::CompileConversionPipelines()
 {
   for (u32 i = 0; i < NUM_EFB_REINTERPRET_TYPES; i++)
   {
-    EFBReinterpretType convtype = static_cast<EFBReinterpretType>(i);
+    auto convtype = static_cast<EFBReinterpretType>(i);
     std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
         ShaderStage::Pixel,
         FramebufferShaderGen::GenerateFormatConversionShader(convtype, GetEFBSamples()),

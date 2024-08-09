@@ -196,7 +196,7 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   ConvertedGCBanner banner;
 
   u32 number_of_languages = 0;
-  Language start_language = Language::Unknown;
+  auto start_language = Language::Unknown;
 
   if (is_bnr1)  // NTSC
   {
@@ -219,7 +219,7 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   {
     const auto& [info_short_name, info_short_maker, info_long_name, info_long_maker,
       info_description] = banner_file.information[i];
-    Language language = static_cast<Language>(static_cast<int>(start_language) + i);
+    auto language = static_cast<Language>(static_cast<int>(start_language) + i);
 
     std::string description = DecodeString(info_description);
     if (!description.empty())

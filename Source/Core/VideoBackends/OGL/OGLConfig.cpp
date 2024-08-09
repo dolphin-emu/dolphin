@@ -31,7 +31,7 @@ void InitDriverInfo()
   const std::string_view sversion(g_ogl_config.gl_version);
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
   DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
-  DriverDetails::Family family = DriverDetails::Family::UNKNOWN;
+  auto family = DriverDetails::Family::UNKNOWN;
   double version = 0.0;
 
   // Get the vendor first

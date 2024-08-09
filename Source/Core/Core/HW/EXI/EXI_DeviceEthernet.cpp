@@ -424,7 +424,7 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, const u32 size)
 {
   // In direct mode, the hardware handles creating the state required by the
   // GMAC instead of finagling with packet descriptors and such
-  u16* tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
+  auto tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
 
   memcpy(tx_fifo.get() + *tx_fifo_count, data, size);
 
@@ -516,7 +516,7 @@ inline bool CEXIETHERNET::RecvMACFilter()
 
 inline void CEXIETHERNET::inc_rwp()
 {
-  u16* rwp = (u16*)&mBbaMem[BBA_RWP];
+  auto rwp = (u16*)&mBbaMem[BBA_RWP];
 
   if (*rwp == page_ptr(BBA_RHBP))
     *rwp = page_ptr(BBA_BP);
@@ -526,7 +526,7 @@ inline void CEXIETHERNET::inc_rwp()
 
 inline void CEXIETHERNET::set_rwp(const u16 value)
 {
-  u16* rwp = (u16*)&mBbaMem[BBA_RWP];
+  auto rwp = (u16*)&mBbaMem[BBA_RWP];
   *rwp = value;
 }
 

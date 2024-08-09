@@ -320,8 +320,8 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
   char* pbuf;
   s32 val = 0;
 
-  char* d_buffer = static_cast<char*>(malloc(1024));
-  char* s_buffer = static_cast<char*>(malloc(1024));
+  auto d_buffer = static_cast<char*>(malloc(1024));
+  auto s_buffer = static_cast<char*>(malloc(1024));
   strcpy(s_buffer, ptr);
 
   while ((pbuf = FindBrackets(s_buffer, d_buffer)) != nullptr)

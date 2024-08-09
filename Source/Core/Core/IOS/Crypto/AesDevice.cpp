@@ -32,7 +32,7 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
   const auto& system = GetSystem();
   const auto& memory = system.GetMemory();
   ReturnCode return_code = IPC_EINVAL;
-  const AesIoctlv command = static_cast<AesIoctlv>(request.request);
+  const auto command = static_cast<AesIoctlv>(request.request);
 
   switch (command)
   {
@@ -41,7 +41,7 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
     if (!request.HasNumberOfValidVectors(1, 1))
       break;
 
-    std::vector<u8> input = std::vector<u8>(request.in_vectors[0].size);
+    auto input = std::vector<u8>(request.in_vectors[0].size);
     memory.CopyFromEmu(input.data(), request.in_vectors[0].address, input.size());
     memory.CopyToEmu(request.io_vectors[0].address, input.data(), input.size());
     return_code = IPC_SUCCESS;
@@ -59,8 +59,8 @@ std::optional<IPCReply> AesDevice::IOCtlV(const IOCtlVRequest& request)
       break;
     }
 
-    std::vector<u8> input = std::vector<u8>(request.in_vectors[0].size);
-    std::vector<u8> output = std::vector<u8>(request.io_vectors[0].size);
+    auto input = std::vector<u8>(request.in_vectors[0].size);
+    auto output = std::vector<u8>(request.io_vectors[0].size);
     std::array<u8, 0x10> key = {0};
     std::array<u8, 0x10> iv = {0};
     memory.CopyFromEmu(input.data(), request.in_vectors[0].address, input.size());

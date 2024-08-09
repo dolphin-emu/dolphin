@@ -504,7 +504,7 @@ void FatalError(const std::string& message)
 {
   LogToFile("%s\n", message.c_str());
 
-  UI::SetVisible(true);
+  UI::Show();
   UI::Error(message);
 }
 
@@ -688,7 +688,7 @@ bool RunUpdater(std::vector<std::string> args)
   }
 
   UI::Init();
-  UI::SetVisible(false);
+  UI::Hide();
 
   Common::ScopeGuard ui_guard{[] { UI::Stop(); }};
   const auto [this_manifest_url, next_manifest_url, content_store_url, install_base_path,
@@ -723,7 +723,7 @@ bool RunUpdater(std::vector<std::string> args)
     LogToFile("Completed! Proceeding with update.\n");
   }
 
-  UI::SetVisible(true);
+  UI::Show();
 
   UI::SetDescription("Fetching and parsing manifests...");
 

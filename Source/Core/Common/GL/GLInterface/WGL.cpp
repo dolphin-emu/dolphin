@@ -359,7 +359,7 @@ std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
     return nullptr;
   }
 
-  std::unique_ptr<GLContextWGL> context = std::make_unique<GLContextWGL>();
+  auto context = std::make_unique<GLContextWGL>();
   context->m_pbuffer_handle = pbuffer;
   context->m_dc = dc;
   context->m_rc = rc;

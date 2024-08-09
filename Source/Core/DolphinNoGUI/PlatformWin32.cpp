@@ -167,7 +167,7 @@ void PlatformWin32::ProcessEvents() const
 
 LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
-  PlatformWin32* platform = reinterpret_cast<PlatformWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+  auto platform = reinterpret_cast<PlatformWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
   switch (msg)
   {
   case WM_NCCREATE:

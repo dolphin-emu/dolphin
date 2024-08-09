@@ -45,7 +45,7 @@ constexpr u32 m_os = OS_ALL | OS_HAIKU;
 static API m_api = API_OPENGL;
 static Vendor m_vendor = VENDOR_UNKNOWN;
 static Driver m_driver = DRIVER_UNKNOWN;
-static Family m_family = Family::UNKNOWN;
+static auto m_family = Family::UNKNOWN;
 static double m_version = 0.0;
 static std::string m_name;
 

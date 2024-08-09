@@ -343,7 +343,7 @@ public:
 
       save_file.mode = file_hdr.permissions;
       save_file.attributes = file_hdr.attrib;
-      const SaveFile::Type type = static_cast<SaveFile::Type>(file_hdr.type);
+      const auto type = static_cast<SaveFile::Type>(file_hdr.type);
       if (type != SaveFile::Type::Directory && type != SaveFile::Type::File)
         return {};
       save_file.type = type;

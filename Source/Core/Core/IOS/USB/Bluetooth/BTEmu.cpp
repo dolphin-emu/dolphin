@@ -250,7 +250,7 @@ void BluetoothEmuDevice::SendACLPacket(const bdaddr_t& source, const u8* data, c
     const auto& system = GetSystem();
     const auto& memory = system.GetMemory();
 
-    hci_acldata_hdr_t* header = reinterpret_cast<hci_acldata_hdr_t*>(
+    auto header = reinterpret_cast<hci_acldata_hdr_t*>(
         memory.GetPointerForRange(m_acl_endpoint->data_address, sizeof(hci_acldata_hdr_t)));
     header->con_handle = HCI_MK_CON_HANDLE(connection_handle, HCI_PACKET_START, HCI_POINT2POINT);
     header->length = size;
@@ -427,7 +427,7 @@ void BluetoothEmuDevice::ACLPool::WriteToEndpoint(const USB::V0BulkMessage& endp
   const auto& system = m_ios.GetSystem();
   const auto& memory = system.GetMemory();
 
-  hci_acldata_hdr_t* header = (hci_acldata_hdr_t*)memory.GetPointerForRange(
+  auto header = (hci_acldata_hdr_t*)memory.GetPointerForRange(
       endpoint.data_address, sizeof(hci_acldata_hdr_t));
   header->con_handle = HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
   header->length = size;
@@ -444,7 +444,7 @@ bool BluetoothEmuDevice::SendEventInquiryComplete(const u8 num_responses)
 {
   const SQueuedEvent event(sizeof(SHCIEventInquiryComplete), 0);
 
-  SHCIEventInquiryComplete* inquiry_complete = (SHCIEventInquiryComplete*)event.buffer;
+  auto inquiry_complete = (SHCIEventInquiryComplete*)event.buffer;
   inquiry_complete->EventType = HCI_EVENT_INQUIRY_COMPL;
   inquiry_complete->PayloadLength = sizeof(SHCIEventInquiryComplete) - 2;
   inquiry_complete->EventStatus = 0x00;
@@ -514,7 +514,7 @@ bool BluetoothEmuDevice::SendEventConnectionComplete(const bdaddr_t& bd, const u
 {
   const SQueuedEvent event(sizeof(SHCIEventConnectionComplete), 0);
 
-  SHCIEventConnectionComplete* connection_complete = (SHCIEventConnectionComplete*)event.buffer;
+  auto connection_complete = (SHCIEventConnectionComplete*)event.buffer;
 
   connection_complete->EventType = HCI_EVENT_CON_COMPL;
   connection_complete->PayloadLength = sizeof(SHCIEventConnectionComplete) - 2;
@@ -549,7 +549,7 @@ bool BluetoothEmuDevice::SendEventRequestConnection(const WiimoteDevice& wiimote
 {
   const SQueuedEvent event(sizeof(SHCIEventRequestConnection), 0);
 
-  SHCIEventRequestConnection* event_request_connection = (SHCIEventRequestConnection*)event.buffer;
+  auto event_request_connection = (SHCIEventRequestConnection*)event.buffer;
 
   event_request_connection->EventType = HCI_EVENT_CON_REQ;
   event_request_connection->PayloadLength = sizeof(SHCIEventRequestConnection) - 2;
@@ -588,7 +588,7 @@ bool BluetoothEmuDevice::SendEventDisconnect(const u16 connection_handle, const 
 
   const SQueuedEvent event(sizeof(SHCIEventDisconnectCompleted), connection_handle);
 
-  SHCIEventDisconnectCompleted* disconnect = (SHCIEventDisconnectCompleted*)event.buffer;
+  auto disconnect = (SHCIEventDisconnectCompleted*)event.buffer;
   disconnect->EventType = HCI_EVENT_DISCON_COMPL;
   disconnect->PayloadLength = sizeof(SHCIEventDisconnectCompleted) - 2;
   disconnect->EventStatus = 0;
@@ -612,7 +612,7 @@ bool BluetoothEmuDevice::SendEventAuthenticationCompleted(const u16 connection_h
 
   const SQueuedEvent event(sizeof(SHCIEventAuthenticationCompleted), connection_handle);
 
-  SHCIEventAuthenticationCompleted* event_authentication_completed =
+  auto event_authentication_completed =
       (SHCIEventAuthenticationCompleted*)event.buffer;
   event_authentication_completed->EventType = HCI_EVENT_AUTH_COMPL;
   event_authentication_completed->PayloadLength = sizeof(SHCIEventAuthenticationCompleted) - 2;
@@ -636,7 +636,7 @@ bool BluetoothEmuDevice::SendEventRemoteNameReq(const bdaddr_t& bd)
 
   const SQueuedEvent event(sizeof(SHCIEventRemoteNameReq), 0);
 
-  SHCIEventRemoteNameReq* remote_name_req = (SHCIEventRemoteNameReq*)event.buffer;
+  auto remote_name_req = (SHCIEventRemoteNameReq*)event.buffer;
 
   remote_name_req->EventType = HCI_EVENT_REMOTE_NAME_REQ_COMPL;
   remote_name_req->PayloadLength = sizeof(SHCIEventRemoteNameReq) - 2;
@@ -664,7 +664,7 @@ bool BluetoothEmuDevice::SendEventReadRemoteFeatures(const u16 connection_handle
 
   const SQueuedEvent event(sizeof(SHCIEventReadRemoteFeatures), connection_handle);
 
-  SHCIEventReadRemoteFeatures* read_remote_features = (SHCIEventReadRemoteFeatures*)event.buffer;
+  auto read_remote_features = (SHCIEventReadRemoteFeatures*)event.buffer;
 
   read_remote_features->EventType = HCI_EVENT_READ_REMOTE_FEATURES_COMPL;
   read_remote_features->PayloadLength = sizeof(SHCIEventReadRemoteFeatures) - 2;
@@ -694,7 +694,7 @@ bool BluetoothEmuDevice::SendEventReadRemoteVerInfo(const u16 connection_handle)
 
   const SQueuedEvent event(sizeof(SHCIEventReadRemoteVerInfo), connection_handle);
 
-  SHCIEventReadRemoteVerInfo* read_remote_ver_info = (SHCIEventReadRemoteVerInfo*)event.buffer;
+  auto read_remote_ver_info = (SHCIEventReadRemoteVerInfo*)event.buffer;
   read_remote_ver_info->EventType = HCI_EVENT_READ_REMOTE_VER_INFO_COMPL;
   read_remote_ver_info->PayloadLength = sizeof(SHCIEventReadRemoteVerInfo) - 2;
   read_remote_ver_info->EventStatus = 0x00;
@@ -721,7 +721,7 @@ void BluetoothEmuDevice::SendEventCommandComplete(const u16 opcode, const void* 
 
   SQueuedEvent event(sizeof(SHCIEventCommand) + data_size, 0);
 
-  SHCIEventCommand* hci_event = reinterpret_cast<SHCIEventCommand*>(event.buffer);
+  auto hci_event = reinterpret_cast<SHCIEventCommand*>(event.buffer);
   hci_event->EventType = HCI_EVENT_COMMAND_COMPL;
   hci_event->PayloadLength = static_cast<u8>(sizeof(SHCIEventCommand) - 2 + data_size);
   hci_event->PacketIndicator = 0x01;
@@ -743,7 +743,7 @@ bool BluetoothEmuDevice::SendEventCommandStatus(const u16 opcode)
 {
   const SQueuedEvent event(sizeof(SHCIEventStatus), 0);
 
-  SHCIEventStatus* hci_event = (SHCIEventStatus*)event.buffer;
+  auto hci_event = (SHCIEventStatus*)event.buffer;
   hci_event->EventType = HCI_EVENT_COMMAND_STATUS;
   hci_event->PayloadLength = sizeof(SHCIEventStatus) - 2;
   hci_event->EventStatus = 0x0;
@@ -765,7 +765,7 @@ bool BluetoothEmuDevice::SendEventRoleChange(const bdaddr_t bd, const bool maste
 
   const SQueuedEvent event(sizeof(SHCIEventRoleChange), 0);
 
-  SHCIEventRoleChange* role_change = (SHCIEventRoleChange*)event.buffer;
+  auto role_change = (SHCIEventRoleChange*)event.buffer;
 
   role_change->EventType = HCI_EVENT_ROLE_CHANGE;
   role_change->PayloadLength = sizeof(SHCIEventRoleChange) - 2;
@@ -837,7 +837,7 @@ bool BluetoothEmuDevice::SendEventModeChange(const u16 connection_handle, const 
 
   const SQueuedEvent event(sizeof(SHCIEventModeChange), connection_handle);
 
-  SHCIEventModeChange* mode_change = (SHCIEventModeChange*)event.buffer;
+  auto mode_change = (SHCIEventModeChange*)event.buffer;
   mode_change->EventType = HCI_EVENT_MODE_CHANGE;
   mode_change->PayloadLength = sizeof(SHCIEventModeChange) - 2;
   mode_change->EventStatus = 0;
@@ -858,7 +858,7 @@ bool BluetoothEmuDevice::SendEventLinkKeyNotification(const u8 num_to_send)
 {
   const u8 payload_length = sizeof(hci_return_link_keys_ep) + sizeof(hci_link_key_rep_cp) * num_to_send;
   const SQueuedEvent event(2 + payload_length, 0);
-  SHCIEventLinkKeyNotification* event_link_key = (SHCIEventLinkKeyNotification*)event.buffer;
+  auto event_link_key = (SHCIEventLinkKeyNotification*)event.buffer;
 
   DEBUG_LOG_FMT(IOS_WIIMOTE, "Event: SendEventLinkKeyNotification");
 
@@ -872,7 +872,7 @@ bool BluetoothEmuDevice::SendEventLinkKeyNotification(const u8 num_to_send)
   // keys
   for (int i = 0; i < num_to_send; i++)
   {
-    hci_link_key_rep_cp* link_key_info =
+    auto link_key_info =
         (hci_link_key_rep_cp*)((u8*)&event_link_key->bdaddr + sizeof(hci_link_key_rep_cp) * i);
     link_key_info->bdaddr = m_wiimotes[i]->GetBD();
     std::copy_n(m_wiimotes[i]->GetLinkKey().begin(), HCI_KEY_SIZE, link_key_info->key);
@@ -891,7 +891,7 @@ bool BluetoothEmuDevice::SendEventRequestLinkKey(const bdaddr_t& bd)
 {
   const SQueuedEvent event(sizeof(SHCIEventRequestLinkKey), 0);
 
-  SHCIEventRequestLinkKey* event_request_link_key = (SHCIEventRequestLinkKey*)event.buffer;
+  auto event_request_link_key = (SHCIEventRequestLinkKey*)event.buffer;
 
   event_request_link_key->EventType = HCI_EVENT_LINK_KEY_REQ;
   event_request_link_key->PayloadLength = sizeof(SHCIEventRequestLinkKey) - 2;
@@ -916,7 +916,7 @@ bool BluetoothEmuDevice::SendEventReadClockOffsetComplete(const u16 connection_h
 
   const SQueuedEvent event(sizeof(SHCIEventReadClockOffsetComplete), connection_handle);
 
-  SHCIEventReadClockOffsetComplete* read_clock_offset_complete =
+  auto read_clock_offset_complete =
       (SHCIEventReadClockOffsetComplete*)event.buffer;
   read_clock_offset_complete->EventType = HCI_EVENT_READ_CLOCK_OFFSET_COMPL;
   read_clock_offset_complete->PayloadLength = sizeof(SHCIEventReadClockOffsetComplete) - 2;
@@ -942,7 +942,7 @@ bool BluetoothEmuDevice::SendEventConPacketTypeChange(const u16 connection_handl
 
   const SQueuedEvent event(sizeof(SHCIEventConPacketTypeChange), connection_handle);
 
-  SHCIEventConPacketTypeChange* change_con_packet_type =
+  auto change_con_packet_type =
       (SHCIEventConPacketTypeChange*)event.buffer;
   change_con_packet_type->EventType = HCI_EVENT_CON_PKT_TYPE_CHANGED;
   change_con_packet_type->PayloadLength = sizeof(SHCIEventConPacketTypeChange) - 2;

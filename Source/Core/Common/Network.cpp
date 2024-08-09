@@ -274,7 +274,7 @@ void DHCPPacket::AddOption(const u8 fnc, const std::vector<u8>& params)
 
 std::vector<u8> DHCPPacket::Build() const
 {
-  const u8* body_ptr = reinterpret_cast<const u8*>(&body);
+  auto body_ptr = reinterpret_cast<const u8*>(&body);
   std::vector result(body_ptr, body_ptr + DHCPBody::SIZE);
 
   for (auto& opt : options)
@@ -321,7 +321,7 @@ template <typename Container, typename T>
 static inline void InsertObj(Container* container, const T& obj)
 {
   static_assert(std::is_trivially_copyable_v<T>);
-  const u8* const ptr = reinterpret_cast<const u8*>(&obj);
+  const auto ptr = reinterpret_cast<const u8*>(&obj);
   container->insert(container->end(), ptr, ptr + sizeof(obj));
 }
 

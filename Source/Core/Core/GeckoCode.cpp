@@ -60,7 +60,7 @@ enum class Installation
   Failed
 };
 
-static Installation s_code_handler_installed = Installation::Uninstalled;
+static auto s_code_handler_installed = Installation::Uninstalled;
 // the currently active codes
 static std::vector<GeckoCode> s_active_codes;
 static std::vector<GeckoCode> s_synced_codes;

@@ -992,7 +992,7 @@ public:
                       std::is_function<std::remove_pointer_t<FunctionPointer>>(),
                   "Supplied type must be a function pointer.");
 
-    const void* ptr = reinterpret_cast<const void*>(func);
+    auto ptr = reinterpret_cast<const void*>(func);
     const u64 address = reinterpret_cast<u64>(ptr);
     const u64 distance = address - (reinterpret_cast<u64>(code) + 5);
 

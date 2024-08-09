@@ -41,7 +41,7 @@ size_t LaggedFibonacciGenerator::GetSeed(const u8* data, const size_t size, cons
   // possible to get rid of this restriction and use a few additional bytes, but it's probably more
   // effort than it's worth considering that junk data often starts or ends on 4-byte offsets.
   const size_t bytes_to_skip = Common::AlignUp(data_offset, sizeof(u32)) - data_offset;
-  const u32* u32_data = reinterpret_cast<const u32*>(data + bytes_to_skip);
+  auto u32_data = reinterpret_cast<const u32*>(data + bytes_to_skip);
   const size_t u32_size = (size - bytes_to_skip) / sizeof(u32);
   const size_t u32_data_offset = (data_offset + bytes_to_skip) / sizeof(u32);
 

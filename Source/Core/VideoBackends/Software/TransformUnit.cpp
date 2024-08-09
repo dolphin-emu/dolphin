@@ -229,7 +229,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   {
     ldir = ldir.Normalized();
     attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
-    const Vec3 attLen = Vec3(1.0, attn, attn * attn);
+    const auto attLen = Vec3(1.0, attn, attn * attn);
     const Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
     if (chan.diffusefunc != DiffuseFunc::None)
@@ -260,7 +260,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
 static void LightColor(const Vec3& pos, const Vec3& normal, const u8 lightNum, const LitChannel& chan,
                        Vec3& lightCol)
 {
-  const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
+  auto light = (const LightPointer*)&xfmem.lights[lightNum];
 
   Vec3 ldir = light->pos - pos;
   const float attn = CalculateLightAttn(light, &ldir, normal, chan);
@@ -286,7 +286,7 @@ static void LightColor(const Vec3& pos, const Vec3& normal, const u8 lightNum, c
 static void LightAlpha(const Vec3& pos, const Vec3& normal, const u8 lightNum, const LitChannel& chan,
                        float& lightCol)
 {
-  const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
+  auto light = (const LightPointer*)&xfmem.lights[lightNum];
 
   Vec3 ldir = light->pos - pos;
   const float attn = CalculateLightAttn(light, &ldir, normal, chan);
@@ -409,7 +409,7 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
       break;
     case TexGenType::EmbossMap:
     {
-      const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
+      auto light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
       Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
       const float d1 = ldir * dst->normal[1];

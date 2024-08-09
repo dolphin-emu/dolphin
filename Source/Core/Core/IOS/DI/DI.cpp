@@ -635,7 +635,7 @@ void DIDevice::InterruptFromDVDInterface(DVD::DIInterruptType interrupt_type)
 
 void DIDevice::FinishDICommandCallback(Core::System& system, u64 userdata, s64 ticksbehind)
 {
-  const DIResult result = static_cast<DIResult>(userdata);
+  const auto result = static_cast<DIResult>(userdata);
 
   const auto di = GetDevice();
   if (di)
@@ -699,7 +699,7 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
         request.request, command);
   }
 
-  DIResult return_value = DIResult::BadArgument;
+  auto return_value = DIResult::BadArgument;
   switch (static_cast<DIIoctl>(request.request))
   {
   case DIIoctl::DVDLowOpenPartition:

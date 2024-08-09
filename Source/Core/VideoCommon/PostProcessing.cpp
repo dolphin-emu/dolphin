@@ -38,7 +38,7 @@ static constexpr char s_empty_pixel_shader[] = "void main() { SetOutput(Sample()
 static constexpr char s_default_pixel_shader_name[] = "default_pre_post_process";
 // Keep the highest quality possible to avoid losing quality on subtle gamma conversions.
 // RGBA16F should have enough quality even if we store colors in gamma space on it.
-static constexpr AbstractTextureFormat s_intermediary_buffer_format = AbstractTextureFormat::RGBA16F;
+static constexpr auto s_intermediary_buffer_format = AbstractTextureFormat::RGBA16F;
 
 static bool LoadShaderFromFile(const std::string& shader, const std::string& sub_dir,
                                std::string& out_code)

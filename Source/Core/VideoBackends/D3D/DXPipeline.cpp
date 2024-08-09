@@ -41,9 +41,9 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   if (!rasterizer_state || !depth_state || !blend_state)
     return nullptr;
 
-  const DXShader* vertex_shader = static_cast<const DXShader*>(config.vertex_shader);
-  const DXShader* geometry_shader = static_cast<const DXShader*>(config.geometry_shader);
-  const DXShader* pixel_shader = static_cast<const DXShader*>(config.pixel_shader);
+  auto vertex_shader = static_cast<const DXShader*>(config.vertex_shader);
+  auto geometry_shader = static_cast<const DXShader*>(config.geometry_shader);
+  auto pixel_shader = static_cast<const DXShader*>(config.pixel_shader);
   ASSERT(vertex_shader != nullptr && pixel_shader != nullptr);
 
   ID3D11InputLayout* input_layout =

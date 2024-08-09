@@ -83,7 +83,7 @@ std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(const AbstractPipelineConf
 
 void Gfx::SetPipeline(const AbstractPipeline* pipeline)
 {
-  const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
+  auto dx_pipeline = static_cast<const DXPipeline*>(pipeline);
   if (m_current_pipeline == dx_pipeline)
     return;
 
@@ -194,7 +194,7 @@ void Gfx::SetFramebuffer(AbstractFramebuffer* framebuffer)
     return;
 
   // We can't leave the framebuffer bound as a texture and a render target.
-  DXFramebuffer* fb = static_cast<DXFramebuffer*>(framebuffer);
+  auto fb = static_cast<DXFramebuffer*>(framebuffer);
   fb->Unbind();
 
   D3D::stateman->SetFramebuffer(fb);

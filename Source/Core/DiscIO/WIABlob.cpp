@@ -52,7 +52,7 @@ static void PushBack(std::vector<u8>* vector, const T& x)
 {
   static_assert(std::is_trivially_copyable_v<T>);
 
-  const u8* x_ptr = reinterpret_cast<const u8*>(&x);
+  auto x_ptr = reinterpret_cast<const u8*>(&x);
   PushBack(vector, x_ptr, x_ptr + sizeof(T));
 }
 

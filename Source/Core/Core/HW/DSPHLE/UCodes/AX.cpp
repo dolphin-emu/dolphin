@@ -429,7 +429,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
     ReadPB(memory, pb_addr, pb, m_crc);
 
     const u32 updates_addr = HILO_TO_32(pb.updates.data);
-    u16* updates = static_cast<u16*>(HLEMemory_Get_Pointer(memory, updates_addr));
+    auto updates = static_cast<u16*>(HLEMemory_Get_Pointer(memory, updates_addr));
 
     for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
     {
@@ -472,7 +472,7 @@ void AXUCode::MixAUXSamples(const int aux_id, const u32 write_addr, const u32 re
   auto& memory = m_dsphle->GetSystem().GetMemory();
   if (write_addr)
   {
-    int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, write_addr));
+    auto ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, write_addr));
     for (auto& buffer : buffers)
       for (u32 j = 0; j < 5 * 32; ++j)
         *ptr++ = Common::swap32(buffer[j]);
@@ -591,7 +591,7 @@ void AXUCode::MixAUXBLR(const u32 ul_addr, const u32 dl_addr)
 {
   // Upload AUXB L/R
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, ul_addr));
+  auto ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, ul_addr));
   for (const auto& sample : m_samples_auxB_left)
     *ptr++ = Common::swap32(sample);
   for (const auto& sample : m_samples_auxB_right)
@@ -638,7 +638,7 @@ void AXUCode::SendAUXAndMix(const u32 auxa_lrs_up, const u32 auxb_s_up, const u3
 
   // Upload AUXA LRS
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, auxa_lrs_up));
+  auto ptr = static_cast<int*>(HLEMemory_Get_Pointer(memory, auxa_lrs_up));
   for (const auto& up_buffer : up_buffers)
   {
     for (u32 j = 0; j < 32 * 5; ++j)

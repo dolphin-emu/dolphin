@@ -113,7 +113,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
     constexpr std::array<u8, 32> dummy_data{};
     for (const std::string path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
     {
-      constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+      constexpr auto rw_mode = IOS::HLE::FS::Mode::ReadWrite;
       if (fs->CreateFullPath(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path, 0,
                              {rw_mode, rw_mode, rw_mode}) != IOS::HLE::FS::ResultCode::Success)
       {
@@ -424,7 +424,7 @@ bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title) const
            es.GetStoredContentsFromTMD(installed_tmd).size() == installed_tmd.GetNumContents());
 }
 
-constexpr const char* GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0" encoding="UTF-8"?>
+constexpr auto GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -804,7 +804,7 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string_view manife
     const std::bitset<32> attrs = Common::swap32(entry.data() + offsetof(Entry, attribute));
     const u64 title_id = Common::swap64(entry.data() + offsetof(Entry, title_id));
     const u16 title_version = Common::swap16(entry.data() + offsetof(Entry, title_version));
-    const char* path_pointer = reinterpret_cast<const char*>(entry.data() + offsetof(Entry, path));
+    auto path_pointer = reinterpret_cast<const char*>(entry.data() + offsetof(Entry, path));
     const std::string_view path{path_pointer, strnlen(path_pointer, sizeof(Entry::path))};
 
     if (!m_update_callback(i, num_entries, title_id))

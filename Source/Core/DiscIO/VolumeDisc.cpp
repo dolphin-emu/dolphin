@@ -43,7 +43,7 @@ Region VolumeDisc::RegionCodeToRegion(const std::optional<u32> region_code)
   if (!region_code)
     return Region::Unknown;
 
-  const Region region = static_cast<Region>(*region_code);
+  const auto region = static_cast<Region>(*region_code);
   return region <= Region::NTSC_K ? region : Region::Unknown;
 }
 

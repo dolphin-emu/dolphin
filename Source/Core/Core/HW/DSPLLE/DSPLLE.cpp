@@ -92,7 +92,7 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, const u32 size_in_
     return false;
   }
 
-  const u16* words = reinterpret_cast<const u16*>(bytes.c_str());
+  auto words = reinterpret_cast<const u16*>(bytes.c_str());
   for (u32 i = 0; i < size_in_bytes / 2; ++i)
     rom[i] = Common::swap16(words[i]);
 

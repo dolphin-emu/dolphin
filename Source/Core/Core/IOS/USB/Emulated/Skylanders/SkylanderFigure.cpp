@@ -185,7 +185,7 @@ FigureData SkylanderFigure::GetData() const
                             .variant_id = Common::BitCastPtr<u16>(m_data.data() + 0x1C)};
 
   auto filter = std::make_pair(figure_data.figure_id, figure_data.variant_id);
-  Type type = Type::Item;
+  auto type = Type::Item;
   if (list_skylanders.contains(filter))
   {
     const auto [_name, _game, _element, found_type] = list_skylanders.at(filter);

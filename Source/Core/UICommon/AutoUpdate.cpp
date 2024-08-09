@@ -98,7 +98,7 @@ std::string GenerateChangelog(const picojson::array& versions)
   {
     if (!ver.is<picojson::object>())
       continue;
-    picojson::object ver_obj = ver.get<picojson::object>();
+    auto ver_obj = ver.get<picojson::object>();
 
     if (ver_obj["changelog_html"].is<picojson::null>())
     {
@@ -212,7 +212,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
     CriticalAlertFmtT("Invalid JSON received from auto-update service : {0}", err);
     return;
   }
-  picojson::object obj = json.get<picojson::object>();
+  auto obj = json.get<picojson::object>();
 
   if (obj["status"].get<std::string>() != "outdated")
   {

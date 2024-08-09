@@ -76,9 +76,9 @@ void GenericLogFmtImpl(const LogLevel level, const LogType type, const char* fil
 
 static size_t DeterminePathCutOffPoint()
 {
-  constexpr const char* pattern = "/source/core/";
+  constexpr auto pattern = "/source/core/";
 #ifdef _WIN32
-  constexpr const char* pattern2 = "\\source\\core\\";
+  constexpr auto pattern2 = "\\source\\core\\";
 #endif
   std::string path = __FILE__;
   ToLower(&path);

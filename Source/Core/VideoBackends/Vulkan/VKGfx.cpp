@@ -435,7 +435,7 @@ void VKGfx::SetFramebuffer(AbstractFramebuffer* framebuffer)
   if (m_current_framebuffer == framebuffer)
     return;
 
-  VKFramebuffer* vkfb = static_cast<VKFramebuffer*>(framebuffer);
+  auto vkfb = static_cast<VKFramebuffer*>(framebuffer);
   BindFramebuffer(vkfb);
 }
 
@@ -444,7 +444,7 @@ void VKGfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
   if (m_current_framebuffer == framebuffer)
     return;
 
-  VKFramebuffer* vkfb = static_cast<VKFramebuffer*>(framebuffer);
+  auto vkfb = static_cast<VKFramebuffer*>(framebuffer);
   BindFramebuffer(vkfb);
 
   // If we're discarding, begin the discard pass, then switch to a load pass.
@@ -455,7 +455,7 @@ void VKGfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 void VKGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
                                    const float depth_value)
 {
-  VKFramebuffer* vkfb = static_cast<VKFramebuffer*>(framebuffer);
+  auto vkfb = static_cast<VKFramebuffer*>(framebuffer);
   BindFramebuffer(vkfb);
 
   VkClearValue clear_color_value;
@@ -471,7 +471,7 @@ void VKGfx::SetTexture(const u32 index, const AbstractTexture* texture)
 {
   // Texture should always be in SHADER_READ_ONLY layout prior to use.
   // This is so we don't need to transition during render passes.
-  const VKTexture* tex = static_cast<const VKTexture*>(texture);
+  auto tex = static_cast<const VKTexture*>(texture);
   if (tex)
   {
     if (tex->GetLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)

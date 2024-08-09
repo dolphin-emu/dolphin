@@ -305,7 +305,7 @@ void DXTexture::Load(const u32 level, const u32 width, const u32 height, const u
   {
     const u8* src_ptr = buffer;
     const u32 copy_size = std::min(source_stride, upload_stride);
-    u8* dst_ptr = static_cast<u8*>(upload_buffer_ptr);
+    auto dst_ptr = static_cast<u8*>(upload_buffer_ptr);
     for (u32 i = 0; i < num_rows; i++)
     {
       std::memcpy(dst_ptr, src_ptr, copy_size);
@@ -353,7 +353,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                          const u32 dst_layer, const u32 dst_level)
 {
-  const DXTexture* src_dxtex = static_cast<const DXTexture*>(src);
+  auto src_dxtex = static_cast<const DXTexture*>(src);
   ASSERT(static_cast<u32>(src_rect.right) <= src->GetWidth() &&
          static_cast<u32>(src_rect.bottom) <= src->GetHeight() && src_layer <= src->GetLayers() &&
          src_level <= src->GetLevels() && static_cast<u32>(dst_rect.right) <= GetWidth() &&
@@ -383,7 +383,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                                    const u32 layer, const u32 level)
 {
-  const DXTexture* src_dxtex = static_cast<const DXTexture*>(src);
+  auto src_dxtex = static_cast<const DXTexture*>(src);
 
   const D3D12_RESOURCE_STATES old_src_state = src_dxtex->m_state;
   src_dxtex->TransitionToState(D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
@@ -666,7 +666,7 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
                                        const u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  const DXTexture* src_tex = static_cast<const DXTexture*>(src);
+  auto src_tex = static_cast<const DXTexture*>(src);
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
@@ -707,7 +707,7 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                                      const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
                                      const u32 dst_level)
 {
-  const DXTexture* dst_tex = static_cast<const DXTexture*>(dst);
+  auto dst_tex = static_cast<const DXTexture*>(dst);
   ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());

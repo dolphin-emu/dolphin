@@ -624,7 +624,7 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     // Buttons
     for (u8 i = 0; i != size(s_sdl_button_names); ++i)
     {
-      SDL_GameControllerButton button = static_cast<SDL_GameControllerButton>(i);
+      auto button = static_cast<SDL_GameControllerButton>(i);
       if (SDL_GameControllerHasButton(m_gamecontroller, button))
       {
         AddInput(new Button(gamecontroller, button));
@@ -636,7 +636,7 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     // Axes
     for (u8 i = 0; i != size(s_sdl_axis_names); ++i)
     {
-      SDL_GameControllerAxis axis = static_cast<SDL_GameControllerAxis>(i);
+      auto axis = static_cast<SDL_GameControllerAxis>(i);
       if (SDL_GameControllerHasAxis(m_gamecontroller, axis))
       {
         if (IsTriggerAxis(axis))

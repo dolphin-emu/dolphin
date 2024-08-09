@@ -139,7 +139,7 @@ static VFile* OpenROM(const char* rom_path)
 static std::array<u8, 20> GetROMHash(VFile* rom)
 {
   const size_t size = rom->size(rom);
-  u8* buffer = static_cast<u8*>(rom->map(rom, size, MAP_READ));
+  auto buffer = static_cast<u8*>(rom->map(rom, size, MAP_READ));
 
   const auto digest = Common::SHA1::CalculateDigest(buffer, size);
   rom->unmap(rom, buffer, size);
@@ -450,7 +450,7 @@ void Core::SetupEvent()
   m_event.context = this;
   m_event.name = "Dolphin Sync";
   m_event.callback = [](mTiming* timing, void* context, u32 cycles_late) {
-    Core* core = static_cast<Core*>(context);
+    auto core = static_cast<Core*>(context);
     if (core->m_core->platform(core->m_core) == mPLATFORM_GBA)
       static_cast<::GBA*>(core->m_core->board)->earlyExit = true;
     else if (core->m_core->platform(core->m_core) == mPLATFORM_GB)

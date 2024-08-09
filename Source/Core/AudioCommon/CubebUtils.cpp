@@ -58,7 +58,7 @@ std::shared_ptr<cubeb> CubebUtils::GetContext()
   if (shared)
     return shared;
 
-  const char* filename = __FILE__;
+  auto filename = __FILE__;
   const char* match_point = strstr(filename, DIR_SEP "Source" DIR_SEP "Core" DIR_SEP);
   if (!match_point)
     match_point = strstr(filename, R"(\Source\Core\)");

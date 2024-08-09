@@ -106,7 +106,7 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
     return nullptr;
   }
 
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
+  auto texture = std::make_unique<VKTexture>(
       tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
 
   VkImageViewType image_view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
@@ -136,7 +136,7 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_config, VkImage image,
                                                     const VkImageViewType view_type, VkImageLayout layout)
 {
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
+  auto texture = std::make_unique<VKTexture>(
       tex_config, static_cast<VmaAllocation>(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
@@ -280,7 +280,7 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          const u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                          const u32 dst_layer, const u32 dst_level)
 {
-  const VKTexture* src_texture = static_cast<const VKTexture*>(src);
+  auto src_texture = static_cast<const VKTexture*>(src);
 
   ASSERT_MSG(VIDEO,
              static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
@@ -321,7 +321,7 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                                    const u32 layer, const u32 level)
 {
-  const VKTexture* srcentry = static_cast<const VKTexture*>(src);
+  auto srcentry = static_cast<const VKTexture*>(src);
   DEBUG_ASSERT(m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
                m_config.height == srcentry->m_config.height && srcentry->m_config.samples > 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
@@ -767,9 +767,9 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
     std::tie(linear_image, linear_image_alloc) = CreateLinearImage(type, config);
   }
 
-  std::unique_ptr<StagingBuffer> staging_buffer =
+  auto staging_buffer =
       std::make_unique<StagingBuffer>(buffer_type, buffer, alloc, buffer_size, map_ptr);
-  std::unique_ptr<VKStagingTexture> staging_tex = std::make_unique<VKStagingTexture>(
+  auto staging_tex = std::make_unique<VKStagingTexture>(
       PrivateTag{}, type, config, std::move(staging_buffer), linear_image, linear_image_alloc);
 
   // Use persistent mapping.
@@ -835,7 +835,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, const u32 src_layer,
                                        const u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  const VKTexture* src_tex = static_cast<const VKTexture*>(src);
+  auto src_tex = static_cast<const VKTexture*>(src);
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
@@ -935,7 +935,7 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                                      const MathUtil::Rectangle<int>& dst_rect, const u32 dst_layer,
                                      const u32 dst_level)
 {
-  const VKTexture* dst_tex = static_cast<const VKTexture*>(dst);
+  auto dst_tex = static_cast<const VKTexture*>(dst);
   ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());

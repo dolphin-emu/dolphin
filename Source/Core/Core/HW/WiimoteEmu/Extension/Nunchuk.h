@@ -172,12 +172,12 @@ public:
   static constexpr u8 STICK_RADIUS = 0x7F;
   static constexpr u8 STICK_RANGE = 0xFF;
 
-  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
-  static constexpr const char* STICK_GROUP = _trans("Stick");
-  static constexpr const char* ACCELEROMETER_GROUP = "IMUAccelerometer";
+  static constexpr auto BUTTONS_GROUP = _trans("Buttons");
+  static constexpr auto STICK_GROUP = _trans("Stick");
+  static constexpr auto ACCELEROMETER_GROUP = "IMUAccelerometer";
 
-  static constexpr const char* C_BUTTON = "C";
-  static constexpr const char* Z_BUTTON = "Z";
+  static constexpr auto C_BUTTON = "C";
+  static constexpr auto Z_BUTTON = "Z";
 
 private:
   ControllerEmu::Tilt* m_tilt;

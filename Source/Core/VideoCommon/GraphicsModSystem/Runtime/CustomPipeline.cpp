@@ -308,7 +308,7 @@ void CustomPipeline::UpdatePixelData(
         }
         else
         {
-          AbstractTextureType texture_type = AbstractTextureType::Texture_2DArray;
+          auto texture_type = AbstractTextureType::Texture_2DArray;
           if (std::holds_alternative<VideoCommon::ShaderProperty::SamplerCube>(
                   shader_it->second.m_default))
           {

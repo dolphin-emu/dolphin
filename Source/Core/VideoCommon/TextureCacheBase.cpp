@@ -175,8 +175,8 @@ void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
 
 void TextureCacheBase::Cleanup(const int _frameCount)
 {
-  TexAddrCache::iterator iter = m_textures_by_address.begin();
-  const TexAddrCache::iterator tcend = m_textures_by_address.end();
+  auto iter = m_textures_by_address.begin();
+  const auto tcend = m_textures_by_address.end();
   while (iter != tcend)
   {
     if (iter->second->frameCount == FRAMECOUNT_INVALID)
@@ -213,8 +213,8 @@ void TextureCacheBase::Cleanup(const int _frameCount)
     }
   }
 
-  TexPool::iterator iter2 = m_texture_pool.begin();
-  const TexPool::iterator tcend2 = m_texture_pool.end();
+  auto iter2 = m_texture_pool.begin();
+  const auto tcend2 = m_texture_pool.end();
   while (iter2 != tcend2)
   {
     if (iter2->second.frameCount == FRAMECOUNT_INVALID)
@@ -1390,11 +1390,11 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   // For efb copies, the entry created in CopyRenderTargetToTexture always has to be used, or else
   // it was done in vain.
   auto [fst, snd] = m_textures_by_address.equal_range(texture_info.GetRawAddress());
-  TexAddrCache::iterator iter = fst;
-  TexAddrCache::iterator oldest_entry = iter;
+  auto iter = fst;
+  auto oldest_entry = iter;
   int temp_frameCount = 0x7fffffff;
-  TexAddrCache::iterator unconverted_copy = m_textures_by_address.end();
-  TexAddrCache::iterator unreinterpreted_copy = m_textures_by_address.end();
+  auto unconverted_copy = m_textures_by_address.end();
+  auto unreinterpreted_copy = m_textures_by_address.end();
 
   while (iter != snd)
   {
@@ -1532,7 +1532,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
           static_cast<u32>(textureCacheSafetyColorSampleSize) * 8)
   {
     auto [fst, snd] = m_textures_by_hash.equal_range(full_hash);
-    TexHashCache::iterator hash_iter = fst;
+    auto hash_iter = fst;
     while (hash_iter != snd)
     {
       RcTcacheEntry& entry = hash_iter->second;
@@ -1945,7 +1945,7 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(const u32 address, u32 width, u32 
 RcTcacheEntry TextureCacheBase::GetXFBFromCache(const u32 address, const u32 width, const u32 height, const u32 stride)
 {
   const auto [fst, snd] = m_textures_by_address.equal_range(address);
-  TexAddrCache::iterator iter = fst;
+  auto iter = fst;
 
   while (iter != snd)
   {
@@ -2694,7 +2694,7 @@ RcTcacheEntry TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
 std::optional<TextureCacheBase::TexPoolEntry>
 TextureCacheBase::AllocateTexture(const TextureConfig& config)
 {
-  const TexPool::iterator iter = FindMatchingTextureFromPool(config);
+  const auto iter = FindMatchingTextureFromPool(config);
   if (iter != m_texture_pool.end())
   {
     auto entry = std::move(iter->second);
@@ -2744,7 +2744,7 @@ TextureCacheBase::FindMatchingTextureFromPool(const TextureConfig& config)
 TextureCacheBase::TexAddrCache::iterator TextureCacheBase::GetTexCacheIter(const TCacheEntry* entry)
 {
   const auto [fst, snd] = m_textures_by_address.equal_range(entry->addr);
-  TexAddrCache::iterator iter = fst;
+  auto iter = fst;
   while (iter != snd)
   {
     if (iter->second.get() == entry)

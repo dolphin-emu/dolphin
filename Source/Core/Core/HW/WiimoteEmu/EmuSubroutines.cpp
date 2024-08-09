@@ -274,7 +274,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     return;
   }
 
-  ErrorCode error_code = ErrorCode::Success;
+  auto error_code = ErrorCode::Success;
 
   switch (static_cast<AddressSpace>(wd.space))
   {
@@ -454,7 +454,7 @@ bool Wiimote::ProcessReadDataRequest()
   // Pre-fill with zeros in case of read-error or read < 16-bytes:
   std::ranges::fill(data, 0x00);
 
-  ErrorCode error_code = ErrorCode::Success;
+  auto error_code = ErrorCode::Success;
 
   switch (m_read_request.space)
   {

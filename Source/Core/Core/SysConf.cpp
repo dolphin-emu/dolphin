@@ -82,7 +82,7 @@ bool SysConf::LoadFromFile(const IOS::HLE::FS::FileHandle& file)
     // Metadata
     u8 description = 0;
     file.Read(&description, 1);
-    const Entry::Type type = static_cast<Entry::Type>((description & 0xe0) >> 5);
+    const auto type = static_cast<Entry::Type>((description & 0xe0) >> 5);
     const u8 name_length = (description & 0x1f) + 1;
     std::string name(name_length, '\0');
     file.Read(&name[0], name.size());

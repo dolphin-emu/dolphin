@@ -39,7 +39,7 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
   memcpy(&m_dolheader, buffer.data(), sizeof(SDolHeader));
 
   // swap memory
-  u32* p = (u32*)&m_dolheader;
+  auto p = (u32*)&m_dolheader;
   for (size_t i = 0; i < (sizeof(SDolHeader) / sizeof(u32)); i++)
     p[i] = Common::swap32(p[i]);
 

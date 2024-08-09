@@ -210,7 +210,7 @@ void PixelEngineManager::RaiseEvent(const int cycles_into_future)
 
   m_event_raised = true;
 
-  CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
+  auto from = CoreTiming::FromThread::NON_CPU;
   s64 cycles = 0;  // we don't care about timings for dual core mode.
   if (!m_system.IsDualCoreMode() || m_system.GetFifo().UseDeterministicGPUThread())
   {

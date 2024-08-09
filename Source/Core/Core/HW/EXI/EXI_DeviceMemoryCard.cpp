@@ -58,7 +58,7 @@ static Common::EnumMap<char, MAX_MEMCARD_SLOT> s_card_short_names{'A', 'B'};
 void CEXIMemoryCard::EventCompleteFindInstance(const Core::System& system, u64 userdata,
                                                std::function<void(CEXIMemoryCard*)> callback)
 {
-  const Slot card_slot = static_cast<Slot>(userdata);
+  const auto card_slot = static_cast<Slot>(userdata);
   IEXIDevice* self = system.GetExpansionInterface().GetDevice(card_slot);
   if (self != nullptr)
   {

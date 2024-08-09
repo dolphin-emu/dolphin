@@ -371,7 +371,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(const GLuint id, const GLenum 
     info_log.resize(length);
     glGetShaderInfoLog(id, length, &length, &info_log[0]);
 
-    const char* prefix = "";
+    auto prefix = "";
     switch (type)
     {
     case GL_VERTEX_SHADER:
@@ -574,7 +574,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
     }
   }
 
-  std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
+  auto prog = std::make_unique<PipelineProgram>();
   prog->key = key;
   prog->shader.glprogid = glCreateProgram();
 
@@ -932,7 +932,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 {
-  GLContext* context = static_cast<GLContext*>(param);
+  auto context = static_cast<GLContext*>(param);
   if (!context->MakeCurrent())
     return false;
 
@@ -957,7 +957,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 
 void SharedContextAsyncShaderCompiler::WorkerThreadExit(void* param)
 {
-  GLContext* context = static_cast<GLContext*>(param);
+  auto context = static_cast<GLContext*>(param);
   context->ClearCurrent();
   delete context;
 }

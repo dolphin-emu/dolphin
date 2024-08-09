@@ -523,7 +523,7 @@ void GekkoIRPlugin::AddLiteral(u32 lit)
 void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
 {
   const u32 source_address = m_active_block->BlockEndAddress();
-  AssemblerError err_on_fail = AssemblerError{
+  auto err_on_fail = AssemblerError{
       fmt::format("Unresolved symbol '{}'", sym),
       m_owner->lexer.CurrentLine(),
       m_owner->lexer.LineNumber(),

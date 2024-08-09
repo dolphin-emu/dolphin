@@ -86,7 +86,7 @@ std::unique_ptr<OGLPipeline> OGLPipeline::Create(const AbstractPipelineConfig& c
   if (!program)
     return nullptr;
 
-  const GLVertexFormat* vertex_format = static_cast<const GLVertexFormat*>(config.vertex_format);
+  auto vertex_format = static_cast<const GLVertexFormat*>(config.vertex_format);
   GLenum gl_primitive = MapToGLPrimitive(config.rasterization_state.primitive);
   return std::make_unique<OGLPipeline>(config, vertex_format, config.rasterization_state,
                                        config.depth_state, config.blending_state, program,

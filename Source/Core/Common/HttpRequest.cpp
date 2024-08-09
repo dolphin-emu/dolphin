@@ -218,7 +218,7 @@ static size_t CurlWriteCallback(char* data, const size_t size, const size_t nmem
 static size_t header_callback(const char* buffer, const size_t size, const size_t nitems, void* userdata)
 {
   auto* headers = static_cast<HttpRequest::Headers*>(userdata);
-  std::string_view full_buffer = std::string_view{buffer, nitems};
+  auto full_buffer = std::string_view{buffer, nitems};
   const size_t colon_pos = full_buffer.find(':');
   if (colon_pos == std::string::npos)
     return nitems * size;

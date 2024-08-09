@@ -434,7 +434,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   gen.AddSetting("VIDEO", region_setting.video);
   gen.AddSetting("GAME", region_setting.game);
 
-  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  constexpr auto rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   const auto settings_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID,
                                                    settings_file_path, {rw_mode, rw_mode, rw_mode});
   if (!settings_file || !settings_file->Write(gen.GetBytes().data(), gen.GetBytes().size()))
@@ -513,7 +513,7 @@ static void WriteEmptyPlayRecord()
   CreateSystemMenuTitleDirs();
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/play_rec.dat";
   const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
-  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  constexpr auto rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   const auto playrec_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
                                                   {rw_mode, rw_mode, rw_mode});
   if (!playrec_file)

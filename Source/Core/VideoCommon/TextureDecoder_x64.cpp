@@ -720,7 +720,7 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
-        __m128i* dxtsrc = (__m128i*)(src + 8 * xStep);
+        auto dxtsrc = (__m128i*)(src + 8 * xStep);
         // Load 4x 16-bit colors: (0000 0000 hgfe dcba)
         // where hg, fe, ba, and dc are 16-bit colors in big-endian order
         const __m128i rgb565x4 = _mm_loadl_epi64(dxtsrc);
@@ -767,7 +767,7 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
             _mm_or_si128(_mm_or_si128(_mm_or_si128(r0, r1), _mm_or_si128(g0, g1)),
                          _mm_or_si128(_mm_or_si128(b0, b1), kAlpha));
 
-        __m128i* ptr = (__m128i*)(dst + (y + iy) * width + x);
+        auto ptr = (__m128i*)(dst + (y + iy) * width + x);
         _mm_storeu_si128(ptr, abgr888x4);
       }
     }
@@ -852,7 +852,7 @@ static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int widt
         else
         {
           // TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-          u32* vals = (u32*)&valV;
+          auto vals = (u32*)&valV;
           int r, g, b, a;
           for (int i = 0; i < 4; ++i)
           {
@@ -901,7 +901,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
       for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
       {
         u32* newdst = dst + (y + iy) * width + x;
-        const u16* newsrc = (const u16*)(src + 8 * xStep);
+        auto newsrc = (const u16*)(src + 8 * xStep);
 
         // TODO: weak point
         const u16 val0 = Common::swap16(newsrc[0]);
@@ -972,7 +972,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
         else
         {
           // TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-          u32* vals = (u32*)&valV;
+          auto vals = (u32*)&valV;
           int r, g, b, a;
           for (int i = 0; i < 4; ++i)
           {
@@ -1024,7 +1024,7 @@ static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, const int
       const __m128i rgba10 = _mm_shuffle_epi8(_mm_unpacklo_epi8(ar1, gb1), mask0312);
       const __m128i rgba11 = _mm_shuffle_epi8(_mm_unpackhi_epi8(ar1, gb1), mask0312);
 
-      __m128i* dst128 = (__m128i*)(dst + (y + 0) * width + x);
+      auto dst128 = (__m128i*)(dst + (y + 0) * width + x);
       _mm_storeu_si128(dst128, rgba00);
       dst128 = (__m128i*)(dst + (y + 1) * width + x);
       _mm_storeu_si128(dst128, rgba01);
@@ -1145,7 +1145,7 @@ static void TexDecoder_DecodeImpl_RGBA8(u32* dst, const u8* src, int width, int 
       rgba10 = _mm_or_si128(r__a10, _gb_10);
       rgba11 = _mm_or_si128(r__a11, _gb_11);
       // Write em out!
-      __m128i* dst128 = (__m128i*)(dst + (y + 0) * width + x);
+      auto dst128 = (__m128i*)(dst + (y + 0) * width + x);
       _mm_storeu_si128(dst128, rgba00);
       dst128 = (__m128i*)(dst + (y + 1) * width + x);
       _mm_storeu_si128(dst128, rgba01);

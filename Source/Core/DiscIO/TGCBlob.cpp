@@ -37,7 +37,7 @@ void Replace(const u64 offset, const u64 size, u8* out_ptr, const u64 replace_of
 {
   static_assert(std::is_trivially_copyable_v<T>);
 
-  const u8* replace_ptr = reinterpret_cast<const u8*>(&replace_value);
+  auto replace_ptr = reinterpret_cast<const u8*>(&replace_value);
   Replace(offset, size, out_ptr, replace_offset, sizeof(T), replace_ptr);
 }
 }  // namespace

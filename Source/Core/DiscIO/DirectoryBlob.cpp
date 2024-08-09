@@ -170,7 +170,7 @@ u64 DiscContentContainer::CheckSizeAndAdd(const u64 offset, const u64 max_size, 
 bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer, DirectoryBlobReader* blob) const
 {
   // Determine which DiscContent the offset refers to
-  std::set<DiscContent>::const_iterator it = m_contents.upper_bound(DiscContent(offset));
+  auto it = m_contents.upper_bound(DiscContent(offset));
 
   while (it != m_contents.end() && length > 0)
   {
@@ -245,8 +245,8 @@ static bool PathEndsWith(const std::string& path, const std::string& suffix)
   if (suffix.size() > path.size())
     return false;
 
-  std::string::const_iterator path_iterator = path.cend() - suffix.size();
-  std::string::const_iterator suffix_iterator = suffix.cbegin();
+  auto path_iterator = path.cend() - suffix.size();
+  auto suffix_iterator = suffix.cbegin();
   while (path_iterator != path.cend())
   {
     if (!PathCharactersEqual(*path_iterator, *suffix_iterator))
@@ -271,7 +271,7 @@ static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* parti
     return false;
 
 #ifdef _WIN32
-  constexpr const char* dir_separator = "/\\";
+  constexpr auto dir_separator = "/\\";
 #else
   constexpr char dir_separator = '/';
 #endif

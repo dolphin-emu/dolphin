@@ -131,7 +131,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
 std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
                                              bool vsync)
 {
-  std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
+  auto swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
   if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
     return nullptr;
 
@@ -429,7 +429,7 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
-  const TextureConfig texture_config(
+  const auto texture_config(
       TextureConfig(m_width, m_height, 1, m_layers, 1, m_texture_format,
                     AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray));
   const VkRenderPass load_render_pass = g_object_cache->GetRenderPass(

@@ -171,7 +171,7 @@ size_t SignedBlobReader::GetSignatureSize() const
 template <typename T>
 static std::string DetailGetIssuer(const u8* bytes)
 {
-  const char* issuer = reinterpret_cast<const char*>(bytes + offsetof(T, issuer));
+  auto issuer = reinterpret_cast<const char*>(bytes + offsetof(T, issuer));
   return {issuer, strnlen(issuer, sizeof(T::issuer))};
 }
 
@@ -284,7 +284,7 @@ DiscIO::Region TMDReader::GetRegion() const
   if (GetTitleId() == Titles::SYSTEM_MENU)
     return DiscIO::GetSysMenuRegion(GetTitleVersion());
 
-  const DiscIO::Region region =
+  const auto region =
       static_cast<DiscIO::Region>(Common::swap16(m_bytes.data() + offsetof(TMDHeader, region)));
 
   return region <= DiscIO::Region::NTSC_K ? region : DiscIO::Region::Unknown;
@@ -752,8 +752,8 @@ u32 CertReader::GetId() const
 
 std::string CertReader::GetName() const
 {
-  const char* name = reinterpret_cast<const char*>(m_bytes.data() + GetSignatureSize() +
-                                                   offsetof(CertHeader, name));
+  auto name = reinterpret_cast<const char*>(m_bytes.data() + GetSignatureSize() +
+                                            offsetof(CertHeader, name));
   return std::string(name, strnlen(name, sizeof(CertHeader::name)));
 }
 

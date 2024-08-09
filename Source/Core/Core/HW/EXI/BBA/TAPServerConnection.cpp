@@ -66,7 +66,7 @@ static int ConnectToDestination(const std::string& destination)
       return -1;
     }
 
-    sockaddr_in* sin = reinterpret_cast<sockaddr_in*>(&ss);
+    auto sin = reinterpret_cast<sockaddr_in*>(&ss);
     const sf::IpAddress dest_ip(destination.substr(0, colon_offset));
     if (dest_ip == sf::IpAddress::None || dest_ip == sf::IpAddress::Any)
     {
@@ -247,7 +247,7 @@ void TAPServerConnection::ReadThreadHandler() const
     DATA,
     SKIP,
   };
-  ReadState read_state = ReadState::SIZE;
+  auto read_state = ReadState::SIZE;
 
   std::size_t frame_bytes_received = 0;
   std::size_t frame_bytes_expected = 0;
