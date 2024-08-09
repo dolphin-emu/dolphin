@@ -27,9 +27,12 @@ import org.dolphinemu.dolphinemu.features.input.model.InputOverrider
 import org.dolphinemu.dolphinemu.features.input.model.InputOverrider.ControlId
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForSIDevice
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting.Companion.getSettingForWiimoteSource
+import org.dolphinemu.dolphinemu.utils.HapticEffect
+import org.dolphinemu.dolphinemu.utils.HapticsProvider
 import java.util.Arrays
 
 /**
@@ -41,6 +44,7 @@ import java.util.Arrays
  */
 class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(context, attrs),
     OnTouchListener {
+    private val hapticsProvider: HapticsProvider = HapticsProvider()
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
@@ -51,6 +55,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
     private var isFirstRun = true
     private val gcPadRegistered = BooleanArray(4)
     private val wiimoteRegistered = BooleanArray(4)
+    private val dpadPreviouslyPressed = BooleanArray(4)
     var editMode = false
     private var controllerType = -1
     private var controllerIndex = 0
@@ -140,6 +145,9 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
         val firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
                 action != MotionEvent.ACTION_POINTER_UP
         val pointerIndex = if (firstPointer) 0 else event.actionIndex
+        val hapticsScale = FloatSetting.MAIN_OVERLAY_HAPTICS_SCALE.float
+        val pressFeedback = BooleanSetting.MAIN_OVERLAY_HAPTICS_PRESS.boolean
+        val releaseFeedback = BooleanSetting.MAIN_OVERLAY_HAPTICS_RELEASE.boolean
         // Tracks if any button/joystick is pressed down
         var pressed = false
 
@@ -154,7 +162,17 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             event.getY(pointerIndex).toInt()
                         )
                     ) {
-                        button.setPressedState(if (button.latching) !button.getPressedState() else true)
+                        if (button.latching && button.getPressedState()) {
+                            button.setPressedState(false)
+                            if (releaseFeedback) hapticsProvider.provideFeedback(
+                                HapticEffect.QUICK_RISE, hapticsScale
+                            )
+                        } else {
+                            button.setPressedState(true)
+                            if (pressFeedback) hapticsProvider.provideFeedback(
+                                HapticEffect.QUICK_FALL, hapticsScale
+                            )
+                        }
                         button.trackId = event.getPointerId(pointerIndex)
                         pressed = true
                         InputOverrider.setControlState(controllerIndex, button.control, if (button.getPressedState()) 1.0 else 0.0)
@@ -173,8 +191,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                 MotionEvent.ACTION_POINTER_UP -> {
                     // If a pointer ends, release the button it was pressing.
                     if (button.trackId == event.getPointerId(pointerIndex)) {
-                        if (!button.latching)
+                        if (!button.latching) {
                             button.setPressedState(false)
+                            if (releaseFeedback) hapticsProvider.provideFeedback(
+                                HapticEffect.QUICK_RISE, hapticsScale
+                            )
+                        }
                         InputOverrider.setControlState(controllerIndex, button.control, if (button.getPressedState()) 1.0 else 0.0)
 
                         val analogControl = getAnalogControlForTrigger(button.control)
@@ -205,6 +227,9 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     ) {
                         dpad.trackId = event.getPointerId(pointerIndex)
                         pressed = true
+                        if (pressFeedback) hapticsProvider.provideFeedback(
+                            HapticEffect.QUICK_FALL, hapticsScale
+                        )
                     }
                 }
             }
@@ -227,18 +252,29 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         // Release the buttons first, then press
                         for (i in dpadPressed.indices) {
                             if (!dpadPressed[i]) {
+                                if (dpadPreviouslyPressed[i] && releaseFeedback) {
+                                    hapticsProvider.provideFeedback(
+                                        HapticEffect.QUICK_RISE, hapticsScale
+                                    )
+                                }
                                 InputOverrider.setControlState(
                                     controllerIndex,
                                     dpad.getControl(i),
                                     0.0
                                 )
                             } else {
+                                if (!dpadPreviouslyPressed[i] && pressFeedback) {
+                                    hapticsProvider.provideFeedback(
+                                        HapticEffect.QUICK_FALL, hapticsScale
+                                    )
+                                }
                                 InputOverrider.setControlState(
                                     controllerIndex,
                                     dpad.getControl(i),
                                     1.0
                                 )
                             }
+                            dpadPreviouslyPressed[i] = dpadPressed[i]
                         }
                         setDpadState(
                             dpad,
@@ -256,6 +292,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                     if (dpad.trackId == event.getPointerId(pointerIndex)) {
                         for (i in 0 until 4) {
                             dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT)
+                            if (dpadPreviouslyPressed[i]) {
+                                dpadPreviouslyPressed[i] = false
+                                if (releaseFeedback) hapticsProvider.provideFeedback(
+                                    HapticEffect.QUICK_RISE, hapticsScale
+                                )
+                            }
                             InputOverrider.setControlState(
                                 controllerIndex,
                                 dpad.getControl(i),
@@ -1349,7 +1391,8 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
             legacyId,
             xControl,
             yControl,
-            controllerIndex
+            controllerIndex,
+            hapticsProvider
         )
 
         // Need to set the image's position
